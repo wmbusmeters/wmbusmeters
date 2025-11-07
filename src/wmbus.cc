@@ -285,6 +285,10 @@ void Telegram::print()
     {
         notice("                device: %s\n", about.device.c_str());
         notice("                  rssi: %d dBm\n", about.rssi_dbm);
+        if (about.link_mode != LinkMode::UNKNOWN)
+        {
+            notice("             link mode: %s\n", toString(about.link_mode));
+        }
     }
     string possible_drivers = autoDetectPossibleDrivers();
     notice("                driver: %s\n", possible_drivers.c_str());

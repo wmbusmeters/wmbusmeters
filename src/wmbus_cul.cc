@@ -281,7 +281,7 @@ void WMBusCUL::processSerialData()
         {
             read_buffer_.erase(read_buffer_.begin(), read_buffer_.begin()+frame_length);
 
-            AboutTelegram about("cul", rssi_dbm, FrameType::WMBUS);
+            AboutTelegram about("cul", rssi_dbm, LinkMode::UNKNOWN, FrameType::WMBUS);
             handleTelegram(about, payload);
         }
     }

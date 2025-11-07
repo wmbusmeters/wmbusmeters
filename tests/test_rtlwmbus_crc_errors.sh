@@ -16,6 +16,7 @@ Received telegram from: 03727567
                    ver: 0x94
                 device: rtlwmbus[]
                   rssi: 94 dBm
+             link mode: c1
                 driver: fhkvdataiv
 EOF
 

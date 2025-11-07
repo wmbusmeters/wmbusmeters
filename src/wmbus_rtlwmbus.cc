@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2019-2021 Fredrik Öhrström (gpl-3.0-or-later)
+ Copyright (C) 2019-2025 Fredrik Öhrström (gpl-3.0-or-later)
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -79,6 +79,7 @@ private:
                                    int *hex_payload_len_out,
                                    int *hex_payload_offset,
                                    double *rssi,
+				   LinkMode *lm,
                                    struct tm *timestamp);
     void handleMessage(vector<uchar> &frame);
 
@@ -265,7 +266,8 @@ void WMBusRTLWMBUS::processSerialData()
     for (;;)
     {
         double rssi = 0;
-        FrameStatus status = checkRTLWMBUSFrame(read_buffer_, &frame_length, &hex_payload_len, &hex_payload_offset, &rssi, &timestamp);
+	LinkMode link_mode = LinkMode::UNKNOWN;
+        FrameStatus status = checkRTLWMBUSFrame(read_buffer_, &frame_length, &hex_payload_len, &hex_payload_offset, &rssi, &link_mode, &timestamp);
 
         if (status == PartialFrame)
         {
@@ -331,7 +333,7 @@ void WMBusRTLWMBUS::processSerialData()
             }
 
             string id = string("rtlwmbus[")+getDeviceId()+"]";
-            AboutTelegram about(id, rssi, FrameType::WMBUS, timestamp.tm_mday ? timegm(&timestamp) : 0);
+            AboutTelegram about(id, rssi, link_mode, FrameType::WMBUS, timestamp.tm_mday ? timegm(&timestamp) : 0);
             handleTelegram(about, payload);
         }
         else
@@ -346,6 +348,7 @@ FrameStatus WMBusRTLWMBUS::checkRTLWMBUSFrame(vector<uchar> &data,
                                               int *hex_payload_len_out,
                                               int *hex_payload_offset,
                                               double *rssi,
+					      LinkMode *link_mode,
                                               struct tm *timestamp)
 {
     // C1;1;1;2019-02-09 07:14:18.000;117;102;94740459;0x49449344590474943508780dff5f3500827f0000f10007b06effff530100005f2c620100007f2118010000008000800080008000000000000000000e003f005500d4ff2f046d10086922
@@ -389,10 +392,13 @@ FrameStatus WMBusRTLWMBUS::checkRTLWMBUSFrame(vector<uchar> &data,
             !(data[0] == 'C' && data[1] == '1') &&
             !(data[0] == 'S' && data[1] == '1'))
         {
-
             debug("(rtlwmbus) only text\n");
             return TextAndNotFrame;
         }
+
+	if (data[0] == 'T') *link_mode = LinkMode::T1;
+	else if (data[0] == 'S') *link_mode = LinkMode::S1;
+	else if (data[0] == 'C') *link_mode = LinkMode::C1;
 
         // And the checksums should match.
         if (strncmp((const char*)&data[1], "1;1", 3))
