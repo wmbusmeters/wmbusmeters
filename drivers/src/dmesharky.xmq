@@ -30,7 +30,6 @@ driver {
         use = on_time_h
         use = on_time_at_error_h
         use = flow_return_temperature_difference_c
-        use = 'target_date|(14/348/Date and Time logged)'
     }
     fields {
         field {
@@ -328,6 +327,16 @@ driver {
             }
         }
         field {
+            name     = 'total_volume_tariff{tariff_counter}'
+            quantity = Volume
+            info     = 'The total volume recorded for each tariff.'
+            match {
+                measurement_type = Any
+                vif_range        = Volume
+                tariff_nr        = 2,15
+            }
+        }
+        field {
             name     = 'total_volume_subunit{subunit_counter}'
             quantity = Volume
             info     = 'The volume recorded for a subunit of the meter.'
@@ -396,9 +405,31 @@ driver {
             quantity = Energy
             info     = 'The energy consumption recorded at the billing set date (storage #1).'
             match {
-                measurement_type = Instantaneous
+                measurement_type = Any
                 vif_range        = AnyEnergyVIF
                 storage_nr       = 1
+            }
+        }
+        field {
+            name     = target_cooling_consumption
+            quantity = Energy
+            info     = 'The cooling energy (tariff 1) recorded at the billing set date (storage #1).'
+            match {
+                measurement_type = Any
+                vif_range        = AnyEnergyVIF
+                storage_nr       = 1
+                tariff_nr        = 1
+            }
+        }
+        field {
+            name     = 'target_energy_tariff{tariff_counter}'
+            quantity = Energy
+            info     = 'The energy recorded per tariff at the billing set date (storage #1).'
+            match {
+                measurement_type = Any
+                vif_range        = AnyEnergyVIF
+                storage_nr       = 1
+                tariff_nr        = 2,15
             }
         }
         field {
@@ -406,8 +437,19 @@ driver {
             quantity = Volume
             info     = 'The volume recorded at the billing set date (storage #1).'
             match {
-                measurement_type = Instantaneous
+                measurement_type = Any
                 vif_range        = Volume
+                storage_nr       = 1
+            }
+        }
+        field {
+            name         = target_date
+            quantity     = PointInTime
+            info         = 'The reporting date of the last billing snapshot (storage #1).'
+            display_unit = date
+            match {
+                measurement_type = Any
+                vif_range        = Date
                 storage_nr       = 1
             }
         }
@@ -420,6 +462,17 @@ driver {
                 vif_range        = Volume
                 storage_nr       = 1
                 subunit_nr       = 1,4
+            }
+        }
+        field {
+            name     = 'target_volume_tariff{tariff_counter}'
+            quantity = Volume
+            info     = 'The volume recorded per tariff at the billing set date (storage #1).'
+            match {
+                measurement_type = Any
+                vif_range        = Volume
+                storage_nr       = 1
+                tariff_nr        = 2,15
             }
         }
         field {
