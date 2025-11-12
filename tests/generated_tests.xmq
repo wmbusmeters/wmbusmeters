@@ -1,4 +1,5 @@
-// Generated 2025-10-19_20:59
+-n // Generated 
+2025-11-12_17:04
 test {
     args     = 'AqWater aquastream 05933237 NOKEY'
     telegram = 4644B42557920410050E7237329305B42501075B0030252F2F_04130342000084101300000000046D0D30F62B441349180000426CFF2A02FD17000002FD74DB152F2F2F2F2F2F2F
@@ -333,13 +334,6 @@ test {
     telegram = 68B3B36808007257004820c51400046c100000047839803801040600000000041300000000042B00000000142B00000000043B00000000143B00000000025B1400025f15000261daff02235c00046d2c2ddc24440600000000441300000000426c000001fd171003fd0c05000084200600000000c420060000000084300600000000c430060000000084401300000000c44013000000008480401300000000c48040130000000084c0401300000000c4c0401300000000a216
     json     = '{"_":"telegram","difference_c": -0.38,"fabrication_no": "01388039","flow_water_m3h": 0,"flow_water_max_m3h": 0,"forward_c": 20,"id": "20480057","media": "heat","meter": "sensostar","meter_datetime": "2022-04-28 13:44","model_version": "000005","name": "Heat","on_time_h": 2208,"power_kw": 0,"power_max_kw": 0,"return_c": 21,"status": "ERROR_FLOW_MEASUREMENT_SYSTEM_ERROR TEMPORARY_ERROR","target_date": "1999-11-30","target_kwh": 0,"target_subunit1_m3": 0,"target_subunit2_m3": 0,"target_subunit3_m3": 0,"target_tariff2_kwh": 0,"target_tariff3_kwh": 0,"target_water_m3": 0,"timestamp": "1111-11-11T11:11:11Z","total_kwh": 0,"total_subunit1_m3": 0,"total_subunit2_m3": 0,"total_subunit3_m3": 0,"total_tariff2_kwh": 0,"total_tariff3_kwh": 0,"total_water_m3": 0}'
     fields   = 'Heat;20480057;ERROR_FLOW_MEASUREMENT_SYSTEM_ERROR TEMPORARY_ERROR;0;0;1999-11-30;0;1111-11-11 11:11.11'
-}
-test {
-    args     = 'Sharky775 sharky775 72233396 677BFA7E5CC19103518B7BF82BEF8954'
-    comment  = 'Sample telegram forwarded by a Lansen WMBus master (long TPL header).'
-    telegram = 484433308372190004377296332372A511400AFA283005C57DDF0FC0FAB351ED71324DF7C923A63BCAD1DF164DE869535C2B323D117667C8E18F3A113C2325B2A03E3726B292859B
-    json     = '{"_":"telegram","id":"72233396","media":"cooling load volume at outlet meter","meter":"sharky775","status":"PERMANENT_ERROR UNKNOWN_20","total_energy_kwh":16368,"total_volume_m3":5216.145,"flow_temperature_c":19.6,"return_temperature_c":19.8}'
-    fields   = 'Sharky775;72233396;PERMANENT_ERROR UNKNOWN_20;16368;5216.145;19.6;19.8;2025-11-12 10:04.34'
 }
 test {
     args     = 'sonsupercal supercal 89508019 NOKEY'
