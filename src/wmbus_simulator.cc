@@ -194,34 +194,33 @@ void WMBusSimulator::simulate()
         if (is_mbus)
         {
             debug("(simulator) is mbus telegram.\n");
-            
-            // Check if this is an MBus/WMBus hybrid frame (starts with 68 and contains 5e or 4e later)
-            if (payload.size() > 4 && payload[0] == 0x68 && payload[3] == 0x68)
-            {
-                // Look for the WMBus application layer data starting with 5e44 or 4e44
-                size_t wmbus_start = 0;
-                for (size_t i = 4; i < payload.size() - 10; i++)
-                {
-                    if ((payload[i] == 0x5e && payload[i+1] == 0x44) || 
-                        (payload[i] == 0x4e && payload[i+1] == 0x44))
-                    {
-                        wmbus_start = i;
-                        break;
-                    }
-                }
-                
-                if (wmbus_start > 0)
-                {
-                    debug("(simulator) detected MBus/WMBus hybrid frame, extracting WMBus data from offset %zu\n", wmbus_start);
-                    // Extract only the WMBus application layer data and treat as WMBus
-                    vector<uchar> wmbus_payload(payload.begin() + wmbus_start, payload.end());
-                    AboutTelegram about("", 0, FrameType::WMBUS);
-                    handleTelegram(about, wmbus_payload);
-                    continue; // Skip the normal MBus processing
-                }
-            }
-            
-            AboutTelegram about("", 0, FrameType::MBUS);
+// Check if this is an MBus/WMBus hybrid frame (starts with 68 and contains 5e or 4e later)
+if (payload.size() > 4 && payload[0] == 0x68 && payload[3] == 0x68)
+{
+    // Look for the WMBus application layer data starting with 5e44 or 4e44
+    size_t wmbus_start = 0;
+    for (size_t i = 4; i < payload.size() - 10; i++)
+    {
+        if ((payload[i] == 0x5e && payload[i+1] == 0x44) || 
+            (payload[i] == 0x4e && payload[i+1] == 0x44))
+        {
+            wmbus_start = i;
+            break;
+        }
+    }
+    
+    if (wmbus_start > 0)
+    {
+        debug("(simulator) detected MBus/WMBus hybrid frame, extracting WMBus data from offset %zu\n", wmbus_start);
+        // Extract only the WMBus application layer data and treat as WMBus
+        vector<uchar> wmbus_payload(payload.begin() + wmbus_start, payload.end());
+        AboutTelegram about("", 0, LinkMode::UNKNOWN, FrameType::WMBUS);
+        handleTelegram(about, wmbus_payload);
+        continue; // Skip the normal MBus processing
+    }
+}
+
+AboutTelegram about("", 0, LinkMode::UNKNOWN, FrameType::MBUS);
             // Remove two bytes, which are the checksum and end of telegram marker (0x16).
             while (((size_t)payload_len) < payload.size()) payload.pop_back();
             handleTelegram(about, payload);
@@ -230,8 +229,8 @@ void WMBusSimulator::simulate()
         if (is_wmbus)
         {
             debug("(simulator) is wmbus telegram.\n");
-            AboutTelegram about("", 0, FrameType::WMBUS);
-            
+            AboutTelegram about("", 0, LinkMode::UNKNOWN, FrameType::WMBUS);
+
             // Check if this is an MBus/WMBus hybrid frame (starts with 68 and contains 5e or 4e later)
             if (payload.size() > 4 && payload[0] == 0x68 && payload[3] == 0x68)
             {
@@ -246,7 +245,7 @@ void WMBusSimulator::simulate()
                         break;
                     }
                 }
-                
+
                 if (wmbus_start > 0)
                 {
                     debug("(simulator) detected MBus/WMBus hybrid frame, extracting WMBus data from offset %zu\n", wmbus_start);
@@ -254,16 +253,16 @@ void WMBusSimulator::simulate()
                     vector<uchar> wmbus_payload(payload.begin() + wmbus_start, payload.end());
                     payload = wmbus_payload;
                 }
+            } else {
+        // Since this is a simulation, try to remove any frame format A or B
+            // data link layer crcs. These might remain if we have received the telegram
+            // to be simulated, from a CUL device or some other devices that does not remove the crcs.
+            // Normally the dongle (im871a/amb8465/rc1180/rtlwmbus/rtl443) removes the dll-crcs.
+            // Removing dll-crcs are also done explicitly in the wmbus_cul.cc driver.
+            removeAnyDLLCRCs(payload);
             }
-            else
-            {
-                // Since this is a simulation, try to remove any frame format A or B
-                // data link layer crcs. These might remain if we have received the telegram
-                // to be simulated, from a CUL device or some other devices that does not remove the crcs.
-                // Normally the dongle (im871a/amb8465/rc1180/rtlwmbus/rtl443) removes the dll-crcs.
-                // Removing dll-crcs are also done explicitly in the wmbus_cul.cc driver.
-                removeAnyDLLCRCs(payload);
-            }
+
+    
 
             handleTelegram(about, payload);
         }
