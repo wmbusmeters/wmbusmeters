@@ -4902,9 +4902,9 @@ FrameStatus checkWMBusFrame(vector<uchar> &data,
             payload_len = data.size() - offset;
             *payload_len_out = payload_len;
             *frame_length = payload_len+offset;
-            warning("(wmbus) not enough bytes, frame length byte changed from %d(%02x) to %d(%02x)!\n",
-                    data[offset-1], data[offset-1],
-                    payload_len, payload_len);
+            // warning("(wmbus) not enough bytes, frame length byte changed from %d(%02x) to %d(%02x)!\n",
+            //         data[offset-1], data[offset-1],
+            //         payload_len, payload_len);
             data[offset-1] = payload_len;
 
             return FullFrame;

@@ -1,10 +1,16 @@
 -n // Generated 
-2025-11-12_17:04
+2025-11-12_17:40
 test {
     args     = 'AqWater aquastream 05933237 NOKEY'
     telegram = 4644B42557920410050E7237329305B42501075B0030252F2F_04130342000084101300000000046D0D30F62B441349180000426CFF2A02FD17000002FD74DB152F2F2F2F2F2F2F
     json     = '{"_":"telegram","id": "05933237","media": "water","meter": "aquastream","meter_datetime": "2023-11-22 16:13","name": "AqWater","status": "OK","target_date": "2023-10-31","target_m3": 6.217,"timestamp": "1111-11-11T11:11:11Z","total_m3": 16.899,"total_tariff1_m3": 0,"battery_y": 15.328767}'
     fields   = 'AqWater;05933237;16.899;1111-11-11 11:11.11'
+}
+test {
+    args     = 'Heato dme_sharky 72233396 677BFA7E5CC19103518B7BF82BEF8954'
+    telegram = 484433308372190004377296332372A511400AFA283005C57DDF0FC0FAB351ED71324DF7C923A63BCAD1DF164DE869535C2B323D117667C8E18F3A113C2325B2A03E3726B292859B
+    json     = '{"_":"telegram","id":"72233396","media":"cooling load volume at outlet","meter":"dme_sharky","name":"Heato","status":"PERMANENT_ERROR UNKNOWN_20","timestamp":"2025-11-12T11:52:25Z","t1_temperature_c":19.6,"t2_temperature_c":19.8,"total_energy_consumption_kwh":16368,"total_volume_m3":5216.145}'
+    fields   = 'Heato;72233396;16368;5216.145;PERMANENT_ERROR UNKNOWN_20;2025-11-12 11:52.25'
 }
 test {
     args     = 'Heato elf2 24271170 ACA5769E7902B8A770A7118C11D5F0F6'
