@@ -24,7 +24,7 @@ namespace
         Driver(MeterInfo &mi, DriverInfo &di);
     };
 
-    static bool ok = registerDriver([](DriverInfo&di)
+    static bool ok = staticRegisterDriver([](DriverInfo&di)
 
     {
         di.setName("mkradio4a");
@@ -32,8 +32,8 @@ namespace
         di.setMeterType(MeterType::WaterMeter);
         di.addLinkMode(LinkMode::T1);
         di.addLinkMode(LinkMode::C1);
-        di.addDetection(MANUFACTURER_HYD, 0x06,  0xfe);
-        di.addDetection(MANUFACTURER_TCH, 0x37,  0x95);
+        di.addMVT(MANUFACTURER_HYD, 0x06,  0xfe);
+        di.addMVT(MANUFACTURER_TCH, 0x37,  0x95);
         di.setConstructor([](MeterInfo& mi, DriverInfo& di){ return shared_ptr<Meter>(new Driver(mi, di)); });
     });
 

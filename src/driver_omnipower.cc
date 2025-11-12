@@ -44,7 +44,7 @@ namespace
         Driver(MeterInfo &mi, DriverInfo &di);
     };
 
-    static bool ok = registerDriver([](DriverInfo&di)
+    static bool ok = staticRegisterDriver([](DriverInfo&di)
     {
         di.setName("omnipower");
         di.setDefaultFields("name,id,total_energy_consumption_kwh,total_energy_production_kwh,"
@@ -52,7 +52,7 @@ namespace
         di.setMeterType(MeterType::ElectricityMeter);
         di.addLinkMode(LinkMode::C1);
 
-        di.addDetection(MANUFACTURER_KAM, 0x02,  0x30);
+        di.addMVT(MANUFACTURER_KAM, 0x02,  0x30);
 
         di.setConstructor([](MeterInfo& mi, DriverInfo& di){ return shared_ptr<Meter>(new Driver(mi, di)); });
     });

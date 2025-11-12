@@ -24,14 +24,14 @@ namespace
         Driver(MeterInfo &mi, DriverInfo &di);
     };
 
-    static bool ok = registerDriver([](DriverInfo&di)
+    static bool ok = staticRegisterDriver([](DriverInfo&di)
     {
         di.setName("sontex868");
         di.setDefaultFields("name,id,current_consumption_hca,set_date,consumption_at_set_date_hca,timestamp");
 
         di.setMeterType(MeterType::HeatCostAllocationMeter);
         di.addLinkMode(LinkMode::T1);
-        di.addDetection(MANUFACTURER_SON, 0x08,  0x16);
+        di.addMVT(MANUFACTURER_SON, 0x08,  0x16);
 
         di.setConstructor([](MeterInfo& mi, DriverInfo& di){ return shared_ptr<Meter>(new Driver(mi, di)); });
     });

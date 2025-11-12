@@ -772,18 +772,6 @@ shared_ptr<Configuration> loadConfiguration(string root, ConfigOverrides overrid
         }
     }
 
-    vector<string> meters;
-    listFiles(conf_meter_dir, &meters);
-
-    for (auto& f : meters)
-    {
-        vector<char> meter_conf;
-        string file = conf_meter_dir+"/"+f;
-        loadFile(file.c_str(), &meter_conf);
-        meter_conf.push_back('\n');
-        parseMeterConfig(c, meter_conf, file);
-    }
-
     if (overrides.device_override != "")
     {
         // There is an override, therefore we
@@ -799,6 +787,7 @@ shared_ptr<Configuration> loadConfiguration(string root, ConfigOverrides overrid
         debug("(config) overriding device with \"%s\"\n", overrides.device_override.c_str());
         handleDeviceOrHex(c, overrides.device_override);
     }
+
     if (overrides.listento_override != "")
     {
         debug("(config) overriding listento with \"%s\"\n", overrides.listento_override.c_str());
@@ -830,6 +819,20 @@ shared_ptr<Configuration> loadConfiguration(string root, ConfigOverrides overrid
     }
 
     loadDriversFromDir(conf_drivers_dir);
+
+    // Load meters AFTER the drivers have been loaded. That is better...
+
+    vector<string> meters;
+    listFiles(conf_meter_dir, &meters);
+
+    for (auto& f : meters)
+    {
+        vector<char> meter_conf;
+        string file = conf_meter_dir+"/"+f;
+        loadFile(file.c_str(), &meter_conf);
+        meter_conf.push_back('\n');
+        parseMeterConfig(c, meter_conf, file);
+    }
 
     return shared_ptr<Configuration>(c);
 }

@@ -23,6 +23,7 @@
 #include<string.h>
 
 string check_driver_name(const char *name, string file);
+string check_aliases(const char *aliases, string file);
 MeterType check_meter_type(const char *meter_type_s, string file);
 string check_default_fields(const char *fields, string file);
 void check_detection_triplets(DriverInfo *di, string file);
@@ -97,6 +98,9 @@ bool DriverDynamic::load(DriverInfo *di, const string &file_name, const char *co
     {
         string name = check_driver_name(xmqGetString(doc, "/driver/name"), file);
         di->setName(name);
+
+        string aliases = check_aliases(xmqGetString(doc, "/driver/aliases"), file);
+        di->setAliases(aliases);
 
         MeterType meter_type = check_meter_type(xmqGetString(doc, "/driver/meter_type"), file);
         di->setMeterType(meter_type);
@@ -242,13 +246,14 @@ XMQProceed DriverDynamic::add_detect(XMQDoc *doc, XMQNode *detect, DriverInfo *d
     }
 
     string mfct_flag = manufacturerFlag(mfct_code);
-    debug("(driver) register detection %s %s %2x %02x\n",
+    debug("(driver) %s register detection from \"%s\" mvt=%s,%02x,%02x\n",
+          di->name().str().c_str(),
           di->getDynamicFileName().c_str(),
           mfct_flag.c_str(),
           version,
           type);
 
-    di->addDetection(mfct_code, type, version);
+    di->addMVT(mfct_code, type, version);
     return XMQ_CONTINUE;
 }
 
@@ -530,6 +535,16 @@ MeterType check_meter_type(const char *meter_type_s, string file)
     return meter_type;
 }
 
+string check_aliases(const char *aliases, string file)
+{
+    if (!aliases)
+    {
+        return "";
+    }
+
+    return aliases;
+}
+
 string check_default_fields(const char *default_fields, string file)
 {
     if (!default_fields)
@@ -550,7 +565,7 @@ string check_default_fields(const char *default_fields, string file)
 
 void check_detection_triplets(DriverInfo *di, string file)
 {
-    if (di->detect().size() == 0)
+    if (di->mvts().size() == 0)
     {
         warning("(driver) error in %s, cannot find any detection triplets: driver/detect/mvt\n"
                 "%s\n"
@@ -585,16 +600,20 @@ string check_field_name(const char *name, DriverDynamic *dd)
     Unit u;
     if (extractUnit(string(name), &vname, &u))
     {
-        warning("(driver) error in %s, bad field name %s (field names should not have units)\n"
-                "%s\n"
-                "The field name should not have a unit since units are added automatically.\n"
-                "Either indirectly based on the quantity or directly based on the display_unit.\n"
-                "%s\n",
-                dd->fileName().c_str(),
-                name,
-                line,
-                line);
-        throw 1;
+        // Special exception to allow operating_time_h
+        Quantity q = toQuantity(u);
+        if (q != Quantity::PointInTime)
+        {
+            warning("(driver) error in %s, bad field name %s (field names should not have units)\n"
+                    "%s\n"
+                    "The field name should not have a unit since units are added automatically.\n"
+                    "Either indirectly based on the quantity or directly based on the display_unit.\n"
+                    "%s\n",
+                    dd->fileName().c_str(),
+                    name,
+                    line,
+                    line);
+        }
     }
 
     return name;

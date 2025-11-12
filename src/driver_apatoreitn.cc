@@ -28,7 +28,7 @@ namespace
         string dateToString(uchar date_lo, uchar date_hi);
     };
 
-    static bool ok = registerDriver([](DriverInfo&di)
+    static bool ok = staticRegisterDriver([](DriverInfo&di)
     {
         // Note: this supports only E.ITN 30.51 at the moment.
         // E.ITN 30.60 should be similar, as it is covered via the same datasheet
@@ -36,8 +36,8 @@ namespace
         di.setName("apatoreitn");
         di.setDefaultFields("name,id,current_hca,previous_hca,current_date,season_start_date,esb_date,temp_room_avg_c,temp_room_prev_avg_c,timestamp");
         di.setMeterType(MeterType::HeatCostAllocationMeter);
-        di.addDetection(MANUFACTURER_APA, 0x08,  0x04);
-        di.addDetection(MANUFACTURER_APT, 0x08,  0x04);
+        di.addMVT(MANUFACTURER_APA, 0x08,  0x04);
+        di.addMVT(MANUFACTURER_APT, 0x08,  0x04);
         di.usesProcessContent();
         di.setConstructor([](MeterInfo& mi, DriverInfo& di){ return shared_ptr<Meter>(new Driver(mi, di)); });
     });

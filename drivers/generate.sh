@@ -27,15 +27,16 @@ BuiltinDriver builtins_[] =
 {
 EOF
 
-#    { "elster", "driver{name=elster meter_type=GasMeter default_fields=name,id,total_m3,timestamp detect{mvt=ELS,81,03}field{name=total quantity=Volume match{measurement_type=Instantaneous vif_range=Volume}}}", false },
+#    { "elster", "melster,kelster", "driver{name=elster meter_type=GasMeter default_fields=name,id,total_m3,timestamp detect{mvt=ELS,81,03}field{name=total quantity=Volume match{measurement_type=Instantaneous vif_range=Volume}}}", false },
 
 for i in src/*.xmq
 do
     NAME=$(basename $i)
     NAME="${NAME%.*}"
+    ALIASES="$(xmq $i select /driver/aliases to-text)"
     CONTENT="$(xmq $i delete /driver/tests/test delete /driver/tests delete "//comment()" to-xmq --compact | sed 's/"/\\"/g')"
     cat >>$OUT <<EOF
-    { "$NAME", "$CONTENT", false },
+    { "$NAME", "$ALIASES", "$CONTENT", false },
 EOF
 done
 

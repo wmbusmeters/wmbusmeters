@@ -24,14 +24,14 @@ namespace
         Driver(MeterInfo &mi, DriverInfo &di);
     };
 
-    static bool ok = registerDriver([](DriverInfo&di)
+    static bool ok = staticRegisterDriver([](DriverInfo&di)
     {
         di.setName("qsmoke");
         di.setDefaultFields("name,id,status,last_alarm_date,alarm_counter,timestamp");
         di.setMeterType(MeterType::SmokeDetector);
         di.addLinkMode(LinkMode::T1);
-        di.addDetection(MANUFACTURER_QDS, 0x1a,  0x21);
-        di.addDetection(MANUFACTURER_QDS, 0x1a,  0x23);
+        di.addMVT(MANUFACTURER_QDS, 0x1a,  0x21);
+        di.addMVT(MANUFACTURER_QDS, 0x1a,  0x23);
         di.setConstructor([](MeterInfo& mi, DriverInfo& di){ return shared_ptr<Meter>(new Driver(mi, di)); });
     });
 

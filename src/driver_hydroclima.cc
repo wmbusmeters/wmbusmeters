@@ -27,13 +27,13 @@ namespace
         void decodeRF_RKN9(Telegram *t);
     };
 
-    static bool ok = registerDriver([](DriverInfo&di)
+    static bool ok = staticRegisterDriver([](DriverInfo&di)
     {
         di.setName("hydroclima");
         di.setDefaultFields("name,id,current_consumption_hca,average_ambient_temperature_c,timestamp");
         di.setMeterType(MeterType::HeatCostAllocationMeter);
         di.addLinkMode(LinkMode::T1);
-        di.addDetection(MANUFACTURER_BMP, 0x08,  0x53);
+        di.addMVT(MANUFACTURER_BMP, 0x08,  0x53);
         di.usesProcessContent();
         di.setConstructor([](MeterInfo& mi, DriverInfo& di){ return shared_ptr<Meter>(new Driver(mi, di)); });
     });

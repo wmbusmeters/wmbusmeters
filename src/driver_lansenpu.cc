@@ -24,14 +24,14 @@ namespace
         Driver(MeterInfo &mi, DriverInfo &di);
     };
 
-    static bool ok = registerDriver([](DriverInfo&di)
+    static bool ok = staticRegisterDriver([](DriverInfo&di)
     {
         di.setName("lansenpu");
         di.setDefaultFields("name,id,status,a_counter,b_counter,timestamp");
         di.setMeterType(MeterType::PulseCounter);
-        di.addDetection(MANUFACTURER_LAS,  0x00,  0x14);
-        di.addDetection(MANUFACTURER_LAS,  0x00,  0x1b);
-        di.addDetection(MANUFACTURER_LAS,  0x02,  0x0b);
+        di.addMVT(MANUFACTURER_LAS,  0x00,  0x14);
+        di.addMVT(MANUFACTURER_LAS,  0x00,  0x1b);
+        di.addMVT(MANUFACTURER_LAS,  0x02,  0x0b);
         di.setConstructor([](MeterInfo& mi, DriverInfo& di){ return shared_ptr<Meter>(new Driver(mi, di)); });
     });
 

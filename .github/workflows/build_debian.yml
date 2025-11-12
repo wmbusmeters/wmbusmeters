@@ -1,7 +1,6 @@
 name: Build Debian package
 on:
   push:
-  pull_request:
 
 jobs:
   build:

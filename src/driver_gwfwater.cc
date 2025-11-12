@@ -26,12 +26,12 @@ namespace
         void processContent(Telegram *t);
     };
 
-    static bool ok = registerDriver([](DriverInfo&di)
+    static bool ok = staticRegisterDriver([](DriverInfo&di)
     {
         di.setName("gwfwater");
         di.setDefaultFields("name,id,total_m3,timestamp");
         di.setMeterType(MeterType::WaterMeter);
-        di.addDetection(MANUFACTURER_GWF, 0x0e,  0x01);
+        di.addMVT(MANUFACTURER_GWF, 0x0e,  0x01);
         di.usesProcessContent();
         di.setConstructor([](MeterInfo& mi, DriverInfo& di){ return shared_ptr<Meter>(new Driver(mi, di)); });
     });

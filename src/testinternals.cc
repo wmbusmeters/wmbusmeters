@@ -2223,8 +2223,10 @@ LIST_OF_QUANTITIES
     test_si_convert(2211717, 2211717, Unit::FACTOR, "counter", Unit::COUNTER, "counter", Quantity::Dimensionless, &from_set, &to_set);
     test_si_convert(2211717, 2211717, Unit::NUMBER, "counter", Unit::COUNTER, "counter", Quantity::Dimensionless, &from_set, &to_set);
     test_si_convert(2211717, 2211717, Unit::FACTOR, "counter", Unit::NUMBER, "counter", Quantity::Dimensionless, &from_set, &to_set);
-    test_si_convert(2211717, 2211717, Unit::PERCENTAGE, "counter", Unit::NUMBER, "counter", Quantity::Dimensionless, &from_set, &to_set);
-    test_si_convert(2211717, 2211717, Unit::NUMBER, "counter", Unit::PERCENTAGE, "counter", Quantity::Dimensionless, &from_set, &to_set);
+    test_si_convert(22, 0.22, Unit::PERCENTAGE, "pct", Unit::NUMBER, "counter", Quantity::Dimensionless, &from_set, &to_set);
+    test_si_convert(0.22, 22, Unit::NUMBER, "counter", Unit::PERCENTAGE, "pct", Quantity::Dimensionless, &from_set, &to_set);
+    test_si_convert(222, 0.000222, Unit::PPM, "ppm", Unit::NUMBER, "counter", Quantity::Dimensionless, &from_set, &to_set);
+    test_si_convert(1.234, 1234000.0, Unit::NUMBER, "counter", Unit::PPM, "ppm", Quantity::Dimensionless, &from_set, &to_set);
 
     check_units_tested(from_set, to_set, Quantity::Dimensionless);
 

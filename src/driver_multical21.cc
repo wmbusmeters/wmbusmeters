@@ -23,7 +23,7 @@ namespace
         Driver(MeterInfo &mi, DriverInfo &di);
     };
 
-    static bool ok = registerDriver([](DriverInfo&di)
+    static bool ok = staticRegisterDriver([](DriverInfo&di)
     {
         di.setName("multical21");
         di.setDefaultFields("name,id,total_m3,target_m3,max_flow_m3h,flow_temperature_c,external_temperature_c,status,timestamp");
@@ -31,8 +31,8 @@ namespace
         di.setMeterType(MeterType::WaterMeter);
         di.addLinkMode(LinkMode::C1);
         // Multical21
-        di.addDetection(MANUFACTURER_KAM, 0x06,  0x1b);
-        di.addDetection(MANUFACTURER_KAM, 0x16,  0x1b);
+        di.addMVT(MANUFACTURER_KAM, 0x06,  0x1b);
+        di.addMVT(MANUFACTURER_KAM, 0x16,  0x1b);
 
         di.setConstructor([](MeterInfo& mi, DriverInfo& di){ return shared_ptr<Meter>(new Driver(mi, di)); });
     });

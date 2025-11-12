@@ -55,7 +55,7 @@ namespace
         vector<uint32_t> keys;
     };
 
-    static bool ok = registerDriver([](DriverInfo&di)
+    static bool ok = staticRegisterDriver([](DriverInfo&di)
     {
         di.setName("izar");
         di.setDefaultFields("name,id,prefix,serial_number,total_m3,last_month_total_m3,"
@@ -67,13 +67,13 @@ namespace
                             "manufacture_year,timestamp");
         di.setMeterType(MeterType::WaterMeter);
         di.addLinkMode(LinkMode::T1);
-        di.addDetection(MANUFACTURER_HYD,  0x07,  0x85);
-        di.addDetection(MANUFACTURER_SAP,  0x15,    -1);
-        di.addDetection(MANUFACTURER_SAP,  0x04,    -1);
-        di.addDetection(MANUFACTURER_SAP,  0x07,  0x00);
-        di.addDetection(MANUFACTURER_DME,  0x07,  0x78);
-        di.addDetection(MANUFACTURER_DME,  0x06,  0x78);
-        di.addDetection(MANUFACTURER_HYD,  0x07,  0x86);
+        di.addMVT(MANUFACTURER_HYD,  0x07,  0x85);
+        di.addMVT(MANUFACTURER_SAP,  0x15,    -1);
+        di.addMVT(MANUFACTURER_SAP,  0x04,    -1);
+        di.addMVT(MANUFACTURER_SAP,  0x07,  0x00);
+        di.addMVT(MANUFACTURER_DME,  0x07,  0x78);
+        di.addMVT(MANUFACTURER_DME,  0x06,  0x78);
+        di.addMVT(MANUFACTURER_HYD,  0x07,  0x86);
         di.usesProcessContent();
 
         di.setConstructor([](MeterInfo& mi, DriverInfo& di){ return shared_ptr<Meter>(new Driver(mi, di)); });

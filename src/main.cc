@@ -51,7 +51,7 @@ SpecifiedDevice *find_specified_device_from_detected(Configuration *c, Detected 
 void list_fields(Configuration *config, string meter_type);
 void print_driver(Configuration *config, string meter_type);
 void list_shell_envs(Configuration *config, string meter_type);
-void list_meters(Configuration *config, bool load, bool daemon);
+void list_meters(Configuration *config, bool cli);
 void list_units();
 void log_start_information(Configuration *config);
 void oneshot_check(Configuration *config, Telegram *t, Meter *meter);
@@ -148,7 +148,7 @@ provided you with this binary. Read the full license for all details.
 
     if (config->list_meters)
     {
-        list_meters(config.get(), true, false);
+        list_meters(config.get(), true);
         exit(0);
     }
 
@@ -215,7 +215,7 @@ void list_shell_envs(Configuration *config, string meter_driver)
     mi.driver_name = meter_driver;
     if (!lookupDriverInfo(meter_driver, &di))
     {
-        error("No such driver %s\n", meter_driver.c_str());
+        error("No such driver %s %s\n", meter_driver.c_str(), removedDriverExplanation(meter_driver).c_str());
     }
     meter = di.construct(mi);
 
@@ -351,9 +351,9 @@ void print_driver(Configuration *config, string meter_driver)
     }
 }
 
-void list_meters(Configuration *config, bool load, bool daemon)
+void list_meters(Configuration *config, bool cli)
 {
-    if (load) loadAllBuiltinDrivers();
+    loadAllBuiltinDrivers();
 
     for (DriverInfo *di : allDrivers())
     {
@@ -370,24 +370,31 @@ void list_meters(Configuration *config, bool load, bool daemon)
             where = "c++";
         }
 
-        if (config->list_meters_search == "" ||                      \
-            stringFoundCaseIgnored(infotxt, config->list_meters_search) || \
-            stringFoundCaseIgnored(mname.c_str(), config->list_meters_search))
+        char buf[2048];
+        buf[0] = 0;
+        char *p = buf;
+        size_t n = 2048;
+
+        for (auto &d : di->mvts())
         {
-            if (load)
+            string mfct = manufacturerFlag(d.mfct);
+            size_t inc = snprintf(p, n, " %s,%02x,%02x", mfct.c_str(), d.version, d.type);
+            p += inc;
+            n -= inc;
+        }
+
+        if (config->list_meters_search == "" ||
+            stringFoundCaseIgnored(infotxt, config->list_meters_search) ||
+            stringFoundCaseIgnored(mname.c_str(), config->list_meters_search) ||
+            stringFoundCaseIgnored(buf, config->list_meters_search))
+        {
+            if (cli)
             {
-                printf("%-14s %s %s\n", mname.c_str(), infotxt, where);
+                printf("%-14s %s (%s)%s\n", mname.c_str(), infotxt, where, buf);
             }
             else
             {
-                if (daemon)
-                {
-                    verbose("(driver) %-14s %s %s\n", mname.c_str(), infotxt, where);
-                }
-                else
-                {
-                    debug("(driver) %-14s %s %s\n", mname.c_str(), infotxt, where);
-                }
+                info("(driver) %-14s %s (%s)%s\n", mname.c_str(), infotxt, where, buf);
             }
         }
     }
@@ -643,7 +650,12 @@ bool start(Configuration *config)
 
     setup_meters(config, meter_manager_.get());
 
-    list_meters(config, false, config->daemon);
+    // When running as a daemon, load and list all builtin meters.
+    // We assume this is possible since we are going to run for a long time as a daemon.
+    if (config->daemon)
+    {
+        list_meters(config, false);
+    }
 
     bus_manager_->detectAndConfigureWmbusDevices(config, DetectionType::STDIN_FILE_SIMULATION);
 
@@ -799,6 +811,27 @@ void start_using_config_files(string root, bool is_daemon, ConfigOverrides overr
     {
         shared_ptr<Configuration> config = loadConfiguration(root, overrides);
         config->daemon = is_daemon;
+        if (overrides.listmeters_override != "")
+        {
+            if (overrides.listmeters_override != "!")
+            {
+                config->list_meters_search = overrides.listmeters_override;
+            }
+            // We have specified a listmeters override. We want to list the meters.
+            // Otherwise avoid listing the meters since it triggers a load of all meters
+            // and this takes some time.
+            list_meters(config.get(), false);
+            return;
+        }
+        if (overrides.listfields_override != "")
+        {
+            // We have specified a listmeters override. We want to list the meters.
+            // Otherwise avoid listing the meters since it triggers a load of all meters
+            // and this takes some time.
+            list_fields(config.get(), overrides.listfields_override);
+            return;
+        }
+
         restart = start(config.get());
         if (restart)
         {

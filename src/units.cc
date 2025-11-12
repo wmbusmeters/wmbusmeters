@@ -69,8 +69,6 @@ using namespace std;
     X(NUMBER, COUNTER, {vto=vfrom;}) \
     X(FACTOR, NUMBER, {vto=vfrom;})  \
     X(NUMBER, FACTOR, {vto=vfrom;}) \
-    X(PERCENTAGE, NUMBER, {vto=vfrom;})  \
-    X(NUMBER, PERCENTAGE, {vto=vfrom;}) \
     X(UnixTimestamp,DateTimeLT, {vto=vfrom; }) \
     X(DateTimeLT,UnixTimestamp, {vto=vfrom; }) \
     X(DateLT,UnixTimestamp, {vto=vfrom; }) \
@@ -136,7 +134,8 @@ using namespace std;
     X(COUNTER,     1.0, SIExp())                                     \
     X(FACTOR,      1.0, SIExp())                                     \
     X(NUMBER,      1.0, SIExp())                                     \
-    X(PERCENTAGE,  1.0, SIExp())                                     \
+    X(PERCENTAGE,  0.01, SIExp())                                    \
+    X(PPM,         0.000001, SIExp())                                \
     X(TXT,         1.0, SIExp())                                     \
 
 

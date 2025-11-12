@@ -24,13 +24,13 @@ namespace
         Driver(MeterInfo &mi, DriverInfo &di);
     };
 
-    static bool ok = registerDriver([](DriverInfo&di)
+    static bool ok = staticRegisterDriver([](DriverInfo&di)
     {
         di.setName("aventieshca");
         di.setDefaultFields("name,id,current_consumption_hca,error_flags,timestamp");
         di.setMeterType(MeterType::HeatCostAllocationMeter);
         di.addLinkMode(LinkMode::T1);
-        di.addDetection(MANUFACTURER_AAA, 0x08,  0x55);
+        di.addMVT(MANUFACTURER_AAA, 0x08,  0x55);
         di.setConstructor([](MeterInfo& mi, DriverInfo& di){ return shared_ptr<Meter>(new Driver(mi, di)); });
     });
 

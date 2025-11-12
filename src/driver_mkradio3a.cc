@@ -26,13 +26,13 @@ namespace
         void processContent(Telegram *t);
     };
 
-    static bool ok = registerDriver([](DriverInfo&di)
+    static bool ok = staticRegisterDriver([](DriverInfo&di)
     {
         di.setName("mkradio3a");
         di.setDefaultFields("name,id,total_m3,target_m3,timestamp");
         di.setMeterType(MeterType::WaterMeter);
         di.addLinkMode(LinkMode::T1);
-        di.addDetection(MANUFACTURER_TCH, 0x72,  0x50);
+        di.addMVT(MANUFACTURER_TCH, 0x72,  0x50);
         di.usesProcessContent();
         di.setConstructor([](MeterInfo& mi, DriverInfo& di){ return shared_ptr<Meter>(new Driver(mi, di)); });
     });
@@ -145,7 +145,7 @@ namespace
         setNumericValue("total", Unit::M3, total_water_consumption_m3);
 
 
-        double* prev_month = new double[20];
+        double prev_month[20];
         double curr_month_m3;
 
         // Current & Prev Month consumption

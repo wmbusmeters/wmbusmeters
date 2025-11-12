@@ -23,13 +23,13 @@ namespace
         Driver(MeterInfo &mi, DriverInfo &di);
     };
 
-    static bool ok = registerDriver([](DriverInfo&di)
+    static bool ok = staticRegisterDriver([](DriverInfo&di)
     {
         di.setName("ultrimis");
         di.setDefaultFields("name,id,total_m3,target_m3,current_status,total_backward_flow_m3,timestamp");
         di.setMeterType(MeterType::WaterMeter);
         di.addLinkMode(LinkMode::T1);
-        di.addDetection(MANUFACTURER_APA,  0x16,  0x01);
+        di.addMVT(MANUFACTURER_APA,  0x16,  0x01);
         di.setConstructor([](MeterInfo& mi, DriverInfo& di){ return shared_ptr<Meter>(new Driver(mi, di)); });
     });
 

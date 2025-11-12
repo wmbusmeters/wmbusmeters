@@ -24,13 +24,13 @@ namespace
         Driver(MeterInfo &mi, DriverInfo &di);
     };
 
-    static bool ok = registerDriver([](DriverInfo&di)
+    static bool ok = staticRegisterDriver([](DriverInfo&di)
     {
         di.setName("lansenth");
         di.setDefaultFields("name,id,current_temperature_c,current_relative_humidity_rh,timestamp");
         di.setMeterType(MeterType::TempHygroMeter);
-        di.addDetection(MANUFACTURER_LAS,  0x1b,  0x07);
-        di.addDetection(MANUFACTURER_LAS,  0x1b,  0x09);
+        di.addMVT(MANUFACTURER_LAS,  0x1b,  0x07);
+        di.addMVT(MANUFACTURER_LAS,  0x1b,  0x09);
         di.setConstructor([](MeterInfo& mi, DriverInfo& di){ return shared_ptr<Meter>(new Driver(mi, di)); });
     });
 

@@ -24,14 +24,14 @@ namespace
         Driver(MeterInfo &mi, DriverInfo &di);
     };
 
-    static bool ok = registerDriver([](DriverInfo&di)
+    static bool ok = staticRegisterDriver([](DriverInfo&di)
     {
         di.setName("esyswm");
         di.setDefaultFields("name,id,total_energy_consumption_kwh,current_power_consumption_kw,total_energy_production_kwh,total_energy_consumption_tariff1_kwh,total_energy_consumption_tariff2_kwh,current_power_consumption_phase1_kw,current_power_consumption_phase2_kw,current_power_consumption_phase3_kw,enhanced_id,timestamp");
         di.setMeterType(MeterType::ElectricityMeter);
         di.addLinkMode(LinkMode::T1);
-        di.addDetection(MANUFACTURER_ESY, 0x37, 0x30); // Wireless adapter for electricity meter.
-        di.addDetection(MANUFACTURER_ESY, 0x02, 0x11);
+        di.addMVT(MANUFACTURER_ESY, 0x37, 0x30); // Wireless adapter for electricity meter.
+        di.addMVT(MANUFACTURER_ESY, 0x02, 0x11);
         di.setConstructor([](MeterInfo& mi, DriverInfo& di){ return shared_ptr<Meter>(new Driver(mi, di)); });
     });
 

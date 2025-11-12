@@ -24,18 +24,19 @@ namespace
         Driver(MeterInfo &mi, DriverInfo &di);
     };
 
-    static bool ok = registerDriver([](DriverInfo&di)
+    static bool ok = staticRegisterDriver([](DriverInfo&di)
     {
         di.setName("waterstarm");
         di.setDefaultFields("name,id,total_m3,total_backwards_m3,status,timestamp");
         di.setMeterType(MeterType::WaterMeter);
         di.addLinkMode(LinkMode::T1);
         di.addLinkMode(LinkMode::C1);
-        di.addDetection(MANUFACTURER_DWZ,  0x06,  0x00);    // warm water
-        di.addDetection(MANUFACTURER_DWZ,  0x06,  0x02);    // warm water
-        di.addDetection(MANUFACTURER_DWZ,  0x07,  0x02);
-        di.addDetection(MANUFACTURER_EFE,  0x07,  0x03);
-        di.addDetection(MANUFACTURER_DWZ,  0x07,  0x00);    // water meter
+        di.addMVT(MANUFACTURER_DWZ,  0x06,  0x00);    // warm water
+        di.addMVT(MANUFACTURER_DWZ,  0x06,  0x02);    // warm water
+        di.addMVT(MANUFACTURER_DWZ,  0x07,  0x02);
+        di.addMVT(MANUFACTURER_EFE,  0x07,  0x03);
+        di.addMVT(MANUFACTURER_EFE,  0x07,  0x70);
+        di.addMVT(MANUFACTURER_DWZ,  0x07,  0x00);    // water meter
 
         di.setConstructor([](MeterInfo& mi, DriverInfo& di){ return shared_ptr<Meter>(new Driver(mi, di)); });
     });
@@ -238,8 +239,12 @@ namespace
 // {"_":"telegram","battery_v":2.9,"consumption_at_history_10_m3":24.534,"consumption_at_history_11_m3":22.095,"consumption_at_history_12_m3":18.272,"consumption_at_history_13_m3":14.237,"consumption_at_history_14_m3":13.183,"consumption_at_history_15_m3":11.355,"consumption_at_history_1_m3":53.832,"consumption_at_history_2_m3":52.211,"consumption_at_history_3_m3":50.396,"consumption_at_history_4_m3":46.776,"consumption_at_history_5_m3":39.812,"consumption_at_history_6_m3":35.979,"consumption_at_history_7_m3":32.995,"consumption_at_history_8_m3":30.519,"consumption_at_history_9_m3":27.65,"consumption_at_set_date_m3":27.65,"current_status":"OK","status":"OK","history_10_date":"2021-11-23","history_11_date":"2021-10-23","history_12_date":"2021-09-23","history_13_date":"2021-08-23","history_14_date":"2021-07-23","history_15_date":"2021-06-23","history_1_date":"2022-08-23","history_2_date":"2022-07-23","history_3_date":"2022-06-23","history_4_date":"2022-05-23","history_5_date":"2022-04-23","history_6_date":"2022-03-23","history_7_date":"2022-02-23","history_8_date":"2022-01-23","history_9_date":"2021-12-23","id":"20050666","media":"warm water","meter":"waterstarm","meter_datetime":"2022-09-23 14:59","name":"WarmLorenz","set_date":"2021-12-31","timestamp":"1111-11-11T11:11:11Z","total_m3":55.36}
 // |WarmLorenz;20050666;55.36;null;OK;1111-11-11 11:11.11
 
-
 // Test: ColdLorenz waterstarm 20065160 NOKEY
 // telegram=|9644FA126051062000077A78000020_046D392DD7290413901A000002FD17000001FD481D426CBF2C4413D312000084011399190000C40113841800008402130C180000C40213EC16000084031395150000C40313E3140000840413BD130000C404134C130000840513D3120000C4051322120000840613AF110000C4061397100000840713D00F0000C40713890E0000840813980C0000|
 // {"_":"telegram","battery_v":2.9,"consumption_at_history_10_m3":4.642,"consumption_at_history_11_m3":4.527,"consumption_at_history_12_m3":4.247,"consumption_at_history_13_m3":4.048,"consumption_at_history_14_m3":3.721,"consumption_at_history_15_m3":3.224,"consumption_at_history_1_m3":6.553,"consumption_at_history_2_m3":6.276,"consumption_at_history_3_m3":6.156,"consumption_at_history_4_m3":5.868,"consumption_at_history_5_m3":5.525,"consumption_at_history_6_m3":5.347,"consumption_at_history_7_m3":5.053,"consumption_at_history_8_m3":4.94,"consumption_at_history_9_m3":4.819,"consumption_at_set_date_m3":4.819,"current_status":"OK","status":"OK","history_10_date":"2021-11-23","history_11_date":"2021-10-23","history_12_date":"2021-09-23","history_13_date":"2021-08-23","history_14_date":"2021-07-23","history_15_date":"2021-06-23","history_1_date":"2022-08-23","history_2_date":"2022-07-23","history_3_date":"2022-06-23","history_4_date":"2022-05-23","history_5_date":"2022-04-23","history_6_date":"2022-03-23","history_7_date":"2022-02-23","history_8_date":"2022-01-23","history_9_date":"2021-12-23","id":"20065160","media":"water","meter":"waterstarm","meter_datetime":"2022-09-23 13:57","name":"ColdLorenz","set_date":"2021-12-31","timestamp":"1111-11-11T11:11:11Z","total_m3":6.8}
 // |ColdLorenz;20065160;6.8;null;OK;1111-11-11 11:11.11
+
+// Test: water waterstarm 50496629 FFEEDDCCBBAA00998877665544332211
+// telegram=|a144c5142966495070078c20d07a0d0090257db8bb9938a1ff7c4b9a4492f4ea5f278b725057eee6837c17397e9605f3a448a338bd8407a2a5846632c334dff577f427f054f55e68a00fa5c85ccbc808ccdd2bb537a83234a50392968f00c1d7473455f9fc4c88fb195ca1712325da8c6aa7fdb7c4b77b9b84a4a0ccac4f586775fa66007dbdc2c615b69247401e9b9a863ac5a5873484b1b7d0178198e88f701e53|
+// {"_":"telegram","media":"water","meter":"waterstarm","name":"water","id":"50496629","consumption_at_history_1_m3":0.003,"consumption_at_history_10_m3":-0.001,"consumption_at_history_11_m3":-0.001,"consumption_at_history_12_m3":-0.001,"consumption_at_history_13_m3":-0.001,"consumption_at_history_14_m3":-0.001,"consumption_at_history_15_m3":-0.001,"consumption_at_history_2_m3":0.003,"consumption_at_history_3_m3":0.003,"consumption_at_history_4_m3":0.002,"consumption_at_history_5_m3":0.002,"consumption_at_history_6_m3":0,"consumption_at_history_7_m3":0,"consumption_at_history_8_m3":-0.001,"consumption_at_history_9_m3":-0.001,"consumption_at_set_date_m3":0,"history_1_date":"2025-07-20","history_10_date":"2024-10-20","history_11_date":"2024-09-20","history_12_date":"2024-08-20","history_13_date":"2024-07-20","history_14_date":"2024-06-20","history_15_date":"2024-05-20","history_2_date":"2025-06-20","history_3_date":"2025-05-20","history_4_date":"2025-04-20","history_5_date":"2025-03-20","history_6_date":"2025-02-20","history_7_date":"2025-01-20","history_8_date":"2024-12-20","history_9_date":"2024-11-20","meter_datetime":"2025-08-20 14:51","set_date":"2128-03-31","total_m3":0.003,"current_status":"OK","status":"OK","timestamp":"1111-11-11T11:11:11Z"}
+// |water;50496629;0.003;null;OK;1111-11-11 11:11.11

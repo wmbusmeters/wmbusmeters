@@ -843,7 +843,7 @@ void WMBusIU891A::handleWMbusGateway(int msgid, vector<uchar> &payload)
             int rssi_dbm;
 
             extractFrame(payload, &rssi_dbm, &frame);
-            AboutTelegram about("iu891a["+cached_device_id_+"]", rssi_dbm, FrameType::WMBUS);
+            AboutTelegram about("iu891a["+cached_device_id_+"]", rssi_dbm, LinkMode::UNKNOWN, FrameType::WMBUS);
             handleTelegram(about, frame);
             return;
         }
