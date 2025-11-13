@@ -16,7 +16,7 @@
 */
 
 driver {
-    name           = dmesharky
+    name           = dmesharky775
     aliases        = sharkydiehl
     default_fields = name,id,total_energy_consumption_kwh,total_volume_m3,status,timestamp
     meter_type     = HeatMeter
