@@ -1,0 +1,205 @@
+// Copyright (C) 2025 Google (gpl-3.0-or-later)
+// Driver for LAN-WMBUS-Q-RC Sensor
+driver {
+    name           = lansenradon
+    meter_type     = TempHygroMeter
+    default_fields = name,id,timestamp,temperature,humidity,co2,radon,pressure
+    
+    detect {
+        mvt = LAS,03,2A
+    }
+
+    fields {
+        field {
+            name       = temperature
+            quantity   = Temperature
+            match {
+                measurement_type = Instantaneous
+                vif_range        = ExternalTemperature
+                storage_nr       = 0
+            }
+        }
+        field {
+            name       = temperature_avg_1h
+            quantity   = Temperature
+            match {
+                measurement_type = Instantaneous
+                vif_range        = ExternalTemperature
+                storage_nr       = 1
+            }
+        }
+        field {
+            name       = temperature_avg_2h
+            quantity   = Temperature
+            match {
+                measurement_type = Instantaneous
+                vif_range        = ExternalTemperature
+                storage_nr       = 2
+            }
+        }
+        field {
+            name       = humidity
+            quantity   = RelativeHumidity
+            match {
+                measurement_type = Instantaneous
+                vif_range        = RelativeHumidity
+                storage_nr       = 0
+            }
+        }
+        field {
+            name       = humidity_avg_1h
+            quantity   = RelativeHumidity
+            match {
+                measurement_type = Instantaneous
+                vif_range        = RelativeHumidity
+                storage_nr       = 1
+            }
+        }
+        field {
+            name       = humidity_avg_2h
+            quantity   = RelativeHumidity
+            match {
+                measurement_type = Instantaneous
+                vif_range        = RelativeHumidity
+                storage_nr       = 2
+            }
+        }
+        field {
+            name       = co2
+            quantity   = Dimensionless
+            match {
+                measurement_type = Instantaneous
+                vif_range        = Dimensionless
+                storage_nr       = 0
+            }
+        }
+        field {
+            name       = co2_avg_1h
+            quantity   = Dimensionless
+            match {
+                measurement_type = Instantaneous
+                vif_range        = Dimensionless
+                storage_nr       = 1
+            }
+        }
+        field {
+            name       = co2_avg_2h
+            quantity   = Dimensionless
+            match {
+                measurement_type = Instantaneous
+                vif_range        = Dimensionless
+                storage_nr       = 2
+            }
+        }
+        field {
+            name       = radon
+            quantity   = Dimensionless
+            match {
+                measurement_type = Instantaneous
+                vif_range        = Dimensionless
+                dife             = 0x40
+                subunit          = 1
+            }
+        }
+        field {
+            name       = radon_avg_1h
+            quantity   = Dimensionless
+            match {
+                measurement_type = Instantaneous
+                vif_range        = Dimensionless
+                storage_nr       = 1
+                dife             = 0x40
+                subunit          = 1
+            }
+        }
+        field {
+            name       = pressure
+            quantity   = Pressure
+            match {
+                measurement_type = Instantaneous
+                vif_range        = Pressure
+                storage_nr       = 0
+            }
+        }
+        field {
+            name       = pressure_avg_1h
+            quantity   = Pressure
+            match {
+                measurement_type = Instantaneous
+                vif_range        = Pressure
+                storage_nr       = 1
+            }
+        }
+        field {
+            name       = co2_last_calibration
+            quantity   = Dimensionless
+            match {
+                measurement_type = Instantaneous
+                vif_range        = Dimensionless
+                storage_nr       = 3
+            }
+        }
+        field {
+            name       = minutes_to_calibration
+            quantity   = Dimensionless
+            match {
+                measurement_type = Instantaneous
+                vif_range        = Dimensionless
+                dife             = 0x40
+                subunit          = 1
+            }
+        }
+        field {
+            name       = radon_avg_2h
+            quantity   = Dimensionless
+            match {
+                measurement_type = Instantaneous
+                vif_range        = Dimensionless
+                storage_nr       = 2
+                dife             = 0x40
+                subunit          = 1
+            }
+        }
+        field {
+            name       = software_version
+            quantity   = Text
+            match {
+                measurement_type = Instantaneous
+                vif_range        = SoftwareVersion
+            }
+        }
+        field {
+            name       = operating_time_days
+            quantity   = Time
+            display_unit = d
+            match {
+                measurement_type = Instantaneous
+                vif_range        = OperatingTime
+            }
+        }
+        field {
+            name       = protocol_version
+            quantity   = Text
+            match {
+                measurement_type = Instantaneous
+                vif_range        = ModelVersion
+            }
+        }
+        field {
+            name       = co2_serial_number
+            quantity   = Text
+            match {
+                measurement_type = Instantaneous
+                vif_range        = FabricationNo
+            }
+        }
+        field {
+            name       = status
+            quantity   = Text
+            match {
+                measurement_type = Instantaneous
+                vif_range        = ErrorFlags
+            }
+        }
+    }
+}

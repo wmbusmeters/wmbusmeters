@@ -1,0 +1,182 @@
+// Copyright (C) 2025 Fredrik Öhrström (gpl-3.0-or-later)
+// Driver for LAN-WMBUS-E2-CO2 Sensor
+driver {
+    name           = lansenco2
+    meter_type     = TempHygroMeter
+    default_fields = name,id,timestamp,temperature,humidity,co2
+    
+    detect {
+        mvt = LAS,0A,2A
+    }
+
+    fields {
+        // DR1: Temperature: Last measured value
+        field {
+            name         = temperature
+            quantity     = Temperature
+            display_unit = c
+            match {
+                measurement_type = Instantaneous
+                vif_range  = ExternalTemperature
+                storage_nr = 0
+            }
+        }
+        // DR2: Temperature: Average last hour
+        field {
+            name         = temperature_avg_1h
+            quantity     = Temperature
+            display_unit = c
+            match {
+                measurement_type = Instantaneous
+                vif_range  = ExternalTemperature
+                storage_nr = 1
+            }
+        }
+        // DR3: Temperature: Average last 24 hours
+        field {
+            name         = temperature_avg_24h
+            quantity     = Temperature
+            display_unit = c
+            match {
+                measurement_type = Instantaneous
+                vif_range  = ExternalTemperature
+                storage_nr = 2
+            }
+        }
+        // DR4: Humidity: Last measured value
+        field {
+            name         = humidity
+            quantity     = RelativeHumidity
+            match {
+                measurement_type = Instantaneous
+                vif_range  = RelativeHumidity
+                storage_nr = 0
+            }
+        }
+        // DR5: Humidity: Average last hour
+        field {
+            name         = humidity_avg_1h
+            quantity     = RelativeHumidity
+            match {
+                measurement_type = Instantaneous
+                vif_range  = RelativeHumidity
+                storage_nr = 1
+            }
+        }
+        // DR6: Humidity: Average last 24 hours
+        field {
+            name         = humidity_avg_24h
+            quantity     = RelativeHumidity
+            match {
+                measurement_type = Instantaneous
+                vif_range  = RelativeHumidity
+                storage_nr = 2
+            }
+        }
+        // DR7: CO2: Last measured value (Dimensionless -> ppm)
+        field {
+            name         = co2
+            quantity     = Dimensionless
+            match {
+                measurement_type = Instantaneous
+                vif_range  = Dimensionless
+                storage_nr = 0
+            }
+        }
+        // DR8: CO2: Average last hour (Dimensionless -> ppm)
+        field {
+            name         = co2_avg_1h
+            quantity     = Dimensionless
+            match {
+                measurement_type = Instantaneous
+                vif_range  = Dimensionless
+                storage_nr = 1
+            }
+        }
+        // DR9: CO2: Average last 24 hours (Dimensionless -> ppm)
+        field {
+            name         = co2_avg_24h
+            quantity     = Dimensionless
+            match {
+                measurement_type = Instantaneous
+                vif_range  = Dimensionless
+                storage_nr = 2
+            }
+        }
+        // DR10: Last used calibration value (Dimensionless -> ppm)
+        field {
+            name         = co2_last_calibration
+            quantity     = Dimensionless
+            match {
+                measurement_type = Instantaneous
+                vif_range  = Dimensionless
+                storage_nr = 3
+            }
+        }
+        // DR11: Minutes to next calibration
+        field {
+            name         = minutes_to_calibration
+            quantity     = Dimensionless
+            match {
+                measurement_type = Instantaneous
+                vif_range  = Dimensionless
+                dife       = 0x40
+            }
+        }
+        // DR12: On Time in days (Since power up)
+        field {
+            name         = on_time_days
+            quantity     = Time
+            display_unit = d
+            match {
+                measurement_type = Instantaneous
+                vif_range  = OnTime
+            }
+        }
+        // DR13: Operating time in days (Total)
+        field {
+            name         = operating_time_days
+            quantity     = Time
+            display_unit = d
+            match {
+                measurement_type = Instantaneous
+                vif_range  = OperatingTime
+            }
+        }
+        // DR14: Version
+        field {
+            name         = software_version
+            quantity     = Text
+            match {
+                measurement_type = Instantaneous
+                vif_range  = SoftwareVersion
+            }
+        }
+        // DR15: Status and indications
+        field {
+            name         = status
+            quantity     = Text
+            match {
+                measurement_type = Instantaneous
+                vif_range  = ErrorFlags
+            }
+        }
+    }
+
+    tests {
+    test {
+        args     = 'MyCO2Sensor lansenco2 161485 NOKEY'
+        comment  = 'Test case based on decrypted telegram'
+        telegram = '5e443330851416000a2a7a0d0000252f2f0265370842653208820165420802fB1a0a0242fB1a03028201fB1af20102fd3a270242fd3a2c028201fd3a0402c201fd3aa1018240fd3a196a0223f1010227f10102fd0f3e0001fd1B102f2f2f2f'
+        json     = '{"_":"telegram","co2":551,"co2_avg_1h":556,"co2_avg_24h":516,"co2_last_calibration":417,"humidity":52.2,"humidity_avg_1h":51.5,"humidity_avg_24h":49.8,"id":"161485","media":"co2","meter":"lansenco2","minutes_to_calibration":27161,"name":"MyCO2Sensor","on_time_days":497,"operating_time_days":497,"software_version":62,"status":16,"temperature":21.03,"temperature_avg_1h":20.98,"temperature_avg_24h":21.14,"timestamp":"2025-09-08T15:35:00Z"}'
+        fields   = 'MyCO2Sensor;161485;2025-09-08 15:35.00;21.03;52.2;551'
+    }
+    test {
+        args     = 'Heato lansenco2 00161485 0DF3EC35064F8E975360A4CA5D7428CA'
+        comment  = 'Test case with full MBus/WMBus hybrid frame'
+        telegram = '6892926808fd728514160033300a2ae40000000c7861841900066d16182928390001fd71d68c4078000000008140fdf19474ff0dfd3b5f5e443330851416000a2a7a4c005025ee7914727097e45cce9a129170d610ce49dc2b674fc19862433be382b4b7d18bcb9fb94acbcec63ab45df240c49aa12e777888e5cb36f6d7e5ac1c4b879713a126da40f8ee2482440ab0762ef76a77d4a616'
+        json     = '{"_":"telegram","co2_counter":616,"co2_avg_1h_counter":619,"co2_avg_24h_counter":521,"co2_last_calibration_counter":417,"humidity_rh":54.7,"humidity_avg_1h_rh":53.8,"humidity_avg_24h_rh":50,"minutes_to_calibration_counter":616,"on_time_days_d":497,"operating_time_days_d":497,"temperature_c":21.26,"temperature_avg_1h_c":21.17,"temperature_avg_24h_c":21.15,"software_version":"003E","id":"00161485","media":"reserved","meter":"lansenco2","name":"Heato","timestamp":"2025-09-08T14:17:14Z"}'
+        fields   = 'Heato;00161485;21.26;54.7;616;2025-09-08 14:17.14'
+    }
+}
+}
