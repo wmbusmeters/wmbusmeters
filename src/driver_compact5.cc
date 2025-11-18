@@ -75,7 +75,8 @@ namespace
 
         uchar prev_lo = content[3];
         uchar prev_hi = content[4];
-        double prev = (256.0*prev_hi+prev_lo);
+        uchar prev_hihi = content[5];
+        double prev = (65536.0*prev_hihi+256.0*prev_hi+prev_lo);
 
         string prevs;
         strprintf(&prevs, "%02x%02x", prev_lo, prev_hi);
@@ -87,7 +88,8 @@ namespace
 
         uchar curr_lo = content[7];
         uchar curr_hi = content[8];
-        double curr = (256.0*curr_hi+curr_lo);
+        uchar curr_hihi = content[9];
+        double curr = (65536.0*curr_hihi+256.0*curr_hi+curr_lo);
 
         string currs;
         strprintf(&currs, "%02x%02x", curr_lo, curr_hi);
@@ -123,3 +125,8 @@ namespace
 // telegram=|37446850792055673943A2_109F2F13C500608F1D00008066E8A69B26988D335F6411450C564C5145145CA0F1DA35B9DD37A1936BBF3D31D8|
 // {"_": "telegram","current_kwh": 7567,"id": "67552079","media": "heat","meter": "compact5","name": "vario","previous_kwh": 50451,"timestamp": "1111-11-11T11:11:11Z","total_kwh": 58018}
 // |vario;67552079;58018;7567;50451;1111-11-11 11:11.11
+
+// Test: tt compact5 41711422 NOKEY
+// telegram=|36446850221471414543a100ff32406002c8cd0000019f81071f68e001072c0c9106642075B5a6ac6ad229e993376aa7d10e1e5c60c1050000000056fed3|
+// {"_": "telegram","current_kwh": 205,"id": "41711422","media": "heat","meter": "compact5","name": "tt","previous_kwh": 155712,"timestamp": "1111-11-11T11:11:11Z","total_kwh": 155917}
+// |tt;41711422;155917;205;155712;1111-11-11 11:11.11
