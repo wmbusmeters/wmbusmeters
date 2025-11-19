@@ -79,10 +79,10 @@ namespace
         double prev = (65536.0*prev_hihi+256.0*prev_hi+prev_lo);
 
         string prevs;
-        strprintf(&prevs, "%02x%02x", prev_lo, prev_hi);
+        strprintf(&prevs, "%02x%02x%02x", prev_lo, prev_hi, prev_hihi);
         int offset = t->parsed.size()+3;
         vendor_values["0215"] = { offset, DVEntry(offset, DifVifKey("0215"), MeasurementType::Instantaneous, 0x15, {}, {}, 0, 0, 0, prevs) };
-        Explanation pe(offset, 2, prevs, KindOfData::CONTENT, Understanding::FULL);
+        Explanation pe(offset, 3, prevs, KindOfData::CONTENT, Understanding::FULL);
         t->explanations.push_back(pe);
         t->addMoreExplanation(offset, " energy used in previous billing period (%f KWH)", prev);
 
@@ -92,10 +92,10 @@ namespace
         double curr = (65536.0*curr_hihi+256.0*curr_hi+curr_lo);
 
         string currs;
-        strprintf(&currs, "%02x%02x", curr_lo, curr_hi);
+        strprintf(&currs, "%02x%02x%02x", curr_lo, curr_hi, curr_hihi);
         offset = t->parsed.size()+7;
         vendor_values["0215"] = { offset, DVEntry(offset, DifVifKey("0215"), MeasurementType::Instantaneous, 0x15, {}, {}, 0, 0, 0, currs) };
-        Explanation ce(offset, 2, currs, KindOfData::CONTENT, Understanding::FULL);
+        Explanation ce(offset, 3, currs, KindOfData::CONTENT, Understanding::FULL);
         t->explanations.push_back(ce);
         t->addMoreExplanation(offset, " energy used in current billing period (%f KWH)", curr);
 
