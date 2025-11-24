@@ -58,6 +58,8 @@
     X(Text,TXT)               \
     X(Angle,DEGREE)           \
     X(Dimensionless,COUNTER)  \
+    \
+    X(Signal,DMB)             \
 
 enum class Quantity
 {
@@ -131,6 +133,7 @@ LIST_OF_QUANTITIES
     X(NUMBER,nr,"number",Dimensionless,"number")                        \
     X(PERCENTAGE,pct,"percentage",Dimensionless,"percentage")           \
     X(PPM,ppm,"ppm",Dimensionless,"ppm")                                \
+    X(DBM,dbm,"dBm",Signal,"Decibel-milliwatts")                        \
 
 enum class Unit
 {
