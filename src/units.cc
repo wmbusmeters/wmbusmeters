@@ -144,6 +144,7 @@ double to_dbm_from_w(double w) { return 10.0*log10(w*1000.0); }
     X(NUMBER,      1.0, SIExp())                                     \
     X(PERCENTAGE,  0.01, SIExp())                                    \
     X(PPM,         0.000001, SIExp())                                \
+    X(DBM,         1.0, SIExp())                                     \
     X(TXT,         1.0, SIExp())                                     \
 
 
