@@ -136,6 +136,7 @@ using namespace std;
     X(NUMBER,      1.0, SIExp())                                     \
     X(PERCENTAGE,  0.01, SIExp())                                    \
     X(PPM,         0.000001, SIExp())                                \
+    X(DBM,         1.0, SIExp())                                     \
     X(TXT,         1.0, SIExp())                                     \
 
 
