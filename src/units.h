@@ -60,7 +60,7 @@
     X(Angle,DEGREE)           \
     X(Dimensionless,COUNTER)  \
     \
-    X(Signal,DMB)             \
+    X(Signal,DBM)             \
 
 enum class Quantity
 {
