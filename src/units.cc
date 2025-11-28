@@ -710,8 +710,7 @@ string SIUnit::str() const
     string num = tostrprintf("%g", scale_);
     num = to_superscript(num);
 
-    // The special scale 0 means that this unit needs a non-linear transform.
-    if (scale_ == 0.0)
+    if (!exp().isLinear())
     {
         num = "NL-";
     }
