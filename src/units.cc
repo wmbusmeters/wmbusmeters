@@ -24,6 +24,9 @@
 
 using namespace std;
 
+double from_dbm_to_w(double dbm) { return pow(10.0, dbm/10.0)/1000.0; }
+double to_dbm_from_w(double w) { return 10.0*log10(w*1000.0); }
+
 #define LIST_OF_CONVERSIONS \
     X(Second, Minute, {vto=vfrom/60.0;}) \
     X(Minute, Second, {vto=vfrom*60.0;}) \
@@ -52,7 +55,9 @@ using namespace std;
     X(JH,   W, {vto=vfrom/3600.0;}) \
     X(W,   JH, {vto=vfrom*3600.0;}) \
     X(MJH, KW, {vto=vfrom/1000.0/0.0036;}) \
-    X(KW,  MJH,{vto=vfrom*0.0036*1000.0;})\
+    X(KW,  MJH,{vto=vfrom*0.0036*1000.0;}) \
+    X(DBM,   W,{vto=from_dbm_to_w(vfrom);})     \
+    X(W,   DBM,{vto=to_dbm_from_w(vfrom);})     \
     X(M3,  L,  {vto=vfrom*1000.0;}) \
     X(M3H, LH, {vto=vfrom*1000.0;}) \
     X(L,   M3, {vto=vfrom/1000.0;}) \
@@ -97,13 +102,14 @@ using namespace std;
     \
     X(W,      1.0,        SIExp().kg(1).m(2).s(-3))                 \
     X(KW,     1000.0,     SIExp().kg(1).m(2).s(-3))                 \
-    X(JH,     1.0/3600.0, SIExp().kg(1).m(2).s(-3))                \
-    X(MJH, 1000000.0/3600.0, SIExp().kg(1).m(2).s(-3))                \
+    X(JH,     1.0/3600.0, SIExp().kg(1).m(2).s(-3))                 \
+    X(MJH, 1000000.0/3600.0, SIExp().kg(1).m(2).s(-3))              \
     X(KVAR,   1000.0,     SIExp().kg(1).m(2).s(-3))                 \
     X(KVA,    1000.0,     SIExp().kg(1).m(2).s(-3))                 \
-    X(M3CH,   3600.0,    SIExp().m(3).c(1).s(-1))                  \
-    \
-    X(M3,     1.0,        SIExp().m(3))                             \
+    X(M3CH,   3600.0,    SIExp().m(3).c(1).s(-1))                   \
+    X(DBM,    1.0, /* Nonlinear! */  SIExp().kg(1).m(2).s(-3).nonlinear(from_dbm_to_w, to_dbm_from_w)) \
+\
+    X(M3,     1.0,        SIExp().m(3))                                 \
     X(L,      1.0/1000.0, SIExp().m(3))                             \
     X(M3H,    3600.0,     SIExp().m(3).s(-1))                       \
     X(LH,     3.600,      SIExp().m(3).s(-1))                       \
@@ -178,6 +184,8 @@ LIST_OF_CONVERSIONS
     return false;
 }
 
+// This is the old style hardcoded conversions, deprecated in favor of
+// the new advanced SIUnit conversions.
 double convert(double vfrom, Unit ufrom, Unit uto)
 {
     double vto = -4711.0;
@@ -237,10 +245,32 @@ void getScaleOffset(const SIExp &e, double *scale, double *offset)
 
 bool SIUnit::convertTo(double left, const SIUnit &out_siunit, double *out) const
 {
-    if (exp() == out_siunit.exp())
+    if (exp().equalIgnoreNonLinear(out_siunit.exp()))
     {
-        if (out != NULL) *out = (left*scale_)/out_siunit.scale_;
-        return true;
+        if (exp().isLinear() && out_siunit.exp().isLinear())
+        {
+            // Its a linear relation, just scale.
+            if (out != NULL) *out = (left*scale_)/out_siunit.scale_;
+            return true;
+        }
+
+        // It's non-linear, use the conversion functions.
+        // From is is non-null if
+        NonLinearConversionFunc from_nonlinear_to_linear = exp().nonlinearFrom();
+        NonLinearConversionFunc to_nonlinear_from_linear = out_siunit.exp().nonlinearTo();
+
+        if (from_nonlinear_to_linear)
+        {
+            left = from_nonlinear_to_linear(left);
+        }
+        double right = (left*scale_)/out_siunit.scale_;
+        if (to_nonlinear_from_linear)
+        {
+            right = to_nonlinear_from_linear(right);
+        }
+
+        if (out) *out = right;
+        return right;
     }
 
     // Now the special cases. K-C-F
@@ -678,8 +708,13 @@ string SIUnit::str() const
     string r = exponents_.str();
 
     string num = tostrprintf("%g", scale_);
-
     num = to_superscript(num);
+
+    if (!exp().isLinear())
+    {
+        num = "NL-";
+    }
+
     return num+r;
 }
 
@@ -724,7 +759,7 @@ bool SIExp::operator!=(const SIExp &e) const
     return ! (*this == e);
 }
 
-bool SIExp::operator==(const SIExp &e) const
+bool SIExp::equalIgnoreNonLinear(const SIExp &e) const
 {
     return
         s_ == e.s_ &&
@@ -739,6 +774,13 @@ bool SIExp::operator==(const SIExp &e) const
         month_ == e.month_ &&
         year_ == e.year_ &&
         unix_timestamp_ == e.unix_timestamp_;
+}
+
+bool SIExp::operator==(const SIExp &e) const
+{
+    return equalIgnoreNonLinear(e) &&
+        nonlinear_from_ == e.nonlinear_from_ &&
+        nonlinear_to_ == e.nonlinear_to_;
 }
 
 SIExp SIExp::mul(const SIExp &e) const
