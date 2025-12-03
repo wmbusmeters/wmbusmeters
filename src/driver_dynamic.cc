@@ -42,6 +42,7 @@ double check_force_scale(const char *force_scale, DriverDynamic *dd);
 bool checked_set_difvifkey(const char *difvifkey_s, FieldMatcher *fm, DriverDynamic *dd);
 void checked_set_measurement_type(const char *measurement_type_s, FieldMatcher *fm, DriverDynamic *dd);
 void checked_set_vif_range(const char *vif_range_s, FieldMatcher *fm, DriverDynamic *dd);
+void checked_set_indexnr(const char *indexnr_s, FieldMatcher *fm, DriverDynamic *dd);
 void checked_set_storagenr_range(const char *storagenr_range_s, FieldMatcher *fm, DriverDynamic *dd);
 void checked_set_tariffnr_range(const char *tariffnr_range_s, FieldMatcher *fm, DriverDynamic *dd);
 void checked_set_subunitnr_range(const char *subunitnr_range_s, FieldMatcher *fm, DriverDynamic *dd);
@@ -395,6 +396,7 @@ XMQProceed DriverDynamic::add_match(XMQDoc *doc, XMQNode *match, DriverDynamic *
 
     checked_set_vif_range(xmqGetStringRel(doc, "vif_range", match), fm, dd);
 
+    checked_set_indexnr(xmqGetStringRel(doc, "index_nr", match), fm, dd);
     checked_set_storagenr_range(xmqGetStringRel(doc, "storage_nr", match), fm, dd);
     checked_set_tariffnr_range(xmqGetStringRel(doc, "tariff_nr", match), fm, dd);
     checked_set_subunitnr_range(xmqGetStringRel(doc, "subunit_nr", match), fm, dd);
@@ -951,6 +953,24 @@ void checked_set_vif_range(const char *vif_range_s, FieldMatcher *fm, DriverDyna
     }
 
     fm->set(vif_range);
+}
+
+void checked_set_indexnr(const char *indexnr_s, FieldMatcher *fm, DriverDynamic *dd)
+{
+    if (!indexnr_s) return;
+
+    bool ok = isNumber(indexnr_s);
+    if (!ok)
+    {
+        warning("(driver) error in %s, bad indexnr: %s\n"
+                "%s\n",
+                dd->fileName().c_str(),
+                indexnr_s,
+                line);
+        throw 1;
+    }
+
+    fm->set(IndexNr(atoi(indexnr_s)));
 }
 
 void checked_set_storagenr_range(const char *storagenr_range_s, FieldMatcher *fm, DriverDynamic *dd)
