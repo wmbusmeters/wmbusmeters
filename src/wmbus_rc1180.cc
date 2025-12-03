@@ -30,8 +30,63 @@
 #include<sys/stat.h>
 #include<sys/types.h>
 #include<unistd.h>
+#include<stdexcept>
 
 using namespace std;
+
+const int DEFAULT_BAUD_RATE = 19200;
+
+enum class RcUartBaudRate : uchar
+{
+    b2400 = 1,
+    b4800 = 2,
+    b9600 = 3,
+    b14400 = 4,
+    b19200 = 5,
+    b28800 = 6,
+    b38400 = 7,
+    b57600 = 8,
+    b76800 = 9,
+    b115200 = 10,
+    b230400 = 11,
+};
+
+static RcUartBaudRate rcUartBaudRateFromBauds(int baud_rate)
+{
+    switch (baud_rate)
+    {
+        case 2400: return RcUartBaudRate::b2400;
+        case 4800: return RcUartBaudRate::b4800;
+        case 9600: return RcUartBaudRate::b9600;
+        case 14400: return RcUartBaudRate::b14400;
+        case 19200: return RcUartBaudRate::b19200;
+        case 28800: return RcUartBaudRate::b28800;
+        case 38400: return RcUartBaudRate::b38400;
+        case 57600: return RcUartBaudRate::b57600;
+        case 76800: return RcUartBaudRate::b76800;
+        case 115200: return RcUartBaudRate::b115200;
+        case 230400: return RcUartBaudRate::b230400;
+    }
+    throw std::invalid_argument("Unable to convert baud_rate: " + std::to_string(baud_rate) + " to RC enum");
+}
+
+static int getConfiguredBaudRate(const Detected& d) noexcept
+try
+{
+    if (d.specified_device.bps.empty())
+    {
+        return DEFAULT_BAUD_RATE;
+    }
+    const int result = stoi(d.specified_device.bps);
+    info("(rc1180) Boud rate overwritten to %i", result);
+    return result;
+}
+catch(const std::exception& e)
+{
+    warning("(rc1180) Unable to convert baud_rate: \"%s\" to int: %s - using default",
+            d.specified_device.bps.c_str(), e.what());
+    return DEFAULT_BAUD_RATE;
+}
 
 struct ConfigRC1180
 {
@@ -50,7 +105,7 @@ struct ConfigRC1180
     uchar version {};
     uchar media {};
 
-    uchar uart_bps {}; // 5=19200
+    RcUartBaudRate uart_baud_rate {}; // 5=19200
     uchar uart_flow_ctrl {}; // 0=None 1=CTS only 2=CTS/RTS 3=RXTX(RS485)
     uchar data_interface {}; // 0=MBUS with DLL 1=App data without mbus header
 
@@ -69,10 +124,10 @@ struct ConfigRC1180
         string mfct_flag = manufacturerFlag(mfct);
 
         return tostrprintf("id=%08x mfct=%04x (%s) media=%02x version=%02x rssi_mode=%02x "
-                           "uart_bps=%02x uart_flow_ctrl=%02x data_interface=%02x "
+                           "uart_baud_rate=%02x uart_flow_ctrl=%02x data_interface=%02x "
                            "radio_channel=%02x radio_power=%02x radio_data_rate=%02x preamble_length=%02x mbus_mode=%02x",
                            id, mfct, mfct_flag.c_str(), media, version, rssi_mode,
-                           uart_bps, uart_flow_ctrl, data_interface,
+                           uart_baud_rate, uart_flow_ctrl, data_interface,
                            radio_channel, radio_power, radio_data_rate, preamble_length, mbus_mode);
     }
 
@@ -96,7 +151,7 @@ struct ConfigRC1180
         version = bytes[0x1f];
         media = bytes[0x20];
 
-        uart_bps = bytes[0x30];
+        uart_baud_rate = static_cast<RcUartBaudRate>(bytes[0x30]);
         uart_flow_ctrl = bytes[0x35];
         data_interface = bytes[0x36];
 
@@ -148,14 +203,6 @@ private:
     vector<uchar> response_;
 
     LinkModeSet link_modes_ {};
-    string sent_command_;
-    string received_response_;
-
-    FrameStatus checkRC1180Frame(vector<uchar> &data,
-                              size_t *hex_frame_length,
-                              vector<uchar> &payload);
-
-    string setup_;
 };
 
 shared_ptr<BusDevice> openRC1180(Detected detected, shared_ptr<SerialCommunicationManager> manager, shared_ptr<SerialDevice> serial_override)
@@ -173,7 +220,7 @@ shared_ptr<BusDevice> openRC1180(Detected detected, shared_ptr<SerialCommunicati
         return shared_ptr<BusDevice>(imp);
     }
 
-    auto serial = manager->createSerialDeviceTTY(device.c_str(), 19200, PARITY::NONE, "rc1180");
+    auto serial = manager->createSerialDeviceTTY(device.c_str(), getConfiguredBaudRate(detected), PARITY::NONE, "rc1180");
     WMBusRC1180 *imp = new WMBusRC1180(bus_alias, serial, manager);
     return shared_ptr<BusDevice>(imp);
 }
@@ -345,9 +392,11 @@ void WMBusRC1180::processSerialData()
 }
 
 AccessCheck detectRC1180(Detected *detected, shared_ptr<SerialCommunicationManager> manager)
+try
 {
     // Talk to the device and expect a very specific answer.
-    auto serial = manager->createSerialDeviceTTY(detected->found_file.c_str(), 19200, PARITY::NONE, "detect rc1180");
+    const int baud_rate = getConfiguredBaudRate(*detected);
+    auto serial = manager->createSerialDeviceTTY(detected->found_file.c_str(), baud_rate, PARITY::NONE, "detect rc1180");
     serial->disableCallbacks();
     bool ok = serial->open(false);
     if (!ok) return AccessCheck::NoSuchDevice;
@@ -384,11 +433,9 @@ AccessCheck detectRC1180(Detected *detected, shared_ptr<SerialCommunicationManag
 
     ConfigRC1180 co;
     ok = co.decode(data);
-    if (!ok || co.uart_bps != 5)
+    if (!ok || co.uart_baud_rate != rcUartBaudRateFromBauds(baud_rate))
     {
-        // Decode must be ok and the uart bps must be 5,
-        // 5 means 19200 bps, which is the speed we are using.
-        // If not 5, then this is not a rc1180 dongle.
+        // Decode must be ok and the uart_baud_rate mus match the speed we are using.
         serial->close();
         verbose("(rc1180) are you there? no.\n");
         return AccessCheck::NoProperResponse;
@@ -420,10 +467,15 @@ AccessCheck detectRC1180(Detected *detected, shared_ptr<SerialCommunicationManag
 
     serial->close();
 
-    detected->setAsFound(co.dongleId(), BusDeviceType::DEVICE_RC1180, 19200, false,
+    detected->setAsFound(co.dongleId(), BusDeviceType::DEVICE_RC1180, baud_rate, false,
         detected->specified_device.linkmodes);
 
     verbose("(rc1180) are you there? yes %s\n", co.dongleId().c_str());
 
     return AccessCheck::AccessOK;
+}
+catch(const std::exception& e)
+{
+    warning("(rc1180) are you there? dunno, exception occured: %s\n", e.what());
+    return AccessCheck::NoProperResponse;
 }

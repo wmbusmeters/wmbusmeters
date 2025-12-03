@@ -829,7 +829,8 @@ AccessCheck factoryResetAMB3665(string tty, shared_ptr<SerialCommunicationManage
 Detected detectBusDeviceOnTTY(string tty,
                               set<BusDeviceType> probe_for,
                               LinkModeSet desired_linkmodes,
-                              shared_ptr<SerialCommunicationManager> handler);
+                              shared_ptr<SerialCommunicationManager> handler,
+                              string bps = string());
 
 // Remember meters id/mfct/ver/type combos that we should only warn once for.
 bool warned_for_telegram_before(Telegram *t, vector<uchar> &dll_a);
