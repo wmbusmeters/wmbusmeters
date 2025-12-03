@@ -77,7 +77,19 @@ namespace
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::AnyEnergyVIF)
             );
-
+ 
+        addNumericFieldWithExtractor(
+            "total_cooling_energy",
+            "The total cooling energy consumption recorded by this meter.",
+             DEFAULT_PRINT_PROPERTIES,
+            Quantity::Energy,
+            VifScaling::Auto, DifSignedness::Signed,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(VIFRange::AnyEnergyVIF)
+            .set(TariffNr(1))
+            );
+     
         addNumericFieldWithExtractor(
             "total_volume",
             "The total heating media volume recorded by this meter.",
