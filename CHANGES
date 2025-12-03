@@ -2,7 +2,7 @@ Colin Tregenza Dancer fixed a bug that prevented
 telegrams from being received when AMB8465 was in CMD mode. Thanks Colin!
 Leif Neland updated the q400 driver. Thanks Leif!
 Karel Blavka improved the Hydrodigit driver. Thanks Karel!
-Timur Saitov also improved the Hydridigit driver. Thanks Timur!
+Timur Saitov also improved the Hydrodigit driver. Thanks Timur!
 ZleekWolf updated the qwater driver. Thanks ZleekWolf!
 Matix2120 updated the qwater and qheat drivers. Thanks Matix2120!
 SzczepanLeon added more voltages to the amiplus driver. Thanks SzczepanLeon!
