@@ -1920,6 +1920,7 @@ bool isValidBps(const string& b)
     if (b == "38400") return true;
     if (b == "57600") return true;
     if (b == "115200") return true;
+    if (b == "230400") return true;
     return false;
 }
 

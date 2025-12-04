@@ -5497,13 +5497,15 @@ bool SendBusContent::parse(const string &s)
 Detected detectBusDeviceOnTTY(string tty,
                               set<BusDeviceType> probe_for,
                               LinkModeSet desired_linkmodes,
-                              shared_ptr<SerialCommunicationManager> handler)
+                              shared_ptr<SerialCommunicationManager> handler,
+                              string bps)
 {
     Detected detected;
     // Fake a specified device.
     detected.found_file = tty;
     detected.specified_device.is_tty = true;
     detected.specified_device.linkmodes = desired_linkmodes;
+    detected.specified_device.bps = std::move(bps);
 
     bool has_auto = probe_for.count(BusDeviceType::DEVICE_AUTO);
 
@@ -5659,7 +5661,7 @@ Detected detectBusDeviceWithFileOrHex(SpecifiedDevice &specified_device,
 
     set<BusDeviceType> probe_for = { specified_device.type };
 
-    Detected d = detectBusDeviceOnTTY(specified_device.file, probe_for, desired_linkmodes, handler);
+    Detected d = detectBusDeviceOnTTY(specified_device.file, probe_for, desired_linkmodes, handler, specified_device.bps);
     if (specified_device.type != d.found_type &&
         specified_device.type != DEVICE_UNKNOWN)
     {

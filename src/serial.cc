@@ -1097,6 +1097,7 @@ static int openSerialTTY(const char *tty, int baud_rate, PARITY parity)
     case 38400:  speed = B38400; break;
     case 57600:  speed = B57600; break;
     case 115200: speed = B115200;break;
+    case 230400: speed = B230400;break;
     default:
         goto err;
     }
