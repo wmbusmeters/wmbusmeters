@@ -78,12 +78,12 @@ try
         return DEFAULT_BAUD_RATE;
     }
     const int result = stoi(d.specified_device.bps);
-    info("(rc1180) Boud rate overwritten to %i", result);
+    info("(rc1180) Boud rate overwritten to %i\n", result);
     return result;
 }
 catch(const std::exception& e)
 {
-    warning("(rc1180) Unable to convert baud_rate: \"%s\" to int: %s - using default",
+    warning("(rc1180) Unable to convert baud_rate: \"%s\" to int: %s - using default\n",
             d.specified_device.bps.c_str(), e.what());
     return DEFAULT_BAUD_RATE;
 }
