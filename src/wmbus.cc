@@ -2888,8 +2888,6 @@ double vifScale(int vif)
     case 0x7d2e: return 1.0; // Duration since readout hours
     case 0x7d2f: return (1.0/24.0); // Duration since readout days
 
-    case 0x7d3a: return 1.0; // Dimensionless (no scaling)
-
         /*
     case 0x78: // Fabrication no
     case 0x79: // Enhanced identification
@@ -4182,9 +4180,8 @@ bool BusDeviceCommonImplementation::handleTelegram(AboutTelegram &about, vector<
         size_t expected_len = frame[0]+1;
         if (frame.size() > 0 && expected_len != frame.size())
         {
-            // Commented out warning about telegram length byte mismatch
-            // warning("(wmbus) telegram length byte (the first) 0x%02x (%d) is probably wrong. Expected 0x%02x (%zu) based on the length of the telegram.\n",
-            //         frame[0], frame[0], frame.size()-1, frame.size()-1);
+            warning("(wmbus) telegram length byte (the first) 0x%02x (%d) is probably wrong. Expected 0x%02x (%zu) based on the length of the telegram.\n",
+                    frame[0], frame[0], frame.size()-1, frame.size()-1);
         }
     }
 
@@ -4902,9 +4899,9 @@ FrameStatus checkWMBusFrame(vector<uchar> &data,
             payload_len = data.size() - offset;
             *payload_len_out = payload_len;
             *frame_length = payload_len+offset;
-            // warning("(wmbus) not enough bytes, frame length byte changed from %d(%02x) to %d(%02x)!\n",
-            //         data[offset-1], data[offset-1],
-            //         payload_len, payload_len);
+            warning("(wmbus) not enough bytes, frame length byte changed from %d(%02x) to %d(%02x)!\n",
+                    data[offset-1], data[offset-1],
+                    payload_len, payload_len);
             data[offset-1] = payload_len;
 
             return FullFrame;

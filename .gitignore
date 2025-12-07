@@ -11,5 +11,3 @@ tests_tmp/
 config.log
 autom4te.cache/
 fuzz_testcases/telegrams/
-commands.txt
-changed_files.txt
