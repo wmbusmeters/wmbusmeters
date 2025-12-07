@@ -224,6 +224,101 @@ driver {
             }
         }
         field {
+            name     = status16
+            quantity = Text
+            info     = 'Status and error flags'
+            attributes = INJECT_INTO_STATUS,HIDE
+            match {
+                difvifkey = 02FF22
+            }
+            lookup {
+                name            = ERROR_FLAGS
+                map_type        = BitToString
+                mask_bits       = 0xffff
+                default_message = OK
+                map {
+                    name  = VOLTAGE_INTERRUPTED
+                    value = 0x0001
+                    test  = Set
+                }
+                map {
+                    name  = LOW_BATTERY_LEVEL
+                    value = 0x0002
+                    test  = Set
+                }
+                map {
+                    name  = RESERVED_BIT_2
+                    value = 0x0004
+                    test  = Set
+                }
+                map {
+                    name  = SENSOR_T1_ABOVE_MEASURING_RANGE
+                    value = 0x0008
+                    test  = Set
+                }
+                map {
+                    name  = SENSOR_T2_ABOVE_MEASURING_RANGE
+                    value = 0x0010
+                    test  = Set
+                }
+                map {
+                    name  = SENSOR_T1_BELOW_MEASURING_RANGE
+                    value = 0x0020
+                    test  = Set
+                }
+                map {
+                    name  = SENSOR_T2_BELOW_MEASURING_RANGE
+                    value = 0x0040
+                    test  = Set
+                }
+                map {
+                    name  = TEMP_DIFF_WRONG_POLARITY
+                    value = 0x0080
+                    test  = Set
+                }
+                map {
+                    name  = FLOW_SENSOR_WEAK_OR_AIR
+                    value = 0x0100
+                    test  = Set
+                }
+                map {
+                    name  = WRONG_FLOW_DIRECTION
+                    value = 0x0200
+                    test  = Set
+                }
+                map {
+                    name  = RESERVED_BIT_10
+                    value = 0x0400
+                    test  = Set
+                }
+                map {
+                    name  = FLOW_INCREASED
+                    value = 0x0800
+                    test  = Set
+                }
+                map {
+                    name  = RESERVED_BIT_12
+                    value = 0x1000
+                    test  = Set
+                }
+                map {
+                    name  = RESERVED_BIT_13
+                    value = 0x2000
+                    test  = Set
+                }
+                map {
+                    name  = RESERVED_BIT_14
+                    value = 0x4000
+                    test  = Set
+                }
+                map {
+                    name  = RESERVED_BIT_15
+                    value = 0x8000
+                    test  = Set
+                }
+            }
+        }
+        field {
             name     = status_narrow
             quantity = Text
             info     = 'Status and error flags'
@@ -606,5 +701,11 @@ driver {
           json = '{"_":"telegram","media":"heat/cooling load","meter":"kamheat","name":"Kamstrup_MC303_Heat_AND_COOLING","id":"30303030","flow_return_temperature_difference_c":1.1,"forward_energy_m3c":1394,"max_flow_m3h":1.146,"max_power_kw":18,"on_time_h":2697,"on_time_at_error_h":0,"power_kw":1.4,"return_energy_m3c":1260,"t1_temperature_c":29.3,"t2_temperature_c":28.2,"target_energy_kwh":0,"target_volume_m3":0,"total_energy_backward_kwh":0,"total_energy_consumption_kwh":154,"total_volume_m3":39.49,"volume_flow_m3h":1.128,"status":"OK","target_date":"1999-11-30","timestamp":"1111-11-11T11:11:11Z"}'
           fields = 'Kamstrup_MC303_Heat_AND_COOLING;30303030;154;39.49;OK;1111-11-11 11:11.11'
         }
+    }
+    test {
+        args = '303_wrong_flow kamheat 83076912 NOKEY'
+        telegram = 52442d2c1269078340048d2067e08d1620d2ca7804060000000004140000000004ff070000000004ff080000000002592618025d2816023B000002ff220002026c393B440600000000441400000000426c213B
+        json = '{"_":"telegram","media":"heat","meter":"kamheat","name":"303_wrong_flow","id":"83076912","forward_energy_m3c":0,"return_energy_m3c":0,"t1_temperature_c":61.82,"t2_temperature_c":56.72,"target_date":"2025-11-01","target_energy_kwh":0,"target_volume_m3":0,"total_energy_consumption_kwh":0,"total_volume_m3":0,"volume_flow_m3h":0,"meter_date":"2025-11-25","status":"WRONG_FLOW_DIRECTION","timestamp":"1111-11-11T11:11:11Z"
+}'
     }
 }
