@@ -32,6 +32,7 @@ namespace
         di.setDefaultFields("name,id,total_m3,timestamp");
         di.setMeterType(MeterType::WaterMeter);
         di.addMVT(MANUFACTURER_GWF, 0x0e,  0x01);
+        di.addMVT(MANUFACTURER_GWF, 0x3c,  0x07);
         di.usesProcessContent();
         di.setConstructor([](MeterInfo& mi, DriverInfo& di){ return shared_ptr<Meter>(new Driver(mi, di)); });
     });
@@ -102,3 +103,8 @@ namespace
 // telegram=|3144E61E31102220010E8C04F47ABE0420452F2F_037410000004133E0000004413FFFFFFFF426CFFFF0F0120012F2F2F2F2F|
 // {"_":"telegram","actuality_duration_s": 16,"battery_y": 0,"id": "20221031","media": "bus/system component","meter": "gwfwater","name": "Wateroo","power_mode": "SAVING","status": "BATTERY_LOW POWER_LOW","target_date": "2128-03-31","target_m3": -0.001,"timestamp": "1111-11-11T11:11:11Z","total_m3": 0.062}
 // |Wateroo;20221031;0.062;1111-11-11 11:11.11
+
+// Test: Watertwo gwfwater 19680750 NOKEY
+// telegram=|3944E61E46441510020E8C04427250076819E61E3C07B10020452F2F_03748B05000413DC690D004413A4630D00426C213C02FD74B5140F0100E3|
+// {"_": "telegram","actuality_duration_s": 1419,"battery_y": 14,"id": "19680750","media": "water","meter": "gwfwater","name": "Watertwo","power_mode": "SAVING","status": "OK","target_date": "2025-12-01","target_m3": 877.476,"timestamp": "1111-11-11T11:11:11Z","total_m3": 879.068}
+// |Watertwo;19680750;879.068;1111-11-11 11:11.11
