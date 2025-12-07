@@ -32,7 +32,7 @@ namespace
         di.setDefaultFields("name,id,total_m3,timestamp");
         di.setMeterType(MeterType::WaterMeter);
         di.addMVT(MANUFACTURER_GWF, 0x0e,  0x01);
-        di.addMVT(MANUFACTURER_GWF, 0x3c,  0x07);
+        di.addMVT(MANUFACTURER_GWF, 0x07, 0x3c);
         di.usesProcessContent();
         di.setConstructor([](MeterInfo& mi, DriverInfo& di){ return shared_ptr<Meter>(new Driver(mi, di)); });
     });
