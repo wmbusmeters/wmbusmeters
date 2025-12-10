@@ -18,6 +18,7 @@
 #ifndef UNITS_H
 #define UNITS_H
 
+#include<assert.h>
 #include<string>
 #include<vector>
 #include<cstdint>
@@ -96,6 +97,7 @@ LIST_OF_QUANTITIES
     X(KVAR,kvar,"kVAR",Reactive_Power,"kilo volt amperes reactive")     \
     X(KVA,kva,"kVA",Apparent_Power,"kilo volt amperes")                 \
     X(M3CH,m3ch,"m³°C/h",Power,"cubic meter celsius per hour")          \
+    X(DBM,dbm,"dBm",Power,"decibel-milliwatt")                          \
     \
     X(M3,m3,"m³",Volume,"cubic meter")                                  \
     X(L,l,"l",Volume,"litre")                                           \
@@ -140,6 +142,12 @@ LIST_OF_UNITS
     Unknown
 };
 
+// An SIExp can have a non-linear transform in addition to the scale_.
+// If such a function is exists, then it is applied to move the value
+// into a scaleable unit. Likewise to move from a scaleable unit into
+// the non-linear unit.
+typedef double (*NonLinearConversionFunc)(double);
+
 // The SIUnit is used inside formulas and for conversion between units.
 // Any numeric named Unit can be expressed using an SIUnit.
 // Most SIUnits do not have a corresponding named Unit.
@@ -172,6 +180,12 @@ struct SIExp
     SIExp &month(int8_t i) { month_ = i; return *this; }
     SIExp &year(int8_t i) { year_ = i; return *this; }
     SIExp &unixTimestamp(int8_t i) { unix_timestamp_ = i; return *this; }
+    SIExp &nonlinear(double (*from)(double), double (*to)(double)) {
+        nonlinear_from_ = from;
+        nonlinear_to_ = to;
+        assert(nonlinear_from_ != NULL && nonlinear_to_ != NULL);
+        return *this;
+    }
 
     int8_t s() const { return s_; }
     int8_t m() const { return m_; }
@@ -185,6 +199,9 @@ struct SIExp
     int8_t month() const { return month_; }
     int8_t year() const { return year_; }
     int8_t unixTimestamp() const { return unix_timestamp_; }
+    bool isLinear() const { return nonlinear_to_ == NULL; /* Enough to test one, since the other must be set as well. */ }
+    NonLinearConversionFunc nonlinearTo() const { return nonlinear_to_; }
+    NonLinearConversionFunc nonlinearFrom() const { return nonlinear_from_; }
 
     SIExp mul(const SIExp &e) const;
     SIExp div(const SIExp &e) const;
@@ -192,6 +209,7 @@ struct SIExp
     int8_t safe_add(int8_t a, int8_t b);
     int8_t safe_sub(int8_t a, int8_t b);
     int8_t safe_div2(int8_t a);
+    bool equalIgnoreNonLinear(const SIExp &e) const;
     bool operator==(const SIExp &e) const;
     bool operator!=(const SIExp &e) const;
 
@@ -221,9 +239,13 @@ private:
     int8_t year_ {};  // be auto-converted to seconds, ie you cannot add/subtract months/years without knowing what you add to.
     int8_t unix_timestamp_ {}; // Why not s? Because point in time is referenced agains an offset. UT is 1970-01-01 01:00.
 
+    // If these are non-NULL, then apply from, to move from the non-linear unit (dBM) to a scaleable unit (W).
+    // Apply to, to move to the non-linear unit (dBM) from a scaleable unit (W).
+    NonLinearConversionFunc nonlinear_from_ {};
+    NonLinearConversionFunc nonlinear_to_ {};
+
     // If exponents have over/underflowed or if multiple of (k,c,f) (month,year,unix_timestamp) are set,
     // then the SIExp is not valid any more!
-
     bool invalid_ = false;
 };
 
