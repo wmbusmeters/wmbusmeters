@@ -148,8 +148,8 @@ $(BUILD)/%.o: src/%.cc $(wildcard src/%.h)
 	$(CXX) $(CXXFLAGS) $< -MMD -c -o $@
 
 $(BUILD)/%.o: src/%.c $(wildcard src/%.h)
-	$(CXX) -I/usr/include/libxml2 $(CXXFLAGS) $< -c -E > $@.src
-	$(CXX) -I/usr/include/libxml2 -fpermissive $(CXXFLAGS)  $< -MMD -c -o $@
+	$(CXX) $(shell pkg-config --cflags libxml-2.0) $(CXXFLAGS) $< -c -E > $@.src
+	$(CXX) $(shell pkg-config --cflags libxml-2.0) -fpermissive $(CXXFLAGS)  $< -MMD -c -o $@
 
 PROG_OBJS:=\
 	$(BUILD)/address.o \
