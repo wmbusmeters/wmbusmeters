@@ -3040,7 +3040,9 @@ else
       { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $LIBXML2INC" >&5
 printf "%s\n" "$LIBXML2INC" >&6; }
    else
-       as_fn_error $? "Could not find libxml2 include directory!" "$LINENO" 5
+       LIBXML2INC=$(find / -name xpath.h)
+       { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: not found, but perhaps this? $LIBXML2INC" >&5
+printf "%s\n" "not found, but perhaps this? $LIBXML2INC" >&6; }
    fi
 fi
 

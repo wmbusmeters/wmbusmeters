@@ -78,7 +78,8 @@ else
       CXXFLAGS="$CXXFLAGS $LIBXML2INC"
       AC_MSG_RESULT([$LIBXML2INC])
    else
-       AC_MSG_ERROR([Could not find libxml2 include directory!])
+       LIBXML2INC=$(find / -name xpath.h)
+       AC_MSG_RESULT([not found, but perhaps this? $LIBXML2INC])
    fi
 fi
 
