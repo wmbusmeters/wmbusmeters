@@ -31,7 +31,7 @@ WORKDIR /xmq
 RUN ./configure && make -j`nproc`
 
 FROM alpine AS scratch
-RUN apk add --no-cache mosquitto-clients libstdc++ curl libusb libxml2 netcat-openbsd
+RUN apk add --no-cache mosquitto-clients libstdc++ curl libusb libxml2
 WORKDIR /wmbusmeters
 COPY --from=build /librtlsdr/build/src/librtlsdr.so.* /usr/lib/
 COPY --from=build /librtlsdr/rtl-sdr.rules /usr/lib/udev/rules.d/rtl-sdr.rules
