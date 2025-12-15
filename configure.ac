@@ -65,20 +65,21 @@ AC_CHECK_LIB(xml2, xmlFreeDoc, [],
 
 AC_MSG_CHECKING([libxml include dir])
 
-LIBXML2INC="$(pkg-config --cflags libxml-2.0)"
-
-if test -n "$LIBXML2INC"
-then
-   CFLAGS="$CFLAGS $LIBXML2INC"
-   CXXFLAGS="$CXXFLAGS $LIBXML2INC"
-   AC_MSG_RESULT([$LIBXML2INC])
-elif test -d /usr/include/libxml2/libxml/xpath.h
+if test -d /usr/include/libxml2/libxml/xpath.h
 then
    CFLAGS="$CFLAGS -I/usr/include/libxml2"
    CXXFLAGS="$CXXFLAGS -I/usr/include/libxml2"
    AC_MSG_RESULT([/usr/include/libxml2])
 else
-    AC_MSG_ERROR([Could not find libxml2 include directory!])
+   LIBXML2INC="$(pkg-config --cflags libxml-2.0)"
+   if test -n "$LIBXML2INC"
+   then
+      CFLAGS="$CFLAGS $LIBXML2INC"
+      CXXFLAGS="$CXXFLAGS $LIBXML2INC"
+      AC_MSG_RESULT([$LIBXML2INC])
+   else
+       AC_MSG_ERROR([Could not find libxml2 include directory!])
+   fi
 fi
 
 AC_SUBST(CFLAGS)
