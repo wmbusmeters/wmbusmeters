@@ -30,7 +30,7 @@ RUN make
 WORKDIR /xmq
 RUN ./configure && make -j`nproc`
 
-FROM alpine AS scratch
+FROM alpine AS builder
 RUN apk add --no-cache mosquitto-clients libstdc++ curl libusb libxml2
 WORKDIR /wmbusmeters
 COPY --from=build /librtlsdr/build/src/librtlsdr.so.* /usr/lib/
