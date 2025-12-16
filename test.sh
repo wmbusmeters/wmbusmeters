@@ -193,6 +193,9 @@ if [ "$?" != "0" ]; then RC="1"; fi
 ./tests/test_removing_dll_crcs.sh $PROG
 if [ "$?" != "0" ]; then RC="1"; fi
 
+./tests/test_frame_b_trim.sh $PROG
+if [ "$?" != "0" ]; then RC="1"; fi
+
 ./tests/test_broken.sh $PROG
 if [ "$?" != "0" ]; then RC="1"; fi
 
