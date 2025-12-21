@@ -3,10 +3,10 @@ name: Build docker
 on:
   push:
     branches:
-      - 'master'
+      - "master"
     tags:
-      - '[0-9]+\.[0-9]+\.[0-9]+'
-      - '[0-9]+\.[0-9]+\.[0-9]+-RC[0-9]+'
+      - "[0-9]+\\.[0-9]+\\.[0-9]+"
+      - "[0-9]+\\.[0-9]+\\.[0-9]+-RC[0-9]+"
 
 env:
   DOCKERHUB_IMAGE: ${{ github.repository }}
@@ -33,6 +33,12 @@ jobs:
       -
         name: Checkout
         uses: actions/checkout@v6
+      -
+        name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+        with:
+          image: tonistiigi/binfmt:latest
+          platforms: all
       -
         name: Docker meta
         id: meta
@@ -110,7 +116,8 @@ jobs:
         name: Create manifest list and push
         working-directory: /tmp/digests
         run: |
-          docker buildx imagetools create $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON") \
+          docker buildx imagetools create \
+            $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON") \
             $(printf '${{ env.DOCKERHUB_IMAGE }}@sha256:%s ' *)
       -
         name: Inspect image
