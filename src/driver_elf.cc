@@ -24,12 +24,12 @@ namespace
         Driver(MeterInfo &mi, DriverInfo &di);
     };
 
-    static bool ok = registerDriver([](DriverInfo&di)
+    static bool ok = staticRegisterDriver([](DriverInfo&di)
     {
         di.setName("elf");
         di.setDefaultFields("name,id,total_energy_consumption_kwh,current_power_consumption_kw,total_volume_m3,flow_temperature_c,return_temperature_c,external_temperature_c,status,timestamp");
         di.setMeterType(MeterType::HeatMeter);
-        di.addDetection(MANUFACTURER_APA, 0x04, 0x40);
+        di.addMVT(MANUFACTURER_APA, 0x04, 0x40);
         di.setConstructor([](MeterInfo& mi, DriverInfo& di){ return shared_ptr<Meter>(new Driver(mi, di)); });
     });
 

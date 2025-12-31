@@ -2100,6 +2100,16 @@ LIST_OF_QUANTITIES
     test_si_convert(1, double(1000.0)/3600.0, Unit::MJH, "mjh", Unit::KW, "kw", Quantity::Power, &from_set, &to_set);
     test_si_convert(double(1000.0)/3600.0, 1, Unit::KW, "kw", Unit::MJH, "mjh", Quantity::Power, &from_set, &to_set);
 
+    // Test the non-linear conversion between dBm and W.
+    test_si_convert(-1.2, -1.2, Unit::DBM, "dbm", Unit::DBM, "dbm", Quantity::Power, &from_set, &to_set);
+    test_si_convert(0, 0.001, Unit::DBM, "dbm", Unit::W, "w", Quantity::Power, &from_set, &to_set);
+    test_si_convert(0.001, 0, Unit::W, "w", Unit::DBM, "dbm", Quantity::Power, &from_set, &to_set);
+
+    test_si_convert(0, 0.000001, Unit::DBM, "dbm", Unit::KW, "kw", Quantity::Power, &from_set, &to_set);
+    test_si_convert(0.000001, 0, Unit::KW, "kw", Unit::DBM, "dbm", Quantity::Power, &from_set, &to_set);
+
+    test_si_convert(0.003, 34.771212547196626, Unit::KW, "kw", Unit::DBM, "dbm", Quantity::Power, &from_set, &to_set);
+
     // The power variant is m3ch.
     test_si_convert(99.0, 99.0, Unit::M3CH, "m3ch", Unit::M3CH, "m3ch", Quantity::Power, &from_set, &to_set);
 
@@ -2223,8 +2233,10 @@ LIST_OF_QUANTITIES
     test_si_convert(2211717, 2211717, Unit::FACTOR, "counter", Unit::COUNTER, "counter", Quantity::Dimensionless, &from_set, &to_set);
     test_si_convert(2211717, 2211717, Unit::NUMBER, "counter", Unit::COUNTER, "counter", Quantity::Dimensionless, &from_set, &to_set);
     test_si_convert(2211717, 2211717, Unit::FACTOR, "counter", Unit::NUMBER, "counter", Quantity::Dimensionless, &from_set, &to_set);
-    test_si_convert(2211717, 2211717, Unit::PERCENTAGE, "counter", Unit::NUMBER, "counter", Quantity::Dimensionless, &from_set, &to_set);
-    test_si_convert(2211717, 2211717, Unit::NUMBER, "counter", Unit::PERCENTAGE, "counter", Quantity::Dimensionless, &from_set, &to_set);
+    test_si_convert(22, 0.22, Unit::PERCENTAGE, "pct", Unit::NUMBER, "counter", Quantity::Dimensionless, &from_set, &to_set);
+    test_si_convert(0.22, 22, Unit::NUMBER, "counter", Unit::PERCENTAGE, "pct", Quantity::Dimensionless, &from_set, &to_set);
+    test_si_convert(222, 0.000222, Unit::PPM, "ppm", Unit::NUMBER, "counter", Quantity::Dimensionless, &from_set, &to_set);
+    test_si_convert(1.234, 1234000.0, Unit::NUMBER, "counter", Unit::PPM, "ppm", Quantity::Dimensionless, &from_set, &to_set);
 
     check_units_tested(from_set, to_set, Quantity::Dimensionless);
 

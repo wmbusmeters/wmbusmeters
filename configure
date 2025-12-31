@@ -617,6 +617,7 @@ PACKAGE_URL='https://github.com/wmbusmeters/wmbusmeters'
 
 ac_subst_vars='LTLIBOBJS
 LIBOBJS
+CFLAGS
 OBJEXT
 EXEEXT
 ac_ct_CXX
@@ -2288,7 +2289,6 @@ darwin*)
 	CFLAGS="$CFLAGS -I/usr/local/include -I/opt/homebrew/include"
 	CXXFLAGS="$CXXFLAGS -I/usr/local/include -I/opt/homebrew/include"
 	LDFLAGS="$LDFLAGS -L/usr/local/lib -L/opt/homebrew/lib"
-        find /opt -name "*rtlsdr*"
 ;;
 esac
 
@@ -3020,6 +3020,32 @@ else $as_nop
   as_fn_error $? "Could  not find libxml2 library. Try: sudo apt install libxml2-dev" "$LINENO" 5
 
 fi
+
+
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking libxml include dir" >&5
+printf %s "checking libxml include dir... " >&6; }
+
+if test -d /usr/include/libxml2/libxml/xpath.h
+then
+   CFLAGS="$CFLAGS -I/usr/include/libxml2"
+   CXXFLAGS="$CXXFLAGS -I/usr/include/libxml2"
+   { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: /usr/include/libxml2" >&5
+printf "%s\n" "/usr/include/libxml2" >&6; }
+else
+   LIBXML2INC="$(pkg-config --cflags libxml-2.0)"
+   if test -n "$LIBXML2INC"
+   then
+      CFLAGS="$CFLAGS $LIBXML2INC"
+      CXXFLAGS="$CXXFLAGS $LIBXML2INC"
+      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $LIBXML2INC" >&5
+printf "%s\n" "$LIBXML2INC" >&6; }
+   else
+       LIBXML2INC=$(find / -name xpath.h)
+       { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: not found, but perhaps this? $LIBXML2INC" >&5
+printf "%s\n" "not found, but perhaps this? $LIBXML2INC" >&6; }
+   fi
+fi
+
 
 
 ac_config_files="$ac_config_files $OUTPUT_ROOT/spec.gmk:$SRC_ROOT/autoconf/spec.gmk.in"

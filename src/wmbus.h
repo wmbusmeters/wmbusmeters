@@ -368,12 +368,14 @@ struct AboutTelegram
     // -100 dbm = 0.1 pico Watt to -20 dbm = 10 micro W
     // Measurements smaller than -100 and larger than -10 are unlikely.
     int rssi_dbm {};
+    // If the LinkMode is known, then it is stored here.
+    LinkMode link_mode {};
     // WMBus or MBus
     FrameType type {};
     // time the telegram was received
     time_t timestamp;
 
-    AboutTelegram(string dv, int rs, FrameType t, time_t ts = 0) : device(dv), rssi_dbm(rs), type(t), timestamp(ts) {}
+    AboutTelegram(string dv, int rs, LinkMode lm, FrameType t, time_t ts = 0) : device(dv), rssi_dbm(rs), link_mode(lm), type(t), timestamp(ts) {}
     AboutTelegram() {}
 };
 
@@ -827,7 +829,8 @@ AccessCheck factoryResetAMB3665(string tty, shared_ptr<SerialCommunicationManage
 Detected detectBusDeviceOnTTY(string tty,
                               set<BusDeviceType> probe_for,
                               LinkModeSet desired_linkmodes,
-                              shared_ptr<SerialCommunicationManager> handler);
+                              shared_ptr<SerialCommunicationManager> handler,
+                              string bps = string());
 
 // Remember meters id/mfct/ver/type combos that we should only warn once for.
 bool warned_for_telegram_before(Telegram *t, vector<uchar> &dll_a);

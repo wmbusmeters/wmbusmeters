@@ -50,16 +50,16 @@ namespace
         // return_temperature_c
     };
 
-    static bool ok = registerDriver([](DriverInfo&di)
+    static bool ok = staticRegisterDriver([](DriverInfo&di)
     {
         di.setName("c5isf");
         di.setDefaultFields("name,id,total_energy_consumption_kwh,total_volume_m3,status,timestamp");
 
         di.setMeterType(MeterType::HeatMeter);
         di.addLinkMode(LinkMode::T1);
-        di.addDetection(MANUFACTURER_ZRI, 0x0d, 0x88); // Telegram type T1A1
-        di.addDetection(MANUFACTURER_ZRI, 0x07, 0x88); // Telegram type T1A2
-        di.addDetection(MANUFACTURER_ZRI, 0x04, 0x88); // Telegram type T1B
+        di.addMVT(MANUFACTURER_ZRI, 0x0d, 0x88); // Telegram type T1A1
+        di.addMVT(MANUFACTURER_ZRI, 0x07, 0x88); // Telegram type T1A2
+        di.addMVT(MANUFACTURER_ZRI, 0x04, 0x88); // Telegram type T1B
         di.setConstructor([](MeterInfo& mi, DriverInfo& di){ return shared_ptr<Meter>(new Driver(mi, di)); });
     });
 
@@ -76,6 +76,18 @@ namespace
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::AnyEnergyVIF)
+            );
+
+        addNumericFieldWithExtractor(
+            "total_cooling_consumption",
+            "The total cooling energy consumption recorded by this meter.",
+             DEFAULT_PRINT_PROPERTIES,
+            Quantity::Energy,
+            VifScaling::Auto, DifSignedness::Signed,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(VIFRange::AnyEnergyVIF)
+            .set(TariffNr(1))
             );
 
         addNumericFieldWithExtractor(
@@ -302,3 +314,8 @@ namespace
 // telegram=|5E44496A4420003288047AFC0050052F2F_0406D00E00000413B28A05008404060000000082046CC121043B00000000042D000000000259E719025D051402FD17000084800106C00C00008280016CC125948001AE25090000002F2F2F2F2F2F|
 // {"_":"telegram","media":"heat","meter":"c5isf","name":"Heat","id":"32002044","total_energy_consumption_kwh":3792,"total_volume_m3":363.186,"status":"OK","prev_1_month":"2022-05-01","prev_1_month_kwh":3264,"due_energy_consumption_kwh":0,"due_date":"2022-01-01","volume_flow_m3h":0,"power_kw":0,"total_energy_consumption_last_month_kwh":3264,"max_power_last_month_kw":9,"flow_temperature_c":66.31,"return_temperature_c":51.25,"timestamp":"1111-11-11T11:11:11Z"}
 // |Heat;32002044;3792;363.186;OK;1111-11-11 11:11.11
+
+// Test: HeatCool c5isf 32022703 NOKEY
+// telegram=|8E44496A03270232880D7AED0080052F2F0406050200008410069A1700000413BC6F2E00840406E701000082046C2131841406C20B000082146C2131043B00000000042D0000000002595D09025D240802FD17000084800106050200008280016C213C948001AE2501000000849001069A1700008290016C213C849001AE25000000002F2F2F2F2F2F2F2F2F2F2F2F|
+// {"_": "telegram","due_date": "2025-01-01","due_energy_consumption_kwh": 487,"flow_temperature_c": 23.97,"id": "32022703","max_power_last_month_kw": 1,"media": "heat/cooling load","meter": "c5isf","name": "HeatCool","power_kw": 0,"prev_1_month": "2025-12-01","prev_1_month_kwh": 517,"return_temperature_c": 20.84,"status": "OK","timestamp": "1111-11-11T11:11:11Z","total_cooling_consumption_kwh": 6042,"total_energy_consumption_kwh": 517,"total_energy_consumption_last_month_kwh": 517,"total_volume_m3": 3043.26,"volume_flow_m3h": 0}
+// |HeatCool;32022703;517;3043.26;OK;1111-11-11 11:11.11

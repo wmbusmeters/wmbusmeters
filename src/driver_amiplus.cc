@@ -24,21 +24,22 @@ namespace
         Driver(MeterInfo &mi, DriverInfo &di);
     };
 
-    static bool ok = registerDriver([](DriverInfo&di)
+    static bool ok = staticRegisterDriver([](DriverInfo&di)
     {
         di.setName("amiplus");
         di.setDefaultFields("name,id,total_energy_consumption_kwh,current_power_consumption_kw,total_energy_production_kwh,current_power_production_kw,voltage_at_phase_1_v,voltage_at_phase_2_v,voltage_at_phase_3_v,total_energy_consumption_tariff_1_kwh,total_energy_consumption_tariff_2_kwh,total_energy_consumption_tariff_3_kwh,total_energy_production_tariff_1_kwh,total_energy_production_tariff_2_kwh,total_energy_production_tariff_3_kwh,timestamp");
         di.setMeterType(MeterType::ElectricityMeter);
         di.addLinkMode(LinkMode::T1);
-        di.addDetection(MANUFACTURER_APA,  0x02,  0x02);
-        di.addDetection(MANUFACTURER_DEV,  0x37,  0x02);
-        di.addDetection(MANUFACTURER_DEV,  0x02,  0x00);
-        di.addDetection(MANUFACTURER_DEV,  0x02,  0x01);
+        di.addMVT(MANUFACTURER_APA,  0x02,  0x02);
+        di.addMVT(MANUFACTURER_DEV,  0x37,  0x02);
+        di.addMVT(MANUFACTURER_DEV,  0x02,  0x00);
+        di.addMVT(MANUFACTURER_DEV,  0x02,  0x01);
+        di.addMVT(MANUFACTURER_NES,  0x02,  0x03);
         // Apator Otus 1/3 seems to use both, depending on a frame.
         // Frames with APA are successfully decoded by this driver
         // Frames with APT are not - and their content is unknown - perhaps it broadcasts two data formats?
-        di.addDetection(MANUFACTURER_APA,  0x02,  0x01);
-        //di.addDetection(MANUFACTURER_APT,  0x02,  0x01);
+        di.addMVT(MANUFACTURER_APA,  0x02,  0x01);
+        //di.addMVT(MANUFACTURER_APT,  0x02,  0x01);
         di.setConstructor([](MeterInfo& mi, DriverInfo& di){ return shared_ptr<Meter>(new Driver(mi, di)); });
     });
 
@@ -243,3 +244,8 @@ namespace
 // telegram=|9e4401060445915601027a3d0390052f2f066dc076091935800c78044591560e032088300000008e10032088300000008e20030000000000008e30030000000000008e8010030000000000000e833c2702000000008e10833c2702000000008e20833c0000000000008e30833c0000000000008e8010833c0000000000000afdc8fc0136240afdc8fc0262240afdc8fc0389222f2f2f2f2f2f2f2f2f2f2f2f|
 // {"_":"telegram","media":"electricity","meter":"amiplus","name":"MyElectricity5","id":"56914504","total_energy_consumption_kwh":308.82,"total_energy_consumption_tariff_1_kwh":308.82,"total_energy_consumption_tariff_2_kwh":0,"total_energy_consumption_tariff_3_kwh":0,"total_energy_production_kwh":0.227,"total_energy_production_tariff_1_kwh":0.227,"total_energy_production_tariff_2_kwh":0,"total_energy_production_tariff_3_kwh":0,"voltage_at_phase_1_v":243.6,"voltage_at_phase_2_v":246.2,"voltage_at_phase_3_v":228.9,"device_date_time":"2024-05-25 09:54:00","timestamp":"1111-11-11T11:11:11Z"}
 // |MyElectricity5;56914504;308.82;null;0.227;null;243.6;246.2;228.9;308.82;0;0;0.227;0;0;1111-11-11 11:11.11
+
+// Test: MyElectricity6 amiplus 00086426 NOKEY
+// telegram=|8E44B3382664080003027A090080052F2F_066D37090E2232050C78266408000AFDC9FC0142020AFDC9FC0240020AFDC9FC0338028E30833C0000000000008E20833C0000000000008E10833C0000000000000BABC8FC100000008E10030750030000008E20035379060000008E30030000000000000B2B1307000BAB3C0000002F2F2F2F2F2F2F2F2F2F2F2F2F2F2F2F|
+// {"_": "telegram","current_power_consumption_kw": 0.713,"current_power_production_kw": 0,"device_date_time": "2025-02-02 14:09:55","id": "00086426","media": "electricity","meter": "amiplus","name": "MyElectricity6","timestamp": "1111-11-11T11:11:11Z","total_energy_consumption_tariff_1_kwh": 35.007,"total_energy_consumption_tariff_2_kwh": 67.953,"total_energy_consumption_tariff_3_kwh": 0,"total_energy_production_tariff_1_kwh": 0,"total_energy_production_tariff_2_kwh": 0,"total_energy_production_tariff_3_kwh": 0,"voltage_at_phase_1_v": 242,"voltage_at_phase_2_v": 240,"voltage_at_phase_3_v": 238}
+// |MyElectricity6;00086426;null;0.713;null;0;242;240;238;35.007;67.953;0;0;0;0;1111-11-11 11:11.11

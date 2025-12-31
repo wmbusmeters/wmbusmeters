@@ -23,6 +23,7 @@
 #include<string.h>
 
 string check_driver_name(const char *name, string file);
+string check_aliases(const char *aliases, string file);
 MeterType check_meter_type(const char *meter_type_s, string file);
 string check_default_fields(const char *fields, string file);
 void check_detection_triplets(DriverInfo *di, string file);
@@ -41,6 +42,7 @@ double check_force_scale(const char *force_scale, DriverDynamic *dd);
 bool checked_set_difvifkey(const char *difvifkey_s, FieldMatcher *fm, DriverDynamic *dd);
 void checked_set_measurement_type(const char *measurement_type_s, FieldMatcher *fm, DriverDynamic *dd);
 void checked_set_vif_range(const char *vif_range_s, FieldMatcher *fm, DriverDynamic *dd);
+void checked_set_indexnr(const char *indexnr_s, FieldMatcher *fm, DriverDynamic *dd);
 void checked_set_storagenr_range(const char *storagenr_range_s, FieldMatcher *fm, DriverDynamic *dd);
 void checked_set_tariffnr_range(const char *tariffnr_range_s, FieldMatcher *fm, DriverDynamic *dd);
 void checked_set_subunitnr_range(const char *subunitnr_range_s, FieldMatcher *fm, DriverDynamic *dd);
@@ -97,6 +99,9 @@ bool DriverDynamic::load(DriverInfo *di, const string &file_name, const char *co
     {
         string name = check_driver_name(xmqGetString(doc, "/driver/name"), file);
         di->setName(name);
+
+        string aliases = check_aliases(xmqGetString(doc, "/driver/aliases"), file);
+        di->setAliases(aliases);
 
         MeterType meter_type = check_meter_type(xmqGetString(doc, "/driver/meter_type"), file);
         di->setMeterType(meter_type);
@@ -242,13 +247,14 @@ XMQProceed DriverDynamic::add_detect(XMQDoc *doc, XMQNode *detect, DriverInfo *d
     }
 
     string mfct_flag = manufacturerFlag(mfct_code);
-    debug("(driver) register detection %s %s %2x %02x\n",
+    debug("(driver) %s register detection from \"%s\" mvt=%s,%02x,%02x\n",
+          di->name().str().c_str(),
           di->getDynamicFileName().c_str(),
           mfct_flag.c_str(),
           version,
           type);
 
-    di->addDetection(mfct_code, type, version);
+    di->addMVT(mfct_code, type, version);
     return XMQ_CONTINUE;
 }
 
@@ -390,6 +396,7 @@ XMQProceed DriverDynamic::add_match(XMQDoc *doc, XMQNode *match, DriverDynamic *
 
     checked_set_vif_range(xmqGetStringRel(doc, "vif_range", match), fm, dd);
 
+    checked_set_indexnr(xmqGetStringRel(doc, "index_nr", match), fm, dd);
     checked_set_storagenr_range(xmqGetStringRel(doc, "storage_nr", match), fm, dd);
     checked_set_tariffnr_range(xmqGetStringRel(doc, "tariff_nr", match), fm, dd);
     checked_set_subunitnr_range(xmqGetStringRel(doc, "subunit_nr", match), fm, dd);
@@ -530,6 +537,16 @@ MeterType check_meter_type(const char *meter_type_s, string file)
     return meter_type;
 }
 
+string check_aliases(const char *aliases, string file)
+{
+    if (!aliases)
+    {
+        return "";
+    }
+
+    return aliases;
+}
+
 string check_default_fields(const char *default_fields, string file)
 {
     if (!default_fields)
@@ -550,7 +567,7 @@ string check_default_fields(const char *default_fields, string file)
 
 void check_detection_triplets(DriverInfo *di, string file)
 {
-    if (di->detect().size() == 0)
+    if (di->mvts().size() == 0)
     {
         warning("(driver) error in %s, cannot find any detection triplets: driver/detect/mvt\n"
                 "%s\n"
@@ -585,16 +602,20 @@ string check_field_name(const char *name, DriverDynamic *dd)
     Unit u;
     if (extractUnit(string(name), &vname, &u))
     {
-        warning("(driver) error in %s, bad field name %s (field names should not have units)\n"
-                "%s\n"
-                "The field name should not have a unit since units are added automatically.\n"
-                "Either indirectly based on the quantity or directly based on the display_unit.\n"
-                "%s\n",
-                dd->fileName().c_str(),
-                name,
-                line,
-                line);
-        throw 1;
+        // Special exception to allow operating_time_h
+        Quantity q = toQuantity(u);
+        if (q != Quantity::PointInTime)
+        {
+            warning("(driver) error in %s, bad field name %s (field names should not have units)\n"
+                    "%s\n"
+                    "The field name should not have a unit since units are added automatically.\n"
+                    "Either indirectly based on the quantity or directly based on the display_unit.\n"
+                    "%s\n",
+                    dd->fileName().c_str(),
+                    name,
+                    line,
+                    line);
+        }
     }
 
     return name;
@@ -932,6 +953,24 @@ void checked_set_vif_range(const char *vif_range_s, FieldMatcher *fm, DriverDyna
     }
 
     fm->set(vif_range);
+}
+
+void checked_set_indexnr(const char *indexnr_s, FieldMatcher *fm, DriverDynamic *dd)
+{
+    if (!indexnr_s) return;
+
+    bool ok = isNumber(indexnr_s);
+    if (!ok)
+    {
+        warning("(driver) error in %s, bad indexnr: %s\n"
+                "%s\n",
+                dd->fileName().c_str(),
+                indexnr_s,
+                line);
+        throw 1;
+    }
+
+    fm->set(IndexNr(atoi(indexnr_s)));
 }
 
 void checked_set_storagenr_range(const char *storagenr_range_s, FieldMatcher *fm, DriverDynamic *dd)

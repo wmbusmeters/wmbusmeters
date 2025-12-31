@@ -276,7 +276,7 @@ void WMBusRTL433::processSerialData()
                 }
             }
             string id = string("rtl433[")+getDeviceId()+"]";
-            AboutTelegram about(id, 999, FrameType::WMBUS);
+            AboutTelegram about(id, 999, LinkMode::UNKNOWN, FrameType::WMBUS);
             handleTelegram(about, payload);
         }
     }

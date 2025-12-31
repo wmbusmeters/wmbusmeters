@@ -1,0 +1,96 @@
+/* Copyright (C) 2025 obidobi (gpl-3.0-or-later)
+   Copyright (C) 2025 Fredrik Öhrström (gpl-3.0-or-later)
+
+   Elvaco Sense 100W,200W,300W
+
+   Datasheet (V1.0, 2023-11):
+     • C = 0x44, Manufacturer = ELV (0x1596), Version = 0x50..0x54
+     • Medium = 0x1B (Room sensor), App header = 0x7A (short)
+     • Battery: DIF 0x02 / VIF 0xFD / VIFE 0x46  → u16 mV (bytes 20..21)
+     • Temperature: DIF 0x02 / VIF 0x65         → s16/100 °C (bytes 24..25)
+
+   Notes:
+     • Designed for unencrypted C1a; will decode C1b/T1 unencrypted too.
+     • Built/tested against wmbusmeters 1.17.1-29-g3af7a4c. */
+driver {
+    name           = elvsense
+    default_fields = name,id,temperature_c,humidity_rh,co2_ppm,battery_v,status,timestamp
+    meter_type     = TempHygroMeter
+    detect {
+        // Manufacturer ELV (0x1596), VERSION 0x50..0x54, TYPE 0x1B (room sensor 100W)
+        mvt = ELV,50,1b
+        mvt = ELV,51,1b
+        mvt = ELV,52,1b
+        mvt = ELV,53,1b
+        mvt = ELV,54,1b
+        // Manufacturer ELV (0x1596), VERSION 85d..89d, TYPE 0x1B (room sensor 200W)
+        // Manufacturer ELV (0x1596), VERSION 90d..94d, TYPE 0x1B (room sensor 300W)
+    }
+    fields {
+        field {
+            name     = temperature
+            quantity = Temperature
+            info     = 'Instantaneous room temperature.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = ExternalTemperature
+            }
+        }
+        field {
+            name     = battery
+            quantity = Voltage
+            info     = 'Battery voltage.'
+            // unit is added automatically from quantity/VIF (Volts)
+            match {
+                measurement_type = Instantaneous
+                vif_range        = Voltage
+            }
+        }
+        field {
+            name     = humidity
+            quantity = RelativeHumidity
+            info     = 'Relative humidity for 200W and 300W meters'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = RelativeHumidity
+            }
+        }
+        field {
+            name     = co2
+            quantity = Dimensionless
+            info     = 'CO2 concentration ppm for 300W meters'
+            vif_scaling = None
+            display_unit = ppm
+            match {
+                difvifkey = 027C03324F43
+            }
+        }
+        field {
+            name       = status
+            quantity   = Text
+            info       = 'Sensor status and error flags.'
+            attributes = STATUS,INCLUDE_TPL_STATUS
+        }
+    }
+    tests {
+        test {
+            args     = 'ES1 elvsense 80008957 NOKEY'
+            telegram = 1844961557890080501B7aea00012002656f0802fd46610e0f
+            json     = '{"_": "telegram","battery_v": 3.681,"id": "80008957","media": "room sensor","meter": "elvsense","name": "ES1","status": "OK","temperature_c": 21.59,"timestamp": "1111-11-11T11:11:11Z"}'
+            fields   = 'ES1;80008957;21.59;null;null;3.681;OK;1111-11-11 11:11.11'
+        }
+        test {
+            args     = 'ES2 elvsense 80008957 NOKEY'
+            telegram = 1e44961557890080501B7aff0010252f2f0265680802fd46630e0f2f2f2f2f
+            json     = '{"_": "telegram","battery_v": 3.683,"id": "80008957","media": "room sensor","meter": "elvsense","name": "ES2","status": "OK","temperature_c": 21.52,"timestamp": "1111-11-11T11:11:11Z"}'
+            fields   = 'ES2;80008957;21.52;null;null;3.683;OK;1111-11-11 11:11.11'
+        }
+        test {
+            args     = 'FAKE elvsense 80008958 NOKEY'
+            comment  = 'This is a fake meter to test ppm and named vif CO2. But 300W probably looks similar.'
+            telegram = 2b44961558890080501B7aff0010252f2f_02656808_02fd46630e_02fb1a0700_027c03324f430001_0f2f2f2f2f
+            json     = '{"_": "telegram","battery_v": 3.683,"co2_ppm": 256,"humidity_rh": 0.7,"id": "80008958","media": "room sensor","meter": "elvsense","name": "FAKE","status": "OK","temperature_c": 21.52,"timestamp": "1111-11-11T11:11:11Z"}'
+            fields   = 'FAKE;80008958;21.52;0.7;256;3.683;OK;1111-11-11 11:11.11'
+        }
+    }
+}

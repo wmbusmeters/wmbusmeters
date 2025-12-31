@@ -16,6 +16,16 @@ else
     echo "log: $ROOT/var/lib/wmbusmeters/meter_readings unchanged"
 fi
 
+if [ ! -d "$ROOT"/var/lib/wmbusmeters/wmbusmeters.drivers.d ]
+then
+    # Create the log directories
+    mkdir -p "$ROOT"/var/lib/wmbusmeters/wmbusmeters.drivers.d
+    chown -R wmbusmeters:wmbusmeters "$ROOT"/var/lib/wmbusmeters
+    echo "log: created $ROOT/var/lib/wmbusmeters/wmbusmeters.drivers.d"
+else
+    echo "log: $ROOT/var/lib/wmbusmeters/wmbusmeters.drivers.d"
+fi
+
 if [ ! -d "$ROOT"/var/log/wmbusmeters ]
 then
     # Create the log directories

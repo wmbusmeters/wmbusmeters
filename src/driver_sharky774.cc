@@ -25,7 +25,7 @@ namespace
         Driver(MeterInfo &mi, DriverInfo &di);
     };
 
-    static bool ok = registerDriver([](DriverInfo&di)
+    static bool ok = staticRegisterDriver([](DriverInfo&di)
     {
         di.setName("sharky774");
         di.setDefaultFields("name,id,"
@@ -35,9 +35,9 @@ namespace
                             "timestamp");
         di.setMeterType(MeterType::HeatMeter);
         di.addLinkMode(LinkMode::T1);
-        di.addDetection(MANUFACTURER_DME, 0x04,  0x41);
-        di.addDetection(MANUFACTURER_DME, 0x0d,  0x41);
-        di.addDetection(MANUFACTURER_DME, 0x0c,  0x41);
+        di.addMVT(MANUFACTURER_DME, 0x04,  0x41);
+        di.addMVT(MANUFACTURER_DME, 0x0d,  0x41);
+        di.addMVT(MANUFACTURER_DME, 0x0c,  0x41);
         di.setConstructor([](MeterInfo& mi, DriverInfo& di){ return shared_ptr<Meter>(new Driver(mi, di)); });
     });
 

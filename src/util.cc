@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2017-2022 Fredrik Öhrström (gpl-3.0-or-later)
+ Copyright (C) 2017-2025 Fredrik Öhrström (gpl-3.0-or-later)
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -1807,7 +1807,7 @@ bool check_if_rtlsdr_exists_in_path()
     invokeShellCaptureOutput("/bin/sh", args, envs, &out, true);
     if (out.find("RTL2832") != string::npos)
     {
-        debug("(main) rtl_srd found in path\n");
+        debug("(main) rtl_sdr found in path\n");
         found = true;
     }
     else
@@ -1920,6 +1920,7 @@ bool isValidBps(const string& b)
     if (b == "38400") return true;
     if (b == "57600") return true;
     if (b == "115200") return true;
+    if (b == "230400") return true;
     return false;
 }
 
@@ -2250,3 +2251,34 @@ TestBit toTestBit(const char *s)
     if (!strcmp(s, "NotSet")) return TestBit::NotSet;
     return TestBit::Unknown;
 }
+
+/*
+bool download(const char *suffix, const char *file, const char *local_file)
+{
+    FILE *f = fopen(local_file, "rb");
+    if (f)
+    {
+        // Already downloaded
+        fclose(f);
+        return true;
+    }
+
+    // Not in download dir, download...
+    // curl https://libxmq.org/library/data/tsv.ixml
+    char url[256];
+    snprintf(url, 256, "https://libxmq.org/library/%s%s", file, suffix);
+
+    char cmd[1024];
+    snprintf(cmd, 1024, "curl -s --fail %s --create-dirs -o %s", url, local_file);
+
+    fprintf(stderr, "fetching %s\n", url);
+    bool ok = invoke_shell(NULL, cmd);
+    if (!ok)
+    {
+        fprintf(stderr, "xmq: failed to fetch ixml using this command: %s\n", cmd);
+        exit(1);
+    }
+    fprintf(stderr, "downloaded and cached %s\n", local_file);
+    return true;
+}
+*/

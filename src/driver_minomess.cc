@@ -25,15 +25,15 @@ namespace
         Driver(MeterInfo &mi, DriverInfo &di);
     };
 
-    static bool ok = registerDriver([](DriverInfo&di)
+    static bool ok = staticRegisterDriver([](DriverInfo&di)
     {
         di.setName("minomess");
         di.setDefaultFields("name,id,total_m3,target_m3,status,timestamp");
         di.setMeterType(MeterType::WaterMeter);
         di.addLinkMode(LinkMode::C1);
-        di.addDetection(MANUFACTURER_ZRI, 0x07,  0x00);
-        di.addDetection(MANUFACTURER_ZRI, 0x16,  0x01);
-        di.addDetection(MANUFACTURER_ZRI, 0x06,  0x01);
+        di.addMVT(MANUFACTURER_ZRI, 0x07,  0x00);
+        di.addMVT(MANUFACTURER_ZRI, 0x16,  0x01);
+        di.addMVT(MANUFACTURER_ZRI, 0x06,  0x01);
         di.setConstructor([](MeterInfo& mi, DriverInfo& di){ return shared_ptr<Meter>(new Driver(mi, di)); });
     });
 

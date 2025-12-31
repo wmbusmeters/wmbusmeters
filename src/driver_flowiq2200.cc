@@ -23,7 +23,7 @@ namespace
         Driver(MeterInfo &mi, DriverInfo &di);
     };
 
-    static bool ok = registerDriver([](DriverInfo&di)
+    static bool ok = staticRegisterDriver([](DriverInfo&di)
     {
         di.setName("flowiq2200");
         di.setDefaultFields("name,id,status,total_m3,target_m3,timestamp");
@@ -31,10 +31,10 @@ namespace
         di.setMeterType(MeterType::WaterMeter);
         di.addLinkMode(LinkMode::C1);
         // FlowIQ2200
-        di.addDetection(MANUFACTURER_KAW,  0x16,  0x3a);
-	di.addDetection(MANUFACTURER_KAW,  0x16,  0x3c);
+        di.addMVT(MANUFACTURER_KAW,  0x16,  0x3a);
+	di.addMVT(MANUFACTURER_KAW,  0x16,  0x3c);
         // FlowIQ3100
-        di.addDetection(MANUFACTURER_KAM,  0x16,  0x1d);
+        di.addMVT(MANUFACTURER_KAM,  0x16,  0x1d);
 
         di.setConstructor([](MeterInfo& mi, DriverInfo& di){ return shared_ptr<Meter>(new Driver(mi, di)); });
     });

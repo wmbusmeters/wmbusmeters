@@ -51,6 +51,12 @@ if [ "$?" != "0" ]; then RC="1"; fi
 ./tests/test_detailed_first.sh $PROG
 if [ "$?" != "0" ]; then RC="1"; fi
 
+tests/test_config_xmq_mvt_override.sh $PROG
+if [ "$?" != "0" ]; then RC="1"; fi
+
+tests/test_extra_library_help.sh $PROG
+if [ "$?" != "0" ]; then RC="1"; fi
+
 #tests/test_unknown.sh $PROG
 #if [ "$?" != "0" ]; then RC="1"; fi
 
@@ -100,6 +106,9 @@ tests/test_conversions.sh $PROG
 if [ "$?" != "0" ]; then RC="1"; fi
 
 tests/test_conversions_more.sh $PROG
+if [ "$?" != "0" ]; then RC="1"; fi
+
+tests/test_dbm.sh $PROG
 if [ "$?" != "0" ]; then RC="1"; fi
 
 tests/test_calculate.sh $PROG
@@ -184,6 +193,9 @@ if [ "$?" != "0" ]; then RC="1"; fi
 ./tests/test_removing_dll_crcs.sh $PROG
 if [ "$?" != "0" ]; then RC="1"; fi
 
+./tests/test_frame_b_trim.sh $PROG
+if [ "$?" != "0" ]; then RC="1"; fi
+
 ./tests/test_broken.sh $PROG
 if [ "$?" != "0" ]; then RC="1"; fi
 
@@ -191,6 +203,9 @@ if [ "$?" != "0" ]; then RC="1"; fi
 if [ "$?" != "0" ]; then RC="1"; fi
 
 ./tests/test_rtlwmbus_timestamps.sh $PROG
+if [ "$?" != "0" ]; then RC="1"; fi
+
+./tests/test_rtlwmbus_linkmodes.sh $PROG
 if [ "$?" != "0" ]; then RC="1"; fi
 
 if [ -s build/xmq ]

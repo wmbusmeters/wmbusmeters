@@ -818,7 +818,7 @@ void WMBusAmber::handleMessage(int msgid, vector<uchar> &frame, int rssi_dbm)
     case (0): // Transparent telegram mode (no 0xff header)
     case(CMD_DATA_IND): // Command telegram mode (0xff03 prefix)
     {
-        AboutTelegram about("amb8465["+cached_device_id_+"]", rssi_dbm, FrameType::WMBUS);
+        AboutTelegram about("amb8465["+cached_device_id_+"]", rssi_dbm, LinkMode::UNKNOWN, FrameType::WMBUS);
         handleTelegram(about, frame);
         break;
     }

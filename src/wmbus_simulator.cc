@@ -194,7 +194,7 @@ void WMBusSimulator::simulate()
         if (is_mbus)
         {
             debug("(simulator) is mbus telegram.\n");
-            AboutTelegram about("", 0, FrameType::MBUS);
+            AboutTelegram about("", 0, LinkMode::UNKNOWN, FrameType::MBUS);
             // Remove two bytes, which are the checksum and end of telegram marker (0x16).
             while (((size_t)payload_len) < payload.size()) payload.pop_back();
             handleTelegram(about, payload);
@@ -203,7 +203,7 @@ void WMBusSimulator::simulate()
         if (is_wmbus)
         {
             debug("(simulator) is wmbus telegram.\n");
-            AboutTelegram about("", 0, FrameType::WMBUS);
+            AboutTelegram about("", 0, LinkMode::UNKNOWN, FrameType::WMBUS);
             // Since this is a simulation, try to remove any frame format A or B
             // data link layer crcs. These might remain if we have received the telegram
             // to be simulated, from a CUL device or some other devices that does not remove the crcs.

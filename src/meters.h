@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2017-2022 Fredrik Öhrström (gpl-3.0-or-later)
+ Copyright (C) 2017-2025 Fredrik Öhrström (gpl-3.0-or-later)
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -69,9 +69,6 @@ private:
 
 // Return a list of matching drivers, like: multical21
 void detectMeterDrivers(int manufacturer, int media, int version, std::vector<std::string> *drivers);
-// When entering the driver, check that the telegram is indeed known to be
-// compatible with the driver(type), if not then print a warning.
-bool isMeterDriverValid(DriverName driver_name, int manufacturer, int media, int version);
 // For an unknown telegram, when analyzing check if the media type is reasonable in relation to the driver.
 // Ie. do not try to decode a door sensor telegram with a water meter driver.
 bool isMeterDriverReasonableForMedia(string driver_name, int media);
@@ -150,11 +147,11 @@ struct MeterInfo
 //
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-struct DriverDetect
+struct MVT
 {
     uint16_t mfct;
-    uchar    type;
-    uchar    version;
+    uchar version;
+    uchar type;
 };
 
 struct DriverInfo
@@ -167,7 +164,7 @@ private:
     Translate::Lookup mfct_tpl_status_bits_; // Translate any mfct specific bits in tpl status.
     MeterType type_; // Water, Electricity etc.
     function<shared_ptr<Meter>(MeterInfo&,DriverInfo&di)> constructor_; // Invoke this to create an instance of the driver.
-    vector<DriverDetect> detect_;
+    vector<MVT> mvts_;
     vector<string> default_fields_;
     int force_mfct_index_ = -1; // Used for meters not declaring mfct specific data using the dif 0f.
     bool has_process_content_ = false; // Mark this driver as having mfct specific decoding.
@@ -181,11 +178,12 @@ public:
     void setName(std::string n) { name_ = n; }
     void addNameAlias(std::string n) { name_aliases_.push_back(n); }
     void setMeterType(MeterType t) { type_ = t; }
+    void setAliases(string f);
     void setDefaultFields(string f) { default_fields_ = splitString(f, ','); }
     void addLinkMode(LinkMode lm) { linkmodes_.addLinkMode(lm); }
     void forceMfctIndex(int i) { force_mfct_index_ = i; }
     void setConstructor(function<shared_ptr<Meter>(MeterInfo&,DriverInfo&)> c) { constructor_ = c; }
-    void addDetection(uint16_t mfct, uchar type, uchar ver) { detect_.push_back({ mfct, type, ver }); }
+    void addMVT(uint16_t mfct, uchar type, uchar ver) { mvts_.push_back({ mfct, ver, type }); }
     void usesProcessContent() { has_process_content_ = true; }
     void setDynamic(const string &file_name, XMQDoc *driver) { dynamic_file_name_ = file_name; dynamic_driver_ = driver; }
     void setDynamicSource(const string &content) { dynamic_source_xmq_ = content; }
@@ -194,7 +192,7 @@ public:
     const string &getDynamicFileName() { return dynamic_file_name_; }
     const string &getDynamicSource() { return dynamic_source_xmq_; }
 
-    vector<DriverDetect> &detect() { return detect_; }
+    vector<MVT> &mvts() { return mvts_; }
 
     DriverName name() { return name_; }
     vector<DriverName>& nameAliases() { return name_aliases_; }
@@ -209,14 +207,14 @@ public:
     LinkModeSet linkModes() { return linkmodes_; }
     Translate::Lookup &mfctTPLStatusBits() { return mfct_tpl_status_bits_; }
     shared_ptr<Meter> construct(MeterInfo& mi) { return constructor_(mi, *this); }
-    bool detect(uint16_t mfct, uchar type, uchar version);
+    bool detect(uint16_t mfct, uchar version, uchar type);
     bool isValidMedia(uchar type);
     bool isCloseEnoughMedia(uchar type);
     int forceMfctIndex() { return force_mfct_index_; }
     bool hasProcessContent() { return has_process_content_; }
 };
 
-bool registerDriver(function<void(DriverInfo&di)> setup);
+bool staticRegisterDriver(function<void(DriverInfo&di)> setup);
 // Lookup (and load if necessary) driver from memory or disk.
 DriverInfo *lookupDriver(string name);
 bool lookupDriverInfo(const string& driver, DriverInfo *di = NULL);
@@ -228,6 +226,7 @@ bool driverNeedsPolling(DriverName& dn);
 string loadDriver(const string &file, const char *content);
 
 vector<DriverInfo*>& allDrivers();
+string removedDriverExplanation(const string &name);
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

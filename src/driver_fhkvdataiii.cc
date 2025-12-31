@@ -29,14 +29,14 @@ namespace
         string leadingZeroString(int num);
     };
 
-    static bool ok = registerDriver([](DriverInfo&di)
+    static bool ok = staticRegisterDriver([](DriverInfo&di)
     {
         di.setName("fhkvdataiii");
         di.setDefaultFields("name,id,current_hca,current_date,previous_hca,previous_date,temp_room_c,temp_radiator_c,timestamp");
         di.setMeterType(MeterType::HeatCostAllocationMeter);
         di.addLinkMode(LinkMode::T1);
-        di.addDetection(MANUFACTURER_TCH, 0x80,  0x69);
-        di.addDetection(MANUFACTURER_TCH, 0x80,  0x94);
+        di.addMVT(MANUFACTURER_TCH, 0x80,  0x69);
+        di.addMVT(MANUFACTURER_TCH, 0x80,  0x94);
         di.usesProcessContent();
         di.setConstructor([](MeterInfo& mi, DriverInfo& di){ return shared_ptr<Meter>(new Driver(mi, di)); });
     });

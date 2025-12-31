@@ -24,16 +24,16 @@ namespace
         Driver(MeterInfo &mi, DriverInfo &di);
     };
 
-    static bool ok = registerDriver([](DriverInfo&di)
+    static bool ok = staticRegisterDriver([](DriverInfo&di)
     {
         di.setName("itron");
         di.setDefaultFields("name,id,total_m3,target_m3,timestamp");
         di.setMeterType(MeterType::WaterMeter);
         di.addLinkMode(LinkMode::T1);
-        di.addDetection(MANUFACTURER_ITW,  0x07,  0x00);
-        di.addDetection(MANUFACTURER_ITW,  0x07,  0x03);
-        di.addDetection(MANUFACTURER_ITW,  0x07,  0x33);
-        di.addDetection(MANUFACTURER_ITW,  0x16,  0x00);
+        di.addMVT(MANUFACTURER_ITW,  0x07,  0x00);
+        di.addMVT(MANUFACTURER_ITW,  0x07,  0x03);
+        di.addMVT(MANUFACTURER_ITW,  0x07,  0x33);
+        di.addMVT(MANUFACTURER_ITW,  0x16,  0x00);
         di.setConstructor([](MeterInfo& mi, DriverInfo& di){ return shared_ptr<Meter>(new Driver(mi, di)); });
     });
 

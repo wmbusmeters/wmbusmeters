@@ -24,12 +24,12 @@ namespace
         Driver(MeterInfo &mi, DriverInfo &di);
     };
 
-    static bool ok = registerDriver([](DriverInfo&di)
+    static bool ok = staticRegisterDriver([](DriverInfo&di)
     {
         di.setName("engelmann-faw");
         di.setDefaultFields("name,id,status,reporting_date,consumption_at_reporting_date_m3,timestamp");
         di.addLinkMode(LinkMode::T1);
-        di.addDetection(MANUFACTURER_EFE,  0x07,  0x00);
+        di.addMVT(MANUFACTURER_EFE,  0x07,  0x00);
         di.setConstructor([](MeterInfo& mi, DriverInfo& di){ return shared_ptr<Meter>(new Driver(mi, di)); });
     });
 

@@ -861,6 +861,27 @@ shared_ptr<Configuration> parseCommandLineWithUseConfig(Configuration *c, int ar
             i++;
             continue;
         }
+        if (!strncmp(argv[i], "--listfields=", 13))
+        {
+            c->overrides.listfields_override = string(argv[i]+13);
+            debug("(useconfig) listfields override \"%s\"\n", c->overrides.listfields_override.c_str());
+            i++;
+            continue;
+        }
+        if (!strncmp(argv[i], "--listmeters=", 13))
+        {
+            c->overrides.listmeters_override = string(argv[i]+13);
+            debug("(useconfig) listmeters override \"%s\"\n", c->overrides.listmeters_override.c_str());
+            i++;
+            continue;
+        }
+        if (!strncmp(argv[i], "--listmeters", 12))
+        {
+            c->overrides.listmeters_override = "!";
+            debug("(useconfig) listmeters override\n");
+            i++;
+            continue;
+        }
         if (!strncmp(argv[i], "--listento=", 11))
         {
             c->overrides.listento_override = string(argv[i]+11);
@@ -894,7 +915,7 @@ shared_ptr<Configuration> parseCommandLineWithUseConfig(Configuration *c, int ar
         }
 
         error("Usage error: --useconfig=... can only be used in combination with:\n"
-              "--overridedevice= --listento= --exitafter= --oneshot= --logfile= --silent --normal --verbose --debug --trace\n");
+              "--overridedevice= --listento= --listmeters= --listfields= --exitafter= --oneshot= --logfile= --silent --normal --verbose --debug --trace\n");
         break;
     }
 

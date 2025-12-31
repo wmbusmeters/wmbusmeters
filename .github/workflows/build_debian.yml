@@ -1,13 +1,12 @@
 name: Build Debian package
 on:
   push:
-  pull_request:
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@v6
     - id: INSTALL_ADDITIONAL_BUILD_DEPENDENCIES
       run: |
          sudo apt install -y eatmydata

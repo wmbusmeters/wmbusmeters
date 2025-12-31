@@ -11,11 +11,12 @@ cat > $TEST/test_expected.txt <<EOF
 Started config rtlwmbus on stdin listening on any
 No meters configured. Printing id:s of all telegrams heard!
 Received telegram from: 03727567
-          manufacturer: (TCH) Techem Service (0x5068)
+          manufacturer: (TCH) Techem (0x5068)
                   type: Heat Cost Allocator (0x08) encrypted
                    ver: 0x94
                 device: rtlwmbus[]
                   rssi: 94 dBm
+             link mode: c1
                 driver: fhkvdataiv
 EOF
 

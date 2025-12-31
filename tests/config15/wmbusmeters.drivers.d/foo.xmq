@@ -1,0 +1,13 @@
+driver {
+    name           = foo
+    meter_type     = WaterMeter
+    default_fields = name,id,total_m3,timestamp
+    manufacturer   = Sensus
+    model          = iperl
+    detect {
+        mvt = SEN,68,06
+    }
+    library {
+        use = total_m3
+    }
+}

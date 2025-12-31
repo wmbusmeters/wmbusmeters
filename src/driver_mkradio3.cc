@@ -26,14 +26,14 @@ namespace
         void processContent(Telegram *t);
     };
 
-    static bool ok = registerDriver([](DriverInfo&di)
+    static bool ok = staticRegisterDriver([](DriverInfo&di)
     {
         di.setName("mkradio3");
         di.setDefaultFields("name,id,total_m3,target_m3,current_date,prev_date,timestamp");
         di.setMeterType(MeterType::WaterMeter);
         di.addLinkMode(LinkMode::T1);
-        di.addDetection(MANUFACTURER_TCH, 0x62,  0x74);
-        di.addDetection(MANUFACTURER_TCH, 0x72,  0x74);
+        di.addMVT(MANUFACTURER_TCH, 0x62,  0x74);
+        di.addMVT(MANUFACTURER_TCH, 0x72,  0x74);
         di.usesProcessContent();
         di.setConstructor([](MeterInfo& mi, DriverInfo& di){ return shared_ptr<Meter>(new Driver(mi, di)); });
     });

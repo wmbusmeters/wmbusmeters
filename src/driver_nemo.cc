@@ -24,7 +24,7 @@ namespace
         Driver(MeterInfo &mi, DriverInfo &di);
     };
 
-    static bool ok = registerDriver([](DriverInfo&di)
+    static bool ok = staticRegisterDriver([](DriverInfo&di)
     {
         di.setName("nemo");
         di.setDefaultFields(
@@ -34,7 +34,7 @@ namespace
             "timestamp");
         di.setMeterType(MeterType::ElectricityMeter);
         di.addLinkMode(LinkMode::MBUS);
-        di.addDetection(MANUFACTURER_IME,  0x02,  0x1d);
+        di.addMVT(MANUFACTURER_IME,  0x02,  0x1d);
         di.setConstructor([](MeterInfo& mi, DriverInfo& di){ return shared_ptr<Meter>(new Driver(mi, di)); });
     });
 

@@ -24,14 +24,14 @@ namespace
         Driver(MeterInfo &mi, DriverInfo &di);
     };
 
-    static bool ok = registerDriver([](DriverInfo&di)
+    static bool ok = staticRegisterDriver([](DriverInfo&di)
     {
         di.setName("weh_07");
         di.setDefaultFields("name,id,total_m3,timestamp");
         di.setMeterType(MeterType::WaterMeter);
         di.addLinkMode(LinkMode::C1);
-        di.addDetection(MANUFACTURER_WEH, 0x07,  0xfe);
-        di.addDetection(MANUFACTURER_WEH, 0x07,  0x03);
+        di.addMVT(MANUFACTURER_WEH, 0x07,  0xfe);
+        di.addMVT(MANUFACTURER_WEH, 0x07,  0x03);
 
         di.setConstructor([](MeterInfo& mi, DriverInfo& di){ return shared_ptr<Meter>(new Driver(mi, di)); });
     });

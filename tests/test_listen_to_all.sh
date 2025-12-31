@@ -56,32 +56,32 @@ Received telegram from: 00254358
                    ver: 0x00
                 driver: amiplus
 Received telegram from: 34333231
-          manufacturer: (TCH) Techem Service (0x5068)
+          manufacturer: (TCH) Techem (0x5068)
                   type: Warm water (0x62)
                    ver: 0x74
                 driver: mkradio3
 Received telegram from: 02410120
-          manufacturer: (TCH) Techem Service (0x5068)
+          manufacturer: (TCH) Techem (0x5068)
                   type: Warm water (0x62)
                    ver: 0x95
                 driver: mkradio4
 Received telegram from: 58234965
-          manufacturer: (TCH) Techem Service (0x5068)
+          manufacturer: (TCH) Techem (0x5068)
                   type: Heat meter (0xc3)
                    ver: 0x27
                 driver: vario451
 Received telegram from: 11776622
-          manufacturer: (TCH) Techem Service (0x5068)
+          manufacturer: (TCH) Techem (0x5068)
                   type: Heat Cost Allocator (0x80)
                    ver: 0x69
                 driver: fhkvdataiii
 Received telegram from: 11111234
-          manufacturer: (TCH) Techem Service (0x5068)
+          manufacturer: (TCH) Techem (0x5068)
                   type: Heat Cost Allocator (0x80)
                    ver: 0x94
                 driver: fhkvdataiii
 Received telegram from: 14542076
-          manufacturer: (TCH) Techem Service (0x5068)
+          manufacturer: (TCH) Techem (0x5068)
                   type: Heat Cost Allocator (0x08) encrypted
                    ver: 0x94
                 driver: fhkvdataiv
@@ -140,7 +140,7 @@ Received telegram from: 65656565
                    ver: 0x70
                 driver: hydrus
 Received telegram from: 81100028
-          manufacturer: (HYD) Hydrometer (0x2324)
+          manufacturer: (HYD) Diehl Metering, Germany (0x2324)
                   type: Bus/System component (0x0e) encrypted
                    ver: 0x64
       Concerning meter: 64745666
@@ -159,12 +159,12 @@ Received telegram from: 67452301
                    ver: 0x13
                 driver: hydrodigit
 Received telegram from: 72727272
-          manufacturer: (AXI) UAB Axis Industries, Lithuania (0x709)
+          manufacturer: (AXI) Axioma Metering UAB, Lithuania (0x709)
                   type: Water meter (0x07) encrypted
                    ver: 0x10
                 driver: q400
 Received telegram from: 72727273
-          manufacturer: (AXI) UAB Axis Industries, Lithuania (0x709)
+          manufacturer: (AXI) Axioma Metering UAB, Lithuania (0x709)
                   type: Water meter (0x07) encrypted
                    ver: 0x10
                 driver: q400
@@ -241,17 +241,17 @@ Received telegram from: 95949392
                    ver: 0x11
                 driver: emerlin868
 Received telegram from: 91633569
-          manufacturer: (TCH) Techem Service (0x5068)
+          manufacturer: (TCH) Techem (0x5068)
                   type: Smoke detector (0xf0)
                    ver: 0x76
                 driver: tsd2
 Received telegram from: 62626262
-          manufacturer: (TCH) Techem Service (0x5068)
+          manufacturer: (TCH) Techem (0x5068)
                   type: Heat meter (0x43)
                    ver: 0x45
                 driver: compact5
 Received telegram from: 66336633
-          manufacturer: (TCH) Techem Service (0x5068)
+          manufacturer: (TCH) Techem (0x5068)
                   type: Heat meter (0x43)
                    ver: 0x39
                 driver: compact5
@@ -271,7 +271,7 @@ Received telegram from: 72615127
                    ver: 0x41
                 driver: sharky774
 Received telegram from: 68926025
-          manufacturer: (HYD) Hydrometer (0x2324)
+          manufacturer: (HYD) Diehl Metering, Germany (0x2324)
                   type: Heat meter (0x04) encrypted
                    ver: 0x20
                 driver: sharky
@@ -290,17 +290,17 @@ Received telegram from: 93929190
                    ver: 0x7b
                 driver: dme_07
 Received telegram from: 60897379
-          manufacturer: (HYD) Hydrometer (0x2324)
+          manufacturer: (HYD) Diehl Metering, Germany (0x2324)
                   type: Water meter (0x07) encrypted
                    ver: 0x8b
                 driver: hydrus
 Received telegram from: 60904720
-          manufacturer: (HYD) Hydrometer (0x2324)
+          manufacturer: (HYD) Diehl Metering, Germany (0x2324)
                   type: Warm Water (30°C-90°C) meter (0x06) encrypted
                    ver: 0x8b
                 driver: hydrus
 Received telegram from: 18001698
-          manufacturer: (HYD) Hydrometer (0x2324)
+          manufacturer: (HYD) Diehl Metering, Germany (0x2324)
                   type: Water meter (0x07)
                    ver: 0x85
                 driver: izar

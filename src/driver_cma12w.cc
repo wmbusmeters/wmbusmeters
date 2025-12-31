@@ -24,14 +24,14 @@ namespace
         Driver(MeterInfo &mi, DriverInfo &di);
     };
 
-    static bool ok = registerDriver([](DriverInfo&di)
+    static bool ok = staticRegisterDriver([](DriverInfo&di)
     {
         di.setName("cma12w");
         di.setDefaultFields("name,id,current_temperature_c,timestamp");
         di.setMeterType(MeterType::TempHygroMeter);
         di.addLinkMode(LinkMode::C1);
         di.addLinkMode(LinkMode::T1);
-        di.addDetection(MANUFACTURER_ELV,  0x1b,  0x20);
+        di.addMVT(MANUFACTURER_ELV,  0x1b,  0x20);
 
         di.setConstructor([](MeterInfo& mi, DriverInfo& di){ return shared_ptr<Meter>(new Driver(mi, di)); });
 
