@@ -1,4 +1,4 @@
-// Generated 2025-10-19_20:59
+// Generated 2025-12-08_00:15
 test {
     args     = 'AqWater aquastream 05933237 NOKEY'
     telegram = 4644B42557920410050E7237329305B42501075B0030252F2F_04130342000084101300000000046D0D30F62B441349180000426CFF2A02FD17000002FD74DB152F2F2F2F2F2F2F
@@ -293,6 +293,24 @@ test {
     telegram = 4E4424349986012401077AF2000020_2F2F0413A7000000046D0E0C163B04FD17000000000E789986012401FF441300000000426C01018401134A00000082016C1F3AD3013B470500C4016D1B14153B
     json     = '{"_":"telegram","media":"water","meter":"maddalena","name":"mywater","id":"24018699","target_m3":0,"target_date":"2000-01-01","total_m3":0.167,"status":"OK","fabrication_no":"FF0124018699","meter_datetime":"2024-11-22 12:14","timestamp":"1111-11-11T11:11:11Z"}'
     fields   = 'mywater;24018699;OK;0.167;1111-11-11 11:11.11'
+}
+test {
+    args     = 'NZR nzr 07911459 NOKEY'
+    telegram = 68222268080B7259149107523B0002580000008c1005857649008400292f6a010001fd17001fd116
+    json     = '{"_": "telegram","current_power_consumption_kw": 0.92719,"id": "07911459","media": "electricity","meter": "nzr","name": "NZR","status": "OK","timestamp": "1111-11-11T11:11:11Z","total_energy_consumption_kwh": 49768.5}'
+    fields   = 'NZR;07911459;OK;49768.5;1111-11-11 11:11.11'
+}
+test {
+    args     = 'NZR nzr 07911459 NOKEY'
+    telegram = 685a5a68080B7259149107523B0002580000008c10058576490001fd170084002ccB00000084012962fB0000840229e85f010084032905Bf00008201fd49ed008202fd49e9008203fd49ea008201fd5a21018202fd5a8d018203fd5ad7009216
+    json     = '{"_":"telegram","media":"electricity","meter":"nzr","name":"NZR","id":"07911459","current_at_phase_1_a":2.89,"current_at_phase_2_a":3.97,"current_at_phase_3_a":2.15,"current_power_consumption_kw":2.03,"current_power_consumption_1_kw":0.64354,"current_power_consumption_2_kw":0.90088,"current_power_consumption_3_kw":0.48901,"total_energy_consumption_kwh":49768.5,"voltage_at_phase_1_v":237,"voltage_at_phase_2_v":233,"voltage_at_phase_3_v":234,"status":"OK","timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'NZR;07911459;OK;49768.5;1111-11-11 11:11.11'
+}
+test {
+    args     = 'NZR1 nzr 17911459 NOKEY'
+    telegram = 684f4f68080B7259149117523B00029200000084002ccB00000084012962fB0000840229e85f010084032905Bf00008201fd49ed008202fd49e9008203fd49ea008201fd5a21018202fd5a8d018203fd5ad700e216
+    json     = '{"_": "telegram","current_at_phase_1_a": 2.89,"current_at_phase_2_a": 3.97,"current_at_phase_3_a": 2.15,"current_power_consumption_1_kw": 0.64354,"current_power_consumption_2_kw": 0.90088,"current_power_consumption_3_kw": 0.48901,"current_power_consumption_kw": 2.03,"id": "17911459","media": "electricity","meter": "nzr","name": "NZR1","status": "OK","timestamp": "1111-11-11T11:11:11Z","voltage_at_phase_1_v": 237,"voltage_at_phase_2_v": 233,"voltage_at_phase_3_v": 234}'
+    fields   = 'NZR1;17911459;OK;null;1111-11-11 11:11.11'
 }
 test {
     args     = 'MyRelHCA relhca 00000104 NOKEY'

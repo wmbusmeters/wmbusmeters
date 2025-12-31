@@ -22,6 +22,12 @@
 
 DESTDIR?=/
 
+ifeq "$(DEBUG)" "true"
+  include $(wildcard build_debug/*/spec.gmk)
+else
+  include $(wildcard build/*/spec.gmk)
+endif
+
 ifeq "$(HOST)" "arm"
     CXX?=arm-linux-gnueabihf-g++
     STRIP?=arm-linux-gnueabihf-strip
@@ -124,7 +130,7 @@ endif
 $(info Building $(VERSION))
 
 FUZZFLAGS ?= -DFUZZING=false
-CXXFLAGS ?= $(DEBUG_FLAGS) $(FUZZFLAGS) -fPIC -std=c++11 -Wall -Werror=format-security -Wno-unused-function
+CXXFLAGS ?= $(EXTRA_CXXFLAGS) $(DEBUG_FLAGS) $(FUZZFLAGS) -fPIC -std=c++11 -Wall -Werror=format-security -Wno-unused-function
 # Additional fedora rpm package build flags
 # -O2 -flto=auto -ffat-lto-objects -fexceptions -g -grecord-gcc-switches -pipe -Wall -Werror=format-security -Wp,-D_FORTIFY_SOURCE=2 -Wp,-D_GLIBCXX_ASSERTIONS -fstack-protector-strong -mtune=generic -fasynchronous-unwind-tables -fstack-clash-protection -fcf-protection
 CXXFLAGS += -I$(BUILD)

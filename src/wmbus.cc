@@ -4752,7 +4752,9 @@ bool trimCRCsFrameFormatBInternal(std::vector<uchar> &payload, bool fail_is_ok)
         crc2_pos = len-2;
     }
 
-    uint16_t calc_crc = crc16_EN13757(safeButUnsafeVectorPtr(payload), crc1_pos);
+    uchar *from1 = &payload[0];
+    size_t len1 = crc1_pos;
+    uint16_t calc_crc = crc16_EN13757(from1, len1);
     uint16_t check_crc = payload[crc1_pos] << 8 | payload[crc1_pos+1];
 
     if (calc_crc != check_crc && !FUZZING)
@@ -4772,7 +4774,9 @@ bool trimCRCsFrameFormatBInternal(std::vector<uchar> &payload, bool fail_is_ok)
 
     if (crc2_pos > 0)
     {
-        calc_crc = crc16_EN13757(&payload[crc1_pos+2], crc2_pos);
+        uchar *from2 = &payload[crc1_pos+2];
+        size_t len2 = crc2_pos-crc1_pos-2;
+        calc_crc = crc16_EN13757(from2, len2);
         check_crc = payload[crc2_pos] << 8 | payload[crc2_pos+1];
 
         if (calc_crc != check_crc && !FUZZING)
@@ -5497,13 +5501,15 @@ bool SendBusContent::parse(const string &s)
 Detected detectBusDeviceOnTTY(string tty,
                               set<BusDeviceType> probe_for,
                               LinkModeSet desired_linkmodes,
-                              shared_ptr<SerialCommunicationManager> handler)
+                              shared_ptr<SerialCommunicationManager> handler,
+                              string bps)
 {
     Detected detected;
     // Fake a specified device.
     detected.found_file = tty;
     detected.specified_device.is_tty = true;
     detected.specified_device.linkmodes = desired_linkmodes;
+    detected.specified_device.bps = std::move(bps);
 
     bool has_auto = probe_for.count(BusDeviceType::DEVICE_AUTO);
 
@@ -5659,7 +5665,7 @@ Detected detectBusDeviceWithFileOrHex(SpecifiedDevice &specified_device,
 
     set<BusDeviceType> probe_for = { specified_device.type };
 
-    Detected d = detectBusDeviceOnTTY(specified_device.file, probe_for, desired_linkmodes, handler);
+    Detected d = detectBusDeviceOnTTY(specified_device.file, probe_for, desired_linkmodes, handler, specified_device.bps);
     if (specified_device.type != d.found_type &&
         specified_device.type != DEVICE_UNKNOWN)
     {

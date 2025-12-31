@@ -3,10 +3,10 @@ name: Build docker
 on:
   push:
     branches:
-      - 'master'
+      - "master"
     tags:
-      - '[0-9]+\.[0-9]+\.[0-9]+'
-      - '[0-9]+\.[0-9]+\.[0-9]+-RC[0-9]+'
+      - "[0-9]+\\.[0-9]+\\.[0-9]+"
+      - "[0-9]+\\.[0-9]+\\.[0-9]+-RC[0-9]+"
 
 env:
   DOCKERHUB_IMAGE: ${{ github.repository }}
@@ -32,7 +32,13 @@ jobs:
           echo "PLATFORM_PAIR=${platform//\//-}" >> $GITHUB_ENV
       -
         name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
+      -
+        name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+        with:
+          image: tonistiigi/binfmt:latest
+          platforms: all
       -
         name: Docker meta
         id: meta
@@ -69,7 +75,7 @@ jobs:
           touch "/tmp/digests/${digest#sha256:}"
       -
         name: Upload digest
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: digests-${{ env.PLATFORM_PAIR }}
           path: /tmp/digests/*
@@ -83,7 +89,7 @@ jobs:
     steps:
       -
         name: Download digests
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v7
         with:
           path: /tmp/digests
           pattern: digests-*
@@ -110,7 +116,8 @@ jobs:
         name: Create manifest list and push
         working-directory: /tmp/digests
         run: |
-          docker buildx imagetools create $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON") \
+          docker buildx imagetools create \
+            $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON") \
             $(printf '${{ env.DOCKERHUB_IMAGE }}@sha256:%s ' *)
       -
         name: Inspect image

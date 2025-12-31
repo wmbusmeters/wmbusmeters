@@ -63,6 +63,28 @@ AC_CHECK_LIB(xml2, xmlFreeDoc, [],
   AC_MSG_ERROR([Could  not find libxml2 library. Try: sudo apt install libxml2-dev])
 ])
 
+AC_MSG_CHECKING([libxml include dir])
+
+if test -d /usr/include/libxml2/libxml/xpath.h
+then
+   CFLAGS="$CFLAGS -I/usr/include/libxml2"
+   CXXFLAGS="$CXXFLAGS -I/usr/include/libxml2"
+   AC_MSG_RESULT([/usr/include/libxml2])
+else
+   LIBXML2INC="$(pkg-config --cflags libxml-2.0)"
+   if test -n "$LIBXML2INC"
+   then
+      CFLAGS="$CFLAGS $LIBXML2INC"
+      CXXFLAGS="$CXXFLAGS $LIBXML2INC"
+      AC_MSG_RESULT([$LIBXML2INC])
+   else
+       LIBXML2INC=$(find / -name xpath.h)
+       AC_MSG_RESULT([not found, but perhaps this? $LIBXML2INC])
+   fi
+fi
+
+AC_SUBST(CFLAGS)
+AC_SUBST(CXXFLAGS)
 AC_CONFIG_FILES([$OUTPUT_ROOT/spec.gmk:$SRC_ROOT/autoconf/spec.gmk.in])
 AC_CONFIG_FILES([$OUTPUT_ROOT/Makefile:$SRC_ROOT/autoconf/Makefile.in])
 

@@ -1,7 +1,6 @@
 FROM alpine AS build
 RUN apk add --no-cache alpine-sdk gcc linux-headers libxml2-dev libxslt-dev cmake libusb-dev bash samurai
 
-ADD https://api.github.com/repos/wmbusmeters/wmbusmeters/git/refs/heads/master version.json
 RUN git clone --depth 1 https://github.com/steve-m/librtlsdr.git && \
     git clone --depth 1 https://github.com/wmbusmeters/wmbusmeters.git && \
     git clone --depth 1 https://github.com/weetmuts/rtl-wmbus.git && \
@@ -30,8 +29,8 @@ RUN make
 WORKDIR /xmq
 RUN ./configure && make -j`nproc`
 
-FROM alpine as scratch
-RUN apk add --no-cache mosquitto-clients libstdc++ curl libusb libxml2 netcat-openbsd
+FROM alpine AS builder
+RUN apk add --no-cache mosquitto-clients libstdc++ curl libusb libxml2
 WORKDIR /wmbusmeters
 COPY --from=build /librtlsdr/build/src/librtlsdr.so.* /usr/lib/
 COPY --from=build /librtlsdr/rtl-sdr.rules /usr/lib/udev/rules.d/rtl-sdr.rules

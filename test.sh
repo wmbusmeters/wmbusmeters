@@ -108,6 +108,9 @@ if [ "$?" != "0" ]; then RC="1"; fi
 tests/test_conversions_more.sh $PROG
 if [ "$?" != "0" ]; then RC="1"; fi
 
+tests/test_dbm.sh $PROG
+if [ "$?" != "0" ]; then RC="1"; fi
+
 tests/test_calculate.sh $PROG
 if [ "$?" != "0" ]; then RC="1"; fi
 
@@ -188,6 +191,9 @@ if [ "$?" != "0" ]; then RC="1"; fi
 if [ "$?" != "0" ]; then RC="1"; fi
 
 ./tests/test_removing_dll_crcs.sh $PROG
+if [ "$?" != "0" ]; then RC="1"; fi
+
+./tests/test_frame_b_trim.sh $PROG
 if [ "$?" != "0" ]; then RC="1"; fi
 
 ./tests/test_broken.sh $PROG
