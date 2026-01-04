@@ -107,5 +107,5 @@ namespace
 // Comment: There is a problem in the decoding here, the data stored inside the telegram does not seem to properly encode/decode the year....
 // We should not report a current_date with a full year, if the year is actually not part of the telegram.
 // telegram=|2F446850313233347462A2_069F255900B029310000000306060906030609070606050509050505050407040605070500|
-// {"_":"telegram","media":"warm water","meter":"mkradio3","name":"Duschen","id":"34333231","total_m3":13.8,"target_m3":8.9,"current_date":"2025-04-27T02:00:00Z","prev_date":"2018-12-31T02:00:00Z","timestamp":"1111-11-11T11:11:11Z"}
-// |Duschen;34333231;13.8;8.9;2025-04-27T02:00:00Z;2018-12-31T02:00:00Z;1111-11-11 11:11.11
+// {"_":"telegram","media":"warm water","meter":"mkradio3","name":"Duschen","id":"34333231","total_m3":13.8,"target_m3":8.9,"current_date":"2026-04-27T02:00:00Z","prev_date":"2018-12-31T02:00:00Z","timestamp":"1111-11-11T11:11:11Z"}
+// |Duschen;34333231;13.8;8.9;2026-04-27T02:00:00Z;2018-12-31T02:00:00Z;1111-11-11 11:11.11
