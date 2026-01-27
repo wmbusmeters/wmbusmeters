@@ -9,6 +9,11 @@ TESTRESULT="OK"
 
 echo "RUNNING $TESTNAME ..."
 
+# Kill any leftover wmbusmeters processes that might hold the files
+pkill -f "wmbusmeters.*config7" 2>/dev/null || true
+sleep 0.1
+
+# Clean up files from previous runs
 > /tmp/wmbusmeters_telegram_test
 > /tmp/wmbusmeters_alarm_test
 

@@ -5192,6 +5192,13 @@ bool is_type_id_extras(string t, BusDeviceType *out_type, string *out_id, string
         return true;
     }
 
+    if (t == "json")
+    {
+        *out_type = BusDeviceType::DEVICE_JSONTTY;
+        *out_id = "";
+        return true;
+    }
+
     size_t bs = t.find('[');
     size_t be = t.find(']');
 

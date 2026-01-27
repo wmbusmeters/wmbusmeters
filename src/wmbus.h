@@ -47,6 +47,7 @@ bool trimCRCsFrameFormatB(std::vector<uchar> &payload);
     X(IU891A,iu891a,true,false,detectIU891A)         \
     X(RAWTTY,rawtty,true,false,detectRAWTTY)         \
     X(HEXTTY,hextty,true,false,detectSKIP)           \
+    X(JSONTTY,jsontty,true,false,detectSKIP)         \
     X(RC1180,rc1180,true,false,detectRC1180)         \
     X(RTL433,rtl433,false,true,detectRTL433)         \
     X(RTLWMBUS,rtlwmbus,false,true,detectRTLWMBUS)   \
@@ -729,6 +730,9 @@ shared_ptr<BusDevice> openRawTTY(Detected detected,
                              shared_ptr<SerialCommunicationManager> manager,
                              shared_ptr<SerialDevice> serial_override);
 shared_ptr<BusDevice> openHexTTY(Detected detected,
+                             shared_ptr<SerialCommunicationManager> manager,
+                             shared_ptr<SerialDevice> serial_override);
+shared_ptr<BusDevice> openJsonTTY(Detected detected,
                              shared_ptr<SerialCommunicationManager> manager,
                              shared_ptr<SerialDevice> serial_override);
 shared_ptr<BusDevice> openMBUS(Detected detected,
