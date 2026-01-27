@@ -359,14 +359,46 @@ bool lookupDriverInfo(const string& driver_name, DriverInfo *out_di)
         }
     }
 
+    string file_name = driver_name;
+
+    // The driver name could be prefixed with @ (eg @iperl)
+    // try to download the driver from https://wmbusmeters.org/drivers/iperl.xmq.
+    if (file_name.length() > 1 && file_name[0] == '@')
+    {
+        // Drop the @.
+        file_name = file_name.substr(1);
+        char local_file[256];
+        snprintf(local_file, 256, "%s/%s.xmq", downloadDir(), file_name.c_str());
+
+        int rc = download(".xmq", file_name.c_str(), local_file);
+        // 200 is good, 304 is good since the file is already downloaded.
+        if (rc != 200 && rc != 304)
+        {
+            if (rc != -1) verbose("(download) driver not found (%d)\n", rc);
+            // Nope, give up.
+            return false;
+        }
+        if (rc == 200)
+        {
+            verbose("(driver) %s downloaded and cached.\n", driver_name.c_str());
+        }
+        if (rc == 304)
+        {
+            verbose("(driver) %s was up to date.\n", driver_name.c_str());
+        }
+        if (rc == -1304)
+        {
+            verbose("(driver) %s was up to date.\n", driver_name.c_str());
+        }
+        file_name = local_file;
+    }
+
     // Is this a dynamic text driver file?
-    if (!endsWith(driver_name, ".xmq") || !checkFileExists(driver_name.c_str()))
+    if (!endsWith(file_name, ".xmq") || !checkFileExists(file_name.c_str()))
     {
         // Nope, give up.
         return false;
     }
-
-    string file_name = driver_name;
 
     // Load the driver from the file.
     string new_name = loadDriver(file_name, NULL);
@@ -2292,6 +2324,7 @@ bool MeterInfo::parse(string n, string d, string aes, string k)
     //         c5isf:MAIN:2400:mbus // attached to mbus instead of t1
     //         multical21:c1
     //         telco:BUS2:c2
+    //         @iperl:t1
     // driver ( extras ) : bus_alias : bps : linkmodes
 
     for (auto& p : parts)

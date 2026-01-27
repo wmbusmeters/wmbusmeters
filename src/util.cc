@@ -2252,33 +2252,106 @@ TestBit toTestBit(const char *s)
     return TestBit::Unknown;
 }
 
-/*
-bool download(const char *suffix, const char *file, const char *local_file)
+string basic_auth_cred_ {};
+
+void setBasicAuth(const std::string& cred)
 {
+    basic_auth_cred_ = cred;
+}
+
+bool no_network_ {};
+
+void setNoNetwork(bool v)
+{
+    no_network_ = v;
+}
+
+char download_dir_[256] = {0};
+
+void setDownloadDir(const char *dir)
+{
+    assert(strlen(dir) < sizeof(download_dir_));
+    strcpy(download_dir_, dir);
+}
+
+const char *downloadDir()
+{
+    if (download_dir_[0]) return download_dir_;
+
+    const char *home = getenv("HOME");
+    snprintf(download_dir_, 256, "%s/.local/share/wmbusmeters/wmbusmeters.drivers.d", home);
+    return download_dir_;
+}
+
+int download(const char *suffix, const char *file, const char *local_file)
+{
+    bool exists = false;
+
     FILE *f = fopen(local_file, "rb");
     if (f)
     {
-        // Already downloaded
+        // Already downloaded.
         fclose(f);
-        return true;
+        exists = true;
     }
 
     // Not in download dir, download...
-    // curl https://libxmq.org/library/data/tsv.ixml
+    // curl https://wmbusmeters.org/drivers/iperl.xmq
     char url[256];
-    snprintf(url, 256, "https://libxmq.org/library/%s%s", file, suffix);
+    snprintf(url, 256, "https://wmbusmeters.org/drivers/%s%s", file, suffix);
 
-    char cmd[1024];
-    snprintf(cmd, 1024, "curl -s --fail %s --create-dirs -o %s", url, local_file);
-
-    fprintf(stderr, "fetching %s\n", url);
-    bool ok = invoke_shell(NULL, cmd);
-    if (!ok)
+    if (no_network_)
     {
-        fprintf(stderr, "xmq: failed to fetch ixml using this command: %s\n", cmd);
-        exit(1);
+        if (exists)
+        {
+            verbose("(driver) using cache for %s (no network access)\n", file);
+            return 304;
+        }
+        warning("(driver) no driver %s found in cache and no network access\n", file);
+        return -1;
     }
-    fprintf(stderr, "downloaded and cached %s\n", local_file);
-    return true;
+
+    vector<string> args;
+    args.push_back("-s");
+    args.push_back("--fail");
+    args.push_back("--create-dirs");
+    args.push_back("-R");
+    args.push_back("--write-out");
+    args.push_back("%{http_code}");
+    if (basic_auth_cred_.length() > 0)
+    {
+        args.push_back("-u");
+        args.push_back(basic_auth_cred_);
+    }
+    if (exists)
+    {
+        // The -z time comparison with a local file, only works if the local file does exist.
+        args.push_back("-z");
+        args.push_back(local_file);
+    }
+    args.push_back("-o");
+    args.push_back(local_file);
+    args.push_back(url);
+
+    string curl = "curl";
+
+    string cmd = curl+" ";
+    for (auto a : args) cmd += a+" ";
+
+    verbose("(driver) checking %s\n", url);
+
+    string out;
+    invokeShellCaptureOutput(curl, args, {}, &out, true);
+    char *endptr = NULL;
+    long code = strtol(out.c_str(),  &endptr, 10);
+
+    if (endptr != NULL && *endptr == 0)
+    {
+        // Code is valid and it was decoded properly.
+        return code;
+    }
+
+    warning("wmbusmeters: failed to fetch %s using this command: %s\n", suffix, cmd.c_str());
+
+    return -1;
 }
-*/

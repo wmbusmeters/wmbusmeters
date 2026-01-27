@@ -93,6 +93,17 @@ void enableEarlyLoggingFromCommandLine(int argc, char **argv)
             i++;
             continue;
         }
+        if (!strcmp(argv[i], "--nonet")) {
+            setNoNetwork(true);
+            i++;
+            continue;
+        }
+        if (!strncmp(argv[i], "--basicauth=", 12) && strlen(argv[i]) > 12) {
+            string ba = argv[i]+12;
+            setBasicAuth(ba);
+            i++;
+            continue;
+        }
         i++;
     }
 }
@@ -621,6 +632,16 @@ static shared_ptr<Configuration> parseNormalCommandLine(Configuration *c, int ar
         }
         if (!strcmp(argv[i], "--nodeviceexit")) {
             c->nodeviceexit = true;
+            i++;
+            continue;
+        }
+        if (!strcmp(argv[i], "--nonet")) {
+            c->no_net = true;
+            i++;
+            continue;
+        }
+        if (!strncmp(argv[i], "--basicauth=", 12) && strlen(argv[i]) > 12) {
+            c->basic_auth_cred = argv[i]+12;
             i++;
             continue;
         }

@@ -278,6 +278,27 @@ void handleInternalTesting(Configuration *c, string value)
     }
 }
 
+void handleNoNet(Configuration *c, string value)
+{
+    if (value == "true")
+    {
+        c->no_net = true;
+    }
+    else if (value == "false")
+    {
+        c->no_net = false;
+    }
+    else
+    {
+        warning("nonet should be either true or false, not \"%s\"\n", value.c_str());
+    }
+}
+
+void handleBasicAuth(Configuration *c, string value)
+{
+    c->basic_auth_cred = value;
+}
+
 void handleIgnoreDuplicateTelegrams(Configuration *c, string value)
 {
     if (value == "true")
@@ -727,6 +748,8 @@ shared_ptr<Configuration> loadConfiguration(string root, ConfigOverrides overrid
         if (p.first.length() > 0 && p.first[0] == '#') continue;
         if (p.first == "loglevel") handleLoglevel(c, p.second);
         else if (p.first == "internaltesting") handleInternalTesting(c, p.second);
+        else if (p.first == "nonet") handleNoNet(c, p.second);
+        else if (p.first == "basicauth") handleBasicAuth(c, p.second);
         else if (p.first == "ignoreduplicates") handleIgnoreDuplicateTelegrams(c, p.second);
         else if (p.first == "detailedfirst") handleDetailedFirst(c, p.second);
         else if (p.first == "device") handleDeviceOrHex(c, p.second);

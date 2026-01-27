@@ -138,9 +138,17 @@ bool isDebugEnabled();
 bool isTraceEnabled();
 bool isLogTelegramsEnabled();
 
+void setNoNetwork(bool v);
+void setBasicAuth(const std::string& cred);
 void debugPayload(const std::string& intro, std::vector<uchar> &payload);
 void debugPayload(const std::string& intro, std::vector<uchar> &payload, std::vector<uchar>::iterator &pos);
 void logTelegram(std::vector<uchar> &original, std::vector<uchar> &parsed, int header_size, int suffix_size);
+
+void setDownloadDir(const char *dir);
+const char *downloadDir();
+
+// Returns 200 or 404 or 304 etc...
+int download(const char *suffix, const char *file, const char *local_file);
 
 enum class Alarm
 {

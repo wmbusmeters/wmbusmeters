@@ -591,6 +591,7 @@ bool start(Configuration *config)
     debugEnabled(config->debug);
     traceEnabled(config->trace);
     logTelegramsEnabled(config->logtelegrams);
+    setNoNetwork(config->no_net);
 
     if (config->addtimestamps == AddLogTimestamps::NotSet)
     {
@@ -800,6 +801,13 @@ void start_daemon(string pid_file, string root, ConfigOverrides overrides)
     if (open("/dev/null", O_RDWR) == -1) {
         error("Failed to reopen stderr while daemonising (errno=%d)",errno);
     }
+
+    // In daemon mode, dynamically downloaded drivers will be stored in
+    // /var/lib/wmbusmeters/wmbusmeters.drivers.d/downloaded
+    // If not in daemon mode they will be stored in:
+    // ~/.local/share/wmbusmeters/wmbusmeters.drivers.d/downloaded
+
+    setDownloadDir("/var/lib/wmbusmeters/wmbusmeters.drivers.d/downloaded");
     start_using_config_files(root, true, overrides);
 }
 

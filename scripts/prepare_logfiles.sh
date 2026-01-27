@@ -18,12 +18,12 @@ fi
 
 if [ ! -d "$ROOT"/var/lib/wmbusmeters/wmbusmeters.drivers.d ]
 then
-    # Create the log directories
+    # Create the downloadable drivers directory
     mkdir -p "$ROOT"/var/lib/wmbusmeters/wmbusmeters.drivers.d
     chown -R wmbusmeters:wmbusmeters "$ROOT"/var/lib/wmbusmeters
-    echo "log: created $ROOT/var/lib/wmbusmeters/wmbusmeters.drivers.d"
+    echo "drivers: created $ROOT/var/lib/wmbusmeters/wmbusmeters.drivers.d"
 else
-    echo "log: $ROOT/var/lib/wmbusmeters/wmbusmeters.drivers.d"
+    echo "drivers: $ROOT/var/lib/wmbusmeters/wmbusmeters.drivers.d"
 fi
 
 if [ ! -d "$ROOT"/var/log/wmbusmeters ]

@@ -138,8 +138,8 @@ struct Configuration
                                                 // Eventually not all devices might be found, so a realtime check is done later.
     LinkModeSet all_meters_linkmodes_specified; // A union of all meters linkmodes.
     string telegram_reader;
-    // A set of all link modes (union) that the user requests the wmbus dongle to listen to.
-    bool no_init {};
+    bool no_net {}; // If true, then only use cached downloadable driver such as @iperl etc.
+    std::string basic_auth_cred; // Store a "user:pwd" string to be supplied as basic auth to download.
     std::vector<std::string> selected_fields;
     std::vector<MeterInfo> meters;
     std::vector<std::string> extra_constant_fields; // Additional constant fields to always add to json.
