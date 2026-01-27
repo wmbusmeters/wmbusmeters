@@ -1,3 +1,19 @@
+Karel Blavka added stdin:jsonl input format for per-telegram decryption keys. Thanks Karel!
+Harald Schmitt hardened the config parsing and added CRLF support and numeric meter ID acceptance. Thanks Harald!
+Tom Roida improved the amb8465 to prevent false protocol errors on RF noise/rx timeout. Thanks Tom!
+Ulda added total_backwards_at_set_date_m3 to the waterstarm driver. Thanks Ulda!
+Bibo removed the ADD command for version.json from Dockerfile!
+  This was causing failures GitHub API rate limit hits sometimes and builds failing. Thanks Bibo!
+Karol Rudnik added support for non standard baud rates for rc1180. Thanks Karol!
+Spectrality added a driver for the NZR EcoCount Compact electricity meters. Thanks Spectrality!
+Jakub Skopal add the ability to specify index_nr in xmq driver. Thanks Jakub!
+Andreas Schildbach fixed a type in a debug message. Thanks Andreas!
+Jan Kundrát added support for 16bit status fields to the kamheat driver! Thanks Jan!
+hrch3k added a driver for ZENNER EDC B.One (ZRI/16/0b) scenario 322. Thanks h3ch3k!
+Martin Klein added cooling energy consumption for Zelsius combined heat/cooling meters. Thanks Martin!
+Sergio Catalan updated the waterstarm driver, added the fiowater driver, and added cooling to the elf2 driver. Thanks Sergio!
+Dawied added (NES) NORA ELK MALZ SAN ve TIC, Turkey (0x38b3) to amiplus driver. Thanks Dawid!
+Tobias Göbel made directories for the Docker version more configurable through environment variables
 Colin Tregenza Dancer fixed a bug that prevented
 telegrams from being received when AMB8465 was in CMD mode. Thanks Colin!
 Leif Neland updated the q400 driver. Thanks Leif!
@@ -6,10 +22,23 @@ Timur Saitov also improved the Hydrodigit driver. Thanks Timur!
 ZleekWolf updated the qwater driver. Thanks ZleekWolf!
 Matix2120 updated the qwater and qheat drivers. Thanks Matix2120!
 SzczepanLeon added more voltages to the amiplus driver. Thanks SzczepanLeon!
+
+Fix crc checking bug in long format B frame telegrams.
+Add cooling energy consumption for Zelsius combined heat/cooling meters
+Added tpl status to nzr driver and minimize default fields.
+Added another GWF water meter mvt triplet.
+Added the non-linear dBm unit.
+Fix compact5 driver to use third byte for values.
+Update dlms flagids.
+Print link mode, if known, when scanning telegrams.
+Added elvsense room sensor driver.
+Added ppm unit.
+Add TAMPER bit to iwmtx5 driver based on report from Zaimatsu.
+Name pulse counters in kamheat to va_counter and vb_counter.
+Improved kamheat driver with subunits.
+Added new kamheat.xmq driver.
 Updated Hydridigit drivers fraud_date and leak_date to use standard format 2024-05-24 etc.
-
 When scanning for telegrams using rtlwmbus the link mode is also displayed.
-
 Print available meters into wmbusmeters.log when running as daemon.
 This will show where a driver was loaded from. For example:
 

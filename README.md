@@ -454,7 +454,7 @@ depending on if you are running as a daemon or not.
 # Running without config files, good for experimentation and test.
 
 ```
-wmbusmeters version: 1.19.0
+wmbusmeters version: 1.20.0
 Usage: wmbusmeters {options} [device] { [meter_name] [meter_driver] [meter_id] [meter_key] }*
        wmbusmeters {options} [hex]    { [meter_name] [meter_driver] [meter_id] [meter_key] }*
        wmbusmetersd {options} [pid_file]
@@ -588,6 +588,10 @@ This will listen to exactly to what is on this frequency.
 
 `stdin:rawtty`, to read raw binary telegrams from stdin.
 These telegrams are expected to have the data link layer crc bytes removed already!
+
+`stdin:jsonl`, to read decode requests as json lines.
+`{"_":"decode", "telegram":"234433300602010014007a8e0400002f2f0efd3a1147000000008e40fd3a341200000000", "key":"...", "driver":"...", "format":"mbus"}`
+Only the "_" and "telegram" fields are required.
 
 `telegrams.bin:rawtty`, to read raw wmbus telegrams from this file.
 These telegrams are expected to have the data link layer crc bytes removed already!
