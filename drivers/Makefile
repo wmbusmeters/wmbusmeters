@@ -9,7 +9,6 @@ database:
 web:
 	@mkdir -p ../build/web
 	@./generate_index.sh
-	@echo "Generated ../build/web/index.html and files."
 
 tests:
 	@echo -n "// Generated " > build/generated_tests.xmq
