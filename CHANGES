@@ -1,3 +1,4 @@
+Version 1.20.0 2026-01-27
 Version 1.20.0-RC1 2026-01-27
 
 Karel Blavka added stdin:jsonl input format for per-telegram decryption keys. Thanks Karel!
