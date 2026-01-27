@@ -189,7 +189,7 @@ PROG_OBJS:=\
 	$(BUILD)/wmbus_rtl433.o \
 	$(BUILD)/wmbus_simulator.o \
 	$(BUILD)/wmbus_rawtty.o \
-	$(BUILD)/wmbus_jsontty.o \
+	$(BUILD)/wmbus_xmqtty.o \
 	$(BUILD)/wmbus_rc1180.o \
 	$(BUILD)/wmbus_utils.o \
 	$(BUILD)/xmq.o \

@@ -224,9 +224,9 @@ shared_ptr<BusDevice> BusManager::createWmbusObject(Detected *detected, Configur
         verbose("(hextty) on %s\n", detected->found_file.c_str());
         wmbus = openHexTTY(*detected, serial_manager_, serial_override);
         break;
-    case DEVICE_JSONTTY:
-        verbose("(jsontty) on %s\n", detected->found_file.c_str());
-        wmbus = openJsonTTY(*detected, serial_manager_, serial_override);
+    case DEVICE_XMQTTY:
+        verbose("(xmqtty) on %s\n", detected->found_file.c_str());
+        wmbus = openXmqTTY(*detected, serial_manager_, serial_override);
         break;
     case DEVICE_RTLWMBUS:
         wmbus = openRTLWMBUS(*detected, config->bin_dir, config->daemon, serial_manager_, serial_override);

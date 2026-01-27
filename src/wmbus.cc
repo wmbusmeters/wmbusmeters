@@ -5192,9 +5192,23 @@ bool is_type_id_extras(string t, BusDeviceType *out_type, string *out_id, string
         return true;
     }
 
-    if (t == "json")
+    if (t == "xmql")
     {
-        *out_type = BusDeviceType::DEVICE_JSONTTY;
+        *out_type = BusDeviceType::DEVICE_XMQTTY;
+        *out_id = "";
+        return true;
+    }
+
+    if (t == "jsonl")
+    {
+        *out_type = BusDeviceType::DEVICE_XMQTTY;
+        *out_id = "";
+        return true;
+    }
+
+    if (t == "xmll")
+    {
+        *out_type = BusDeviceType::DEVICE_XMQTTY;
         *out_id = "";
         return true;
     }

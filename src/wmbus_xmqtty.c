@@ -21,6 +21,7 @@
 #include"serial.h"
 #include"meters.h"
 #include"drivers.h"
+#include"xmq.h"
 
 #include<assert.h>
 #include<pthread.h>
@@ -28,6 +29,7 @@
 #include<errno.h>
 #include<unistd.h>
 #include<sstream>
+#include<string.h>
 #include<iomanip>
 #include<map>
 
@@ -62,36 +64,7 @@ static string escapeJsonString(const string &input)
     return ss.str();
 }
 
-// Simple JSON parser - extracts value for a given key
-static bool extractJsonString(const string &json, const string &key, string &value)
-{
-    string search = "\"" + key + "\"";
-    size_t pos = json.find(search);
-    if (pos == string::npos) return false;
-
-    pos = json.find(':', pos);
-    if (pos == string::npos) return false;
-
-    // Skip whitespace
-    pos++;
-    while (pos < json.size() && (json[pos] == ' ' || json[pos] == '\t')) pos++;
-
-    if (pos >= json.size() || json[pos] != '"') return false;
-    pos++; // Skip opening quote
-
-    // Find closing quote
-    size_t end = pos;
-    while (end < json.size() && json[end] != '"')
-    {
-        if (json[end] == '\\' && end + 1 < json.size()) end += 2; // Skip escaped chars
-        else end++;
-    }
-
-    value = json.substr(pos, end - pos);
-    return true;
-}
-
-struct WMBusJsonTTY : public virtual BusDeviceCommonImplementation
+struct WMBusXmqTTY : public virtual BusDeviceCommonImplementation
 {
     bool ping();
     string getDeviceId();
@@ -106,12 +79,12 @@ struct WMBusJsonTTY : public virtual BusDeviceCommonImplementation
     void processSerialData();
     void simulate() { }
 
-    WMBusJsonTTY(string bus_alias, shared_ptr<SerialDevice> serial,
+    WMBusXmqTTY(string bus_alias, shared_ptr<SerialDevice> serial,
                  shared_ptr<SerialCommunicationManager> manager);
-    ~WMBusJsonTTY() { }
+    ~WMBusXmqTTY() { }
 
 private:
-    void processJsonLine(const string &line);
+    void processLine(const string &line);
     void outputError(const string &error_msg, const string &telegram_hex);
     void outputResult(const string &json_result);
 
@@ -129,63 +102,63 @@ private:
     map<string, CachedMeter> meter_cache_;
 };
 
-shared_ptr<BusDevice> openJsonTTY(Detected detected,
-                                  shared_ptr<SerialCommunicationManager> manager,
-                                  shared_ptr<SerialDevice> serial_override)
+shared_ptr<BusDevice> openXmqTTY(Detected detected,
+                                 shared_ptr<SerialCommunicationManager> manager,
+                                 shared_ptr<SerialDevice> serial_override)
 {
     string bus_alias = detected.specified_device.bus_alias;
     string device = detected.found_file;
 
     if (serial_override)
     {
-        WMBusJsonTTY *imp = new WMBusJsonTTY(bus_alias, serial_override, manager);
+        WMBusXmqTTY *imp = new WMBusXmqTTY(bus_alias, serial_override, manager);
         imp->markAsNoLongerSerial();
         return shared_ptr<BusDevice>(imp);
     }
-    auto serial = manager->createSerialDeviceTTY(device.c_str(), 0, PARITY::NONE, "jsontty");
-    WMBusJsonTTY *imp = new WMBusJsonTTY(bus_alias, serial, manager);
+    auto serial = manager->createSerialDeviceTTY(device.c_str(), 0, PARITY::NONE, "xmqtty");
+    WMBusXmqTTY *imp = new WMBusXmqTTY(bus_alias, serial, manager);
     return shared_ptr<BusDevice>(imp);
 }
 
-WMBusJsonTTY::WMBusJsonTTY(string bus_alias, shared_ptr<SerialDevice> serial,
-                           shared_ptr<SerialCommunicationManager> manager) :
-    BusDeviceCommonImplementation(bus_alias, DEVICE_JSONTTY, manager, serial, true)
+WMBusXmqTTY::WMBusXmqTTY(string bus_alias, shared_ptr<SerialDevice> serial,
+                         shared_ptr<SerialCommunicationManager> manager) :
+    BusDeviceCommonImplementation(bus_alias, DEVICE_XMQTTY, manager, serial, true)
 {
     reset();
     // Load all drivers once at init, not for every telegram
     loadAllBuiltinDrivers();
 }
 
-bool WMBusJsonTTY::ping()
+bool WMBusXmqTTY::ping()
 {
     return true;
 }
 
-string WMBusJsonTTY::getDeviceId()
+string WMBusXmqTTY::getDeviceId()
 {
     return "?";
 }
 
-string WMBusJsonTTY::getDeviceUniqueId()
+string WMBusXmqTTY::getDeviceUniqueId()
 {
     return "?";
 }
 
-LinkModeSet WMBusJsonTTY::getLinkModes()
+LinkModeSet WMBusXmqTTY::getLinkModes()
 {
     return link_modes_;
 }
 
-void WMBusJsonTTY::deviceReset()
+void WMBusXmqTTY::deviceReset()
 {
 }
 
-bool WMBusJsonTTY::deviceSetLinkModes(LinkModeSet lms)
+bool WMBusXmqTTY::deviceSetLinkModes(LinkModeSet lms)
 {
     return true;
 }
 
-void WMBusJsonTTY::outputError(const string &error_msg, const string &telegram_hex)
+void WMBusXmqTTY::outputError(const string &error_msg, const string &telegram_hex)
 {
     printf("{\"error\": \"%s\"", escapeJsonString(error_msg).c_str());
     if (!telegram_hex.empty())
@@ -196,35 +169,53 @@ void WMBusJsonTTY::outputError(const string &error_msg, const string &telegram_h
     fflush(stdout);
 }
 
-void WMBusJsonTTY::outputResult(const string &json_result)
+void WMBusXmqTTY::outputResult(const string &json_result)
 {
     printf("%s\n", json_result.c_str());
     fflush(stdout);
 }
 
-void WMBusJsonTTY::processJsonLine(const string &line)
+void WMBusXmqTTY::processLine(const string &line)
 {
-    // Parse JSON input: {"telegram": "HEX", "key": "HEX", "driver": "auto", "format": "wmbus"}
+    // Parse JSON input: {"_": "decode", "telegram": "HEX", "key": "HEX", "driver": "auto", "format": "wmbus"}
+    // Parse XMQ  input: decode{telegram=HEX key=HEX driver=auto format=wmbus}
+    // Parse XML  input: <decode><telegram>HEX</telegram><key>HEX</key><driver>auto</driver><format>wmbus</format></decode>
+    XMQDoc *doc = xmqNewDoc();
+    bool ok = xmqParseBufferWithType(doc, line.c_str(), line.c_str()+line.length(), NULL, XMQ_CONTENT_DETECT, 0);
+
+    if (!ok)
+    {
+        string error = xmqDocError(doc);
+        outputError(error, "");
+    }
+
     string telegram_hex, key_hex, driver_name, format_str;
 
-    if (!extractJsonString(line, "telegram", telegram_hex))
+    const char *telegram_hex_s = xmqGetString(doc, "/decode/telegram");
+    if (!telegram_hex_s)
     {
         outputError("missing 'telegram' field in JSON input", "");
+        xmqFreeDoc(doc);
         return;
     }
+    telegram_hex = telegram_hex_s;
 
     // Key is optional - can be empty or "NOKEY"
-    extractJsonString(line, "key", key_hex);
-    if (key_hex == "NOKEY") key_hex = "";
+    const char *key_hex_s = xmqGetString(doc, "/decode/key");
+    if (key_hex_s == NULL || !strcmp(key_hex_s, "NOKEY")) key_hex = "";
+    else key_hex = key_hex_s;
 
     // Driver is optional - defaults to "auto"
-    if (!extractJsonString(line, "driver", driver_name))
-    {
-        driver_name = "auto";
-    }
+    const char *driver_name_s = xmqGetString(doc, "/decode/driver");
+    if (driver_name_s == NULL) driver_name = "auto";
+    else driver_name = driver_name_s;
 
     // Format is optional - "wmbus", "mbus", or auto-detect if not specified
-    extractJsonString(line, "format", format_str);
+    const char *format_s = xmqGetString(doc, "/decode/format");
+    if (format_s == NULL) format_str = "";
+    else format_str = format_s;
+
+    xmqFreeDoc(doc);
 
     // Convert hex to binary
     vector<uchar> input_frame;
@@ -234,7 +225,7 @@ void WMBusJsonTTY::processJsonLine(const string &line)
         outputError("invalid hex string in 'telegram' field", telegram_hex);
         return;
     }
-    bool ok = hex2bin(telegram_hex, &input_frame);
+    ok = hex2bin(telegram_hex, &input_frame);
     if (!ok)
     {
         outputError("failed to decode hex telegram", telegram_hex);
@@ -405,7 +396,7 @@ void WMBusJsonTTY::processJsonLine(const string &line)
     outputResult(json);
 }
 
-void WMBusJsonTTY::processSerialData()
+void WMBusXmqTTY::processSerialData()
 {
     vector<uchar> data;
 
@@ -420,7 +411,7 @@ void WMBusJsonTTY::processSerialData()
             // Process complete line
             if (!line_buffer_.empty())
             {
-                processJsonLine(line_buffer_);
+                processLine(line_buffer_);
                 line_buffer_.clear();
             }
         }
