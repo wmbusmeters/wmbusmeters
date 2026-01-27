@@ -1,3 +1,5 @@
+Version 1.20.0-RC1 2026-01-27
+
 Karel Blavka added stdin:jsonl input format for per-telegram decryption keys. Thanks Karel!
 Harald Schmitt hardened the config parsing and added CRLF support and numeric meter ID acceptance. Thanks Harald!
 Tom Roida improved the amb8465 to prevent false protocol errors on RF noise/rx timeout. Thanks Tom!
