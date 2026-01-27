@@ -752,8 +752,15 @@ void WMBusAmber::processSerialData()
         if (chunk_time.tv_sec >= 2)
         {
             verbose("(amb8465) rx long delay (%lds), drop incomplete telegram\n", chunk_time.tv_sec);
-            read_buffer_.clear();
-            protocolErrorDetected();
+
+            // Only trigger a protocol error if we were receiving a specific command response 
+            // from the stick (starts with AMBER_SERIAL_SOF).
+            if (read_buffer_.size() > 0 && read_buffer_[0] == AMBER_SERIAL_SOF)
+            {
+                protocolErrorDetected();
+            }
+
+            read_buffer_.clear(); 
         }
         else
         {
