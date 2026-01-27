@@ -188,6 +188,19 @@ namespace
             );
 
         addNumericFieldWithExtractor(
+            "backward_at_set_date",
+            "The total media volume flowing backward at the end of the previous billing period.",
+            DEFAULT_PRINT_PROPERTIES,
+            Quantity::Volume,
+            VifScaling::Auto, DifSignedness::Signed,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(VIFRange::Volume)
+            .set(StorageNr(1))
+            .add(VIFCombinable::BackwardFlow)
+            );
+
+        addNumericFieldWithExtractor(
             "consumption_at_history_{storage_counter - 1 counter}",
             "The total water consumption at the historic date.",
             DEFAULT_PRINT_PROPERTIES,
@@ -248,3 +261,8 @@ namespace
 // telegram=|a144c5142966495070078c20d07a0d0090257db8bb9938a1ff7c4b9a4492f4ea5f278b725057eee6837c17397e9605f3a448a338bd8407a2a5846632c334dff577f427f054f55e68a00fa5c85ccbc808ccdd2bb537a83234a50392968f00c1d7473455f9fc4c88fb195ca1712325da8c6aa7fdb7c4b77b9b84a4a0ccac4f586775fa66007dbdc2c615b69247401e9b9a863ac5a5873484b1b7d0178198e88f701e53|
 // {"_":"telegram","media":"water","meter":"waterstarm","name":"water","id":"50496629","consumption_at_history_1_m3":0.003,"consumption_at_history_10_m3":-0.001,"consumption_at_history_11_m3":-0.001,"consumption_at_history_12_m3":-0.001,"consumption_at_history_13_m3":-0.001,"consumption_at_history_14_m3":-0.001,"consumption_at_history_15_m3":-0.001,"consumption_at_history_2_m3":0.003,"consumption_at_history_3_m3":0.003,"consumption_at_history_4_m3":0.002,"consumption_at_history_5_m3":0.002,"consumption_at_history_6_m3":0,"consumption_at_history_7_m3":0,"consumption_at_history_8_m3":-0.001,"consumption_at_history_9_m3":-0.001,"consumption_at_set_date_m3":0,"history_1_date":"2025-07-20","history_10_date":"2024-10-20","history_11_date":"2024-09-20","history_12_date":"2024-08-20","history_13_date":"2024-07-20","history_14_date":"2024-06-20","history_15_date":"2024-05-20","history_2_date":"2025-06-20","history_3_date":"2025-05-20","history_4_date":"2025-04-20","history_5_date":"2025-03-20","history_6_date":"2025-02-20","history_7_date":"2025-01-20","history_8_date":"2024-12-20","history_9_date":"2024-11-20","meter_datetime":"2025-08-20 14:51","set_date":"2128-03-31","total_m3":0.003,"current_status":"OK","status":"OK","timestamp":"1111-11-11T11:11:11Z"}
 // |water;50496629;0.003;null;OK;1111-11-11 11:11.11
+
+
+// Test: water waterstarm 51398765 NOKEY
+// telegram=|A144C5146587395170078C20947AD10090252F2F_046D862D4A3104131300000001FD1700426C3F3C44130000000044933C0000000084011300000000C401130100000084021300000000C402130000000084031300000000C4031300000000840413FFFFFFFFC40413FFFFFFFF840513FFFFFFFFC40513FFFFFFFF840613FFFFFFFFC40613FFFFFFFF840713FFFFFFFFC40713FFFFFFFF840813FFFFFFFF2F2F2F2F|
+// { "_":"telegram",    "media":"water",    "meter":"waterstarm",    "name":"",    "id":"51398765",    "backward_at_set_date_m3":0,    "consumption_at_history_1_m3":0,    "consumption_at_history_10_m3":-0.001,    "consumption_at_history_11_m3":-0.001,    "consumption_at_history_12_m3":-0.001,    "consumption_at_history_13_m3":-0.001,    "consumption_at_history_14_m3":-0.001,    "consumption_at_history_15_m3":-0.001,    "consumption_at_history_2_m3":0.001,    "consumption_at_history_3_m3":0,    "consumption_at_history_4_m3":0,    "consumption_at_history_5_m3":0,    "consumption_at_history_6_m3":0,    "consumption_at_history_7_m3":-0.001,    "consumption_at_history_8_m3":-0.001,    "consumption_at_history_9_m3":-0.001,    "consumption_at_set_date_m3":0,    "history_1_date":"2025-12-10",    "history_10_date":"2025-03-10",    "history_11_date":"2025-02-10",    "history_12_date":"2025-01-10",    "history_13_date":"2024-12-10",    "history_14_date":"2024-11-10",    "history_15_date":"2024-10-10",    "history_2_date":"2025-11-10",    "history_3_date":"2025-10-10",    "history_4_date":"2025-09-10",    "history_5_date":"2025-08-10",    "history_6_date":"2025-07-10",    "history_7_date":"2025-06-10",    "history_8_date":"2025-05-10",    "history_9_date":"2025-04-10",    "meter_datetime":"2026-01-10 13:06",    "set_date":"2025-12-31",    "total_m3":0.019, "current_status":"OK",    "status":"OK",    "timestamp":"2026-01-10T12:21:35Z"}
