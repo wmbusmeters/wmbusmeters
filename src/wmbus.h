@@ -52,6 +52,7 @@ bool trimCRCsFrameFormatB(std::vector<uchar> &payload);
     X(RTL433,rtl433,false,true,detectRTL433)         \
     X(RTLWMBUS,rtlwmbus,false,true,detectRTLWMBUS)   \
     X(IU880B,iu880b,true,false,detectSKIP)         \
+    X(SOCKET,socket,false,false,detectSKIP)       \
     X(SIMULATION,simulation,false,false,detectSIMULATION)
 
 enum BusDeviceType {
@@ -754,6 +755,9 @@ shared_ptr<BusDevice> openRTL433(Detected detected,
 shared_ptr<BusDevice> openCUL(Detected detected,
                           shared_ptr<SerialCommunicationManager> manager,
                           shared_ptr<SerialDevice> serial_override);
+shared_ptr<BusDevice> openSocket(Detected detected,
+                             shared_ptr<SerialCommunicationManager> manager,
+                             shared_ptr<SerialDevice> serial_override);
 shared_ptr<BusDevice> openSimulator(Detected detected,
                                 shared_ptr<SerialCommunicationManager> manager,
                                 shared_ptr<SerialDevice> serial_override);
