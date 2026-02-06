@@ -164,6 +164,8 @@ PROG_OBJS:=\
 	$(BUILD)/bus.o \
 	$(BUILD)/cmdline.o \
 	$(BUILD)/config.o \
+	$(BUILD)/decode.o \
+	$(BUILD)/decoding_server.o \
 	$(BUILD)/drivers.o \
 	$(BUILD)/dvparser.o \
 	$(BUILD)/formula.o \
