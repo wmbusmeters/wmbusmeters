@@ -252,6 +252,12 @@ shared_ptr<BusDevice> BusManager::createWmbusObject(Detected *detected, Configur
         wmbus = openIU880B(*detected, serial_manager_, serial_override);
         break;
     }
+    case DEVICE_SOCKET:
+    {
+        verbose("(socket) on %s\n", detected->specified_device.extras.c_str());
+        wmbus = openSocket(*detected, serial_manager_, serial_override);
+        break;
+    }
     case DEVICE_UNKNOWN:
         warning("(main) internal error! cannot create an unknown device! exiting!\n");
         if (config->daemon) {
@@ -403,6 +409,26 @@ void BusManager::detectAndConfigureWmbusDevices(Configuration *config, Detection
                 // Therefore, do not try to detect it yet!
                 continue;
             }
+        }
+        if (specified_device.type == DEVICE_SOCKET && specified_device.extras != "")
+        {
+            shared_ptr<SerialDevice> sd = serial_manager_->lookup(specified_device.extras);
+            if (sd != NULL)
+            {
+                trace("(main) socket %s already configured\n", specified_device.extras.c_str());
+                specified_device.handled = true;
+                continue;
+            }
+            Detected detected;
+            detected.setSpecifiedDevice(specified_device);
+            detected.found_file = "";
+            LinkModeSet lms = specified_device.linkmodes;
+            if (lms.empty()) lms = config->default_device_linkmodes;
+            if (lms.empty()) lms.setAll();
+            detected.setAsFound("", DEVICE_SOCKET, 0, false, lms);
+            specified_device.handled = true;
+            openBusDeviceAndPotentiallySetLinkmodes(config, "config", &detected);
+            continue;
         }
         if (specified_device.file == "" && specified_device.command == "" && specified_device.hex == "")
         {

@@ -35,7 +35,9 @@
 #include <sys/select.h>
 #include <errno.h>
 #include <sys/types.h>
+#include <sys/socket.h>
 #include <sys/stat.h>
+#include <sys/un.h>
 #include <stdio.h>
 #include <termios.h>
 #include <unistd.h>
@@ -78,6 +80,7 @@ struct SerialCommunicationManagerImp : public SerialCommunicationManager
                                                        vector<string> envs, string purpose);
     shared_ptr<SerialDevice> createSerialDeviceFile(string file, string purpose);
     shared_ptr<SerialDevice> createSerialDeviceSimulator();
+    shared_ptr<SerialDevice> createSerialDeviceSocket(string path, string purpose);
 
     void listenTo(SerialDevice *sd, function<void()> cb);
     void onDisappear(SerialDevice *sd, function<void()> cb);
@@ -668,6 +671,229 @@ struct SerialDeviceSimulator : public SerialDeviceImp
     vector<uchar> data_;
 };
 
+struct SerialDeviceSocket : public SerialDeviceImp
+{
+    SerialDeviceSocket(string path, SerialCommunicationManagerImp *manager, string purpose);
+    ~SerialDeviceSocket();
+
+    bool open(bool fail_if_not_ok);
+    void close();
+    bool send(vector<uchar> &data);
+    bool working();
+    string device() { return path_; }
+
+    bool acceptClient();
+    void disconnectClient();
+    bool hasClient() { return client_fd_ >= 0; }
+
+    int receive(vector<uchar> *data);
+
+private:
+
+    string path_;
+    int listen_fd_ = -1;
+    int client_fd_ = -1;
+};
+
+SerialDeviceSocket::SerialDeviceSocket(string path,
+                                       SerialCommunicationManagerImp *manager,
+                                       string purpose)
+    : SerialDeviceImp(manager, purpose)
+{
+    path_ = path;
+}
+
+SerialDeviceSocket::~SerialDeviceSocket()
+{
+    close();
+}
+
+bool SerialDeviceSocket::open(bool fail_if_not_ok)
+{
+    listen_fd_ = socket(AF_UNIX, SOCK_STREAM, 0);
+    if (listen_fd_ < 0)
+    {
+        if (fail_if_not_ok) error("Could not create unix socket: %s\n", strerror(errno));
+        verbose("(serialsocket) could not create unix socket: %s\n", strerror(errno));
+        return false;
+    }
+
+    struct sockaddr_un addr;
+    memset(&addr, 0, sizeof(addr));
+    addr.sun_family = AF_UNIX;
+    if (path_.length() >= sizeof(addr.sun_path))
+    {
+        if (fail_if_not_ok) error("Socket path too long: %s\n", path_.c_str());
+        verbose("(serialsocket) socket path too long: %s\n", path_.c_str());
+        ::close(listen_fd_);
+        listen_fd_ = -1;
+        return false;
+    }
+    strncpy(addr.sun_path, path_.c_str(), sizeof(addr.sun_path) - 1);
+
+    unlink(path_.c_str());
+
+    if (::bind(listen_fd_, (struct sockaddr *)&addr, sizeof(addr)) < 0)
+    {
+        if (fail_if_not_ok) error("Could not bind unix socket %s: %s\n", path_.c_str(), strerror(errno));
+        verbose("(serialsocket) could not bind unix socket %s: %s\n", path_.c_str(), strerror(errno));
+        ::close(listen_fd_);
+        listen_fd_ = -1;
+        return false;
+    }
+
+    if (listen(listen_fd_, 1) < 0)
+    {
+        if (fail_if_not_ok) error("Could not listen on unix socket %s: %s\n", path_.c_str(), strerror(errno));
+        verbose("(serialsocket) could not listen on unix socket %s: %s\n", path_.c_str(), strerror(errno));
+        ::close(listen_fd_);
+        listen_fd_ = -1;
+        unlink(path_.c_str());
+        return false;
+    }
+
+    int flags = fcntl(listen_fd_, F_GETFL);
+    fcntl(listen_fd_, F_SETFL, flags | O_NONBLOCK);
+
+    fd_ = listen_fd_;
+
+    verbose("(serialsocket) listening on %s fd %d (%s)\n", path_.c_str(), fd_, purpose_.c_str());
+    return true;
+}
+
+void SerialDeviceSocket::close()
+{
+    if (client_fd_ >= 0)
+    {
+        ::close(client_fd_);
+        client_fd_ = -1;
+    }
+    if (listen_fd_ >= 0)
+    {
+        ::close(listen_fd_);
+        listen_fd_ = -1;
+        unlink(path_.c_str());
+    }
+    fd_ = -1;
+
+    manager_->tickleEventLoop();
+    verbose("(serialsocket) closed %s (%s)\n", path_.c_str(), purpose_.c_str());
+}
+
+bool SerialDeviceSocket::acceptClient()
+{
+    if (client_fd_ >= 0) return true;
+
+    struct sockaddr_un client_addr;
+    socklen_t client_len = sizeof(client_addr);
+    int cfd = accept(listen_fd_, (struct sockaddr *)&client_addr, &client_len);
+    if (cfd < 0)
+    {
+        if (errno == EAGAIN || errno == EWOULDBLOCK) return false;
+        verbose("(serialsocket) accept failed: %s\n", strerror(errno));
+        return false;
+    }
+
+    int flags = fcntl(cfd, F_GETFL);
+    fcntl(cfd, F_SETFL, flags | O_NONBLOCK);
+
+    client_fd_ = cfd;
+    fd_ = client_fd_;
+
+    manager_->tickleEventLoop();
+    verbose("(serialsocket) accepted client on %s fd %d\n", path_.c_str(), client_fd_);
+    return true;
+}
+
+void SerialDeviceSocket::disconnectClient()
+{
+    if (client_fd_ >= 0)
+    {
+        verbose("(serialsocket) disconnecting client fd %d on %s\n", client_fd_, path_.c_str());
+        ::close(client_fd_);
+        client_fd_ = -1;
+    }
+    fd_ = listen_fd_;
+
+    manager_->tickleEventLoop();
+}
+
+bool SerialDeviceSocket::working()
+{
+    return listen_fd_ >= 0;
+}
+
+bool SerialDeviceSocket::send(vector<uchar> &data)
+{
+    if (client_fd_ < 0) return false;
+
+    LOCK_WRITE_SERIAL(send_socket);
+
+    int n = data.size();
+    int written = 0;
+    while (written < n)
+    {
+        int nw = write(client_fd_, &data[written], n - written);
+        if (nw > 0) written += nw;
+        if (nw < 0)
+        {
+            if (errno == EINTR) continue;
+            if (errno == EAGAIN) break;
+            verbose("(serialsocket) send failed: %s\n", strerror(errno));
+            return false;
+        }
+    }
+
+    if (isDebugEnabled())
+    {
+        string msg = safeString(data);
+        debug("(serialsocket) sent \"%s\"\n", msg.c_str());
+    }
+
+    return true;
+}
+
+int SerialDeviceSocket::receive(vector<uchar> *data)
+{
+    LOCK_READ_SERIAL(receive_socket);
+
+    data->clear();
+
+    if (client_fd_ < 0) return 0;
+
+    int num_read = 0;
+    while (true)
+    {
+        data->resize(num_read + 1024);
+        int nr = read(client_fd_, &((*data)[num_read]), 1024);
+        if (nr > 0)
+        {
+            num_read += nr;
+        }
+        if (nr == 0)
+        {
+            // Client disconnected
+            data->resize(num_read);
+            return num_read;
+        }
+        if (nr < 0)
+        {
+            if (errno == EINTR && client_fd_ >= 0) continue;
+            if (errno == EAGAIN) break;
+            break;
+        }
+    }
+    data->resize(num_read);
+
+    if (isDebugEnabled() && num_read > 0)
+    {
+        string msg = safeString(*data);
+        debug("(serialsocket) received \"%s\"\n", msg.c_str());
+    }
+
+    return num_read;
+}
+
 SerialCommunicationManagerImp::SerialCommunicationManagerImp(time_t exit_after_seconds,
                                                              bool start_event_loop)
 {
@@ -709,6 +935,11 @@ shared_ptr<SerialDevice> SerialCommunicationManagerImp::createSerialDeviceFile(s
 shared_ptr<SerialDevice> SerialCommunicationManagerImp::createSerialDeviceSimulator()
 {
     return addSerialDeviceForManagement(new SerialDeviceSimulator(this, ""));
+}
+
+shared_ptr<SerialDevice> SerialCommunicationManagerImp::createSerialDeviceSocket(string path, string purpose)
+{
+    return addSerialDeviceForManagement(new SerialDeviceSocket(path, this, purpose));
 }
 
 void SerialCommunicationManagerImp::listenTo(SerialDevice *sd, function<void()> cb)

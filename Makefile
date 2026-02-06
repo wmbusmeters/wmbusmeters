@@ -190,6 +190,7 @@ PROG_OBJS:=\
 	$(BUILD)/wmbus_simulator.o \
 	$(BUILD)/wmbus_rawtty.o \
 	$(BUILD)/wmbus_xmqtty.o \
+	$(BUILD)/wmbus_socket.o \
 	$(BUILD)/wmbus_rc1180.o \
 	$(BUILD)/wmbus_utils.o \
 	$(BUILD)/xmq.o \
