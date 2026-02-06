@@ -593,6 +593,8 @@ These telegrams are expected to have the data link layer crc bytes removed alrea
 `{"_":"decode", "telegram":"234433300602010014007a8e0400002f2f0efd3a1147000000008e40fd3a341200000000", "key":"...", "driver":"...", "format":"mbus"}`
 Only the "_" and "telegram" fields are required.
 
+`telegrams.jsonl:jsonl`, to read the file telegrams.jsonl and decode each line as json.
+
 `telegrams.bin:rawtty`, to read raw wmbus telegrams from this file.
 These telegrams are expected to have the data link layer crc bytes removed already!
 
