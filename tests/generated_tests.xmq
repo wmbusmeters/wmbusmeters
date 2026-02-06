@@ -1,4 +1,4 @@
-// Generated 2025-12-08_00:15
+// Generated 2026-02-06_21:04
 test {
     args     = 'AqWater aquastream 05933237 NOKEY'
     telegram = 4644B42557920410050E7237329305B42501075B0030252F2F_04130342000084101300000000046D0D30F62B441349180000426CFF2A02FD17000002FD74DB152F2F2F2F2F2F2F
@@ -311,6 +311,13 @@ test {
     telegram = 684f4f68080B7259149117523B00029200000084002ccB00000084012962fB0000840229e85f010084032905Bf00008201fd49ed008202fd49e9008203fd49ea008201fd5a21018202fd5a8d018203fd5ad700e216
     json     = '{"_": "telegram","current_at_phase_1_a": 2.89,"current_at_phase_2_a": 3.97,"current_at_phase_3_a": 2.15,"current_power_consumption_1_kw": 0.64354,"current_power_consumption_2_kw": 0.90088,"current_power_consumption_3_kw": 0.48901,"current_power_consumption_kw": 2.03,"id": "17911459","media": "electricity","meter": "nzr","name": "NZR1","status": "OK","timestamp": "1111-11-11T11:11:11Z","voltage_at_phase_1_v": 237,"voltage_at_phase_2_v": 233,"voltage_at_phase_3_v": 234}'
     fields   = 'NZR1;17911459;OK;null;1111-11-11 11:11.11'
+}
+test {
+    args     = 'W op041a 11337834 NOKEY'
+    comment  = ''
+    telegram = 41440106347833111A078CC0A27AAB0030852F2F_04132F010000046D332E46320F60000000000869970743F13B375F3124000000240000002F2F2F2F2F2F2F2F2F2F
+    json     = '{"_":"telegram","media":"water","meter":"op041a","name":"W","id":"11337834","total_m3":0.303,"meter_datetime":"2026-02-06 14:51","timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'W;11337834;0.303;2026-02-06 14:51;1111-11-11 11:11.11'
 }
 test {
     args     = 'MyRelHCA relhca 00000104 NOKEY'
