@@ -245,3 +245,17 @@ void Driver::processContent(Telegram *t) {
 // telegram=|39449344893111601a077a580000200c13200300004c1300000000426cffffcc081334000000c2086c3f3502BB560000326cffff046d13173136|
 // {"_": "telegram","due_17_date": "2025-05-31","due_17_date_m3": 0.034,"due_date": "2128-03-31","due_date_m3": 0,"error_date": "2128-03-31","id": "60113189","media": "water","meter": "qwater","meter_datetime": "2025-06-17 23:19","name": "QQ4","status": "OK","timestamp": "1111-11-11T11:11:11Z","total_m3": 0.32,"volume_flow_m3h": 0}
 // |QQ4;60113189;0.32;0;2128-03-31;OK;1111-11-11 11:11.11
+
+// Test: QQ5 qwater 61193115 NOKEY
+// Comment: Qundis Qwater5.5 Model 2026 (warm water)
+// telegram=|39449344153119611D067A870000200C13370000004C1300000000426CFFFFCC081300000000C2086CFFFF02BB560000326CFFFF046D320D5E31|
+// {"_": "telegram","due_17_date": "2128-03-31","due_17_date_m3": 0,"due_date": "2128-03-31","due_date_m3": 0,"error_date": "2128-03-31","id": "61193115","media": "warm water","meter": "qwater","meter_datetime": "2026-01-30 13:50","name": "QQ5","status": "OK","timestamp": "1111-11-11T11:11:11Z","total_m3": 0.037,"volume_flow_m3h": 0}
+// |QQ5;61193115;0.037;0;2128-03-31;OK;1111-11-11 11:11.11
+
+// telegram=|49449344153119611D06780DFF5F3500826E0000F00007C113FFFF66000000FFFF00000000FFFF000000000080008000800080008000800080008000800080008000802F046D33125F31|
+// {"_": "telegram","due_17_date": "2128-03-31","due_17_date_m3": 0,"due_date": "2128-03-31","due_date_m3": 0,"error_date": "2128-03-31","id": "61193115","media": "warm water","meter": "qwater","meter_datetime": "2026-01-31 18:51","name": "QQ5","status": "OK","timestamp": "1111-11-11T11:11:11Z","total_m3": 0.066,"volume_flow_m3h": 0}
+// |QQ5;61193115;0.066;0;2128-03-31;OK;1111-11-11 11:11.11
+
+// telegram=|49449344153119611D06780DFF5F350082EC0000F10007C113FFFF69000000FFFF000000005F31680000000080008000800080008000800080008000800080008006002F046D1C0A4132|
+// {"_": "telegram","due_17_date": "2026-01-31","due_17_date_m3": 0.068,"due_date": "2128-03-31","due_date_m3": 0,"error_date": "2128-03-31","id": "61193115","media": "warm water","meter": "qwater","meter_datetime": "2026-02-01 10:28","name": "QQ5","status": "OK","timestamp": "1111-11-11T11:11:11Z","total_m3": 0.069,"volume_flow_m3h": 0}
+// |QQ5;61193115;0.069;0;2128-03-31;OK;1111-11-11 11:11.11
