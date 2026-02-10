@@ -34,6 +34,7 @@ namespace
         di.setMeterType(MeterType::HeatCostAllocationMeter);
         di.addLinkMode(LinkMode::T1);
         di.addMVT(MANUFACTURER_BMP, 0x08,  0x53);
+        di.addMVT(MANUFACTURER_BMP, 0x08,  0x85);
         di.usesProcessContent();
         di.setConstructor([](MeterInfo& mi, DriverInfo& di){ return shared_ptr<Meter>(new Driver(mi, di)); });
     });
@@ -119,7 +120,7 @@ namespace
         uchar frame_identifier = bytes[i];
         t->addSpecialExplanation(i+offset, 1, KindOfData::PROTOCOL, Understanding::FULL,
                                  "*** %02X frame identifier %s", frame_identifier,
-                                 frame_identifier == 0x10 ? "OK" :"UNKNOWN");
+                                 (frame_identifier == 0x10 || frame_identifier == 0x11) ? "OK" : "UNKNOWN");
         i++;
 
         if (i+1 >= len) return;
@@ -168,35 +169,74 @@ namespace
                                  "*** %02X%02X num measurements %d", bytes[i], bytes[i+1], num_measurements);
         i+=2;
 
-        if (i+1 >= len) return;
-        double average_ambient_temperature_last_month_c = toTemperature(bytes[i+1], bytes[i]);
-        setNumericValue("average_ambient_temperature_last_month", Unit::C,
-                        average_ambient_temperature_last_month_c);
-        info = renderJsonOnlyDefaultUnit("average_ambient_temperature_last_month", Quantity::Temperature);
-        t->addSpecialExplanation(i+offset, 2, KindOfData::CONTENT, Understanding::FULL,
-                                 "*** %02X%02X (%s)", bytes[i], bytes[i+1], info.c_str());
-        i+=2;
+        if (frame_identifier == 0x11)
+        {
+            // Frame 0x11 (version 0x85): extra 2B unknown field, then heater temp before ambient temp.
 
-        if (i+1 >= len) return;
-        double average_heater_temperature_last_month_c = toTemperature(bytes[i+1], bytes[i]);
-        setNumericValue("average_heater_temperature_last_month", Unit::C,
-                        average_heater_temperature_last_month_c);
-        info = renderJsonOnlyDefaultUnit("average_heater_temperature_last_month", Quantity::Temperature);
-        t->addSpecialExplanation(i+offset, 2, KindOfData::CONTENT, Understanding::FULL,
-                                 "*** %02X%02X (%s)", bytes[i], bytes[i+1], info.c_str());
-        i+=2;
+            if (i+1 >= len) return;
+            uint16_t unknown_field = bytes[i+1]<<8 | bytes[i];
+            t->addSpecialExplanation(i+offset, 2, KindOfData::CONTENT, Understanding::NONE,
+                                     "*** %02X%02X unknown field %d", bytes[i], bytes[i+1], unknown_field);
+            i+=2;
 
-        if (i+1 >= len) return;
-        double indication_u = toIndicationU(bytes[i+1], bytes[i]);
-        t->addSpecialExplanation(i+offset, 2, KindOfData::CONTENT, Understanding::FULL,
-                                 "*** %02X%02X indication u %f", bytes[i], bytes[i+1], indication_u);
-        i+=2;
+            if (i+1 >= len) return;
+            double average_heater_temperature_last_month_c = toTemperature(bytes[i+1], bytes[i]);
+            setNumericValue("average_heater_temperature_last_month", Unit::C,
+                            average_heater_temperature_last_month_c);
+            info = renderJsonOnlyDefaultUnit("average_heater_temperature_last_month", Quantity::Temperature);
+            t->addSpecialExplanation(i+offset, 2, KindOfData::CONTENT, Understanding::FULL,
+                                     "*** %02X%02X (%s)", bytes[i], bytes[i+1], info.c_str());
+            i+=2;
 
-        if (i+2 >= len) return;
-        double total_indication_u = toTotalIndicationU(bytes[i+2], bytes[i+1], bytes[i]);
-        t->addSpecialExplanation(i+offset, 3, KindOfData::CONTENT, Understanding::FULL,
-                                 "*** %02X%02X%02X total indication u %f", bytes[i], bytes[i+1], bytes[i+2], total_indication_u);
-        i+=3;
+            if (i+1 >= len) return;
+            double average_ambient_temperature_last_month_c = toTemperature(bytes[i+1], bytes[i]);
+            setNumericValue("average_ambient_temperature_last_month", Unit::C,
+                            average_ambient_temperature_last_month_c);
+            info = renderJsonOnlyDefaultUnit("average_ambient_temperature_last_month", Quantity::Temperature);
+            t->addSpecialExplanation(i+offset, 2, KindOfData::CONTENT, Understanding::FULL,
+                                     "*** %02X%02X (%s)", bytes[i], bytes[i+1], info.c_str());
+            i+=2;
+
+            if (i+1 >= len) return;
+            double indication_u = toIndicationU(bytes[i+1], bytes[i]);
+            t->addSpecialExplanation(i+offset, 2, KindOfData::CONTENT, Understanding::FULL,
+                                     "*** %02X%02X indication u %f", bytes[i], bytes[i+1], indication_u);
+            i+=2;
+        }
+        else
+        {
+            // Frame 0x10 (version 0x53): original format, ambient temp before heater temp.
+
+            if (i+1 >= len) return;
+            double average_ambient_temperature_last_month_c = toTemperature(bytes[i+1], bytes[i]);
+            setNumericValue("average_ambient_temperature_last_month", Unit::C,
+                            average_ambient_temperature_last_month_c);
+            info = renderJsonOnlyDefaultUnit("average_ambient_temperature_last_month", Quantity::Temperature);
+            t->addSpecialExplanation(i+offset, 2, KindOfData::CONTENT, Understanding::FULL,
+                                     "*** %02X%02X (%s)", bytes[i], bytes[i+1], info.c_str());
+            i+=2;
+
+            if (i+1 >= len) return;
+            double average_heater_temperature_last_month_c = toTemperature(bytes[i+1], bytes[i]);
+            setNumericValue("average_heater_temperature_last_month", Unit::C,
+                            average_heater_temperature_last_month_c);
+            info = renderJsonOnlyDefaultUnit("average_heater_temperature_last_month", Quantity::Temperature);
+            t->addSpecialExplanation(i+offset, 2, KindOfData::CONTENT, Understanding::FULL,
+                                     "*** %02X%02X (%s)", bytes[i], bytes[i+1], info.c_str());
+            i+=2;
+
+            if (i+1 >= len) return;
+            double indication_u = toIndicationU(bytes[i+1], bytes[i]);
+            t->addSpecialExplanation(i+offset, 2, KindOfData::CONTENT, Understanding::FULL,
+                                     "*** %02X%02X indication u %f", bytes[i], bytes[i+1], indication_u);
+            i+=2;
+
+            if (i+2 >= len) return;
+            double total_indication_u = toTotalIndicationU(bytes[i+2], bytes[i+1], bytes[i]);
+            t->addSpecialExplanation(i+offset, 3, KindOfData::CONTENT, Understanding::FULL,
+                                     "*** %02X%02X%02X total indication u %f", bytes[i], bytes[i+1], bytes[i+2], total_indication_u);
+            i+=3;
+        }
     }
 
     void Driver::decodeRF_RKN9(Telegram *t)
@@ -252,3 +292,10 @@ namespace
 // telegram=|2D44B009233739743308780F9D1300023ED97AEC7BC5908A32C15D8A32C126915AC15AC126912691269187912689|
 // {"_":"telegram","media":"heat cost allocation","meter":"hydroclima","name":"HCAA","id":"74393723","timestamp":"1111-11-11T11:11:11Z"}
 // |HCAA;74393723;null;null;1111-11-11 11:11.11
+
+
+// Test: HCA85 hydroclima 93000952 06006500000000000000000000000000
+// Comment: Version 0x85 with frame identifier 0x11 and AES encryption
+// telegram=|5144b0095209009385088c20807a80004025e1643fee024fea668b79a2eb98e9068aecebd8f0a92d6da9cda2675cfaeddd9cdece8d1639be8a953d0ec284dd5447305a68fc6a2fe69b89574e54fa76b0b348|
+// {"_":"telegram","media":"heat cost allocation","meter":"hydroclima","name":"HCA85","id":"93000952","current_consumption_hca":596,"average_ambient_temperature_c":0,"max_ambient_temperature_c":49.19,"average_ambient_temperature_last_month_c":21.78,"average_heater_temperature_last_month_c":37.34,"timestamp":"1111-11-11T11:11:11Z"}
+// |HCA85;93000952;596;0;1111-11-11 11:11.11
