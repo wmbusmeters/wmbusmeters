@@ -157,7 +157,7 @@ fi
 TESTNAME="Test json on stdin with partial decode warning"
 
 cat > $TEST/test_expected_unsorted.txt <<EOF
-{"_":"telegram","media":"heat cost allocation","meter":"hydroclima","name":"","id":"68036198","current_consumption_hca":0,"average_ambient_temperature_c":18.66,"max_ambient_temperature_c":47.51,"average_ambient_temperature_last_month_c":15.78,"average_heater_temperature_last_month_c":17.47,"warning":"telegram only partially decoded (26 of 51 bytes)","telegram":"2e44b0099861036853087a000020002F2F036E0000000F100043106A7D2C4A078F12202CB1242A06D3062100210000","timestamp":"1111-11-11T11:11:11Z"}
+{"_":"telegram","media":"heat cost allocation","meter":"hydroclima","name":"","id":"68036198","current_consumption_hca":0,"average_ambient_temperature_c":18.66,"max_ambient_temperature_c":47.51,"average_ambient_temperature_last_month_c":15.78,"average_heater_temperature_last_month_c":17.47,"timestamp":"1111-11-11T11:11:11Z"}
 EOF
 
 jq --sort-keys . $TEST/test_expected_unsorted.txt > $TEST/test_expected.txt

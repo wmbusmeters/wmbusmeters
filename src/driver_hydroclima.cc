@@ -52,6 +52,27 @@ namespace
             .set(VIFRange::HeatCostAllocation)
             );
 
+        addStringFieldWithExtractor(
+            "set_date",
+            "The most recent billing period date.",
+            DEFAULT_PRINT_PROPERTIES,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(VIFRange::Date)
+            .set(StorageNr(1)));
+
+        addNumericFieldWithExtractor(
+            "consumption_at_set_date",
+            "Heat cost allocation at the most recent billing period date.",
+            DEFAULT_PRINT_PROPERTIES,
+            Quantity::HCA,
+            VifScaling::Auto, DifSignedness::Signed,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(VIFRange::HeatCostAllocation)
+            .set(StorageNr(1))
+            );
+
         addNumericField("average_ambient_temperature",
                         Quantity::Temperature,
                         DEFAULT_PRINT_PROPERTIES,
@@ -71,6 +92,52 @@ namespace
                         Quantity::Temperature,
                         DEFAULT_PRINT_PROPERTIES,
                         "Average heater temperature last month.");
+
+        // Fields specific to HydroClima 2 ITN (version 0x85, frame 0x11)
+        addNumericField("average_heater_temperature",
+                        Quantity::Temperature,
+                        DEFAULT_PRINT_PROPERTIES,
+                        "Average heater temperature since beginning of this month.");
+
+        addNumericField("consumption_at_set_date_1",
+                        Quantity::HCA,
+                        DEFAULT_PRINT_PROPERTIES,
+                        "Heat cost allocation at set date 1 (most recent billing period).");
+
+        addNumericField("consumption_at_set_date_2",
+                        Quantity::HCA,
+                        DEFAULT_PRINT_PROPERTIES,
+                        "Heat cost allocation at set date 2.");
+
+        addNumericField("consumption_at_set_date_3",
+                        Quantity::HCA,
+                        DEFAULT_PRINT_PROPERTIES,
+                        "Heat cost allocation at set date 3.");
+
+        addNumericField("consumption_at_set_date_4",
+                        Quantity::HCA,
+                        DEFAULT_PRINT_PROPERTIES,
+                        "Heat cost allocation at set date 4.");
+
+        addNumericField("ambient_temperature_at_set_date_1",
+                        Quantity::Temperature,
+                        DEFAULT_PRINT_PROPERTIES,
+                        "Ambient temperature at set date 1.");
+
+        addNumericField("ambient_temperature_at_set_date_2",
+                        Quantity::Temperature,
+                        DEFAULT_PRINT_PROPERTIES,
+                        "Ambient temperature at set date 2.");
+
+        addNumericField("ambient_temperature_at_set_date_3",
+                        Quantity::Temperature,
+                        DEFAULT_PRINT_PROPERTIES,
+                        "Ambient temperature at set date 3.");
+
+        addNumericField("total_consumption",
+                        Quantity::HCA,
+                        DEFAULT_PRINT_PROPERTIES,
+                        "Total heat cost allocation across all billing periods.");
     }
 
     double toTemperature(uchar hi, uchar lo)
@@ -107,6 +174,10 @@ namespace
     {
         int offset = t->header_size+t->mfct_0f_index;
 
+        // Mark the 0F DIF byte itself as protocol (not content data)
+        t->addSpecialExplanation(offset-1, 1, KindOfData::PROTOCOL, Understanding::FULL,
+                                 "*** 0F manufacturer specific data");
+
         vector<uchar> bytes;
         t->extractMfctData(&bytes); // Extract raw frame data after the DIF 0x0F.
 
@@ -116,6 +187,7 @@ namespace
         int len = bytes.size();
         string info;
 
+        // [0] Frame identifier (0x10 = v0x53, 0x11 = v0x85 HydroClima 2 ITN)
         if (i >= len) return;
         uchar frame_identifier = bytes[i];
         t->addSpecialExplanation(i+offset, 1, KindOfData::PROTOCOL, Understanding::FULL,
@@ -123,90 +195,200 @@ namespace
                                  (frame_identifier == 0x10 || frame_identifier == 0x11) ? "OK" : "UNKNOWN");
         i++;
 
+        // [1-2] STS - status word
         if (i+1 >= len) return;
         uint16_t status = bytes[i+1]<<8 | bytes[i];
         t->addSpecialExplanation(i+offset, 2, KindOfData::CONTENT, Understanding::FULL,
-                                 "*** %02X%02X status", bytes[i], bytes[i+1], status);
+                                 "*** %02X%02X status %04x", bytes[i], bytes[i+1], status);
         i+=2;
 
+        // [3-4] TIM - current time
         if (i+1 >= len) return;
         uint16_t time = bytes[i+1]<<8 | bytes[i];
         t->addSpecialExplanation(i+offset, 2, KindOfData::CONTENT, Understanding::FULL,
                                  "*** %02X%02X time", bytes[i], bytes[i+1], time);
         i+=2;
 
+        // [5-6] DAT - current date
         if (i+1 >= len) return;
         uint16_t date = bytes[i+1]<<8 | bytes[i];
         t->addSpecialExplanation(i+offset, 2, KindOfData::CONTENT, Understanding::FULL,
                                  "*** %02X%02X date %x", bytes[i], bytes[i+1], date);
         i+=2;
 
-        if (i+1 >= len) return;
-        double average_ambient_temperature_c = toTemperature(bytes[i+1], bytes[i]);
-        setNumericValue("average_ambient_temperature", Unit::C, average_ambient_temperature_c);
-        info = renderJsonOnlyDefaultUnit("average_ambient_temperature", Quantity::Temperature);
-        t->addSpecialExplanation(i+offset, 2, KindOfData::CONTENT, Understanding::FULL,
-                                 "*** %02X%02X (%s)", bytes[i], bytes[i+1], info.c_str());
-        i+=2;
-
-        if (i+1 >= len) return;
-        double max_ambient_temperature_c = toTemperature(bytes[i+1], bytes[i]);
-        setNumericValue("max_ambient_temperature", Unit::C, max_ambient_temperature_c);
-        info = renderJsonOnlyDefaultUnit("max_ambient_temperature", Quantity::Temperature);
-        t->addSpecialExplanation(i+offset, 2, KindOfData::CONTENT, Understanding::FULL,
-                                 "*** %02X%02X (%s)", bytes[i], bytes[i+1], info.c_str());
-        i+=2;
-
-        if (i+1 >= len) return;
-        uint16_t max_date = bytes[i+1]<<8 | bytes[i];
-        t->addSpecialExplanation(i+offset, 2, KindOfData::CONTENT, Understanding::FULL,
-                                 "*** %02X%02X max date %x", bytes[i], bytes[i+1], max_date);
-        i+=2;
-
-        if (i+1 >= len) return;
-        uint16_t num_measurements = bytes[i+1]<<8 | bytes[i];
-        t->addSpecialExplanation(i+offset, 2, KindOfData::CONTENT, Understanding::FULL,
-                                 "*** %02X%02X num measurements %d", bytes[i], bytes[i+1], num_measurements);
-        i+=2;
-
         if (frame_identifier == 0x11)
         {
-            // Frame 0x11 (version 0x85): extra 2B unknown field, then heater temp before ambient temp.
+            // === Frame 0x11 (version 0x85, HydroClima 2 ITN KA1 structure, 47 bytes total) ===
+            // Per BMeters PAPP-HARF2 specification.
 
+            // [7-8] DOP - housing open event date
             if (i+1 >= len) return;
-            uint16_t unknown_field = bytes[i+1]<<8 | bytes[i];
-            t->addSpecialExplanation(i+offset, 2, KindOfData::CONTENT, Understanding::NONE,
-                                     "*** %02X%02X unknown field %d", bytes[i], bytes[i+1], unknown_field);
+            uint16_t dop = bytes[i+1]<<8 | bytes[i];
+            t->addSpecialExplanation(i+offset, 2, KindOfData::CONTENT, Understanding::FULL,
+                                     "*** %02X%02X housing open date %04x", bytes[i], bytes[i+1], dop);
             i+=2;
 
+            // [9-10] TKA - average heater/radiator temperature (current period)
             if (i+1 >= len) return;
-            double average_heater_temperature_last_month_c = toTemperature(bytes[i+1], bytes[i]);
-            setNumericValue("average_heater_temperature_last_month", Unit::C,
-                            average_heater_temperature_last_month_c);
+            double avg_heater_temp = toTemperature(bytes[i+1], bytes[i]);
+            setNumericValue("average_heater_temperature", Unit::C, avg_heater_temp);
+            info = renderJsonOnlyDefaultUnit("average_heater_temperature", Quantity::Temperature);
+            t->addSpecialExplanation(i+offset, 2, KindOfData::CONTENT, Understanding::FULL,
+                                     "*** %02X%02X (%s)", bytes[i], bytes[i+1], info.c_str());
+            i+=2;
+
+            // [11-12] TOA - average ambient temperature (current period)
+            if (i+1 >= len) return;
+            double avg_ambient_temp = toTemperature(bytes[i+1], bytes[i]);
+            setNumericValue("average_ambient_temperature", Unit::C, avg_ambient_temp);
+            info = renderJsonOnlyDefaultUnit("average_ambient_temperature", Quantity::Temperature);
+            t->addSpecialExplanation(i+offset, 2, KindOfData::CONTENT, Understanding::FULL,
+                                     "*** %02X%02X (%s)", bytes[i], bytes[i+1], info.c_str());
+            i+=2;
+
+            // [13-14] TMH1 - max temperature (previous period)
+            if (i+1 >= len) return;
+            double max_temp = toTemperature(bytes[i+1], bytes[i]);
+            setNumericValue("max_ambient_temperature", Unit::C, max_temp);
+            info = renderJsonOnlyDefaultUnit("max_ambient_temperature", Quantity::Temperature);
+            t->addSpecialExplanation(i+offset, 2, KindOfData::CONTENT, Understanding::FULL,
+                                     "*** %02X%02X (%s)", bytes[i], bytes[i+1], info.c_str());
+            i+=2;
+
+            // [15-16] TMHD1 - date of max temperature (previous period)
+            if (i+1 >= len) return;
+            uint16_t max_date = bytes[i+1]<<8 | bytes[i];
+            t->addSpecialExplanation(i+offset, 2, KindOfData::CONTENT, Understanding::FULL,
+                                     "*** %02X%02X max date %04x", bytes[i], bytes[i+1], max_date);
+            i+=2;
+
+            // [17-18] TKA1 - average heater/radiator temperature (previous period)
+            if (i+1 >= len) return;
+            double avg_heater_temp_last = toTemperature(bytes[i+1], bytes[i]);
+            setNumericValue("average_heater_temperature_last_month", Unit::C, avg_heater_temp_last);
             info = renderJsonOnlyDefaultUnit("average_heater_temperature_last_month", Quantity::Temperature);
             t->addSpecialExplanation(i+offset, 2, KindOfData::CONTENT, Understanding::FULL,
                                      "*** %02X%02X (%s)", bytes[i], bytes[i+1], info.c_str());
             i+=2;
 
+            // [19-20] TOA1 - average ambient temperature (previous period)
             if (i+1 >= len) return;
-            double average_ambient_temperature_last_month_c = toTemperature(bytes[i+1], bytes[i]);
-            setNumericValue("average_ambient_temperature_last_month", Unit::C,
-                            average_ambient_temperature_last_month_c);
+            double avg_ambient_temp_last = toTemperature(bytes[i+1], bytes[i]);
+            setNumericValue("average_ambient_temperature_last_month", Unit::C, avg_ambient_temp_last);
             info = renderJsonOnlyDefaultUnit("average_ambient_temperature_last_month", Quantity::Temperature);
             t->addSpecialExplanation(i+offset, 2, KindOfData::CONTENT, Understanding::FULL,
                                      "*** %02X%02X (%s)", bytes[i], bytes[i+1], info.c_str());
             i+=2;
 
-            if (i+1 >= len) return;
-            double indication_u = toIndicationU(bytes[i+1], bytes[i]);
-            t->addSpecialExplanation(i+offset, 2, KindOfData::CONTENT, Understanding::FULL,
-                                     "*** %02X%02X indication u %f", bytes[i], bytes[i+1], indication_u);
-            i+=2;
+            // [21-28] CNI1-4 - consumption history (4 x 2B, in HCA units)
+            const char *cni_names[] = {
+                "consumption_at_set_date_1", "consumption_at_set_date_2",
+                "consumption_at_set_date_3", "consumption_at_set_date_4"
+            };
+            for (int n = 0; n < 4; n++)
+            {
+                if (i+1 >= len) return;
+                uint16_t cni = (bytes[i+1]<<8) | bytes[i];
+                setNumericValue(cni_names[n], Unit::HCA, (double)cni);
+                info = renderJsonOnlyDefaultUnit(cni_names[n], Quantity::HCA);
+                t->addSpecialExplanation(i+offset, 2, KindOfData::CONTENT, Understanding::FULL,
+                                         "*** %02X%02X (%s)", bytes[i], bytes[i+1], info.c_str());
+                i+=2;
+            }
+
+            // [29-34] TONI1-3 - ambient temperature history (3 x 2B, 0x8000 = no data)
+            const char *toni_names[] = {
+                "ambient_temperature_at_set_date_1",
+                "ambient_temperature_at_set_date_2",
+                "ambient_temperature_at_set_date_3"
+            };
+            for (int n = 0; n < 3; n++)
+            {
+                if (i+1 >= len) return;
+                uint16_t raw = (bytes[i+1]<<8) | bytes[i];
+                if (raw != 0x8000)
+                {
+                    double toni = ((double)raw) / 100.0;
+                    setNumericValue(toni_names[n], Unit::C, toni);
+                    info = renderJsonOnlyDefaultUnit(toni_names[n], Quantity::Temperature);
+                    t->addSpecialExplanation(i+offset, 2, KindOfData::CONTENT, Understanding::FULL,
+                                             "*** %02X%02X (%s)", bytes[i], bytes[i+1], info.c_str());
+                }
+                else
+                {
+                    t->addSpecialExplanation(i+offset, 2, KindOfData::CONTENT, Understanding::FULL,
+                                             "*** %02X%02X no data", bytes[i], bytes[i+1]);
+                }
+                i+=2;
+            }
+
+            // [35-37] TK22LAR1 - count TK < 22.5 C (3B)
+            if (i+2 >= len) return;
+            int tk_below = (bytes[i+2]<<16) | (bytes[i+1]<<8) | bytes[i];
+            t->addSpecialExplanation(i+offset, 3, KindOfData::CONTENT, Understanding::FULL,
+                                     "*** %02X%02X%02X count TK<22.5 %d", bytes[i], bytes[i+1], bytes[i+2], tk_below);
+            i+=3;
+
+            // [38-40] TK22AR1 - count 22.5 <= TK < 35 C (3B)
+            if (i+2 >= len) return;
+            int tk_mid = (bytes[i+2]<<16) | (bytes[i+1]<<8) | bytes[i];
+            t->addSpecialExplanation(i+offset, 3, KindOfData::CONTENT, Understanding::FULL,
+                                     "*** %02X%02X%02X count 22.5<=TK<35 %d", bytes[i], bytes[i+1], bytes[i+2], tk_mid);
+            i+=3;
+
+            // [41-43] TK35AR1 - count TK >= 35 C (3B)
+            if (i+2 >= len) return;
+            int tk_above = (bytes[i+2]<<16) | (bytes[i+1]<<8) | bytes[i];
+            t->addSpecialExplanation(i+offset, 3, KindOfData::CONTENT, Understanding::FULL,
+                                     "*** %02X%02X%02X count TK>=35 %d", bytes[i], bytes[i+1], bytes[i+2], tk_above);
+            i+=3;
+
+            // [44-46] U - total consumption all periods (3B, /10 = HCA)
+            if (i+2 >= len) return;
+            double total = toTotalIndicationU(bytes[i+2], bytes[i+1], bytes[i]);
+            setNumericValue("total_consumption", Unit::HCA, total);
+            info = renderJsonOnlyDefaultUnit("total_consumption", Quantity::HCA);
+            t->addSpecialExplanation(i+offset, 3, KindOfData::CONTENT, Understanding::FULL,
+                                     "*** %02X%02X%02X (%s)", bytes[i], bytes[i+1], bytes[i+2], info.c_str());
+            i+=3;
         }
         else
         {
-            // Frame 0x10 (version 0x53): original format, ambient temp before heater temp.
+            // === Frame 0x10 (version 0x53, original HydroClima format, 24 bytes total) ===
 
+            // [7-8] TOA - average ambient temperature (current period)
+            if (i+1 >= len) return;
+            double average_ambient_temperature_c = toTemperature(bytes[i+1], bytes[i]);
+            setNumericValue("average_ambient_temperature", Unit::C, average_ambient_temperature_c);
+            info = renderJsonOnlyDefaultUnit("average_ambient_temperature", Quantity::Temperature);
+            t->addSpecialExplanation(i+offset, 2, KindOfData::CONTENT, Understanding::FULL,
+                                     "*** %02X%02X (%s)", bytes[i], bytes[i+1], info.c_str());
+            i+=2;
+
+            // [9-10] TMH - max temperature
+            if (i+1 >= len) return;
+            double max_ambient_temperature_c = toTemperature(bytes[i+1], bytes[i]);
+            setNumericValue("max_ambient_temperature", Unit::C, max_ambient_temperature_c);
+            info = renderJsonOnlyDefaultUnit("max_ambient_temperature", Quantity::Temperature);
+            t->addSpecialExplanation(i+offset, 2, KindOfData::CONTENT, Understanding::FULL,
+                                     "*** %02X%02X (%s)", bytes[i], bytes[i+1], info.c_str());
+            i+=2;
+
+            // [11-12] TMHD - date of max temperature
+            if (i+1 >= len) return;
+            uint16_t max_date = bytes[i+1]<<8 | bytes[i];
+            t->addSpecialExplanation(i+offset, 2, KindOfData::CONTENT, Understanding::FULL,
+                                     "*** %02X%02X max date %x", bytes[i], bytes[i+1], max_date);
+            i+=2;
+
+            // [13-14] num measurements
+            if (i+1 >= len) return;
+            uint16_t num_measurements = bytes[i+1]<<8 | bytes[i];
+            t->addSpecialExplanation(i+offset, 2, KindOfData::CONTENT, Understanding::FULL,
+                                     "*** %02X%02X num measurements %d", bytes[i], bytes[i+1], num_measurements);
+            i+=2;
+
+            // [15-16] TOA1 - average ambient temperature (previous period)
             if (i+1 >= len) return;
             double average_ambient_temperature_last_month_c = toTemperature(bytes[i+1], bytes[i]);
             setNumericValue("average_ambient_temperature_last_month", Unit::C,
@@ -216,6 +398,7 @@ namespace
                                      "*** %02X%02X (%s)", bytes[i], bytes[i+1], info.c_str());
             i+=2;
 
+            // [17-18] TKA1 - average heater temperature (previous period)
             if (i+1 >= len) return;
             double average_heater_temperature_last_month_c = toTemperature(bytes[i+1], bytes[i]);
             setNumericValue("average_heater_temperature_last_month", Unit::C,
@@ -225,12 +408,14 @@ namespace
                                      "*** %02X%02X (%s)", bytes[i], bytes[i+1], info.c_str());
             i+=2;
 
+            // [19-20] U - indication (2B, /10 = HCA)
             if (i+1 >= len) return;
             double indication_u = toIndicationU(bytes[i+1], bytes[i]);
             t->addSpecialExplanation(i+offset, 2, KindOfData::CONTENT, Understanding::FULL,
                                      "*** %02X%02X indication u %f", bytes[i], bytes[i+1], indication_u);
             i+=2;
 
+            // [21-23] UC - total indication (3B, /10 = HCA)
             if (i+2 >= len) return;
             double total_indication_u = toTotalIndicationU(bytes[i+2], bytes[i+1], bytes[i]);
             t->addSpecialExplanation(i+offset, 3, KindOfData::CONTENT, Understanding::FULL,
@@ -242,6 +427,10 @@ namespace
     void Driver::decodeRF_RKN9(Telegram *t)
     {
         int offset = t->header_size+t->mfct_0f_index;
+
+        // Mark the 0F DIF byte itself as protocol (not content data)
+        t->addSpecialExplanation(offset-1, 1, KindOfData::PROTOCOL, Understanding::FULL,
+                                 "*** 0F manufacturer specific data");
 
         vector<uchar> bytes;
         t->extractMfctData(&bytes); // Extract raw frame data after the DIF 0x0F.
@@ -295,7 +484,13 @@ namespace
 
 
 // Test: HCA85 hydroclima 93000952 06006500000000000000000000000000
-// Comment: Version 0x85 with frame identifier 0x11 and AES encryption
+// Comment: Version 0x85 with frame identifier 0x11 (HydroClima 2 ITN KA1 structure)
 // telegram=|5144b0095209009385088c20807a80004025e1643fee024fea668b79a2eb98e9068aecebd8f0a92d6da9cda2675cfaeddd9cdece8d1639be8a953d0ec284dd5447305a68fc6a2fe69b89574e54fa76b0b348|
-// {"_":"telegram","media":"heat cost allocation","meter":"hydroclima","name":"HCA85","id":"93000952","current_consumption_hca":596,"average_ambient_temperature_c":0,"max_ambient_temperature_c":49.19,"average_ambient_temperature_last_month_c":21.78,"average_heater_temperature_last_month_c":37.34,"timestamp":"1111-11-11T11:11:11Z"}
-// |HCA85;93000952;596;0;1111-11-11 11:11.11
+// {"_":"telegram","media":"heat cost allocation","meter":"hydroclima","name":"HCA85","id":"93000952","current_consumption_hca":596,"average_ambient_temperature_c":22.71,"max_ambient_temperature_c":58.2,"average_ambient_temperature_last_month_c":21.78,"average_heater_temperature_last_month_c":37.34,"average_heater_temperature_c":49.19,"consumption_at_set_date_hca":2265,"consumption_at_set_date_1_hca":468,"consumption_at_set_date_2_hca":2265,"consumption_at_set_date_3_hca":1913,"consumption_at_set_date_4_hca":1632,"ambient_temperature_at_set_date_1_c":22.66,"ambient_temperature_at_set_date_2_c":23.12,"ambient_temperature_at_set_date_3_c":22.66,"total_consumption_hca":243.5,"set_date":"2025-12-31","timestamp":"1111-11-11T11:11:11Z"}
+// |HCA85;93000952;596;22.71;1111-11-11 11:11.11
+
+// Test: HCA85B hydroclima 93001021 06006500000000000000000000000000
+// Comment: Version 0x85 second device with no-data markers in TONI fields
+// telegram=|5144b0092110009385088c20ee7aee404025ae46448c6081f085cf46cd634ec47179e92024e0bcff8e6449fa81767def444bcf1e734c4f17d67b6bc738bdd004422c156abfe9be2c4abcba41dac5668d29e9|
+// {"_":"telegram","media":"heat cost allocation","meter":"hydroclima","name":"HCA85B","id":"93001021","current_consumption_hca":0,"average_ambient_temperature_c":20.61,"max_ambient_temperature_c":20.75,"average_ambient_temperature_last_month_c":18.94,"average_heater_temperature_last_month_c":19.4,"average_heater_temperature_c":21.05,"consumption_at_set_date_hca":0,"consumption_at_set_date_1_hca":0,"consumption_at_set_date_2_hca":0,"consumption_at_set_date_3_hca":0,"consumption_at_set_date_4_hca":0,"ambient_temperature_at_set_date_1_c":20.86,"total_consumption_hca":3.4,"set_date":"2025-05-31","timestamp":"1111-11-11T11:11:11Z"}
+// |HCA85B;93001021;0;20.61;1111-11-11 11:11.11
