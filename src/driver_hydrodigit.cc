@@ -89,6 +89,9 @@ namespace {
                 DEFAULT_PRINT_PROPERTIES);
         addStringField("leak_date", "Date of leakage detected by meter",
                 DEFAULT_PRINT_PROPERTIES);
+        addStringField("history_date",
+                "Date of the most recent historical value (Format G)",
+                DEFAULT_PRINT_PROPERTIES);
         addNumericFieldWithExtractor("backflow",
                 "Backflow detected by the meter.",
                 DEFAULT_PRINT_PROPERTIES,
@@ -259,44 +262,42 @@ namespace {
         i++;
         if (i >= len) return;
 
-        if (frame_identifier & MASK_BATTERY_VOLTAGE_PRESENT) {
-
-            if (!explanation.empty()) explanation += " ";
-            explanation += "BATTERY_VOLTAGE";
-
-            // only the bottom half changes the voltage, top half's purpose is unknown
-            // values obtained from software by changing value from 0x00-0F
-            // changing the top half didn't seem to change anything, but it might require a combination with other bytes
-            // my meters have 0x0A and 0x2A but the data seems same
-            uchar somethingAndVoltage = bytes[i];
-            double voltage = getVoltage(somethingAndVoltage & 0x0F);
-            t->addSpecialExplanation(i + offset, 1, KindOfData::CONTENT,
-                    Understanding::FULL,
-                    "*** %02X voltage of battery %0.2f V",
-                    somethingAndVoltage, voltage);
-            setNumericValue("voltage", Unit::Volt, voltage);
-            i++;
-        }
-
-        // ECM Picoflux AiR (version 0x05) uses a different proprietary block layout:
-        // [0] frame_id, [1] voltage, [2] constant, [3-50] 12×4B monthly, [51-54] 13th slot, [55-62] footer.
-        // Footer byte[56] = current month (1-12), used to map slots to calendar months.
-        // Slot 0 = most recent completed month (current_month - 1), going backwards.
+        // ECM Picoflux AiR (version 0x05) uses a completely different proprietary block layout.
+        // bytes[1:2] = Format G date (date of most recent historical value), NOT battery voltage.
+        // bytes[3..50] = 12×4B monthly snapshots, bytes[51..54] = 13th slot, bytes[55..62] = footer.
+        // The month from Format G date determines slot-to-calendar-month mapping.
+        // Slot 0 = most recent completed month (format_g_month - 1), going backwards.
+        // Note: 04 74 (actuality_duration) is repurposed by ECM as "summary time of external
+        // magnetic field" (tamper detection), but we keep the standard OMS field name.
         if (t->dll_version == 0x05)
         {
-            // Constant byte (always 0x32)
-            t->addSpecialExplanation(i + offset, 1, KindOfData::CONTENT,
+            // Parse Format G date from bytes[1:2] (little-endian: lo first, hi second)
+            if (i + 1 >= len) { setStringValue("contents", ""); return; }
+            uchar date_lo = bytes[i];
+            uchar date_hi = bytes[i + 1];
+            int fg_day   = date_lo & 0x1F;
+            int fg_year1 = (date_lo & 0xE0) >> 5;
+            int fg_month = date_hi & 0x0F;
+            int fg_year2 = (date_hi & 0xF0) >> 1;
+            int fg_year  = 2000 + fg_year1 + fg_year2;
+
+            char date_buf[16];
+            snprintf(date_buf, sizeof(date_buf), "%04d-%02d-%02d", fg_year, fg_month, fg_day);
+            setStringValue("history_date", date_buf);
+
+            t->addSpecialExplanation(i + offset, 2, KindOfData::CONTENT,
                     Understanding::FULL,
-                    "*** %02X constant", bytes[i]);
-            i++;
+                    "*** %02X%02X Format G date: %s (date of 1st historical value)",
+                    date_lo, date_hi, date_buf);
+
+            if (!explanation.empty()) explanation += " ";
+            explanation += "HISTORY_DATE";
+
+            i += 2;
             if (i >= len) { setStringValue("contents", explanation); return; }
 
-            // Read current month from footer: offset = 3 (header) + 13*4 (slots) + 1
-            int footer_month_offset = 3 + 13 * 4 + 1; // byte 56
-            int current_month = 0;
-            if (footer_month_offset < len) {
-                current_month = bytes[footer_month_offset];
-            }
+            // Derive current month for slot mapping from Format G date
+            int current_month = fg_month;
 
             if (current_month >= 1 && current_month <= 12)
             {
@@ -340,20 +341,40 @@ namespace {
                     i += 4;
                 }
 
-                // Footer: version echo, current month, remaining bytes
+                // Footer: hist_counter, ecm_internal bytes
                 if (i < len)
                 {
                     int footer_len = len - i;
+                    int hist_counter = bytes[i];
                     t->addSpecialExplanation(i + offset, footer_len, KindOfData::CONTENT,
                             Understanding::FULL,
-                            "*** footer: version=%02X current_month=%d (%d bytes)",
-                            bytes[i], (i + 1 < len) ? bytes[i + 1] : 0, footer_len);
+                            "*** footer: hist_counter=%d (%d bytes)",
+                            hist_counter, footer_len);
                     i = len;
                 }
             }
 
             setStringValue("contents", explanation);
             return;
+        }
+
+        if (frame_identifier & MASK_BATTERY_VOLTAGE_PRESENT) {
+
+            if (!explanation.empty()) explanation += " ";
+            explanation += "BATTERY_VOLTAGE";
+
+            // only the bottom half changes the voltage, top half's purpose is unknown
+            // values obtained from software by changing value from 0x00-0F
+            // changing the top half didn't seem to change anything, but it might require a combination with other bytes
+            // my meters have 0x0A and 0x2A but the data seems same
+            uchar somethingAndVoltage = bytes[i];
+            double voltage = getVoltage(somethingAndVoltage & 0x0F);
+            t->addSpecialExplanation(i + offset, 1, KindOfData::CONTENT,
+                    Understanding::FULL,
+                    "*** %02X voltage of battery %0.2f V",
+                    somethingAndVoltage, voltage);
+            setNumericValue("voltage", Unit::Volt, voltage);
+            i++;
         }
 
         if (frame_identifier & MASK_FRAUD_DATE_PRESENT) {
@@ -518,13 +539,13 @@ namespace {
 // Test: EcomessPicoflux hydrodigit 56544919 9F5213BC13841410BB1410141515E4D5
 // Comment: Ecomess Picoflux AiR (ECM, version 0x05). Monthly snapshots parsed from mfct block.
 // telegram=|6e446d141949545605077adf0060055ad21c5cafec3a71c0720754f2ca777e238d0318d35a2de0f8fe592e9a0d0cacbd61dfd2815c21a7fa743d93b5e543847e3e67b5d80816a253db655d4354b1a06c1fb7bae99e0fa322bff37a05fd651c5e3c09968ae4df0d8d911fee33ef31b9|
-// {"_":"telegram","April_total_m3":0,"August_total_m3":0,"December_total_m3":0.041,"February_total_m3":0,"January_total_m3":3.374,"July_total_m3":0,"June_total_m3":0,"March_total_m3":0,"May_total_m3":0,"November_total_m3":0.041,"October_total_m3":0.041,"September_total_m3":0.04,"actuality_duration_s":0,"backflow_m3":0,"contents":"BATTERY_VOLTAGE MONTHLY_DATA","id":"56544919","media":"water","meter":"hydrodigit","meter_datetime":"2026-02-09 08:57","name":"EcomessPicoflux","status":"OK","timestamp":"1111-11-11T11:11:11Z","total_m3":4.492,"voltage_v":1.9}
+// {"_":"telegram","April_total_m3":0,"August_total_m3":0,"December_total_m3":0.041,"February_total_m3":0,"January_total_m3":3.374,"July_total_m3":0,"June_total_m3":0,"March_total_m3":0,"May_total_m3":0,"November_total_m3":0.041,"October_total_m3":0.041,"September_total_m3":0.04,"actuality_duration_s":0,"backflow_m3":0,"contents":"HISTORY_DATE MONTHLY_DATA","history_date":"2026-02-01","id":"56544919","media":"water","meter":"hydrodigit","meter_datetime":"2026-02-09 08:57","name":"EcomessPicoflux","status":"OK","timestamp":"1111-11-11T11:11:11Z","total_m3":4.492}
 // |EcomessPicoflux;56544919;4.492;2026-02-09 08:57;1111-11-11 11:11.11
 
 // Test: EcomessPicoflux2 hydrodigit 57530510 9F5213BC13841410BB1410141515E4D5
 // Comment: Ecomess Picoflux AiR with higher consumption showing diverse monthly values.
 // telegram=|6e446d141005535705077aa900600544f4d6e4edb113cdb888981db36355614215a48c813a08dea801b46bd5612fa0bea01763ceed5fa0e0f44b8b7f983f08f6cc6694d63c56a6edc6498978373f1c71430167bc360144f26cfa8d06fe41f05cbc1d2b463dfa696f7a36a85e964f4f|
-// {"_":"telegram","April_total_m3":0,"August_total_m3":0,"December_total_m3":0.047,"February_total_m3":0,"January_total_m3":8.717,"July_total_m3":0,"June_total_m3":0,"March_total_m3":0,"May_total_m3":0,"November_total_m3":0.047,"October_total_m3":0.047,"September_total_m3":0.047,"actuality_duration_s":0,"backflow_m3":0,"contents":"BATTERY_VOLTAGE MONTHLY_DATA","id":"57530510","media":"water","meter":"hydrodigit","meter_datetime":"2026-02-09 08:57","name":"EcomessPicoflux2","status":"OK","timestamp":"1111-11-11T11:11:11Z","total_m3":10.617,"voltage_v":1.9}
+// {"_":"telegram","April_total_m3":0,"August_total_m3":0,"December_total_m3":0.047,"February_total_m3":0,"January_total_m3":8.717,"July_total_m3":0,"June_total_m3":0,"March_total_m3":0,"May_total_m3":0,"November_total_m3":0.047,"October_total_m3":0.047,"September_total_m3":0.047,"actuality_duration_s":0,"backflow_m3":0,"contents":"HISTORY_DATE MONTHLY_DATA","history_date":"2026-02-01","id":"57530510","media":"water","meter":"hydrodigit","meter_datetime":"2026-02-09 08:57","name":"EcomessPicoflux2","status":"OK","timestamp":"1111-11-11T11:11:11Z","total_m3":10.617}
 // |EcomessPicoflux2;57530510;10.617;2026-02-09 08:57;1111-11-11 11:11.11
 
 // Test: hydro7 hydrodigit 03122061 NOKEY
