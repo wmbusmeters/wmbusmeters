@@ -36,6 +36,7 @@ namespace {
         di.addMVT(MANUFACTURER_BMT, 0x07, 0x13);
         di.addMVT(MANUFACTURER_BMT, 0x07, 0x15);
         di.addMVT(MANUFACTURER_BMT, 0x07, 0x17);
+        di.addMVT(MANUFACTURER_ECM, 0x07, 0x05);
         di.usesProcessContent();
         di.setConstructor([](MeterInfo &mi, DriverInfo &di) {
             return shared_ptr<Meter>(new Driver(mi, di));
@@ -44,6 +45,27 @@ namespace {
 
     Driver::Driver(MeterInfo &mi, DriverInfo &di) : MeterCommonImplementation(
             mi, di) {
+        addOptionalLibraryFields("actuality_duration_s");
+
+        addStringFieldWithExtractorAndLookup(
+            "status",
+            "Status and error flags.",
+            DEFAULT_PRINT_PROPERTIES | PrintProperty::STATUS,
+            FieldMatcher::build()
+            .set(VIFRange::ErrorFlags),
+            {
+                {
+                    {
+                        "ERROR_FLAGS",
+                        Translate::MapType::BitToString,
+                        AlwaysTrigger, MaskBits(0xffff),
+                        "OK",
+                        {
+                        }
+                    },
+                },
+            });
+
         addNumericFieldWithExtractor("total",
                 "The total water consumption recorded by this meter.",
                 DEFAULT_PRINT_PROPERTIES, Quantity::Volume, VifScaling::Auto,
@@ -67,8 +89,15 @@ namespace {
                 DEFAULT_PRINT_PROPERTIES);
         addStringField("leak_date", "Date of leakage detected by meter",
                 DEFAULT_PRINT_PROPERTIES);
-        addNumericField("backflow", Quantity::Volume, DEFAULT_PRINT_PROPERTIES,
-                "Backflow detected by the meter", Unit::M3);
+        addNumericFieldWithExtractor("backflow",
+                "Backflow detected by the meter.",
+                DEFAULT_PRINT_PROPERTIES,
+                Quantity::Volume,
+                VifScaling::Auto, DifSignedness::Signed,
+                FieldMatcher::build()
+                .set(MeasurementType::Instantaneous)
+                .set(VIFRange::AnyVolumeVIF)
+                .add(VIFCombinable::BackwardFlow));
         addNumericField("January_total", Quantity::Volume,
                 DEFAULT_PRINT_PROPERTIES, "Total value at the end of January",
                 Unit::M3);
@@ -199,13 +228,25 @@ namespace {
 
         debugPayload("(hydrodigit mfct)", bytes);
 
+        // The dvparser creates a CONTENT+NONE explanation covering the entire mfct block.
+        // Since processContent provides detailed per-byte explanations, reclassify the
+        // framework entry as PROTOCOL to avoid double-counting in the decode score.
+        for (auto& e : t->explanations)
+        {
+            if (e.pos == (offset - 1) && e.kind == KindOfData::CONTENT && e.understanding == Understanding::NONE)
+            {
+                e.kind = KindOfData::PROTOCOL;
+                break;
+            }
+        }
+
         int i = 0;
         int len = bytes.size();
 
         if (i >= len) return;
         uchar frame_identifier = bytes[i];
 
-        t->addSpecialExplanation(i + offset, 1, KindOfData::PROTOCOL,
+        t->addSpecialExplanation(i + offset, 1, KindOfData::CONTENT,
                 Understanding::FULL, "*** %02X frame content", frame_identifier);
 
         std::string explanation;
@@ -235,6 +276,84 @@ namespace {
                     somethingAndVoltage, voltage);
             setNumericValue("voltage", Unit::Volt, voltage);
             i++;
+        }
+
+        // ECM Picoflux AiR (version 0x05) uses a different proprietary block layout:
+        // [0] frame_id, [1] voltage, [2] constant, [3-50] 12×4B monthly, [51-54] 13th slot, [55-62] footer.
+        // Footer byte[56] = current month (1-12), used to map slots to calendar months.
+        // Slot 0 = most recent completed month (current_month - 1), going backwards.
+        if (t->dll_version == 0x05)
+        {
+            // Constant byte (always 0x32)
+            t->addSpecialExplanation(i + offset, 1, KindOfData::CONTENT,
+                    Understanding::FULL,
+                    "*** %02X constant", bytes[i]);
+            i++;
+            if (i >= len) { setStringValue("contents", explanation); return; }
+
+            // Read current month from footer: offset = 3 (header) + 13*4 (slots) + 1
+            int footer_month_offset = 3 + 13 * 4 + 1; // byte 56
+            int current_month = 0;
+            if (footer_month_offset < len) {
+                current_month = bytes[footer_month_offset];
+            }
+
+            if (current_month >= 1 && current_month <= 12)
+            {
+                if (!explanation.empty()) explanation += " ";
+                explanation += "MONTHLY_DATA";
+
+                for (int slot = 0; slot < 12; ++slot)
+                {
+                    if (i + 3 >= len) break;
+
+                    uint32_t val = (uint32_t)bytes[i]
+                                 | ((uint32_t)bytes[i + 1] << 8)
+                                 | ((uint32_t)bytes[i + 2] << 16)
+                                 | ((uint32_t)bytes[i + 3] << 24);
+                    double volume = val / 1000.0;
+
+                    // Map slot to calendar month: slot 0 = previous month, slot 1 = two months back, etc.
+                    int month_num = current_month - 1 - slot;
+                    while (month_num <= 0) month_num += 12;
+
+                    string month_name = getMonth(month_num);
+                    string field_name = month_name + "_total";
+
+                    t->addSpecialExplanation(i + offset, 4, KindOfData::CONTENT,
+                            Understanding::FULL,
+                            "*** %02X%02X%02X%02X %s total: %0.3f m3",
+                            bytes[i], bytes[i + 1], bytes[i + 2], bytes[i + 3],
+                            month_name.c_str(), volume);
+                    setNumericValue(field_name, Unit::M3, volume);
+
+                    i += 4;
+                }
+
+                // 13th slot (4 bytes, reserved/oldest)
+                if (i + 3 < len)
+                {
+                    t->addSpecialExplanation(i + offset, 4, KindOfData::CONTENT,
+                            Understanding::FULL,
+                            "*** %02X%02X%02X%02X 13th monthly slot (oldest/reserved)",
+                            bytes[i], bytes[i + 1], bytes[i + 2], bytes[i + 3]);
+                    i += 4;
+                }
+
+                // Footer: version echo, current month, remaining bytes
+                if (i < len)
+                {
+                    int footer_len = len - i;
+                    t->addSpecialExplanation(i + offset, footer_len, KindOfData::CONTENT,
+                            Understanding::FULL,
+                            "*** footer: version=%02X current_month=%d (%d bytes)",
+                            bytes[i], (i + 1 < len) ? bytes[i + 1] : 0, footer_len);
+                    i = len;
+                }
+            }
+
+            setStringValue("contents", explanation);
+            return;
         }
 
         if (frame_identifier & MASK_FRAUD_DATE_PRESENT) {
@@ -395,6 +514,18 @@ namespace {
 // telegram=|2144B4099163742315077A400000000C1399999999046D092A30340F050B01000000
 // {"_":"telegram", "media":"water", "meter":"hydrodigit", "name":"HydrodigitWaterrr", "id":"23746391", "backflow_m3":0.001, "meter_datetime":"2025-04-16 10:09", "total_m3":99999.999, "voltage_v":3.2, "contents":"BATTERY_VOLTAGE BACKFLOW", "timestamp":"1111-11-11T11:11:11Z" }
 // |HydrodigitWaterrr;23746391;99999.999;2025-04-16 10:09;1111-11-11 11:11.11
+
+// Test: EcomessPicoflux hydrodigit 56544919 9F5213BC13841410BB1410141515E4D5
+// Comment: Ecomess Picoflux AiR (ECM, version 0x05). Monthly snapshots parsed from mfct block.
+// telegram=|6e446d141949545605077adf0060055ad21c5cafec3a71c0720754f2ca777e238d0318d35a2de0f8fe592e9a0d0cacbd61dfd2815c21a7fa743d93b5e543847e3e67b5d80816a253db655d4354b1a06c1fb7bae99e0fa322bff37a05fd651c5e3c09968ae4df0d8d911fee33ef31b9|
+// {"_":"telegram","April_total_m3":0,"August_total_m3":0,"December_total_m3":0.041,"February_total_m3":0,"January_total_m3":3.374,"July_total_m3":0,"June_total_m3":0,"March_total_m3":0,"May_total_m3":0,"November_total_m3":0.041,"October_total_m3":0.041,"September_total_m3":0.04,"actuality_duration_s":0,"backflow_m3":0,"contents":"BATTERY_VOLTAGE MONTHLY_DATA","id":"56544919","media":"water","meter":"hydrodigit","meter_datetime":"2026-02-09 08:57","name":"EcomessPicoflux","status":"OK","timestamp":"1111-11-11T11:11:11Z","total_m3":4.492,"voltage_v":1.9}
+// |EcomessPicoflux;56544919;4.492;2026-02-09 08:57;1111-11-11 11:11.11
+
+// Test: EcomessPicoflux2 hydrodigit 57530510 9F5213BC13841410BB1410141515E4D5
+// Comment: Ecomess Picoflux AiR with higher consumption showing diverse monthly values.
+// telegram=|6e446d141005535705077aa900600544f4d6e4edb113cdb888981db36355614215a48c813a08dea801b46bd5612fa0bea01763ceed5fa0e0f44b8b7f983f08f6cc6694d63c56a6edc6498978373f1c71430167bc360144f26cfa8d06fe41f05cbc1d2b463dfa696f7a36a85e964f4f|
+// {"_":"telegram","April_total_m3":0,"August_total_m3":0,"December_total_m3":0.047,"February_total_m3":0,"January_total_m3":8.717,"July_total_m3":0,"June_total_m3":0,"March_total_m3":0,"May_total_m3":0,"November_total_m3":0.047,"October_total_m3":0.047,"September_total_m3":0.047,"actuality_duration_s":0,"backflow_m3":0,"contents":"BATTERY_VOLTAGE MONTHLY_DATA","id":"57530510","media":"water","meter":"hydrodigit","meter_datetime":"2026-02-09 08:57","name":"EcomessPicoflux2","status":"OK","timestamp":"1111-11-11T11:11:11Z","total_m3":10.617,"voltage_v":1.9}
+// |EcomessPicoflux2;57530510;10.617;2026-02-09 08:57;1111-11-11 11:11.11
 
 // Test: hydro7 hydrodigit 03122061 NOKEY
 // telegram=|4C44B4096120120317077AB90000000C1330000000046D132E3E360F8F000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000|
