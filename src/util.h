@@ -81,6 +81,8 @@ bool endsWith(const std::string &str, const std::string &suffix);
 // Return for example: 2010-03-21
 std::string strdate(struct tm *date);
 std::string strdate(double v);
+// Return for example: 21-03
+std::string strdaymonth(struct tm *date);
 // Return for example: 2010-03-21 15:22
 std::string strdatetime(struct tm *date);
 std::string strdatetime(double v);

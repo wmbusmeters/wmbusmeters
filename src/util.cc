@@ -1130,6 +1130,13 @@ string strdate(double v)
     return strdate(&date);
 }
 
+string strdaymonth(struct tm *date)
+{
+    char buf[256];
+    strftime(buf, sizeof(buf), "%d-%m", date);
+    return string(buf);
+}
+
 string strdatetime(struct tm *datetime)
 {
     char buf[256];
