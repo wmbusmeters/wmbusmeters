@@ -1,4 +1,4 @@
-// Generated 2026-02-06_21:04
+// Generated 2026-02-11_12:14
 test {
     args     = 'AqWater aquastream 05933237 NOKEY'
     telegram = 4644B42557920410050E7237329305B42501075B0030252F2F_04130342000084101300000000046D0D30F62B441349180000426CFF2A02FD17000002FD74DB152F2F2F2F2F2F2F
@@ -156,6 +156,18 @@ test {
     telegram = 444497268504342300047AD00030A52F2F_04062C0100000C1429270000066D2D130AE12B007406FEFEFEFE426C1F010D7FEB0E00000006040C995500372F2F0C7951622223
     json     = '{"_":"telegram","id": "23340485","last_year_date": "2000-01-31","media": "heat","meter": "itronheat","meter_datetime": "2023-11-01 10:19:45","name": "Heat","status": "OK","timestamp": "1111-11-11T11:11:11Z","total_kwh": 300,"total_m3": 27.29}'
     fields   = 'Heat;23340485;OK;300;1111-11-11 11:11.11'
+}
+test {
+    args     = 'KadenC10 kaden 23701267 82B0551191F51D66EFCDAB8967452301'
+    telegram = 4e443059671270231e087a6f0040051183e178afb952391c01f78104bc3fd33a5232ba7e70f514a062dac99059a7c74a55227dfae9d9590145f685f4ae6a62288bbba6eaf92d86797254644a2cdf46
+    json     = '{"_": "telegram","consumption_hca": 859,"external_temperature_c": 32,"fabrication_no": "23701267","flow_temperature_c": 39.3,"id": "23701267","media": "heat cost allocation","meter": "kaden","meter_datetime": "2026-02-09 09:41","name": "KadenC10","no_measurement_duration_h": 2.266667,"no_measurement_duration_last_year_h": 1234.483333,"status": "OK","tampering_duration_h": 0,"target_date": "2127-01-01","target_hca": 2264,"timestamp": "1111-11-11T11:11:11Z"}'
+    fields   = 'KadenC10;23701267;859;1111-11-11 11:11.11'
+}
+test {
+    args     = 'KadenD10 kaden 23800604 82B0551191F51D66EFCDAB8967452301'
+    telegram = 4e443059040680231e087ac40040050e6aa476257c0c3adae8277edc999b39b38222fcb387a91e94cb6ed47ceec6470f5f686f89a8574415fa262bd43c88f7f153ce3c66e8e44da338a06c62ab21b1
+    json     = '{"_": "telegram","consumption_hca": 0,"external_temperature_c": 19.6,"fabrication_no": "23800604","flow_temperature_c": 19.7,"id": "23800604","media": "heat cost allocation","meter": "kaden","meter_datetime": "2026-02-09 04:01","name": "KadenD10","no_measurement_duration_h": 940.016667,"no_measurement_duration_last_year_h": 5088,"status": "SENSOR_T1_OUTSIDE_MEASURING_RANGE","tampering_duration_h": 0.003611,"target_date": "2127-01-01","target_hca": 3,"timestamp": "1111-11-11T11:11:11Z"}'
+    fields   = 'KadenD10;23800604;0;1111-11-11 11:11.11'
 }
 test {
     args     = 'Kamstrup_MC303_Heat_AND_COOLING kamheat 30303030 NOKEY'
