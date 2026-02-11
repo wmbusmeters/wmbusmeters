@@ -57,6 +57,10 @@ field {
 }
 ```
 
+All native drivers are going to be rewritten in this form.
+If you want to create a new driver, write it directly in xmq form.
+I am not accepting new drivers as C++ code.
+
 [FAQ/WIKI/MANUAL pages](https://wmbusmeters.github.io/wmbusmeters-wiki/)
 
 The program runs on GNU/Linux, MacOSX, FreeBSD, and Raspberry Pi.
