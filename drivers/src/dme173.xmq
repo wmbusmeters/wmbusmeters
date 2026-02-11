@@ -9,8 +9,6 @@ driver {
     library {
         use = total_m3
         use = flow_temperature_c
-        use = target_m3
-        use = target_date
     }
     fields {
         field {
@@ -27,16 +25,6 @@ driver {
                 map_type        = BitToString
                 mask_bits       = 0xffffffff
                 default_message = OK
-            }
-        }
-        field {
-            name     = set
-            quantity = Volume
-            info     = 'The total water consumption at the set date.'
-            match {
-                measurement_type = Instantaneous
-                vif_range        = Volume
-                storage_nr       = 8
             }
         }
         field {
@@ -62,21 +50,22 @@ driver {
         field {
             name     = total_at_set_date
             quantity = Volume
-            info     = 'The total water consumption at the end of last billing period.'
+            info     = 'The total water consumption even earlier?'
             match {
                 measurement_type = Instantaneous
                 vif_range        = Volume
-                storage_nr       = 8
+                storage_nr       = 1
             }
         }
         field {
-            name     = set_date
+            name     = set
             quantity = PointInTime
-            info     = 'The end of last billing period.'
+            info     = 'The even earlier date?'
+            display_unit = date
             match {
                 measurement_type = Instantaneous
-                vif_range        = DateTime
-                storage_nr       = 8
+                vif_range        = Date
+                storage_nr       = 1
             }
         }
     }
@@ -84,7 +73,7 @@ driver {
         test {
             args     = 'dwater dme173 22332233 NOKEY'
             telegram = 5344A5113322332263078C0085900F002C256C1601004BB24778D6AC091E7ADF003107102F2F_0C138386000004FD17000000000A5A550002FD74EE114C1300020000426C3F3C84046D3B375F318C041374460000
-            json     = '{"_": "telegram","flow_temperature_c": 5.5,"id": "22332233","media": "water","meter": "dme173","name": "dwater","set_date_datetime": "2026-01-31 23:59","set_m3": 4.674,"status": "OK","target_date": "2025-12-31","target_datetime": "2026-01-31 23:59","target_m3": 4.674,"timestamp": "1111-11-11T11:11:11Z","total_at_set_date_m3": 4.674,"total_m3": 8.683}'
+            json     = '{"_": "telegram","flow_temperature_c": 5.5,"id": "22332233","media": "water","meter": "dme173","name": "dwater","set_date": "2025-12-31","status": "OK","target_datetime": "2026-01-31 23:59","target_m3": 4.674,"timestamp": "1111-11-11T11:11:11Z","total_at_set_date_m3": 0.2,"total_m3": 8.683}'
             fields   = 'dwater;22332233;OK;8.683;1111-11-11 11:11.11'
         }
     }

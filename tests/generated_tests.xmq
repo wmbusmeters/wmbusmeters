@@ -1,4 +1,4 @@
-// Generated 2026-02-11_15:54
+// Generated 2026-02-11_16:09
 test {
     args     = 'Wasser apator162 20202020 NOKEY'
     telegram = 6E4401062020202005077A9A006085|2F2F0F0A734393CC0000435B0183001A54E06F630291342510|030F00007B013E0B00003E0B00003E0B00003E0B00003E0B00003E0B00003E0B0000650000003D0000003D0000003D00000000000000A0910CB003FFFFFFFFFFFFFFFFFFFFA62B
@@ -14,7 +14,7 @@ test {
 test {
     args     = 'dwater dme173 22332233 NOKEY'
     telegram = 5344A5113322332263078C0085900F002C256C1601004BB24778D6AC091E7ADF003107102F2F_0C138386000004FD17000000000A5A550002FD74EE114C1300020000426C3F3C84046D3B375F318C041374460000
-    json     = '{"_": "telegram","flow_temperature_c": 5.5,"id": "22332233","media": "water","meter": "dme173","name": "dwater","set_date_datetime": "2026-01-31 23:59","set_m3": 4.674,"status": "OK","target_date": "2025-12-31","target_datetime": "2026-01-31 23:59","target_m3": 4.674,"timestamp": "1111-11-11T11:11:11Z","total_at_set_date_m3": 4.674,"total_m3": 8.683}'
+    json     = '{"_": "telegram","flow_temperature_c": 5.5,"id": "22332233","media": "water","meter": "dme173","name": "dwater","set_date": "2025-12-31","status": "OK","target_datetime": "2026-01-31 23:59","target_m3": 4.674,"timestamp": "1111-11-11T11:11:11Z","total_at_set_date_m3": 0.2,"total_m3": 8.683}'
     fields   = 'dwater;22332233;OK;8.683;1111-11-11 11:11.11'
 }
 test {
