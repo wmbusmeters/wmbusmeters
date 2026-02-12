@@ -219,28 +219,6 @@ namespace
             .set(VIFRange::DateTime)
             );
 
-        // Historical monthly averages from manufacturer-specific 0x0F section.
-        // Device configuration (COnf0 bits 7-6) determines data layout:
-        //   10 = 12 temperature averages
-        //   01 = 12 humidity averages
-        //   11 = 6 temperature + 6 humidity averages (default assumption)
-        for (int i = 1; i <= 6; i++)
-        {
-            addNumericField(
-                tostrprintf("historical_average_temperature_month_%d", i),
-                Quantity::Temperature,
-                DEFAULT_PRINT_PROPERTIES,
-                tostrprintf("Monthly average temperature %d month(s) ago.", i));
-        }
-
-        for (int i = 1; i <= 6; i++)
-        {
-            addNumericField(
-                tostrprintf("historical_average_relative_humidity_month_%d", i),
-                Quantity::RelativeHumidity,
-                DEFAULT_PRINT_PROPERTIES,
-                tostrprintf("Monthly average relative humidity %d month(s) ago.", i));
-        }
     }
 
     void Driver::processContent(Telegram *t)
@@ -268,92 +246,6 @@ namespace
             setStringValue("status", s, NULL);
         }
 
-        if (t->mfct_0f_index == -1) return;
-
-        int offset = t->header_size + t->mfct_0f_index;
-
-        vector<uchar> bytes;
-        t->extractMfctData(&bytes);
-
-        // Expect 24 bytes of historical data (12 x 2-byte values)
-        if (bytes.size() < 24) return;
-
-        // Parse historical monthly averages.
-        // In "both" mode (COnf0 bits 7-6 = 11): slots 0-5 = temperature, slots 6-11 = humidity.
-        // Values are 16-bit integers: temperature in 1/10 °C, humidity in %RH.
-        // Special values: 0xFFFF = not available, high nibble 0xF = out of range.
-
-        for (int i = 0; i < 6; i++)
-        {
-            int pos = i * 2;
-            uchar lo = bytes[pos];
-            uchar hi = bytes[pos + 1];
-            uint16_t raw = (hi << 8) | lo;
-
-            string vname = tostrprintf("historical_average_temperature_month_%d", i + 1);
-
-            if (raw == 0xFFFF)
-            {
-                t->addSpecialExplanation(offset + 1 + pos, 2, KindOfData::CONTENT,
-                                         Understanding::FULL,
-                                         "*** %02X%02X historical temperature month %d: not available",
-                                         lo, hi, i + 1);
-                continue;
-            }
-
-            if ((raw >> 12) == 0xF)
-            {
-                t->addSpecialExplanation(offset + 1 + pos, 2, KindOfData::CONTENT,
-                                         Understanding::FULL,
-                                         "*** %02X%02X historical temperature month %d: out of range",
-                                         lo, hi, i + 1);
-                continue;
-            }
-
-            double temp_c = raw / 10.0;
-            setNumericValue(vname, Unit::C, temp_c);
-
-            string info = renderJsonOnlyDefaultUnit(vname, Quantity::Temperature);
-            t->addSpecialExplanation(offset + 1 + pos, 2, KindOfData::CONTENT,
-                                     Understanding::FULL,
-                                     "*** %02X%02X (%s)", lo, hi, info.c_str());
-        }
-
-        for (int i = 0; i < 6; i++)
-        {
-            int pos = (i + 6) * 2;
-            uchar lo = bytes[pos];
-            uchar hi = bytes[pos + 1];
-            uint16_t raw = (hi << 8) | lo;
-
-            string vname = tostrprintf("historical_average_relative_humidity_month_%d", i + 1);
-
-            if (raw == 0xFFFF)
-            {
-                t->addSpecialExplanation(offset + 1 + pos, 2, KindOfData::CONTENT,
-                                         Understanding::FULL,
-                                         "*** %02X%02X historical humidity month %d: not available",
-                                         lo, hi, i + 1);
-                continue;
-            }
-
-            if ((raw >> 12) == 0xF)
-            {
-                t->addSpecialExplanation(offset + 1 + pos, 2, KindOfData::CONTENT,
-                                         Understanding::FULL,
-                                         "*** %02X%02X historical humidity month %d: out of range",
-                                         lo, hi, i + 1);
-                continue;
-            }
-
-            double rh = (double)raw;
-            setNumericValue(vname, Unit::RH, rh);
-
-            string info = renderJsonOnlyDefaultUnit(vname, Quantity::RelativeHumidity);
-            t->addSpecialExplanation(offset + 1 + pos, 2, KindOfData::CONTENT,
-                                     Understanding::FULL,
-                                     "*** %02X%02X (%s)", lo, hi, info.c_str());
-        }
     }
 }
 
