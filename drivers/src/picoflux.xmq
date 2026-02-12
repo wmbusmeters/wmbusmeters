@@ -1,0 +1,77 @@
+// Copyright (C) 2025 Fredrik Öhrström (gpl-3.0-or-later)
+driver {
+    name           = picoflux
+    meter_type     = WaterMeter
+    default_fields = name,id,total_m3,status,timestamp
+    manufacturer   = Ecomess
+    model          = 'Picoflux AiR'
+    detect {
+        mvt = ECM,05,07
+    }
+    library {
+        use = meter_datetime
+    }
+    fields {
+        field {
+            name       = status
+            quantity   = Text
+            info       = status_and_error_flags
+            attributes = INCLUDE_TPL_STATUS
+            match {
+                measurement_type = Instantaneous
+                vif_range        = ErrorFlags
+            }
+            lookup {
+                name            = ERROR_FLAGS
+                map_type        = BitToString
+                mask_bits       = 0xffff
+                default_message = OK
+            }
+        }
+        field {
+            name     = total
+            quantity = Volume
+            info     = 'The total water consumption.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = Volume
+            }
+        }
+        field {
+            name     = backflow
+            quantity = Volume
+            info     = 'The total backward water flow.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = Volume
+                add_combinable   = BackwardFlow
+            }
+        }
+        field {
+            name         = actuality_duration
+            quantity     = Time
+            display_unit = s
+            info         = 'Actuality duration (time since last measurement).'
+            match {
+                measurement_type = Instantaneous
+                difvifkey        = 0474
+            }
+        }
+    }
+    tests {
+        test {
+            args     = 'MyWater picoflux 56544919 9F5213BC13841410BB1410141515E4D5'
+            comment  = 'Ecomess Picoflux AiR, medium consumption (4.492 m3)'
+            telegram = 6e446d141949545605077adf0060055ad21c5cafec3a71c0720754f2ca777e238d0318d35a2de0f8fe592e9a0d0cacbd61dfd2815c21a7fa743d93b5e543847e3e67b5d80816a253db655d4354b1a06c1fb7bae99e0fa322bff37a05fd651c5e3c09968ae4df0d8d911fee33ef31b9
+            json     = '{"_":"telegram","media":"water","meter":"picoflux","name":"MyWater","id":"56544919","actuality_duration_s":0,"backflow_m3":0,"total_m3":4.492,"meter_datetime":"2026-02-09 08:57","status":"OK","timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'MyWater;56544919;4.492;OK;1111-11-11 11:11.11'
+        }
+        test {
+            args     = 'MyWater picoflux 57530510 9F5213BC13841410BB1410141515E4D5'
+            comment  = 'Ecomess Picoflux AiR, high consumption (10.617 m3)'
+            telegram = 6e446d141005535705077aa900600544f4d6e4edb113cdb888981db36355614215a48c813a08dea801b46bd5612fa0bea01763ceed5fa0e0f44b8b7f983f08f6cc6694d63c56a6edc6498978373f1c71430167bc360144f26cfa8d06fe41f05cbc1d2b463dfa696f7a36a85e964f4f
+            json     = '{"_":"telegram","media":"water","meter":"picoflux","name":"MyWater","id":"57530510","actuality_duration_s":0,"backflow_m3":0,"total_m3":10.617,"meter_datetime":"2026-02-09 08:57","status":"OK","timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'MyWater;57530510;10.617;OK;1111-11-11 11:11.11'
+        }
+    }
+}
