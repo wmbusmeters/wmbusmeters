@@ -9,6 +9,7 @@ driver {
     library {
         use = total_m3
         use = flow_temperature_c
+        use = total_backward_m3
     }
     fields {
         field {
@@ -75,6 +76,13 @@ driver {
             telegram = 5344A5113322332263078C0085900F002C256C1601004BB24778D6AC091E7ADF003107102F2F_0C138386000004FD17000000000A5A550002FD74EE114C1300020000426C3F3C84046D3B375F318C041374460000
             json     = '{"_": "telegram","flow_temperature_c": 5.5,"id": "22332233","media": "water","meter": "dme173","name": "dwater","set_date": "2025-12-31","status": "OK","target_datetime": "2026-01-31 23:59","target_m3": 4.674,"timestamp": "1111-11-11T11:11:11Z","total_at_set_date_m3": 0.2,"total_m3": 8.683}'
             fields   = 'dwater;22332233;OK;8.683;1111-11-11 11:11.11'
+        }
+
+        test {
+            args     = 'dwater2 dme173 10024194 NOKEY'
+            telegram = 5344A5119441021063078C002A900F002C25B7640000BAD0D4FB907B9BE17AFA003107102F2F_0C131717000004FD17000000000C933C000000004C1300020000426C3F3C84046D3B375F318C0413000200002F2F
+            json     = '{"_": "telegram","id": "10024194","media": "water","meter": "dme173","name": "dwater2","set_date": "2025-12-31","status": "OK","target_datetime": "2026-01-31 23:59","target_m3": 0.2,"timestamp": "1111-11-11T11:11:11Z","total_at_set_date_m3": 0.2,"total_backward_m3": 0,"total_m3": 1.717}'
+            fields   = 'dwater2;10024194;OK;1.717;1111-11-11 11:11.11'
         }
     }
 }
