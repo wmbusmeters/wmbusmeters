@@ -147,6 +147,19 @@ DriverDynamic::DriverDynamic(MeterInfo &mi, DriverInfo &di) :
 
         xmqForeach(doc, "/driver/library/use", (XMQNodeCallback)add_use, this);
         xmqForeach(doc, "/driver/fields/field", (XMQNodeCallback)add_field, this);
+
+        // If a status field has INCLUDE_TPL_STATUS and a lookup but no matcher,
+        // use that lookup to decode manufacturer-specific TPL status bits.
+        for (FieldInfo &fi : field_infos_)
+        {
+            if (fi.printProperties().hasINCLUDETPLSTATUS() &&
+                !fi.hasMatcher() &&
+                fi.lookup().hasLookups())
+            {
+                setMfctTPLStatusBits(fi.lookup());
+                break;
+            }
+        }
     }
     catch(...)
     {

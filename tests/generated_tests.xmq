@@ -382,3 +382,15 @@ test {
     json     = '{"_":"telegram","fabrication_no": "00140655","id": "16466583","media": "cold water","meter": "werhlemodwm","meter_datetime": "2000-00-00 03:43","name": "licznik","next_target_date": "2021-11-25","target_10_date": "2020-07-31","target_10_m3": 0.061,"target_11_date": "2020-08-31","target_11_m3": 0.061,"target_12_date": "2020-09-30","target_12_m3": 0.061,"target_13_date": "2020-10-31","target_13_m3": 0.061,"target_1_date": "2020-11-25","target_1_m3": 0.061,"target_2_date": "2020-11-30","target_2_m3": 0.061,"target_3_date": "2019-12-31","target_3_m3": 0.061,"target_4_date": "2020-01-31","target_4_m3": 0.061,"target_5_date": "2020-02-29","target_5_m3": 0.061,"target_6_date": "2020-03-31","target_6_m3": 0.061,"target_7_date": "2020-04-30","target_7_m3": 0.061,"target_8_date": "2020-05-31","target_8_m3": 0.061,"target_9_date": "2020-06-30","target_9_m3": 0.061,"target_date": "2020-11-25","target_m3": 0.061,"timestamp": "1111-11-11T11:11:11Z","total_m3": 0}'
     fields   = 'licznik;16466583;0;1111-11-11 11:11.11'
 }
+test {
+    args     = 'ZennerHCA zennerhca 80081812 DC7C9EF16126348CDFD52CE6567A9FFD'
+    telegram = 5e44496a12180880fc087a7040500584a63344b5af071a23539c6020cbba81fa6adcfe738682a0924d4f6f7d89d165c9144e4918cdc2d5f86be7b5bd8143528273accc131a13d0b100f2540dc1f2c379dde4984236d3bca424113cf0ee1bbd
+    json     = '{"_":"telegram","media":"heat cost allocation","meter":"zennerhca","name":"ZennerHCA","id":"80081812","consumption_hca":339,"previous_billing_consumption_hca":272,"previous_billing_date":"2026-02-01","status":"DUAL_SENSOR_MODE","target_date":"2026-01-01","target_hca":627,"timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'ZennerHCA;80081812;339;2026-01-01;627;DUAL_SENSOR_MODE;1111-11-11 11:11.11'
+}
+test {
+    args     = 'ZennerHCA2 zennerhca 80081907 750381240D0A7E371D4CB8D1869D8F9B'
+    telegram = 5e44496a07190880fc087a714050058922c9598bdddfbb5bbf44b9d54830830eb6be3ba8117dfc88ae1b251837dfecb04e071554125366ef9d72dce87c9a099ad0cd9bf70f4a2e9c4c58d780444219c3f546c887fbc2d93c272e314f925473
+    json     = '{"_":"telegram","media":"heat cost allocation","meter":"zennerhca","name":"ZennerHCA2","id":"80081907","consumption_hca":0,"previous_billing_consumption_hca":0,"previous_billing_date":"2026-02-01","status":"DUAL_SENSOR_MODE","target_date":"2026-01-01","target_hca":2,"timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'ZennerHCA2;80081907;0;2026-01-01;2;DUAL_SENSOR_MODE;1111-11-11 11:11.11'
+}
