@@ -1071,10 +1071,17 @@ If you like to send the bytes manually, the correct bytes are:
 # How to add a new driver
 
 Drivers for OMS-compliant meters are text files `drivers/src/*.xmq`
-First collect an unecrypted telegram as a hex string <hex> using --logtelegrams and any other driver.
-Then run `wmbusmeters --analyze <hex>` to see the best match.
+First collect an unecrypted telegram as a hex string <hex> using --logtelegrams and any other driver, like iperl:
 
-Copy that meters aaa,xmq file to a new filename bbb.xmq and change the name field from aaa to bbb in the driver source.
+`wmbusmeters --logtelegrams <hex> MyMeter iperl <id> <key>`
+
+You will get a line like: `telegram=|.....hex.....|+1`
+
+Extract the hex which is the decrypted telegram, now run
+`wmbusmeters --analyze <hex>` to see the best match.
+
+Copy that meters aaa,xmq file to a new filename bbb.xmq and change the
+name field from aaa to bbb in the driver source.
 
 Now run the new driver with `wmbusmeters --analyze=drivers/src/bbb.xmq <hex>`
 and start modifying the driver until it produces the desired json output.
@@ -1083,14 +1090,7 @@ You can now run `make; make install` from within the drivers directory
 and then rebuild from the wmbusmeters directory `make`. The new driver is now
 compiled into the binary.
 
-You can also put the new driver file bbb.xmq into /etc/wmbusmeters.drivers.d and it will immediately
-be available to the wmbusmeters program without recompiling.
-
-# Caveat
-
-If you do not get proper readings from the meters with non-standard protocols. apator162, mkradio3, vario451
-then you have to open an issue here and help out by logging a lot of messages and reverse engineer them
-even more..... :-/
+You can also put the new driver file bbb.xmq into /etc/wmbusmeters.drivers.d and it will immediately be available to the wmbusmeters program without recompiling.
 
 # Good free documents on the wireless mbus protocol standard EN 13757
 

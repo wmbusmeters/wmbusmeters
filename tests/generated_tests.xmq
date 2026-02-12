@@ -1,4 +1,4 @@
-// Generated 2026-02-12_09:22
+// Generated 2026-02-12_09:43
 test {
     args     = 'AqWater aquastream 05933237 NOKEY'
     telegram = 4644B42557920410050E7237329305B42501075B0030252F2F_04130342000084101300000000046D0D30F62B441349180000426CFF2A02FD17000002FD74DB152F2F2F2F2F2F2F
@@ -6,10 +6,10 @@ test {
     fields   = 'AqWater;05933237;16.899;1111-11-11 11:11.11'
 }
 test {
-    args     = 'dwater2 dme173 10024194 NOKEY'
-    telegram = 5344A5119441021063078C002A900F002C25B7640000BAD0D4FB907B9BE17AFA003107102F2F_0C131717000004FD17000000000C933C000000004C1300020000426C3F3C84046D3B375F318C0413000200002F2F
-    json     = '{"_": "telegram","id": "10024194","media": "water","meter": "dme173","name": "dwater2","set_date": "2025-12-31","status": "OK","target_datetime": "2026-01-31 23:59","target_m3": 0.2,"timestamp": "1111-11-11T11:11:11Z","total_at_set_date_m3": 0.2,"total_backward_m3": 0,"total_m3": 1.717}'
-    fields   = 'dwater2;10024194;OK;1.717;1111-11-11 11:11.11'
+    args     = 'dwater2 dme173 44334433 NOKEY'
+    telegram = 5344A5113344334463078C002A900F002C25B7640000BAD0D4FB907B9BE17AFA003107102F2F_0C131717000004FD17000000000C933C000000004C1300020000426C3F3C84046D3B375F318C0413000200002F2F
+    json     = '{"_": "telegram","id": "44334433","media": "water","meter": "dme173","name": "dwater2","set_date": "2025-12-31","status": "OK","target_datetime": "2026-01-31 23:59","target_m3": 0.2,"timestamp": "1111-11-11T11:11:11Z","total_at_set_date_m3": 0.2,"total_backward_m3": 0,"total_m3": 1.717}'
+    fields   = 'dwater2;44334433;OK;1.717;1111-11-11 11:11.11'
 }
 test {
     args     = 'dwater dme173 22332233 NOKEY'
