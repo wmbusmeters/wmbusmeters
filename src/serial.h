@@ -68,6 +68,11 @@ struct SerialDevice
     virtual bool checkIfDataIsPending() = 0;
     virtual void fill(std::vector<uchar> &data) = 0; // Fill buffer with raw data.
     virtual SerialCommunicationManager *manager() = 0;
+
+    // Socket-specific methods (no-op defaults for non-socket devices)
+    virtual bool acceptClient() { return false; }
+    virtual void disconnectClient() { }
+    virtual bool hasClient() { return false; }
     virtual void resetInitiated() = 0;
     virtual void resetCompleted() = 0;
 
@@ -88,6 +93,8 @@ struct SerialCommunicationManager
     virtual shared_ptr<SerialDevice> createSerialDeviceFile(string file, string purpose) = 0;
     // A serial device simulator used for internal testing.
     virtual shared_ptr<SerialDevice> createSerialDeviceSimulator() = 0;
+    // Listen on a Unix domain socket for incoming connections.
+    virtual shared_ptr<SerialDevice> createSerialDeviceSocket(string path, string purpose) = 0;
 
     // Invoke cb callback when data arrives on the serial device.
     virtual void listenTo(SerialDevice *sd, function<void()> cb) = 0;
