@@ -29,6 +29,7 @@ string check_default_fields(const char *fields, string file);
 void check_detection_triplets(DriverInfo *di, string file);
 
 string check_field_name(const char *name, DriverDynamic *dd);
+string check_field_ixml(const char *ixml, DriverDynamic *dd);
 string check_field_info(const char *info, DriverDynamic *dd);
 Quantity check_field_quantity(const char *quantity_s, DriverDynamic *dd);
 VifScaling check_vif_scaling(const char *vif_scaling_s, DriverDynamic *dd);
@@ -295,6 +296,9 @@ XMQProceed DriverDynamic::add_field(XMQDoc *doc, XMQNode *field, DriverDynamic *
 
     // The info fields explains what the value is for. Ie. is storage 1 the previous day or month value etc.
     string info = check_field_info(xmqGetStringRel(doc, "info", field), dd);
+
+    // The ixml field can be used to decode mfct specific fields.
+    string ixml = check_field_ixml(xmqGetStringRel(doc, "ixml", field), dd);
 
     // The calculate formula is optional.
     string calculate = check_calculate(xmqGetStringRel(doc, "calculate", field), dd);
@@ -626,6 +630,13 @@ string check_field_info(const char *info, DriverDynamic *dd)
     if (!info) return "";
 
     return info;
+}
+
+string check_field_ixml(const char *ixml, DriverDynamic *dd)
+{
+    if (!ixml) return "";
+
+    return ixml;
 }
 
 Quantity check_field_quantity(const char *quantity_s, DriverDynamic *dd)

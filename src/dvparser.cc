@@ -267,6 +267,28 @@ bool parseDV(Telegram *t,
                 string value = bin2hex(data+1, data_end, datalen-1);
                 t->mfct_0f_index = 1+std::distance(data_start, data);
                 assert(t->mfct_0f_index >= 0);
+                set<VIFCombinable> no_combinable_vifs;
+                set<uint16_t> no_combinable_vifs_raw;
+                key = "0f";
+                (*dv_entries)[key] = { t->mfct_0f_index, DVEntry(t->mfct_0f_index,
+                                                       DifVifKey(key),
+                                                       MeasurementType::Instantaneous,
+                                                       Vif(0x7f),
+                                                       no_combinable_vifs,
+                                                       no_combinable_vifs_raw,
+                                                       StorageNr(0),
+                                                       TariffNr(0),
+                                                       SubUnitNr(0),
+                                                       value) };
+
+                DVEntry *dve = &(*dv_entries)[key].second;
+
+                if (isTraceEnabled())
+                {
+                    trace("[DVPARSER] entry %s\n", dve->str().c_str());
+                }
+
+                assert(key == dve->dif_vif_key.str());
                 t->addExplanationAndIncrementPos(data, datalen, KindOfData::CONTENT, Understanding::NONE, "%02X manufacturer specific data %s", dif, value.c_str());
                 break;
             }
@@ -1293,6 +1315,12 @@ bool DVEntry::extractReadableString(string *out)
     }
 
     *out = v;
+    return true;
+}
+
+bool DVEntry::extractHexString(string *out)
+{
+    *out = value;
     return true;
 }
 
