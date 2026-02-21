@@ -1436,6 +1436,9 @@ bool MeterCommonImplementation::handleTelegram(AboutTelegram &about, vector<ucha
         waiting_for_poll_response_sem_.notify();
     }
 
+    // Invoke ixml extractors!
+    processFieldIXMLs(&t);
+
     // Invoke standardized field extractors!
     processFieldExtractors(&t);
     if (hasProcessContent())
@@ -1459,6 +1462,21 @@ bool MeterCommonImplementation::handleTelegram(AboutTelegram &about, vector<ucha
 
     if (out_analyzed != NULL) *out_analyzed = t;
     return true;
+}
+
+void MeterCommonImplementation::processFieldIXMLs(Telegram *t)
+{
+    // Iterate over the fields with IXMLs.
+    for (FieldInfo &fi : field_infos_)
+    {
+        if (fi.hasIXML())
+        {
+            debug("(meters) ixml extracting for field %s(%s)[%d]\n",
+                  fi.vname().c_str(),
+                  toString(fi.xuantity()),
+                  fi.index());
+        }
+    }
 }
 
 void MeterCommonImplementation::processFieldExtractors(Telegram *t)
@@ -2445,6 +2463,11 @@ bool FieldInfo::hasFormula()
     return formula_ != NULL;
 }
 
+bool FieldInfo::hasIXML()
+{
+    return ixml_grammar_.get() != NULL;
+}
+
 bool FieldInfo::matches(DVEntry *dve)
 {
     return matcher_.matches(*dve);
@@ -2464,13 +2487,14 @@ string FieldInfo::str()
 
 void FieldInfo::useIXML(const string& ixml)
 {
-    ixml_grammar_ = xmqNewDoc();
-    bool b = xmqParseBufferWithType(ixml_grammar_, ixml.c_str(), NULL, NULL, XMQ_CONTENT_IXML, 0);
+    XMQDoc *g = xmqNewDoc();
+    bool b = xmqParseBufferWithType(g, ixml.c_str(), NULL, NULL, XMQ_CONTENT_IXML, 0);
     if (!b) {
-        warning("(field) field %s failed to parse ixml grammar: %s\n", vname().c_str(), ixml.c_str());
-        xmqFreeDoc(ixml_grammar_);
-        ixml_grammar_ = NULL;
+        warning("(field) field %s failed to parse ixml grammar:\n--------------\n %s\n--------------\n", vname().c_str(), ixml.c_str());
+        xmqFreeDoc(g);
+        return;
     }
+    ixml_grammar_ = shared_ptr<XMQDoc>(g, [](XMQDoc* d) { if (d) xmqFreeDoc(d); } );
 }
 
 DriverName MeterInfo::driverName()

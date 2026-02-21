@@ -189,6 +189,7 @@ protected:
     string renderJsonOnlyDefaultUnit(string vname, Quantity xuantity);
     string debugValues();
 
+    void processFieldIXMLs(Telegram *t);
     void processFieldExtractors(Telegram *t);
     void processFieldCalculators();
     string getStatusField(FieldInfo *fi);

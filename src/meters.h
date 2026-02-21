@@ -326,6 +326,7 @@ struct FieldInfo
     bool extractString(Meter *m, Telegram *t, DVEntry *dve = NULL);
     bool hasMatcher();
     bool hasFormula();
+    bool hasIXML();
     bool matches(DVEntry *dve);
     void performExtraction(Meter *m, Telegram *t, DVEntry *dve);
 
@@ -387,7 +388,7 @@ private:
     bool from_library_ {};
 
     // If a field has a mfct specific decoder.
-    XMQDoc *ixml_grammar_ {};
+    shared_ptr<XMQDoc> ixml_grammar_ {};
 };
 
 struct BusManager;

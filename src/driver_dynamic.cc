@@ -383,7 +383,8 @@ XMQProceed DriverDynamic::add_field(XMQDoc *doc, XMQNode *field, DriverDynamic *
                 name,
                 info,
                 properties,
-                match
+                match,
+                ixml
                 );
         }
     }
