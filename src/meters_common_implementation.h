@@ -148,7 +148,8 @@ protected:
         string vname,
         string help,
         PrintProperties print_properties,
-        FieldMatcher matcher);
+        FieldMatcher matcher,
+        string ixml = "");
 
     void addStringFieldWithExtractorAndLookup(
         string vname,

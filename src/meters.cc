@@ -708,7 +708,8 @@ void MeterCommonImplementation::addNumericField(
 void MeterCommonImplementation::addStringFieldWithExtractor(string vname,
                                                             string help,
                                                             PrintProperties print_properties,
-                                                            FieldMatcher matcher)
+                                                            FieldMatcher matcher,
+                                                            string ixml)
 {
     size_t index = num_driver_fields_++;
     field_infos_.emplace_back(
@@ -730,6 +731,10 @@ void MeterCommonImplementation::addStringFieldWithExtractor(string vname,
                   NULL, /* Formula */
                   this /* Meter */
             ));
+    if (ixml != "")
+    {
+        field_infos_.back().useIXML(ixml);
+    }
 }
 
 void MeterCommonImplementation::addStringFieldWithExtractorAndLookup(string vname,
@@ -2457,6 +2462,17 @@ string FieldInfo::str()
                        help_.c_str());
 }
 
+void FieldInfo::useIXML(const string& ixml)
+{
+    ixml_grammar_ = xmqNewDoc();
+    bool b = xmqParseBufferWithType(ixml_grammar_, ixml.c_str(), NULL, NULL, XMQ_CONTENT_IXML, 0);
+    if (!b) {
+        warning("(field) field %s failed to parse ixml grammar: %s\n", vname().c_str(), ixml.c_str());
+        xmqFreeDoc(ixml_grammar_);
+        ixml_grammar_ = NULL;
+    }
+}
+
 DriverName MeterInfo::driverName()
 {
     return driver_name;
@@ -2713,18 +2729,19 @@ bool FieldInfo::extractString(Meter *m, Telegram *t, DVEntry *dve)
              matcher_.vif_range == VIFRange::SpecialSupplierInformation ||
              matcher_.vif_range == VIFRange::ParameterSet)
     {
-        string extracted_id;
-        dve->extractReadableString(&extracted_id);
-        m->setStringValue(this, extracted_id, dve);
+        string extracted;
+        dve->extractReadableString(&extracted);
+        m->setStringValue(this, extracted, dve);
         t->addMoreExplanation(dve->offset, renderJsonText(m, dve));
         found = true;
     }
     else
     {
-        error("Internal error: Cannot extract text string from vif %s in %s:%d\n",
-              toString(matcher_.vif_range),
-              __FILE__, __LINE__);
-
+        string extracted;
+        dve->extractHexString(&extracted);
+        m->setStringValue(this, extracted, dve);
+        t->addMoreExplanation(dve->offset, renderJsonText(m, dve));
+        found = true;
     }
     return found;
 }

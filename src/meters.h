@@ -168,7 +168,6 @@ private:
     vector<string> default_fields_;
     int force_mfct_index_ = -1; // Used for meters not declaring mfct specific data using the dif 0f.
     bool has_process_content_ = false; // Mark this driver as having mfct specific decoding.
-    //XMQDoc *dynamic_driver_ {}; // Configuration loaded from driver file.
     shared_ptr<XMQDoc> dynamic_driver_ {}; // Configuration loaded from driver file.
     string dynamic_file_name_; // Name of actual loaded driver file.
     string dynamic_source_xmq_ {}; // A copy of the xmq used to create a dynamic driver.
@@ -189,7 +188,6 @@ public:
     void setDynamic(const string &file_name, XMQDoc *driver) {
         dynamic_file_name_ = file_name;
         dynamic_driver_ = shared_ptr<XMQDoc>(driver, [](XMQDoc* d) { if (d) xmqFreeDoc(d); } );
-        // dynamic_driver_ = driver;
     }
     void setDynamicSource(const string &content) { dynamic_source_xmq_ = content; }
 
@@ -351,6 +349,8 @@ struct FieldInfo
 
     void markAsLibrary() { from_library_ = true; index_ = -1; }
 
+    void useIXML(const string& ixml);
+
 private:
 
     int index_; // The field infos for a meter are ordered.
@@ -385,6 +385,9 @@ private:
 
     // If true then this field was fetched from the library.
     bool from_library_ {};
+
+    // If a field has a mfct specific decoder.
+    XMQDoc *ixml_grammar_ {};
 };
 
 struct BusManager;
