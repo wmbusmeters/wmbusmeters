@@ -219,6 +219,7 @@ bool tst_ixmlparse(const char *hex, const char *grammar, std::map<std::string,st
         fprintf(stderr, "Failed to parse %s using IXML grammar: %s\n", hex, grammar);
         return false;
     }
+    xmqFreeDoc(ixml);
 
     return b;
 }
