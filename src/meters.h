@@ -168,7 +168,8 @@ private:
     vector<string> default_fields_;
     int force_mfct_index_ = -1; // Used for meters not declaring mfct specific data using the dif 0f.
     bool has_process_content_ = false; // Mark this driver as having mfct specific decoding.
-    XMQDoc *dynamic_driver_ {}; // Configuration loaded from driver file.
+    //XMQDoc *dynamic_driver_ {}; // Configuration loaded from driver file.
+    shared_ptr<XMQDoc> dynamic_driver_ {}; // Configuration loaded from driver file.
     string dynamic_file_name_; // Name of actual loaded driver file.
     string dynamic_source_xmq_ {}; // A copy of the xmq used to create a dynamic driver.
 
@@ -185,10 +186,14 @@ public:
     void setConstructor(function<shared_ptr<Meter>(MeterInfo&,DriverInfo&)> c) { constructor_ = c; }
     void addMVT(uint16_t mfct, uchar type, uchar ver) { mvts_.push_back({ mfct, ver, type }); }
     void usesProcessContent() { has_process_content_ = true; }
-    void setDynamic(const string &file_name, XMQDoc *driver) { dynamic_file_name_ = file_name; dynamic_driver_ = driver; }
+    void setDynamic(const string &file_name, XMQDoc *driver) {
+        dynamic_file_name_ = file_name;
+        dynamic_driver_ = shared_ptr<XMQDoc>(driver, [](XMQDoc* d) { if (d) xmqFreeDoc(d); } );
+        // dynamic_driver_ = driver;
+    }
     void setDynamicSource(const string &content) { dynamic_source_xmq_ = content; }
 
-    XMQDoc *getDynamicDriver() { return dynamic_driver_; }
+    XMQDoc *getDynamicDriver() { return dynamic_driver_.get(); }
     const string &getDynamicFileName() { return dynamic_file_name_; }
     const string &getDynamicSource() { return dynamic_source_xmq_; }
 
