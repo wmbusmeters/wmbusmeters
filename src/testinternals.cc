@@ -302,7 +302,7 @@ void test_ixmlparser()
 
     int testnr = 1;
     tst_ixmlparse("10351F0400",
-                  "decode = total. -hex  = ['A'-'F';'0'-'9']. -byte = hex, hex. -word = byte, byte. -quad = byte, byte, byte, byte. total     = @int32, @volume, @m3, -'10', quad. int32>dif=+'int32'. volume>vif_range=+'Volume'. m3>unit=+'l'.",
+                  "decode = total. -hex  = ['A'-'F';'0'-'9']. -byte = hex, hex. -word = byte, byte. -quad = byte, byte, byte, byte. total     = -'10', quad, @int32, @volume, @m3. int32>dif=+'int32'. volume>vif_range=+'Volume'. m3>unit=+'l'.",
                   &dv_entries, testnr);
 
     tst_double(dv_entries, "0413", 270.133, testnr);
@@ -1249,8 +1249,8 @@ void test_meters()
           "c1"); // linkmodes)
 
 
-    testm("apator162(offset=162)", true,
-          "apator162", // driver
+    testm("unknown(offset=162)", true,
+          "unknown", // driver
           "offset=162", // extras
           "", // bus
           "0", // bps
@@ -1258,11 +1258,11 @@ void test_meters()
 
     config_content =
         "name=test\n"
-        "driver=apator162(offset=99)\n"
+        "driver=unknown(offset=99)\n"
         "id=01234567\n"
         "key=00000000000000000000000000000000\n";
     testc("meter/apatortest", config_content,
-          "apator162", // driver
+          "unknown", // driver
           "offset=99", // extras
           "", // bus
           "0", // bps

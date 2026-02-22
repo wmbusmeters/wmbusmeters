@@ -1471,10 +1471,53 @@ void MeterCommonImplementation::processFieldIXMLs(Telegram *t)
     {
         if (fi.hasIXML())
         {
-            debug("(meters) ixml extracting for field %s(%s)[%d]\n",
+            if (!fi.hasMatcher())
+            {
+                debug("(meters) skipping IXML field without matcher %s(%s)[%d]...\n",
+                      fi.vname().c_str(),
+                      toString(fi.xuantity()),
+                      fi.index());
+                continue;
+            }
+
+            debug("(meters) IXML extracting for field %s(%s)[%d]\n",
                   fi.vname().c_str(),
                   toString(fi.xuantity()),
                   fi.index());
+
+            for (auto &p : t->dv_entries)
+            {
+                DVEntry *dve = &p.second.second;
+                if (fi.matches(dve))
+                {
+                    // Simpler match for ixml fields right now.
+                    // No index test.
+                    debug("(meters) IXML using field info %s(%s)[%d] to extract %s at offset %d\n",
+                          fi.vname().c_str(),
+                          toString(fi.xuantity()),
+                          fi.index(),
+                          dve->dif_vif_key.str().c_str(),
+                          dve->offset);
+
+                    dve->addFieldInfo(&fi);
+                    fi.performExtraction(this, t, dve);
+                    string value = getStringValue(&fi);
+                    bool ok = parseWithIXML(value, fi.ixmlGrammar(), &t->dv_entries);
+                    if (!ok)
+                    {
+                        vector<uchar> frame;
+                        t->extractFrame(&frame);
+                        string hex = bin2hex(frame);
+
+                        warning("(meters) meter: %s failed to decode ixml field: %s\n"
+                                "Please open an issue at https://github.com/wmbusmeters/wmbusmeters/\n"
+                                "and report this telegram: %s\n",
+                                name().c_str(),
+                                fi.vname().c_str(),
+                                hex.c_str());
+                    }
+                }
+            }
         }
     }
 }
@@ -1498,11 +1541,12 @@ void MeterCommonImplementation::processFieldExtractors(Telegram *t)
     // Now go through each field_info defined by the driver.
     for (FieldInfo &fi : field_infos_)
     {
+        if (fi.hasIXML()) continue; // The IXML fields have already been handled.
+
         int current_match_nr = 0;
 
         if (!fi.hasMatcher())
         {
-            // This field_info has not been matched to a dv_entry before!
             debug("(meters) skipping field without matcher %s(%s)[%d]...\n",
                   fi.vname().c_str(),
                   toString(fi.xuantity()),

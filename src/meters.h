@@ -329,7 +329,6 @@ struct FieldInfo
     bool hasIXML();
     bool matches(DVEntry *dve);
     void performExtraction(Meter *m, Telegram *t, DVEntry *dve);
-
     void performCalculation(Meter *m);
 
     string renderJsonOnlyDefaultUnit(Meter *m);
@@ -351,6 +350,7 @@ struct FieldInfo
     void markAsLibrary() { from_library_ = true; index_ = -1; }
 
     void useIXML(const string& ixml);
+    XMQDoc *ixmlGrammar() { return ixml_grammar_.get(); }
 
 private:
 
