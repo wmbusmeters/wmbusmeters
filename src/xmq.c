@@ -7896,11 +7896,12 @@ void handle_yaep_syntax_error(YaepParseRun *pr,
                               int start_recovered_tok_num,
                               void *start_recovered_tok_attr)
 {
-    int line = 0, col = 0;
-    find_line_col(pr->buffer_start, pr->buffer_stop, err_tok_num, &line, &col);
+    //int line = 0, col = 0;
+    //find_line_col(pr->buffer_start, pr->buffer_stop, err_tok_num, &line, &col);
 
     // source.foo:2:26: syntax error
-    // printf("ixml:%d:%d: syntax error\n", line, col);
+    /*
+    printf("ixml:%d:%d: syntax error\n", line, col);
     int start = err_tok_num - 20;
     if (start < 0) start = 0;
     int stop = err_tok_num + 20;
@@ -7912,6 +7913,7 @@ void handle_yaep_syntax_error(YaepParseRun *pr,
     printf("\n");
     for (int i = start; i < err_tok_num; ++i) printf (" ");
     printf("^\n");
+    */
 }
 
 const char *node_yaep_type_to_string(YaepTreeNodeType t)
