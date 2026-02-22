@@ -7900,7 +7900,7 @@ void handle_yaep_syntax_error(YaepParseRun *pr,
     find_line_col(pr->buffer_start, pr->buffer_stop, err_tok_num, &line, &col);
 
     // source.foo:2:26: syntax error
-    printf("ixml:%d:%d: syntax error\n", line, col);
+    // printf("ixml:%d:%d: syntax error\n", line, col);
     int start = err_tok_num - 20;
     if (start < 0) start = 0;
     int stop = err_tok_num + 20;

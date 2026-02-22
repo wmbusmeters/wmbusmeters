@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2023-2024 Fredrik Öhrström (gpl-3.0-or-later)
+ Copyright (C) 2023-2026 Fredrik Öhrström (gpl-3.0-or-later)
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -32,6 +32,7 @@ string check_field_name(const char *name, DriverDynamic *dd);
 string check_field_ixml(const char *ixml, DriverDynamic *dd);
 bool check_field_match_entire_payload(const char *mep, DriverDynamic *dd);
 string check_field_info(const char *info, DriverDynamic *dd);
+ReadableString check_field_readable_string(const char *rs_s, DriverDynamic *dd);
 Quantity check_field_quantity(const char *quantity_s, DriverDynamic *dd);
 VifScaling check_vif_scaling(const char *vif_scaling_s, DriverDynamic *dd);
 DifSignedness check_dif_signedness(const char *dif_signedness_s, DriverDynamic *dd);
@@ -308,6 +309,9 @@ XMQProceed DriverDynamic::add_field(XMQDoc *doc, XMQNode *field, DriverDynamic *
     // The info fields explains what the value is for. Ie. is storage 1 the previous day or month value etc.
     string info = check_field_info(xmqGetStringRel(doc, "info", field), dd);
 
+    // Check if we override the readable string processing.
+    ReadableString rs = check_field_readable_string(xmqGetStringRel(doc, "readable_string", field), dd);
+
     // The ixml field can be used to decode mfct specific fields.
     string ixml = check_field_ixml(xmqGetStringRel(doc, "ixml", field), dd);
 
@@ -405,6 +409,10 @@ XMQProceed DriverDynamic::add_field(XMQDoc *doc, XMQNode *field, DriverDynamic *
                 ixml,
                 match_entire_payload
                 );
+            if (rs != ReadableString::Unknown)
+            {
+                dd->lastAddedField()->setReadableString(rs);
+            }
         }
     }
     return XMQ_CONTINUE;
@@ -706,6 +714,26 @@ Quantity check_field_quantity(const char *quantity_s, DriverDynamic *dd)
     }
 
     return quantity;
+}
+
+ReadableString check_field_readable_string(const char *rs_s, DriverDynamic *dd)
+{
+    if (!rs_s) return ReadableString::Unknown;
+
+    ReadableString rs = toReadableString(rs_s);
+
+    if (rs == ReadableString::Unknown)
+    {
+        warning("(driver) error in %s, bad readable_string: %s\n"
+                "Available readable_string:\n"
+                "Normal\n"
+                "Reversed\n",
+                dd->fileName().c_str(),
+                rs_s);
+        throw 1;
+    }
+
+    return rs;
 }
 
 VifScaling check_vif_scaling(const char *vif_scaling_s, DriverDynamic *dd)

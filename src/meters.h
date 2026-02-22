@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2017-2025 Fredrik Öhrström (gpl-3.0-or-later)
+ Copyright (C) 2017-2026 Fredrik Öhrström (gpl-3.0-or-later)
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -54,6 +54,12 @@ enum class MeterType {
 #define X(name) name,
 LIST_OF_METER_TYPES
 #undef X
+};
+
+enum class ReadableString {
+    Unknown,
+    Normal,
+    Reversed
 };
 
 struct DriverName
@@ -355,6 +361,9 @@ struct FieldInfo
     void matchEntirePayload(bool b) { match_entire_payload_ = b; }
     bool matchEntirePayload() { return match_entire_payload_; }
 
+    void setReadableString(ReadableString rs) { readable_string_ = rs; }
+    ReadableString readableString() { return readable_string_; }
+
 private:
 
     int index_; // The field infos for a meter are ordered.
@@ -395,6 +404,9 @@ private:
 
     // For ixml parsing, nab the entire payload, since it does not conform to the difvif structure.
     bool match_entire_payload_ {};
+
+    // If true, then force readable string extraction.
+    ReadableString readable_string_ {};
 };
 
 struct BusManager;
@@ -505,6 +517,8 @@ const char *toString(MeterType type);
 MeterType toMeterType(std::string type);
 string toString(DriverInfo &driver);
 LinkModeSet toMeterLinkModeSet(const string& driver);
+const char *toString(ReadableString rs);
+ReadableString toReadableString(std::string rs);
 
 struct Configuration;
 struct MeterInfo;

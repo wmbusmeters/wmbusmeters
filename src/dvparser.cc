@@ -697,7 +697,7 @@ bool parseWithIXML(std::string hex,
         xmqSetupPrintMemory(os, &start, &stop);
         xmqPrint(decode, os);
         xmqFreeOutputSettings(os);
-        debug("(ixml) decoded:\n%s\n", start);
+        debug("(ixml) decoded:\n%s", start);
         free(start);
     }
     xmqForeach(decode, "//*[@dif]", add_value, dv_entries);
@@ -1319,6 +1319,33 @@ bool DVEntry::extractReadableString(string *out)
         // For example an enhanced id 12 digit bcd looks like:
         // 618171183100 and will be reversed to: 003118718161
         v = reverseBCD(v);
+    }
+
+    *out = v;
+    return true;
+}
+
+bool DVEntry::extractReadableStringReversed(string *out)
+{
+    int t = dif_vif_key.dif() & 0xf;
+
+    string v = value;
+
+    if (t == 0x1 || // 8 Bit Integer/Binary
+        t == 0x2 || // 16 Bit Integer/Binary
+        t == 0x3 || // 24 Bit Integer/Binary
+        t == 0x4 || // 32 Bit Integer/Binary
+        t == 0x6 || // 48 Bit Integer/Binary
+        t == 0x7 || // 64 Bit Integer/Binary
+        t == 0xD)   // Variable length
+    {
+        if (isLikelyAscii(v))
+        {
+            // For example an enhanced id var len bits binary looks like:
+            // 414620689344470C and will be translated using ascii
+            // to ABCD
+            v = binaryAsciiSafeToString(v);
+        }
     }
 
     *out = v;

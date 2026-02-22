@@ -389,6 +389,7 @@ struct DVEntry
     bool extractLong(uint64_t *out);
     bool extractDate(struct tm *out);
     bool extractReadableString(std::string *out);
+    bool extractReadableStringReversed(std::string *out);
     bool extractHexString(std::string *out);
     void addFieldInfo(FieldInfo *fi) { field_infos_.insert(fi); }
     bool hasFieldInfo(FieldInfo *fi) { return field_infos_.count(fi) > 0; }

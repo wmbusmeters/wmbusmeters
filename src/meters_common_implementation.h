@@ -108,6 +108,7 @@ protected:
     void setMfctTPLStatusBits(Translate::Lookup &lookup);
 
     void markLastFieldAsLibrary();
+    FieldInfo *lastAddedField();
 
     void addNumericFieldWithExtractor(
         string vname,           // Name of value without unit, eg "total" "total_month{storagenr}"

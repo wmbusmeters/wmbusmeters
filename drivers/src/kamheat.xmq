@@ -566,6 +566,7 @@ driver {
         field {
             name = enhanced_id
             quantity = Text
+            readable_string = Normal
             match {
                 difvifkey = 02F9FF15
             }

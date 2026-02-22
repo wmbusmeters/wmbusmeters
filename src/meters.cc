@@ -558,6 +558,11 @@ void MeterCommonImplementation::markLastFieldAsLibrary()
     num_driver_fields_--;
 }
 
+FieldInfo *MeterCommonImplementation::lastAddedField()
+{
+    return &field_infos_.back();
+}
+
 void MeterCommonImplementation::addNumericFieldWithExtractor(string vname,
                                                              string help,
                                                              PrintProperties print_properties,
@@ -1111,6 +1116,22 @@ MeterType toMeterType(string type)
 LIST_OF_METER_TYPES
 #undef X
     return MeterType::UnknownMeter;
+}
+
+const char *toString(ReadableString rs)
+{
+    if (rs == ReadableString::Unknown) return "Unknown";
+    if (rs == ReadableString::Normal) return "Normal";
+    if (rs == ReadableString::Reversed) return "Reversedl";
+
+    return "unknown";
+}
+
+ReadableString toReadableString(string rs)
+{
+    if (rs == "Normal") return ReadableString::Normal;
+    if (rs == "Reversed") return ReadableString::Reversed;
+    return ReadableString::Unknown;
 }
 
 string toString(DriverInfo &di)
@@ -2813,7 +2834,7 @@ bool FieldInfo::extractString(Meter *m, Telegram *t, DVEntry *dve)
         t->addMoreExplanation(dve->offset, renderJsonText(m, dve));
         found = true;
     }
-    else if (matcher_.vif_range == VIFRange::Any ||
+    else if (readable_string_ != ReadableString::Unknown ||
              matcher_.vif_range == VIFRange::EnhancedIdentification ||
              matcher_.vif_range == VIFRange::FabricationNo ||
              matcher_.vif_range == VIFRange::HardwareVersion ||
@@ -2828,7 +2849,14 @@ bool FieldInfo::extractString(Meter *m, Telegram *t, DVEntry *dve)
              matcher_.vif_range == VIFRange::ParameterSet)
     {
         string extracted;
-        dve->extractReadableString(&extracted);
+        if (readable_string_ == ReadableString::Reversed)
+        {
+            dve->extractReadableStringReversed(&extracted);
+        }
+        else
+        {
+            dve->extractReadableString(&extracted);
+        }
         m->setStringValue(this, extracted, dve);
         t->addMoreExplanation(dve->offset, renderJsonText(m, dve));
         found = true;
