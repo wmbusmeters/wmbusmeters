@@ -689,12 +689,19 @@ bool parseWithIXML(std::string hex,
                                     ixml_grammar,
                                     0);
 
+    if (isDebugEnabled())
+    {
+        XMQOutputSettings *os = xmqNewOutputSettings();
+        char *start;
+        char *stop;
+        xmqSetupPrintMemory(os, &start, &stop);
+        xmqPrint(decode, os);
+        xmqFreeOutputSettings(os);
+        debug("(ixml) decoded:\n%s\n", start);
+        free(start);
+    }
     xmqForeach(decode, "//*[@dif]", add_value, dv_entries);
 
-/*    XMQOutputSettings *os = xmqNewOutputSettings();
-    xmqSetupPrintStdOutStdErr(os);
-    xmqPrint(decode, os);
-    xmqFreeOutputSettings(os); */
     xmqFreeDoc(decode);
 
     return b;

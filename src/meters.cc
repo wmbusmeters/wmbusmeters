@@ -709,7 +709,8 @@ void MeterCommonImplementation::addStringFieldWithExtractor(string vname,
                                                             string help,
                                                             PrintProperties print_properties,
                                                             FieldMatcher matcher,
-                                                            string ixml)
+                                                            string ixml,
+                                                            bool match_entire_payload)
 {
     size_t index = num_driver_fields_++;
     field_infos_.emplace_back(
@@ -734,6 +735,10 @@ void MeterCommonImplementation::addStringFieldWithExtractor(string vname,
     if (ixml != "")
     {
         field_infos_.back().useIXML(ixml);
+    }
+    if (match_entire_payload)
+    {
+        field_infos_.back().matchEntirePayload(true);
     }
 }
 
@@ -1471,6 +1476,30 @@ void MeterCommonImplementation::processFieldIXMLs(Telegram *t)
     {
         if (fi.hasIXML())
         {
+            if (fi.matchEntirePayload())
+            {
+                // Special case for mfct specific meters not compliant with difvif parsing.
+                vector<uchar> content;
+                t->extractPayload(&content);
+                string value = bin2hex(content);
+                debug("(ixml) parsing entire payload %s\n", value.c_str());
+                bool ok = parseWithIXML(value, fi.ixmlGrammar(), &t->dv_entries);
+                if (!ok)
+                {
+                    vector<uchar> frame;
+                    t->extractFrame(&frame);
+                    string hex = bin2hex(frame);
+
+                    warning("(meters) meter: %s failed to decode ixml field: %s over entire payload\n"
+                            "Please open an issue at https://github.com/wmbusmeters/wmbusmeters/\n"
+                            "and report this telegram: %s\n",
+                            name().c_str(),
+                            fi.vname().c_str(),
+                            hex.c_str());
+                }
+                continue;
+            }
+
             if (!fi.hasMatcher())
             {
                 debug("(meters) skipping IXML field without matcher %s(%s)[%d]...\n",
@@ -1502,6 +1531,7 @@ void MeterCommonImplementation::processFieldIXMLs(Telegram *t)
                     dve->addFieldInfo(&fi);
                     fi.performExtraction(this, t, dve);
                     string value = getStringValue(&fi);
+                    debug("(ixml) parsing field content %s\n", value.c_str());
                     bool ok = parseWithIXML(value, fi.ixmlGrammar(), &t->dv_entries);
                     if (!ok)
                     {

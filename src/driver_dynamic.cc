@@ -30,6 +30,7 @@ void check_detection_triplets(DriverInfo *di, string file);
 
 string check_field_name(const char *name, DriverDynamic *dd);
 string check_field_ixml(const char *ixml, DriverDynamic *dd);
+bool check_field_match_entire_payload(const char *mep, DriverDynamic *dd);
 string check_field_info(const char *info, DriverDynamic *dd);
 Quantity check_field_quantity(const char *quantity_s, DriverDynamic *dd);
 VifScaling check_vif_scaling(const char *vif_scaling_s, DriverDynamic *dd);
@@ -285,6 +286,16 @@ XMQProceed DriverDynamic::add_field(XMQDoc *doc, XMQNode *field, DriverDynamic *
     // All other fields are numeric, ie they have a unit. This also includes date and datetime.
     bool is_numeric = quantity != Quantity::Text;
 
+    // For ixml parsing of mfct specific payloads, payloads that do not even bother with the 0x0f.
+    bool match_entire_payload = check_field_match_entire_payload(xmqGetStringRel(doc, "match_entire_payload", field), dd);
+
+    if (is_numeric && match_entire_payload)
+    {
+        warning("(driver) error in %s, match_entire_payload can only be enabled for quantity=String.\n",
+                dd->fileName().c_str());
+        match_entire_payload = false;
+    }
+
     // The vif scaling is by default Auto but can be overriden for pesky fields.
     VifScaling vif_scaling = check_vif_scaling(xmqGetStringRel(doc, "vif_scaling", field), dd);
 
@@ -316,6 +327,13 @@ XMQProceed DriverDynamic::add_field(XMQDoc *doc, XMQNode *field, DriverDynamic *
     int num_matches = xmqForeachRel(doc, "match", (XMQNodeCallback)add_match, dd, field);
     // Check if there were any matches at all, if not, then disable the matcher.
     match.active = num_matches > 0;
+
+    if (match.active && match_entire_payload)
+    {
+        warning("(driver) error in %s, match_entire_payload cannot be combined with match { }.\n",
+                dd->fileName().c_str());
+        match_entire_payload = false;
+    }
 
     // Now find all matchers.
     Translate::Lookup lookup = Translate::Lookup();
@@ -384,7 +402,8 @@ XMQProceed DriverDynamic::add_field(XMQDoc *doc, XMQNode *field, DriverDynamic *
                 info,
                 properties,
                 match,
-                ixml
+                ixml,
+                match_entire_payload
                 );
         }
     }
@@ -638,6 +657,19 @@ string check_field_ixml(const char *ixml, DriverDynamic *dd)
     if (!ixml) return "";
 
     return ixml;
+}
+
+bool check_field_match_entire_payload(const char *mep, DriverDynamic *dd)
+{
+    if (!mep) return false;
+
+    if (!strcmp(mep, "true")) return true;
+    if (!strcmp(mep, "false")) return false;
+
+    warning("(driver) error in %s, match_entire_payload must be true/false not \"%s\"\n",
+            dd->fileName().c_str(), mep);
+
+    return false;
 }
 
 Quantity check_field_quantity(const char *quantity_s, DriverDynamic *dd)

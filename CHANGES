@@ -1,4 +1,7 @@
 
+ATTENTION! The apator162 driver has been replaced with an xmq driver with mfct specific ixml parsing.
+It passes all regression tests, but let me know if you have a problem!
+
 Hynek Moravec added the picoflux driver. Thanks Hynek!
 
 Version 1.20.0 2026-01-27

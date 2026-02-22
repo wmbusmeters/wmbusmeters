@@ -352,6 +352,9 @@ struct FieldInfo
     void useIXML(const string& ixml);
     XMQDoc *ixmlGrammar() { return ixml_grammar_.get(); }
 
+    void matchEntirePayload(bool b) { match_entire_payload_ = b; }
+    bool matchEntirePayload() { return match_entire_payload_; }
+
 private:
 
     int index_; // The field infos for a meter are ordered.
@@ -389,6 +392,9 @@ private:
 
     // If a field has a mfct specific decoder.
     shared_ptr<XMQDoc> ixml_grammar_ {};
+
+    // For ixml parsing, nab the entire payload, since it does not conform to the difvif structure.
+    bool match_entire_payload_ {};
 };
 
 struct BusManager;

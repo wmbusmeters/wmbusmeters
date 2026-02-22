@@ -149,7 +149,8 @@ protected:
         string help,
         PrintProperties print_properties,
         FieldMatcher matcher,
-        string ixml = "");
+        string ixml = "",
+        bool entire_payload = false);
 
     void addStringFieldWithExtractorAndLookup(
         string vname,
