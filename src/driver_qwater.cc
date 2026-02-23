@@ -153,12 +153,11 @@ void Driver::processContent(Telegram *t) {
     if (entry.value.length() != 53 * 2) {
         return;
     }
-    string scale = entry.value.substr(18, 2);
-    qdsExtractWalkByField(t, this, entry, 24, 8, "0C" + scale, "total", Quantity::Volume);
+    qdsExtractWalkByField(t, this, entry, 24, 8, "0C13", "total", Quantity::Volume);
     qdsExtractWalkByField(t, this, entry, 32, 4, "426C", "due", Quantity::PointInTime);
-    qdsExtractWalkByField(t, this, entry, 36, 8, "4C" + scale, "due_date", Quantity::Volume);
+    qdsExtractWalkByField(t, this, entry, 36, 8, "4C13", "due_date", Quantity::Volume);
     qdsExtractWalkByField(t, this, entry, 44, 4, "C2086C", "due_17", Quantity::PointInTime);
-    qdsExtractWalkByField(t, this, entry, 48, 8, "CC08" + scale, "due_17_date", Quantity::Volume);
+    qdsExtractWalkByField(t, this, entry, 48, 8, "CC0813", "due_17_date", Quantity::Volume);
 }
 
 // Test: MyQWater qwater 12353648 NOKEY
