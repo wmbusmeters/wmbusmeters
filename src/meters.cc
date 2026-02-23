@@ -1504,7 +1504,7 @@ void MeterCommonImplementation::processFieldIXMLs(Telegram *t)
                 t->extractPayload(&content);
                 string value = bin2hex(content);
                 debug("(ixml) parsing entire payload %s\n", value.c_str());
-                bool ok = parseWithIXML(value, fi.ixmlGrammar(), &t->dv_entries);
+                bool ok = parseWithIXML(t->header_size, value, fi.ixmlGrammar(), &t->dv_entries);
                 if (!ok)
                 {
                     vector<uchar> frame;
@@ -1553,7 +1553,7 @@ void MeterCommonImplementation::processFieldIXMLs(Telegram *t)
                     fi.performExtraction(this, t, dve);
                     string value = getStringValue(&fi);
                     debug("(ixml) parsing field content %s\n", value.c_str());
-                    bool ok = parseWithIXML(value, fi.ixmlGrammar(), &t->dv_entries);
+                    bool ok = parseWithIXML(dve->offset, value, fi.ixmlGrammar(), &t->dv_entries);
                     if (!ok)
                     {
                         vector<uchar> frame;
@@ -3205,6 +3205,39 @@ bool MeterCommonImplementation::addOptionalLibraryFields(string field_names)
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::Volume)
+            .set(StorageNr(1))
+            );
+        markLastFieldAsLibrary();
+    }
+
+    if (checkIf(fields,"total_kwh"))
+    {
+        addNumericFieldWithExtractor(
+            "total",
+            "The total energy consumption recorded by this meter."+help,
+            DEFAULT_PRINT_PROPERTIES,
+            Quantity::Energy,
+            VifScaling::Auto,
+            DifSignedness::Signed,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(VIFRange::AnyEnergyVIF)
+            );
+        markLastFieldAsLibrary();
+    }
+
+    if (checkIf(fields,"target_kwh"))
+    {
+        addNumericFieldWithExtractor(
+            "target",
+            "The energy recorded by this meter at the target date."+help,
+            DEFAULT_PRINT_PROPERTIES,
+            Quantity::Volume,
+            VifScaling::Auto,
+            DifSignedness::Signed,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(VIFRange::AnyEnergyVIF)
             .set(StorageNr(1))
             );
         markLastFieldAsLibrary();

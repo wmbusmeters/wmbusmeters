@@ -636,7 +636,7 @@ string check_field_name(const char *name, DriverDynamic *dd)
     {
         // Special exception to allow operating_time_h
         Quantity q = toQuantity(u);
-        if (q != Quantity::PointInTime)
+        if (q != Quantity::PointInTime && q != Quantity::Time)
         {
             warning("(driver) error in %s, bad field name %s (field names should not have units)\n"
                     "%s\n"

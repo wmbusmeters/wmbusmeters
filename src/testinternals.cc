@@ -214,7 +214,7 @@ bool tst_ixmlparse(const char *hex, const char *grammar, std::map<std::string,st
     }
 
     string data(hex);
-    b = parseWithIXML(data, ixml, dv_entries);
+    b = parseWithIXML(0, data, ixml, dv_entries);
     if (!b) {
         fprintf(stderr, "Failed to parse %s using IXML grammar: %s\n", hex, grammar);
         return false;
@@ -302,7 +302,7 @@ void test_ixmlparser()
 
     int testnr = 1;
     tst_ixmlparse("10351F0400",
-                  "decode = total. -hex  = ['A'-'F';'0'-'9']. -byte = hex, hex. -word = byte, byte. -quad = byte, byte, byte, byte. total     = -'10', quad, @int32, @volume, @m3. int32>dif=+'int32'. volume>vif_range=+'Volume'. m3>unit=+'l'.",
+                  "decode = total. -hex  = ['A'-'F';'0'-'9']. -byte = hex, hex. -word = byte, byte. -quad = byte, byte, byte, byte. total     = -'10', quad, @DV_0413. DV_0413>difvifkey=+'0413'.",
                   &dv_entries, testnr);
 
     tst_double(dv_entries, "0413", 270.133, testnr);

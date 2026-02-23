@@ -43,7 +43,7 @@ driver {
 
                     date      = -'00', quad.
                     faults    = -'01', triplet.
-                    total     = -'10', quad, @int32, @volume, @m3.
+                    total     = -'10', quad, @DV_0413.
                     flow      = -'11', word.
                     detectors = -'40', triplet, triplet.
                     voltage   = -'41', word.
@@ -103,9 +103,7 @@ driver {
 
                     end_FF    = -'FF', byte*.
 
-                    int32>dif=+'int32'.
-                    volume>vif_range=+'Volume'.
-                    m3>unit=+'l'."
+                    DV_0413>difvifkey = +'0413'."
         }
     }
     tests {

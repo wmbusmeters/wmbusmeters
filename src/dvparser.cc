@@ -641,6 +641,17 @@ int vifRangeAndUnitToNr(const char *vif_range, const char *unit)
             return 0x13;
         }
     }
+    if (!strcmp(vif_range, "Energy"))
+    {
+        if (!strcmp(unit, "m3"))
+        {
+            return 0x16;
+        }
+        if (!strcmp(unit, "l"))
+        {
+            return 0x13;
+        }
+    }
     return 0;
 }
 
@@ -655,30 +666,29 @@ string generate_dif_vif_key(const char *dif, const char *vif_range, const char *
 XMQProceed add_value(XMQDoc *doc, XMQNode *node, void *user_data)
 {
     map<string,pair<int,DVEntry>> *dv_entries = (map<string,pair<int,DVEntry>>*)user_data;
-    const char *dif = xmqGetStringRel(doc, "@dif", node);
-    const char *vif_range = xmqGetStringRel(doc, "@vif_range", node);
-    const char *unit = xmqGetStringRel(doc, "@unit", node);
+    const char *difvifkey = xmqGetStringRel(doc, "@difvifkey", node);
+    if (!difvifkey) return XMQ_CONTINUE;
+
+    DifVifKey dvk(difvifkey);
     const char *hex = xmqGetStringRel(doc, ".", node);
-
-    int vif = vifRangeAndUnitToNr(vif_range, unit);
-
-    string key = generate_dif_vif_key(dif, vif_range, unit);
     string value = hex;
-    (*dv_entries)[key] = { 1000, DVEntry(1000,
-                                         key,
-                                         MeasurementType::Instantaneous,
-                                         Vif(vif),
-                                         {},
-                                         {},
-                                         StorageNr(0),
-                                         TariffNr(0),
-                                         SubUnitNr(0),
-                                         value) };
+
+    (*dv_entries)[difvifkey] = { 1000, DVEntry(1000,
+                                               dvk.str(),
+                                               dvk.measurementType(),
+                                               Vif(dvk.vif()),
+                                               {},
+                                               {},
+                                               dvk.storageNr(),
+                                               dvk.tariffNr(),
+                                               dvk.subUnitNr(),
+                                               value) };
 
     return XMQ_CONTINUE;
 }
 
-bool parseWithIXML(std::string hex,
+bool parseWithIXML(int offset,
+                   std::string hex,
                    XMQDoc *ixml_grammar,
                    std::map<std::string,std::pair<int,DVEntry>> *dv_entries)
 {
@@ -700,7 +710,7 @@ bool parseWithIXML(std::string hex,
         debug("(ixml) decoded:\n%s", start);
         free(start);
     }
-    xmqForeach(decode, "//*[@dif]", add_value, dv_entries);
+    xmqForeach(decode, "//*[@difvifkey]", add_value, dv_entries);
 
     xmqFreeDoc(decode);
 
@@ -751,13 +761,21 @@ bool findKeyWithNr(MeasurementType mit, VIFRange vif_range, StorageNr storagenr,
     return false;
 }
 
-void extractDV(DifVifKey &dvk, uchar *dif, int *vif, bool *has_difes, bool *has_vifes)
+void extractDV(DifVifKey &dvk, uchar *dif, int *vif, bool *has_difes, bool *has_vifes,
+               MeasurementType *measurement_type,
+               StorageNr *storage_nr,
+               TariffNr *tariff_nr,
+               SubUnitNr *subunit_nr)
 {
     string tmp = dvk.str();
-    extractDV(tmp, dif, vif, has_difes, has_vifes);
+    extractDV(tmp, dif, vif, has_difes, has_vifes, measurement_type, storage_nr, tariff_nr, subunit_nr);
 }
 
-void extractDV(string &s, uchar *dif, int *vif, bool *has_difes, bool *has_vifes)
+void extractDV(string &s, uchar *dif, int *vif, bool *has_difes, bool *has_vifes,
+               MeasurementType *measurement_type,
+               StorageNr *storage_nr,
+               TariffNr *tariff_nr,
+               SubUnitNr *subunit_nr)
 {
     vector<uchar> bytes;
     hex2bin(s, &bytes);
@@ -772,12 +790,30 @@ void extractDV(string &s, uchar *dif, int *vif, bool *has_difes, bool *has_vifes
     }
 
     *dif = bytes[i];
+    int lsb_of_storage_nr = (*dif & 0x40) >> 6;
+    int storage = lsb_of_storage_nr;
+    int difenr = 0;
+    int subunit = 0;
+    int tariff = 0;
+    *measurement_type = difMeasurementType(*dif);
     while (i < bytes.size() && (bytes[i] & 0x80))
     {
         i++;
+        int dife = bytes[i];
+        int subunit_bit = (dife & 0x40) >> 6;
+        subunit |= subunit_bit << difenr;
+        int tariff_bits = (dife & 0x30) >> 4;
+        tariff |= tariff_bits << (difenr*2);
+        int storage_nr_bits = (dife & 0x0f);
+        storage |= storage_nr_bits << (1+difenr*4);
         *has_difes = true;
+        difenr++;
     }
     i++;
+
+    *storage_nr = StorageNr(storage);
+    *tariff_nr = TariffNr(tariff);
+    *subunit_nr = SubUnitNr(subunit);
 
     if (i >= bytes.size())
     {
