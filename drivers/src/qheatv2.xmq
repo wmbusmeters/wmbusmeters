@@ -9,6 +9,7 @@ driver {
         mvt = QDS,46,04
         mvt = QDS,23,37
         mvt = QDS,47,37
+        mvt = QDS,48,04
     }
     library {
         use = meter_datetime
@@ -164,14 +165,6 @@ driver {
                                 energy_100kj |
                                 energy_1mj).
 
-                      {
-                      qdsExtractWalkByField(t, this, entry, 24, 8, "0C05", "total_energy_consumption", Quantity::Energy);
-                      qdsExtractWalkByField(t, this, entry, 32, 4, "426C", "last_year_date", Quantity::Text);
-                      qdsExtractWalkByField(t, this, entry, 36, 8, "4C05", "last_year_energy_consumption", Quantity::Energy);
-                      qdsExtractWalkByField(t, this, entry, 44, 4, "C2086C", "last_month_date", Quantity::Text);
-                      qdsExtractWalkByField(t, this, entry, 48, 8, "CC0805", "last_month_energy_consumption", Quantity::Energy);
-                      }
-
                       energy_100wh = '05', error_date, total_100wh, target_year_date, target_year_100wh, target_date, target_year_100wh, byte*.
                       energy_1kwh  = '06', error_date, total_1kwh, target_year_date, target_year_1kwh, target_date, target_year_1kwh, byte*.
                       energy_100kj = '0D', error_date, total_100kj, target_year_date, target_year_100kj, target_date, target_year_100kj, byte*.
@@ -235,6 +228,21 @@ driver {
             telegram = 58449344414620684737780779414620689344470c0dff5f3500825a00000e0007c00dffff310803001f3c036800003e34310803000080008000800080008000800000931a92293128190c00002f02fd170000046d000f3235
             json     = '{"_": "telegram","enhanced_id": "0C47449368204641","id": "68204641","media": "radio converter (meter side)","meter": "qheatv2","meter_datetime": "2025-05-18 15:00","name": "QQ1","status": "OK","target_date": "2025-04-30","target_year_date": "2024-12-31","target_year_kwh": 856.416667,"timestamp": "1111-11-11T11:11:11Z","total_kwh": 856.416667}'
             fields   = 'QQ1;68204641;OK;856.416667;1111-11-11 11:11.11'
+        }
+        test {
+            args     = 'QHeat55r qheatv2 68267443 NOKEY'
+            comment  = 'Q AMR telegram sent every 7.5 minutes'
+            comment  = 'Q Walk by telegram sent every 112 seconds'
+            telegram = 414493444374266848377243742668934448042A000020_0C06140000004C0600000000426CFFFFCC080600000000C2086C3C3202FD170000326CFFFF046D190F3533
+            json     = '{"_": "telegram","device_error_date": "2128-03-31","id": "68267443","media": "heat","meter": "qheatv2","meter_datetime": "2025-03-21 15:25","name": "QHeat55r","status": "OK","target_date": "2025-02-28","target_kwh": 0,"target_year_date": "2128-03-31","target_year_kwh": 0,"timestamp": "1111-11-11T11:11:11Z","total_kwh": 14}'
+            fields   = 'QHeat55r;68267443;OK;14;1111-11-11 11:11.11'
+        }
+        test {
+            args     = 'QHeat55r qheatv2 68267443 NOKEY'
+            comment  = 'Q Walk by telegram sent every 112 seconds'
+            telegram = 5844934443742668483778_077943742668934448040DFF5F3500822A0000610107C006FFFF14000000FFFF000000003C32000000000080008000800080008000800080008000800080008000002F02FD170000046D1B0F3533
+            json     = '{"_": "telegram","enhanced_id": "0448449368267443","id": "68267443","media": "radio converter (meter side)","meter": "qheatv2","meter_datetime": "2025-03-21 15:27","name": "QHeat55r","status": "OK","target_date": "2025-02-28","target_year_date": "2128-03-31","target_year_kwh": 0,"timestamp": "1111-11-11T11:11:11Z","total_kwh": 14}'
+            fields   = 'QHeat55r;68267443;OK;14;1111-11-11 11:11.11'
         }
     }
 }

@@ -1,4 +1,4 @@
-// Generated 2026-02-23_22:43
+// Generated 2026-02-24_09:46
 test {
     args     = 'Wasser apator162 20202020 NOKEY'
     telegram = 6E4401062020202005077A9A006085|2F2F0F0A734393CC0000435B0183001A54E06F630291342510|030F00007B013E0B00003E0B00003E0B00003E0B00003E0B00003E0B00003E0B0000650000003D0000003D0000003D00000000000000A0910CB003FFFFFFFFFFFFFFFFFFFFA62B
@@ -362,6 +362,21 @@ test {
     telegram = 6e446d141949545605077adf0060055ad21c5cafec3a71c0720754f2ca777e238d0318d35a2de0f8fe592e9a0d0cacbd61dfd2815c21a7fa743d93b5e543847e3e67b5d80816a253db655d4354b1a06c1fb7bae99e0fa322bff37a05fd651c5e3c09968ae4df0d8d911fee33ef31b9
     json     = '{"_":"telegram","media":"water","meter":"picoflux","name":"MyWater","id":"56544919","actuality_duration_s":0,"total_backward_m3":0,"total_m3":4.492,"meter_datetime":"2026-02-09 08:57","status":"OK","timestamp":"1111-11-11T11:11:11Z"}'
     fields   = 'MyWater;56544919;OK;4.492;1111-11-11 11:11.11'
+}
+test {
+    args     = 'QHeat55r qheatv2 68267443 NOKEY'
+    comment  = 'Q Walk by telegram sent every 112 seconds'
+    telegram = 5844934443742668483778_077943742668934448040DFF5F3500822A0000610107C006FFFF14000000FFFF000000003C32000000000080008000800080008000800080008000800080008000002F02FD170000046D1B0F3533
+    json     = '{"_": "telegram","enhanced_id": "0448449368267443","id": "68267443","media": "radio converter (meter side)","meter": "qheatv2","meter_datetime": "2025-03-21 15:27","name": "QHeat55r","status": "OK","target_date": "2025-02-28","target_year_date": "2128-03-31","target_year_kwh": 0,"timestamp": "1111-11-11T11:11:11Z","total_kwh": 14}'
+    fields   = 'QHeat55r;68267443;OK;14;1111-11-11 11:11.11'
+}
+test {
+    args     = 'QHeat55r qheatv2 68267443 NOKEY'
+    comment  = 'Q AMR telegram sent every 7.5 minutes'
+    comment  = 'Q Walk by telegram sent every 112 seconds'
+    telegram = 414493444374266848377243742668934448042A000020_0C06140000004C0600000000426CFFFFCC080600000000C2086C3C3202FD170000326CFFFF046D190F3533
+    json     = '{"_": "telegram","device_error_date": "2128-03-31","id": "68267443","media": "heat","meter": "qheatv2","meter_datetime": "2025-03-21 15:25","name": "QHeat55r","status": "OK","target_date": "2025-02-28","target_kwh": 0,"target_year_date": "2128-03-31","target_year_kwh": 0,"timestamp": "1111-11-11T11:11:11Z","total_kwh": 14}'
+    fields   = 'QHeat55r;68267443;OK;14;1111-11-11 11:11.11'
 }
 test {
     args     = 'QQ1 qheatv2 68204641 NOKEY'
