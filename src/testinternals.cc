@@ -303,7 +303,7 @@ void test_ixmlparser()
 
     int testnr = 1;
     tst_ixmlparse("10351F0400",
-                  "decode = total. -hex  = ['A'-'F';'0'-'9']. -byte = hex, hex. -word = byte, byte. -quad = byte, byte, byte, byte. total     = -'10', quad, @DV_0413. DV_0413>difvifkey=+'0413'.",
+                  "decode = total. -hex  = ['A'-'F';'0'-'9']. -byte = hex, hex. -word = byte, byte. -quad = byte, byte, byte, byte. total     = -'10', quad, @DV_0413. DV_0413>dvk=+'0413'.",
                   &dv_entries, testnr);
 
     tst_double(dv_entries, "0413", 270.133, testnr);
