@@ -1,0 +1,49 @@
+// Copyright (C) 2020-2026 Fredrik Öhrström (gpl-3.0-or-later)
+driver {
+    name           = apator08
+    meter_type     = WaterMeter
+    default_fields = name,id,total_m3,timestamp
+    manufacturer   = Apator
+    model          = 08
+    detect {
+        mvt = APT,03,03
+        mvt = APT,0F,0F
+    }
+    fields {
+        field {
+            name = total
+            quantity = Volume
+            force_scale = 1/3
+            match {
+                measurement_type = Instantaneous
+                vif_range = Volume
+            }
+        }
+        field {
+            name                 = mfct_specific_data
+            quantity             = Text
+            match_entire_payload = true
+            ixml = "decode = total, byte*.
+                    total = quad, @DV_0413.
+                    -hex  = ['A'-'F';'0'-'9'].
+                    -byte = hex, hex.
+                    -quad = byte, byte, byte, byte.
+                    DV_0413>dvk = +'0413'."
+        }
+    }
+    tests {
+        test {
+            args = 'test_apator082 apator08 00149c06 NOKEY'
+            comment = 'The apator08 reports a nonstandard medium, thus unknown below.'
+            telegram = 1C441486069C14000F0FA042F214000040030000000005FF0472BF1400
+            json = '{"_":"telegram","media":"unknown","meter":"apator08","name":"test_apator082","id":"00149c06","total_m3":457.579333,"timestamp":"1111-11-11T11:11:11Z"}'
+            fields = 'test_apator082;00149c06;457.579333;1111-11-11 11:11.11'
+        }
+        test {
+            args = 'Vatten apator08 004444dd NOKEY'
+            telegram = 73441486DD4444000303A0B9E527004C4034B31CED0106FF01D093270065F022009661230054D02300EC49240018B424005F012500936D2500FFD525000E3D26001EAC26000B2027000300000000371D0B2000000000000024000000000000280000000000002C0033150C010D2F000000000000
+            json = '{"_":"telegram","media":"gas","meter":"apator08","name":"Vatten","id":"004444dd","total_m3":871.571,"timestamp":"1111-11-11T11:11:11Z"}'
+            fields = 'Vatten;004444dd;871.571;1111-11-11 11:11.11'
+        }
+    }
+}
