@@ -1,4 +1,4 @@
-// Generated 2026-02-24_10:44
+// Generated 2026-02-24_12:41
 test {
     args     = 'Wasser apator162 20202020 NOKEY'
     telegram = 6E4401062020202005077A9A006085|2F2F0F0A734393CC0000435B0183001A54E06F630291342510|030F00007B013E0B00003E0B00003E0B00003E0B00003E0B00003E0B00003E0B0000650000003D0000003D0000003D00000000000000A0910CB003FFFFFFFFFFFFFFFFFFFFA62B
@@ -362,6 +362,12 @@ test {
     telegram = 6e446d141949545605077adf0060055ad21c5cafec3a71c0720754f2ca777e238d0318d35a2de0f8fe592e9a0d0cacbd61dfd2815c21a7fa743d93b5e543847e3e67b5d80816a253db655d4354b1a06c1fb7bae99e0fa322bff37a05fd651c5e3c09968ae4df0d8d911fee33ef31b9
     json     = '{"_":"telegram","media":"water","meter":"picoflux","name":"MyWater","id":"56544919","actuality_duration_s":0,"total_backward_m3":0,"total_m3":4.492,"meter_datetime":"2026-02-09 08:57","status":"OK","timestamp":"1111-11-11T11:11:11Z"}'
     fields   = 'MyWater;56544919;OK;4.492;1111-11-11 11:11.11'
+}
+test {
+    args     = 'QQA qheatv2 67958979 NOKEY'
+    telegram = 58449344798995673E377807797989956793443E040DFF5F3500827D0000810007C006FFFF531100003F3C490900005F318010000083003C0022000B0000000000000000000A002B00510083002F02FD170000046D16085832
+    json     = '{"_": "telegram","enhanced_id": "043E449367958979","id": "67958979","media": "radio converter (meter side)","meter": "qheatv2","meter_datetime": "2026-02-24 08:22","name": "QQA","status": "OK","target_date": "2026-01-31","target_year_date": "2025-12-31","target_year_kwh": 1080,"timestamp": "1111-11-11T11:11:11Z","total_kwh": 1153}'
+    fields   = 'QQA;67958979;OK;1153;1111-11-11 11:11.11'
 }
 test {
     args     = 'QHeat55r qheatv2 68267443 NOKEY'

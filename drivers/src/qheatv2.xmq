@@ -246,5 +246,11 @@ driver {
             json     = '{"_": "telegram","enhanced_id": "0448449368267443","id": "68267443","media": "radio converter (meter side)","meter": "qheatv2","meter_datetime": "2025-03-21 15:27","name": "QHeat55r","status": "OK","target_date": "2025-02-28","target_year_date": "2128-03-31","target_year_kwh": 0,"timestamp": "1111-11-11T11:11:11Z","total_kwh": 14}'
             fields   = 'QHeat55r;68267443;OK;14;1111-11-11 11:11.11'
         }
+        test {
+            args = 'QQA qheatv2 67958979 NOKEY'
+            telegram = 58449344798995673E377807797989956793443E040DFF5F3500827D0000810007C006FFFF531100003F3C490900005F318010000083003C0022000B0000000000000000000A002B00510083002F02FD170000046D16085832
+            json = '{"_": "telegram","enhanced_id": "043E449367958979","id": "67958979","media": "radio converter (meter side)","meter": "qheatv2","meter_datetime": "2026-02-24 08:22","name": "QQA","status": "OK","target_date": "2026-01-31","target_year_date": "2025-12-31","target_year_kwh": 1080,"timestamp": "1111-11-11T11:11:11Z","total_kwh": 1153}'
+            fields = 'QQA;67958979;OK;1153;1111-11-11 11:11.11'
+        }
     }
 }
