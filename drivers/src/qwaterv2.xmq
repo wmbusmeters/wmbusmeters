@@ -184,13 +184,13 @@ driver {
                       -triplet = byte, byte, byte.
                       -quad = byte, byte, byte, byte.
 
-                      DV_0C13>difvifkey = +'0C13'.
-                      DV_4C13>difvifkey = +'4C13'.
+                      DV_0C13>dvk = +'0C13'.
+                      DV_4C13>dvk = +'4C13'.
 
-                      DV_CC0813>difvifkey = +'CC0813'.
+                      DV_CC0813>dvk = +'CC0813'.
 
-                      DV_426C>difvifkey = +'426C'.
-                      DV_C2086C>difvifkey = +'C2086C'.
+                      DV_426C>dvk = +'426C'.
+                      DV_C2086C>dvk = +'C2086C'.
 
                      '''
         }

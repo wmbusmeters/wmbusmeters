@@ -200,23 +200,23 @@ driver {
                       -triplet = byte, byte, byte.
                       -quad = byte, byte, byte, byte.
 
-                      DV_0C05>difvifkey = +'0C05'.
-                      DV_0C06>difvifkey = +'0C06'.
-                      DV_0C0D>difvifkey = +'0C0D'.
-                      DV_0C0E>difvifkey = +'0C0E'.
+                      DV_0C05>dvk = +'0C05'.
+                      DV_0C06>dvk = +'0C06'.
+                      DV_0C0D>dvk = +'0C0D'.
+                      DV_0C0E>dvk = +'0C0E'.
 
-                      DV_4C05>difvifkey = +'4C05'.
-                      DV_4C06>difvifkey = +'4C06'.
-                      DV_4C0D>difvifkey = +'4C0D'.
-                      DV_4C0E>difvifkey = +'4C0E'.
+                      DV_4C05>dvk = +'4C05'.
+                      DV_4C06>dvk = +'4C06'.
+                      DV_4C0D>dvk = +'4C0D'.
+                      DV_4C0E>dvk = +'4C0E'.
 
-                      DV_CC0805>difvifkey = +'CC0805'.
-                      DV_CC0806>difvifkey = +'CC0806'.
-                      DV_CC080D>difvifkey = +'CC080D'.
-                      DV_CC080E>difvifkey = +'CC080E'.
+                      DV_CC0805>dvk = +'CC0805'.
+                      DV_CC0806>dvk = +'CC0806'.
+                      DV_CC080D>dvk = +'CC080D'.
+                      DV_CC080E>dvk = +'CC080E'.
 
-                      DV_426C>difvifkey = +'426C'.
-                      DV_C2086C>difvifkey = +'C2086C'.
+                      DV_426C>dvk = +'426C'.
+                      DV_C2086C>dvk = +'C2086C'.
 
                      '''
         }

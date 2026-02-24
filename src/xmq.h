@@ -643,8 +643,9 @@ void xmqPrint(XMQDoc *doc, XMQOutputSettings *settings);
 /** Recurse through the document and add offsets.
     I.e. <root>ABC<a>DEF</a>GHIJ<b>xyz</b></root> wille become
          <root o="0">ABC<a o="3">DEF</a>GHIJ<b o="10">xyz</b></root>
+    assuming attribute_name="o"
 */
-void xmqAnnotateOffsets(XMQDoc *doc);
+void xmqAnnotateOffsets(XMQDoc *doc, const char *attribute_name, const char *ns);
 
 /** Trim xml whitespace. */
 void xmqTrimWhitespace(XMQDoc *doc, int flags);

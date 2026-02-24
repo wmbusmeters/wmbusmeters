@@ -103,7 +103,7 @@ driver {
 
                     end_FF    = -'FF', byte*.
 
-                    DV_0413>difvifkey = +'0413'."
+                    DV_0413>dvk = +'0413'."
         }
     }
     tests {
