@@ -1,5 +1,12 @@
 
+ATTENTION! The qwater driver has been replaced with the qwaterv2 driver.
+Note that the field names are different in the new driver.
+New auto lookups will use the qwaterv2, the old qheat will remain for 6 months.
+After which the old qwater driver will be removed, it contains buggy code that
+fail to extract proper readings from the mfct specific telegrams.
+
 ATTENTION! The qheat driver has been replaced with the qheatv2 driver.
+Note that the field names are different in the new drive.
 New auto lookups will use the qheatv2, the old qheat will remain for 6 months.
 After which the old qheat driver will be removed, it contains buggy code that
 fail to extract proper readings from the mfct specific telegrams.
