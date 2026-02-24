@@ -168,7 +168,7 @@ driver {
             }
             ixml = '''decode = quad, quad, byte, volume_l.
 
-                      volume_l = '13', error_date, total_l, target_year_date, target_year_l, target_date, target_year_l, byte*.
+                      volume_l = '13', error_date, total_l, target_year_date, target_year_l, target_date, target_l, byte*.
 
                       error_date = word, @DV_426C.
                       target_year_date = word, @DV_426C.
@@ -176,7 +176,7 @@ driver {
 
                       total_l = quad, @DV_0C13.
                       target_year_l = quad, @DV_4C13.
-                      target_1l = quad, @DV_CC0813.
+                      target_l = quad, @DV_CC0813.
 
                       -hex  = ['A'-'F';'0'-'9'].
                       -byte = hex, hex.
@@ -206,43 +206,53 @@ driver {
         args = 'MyQWater qwaterv2 12353648 NOKEY'
         comment  = 'A walk by telegram with mfct data.'
         telegram = 4b449344483635121806780dff5f350082da0000600107c113ffff48200000bf2c91170000df2120200000008001000000060019001000160018000d001300350017002f046d370cc422c759
-        json = '{"_": "telegram","id": "12353648","media": "warm water","meter": "qwaterv2","meter_datetime": "2022-02-04 12:55","name": "MyQWater","status": "OK","target_date": "2022-01-31","target_year_date": "2021-12-31","target_year_m3": 2.02,"timestamp": "1111-11-11T11:11:11Z","total_m3": 2.048}'
+        json = '{"_": "telegram","id": "12353648","media": "warm water","meter": "qwaterv2","meter_datetime": "2022-02-04 12:55","name": "MyQWater","status": "OK","target_date": "2022-01-31","target_year_date": "2021-12-31","target_m3":2.02,"target_year_m3": 1.791,"timestamp": "1111-11-11T11:11:11Z","total_m3": 2.048}'
         fields = 'MyQWater;12353648;OK;2.048;1111-11-11 11:11.11'
     }
+    test {
+        args     = 'AnotherQWater qwaterv2 66666666 NOKEY'
+        telegram = 3C449344682268363537726666666693443507720000200C13670512004C1361100300426CBF2CCC081344501100C2086CDF28326CFFFF046D0813CF29
+        json = '{"_":"telegram","media":"water","meter":"qwaterv2","name":"AnotherQWater","id":"66666666","device_error_date":"2128-03-31","target_m3":115.044,"target_date":"2022-08-31","target_year_m3":31.061,"target_year_date":"2021-12-31","total_m3":120.567,"meter_datetime":"2022-09-15 19:08","status":"OK","timestamp":"1111-11-11T11:11:11Z"}'
+        fields = 'AnotherQWater;66666666;OK;120.567;1111-11-11 11:11.11'
+    }
+    test {
+        args = 'YetAnoter qwaterv2 33333333 NOKEY'
+        telegram = 3C449344333333333537723333333393443506B8000020_0C13350000004C1300000000426CBF2CCC081300000000C2086CDF25326CFFFF046D0516CE262
+        json = '{"_":"telegram","media":"warm water","meter":"qwaterv2","name":"YetAnoter","id":"33333333","status":"OK","total_m3":0.035,"target_year_m3":0,"target_year_date":"2021-12-31","target_m3":0,"target_date":"2022-05-31","device_error_date":"2128-03-31","meter_datetime":"2022-06-14 22:05","timestamp":"1111-11-11T11:11:11Z"}'
+        fields = 'YetAnoter;33333333;OK;0.035;1111-11-11 11:11.11'
+    }
+    test {
+        args = 'QWater-7-18 qwaterv2 12230094 NOKEY'
+        telegram = 394493449400231218077ad30000200c13536712004c1307920500426cBf2ccc081373621200c2086cde2B02BB560000326cffff046d3714c32c
+        json = '{"_":"telegram","media":"water","meter":"qwaterv2","name":"QWater-7-18","id":"12230094","status":"OK","total_m3":126.753,"target_year_m3":59.207,"target_year_date":"2021-12-31","target_m3":126.273,"target_date":"2022-11-30","device_error_date":"2128-03-31","volume_flow_m3h":0,"meter_datetime":"2022-12-03 20:55","timestamp":"1111-11-11T11:11:11Z"}'
+        fields = 'QWater-7-18;12230094;OK;126.753;1111-11-11 11:11.11'
+    }
+
+    test {
+        args = 'QWoo qwaterv2 13144514 NOKEY'
+        coment = 'Warm water'
+        telegram = 394493441445141316067A31000020_0C13671605004C1348160500426CDF2CCC081348160500C2086CDF2C02BB560000326CFFFF046D3414E121
+        json = '{"_":"telegram","target_date": "2022-12-31","target_m3": 51.648,"target_year_date": "2022-12-31","target_year_m3": 51.648,"device_error_date": "2128-03-31","id": "13144514","media": "warm water","meter": "qwaterv2","meter_datetime": "2023-01-01 20:52","name": "QWoo","status": "OK","timestamp": "1111-11-11T11:11:11Z","total_m3": 51.667,"volume_flow_m3h": 0}'
+        fields = 'QWoo;13144514;OK;51.667;1111-11-11 11:11.11'
+    }
+
+    test {
+        args = 'QWooo qwaterv2 13176890 NOKEY'
+        comment = 'Cold water'
+        telegram = 394493449068171316077A0B000020_0C13358612004C1307851200426CDF2CCC081307851200C2086CDF2C02BB560000326CFFFF046D3014E121
+        json = '{"_":"telegram","target_date": "2022-12-31","target_m3": 128.507,"target_year_date": "2022-12-31","target_year_m3": 128.507,"device_error_date": "2128-03-31","id": "13176890","media": "water","meter": "qwaterv2","meter_datetime": "2023-01-01 20:48","name": "QWooo","status": "OK","timestamp": "1111-11-11T11:11:11Z","total_m3": 128.635,"volume_flow_m3h": 0}'
+        fields = 'QWooo;13176890;OK;128.635;1111-11-11 11:11.11'
+    }
+
+    test {
+         args = 'QWooo qwaterv2 78563412 NOKEY'
+         comment = 'Proprietary Q walk-by message'
+         telegram = 49449344123456781606780DFF5F3500824E00007F0007C113FFFF63961300DF2C82731200FE2463811300A400F200D100A900DD00E000E90006011601EA0027010F012F046D0211F225
+         json = '{"_":"telegram","target_date": "2023-04-30","target_m3": 138.163,"target_year_date": "2022-12-31","target_year_m3": 127.382,"id": "78563412","media": "warm water","meter": "qwaterv2","meter_datetime": "2023-05-18 17:02","name": "QWooo","status": "OK","timestamp": "1111-11-11T11:11:11Z","total_m3": 139.663}'
+         fields = 'QWooo;78563412;OK;139.663;1111-11-11 11:11.11'
+    }
     ///*
-        args = AnotherQWater qwater 66666666 NOKEY
-// telegram=|3C449344682268363537726666666693443507720000200C13670512004C1361100300426CBF2CCC081344501100C2086CDF28326CFFFF046D0813CF29|
-// {"_":"telegram","media":"water","meter":"qwater","name":"AnotherQWater","id":"66666666","status":"OK","total_m3":120.567,"due_date_m3":31.061,"due_date":"2021-12-31","due_17_date_m3":115.044,"due_17_date":"2022-08-31","error_date":"2128-03-31","meter_datetime":"2022-09-15 19:08","timestamp":"1111-11-11T11:11:11Z"}
-// |AnotherQWater;66666666;120.567;31.061;2021-12-31;OK;1111-11-11 11:11.11
 
-        args = YetAnoter qwater 33333333 NOKEY
-// telegram=|3C449344333333333537723333333393443506B8000020_0C13350000004C1300000000426CBF2CCC081300000000C2086CDF25326CFFFF046D0516CE26|
-// {"_":"telegram","media":"warm water","meter":"qwater","name":"YetAnoter","id":"33333333","status":"OK","total_m3":0.035,"due_date_m3":0,"due_date":"2021-12-31","due_17_date_m3":0,"due_17_date":"2022-05-31","error_date":"2128-03-31","meter_datetime":"2022-06-14 22:05","timestamp":"1111-11-11T11:11:11Z"}
-// |YetAnoter;33333333;0.035;0;2021-12-31;OK;1111-11-11 11:11.11
-
-        args = QWater-7-18 qwater 12230094 NOKEY
-// telegram=|394493449400231218077ad30000200c13536712004c1307920500426cBf2ccc081373621200c2086cde2B02BB560000326cffff046d3714c32c|
-// {"_":"telegram","media":"water","meter":"qwater","name":"QWater-7-18","id":"12230094","status":"OK","total_m3":126.753,"due_date_m3":59.207,"due_date":"2021-12-31","due_17_date_m3":126.273,"due_17_date":"2022-11-30","error_date":"2128-03-31","volume_flow_m3h":0,"meter_datetime":"2022-12-03 20:55","timestamp":"1111-11-11T11:11:11Z"}
-// |QWater-7-18;12230094;126.753;59.207;2021-12-31;OK;1111-11-11 11:11.11
-
-
-        args = QWoo qwater 13144514 NOKEY
-// Comment: Warm water
-// telegram=|394493441445141316067A31000020_0C13671605004C1348160500426CDF2CCC081348160500C2086CDF2C02BB560000326CFFFF046D3414E121|
-// {"_":"telegram","due_17_date": "2022-12-31","due_17_date_m3": 51.648,"due_date": "2022-12-31","due_date_m3": 51.648,"error_date": "2128-03-31","id": "13144514","media": "warm water","meter": "qwater","meter_datetime": "2023-01-01 20:52","name": "QWoo","status": "OK","timestamp": "1111-11-11T11:11:11Z","total_m3": 51.667,"volume_flow_m3h": 0}
-// |QWoo;13144514;51.667;51.648;2022-12-31;OK;1111-11-11 11:11.11
-
-        args = QWooo qwater 13176890 NOKEY
-// Comment: Cold water
-// telegram=|394493449068171316077A0B000020_0C13358612004C1307851200426CDF2CCC081307851200C2086CDF2C02BB560000326CFFFF046D3014E121|
-// {"_":"telegram","due_17_date": "2022-12-31","due_17_date_m3": 128.507,"due_date": "2022-12-31","due_date_m3": 128.507,"error_date": "2128-03-31","id": "13176890","media": "water","meter": "qwater","meter_datetime": "2023-01-01 20:48","name": "QWooo","status": "OK","timestamp": "1111-11-11T11:11:11Z","total_m3": 128.635,"volume_flow_m3h": 0}
-// |QWooo;13176890;128.635;128.507;2022-12-31;OK;1111-11-11 11:11.11
-
-        args = QWooo qwater 78563412 NOKEY
-// Comment: Proprietary Q walk-by message
-// telegram=|49449344123456781606780DFF5F3500824E00007F0007C113FFFF63961300DF2C82731200FE2463811300A400F200D100A900DD00E000E90006011601EA0027010F012F046D0211F225|
-// {"_":"telegram","due_17_date": "2023-04-30","due_17_date_m3": 138.163,"due_date": "2022-12-31","due_date_m3": 127.382,"id": "78563412","media": "warm water","meter": "qwater","meter_datetime": "2023-05-18 17:02","name": "QWooo","status": "OK","timestamp": "1111-11-11T11:11:11Z","total_m3": 139.663}
-// |QWooo;78563412;139.663;127.382;2022-12-31;OK;1111-11-11 11:11.11
 
         args = QWaaa qwater 51220588 NOKEY
 // Comment:
