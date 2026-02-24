@@ -6,9 +6,12 @@ driver {
     manufacturer   = Qundis
     detect {
         mvt = QDS,23,04
-        mvt = QDS,46,04
         mvt = QDS,23,37
+        mvt = QDS,3e,04
         mvt = QDS,3e,37
+        mvt = QDS,46,04
+        mvt = QDS,46,37
+        mvt = QDS,47,04
         mvt = QDS,47,37
         mvt = QDS,48,04
         mvt = QDS,48,37
