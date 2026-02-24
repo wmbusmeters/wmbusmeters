@@ -1567,6 +1567,7 @@ size_t vlo_memusage(vlo_t *vlo);
 #ifndef BUILDING_DIST_XMQ
 #include "always.h"
 #include "membuffer.h"
+#include "xmq.h"
 #endif
 
 struct YaepGrammar;
@@ -1638,6 +1639,8 @@ struct YaepParseRun
     void (*parse_free)(void *mem);
     // The resulting DOM tree is stored here.
     YaepTreeNode *root;
+    // A parse failure is stored here.
+    XMQDoc *failure;
     // Set to true if the parse was ambigious.
     bool ambiguous_p;
     // Set to true if the parse faild.
@@ -3559,6 +3562,8 @@ void ixml_print_grammar(XMQParseState *state);
 
 //////////////////////////////////////////////////////////////////////////////////
 
+void add_key_number(xmlDoc *doc, xmlNode *root, const char *key, int number);
+void add_key_string(xmlDoc *doc, xmlNode *root, const char *key, const char *value);
 void add_nl(XMQParseState *state);
 XMQProceed catch_single_content(XMQDoc *doc, XMQNode *node, void *user_data);
 size_t calculate_buffer_size(const char *start, const char *stop, int indent, const char *pre_line, const char *post_line);
@@ -7553,7 +7558,8 @@ bool xmq_parse_buffer_html(XMQDoc *doq, const char *start, const char *stop, int
 
     if (should_trim) parse_options |= HTML_PARSE_NOBLANKS;
 
-    doc = htmlReadMemory(start, stop-start, "foof", NULL, parse_options);
+    // Force the use of UTF-8 since the heuristics seem to not do this despite my LANG=sv_SE.UTF-8
+    doc = htmlReadMemory(start, stop-start, NULL, "UTF-8", parse_options);
 
     if (doc == NULL)
     {
@@ -7888,6 +7894,24 @@ XMQParseState *xmq_get_yaep_parse_state(XMQDoc *doc)
     return doc->yaep_parse_state_;
 }
 
+void add_key_number(xmlDoc *doc, xmlNode *root, const char *key, int value)
+{
+    char buf[1024];
+    snprintf(buf, 1024, "%d", value);
+    xmlNodePtr element = xmlNewDocNode(doc, NULL, (xmlChar*)key, NULL);
+    xmlAddChild(root, element);
+    xmlNodePtr text = xmlNewDocText(doc, (xmlChar*)buf);
+    xmlAddChild(element, text);
+}
+
+void add_key_string(xmlDoc *doc, xmlNode *root, const char *key, const char *value)
+{
+    xmlNodePtr element = xmlNewDocNode(doc, NULL, (xmlChar*)key, NULL);
+    xmlAddChild(root, element);
+    xmlNodePtr text = xmlNewDocText(doc, (xmlChar*)value);
+    xmlAddChild(element, text);
+}
+
 void handle_yaep_syntax_error(YaepParseRun *pr,
                               int err_tok_num,
                               void *err_tok_attr,
@@ -7899,19 +7923,43 @@ void handle_yaep_syntax_error(YaepParseRun *pr,
     int line = 0, col = 0;
     find_line_col(pr->buffer_start, pr->buffer_stop, err_tok_num, &line, &col);
 
-    // source.foo:2:26: syntax error
-    printf("ixml:%d:%d: syntax error\n", line, col);
+    char buf[1024];
+    snprintf(buf, 1024, "ixml:%d:%d: syntax error\n", line, col);
     int start = err_tok_num - 20;
     if (start < 0) start = 0;
     int stop = err_tok_num + 20;
 
+    size_t len = strlen(buf);
+    size_t j = len;
     for (int i = start; i < stop && pr->buffer_start[i] != 0; ++i)
     {
-        printf("%c", pr->buffer_start[i]);
+        buf[j++] =  pr->buffer_start[i];
     }
-    printf("\n");
-    for (int i = start; i < err_tok_num; ++i) printf (" ");
-    printf("^\n");
+    buf[j++] = '\n';
+    for (int i = start; i < err_tok_num; ++i)
+    {
+        buf[j++] = ' ';
+    }
+    buf[j++] = '^';
+    buf[j++] = 0;
+
+    xmlDocPtr new_doc = xmlNewDoc((xmlChar*)"1.0");
+    xmlNodePtr root = xmlNewDocNode(new_doc, NULL, (xmlChar*)"ixml", NULL);
+    xmlNsPtr ns = xmlNewNs(root,
+                           (const xmlChar *)"http://invisiblexml.org/NS",
+                           (const xmlChar *)"ixml");
+    xmlSetNsProp(root, ns, (xmlChar*)"state", (xmlChar*)"failed");
+    xmlDocSetRootElement(new_doc, root);
+
+    add_key_string(new_doc, root, "info", buf);
+    add_key_number(new_doc, root, "line", line);
+    add_key_number(new_doc, root, "column", col);
+    add_key_number(new_doc, root, "pos", err_tok_num+1);
+
+    XMQDoc *failure = xmqNewDoc();
+    xmlFreeDoc(failure->docptr_.xml);
+    xmqSetImplementationDoc(failure, new_doc);
+    pr->failure = failure;
 }
 
 const char *node_yaep_type_to_string(YaepTreeNodeType t)
@@ -8204,11 +8252,16 @@ bool xmqParseBufferWithIXML(XMQDoc *doc, const char *start, const char *stop, XM
 
     if (rc)
     {
-        // Syntax error has already been printed.
-        return false;
+        // There was an error, pick the generated error tree.
+        xmlFreeDoc(doc->docptr_.xml);
+        xmqSetImplementationDoc(doc, run->failure->docptr_.xml);
+        xmqSetImplementationDoc(run->failure, NULL);
     }
-
-    generate_dom_from_yaep_node(doc->docptr_.xml, NULL, run->root, NULL, 0, 0);
+    else
+    {
+        // IXML parse was fine, generate a DOM from the yaep tree.
+        generate_dom_from_yaep_node(doc->docptr_.xml, NULL, run->root, NULL, 0, 0);
+    }
 
     if (run->ambiguous_p)
     {
@@ -8219,7 +8272,6 @@ bool xmqParseBufferWithIXML(XMQDoc *doc, const char *start, const char *stop, XM
 
         xmlSetNsProp(element, ns, (xmlChar*)"state", (xmlChar*)"ambiguous");
     }
-
 
     if (run->root) yaepFreeTree(run->root, NULL, NULL);
 
@@ -19841,16 +19893,21 @@ _VLO_add_string_function (vlo_t * vlo, const char *str)
 void
 _VLO_expand_memory (vlo_t * vlo, size_t additional_length)
 {
-  size_t vlo_length;
+  size_t vlo_length, old_vlo_length;
   char *new_vlo_start;
 
   assert (vlo->vlo_start != NULL);
-  vlo_length = VLO_LENGTH (*vlo) + additional_length;
+  old_vlo_length = VLO_LENGTH (*vlo);
+  vlo_length = old_vlo_length + additional_length;
   vlo_length += vlo_length / 2 + 1;
   new_vlo_start = (char*)yaep_realloc (vlo->vlo_alloc, vlo->vlo_start, vlo_length);
   if (new_vlo_start != vlo->vlo_start)
     {
-      vlo->vlo_stop += new_vlo_start - vlo->vlo_start;
+     // Fix for fil-c, rewrite: vlo->vlo_stop += new_vlo_start - vlo->vlo_start;
+     // because the new stop gets the old fil-c ptr capabilities and becomes out of bounds.
+     // Better to use:
+     vlo->vlo_stop  = new_vlo_start + old_vlo_length;
+     // This creates a new capability that points into the new memory object created by realloc.
       vlo->vlo_start = new_vlo_start;
     }
   vlo->vlo_segment_stop = vlo->vlo_start + vlo_length;
@@ -23066,6 +23123,10 @@ YaepParseRun *yaepNewParseRun(YaepGrammar *g)
 void yaepFreeParseRun(YaepParseRun *pr)
 {
     YaepParseState *ps = (YaepParseState*)pr;
+    if (ps->run.failure)
+    {
+        xmqFreeDoc(ps->run.failure);
+    }
     assert(CHECK_PARSE_STATE_MAGIC(ps));
     free(ps);
 }
