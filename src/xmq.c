@@ -612,6 +612,7 @@ enum Level;
 #endif
 typedef enum Level Level;
 
+void annotate_offsets(xmlDoc *doc);
 int count_necessary_quotes(const char *start, const char *stop, bool *add_nls, bool *add_compound, bool prefer_double_quotes, bool *use_double_quotes);
 size_t count_necessary_slashes(const char *start, const char *stop);
 
@@ -6570,6 +6571,11 @@ void xmqPrint(XMQDoc *doq, XMQOutputSettings *output_settings)
             }
         }
     }
+}
+
+void xmqAnnotateOffsets(XMQDoc *doq)
+{
+    annotate_offsets(doq->docptr_.xml);
 }
 
 // Use an internal bit for signaling comment trimming.
@@ -18868,6 +18874,41 @@ void element_strlen_name_prefix(xmlNode *element, const char **name, const char 
     assert(*name != NULL);
 }
 
+struct OffsetCounter {
+    int offset;
+};
+typedef struct OffsetCounter OffsetCounter;
+
+void annotate_node(OffsetCounter *counter, xmlNode *node);
+
+void annotate_offsets(xmlDoc *doc)
+{
+    OffsetCounter c;
+    c.offset = 0;
+    annotate_node(&c, xmlDocGetRootElement(doc));
+}
+
+void annotate_node(OffsetCounter *counter, xmlNode *node)
+{
+    char buf[64];
+    snprintf(buf, 64, "%d", counter->offset);
+    xmlSetProp(node, (xmlChar*)"o", (xmlChar*)buf);
+    if (node->type == XML_ELEMENT_NODE)
+    {
+        xmlNode *i = xml_first_child(node);
+        while (i)
+        {
+            xmlNode *next = xml_next_sibling(i);
+            annotate_node(counter, i);
+            i = next;
+        }
+    }
+    else if (node->type == XML_TEXT_NODE)
+    {
+        counter->offset += strlen((const char*)node->content);
+    }
+}
+
 #endif // XMQ_PRINTER_MODULE
 
 // PART C YAEP_ALLOCATE_C ////////////////////////////////////////
@@ -20874,6 +20915,7 @@ static void loop_stack(YaepTreeNode **result,
         }
         int pos_j = --state->dot_j;
         rule = state->rule;
+        assert(rule);
         YaepParseTreeBuildState *parent_anode_state = state->parent_anode_state;
         YaepTreeNode *parent_anode = parent_anode_state->anode;
         int parent_rhs_offset = state->parent_rhs_offset;

@@ -550,7 +550,8 @@ bool parseDV(Telegram *t,
 // Use an ixml grammar to decode a manufacturer specific block of bytes.
 // hex: a string with uppercase hex "12AB12FF"
 // An ixml grammar document is loaded with  xmqParseBufferWithType with the XMQContentType::CONTENT_IXML
-bool parseWithIXML(int offset, // Where the hex starts in the telegram.
+bool parseWithIXML(Telegram *t,
+                   int offset, // Where the hex starts in the telegram.
                    std::string hex,
                    XMQDoc *ixml_grammar,
                    std::map<std::string,std::pair<int,DVEntry>> *dv_entries);

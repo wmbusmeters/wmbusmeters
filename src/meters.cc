@@ -1504,7 +1504,7 @@ void MeterCommonImplementation::processFieldIXMLs(Telegram *t)
                 t->extractPayload(&content);
                 string value = bin2hex(content);
                 debug("(ixml) parsing entire payload %s\n", value.c_str());
-                bool ok = parseWithIXML(t->header_size, value, fi.ixmlGrammar(), &t->dv_entries);
+                bool ok = parseWithIXML(t, t->header_size, value, fi.ixmlGrammar(), &t->dv_entries);
                 if (!ok)
                 {
                     vector<uchar> frame;
@@ -1553,7 +1553,7 @@ void MeterCommonImplementation::processFieldIXMLs(Telegram *t)
                     fi.performExtraction(this, t, dve);
                     string value = getStringValue(&fi);
                     debug("(ixml) parsing field content %s\n", value.c_str());
-                    bool ok = parseWithIXML(dve->offset, value, fi.ixmlGrammar(), &t->dv_entries);
+                    bool ok = parseWithIXML(t, dve->offset, value, fi.ixmlGrammar(), &t->dv_entries);
                     if (!ok)
                     {
                         vector<uchar> frame;
@@ -2866,7 +2866,7 @@ bool FieldInfo::extractString(Meter *m, Telegram *t, DVEntry *dve)
         string extracted;
         dve->extractHexString(&extracted);
         m->setStringValue(this, extracted, dve);
-        t->addMoreExplanation(dve->offset, renderJsonText(m, dve));
+        if (!hasIXML()) t->addMoreExplanation(dve->offset, renderJsonText(m, dve));
         found = true;
     }
     return found;

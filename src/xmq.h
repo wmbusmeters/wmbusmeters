@@ -640,6 +640,12 @@ void xmqSetupPrintSkip(XMQOutputSettings *ps, size_t *skip);
 /** Pretty print the document according to the settings. */
 void xmqPrint(XMQDoc *doc, XMQOutputSettings *settings);
 
+/** Recurse through the document and add offsets.
+    I.e. <root>ABC<a>DEF</a>GHIJ<b>xyz</b></root> wille become
+         <root o="0">ABC<a o="3">DEF</a>GHIJ<b o="10">xyz</b></root>
+*/
+void xmqAnnotateOffsets(XMQDoc *doc);
+
 /** Trim xml whitespace. */
 void xmqTrimWhitespace(XMQDoc *doc, int flags);
 

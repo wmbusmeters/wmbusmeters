@@ -214,7 +214,8 @@ bool tst_ixmlparse(const char *hex, const char *grammar, std::map<std::string,st
     }
 
     string data(hex);
-    b = parseWithIXML(0, data, ixml, dv_entries);
+    Telegram t;
+    b = parseWithIXML(&t, 0, data, ixml, dv_entries);
     if (!b) {
         fprintf(stderr, "Failed to parse %s using IXML grammar: %s\n", hex, grammar);
         return false;

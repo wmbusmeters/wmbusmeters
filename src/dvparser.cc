@@ -663,9 +663,20 @@ string generate_dif_vif_key(const char *dif, const char *vif_range, const char *
     return tostrprintf("%02X%02X", dif_byte, vif_byte);
 }
 
+struct OffsetEntries {
+    Telegram *telegram;
+    int offset;
+    map<string,pair<int,DVEntry>> *dv_entries;
+};
+typedef OffsetEntries OffsetEntries;
+
 XMQProceed add_value(XMQDoc *doc, XMQNode *node, void *user_data)
 {
-    map<string,pair<int,DVEntry>> *dv_entries = (map<string,pair<int,DVEntry>>*)user_data;
+    OffsetEntries *oe = (OffsetEntries*)user_data;
+    Telegram *t = oe->telegram;
+    int offset = oe->offset;
+    map<string,pair<int,DVEntry>> *dv_entries = oe->dv_entries;
+
     const char *difvifkey = xmqGetStringRel(doc, "@difvifkey", node);
     if (!difvifkey) return XMQ_CONTINUE;
 
@@ -673,7 +684,9 @@ XMQProceed add_value(XMQDoc *doc, XMQNode *node, void *user_data)
     const char *hex = xmqGetStringRel(doc, ".", node);
     string value = hex;
 
-    (*dv_entries)[difvifkey] = { 1000, DVEntry(1000,
+    int o = xmqGetIntRel(doc, "@o", node);
+
+    (*dv_entries)[difvifkey] = { offset+o, DVEntry(offset+o,
                                                dvk.str(),
                                                dvk.measurementType(),
                                                Vif(dvk.vif()),
@@ -684,10 +697,13 @@ XMQProceed add_value(XMQDoc *doc, XMQNode *node, void *user_data)
                                                dvk.subUnitNr(),
                                                value) };
 
+    t->addSpecialExplanation(offset+o, value.length()/2, KindOfData::CONTENT, Understanding::FULL, "*** %s", value.c_str());
+
     return XMQ_CONTINUE;
 }
 
-bool parseWithIXML(int offset,
+bool parseWithIXML(Telegram *t,
+                   int offset,
                    std::string hex,
                    XMQDoc *ixml_grammar,
                    std::map<std::string,std::pair<int,DVEntry>> *dv_entries)
@@ -698,6 +714,10 @@ bool parseWithIXML(int offset,
                                     NULL,
                                     ixml_grammar,
                                     0);
+
+    // Add o=12 attributes so that we can print
+    // explanations that map to the original telegram.
+    xmqAnnotateOffsets(decode);
 
     if (isDebugEnabled())
     {
@@ -710,7 +730,10 @@ bool parseWithIXML(int offset,
         debug("(ixml) decoded:\n%s", start);
         free(start);
     }
-    xmqForeach(decode, "//*[@difvifkey]", add_value, dv_entries);
+
+    OffsetEntries oe { t, offset, dv_entries };
+
+    xmqForeach(decode, "//*[@difvifkey]", add_value, &oe);
 
     xmqFreeDoc(decode);
 
