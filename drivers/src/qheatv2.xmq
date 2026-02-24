@@ -10,6 +10,7 @@ driver {
         mvt = QDS,23,37
         mvt = QDS,47,37
         mvt = QDS,48,04
+        mvt = QDS,48,37
     }
     library {
         use = meter_datetime
