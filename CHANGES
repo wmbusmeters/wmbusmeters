@@ -1,3 +1,9 @@
+Version 2.0.0-RC1 2026-03-01
+
+Some drives that previously were c++ to decode mfct specific protocols,
+are now written in xmq containing ixml grammars for understanding the mfct specific
+protocol. This is a major step in the evolution of wmbusmeters towards
+having all drivers in editable textfiles instead of c++ code.
 
 ATTENTION! The qwater driver has been replaced with the qwaterv2 driver.
 Note that the field names are different in the new driver.
