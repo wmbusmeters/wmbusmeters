@@ -34,6 +34,7 @@ namespace
         di.addMVT(MANUFACTURER_MAD,  0x06,  0x50);
         di.addMVT(MANUFACTURER_MAD,  0x07,  0x50);
         di.addMVT(MANUFACTURER_MAD,  0x16,  0x50);
+        di.addMVT(MANUFACTURER_DME,  0x07,  0x63); // Diehl Type 173 variant reusing evo868 payload
 
     });
 
