@@ -33,7 +33,7 @@ using namespace std;
 
 struct DeviceInfo_IU891A
 {
-    uchar module_type; // 109=0x6d=iM891A-XL 110=0x6e=iU891A-XL 163=0xa3=iM881A-XL
+    uchar module_type; // 109=0x6d=iM891A-XL 110=0x6e=iU891A-XL 163=0xa3=iM881A-XL 113=0x71=iU893-XL
     uint32_t uid;
     string uids;
     string product_type;
@@ -50,6 +50,7 @@ struct DeviceInfo_IU891A
         if (module_type == 0x6d) s+="im891a ";
         else if (module_type == 0x6e) s+="iu891a ";
         else if (module_type == 0xa3) s+="im881 ";
+        else if (moduletype == 0x71) mt = "iU893A";
         else s+="unknown_type("+mt+") ";
 
         string ss;
