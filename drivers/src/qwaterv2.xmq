@@ -275,12 +275,12 @@ driver {
         json = '{"_": "telegram","due_17_date": "2025-04-30","due_17_date_m3": 5.819,"due_date": "2024-12-31","due_date_m3": 0,"id": "37439212","media": "radio converter (meter side)","meter": "qwater","meter_datetime": "2025-05-18 15:01","name": "QQ1","status": "OK","timestamp": "1111-11-11T11:11:11Z","total_m3": 6.696}'
         fields = 'QQ1;37439212;6.696;0;2024-12-31;OK;1111-11-11 11:11.11'
     }
-    ///*
-        args = QQ2 qwater 37432649 NOKEY
-// Comment:
-// telegram=|_5344934449264337353778077949264337934435070DFF5F350082560000110007C113FFFF245300001F3C210400003E348946000000800080008000800080008000002A0066005F00730072002F046D000F3235|
-// {"_": "telegram","due_17_date": "2025-04-30","due_17_date_m3": 4.689,"due_date": "2024-12-31","due_date_m3": 0.421,"id": "37432649","media": "radio converter (meter side)","meter": "qwater","meter_datetime": "2025-05-18 15:00","name": "QQ2","status": "OK","timestamp": "1111-11-11T11:11:11Z","total_m3": 5.324}
-// |QQ2;37432649;5.324;0.421;2024-12-31;OK;1111-11-11 11:11.11
+    test {
+        args = 'QQ2 qwater 37432649 NOKEY'
+        telegram =5344934449264337353778077949264337934435070DFF5F350082560000110007C113FFFF245300001F3C210400003E348946000000800080008000800080008000002A0066005F00730072002F046D000F3235
+        json  = '{"_": "telegram","due_17_date": "2025-04-30","due_17_date_m3": 4.689,"due_date": "2024-12-31","due_date_m3": 0.421,"id": "37432649","media": "radio converter (meter side)","meter": "qwater","meter_datetime": "2025-05-18 15:00","name": "QQ2","status": "OK","timestamp": "1111-11-11T11:11:11Z","total_m3": 5.324}'
+        fields = 'QQ2;37432649;5.324;0.421;2024-12-31;OK;1111-11-11 11:11.11'
+    }
 
         args = QQ3 qwater 60101441 NOKEY
 // Comment:
