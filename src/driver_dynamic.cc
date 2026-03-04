@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2023-2024 Fredrik Öhrström (gpl-3.0-or-later)
+ Copyright (C) 2023-2026 Fredrik Öhrström (gpl-3.0-or-later)
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -29,7 +29,10 @@ string check_default_fields(const char *fields, string file);
 void check_detection_triplets(DriverInfo *di, string file);
 
 string check_field_name(const char *name, DriverDynamic *dd);
+string check_field_ixml(const char *ixml, DriverDynamic *dd);
+bool check_field_match_entire_payload(const char *mep, DriverDynamic *dd);
 string check_field_info(const char *info, DriverDynamic *dd);
+ReadableString check_field_readable_string(const char *rs_s, DriverDynamic *dd);
 Quantity check_field_quantity(const char *quantity_s, DriverDynamic *dd);
 VifScaling check_vif_scaling(const char *vif_scaling_s, DriverDynamic *dd);
 DifSignedness check_dif_signedness(const char *dif_signedness_s, DriverDynamic *dd);
@@ -284,6 +287,16 @@ XMQProceed DriverDynamic::add_field(XMQDoc *doc, XMQNode *field, DriverDynamic *
     // All other fields are numeric, ie they have a unit. This also includes date and datetime.
     bool is_numeric = quantity != Quantity::Text;
 
+    // For ixml parsing of mfct specific payloads, payloads that do not even bother with the 0x0f.
+    bool match_entire_payload = check_field_match_entire_payload(xmqGetStringRel(doc, "match_entire_payload", field), dd);
+
+    if (is_numeric && match_entire_payload)
+    {
+        warning("(driver) error in %s, match_entire_payload can only be enabled for quantity=String.\n",
+                dd->fileName().c_str());
+        match_entire_payload = false;
+    }
+
     // The vif scaling is by default Auto but can be overriden for pesky fields.
     VifScaling vif_scaling = check_vif_scaling(xmqGetStringRel(doc, "vif_scaling", field), dd);
 
@@ -295,6 +308,12 @@ XMQProceed DriverDynamic::add_field(XMQDoc *doc, XMQNode *field, DriverDynamic *
 
     // The info fields explains what the value is for. Ie. is storage 1 the previous day or month value etc.
     string info = check_field_info(xmqGetStringRel(doc, "info", field), dd);
+
+    // Check if we override the readable string processing.
+    ReadableString rs = check_field_readable_string(xmqGetStringRel(doc, "readable_string", field), dd);
+
+    // The ixml field can be used to decode mfct specific fields.
+    string ixml = check_field_ixml(xmqGetStringRel(doc, "ixml", field), dd);
 
     // The calculate formula is optional.
     string calculate = check_calculate(xmqGetStringRel(doc, "calculate", field), dd);
@@ -312,6 +331,13 @@ XMQProceed DriverDynamic::add_field(XMQDoc *doc, XMQNode *field, DriverDynamic *
     int num_matches = xmqForeachRel(doc, "match", (XMQNodeCallback)add_match, dd, field);
     // Check if there were any matches at all, if not, then disable the matcher.
     match.active = num_matches > 0;
+
+    if (match.active && match_entire_payload)
+    {
+        warning("(driver) error in %s, match_entire_payload cannot be combined with match { }.\n",
+                dd->fileName().c_str());
+        match_entire_payload = false;
+    }
 
     // Now find all matchers.
     Translate::Lookup lookup = Translate::Lookup();
@@ -379,8 +405,14 @@ XMQProceed DriverDynamic::add_field(XMQDoc *doc, XMQNode *field, DriverDynamic *
                 name,
                 info,
                 properties,
-                match
+                match,
+                ixml,
+                match_entire_payload
                 );
+            if (rs != ReadableString::Unknown)
+            {
+                dd->lastAddedField()->setReadableString(rs);
+            }
         }
     }
     return XMQ_CONTINUE;
@@ -604,7 +636,7 @@ string check_field_name(const char *name, DriverDynamic *dd)
     {
         // Special exception to allow operating_time_h
         Quantity q = toQuantity(u);
-        if (q != Quantity::PointInTime)
+        if (q != Quantity::PointInTime && q != Quantity::Time)
         {
             warning("(driver) error in %s, bad field name %s (field names should not have units)\n"
                     "%s\n"
@@ -626,6 +658,26 @@ string check_field_info(const char *info, DriverDynamic *dd)
     if (!info) return "";
 
     return info;
+}
+
+string check_field_ixml(const char *ixml, DriverDynamic *dd)
+{
+    if (!ixml) return "";
+
+    return ixml;
+}
+
+bool check_field_match_entire_payload(const char *mep, DriverDynamic *dd)
+{
+    if (!mep) return false;
+
+    if (!strcmp(mep, "true")) return true;
+    if (!strcmp(mep, "false")) return false;
+
+    warning("(driver) error in %s, match_entire_payload must be true/false not \"%s\"\n",
+            dd->fileName().c_str(), mep);
+
+    return false;
 }
 
 Quantity check_field_quantity(const char *quantity_s, DriverDynamic *dd)
@@ -662,6 +714,26 @@ Quantity check_field_quantity(const char *quantity_s, DriverDynamic *dd)
     }
 
     return quantity;
+}
+
+ReadableString check_field_readable_string(const char *rs_s, DriverDynamic *dd)
+{
+    if (!rs_s) return ReadableString::Unknown;
+
+    ReadableString rs = toReadableString(rs_s);
+
+    if (rs == ReadableString::Unknown)
+    {
+        warning("(driver) error in %s, bad readable_string: %s\n"
+                "Available readable_string:\n"
+                "Normal\n"
+                "Reversed\n",
+                dd->fileName().c_str(),
+                rs_s);
+        throw 1;
+    }
+
+    return rs;
 }
 
 VifScaling check_vif_scaling(const char *vif_scaling_s, DriverDynamic *dd)

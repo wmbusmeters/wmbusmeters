@@ -1969,6 +1969,14 @@ string reverseBinaryAsciiSafeToString(const string& v)
     return safeString(bytes);
 }
 
+string binaryAsciiSafeToString(const string& v)
+{
+    vector<uchar> bytes;
+    bool ok = hex2bin(v, &bytes);
+    if (!ok) return "BADHEX:"+v;
+    return safeString(bytes);
+}
+
 #define SLIP_END             0xc0    /* indicates end of packet */
 #define SLIP_ESC             0xdb    /* indicates byte stuffing */
 #define SLIP_ESC_END         0xdc    /* ESC ESC_END means END data byte */
@@ -2073,7 +2081,11 @@ bool isLikelyAscii(const string& v)
 
     for (; i < val.size(); ++i)
     {
-        if (val[i] < 20 || val[i] > 126) return false;
+        if (val[i] < 20 || val[i] > 126)
+        {
+            // A meter can have a newline in the string? Woot, looking at you qheat.
+            if (val[i] != 0x0C && val[i] != 0x0A) return false;
+        }
     }
 
     return true;

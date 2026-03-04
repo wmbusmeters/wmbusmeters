@@ -139,29 +139,6 @@ typedef enum XMQColor {
     COLOR_ns_override_xsl,
 } XMQColor;
 
-/**
-   XMQColorName:
-
-   The actual number of colors are fewer than the number of tokens
-   since we reuse colors for several tokens, no need to have different
-   colors for left and right compound parentheses.
-*/
-typedef enum XMQColorName {
-    XMQ_COLOR_C, // Comment
-    XMQ_COLOR_Q, // Quote
-    XMQ_COLOR_E, // Entity
-    XMQ_COLOR_NS, // Name Space (both for element and attribute)
-    XMQ_COLOR_EN, // Element Name
-    XMQ_COLOR_EK, // Element Key
-    XMQ_COLOR_EKV, // Element Key Value
-    XMQ_COLOR_AK, // Attribute Key
-    XMQ_COLOR_AKV, // Attribute Key Value
-    XMQ_COLOR_CP, // Compound Parentheses
-    XMQ_COLOR_NSD, // Name Space Declaration xmlns
-    XMQ_COLOR_UW, // Unicode whitespace
-    XMQ_COLOR_XLS, // Override XLS element names with this color.
-} XMQColorName;
-
 #define XMQ_COLOR_NAMES \
     X(C) \
     X(Q) \
@@ -635,6 +612,7 @@ enum Level;
 #endif
 typedef enum Level Level;
 
+void annotate_offsets(xmlDoc *doc, const char *attribute_name, const char *ns);
 int count_necessary_quotes(const char *start, const char *stop, bool *add_nls, bool *add_compound, bool prefer_double_quotes, bool *use_double_quotes);
 size_t count_necessary_slashes(const char *start, const char *stop);
 
@@ -1590,6 +1568,7 @@ size_t vlo_memusage(vlo_t *vlo);
 #ifndef BUILDING_DIST_XMQ
 #include "always.h"
 #include "membuffer.h"
+#include "xmq.h"
 #endif
 
 struct YaepGrammar;
@@ -1661,6 +1640,8 @@ struct YaepParseRun
     void (*parse_free)(void *mem);
     // The resulting DOM tree is stored here.
     YaepTreeNode *root;
+    // A parse failure is stored here.
+    XMQDoc *failure;
     // Set to true if the parse was ambigious.
     bool ambiguous_p;
     // Set to true if the parse faild.
@@ -1953,7 +1934,7 @@ extern void yaepFreeTree(YaepTreeNode *root,
 /* Terminals are stored a in term set using bits in a bit array.
    The array consists of long ints, typedefed as terminal_bitset_el_t.
    A long int is 8 bytes, ie 64 bits. */
-typedef long int terminal_bitset_t;
+typedef unsigned long int terminal_bitset_t;
 
 /* Calculate the number of required term set elements from the number of bits we want to store. */
 #define CALC_NUM_ELEMENTS(num_bits) ((num_bits+CHAR_BIT*sizeof(terminal_bitset_t)-1)/(CHAR_BIT*sizeof(terminal_bitset_t)))
@@ -3582,6 +3563,8 @@ void ixml_print_grammar(XMQParseState *state);
 
 //////////////////////////////////////////////////////////////////////////////////
 
+void add_key_number(xmlDoc *doc, xmlNode *root, const char *key, int number);
+void add_key_string(xmlDoc *doc, xmlNode *root, const char *key, const char *value);
 void add_nl(XMQParseState *state);
 XMQProceed catch_single_content(XMQDoc *doc, XMQNode *node, void *user_data);
 size_t calculate_buffer_size(const char *start, const char *stop, int indent, const char *pre_line, const char *post_line);
@@ -3594,6 +3577,7 @@ void create_node(XMQParseState *state, const char *start, const char *stop);
 void update_namespace_href(XMQParseState *state, xmlNsPtr ns, const char *start, const char *stop);
 xmlNodePtr create_quote(XMQParseState *state, size_t l, size_t col, const char *start, const char *stop, const char *suffix,  xmlNodePtr parent);
 void debug_content_comment(XMQParseState *state, size_t line, size_t start_col, const char *start, const char *stop, const char *suffix);
+void debug_content_comment_continuation(XMQParseState *state, size_t line, size_t start_col, const char *start, const char *stop, const char *suffix);
 void debug_content_value(XMQParseState *state, size_t line, size_t start_col, const char *start, const char *stop, const char *suffix);
 void debug_content_quote(XMQParseState *state, size_t line, size_t start_col, const char *start, const char *stop, const char *suffix);
 void do_attr_key(XMQParseState *state, size_t line, size_t col, const char *start, const char *stop, const char *suffix);
@@ -3651,6 +3635,7 @@ void cline_print_attributes(XMQPrintState *ps, xmlNode *node);
 void cline_print_attr(XMQPrintState *ps, xmlAttr *a);
 bool write_print_stderr(void *writer_state_ignored, const char *start, const char *stop);
 bool write_print_stdout(void *writer_state_ignored, const char *start, const char *stop);
+bool write_print_memory(void *writer_state_ignored, const char *start, const char *stop);
 void write_safe_html(XMQWrite write, void *writer_state, const char *start, const char *stop);
 void write_safe_tex(XMQWrite write, void *writer_state, const char *start, const char *stop);
 bool xmqVerbose();
@@ -3860,6 +3845,7 @@ void setup_html_coloring(XMQOutputSettings *os, XMQTheme *theme, bool dark_mode,
         MemBuffer *style_pre = new_membuffer();
 
         membuffer_append(style_pre,
+
                          "@media screen and (orientation: portrait) { pre { font-size: 2vw; } }"
                          "@media screen and (orientation: landscape) { pre { max-width: 98%; } }"
                          "pre.xmq_dark {white-space:pre-wrap;word-break:break-all;border-radius:2px;background-color:#263338;border:solid 1px #555555;display:inline-block;padding:1em;color:white;}\n"
@@ -4134,7 +4120,7 @@ void xmqRenderHtmlSettings(XMQOutputSettings *settings,
     if (use_class) settings->use_class = use_class;
 }
 
-void xmqOverrideColor(XMQOutputSettings *os, const char *render_style, XMQSyntax sy, const char *pre, const char *post, const char *ns)
+void xmqOverrideColor(XMQOutputSettings *os, const char *render_style, XMQColorName cn, const char *pre, const char *post, const char *ns)
 {
     //
 }
@@ -4377,15 +4363,21 @@ void xmqSetupPrintStdOutStdErr(XMQOutputSettings *ps)
     ps->error.write = write_print_stderr;
 }
 
+bool write_print_memory(void *writer_state_ignored, const char *start, const char *stop)
+{
+    membuffer_append_region((MemBuffer*)writer_state_ignored, start, stop);
+    return true;
+}
+
 void xmqSetupPrintMemory(XMQOutputSettings *os, char **start, char **stop)
 {
     os->output_buffer_start = start;
     os->output_buffer_stop = stop;
     os->output_buffer = new_membuffer();
     os->content.writer_state = os->output_buffer;
-    os->content.write = (XMQWrite)(void*)membuffer_append_region;
+    os->content.write = write_print_memory;
     os->error.writer_state = os->output_buffer;
-    os->error.write = (XMQWrite)(void*)membuffer_append_region;
+    os->error.write = write_print_memory;
 }
 
 void xmqSetupPrintSkip(XMQOutputSettings *os, size_t *skip)
@@ -4809,34 +4801,44 @@ char *xmq_un_comment(const char *start, const char *stop)
     assert(start < stop);
 
     const char *i = start;
+
+    // Eat slashes.
     while (i < stop && *i == '/') i++;
 
-    if (i == stop)
+    if (i == stop || *i != '*')
     {
-        // Single line all slashes. Drop the two first slashes which are the single line comment.
-        return xmq_trim_quote(start+2, stop, true, true);
-    }
-
-    if (*i != '*')
-    {
-        // No asterisk * after the slashes. This is a single line comment.
+        // No asterisk * after the slashes. This is a single line comment //.....
+        i = start+2;
         // If there is a space after //, skip it.
-        if (*i == ' ') {
-            i++;
-        }
+        if (*i == ' ') i++;
         // Remove trailing spaces.
         while (i < stop && *(stop-1) == ' ') stop--;
         assert(i <= stop);
         return xmq_trim_quote(i, stop, true, true);
     }
 
-    // There is an asterisk after the slashes. A standard /* */ comment
-    // Remove the surrounding / slashes.
-    size_t j = 0;
-    while (*(start+j) == '/' && *(stop-j-1) == '/' && (start+j) < (stop-j)) j++;
+    // Continue to eat slashes.
+    while (i < stop && *i == '/') i++;
 
-    start = start+j;
-    stop = stop-j;
+    if (i == start)
+    {
+        // The asterisk is first, this is a comment continuation.
+        // Remove the ending / slashes.
+        while (*(stop-1) == '/' && stop > start) stop--;
+    }
+    else
+    {
+        // There is an asterisk after the slashes. A standard /* */ comment
+        // Remove the surrounding / slashes.
+        size_t j = 0;
+        while (*(start+j) == '/' && *(stop-j-1) == '/' && (start+j) < (stop-j))
+        {
+            j++;
+        }
+
+        start = start+j;
+        stop = stop-j;
+    }
 
     // Check that the star is there.
     assert(*start == '*' && *(stop-1) == '*');
@@ -5179,6 +5181,22 @@ void debug_content_comment(XMQParseState *state,
     free(trimmed);
 }
 
+void debug_content_comment_continuation(XMQParseState *state,
+                                        size_t line,
+                                        size_t start_col,
+                                        const char *start,
+                                        const char *stop,
+                                        const char *suffix)
+{
+    char *trimmed = xmq_un_comment(start, stop);
+    char *tmp = xmq_quote_as_c(trimmed, trimmed+strlen(trimmed), false);
+    WRITE_ARGS("{comment_continuation \"", NULL);
+    WRITE_ARGS(tmp, NULL);
+    WRITE_ARGS("\"}", NULL);
+    free(tmp);
+    free(trimmed);
+}
+
 void xmqSetupParseCallbacksDebugContent(XMQParseCallbacks *callbacks)
 {
     memset(callbacks, 0, sizeof(*callbacks));
@@ -5186,6 +5204,7 @@ void xmqSetupParseCallbacksDebugContent(XMQParseCallbacks *callbacks)
     callbacks->handle_attr_value_text = debug_content_value;
     callbacks->handle_quote = debug_content_quote;
     callbacks->handle_comment = debug_content_comment;
+    callbacks->handle_comment_continuation = debug_content_comment_continuation;
     callbacks->handle_element_value_quote = debug_content_quote;
     callbacks->handle_element_value_compound_quote = debug_content_quote;
     callbacks->handle_attr_value_quote = debug_content_quote;
@@ -6554,6 +6573,11 @@ void xmqPrint(XMQDoc *doq, XMQOutputSettings *output_settings)
     }
 }
 
+void xmqAnnotateOffsets(XMQDoc *doq, const char *attribute_name, const char *ns)
+{
+    annotate_offsets(doq->docptr_.xml, attribute_name, ns);
+}
+
 // Use an internal bit for signaling comment trimming.
 #define TRIM_COMMENT 65536
 // Use an internal bit for signaling treating tabs as part of incidental indentation.
@@ -7540,7 +7564,8 @@ bool xmq_parse_buffer_html(XMQDoc *doq, const char *start, const char *stop, int
 
     if (should_trim) parse_options |= HTML_PARSE_NOBLANKS;
 
-    doc = htmlReadMemory(start, stop-start, "foof", NULL, parse_options);
+    // Force the use of UTF-8 since the heuristics seem to not do this despite my LANG=sv_SE.UTF-8
+    doc = htmlReadMemory(start, stop-start, NULL, "UTF-8", parse_options);
 
     if (doc == NULL)
     {
@@ -7875,6 +7900,24 @@ XMQParseState *xmq_get_yaep_parse_state(XMQDoc *doc)
     return doc->yaep_parse_state_;
 }
 
+void add_key_number(xmlDoc *doc, xmlNode *root, const char *key, int value)
+{
+    char buf[1024];
+    snprintf(buf, 1024, "%d", value);
+    xmlNodePtr element = xmlNewDocNode(doc, NULL, (xmlChar*)key, NULL);
+    xmlAddChild(root, element);
+    xmlNodePtr text = xmlNewDocText(doc, (xmlChar*)buf);
+    xmlAddChild(element, text);
+}
+
+void add_key_string(xmlDoc *doc, xmlNode *root, const char *key, const char *value)
+{
+    xmlNodePtr element = xmlNewDocNode(doc, NULL, (xmlChar*)key, NULL);
+    xmlAddChild(root, element);
+    xmlNodePtr text = xmlNewDocText(doc, (xmlChar*)value);
+    xmlAddChild(element, text);
+}
+
 void handle_yaep_syntax_error(YaepParseRun *pr,
                               int err_tok_num,
                               void *err_tok_attr,
@@ -7886,19 +7929,43 @@ void handle_yaep_syntax_error(YaepParseRun *pr,
     int line = 0, col = 0;
     find_line_col(pr->buffer_start, pr->buffer_stop, err_tok_num, &line, &col);
 
-    // source.foo:2:26: syntax error
-    printf("ixml:%d:%d: syntax error\n", line, col);
+    char buf[1024];
+    snprintf(buf, 1024, "ixml:%d:%d: syntax error\n", line, col);
     int start = err_tok_num - 20;
     if (start < 0) start = 0;
     int stop = err_tok_num + 20;
 
+    size_t len = strlen(buf);
+    size_t j = len;
     for (int i = start; i < stop && pr->buffer_start[i] != 0; ++i)
     {
-        printf("%c", pr->buffer_start[i]);
+        buf[j++] =  pr->buffer_start[i];
     }
-    printf("\n");
-    for (int i = start; i < err_tok_num; ++i) printf (" ");
-    printf("^\n");
+    buf[j++] = '\n';
+    for (int i = start; i < err_tok_num; ++i)
+    {
+        buf[j++] = ' ';
+    }
+    buf[j++] = '^';
+    buf[j++] = 0;
+
+    xmlDocPtr new_doc = xmlNewDoc((xmlChar*)"1.0");
+    xmlNodePtr root = xmlNewDocNode(new_doc, NULL, (xmlChar*)"ixml", NULL);
+    xmlNsPtr ns = xmlNewNs(root,
+                           (const xmlChar *)"http://invisiblexml.org/NS",
+                           (const xmlChar *)"ixml");
+    xmlSetNsProp(root, ns, (xmlChar*)"state", (xmlChar*)"failed");
+    xmlDocSetRootElement(new_doc, root);
+
+    add_key_string(new_doc, root, "info", buf);
+    add_key_number(new_doc, root, "line", line);
+    add_key_number(new_doc, root, "column", col);
+    add_key_number(new_doc, root, "pos", err_tok_num+1);
+
+    XMQDoc *failure = xmqNewDoc();
+    xmlFreeDoc(failure->docptr_.xml);
+    xmqSetImplementationDoc(failure, new_doc);
+    pr->failure = failure;
 }
 
 const char *node_yaep_type_to_string(YaepTreeNodeType t)
@@ -7924,10 +7991,31 @@ void collect_text(YaepTreeNode *n, MemBuffer *mb)
     if (n->type == YAEP_ANODE)
     {
         YaepAbstractNode *an = &n->val.anode;
-        for (int i=0; an->children[i] != NULL; ++i)
+        if (an->name[0] == '|' && an->name[1] == '+')
         {
-            YaepTreeNode *nn = an->children[i];
-            collect_text(nn, mb);
+            // The content to be inserted has been encoded in the rule name.
+            // A hack yes. Does it work? Yes!
+            if(an->name[2] == '#')
+            {
+                int value = (int)strtol(an->name+3, NULL, 16);
+                UTF8Char utf8;
+                size_t len = encode_utf8(value, &utf8);
+                utf8.bytes[len] = 0;
+                membuffer_append(mb, utf8.bytes);
+            }
+            else
+            {
+                membuffer_append(mb, an->name+2);
+            }
+        }
+        else
+        {
+            // Normal node, recurse into it.
+            for (int i=0; an->children[i] != NULL; ++i)
+            {
+                YaepTreeNode *nn = an->children[i];
+                collect_text(nn, mb);
+            }
         }
     }
     else
@@ -8170,11 +8258,16 @@ bool xmqParseBufferWithIXML(XMQDoc *doc, const char *start, const char *stop, XM
 
     if (rc)
     {
-        // Syntax error has already been printed.
-        return false;
+        // There was an error, pick the generated error tree.
+        xmlFreeDoc(doc->docptr_.xml);
+        xmqSetImplementationDoc(doc, run->failure->docptr_.xml);
+        xmqSetImplementationDoc(run->failure, NULL);
     }
-
-    generate_dom_from_yaep_node(doc->docptr_.xml, NULL, run->root, NULL, 0, 0);
+    else
+    {
+        // IXML parse was fine, generate a DOM from the yaep tree.
+        generate_dom_from_yaep_node(doc->docptr_.xml, NULL, run->root, NULL, 0, 0);
+    }
 
     if (run->ambiguous_p)
     {
@@ -8185,7 +8278,6 @@ bool xmqParseBufferWithIXML(XMQDoc *doc, const char *start, const char *stop, XM
 
         xmlSetNsProp(element, ns, (xmlChar*)"state", (xmlChar*)"ambiguous");
     }
-
 
     if (run->root) yaepFreeTree(run->root, NULL, NULL);
 
@@ -8230,7 +8322,7 @@ char *xmqCompactQuote(const char *content)
     xmlNode node;
     memset(&node, 0, sizeof(node));
     node.content = (xmlChar*)content;
-    print_value(&ps , &node, LEVEL_ATTR_VALUE);
+    print_value(&ps , &node, LEVEL_ELEMENT_VALUE);
 
     membuffer_append_null(mb);
 
@@ -9573,6 +9665,9 @@ MemBuffer *new_membuffer()
     MemBuffer *mb = (MemBuffer*)malloc(sizeof(MemBuffer));
     check_malloc(mb);
     memset(mb, 0, sizeof(*mb));
+    mb->buffer_ = (char*)malloc(1024);
+    mb->max_ = 1024;
+    mb->used_ = 0;
     return mb;
 }
 
@@ -9589,6 +9684,7 @@ void free_membuffer_and_free_content(MemBuffer *mb)
 {
     if (mb->buffer_) free(mb->buffer_);
     mb->buffer_ = NULL;
+    mb->used_ = mb->max_ = 0;
     free(mb);
 }
 
@@ -9596,6 +9692,7 @@ void membuffer_reuse(MemBuffer *mb, char *start, size_t len)
 {
     if (mb->buffer_) free(mb->buffer_);
     mb->buffer_ = start;
+    assert(mb->buffer_ != NULL);
     mb->used_ = mb->max_ = len;
 }
 
@@ -9626,6 +9723,7 @@ void membuffer_append_region(MemBuffer *mb, const char *start, const char *stop)
     if (max > mb->max_)
     {
         mb->buffer_ = (char*)realloc(mb->buffer_, max);
+        check_malloc(mb->buffer_);
         mb->max_ = max;
     }
     memcpy(mb->buffer_+mb->used_, start, add);
@@ -9634,8 +9732,13 @@ void membuffer_append_region(MemBuffer *mb, const char *start, const char *stop)
 
 void membuffer_append(MemBuffer *mb, const char *start)
 {
+    // Check if empty string, then do nothing.
+    if (*start == 0) return;
+
     const char *i = start;
     char *to = mb->buffer_+mb->used_;
+    assert(mb->buffer_ != NULL);
+    assert(mb->max_ > 0);
     const char *stop = mb->buffer_+mb->max_;
 
     while (*i)
@@ -9646,6 +9749,7 @@ void membuffer_append(MemBuffer *mb, const char *start)
             size_t max = pick_buffer_new_size(mb->max_, mb->used_, 1);
             assert(max >= mb->max_);
             mb->buffer_ = (char*)realloc(mb->buffer_, max);
+            check_malloc(mb->buffer_);
             mb->max_ = max;
             stop = mb->buffer_+mb->max_;
             to = mb->buffer_+mb->used_;
@@ -9663,6 +9767,7 @@ void membuffer_append_char(MemBuffer *mb, char c)
     if (max > mb->max_)
     {
         mb->buffer_ = (char*)realloc(mb->buffer_, max);
+        check_malloc(mb->buffer_);
         mb->max_ = max;
     }
     memcpy(mb->buffer_+mb->used_, &c, 1);
@@ -9676,6 +9781,7 @@ void membuffer_append_int(MemBuffer *mb, int i)
     if (max > mb->max_)
     {
         mb->buffer_ = (char*)realloc(mb->buffer_, max);
+        check_malloc(mb->buffer_);
         mb->max_ = max;
     }
     memcpy(mb->buffer_+mb->used_, &i, sizeof(i));
@@ -9721,6 +9827,7 @@ void membuffer_append_pointer(MemBuffer *mb, void *ptr)
     if (max > mb->max_)
     {
         mb->buffer_ = (char*)realloc(mb->buffer_, max);
+        check_malloc(mb->buffer_);
         mb->max_ = max;
     }
     memcpy(mb->buffer_+mb->used_, &ptr, sizeof(ptr));
@@ -18767,6 +18874,45 @@ void element_strlen_name_prefix(xmlNode *element, const char **name, const char 
     assert(*name != NULL);
 }
 
+struct OffsetCounter {
+    int offset;
+    const char *attribute_name;
+    const char *ns;
+};
+typedef struct OffsetCounter OffsetCounter;
+
+void annotate_node(OffsetCounter *counter, xmlNode *node);
+
+void annotate_offsets(xmlDoc *doc, const char *attribute_name, const char *ns)
+{
+    OffsetCounter c;
+    c.offset = 0;
+    c.attribute_name = attribute_name;
+    c.ns = ns;
+    annotate_node(&c, xmlDocGetRootElement(doc));
+}
+
+void annotate_node(OffsetCounter *counter, xmlNode *node)
+{
+    char buf[64];
+    snprintf(buf, 64, "%d", counter->offset);
+    xmlSetProp(node, (xmlChar*)counter->attribute_name, (xmlChar*)buf);
+    if (node->type == XML_ELEMENT_NODE)
+    {
+        xmlNode *i = xml_first_child(node);
+        while (i)
+        {
+            xmlNode *next = xml_next_sibling(i);
+            annotate_node(counter, i);
+            i = next;
+        }
+    }
+    else if (node->type == XML_TEXT_NODE)
+    {
+        counter->offset += strlen((const char*)node->content);
+    }
+}
+
 #endif // XMQ_PRINTER_MODULE
 
 // PART C YAEP_ALLOCATE_C ////////////////////////////////////////
@@ -19792,16 +19938,21 @@ _VLO_add_string_function (vlo_t * vlo, const char *str)
 void
 _VLO_expand_memory (vlo_t * vlo, size_t additional_length)
 {
-  size_t vlo_length;
+  size_t vlo_length, old_vlo_length;
   char *new_vlo_start;
 
   assert (vlo->vlo_start != NULL);
-  vlo_length = VLO_LENGTH (*vlo) + additional_length;
+  old_vlo_length = VLO_LENGTH (*vlo);
+  vlo_length = old_vlo_length + additional_length;
   vlo_length += vlo_length / 2 + 1;
   new_vlo_start = (char*)yaep_realloc (vlo->vlo_alloc, vlo->vlo_start, vlo_length);
   if (new_vlo_start != vlo->vlo_start)
     {
-      vlo->vlo_stop += new_vlo_start - vlo->vlo_start;
+     // Fix for fil-c, rewrite: vlo->vlo_stop += new_vlo_start - vlo->vlo_start;
+     // because the new stop gets the old fil-c ptr capabilities and becomes out of bounds.
+     // Better to use:
+     vlo->vlo_stop  = new_vlo_start + old_vlo_length;
+     // This creates a new capability that points into the new memory object created by realloc.
       vlo->vlo_start = new_vlo_start;
     }
   vlo->vlo_segment_stop = vlo->vlo_start + vlo_length;
@@ -20074,6 +20225,8 @@ YaepSymbol *symb_add_terminal(YaepParseState *ps, const char*name, int code)
     YaepSymbol symb, *result;
     hash_table_entry_t *repr_entry, *code_entry;
 
+    memset(&symb, 0, sizeof(symb));
+
     symb.repr = name;
     if (code >= 32 && code <= 126)
     {
@@ -20116,7 +20269,10 @@ YaepSymbol *symb_add_nonterm(YaepParseState *ps, const char *name)
     YaepSymbol symb,*result;
     hash_table_entry_t*entry;
 
+    memset(&symb, 0, sizeof(symb));
+
     symb.repr = name;
+
     strncpy(symb.hr, name, 6);
 
     symb.is_terminal = false;
@@ -20763,6 +20919,7 @@ static void loop_stack(YaepTreeNode **result,
         }
         int pos_j = --state->dot_j;
         rule = state->rule;
+        assert(rule);
         YaepParseTreeBuildState *parent_anode_state = state->parent_anode_state;
         YaepTreeNode *parent_anode = parent_anode_state->anode;
         int parent_rhs_offset = state->parent_rhs_offset;
@@ -22709,6 +22866,12 @@ static void setup_set_matched_lengths_hash(hash_table_entry_t s)
     unsigned result = jauquet_prime_mod32;
 
     int *i = set->matched_lengths;
+    if (num_matched_lengths == 0 || i == NULL)
+    {
+        set->matched_lengths_hash = 0;
+        return;
+    }
+
     int *stop = i + num_matched_lengths;
 
     while (i < stop)
@@ -23006,6 +23169,10 @@ YaepParseRun *yaepNewParseRun(YaepGrammar *g)
 void yaepFreeParseRun(YaepParseRun *pr)
 {
     YaepParseState *ps = (YaepParseState*)pr;
+    if (ps->run.failure)
+    {
+        xmqFreeDoc(ps->run.failure);
+    }
     assert(CHECK_PARSE_STATE_MAGIC(ps));
     free(ps);
 }
@@ -24513,7 +24680,7 @@ static YaepStateSetTermLookAhead *lookup_cached_set_term_lookahead(YaepParseStat
                 {
                     YaepSymbol *lookahead_symb = symb_find_by_term_id(ps, new_set_term_lookahead->lookahead_term);
                     const char *losymb = "";
-                    if (lookahead_symb && lookahead_symb->hr) losymb = lookahead_symb->hr;
+                    if (lookahead_symb) losymb = lookahead_symb->hr;
 
                     yaep_trace(ps, "found stlg [s%d %s %s] -> s%d",
                                new_set_term_lookahead->set->id,
@@ -24561,7 +24728,7 @@ static void save_cached_set(YaepParseState *ps, YaepStateSetTermLookAhead *entry
     {
         YaepSymbol *lookahead_symb = symb_find_by_term_id(ps, entry->lookahead_term);
         const char *losymb = "";
-        if (lookahead_symb && lookahead_symb->hr) losymb = lookahead_symb->hr;
+        if (lookahead_symb) losymb = lookahead_symb->hr;
         yaep_trace(ps, "store stlg [s%d %s %s] -> s%d",
                    entry->set->id,
                    entry->term->hr,
@@ -24687,7 +24854,7 @@ static void *parse_alloc_default(int nmemb)
 
     assert(nmemb > 0);
 
-    result = malloc(nmemb);
+    result = calloc(1, nmemb);
     if (result == NULL)
     {
         exit(1);

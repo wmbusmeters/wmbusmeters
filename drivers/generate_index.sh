@@ -4,6 +4,11 @@ mkdir -p ../build/web
 
 #########################################################
 
+echo -n "Copying drivers"
+cp src/*.xmq ../build/web
+
+#########################################################
+
 echo -n "Generating html for xmq files"
 for i in src/*
 do

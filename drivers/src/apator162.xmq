@@ -1,0 +1,117 @@
+// Copyright (C) 2026 Fredrik Öhrström (gpl-3.0-or-later)
+driver {
+    name           = apator162
+    meter_type     = WaterMeter
+    default_fields = name,id,total_m3,timestamp
+    manufacturer   = Apator
+    model          = 162
+    detect {
+        mvt = APA,05,06
+        mvt = APA,05,07
+    }
+    library {
+        use = total_m3
+    }
+    fields {
+        field {
+            name                 = mfct_specific_data
+            quantity             = Text
+            attributes           = HIDE
+            match_entire_payload = true
+            /* An IXML grammar for decoding apator telegrams.
+                This grammar handles the overall structure but so far
+                only extracts the total volume in liters.
+                Sometimes the apator payload leads with a nice 0x0f which
+                means mft specific data. Sometimes the apator payload (older meters?)
+                lead with 0x80 and then we have a good crash test for the difvif parser. :-)
+                (Hint it hasn't crashed so far.) */
+            ixml = "decode = -byte, status, field*, end_FF.
+                    -hex  = ['A'-'F';'0'-'9'].
+                    -byte = hex, hex.
+                    -word = byte, byte.
+                    -triplet = byte, byte, byte.
+                    -quad = byte, byte, byte, byte.
+
+                    status = byte, byte, byte, byte, byte, byte, byte.
+
+                    -field = date | faults | total | flow | detectors | voltage | energy | days | woot_44 |
+                             woot_71 | woot_72 | woot_73 | woot_74 | woot_75 | woot_76 | woot_77 | woot_78 | woot_79 |
+                             woot_7A |woot_7B | woot_8x | woot_8xx | woot_8A | woot_8B | woot_8C | woot_8E |
+                             woot_A0 | woot_A1 | woot_A2 | woot_A3 | woot_A4 | woot_A5 | woot_A6 | woot_A9 | woot_AF |
+                             woot_Ax | woot_B0 |
+                             woot_B1 | woot_B2 | woot_B3 | woot_B4 | woot_B5 | woot_Bx | woot_Cx | woot_Dx | woot_F0.
+
+                    date      = -'00', quad.
+                    faults    = -'01', triplet.
+                    total     = -'10', quad, @DV_0413.
+                    flow      = -'11', word.
+                    detectors = -'40', triplet, triplet.
+                    voltage   = -'41', word.
+                    energy    = -'42', quad.
+                    days      = -'43', word.
+                    woot_44   = -'44', triplet.
+
+                    woot_71   = -'71', byte, quad, quad.
+                    woot_72   = -'72', byte, quad, quad, quad.
+                    woot_73   = -'73', byte, quad, quad, quad, quad.
+                    woot_74   = -'74', byte, quad, quad, quad, quad, quad.
+                    woot_75   = -'75', byte, quad, quad, quad, quad, quad, quad.
+                    woot_76   = -'76', byte, quad, quad, quad, quad, quad, quad, quad.
+                    woot_77   = -'77', byte, quad, quad, quad, quad, quad, quad, quad, quad.
+                    woot_78   = -'78', byte, quad, quad, quad, quad, quad, quad, quad, quad, quad.
+                    woot_79   = -'79', byte, quad, quad, quad, quad, quad, quad, quad, quad, quad, quad.
+                    woot_7A   = -'7A', byte, quad, quad, quad, quad, quad, quad, quad, quad, quad, quad, quad.
+                    woot_7B   = -'7B', byte, quad, quad, quad, quad, quad, quad, quad, quad, quad, quad, quad, quad.
+
+                    woot_8x   = eights, quad, quad, word.
+                    -eights = -'80' | -'81' | -'82' | -'83' | -'84' | -'86' | -'87'.
+
+                    woot_8xx   = eightsx, quad, quad, triplet.
+                    -eightsx = -'85' | -'88' | -'8F'.
+
+                    woot_8A   = -'8A', quad, quad, byte.
+
+                    woot_8B   = -'8B', triplet, triplet.
+                    woot_8C   = -'8C', triplet, triplet.
+
+                    woot_8E   = -'8E', quad, triplet.
+
+                    woot_Ax   = (-'A7' | -'A8' | -'AA' | -'AB' | -'AC' | -'AD'), word.
+                    woot_A0   = -'A0', quad.
+                    woot_A1   = -'A1', quad.
+                    woot_A2   = -'A2', byte.
+                    woot_A3   = -'A3', triplet, triplet, byte.
+                    woot_A4   = -'A4', quad.
+                    woot_A5   = -'A5', byte.
+                    woot_A6   = -'A6', triplet.
+                    woot_A9   = -'A9', byte.
+                    woot_AF   = -'AF', byte.
+
+                    woot_B0   = -'B0', quad, byte.
+                    woot_B1   = -'B1', quad, quad.
+                    woot_B2   = -'B2', quad, quad, quad, quad.
+                    woot_B3   = -'B3', quad, quad.
+                    woot_B4   = -'B4', word.
+                    woot_B5   = -'B5', quad, quad, quad, quad.
+
+                    woot_Bx   = (-'B6' | -'B7' | -'B8' | -'B9' | -'BA' | -'BB' | -'BC' | -'BD' | -'BE' | -'BF'), triplet.
+                    woot_Cx   = (-'C0' | -'C1' | -'C2' | -'C3' | -'C4' | -'C5' | -'C6' | -'C7'), triplet.
+
+                    woot_Dx   = (-'D0' | -'D3'), triplet.
+
+                    woot_F0   = -'F0', quad.
+
+                    end_FF    = -'FF', byte*.
+
+                    DV_0413>dvk = +'0413'."
+        }
+    }
+    tests {
+        test {
+            args     = 'Wasser apator162 20202020 NOKEY'
+            telegram = 6E4401062020202005077A9A006085|2F2F0F0A734393CC0000435B0183001A54E06F630291342510|030F00007B013E0B00003E0B00003E0B00003E0B00003E0B00003E0B00003E0B0000650000003D0000003D0000003D00000000000000A0910CB003FFFFFFFFFFFFFFFFFFFFA62B
+            json     = '{"_":"telegram","media":"water","meter":"apator162","name":"Wasser","id":"20202020","total_m3":3.843,"timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'Wasser;20202020;3.843;1111-11-11 11:11.11'
+        }
+    }
+}

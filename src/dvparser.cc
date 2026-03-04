@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2018-2024 Fredrik Öhrström (gpl-3.0-or-later)
+ Copyright (C) 2018-2026 Fredrik Öhrström (gpl-3.0-or-later)
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -267,6 +267,28 @@ bool parseDV(Telegram *t,
                 string value = bin2hex(data+1, data_end, datalen-1);
                 t->mfct_0f_index = 1+std::distance(data_start, data);
                 assert(t->mfct_0f_index >= 0);
+                set<VIFCombinable> no_combinable_vifs;
+                set<uint16_t> no_combinable_vifs_raw;
+                key = "0f";
+                (*dv_entries)[key] = { t->mfct_0f_index, DVEntry(t->mfct_0f_index,
+                                                       DifVifKey(key),
+                                                       MeasurementType::Instantaneous,
+                                                       Vif(0x7f),
+                                                       no_combinable_vifs,
+                                                       no_combinable_vifs_raw,
+                                                       StorageNr(0),
+                                                       TariffNr(0),
+                                                       SubUnitNr(0),
+                                                       value) };
+
+                DVEntry *dve = &(*dv_entries)[key].second;
+
+                if (isTraceEnabled())
+                {
+                    trace("[DVPARSER] entry %s\n", dve->str().c_str());
+                }
+
+                assert(key == dve->dif_vif_key.str());
                 t->addExplanationAndIncrementPos(data, datalen, KindOfData::CONTENT, Understanding::NONE, "%02X manufacturer specific data %s", dif, value.c_str());
                 break;
             }
@@ -580,6 +602,144 @@ bool parseDV(Telegram *t,
     return true;
 }
 
+int difNameToNr(const char *dif)
+{
+    if (!strcmp(dif, "int8")) return 0x1;
+    if (!strcmp(dif, "int16")) return 0x2;
+    if (!strcmp(dif, "int24")) return 0x3;
+    if (!strcmp(dif, "int32")) return 0x4;
+    if (!strcmp(dif, "real32")) return 0x5;
+    if (!strcmp(dif, "int48")) return 0x6;
+    if (!strcmp(dif, "int64")) return 0x7;
+    if (!strcmp(dif, "bcd2")) return 0x9;
+    if (!strcmp(dif, "bcd4")) return 0xA;
+    if (!strcmp(dif, "bcd6")) return 0xB;
+    if (!strcmp(dif, "bcd8")) return 0xC;
+    if (!strcmp(dif, "bcd12")) return 0xE;
+    return 0;
+}
+
+int measurementTypeToNr(const char *mt)
+{
+    if (!strcmp(mt, "Instantaneous")) return 0x00;
+    if (!strcmp(mt, "Maximum")) return 0x10;
+    if (!strcmp(mt, "Minimum")) return 0x20;
+    if (!strcmp(mt, "ValueDuringErrorState")) return 0x20;
+    return 0;
+}
+
+int vifRangeAndUnitToNr(const char *vif_range, const char *unit)
+{
+    if (!strcmp(vif_range, "Volume"))
+    {
+        if (!strcmp(unit, "m3"))
+        {
+            return 0x16;
+        }
+        if (!strcmp(unit, "l"))
+        {
+            return 0x13;
+        }
+    }
+    if (!strcmp(vif_range, "Energy"))
+    {
+        if (!strcmp(unit, "m3"))
+        {
+            return 0x16;
+        }
+        if (!strcmp(unit, "l"))
+        {
+            return 0x13;
+        }
+    }
+    return 0;
+}
+
+string generate_dif_vif_key(const char *dif, const char *vif_range, const char *unit)
+{
+    int dif_byte = difNameToNr(dif);
+    int vif_byte = vifRangeAndUnitToNr(vif_range, unit);
+
+    return tostrprintf("%02X%02X", dif_byte, vif_byte);
+}
+
+struct OffsetEntries {
+    Telegram *telegram;
+    int offset;
+    map<string,pair<int,DVEntry>> *dv_entries;
+};
+typedef OffsetEntries OffsetEntries;
+
+XMQProceed add_value(XMQDoc *doc, XMQNode *node, void *user_data)
+{
+    OffsetEntries *oe = (OffsetEntries*)user_data;
+    Telegram *t = oe->telegram;
+    int offset = oe->offset;
+    map<string,pair<int,DVEntry>> *dv_entries = oe->dv_entries;
+
+    const char *difvifkey = xmqGetStringRel(doc, "@dvk", node);
+    if (!difvifkey) return XMQ_CONTINUE;
+
+    DifVifKey dvk(difvifkey);
+    const char *hex = xmqGetStringRel(doc, ".", node);
+    string value = hex;
+
+    int o = xmqGetIntRel(doc, "@off", node);
+
+    (*dv_entries)[difvifkey] = { offset+o, DVEntry(offset+o,
+                                               dvk.str(),
+                                               dvk.measurementType(),
+                                               Vif(dvk.vif()),
+                                               {},
+                                               {},
+                                               dvk.storageNr(),
+                                               dvk.tariffNr(),
+                                               dvk.subUnitNr(),
+                                               value) };
+
+    t->addSpecialExplanation(offset+o, value.length()/2, KindOfData::CONTENT, Understanding::FULL, "*** %s", value.c_str());
+
+    return XMQ_CONTINUE;
+}
+
+bool parseWithIXML(Telegram *t,
+                   int offset,
+                   std::string hex,
+                   XMQDoc *ixml_grammar,
+                   std::map<std::string,std::pair<int,DVEntry>> *dv_entries)
+{
+    XMQDoc *decode = xmqNewDoc();
+    bool b = xmqParseBufferWithIXML(decode,
+                                    hex.c_str(),
+                                    NULL,
+                                    ixml_grammar,
+                                    0);
+
+    // Add o=12 attributes so that we can print
+    // explanations that map to the original telegram.
+    xmqAnnotateOffsets(decode, "off", NULL);
+
+    if (isDebugEnabled())
+    {
+        XMQOutputSettings *os = xmqNewOutputSettings();
+        char *start;
+        char *stop;
+        xmqSetupPrintMemory(os, &start, &stop);
+        xmqPrint(decode, os);
+        xmqFreeOutputSettings(os);
+        debug("(ixml) decoded:\n%s", start);
+        free(start);
+    }
+
+    OffsetEntries oe { t, offset, dv_entries };
+
+    xmqForeach(decode, "//*[@dvk]", add_value, &oe);
+
+    xmqFreeDoc(decode);
+
+    return b;
+}
+
 bool hasKey(std::map<std::string,std::pair<int,DVEntry>> *dv_entries, std::string key)
 {
     return dv_entries->count(key) > 0;
@@ -624,13 +784,21 @@ bool findKeyWithNr(MeasurementType mit, VIFRange vif_range, StorageNr storagenr,
     return false;
 }
 
-void extractDV(DifVifKey &dvk, uchar *dif, int *vif, bool *has_difes, bool *has_vifes)
+void extractDV(DifVifKey &dvk, uchar *dif, int *vif, bool *has_difes, bool *has_vifes,
+               MeasurementType *measurement_type,
+               StorageNr *storage_nr,
+               TariffNr *tariff_nr,
+               SubUnitNr *subunit_nr)
 {
     string tmp = dvk.str();
-    extractDV(tmp, dif, vif, has_difes, has_vifes);
+    extractDV(tmp, dif, vif, has_difes, has_vifes, measurement_type, storage_nr, tariff_nr, subunit_nr);
 }
 
-void extractDV(string &s, uchar *dif, int *vif, bool *has_difes, bool *has_vifes)
+void extractDV(string &s, uchar *dif, int *vif, bool *has_difes, bool *has_vifes,
+               MeasurementType *measurement_type,
+               StorageNr *storage_nr,
+               TariffNr *tariff_nr,
+               SubUnitNr *subunit_nr)
 {
     vector<uchar> bytes;
     hex2bin(s, &bytes);
@@ -645,12 +813,30 @@ void extractDV(string &s, uchar *dif, int *vif, bool *has_difes, bool *has_vifes
     }
 
     *dif = bytes[i];
+    int lsb_of_storage_nr = (*dif & 0x40) >> 6;
+    int storage = lsb_of_storage_nr;
+    int difenr = 0;
+    int subunit = 0;
+    int tariff = 0;
+    *measurement_type = difMeasurementType(*dif);
     while (i < bytes.size() && (bytes[i] & 0x80))
     {
         i++;
+        int dife = bytes[i];
+        int subunit_bit = (dife & 0x40) >> 6;
+        subunit |= subunit_bit << difenr;
+        int tariff_bits = (dife & 0x30) >> 4;
+        tariff |= tariff_bits << (difenr*2);
+        int storage_nr_bits = (dife & 0x0f);
+        storage |= storage_nr_bits << (1+difenr*4);
         *has_difes = true;
+        difenr++;
     }
     i++;
+
+    *storage_nr = StorageNr(storage);
+    *tariff_nr = TariffNr(tariff);
+    *subunit_nr = SubUnitNr(subunit);
 
     if (i >= bytes.size())
     {
@@ -1195,6 +1381,39 @@ bool DVEntry::extractReadableString(string *out)
     }
 
     *out = v;
+    return true;
+}
+
+bool DVEntry::extractReadableStringReversed(string *out)
+{
+    int t = dif_vif_key.dif() & 0xf;
+
+    string v = value;
+
+    if (t == 0x1 || // 8 Bit Integer/Binary
+        t == 0x2 || // 16 Bit Integer/Binary
+        t == 0x3 || // 24 Bit Integer/Binary
+        t == 0x4 || // 32 Bit Integer/Binary
+        t == 0x6 || // 48 Bit Integer/Binary
+        t == 0x7 || // 64 Bit Integer/Binary
+        t == 0xD)   // Variable length
+    {
+        if (isLikelyAscii(v))
+        {
+            // For example an enhanced id var len bits binary looks like:
+            // 414620689344470C and will be translated using ascii
+            // to ABCD
+            v = binaryAsciiSafeToString(v);
+        }
+    }
+
+    *out = v;
+    return true;
+}
+
+bool DVEntry::extractHexString(string *out)
+{
+    *out = value;
     return true;
 }
 

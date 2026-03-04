@@ -35,4 +35,8 @@ pretty:
 test:
 	@for i in $(wildcard src/*) ; do ./test.sh $(PROG) $$i ; done
 
+testonly:
+	@if [ -z "$(DRIVER)" ]; then echo "Usage: make testonly DRIVER=abc"; exit 1; fi
+	@./test.sh $(PROG) src/$(DRIVER).xmq
+
 .PHONY: database web tests install test

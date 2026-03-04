@@ -122,7 +122,7 @@ void parseMeterConfig(Configuration *c, vector<char> &buf, string file)
                 warning("Found invalid meter bus \"%s\" in meter config file, skipping meter.\n", bus.c_str());
                 return;
             }
-        } 
+        }
         else if (p.first == "name")
         {
             name = p.second;
@@ -150,7 +150,7 @@ void parseMeterConfig(Configuration *c, vector<char> &buf, string file)
             key = p.second;
             debug("(config) key=<notprinted>\n");
         }
-        else if (p.first == "pollinterval") 
+        else if (p.first == "pollinterval")
         {
             if (poll_interval != 0)
             {
@@ -163,7 +163,7 @@ void parseMeterConfig(Configuration *c, vector<char> &buf, string file)
                 error("Poll interval must be non-zero \"%s\"!\n", p.second.c_str());
             }
         }
-        else if (p.first == "identitymode") 
+        else if (p.first == "identitymode")
         {
             identity_mode = toIdentityMode(p.second.c_str());
 
@@ -172,15 +172,15 @@ void parseMeterConfig(Configuration *c, vector<char> &buf, string file)
                 error("Invalid identity mode: \"%s\"!\n", p.second.c_str());
             }
         }
-        else if (p.first == "shell") 
+        else if (p.first == "shell")
         {
             telegram_shells.push_back(p.second);
         }
-        else if (p.first == "metershell") 
+        else if (p.first == "metershell")
         {
             new_meter_shells.push_back(p.second);
         }
-        else if (p.first == "alarmshell") 
+        else if (p.first == "alarmshell")
         {
             alarm_shells.push_back(p.second);
         }
@@ -399,7 +399,7 @@ bool handleDeviceOrHex(Configuration *c, string devicefilehex)
     {
         if (invalid_hex)
         {
-            error("Hex string must have an even length of hexadecimal characters.\n");
+            error("Bad hex: \"%s\"\nHex string must have an even length of hexadecimal characters.\n", devicefilehex.c_str());
         }
     }
 

@@ -57,6 +57,10 @@ field {
 }
 ```
 
+All native drivers are going to be rewritten in this form.
+If you want to create a new driver, write it directly in xmq form.
+I am not accepting new drivers as C++ code.
+
 [FAQ/WIKI/MANUAL pages](https://wmbusmeters.github.io/wmbusmeters-wiki/)
 
 The program runs on GNU/Linux, MacOSX, FreeBSD, and Raspberry Pi.
@@ -454,7 +458,7 @@ depending on if you are running as a daemon or not.
 # Running without config files, good for experimentation and test.
 
 ```
-wmbusmeters version: 1.20.0
+wmbusmeters version: 2.0.0
 Usage: wmbusmeters {options} [device] { [meter_name] [meter_driver] [meter_id] [meter_key] }*
        wmbusmeters {options} [hex]    { [meter_name] [meter_driver] [meter_id] [meter_key] }*
        wmbusmetersd {options} [pid_file]
@@ -592,6 +596,8 @@ These telegrams are expected to have the data link layer crc bytes removed alrea
 `stdin:jsonl`, to read decode requests as json lines.
 `{"_":"decode", "telegram":"234433300602010014007a8e0400002f2f0efd3a1147000000008e40fd3a341200000000", "key":"...", "driver":"...", "format":"mbus"}`
 Only the "_" and "telegram" fields are required.
+
+`telegrams.jsonl:jsonl`, to read the file telegrams.jsonl and decode each line as json.
 
 `telegrams.bin:rawtty`, to read raw wmbus telegrams from this file.
 These telegrams are expected to have the data link layer crc bytes removed already!
@@ -952,8 +958,9 @@ supplied on the command line it must be a proper hex string with no spaces.
 When a telegram is supplied on the command line, then any valid dll crcs will be automatically removed,
 like when the telegram is suppled in a simulation file.
 
-You can analyze a telegram, this is useful when developing new drivers or trying
-to find which driver is the best fit for an unknown mfct,type,ver combo.
+You can analyze a telegram (test every builtin driver on the telegram) this is useful when developing
+new drivers or trying to find which driver is the best fit for an unknown mfct,type,ver combo.
+It also prints an easy to understand table of the telegram contents.
 
 ```shell
 wmbusmeters --analyze 3E44A5119035246141047A1A0030052F2F#0C06026301000C13688609040B3B0802000C2B220000F00A5A71020A5E72020AA61800004C0636370100426CBF25
@@ -1064,10 +1071,17 @@ If you like to send the bytes manually, the correct bytes are:
 # How to add a new driver
 
 Drivers for OMS-compliant meters are text files `drivers/src/*.xmq`
-First collect an unecrypted telegram as a hex string <hex> using --logtelegrams and any other driver.
-Then run `wmbusmeters --analyze <hex>` to see the best match.
+First collect an unecrypted telegram as a hex string <hex> using --logtelegrams and any other driver, like iperl:
 
-Copy that meters aaa,xmq file to a new filename bbb.xmq and change the name field from aaa to bbb in the driver source.
+`wmbusmeters --logtelegrams <hex> MyMeter iperl <id> <key>`
+
+You will get a line like: `telegram=|.....hex.....|+1`
+
+Extract the hex which is the decrypted telegram, now run
+`wmbusmeters --analyze <hex>` to see the best match.
+
+Copy that meters aaa,xmq file to a new filename bbb.xmq and change the
+name field from aaa to bbb in the driver source.
 
 Now run the new driver with `wmbusmeters --analyze=drivers/src/bbb.xmq <hex>`
 and start modifying the driver until it produces the desired json output.
@@ -1076,14 +1090,7 @@ You can now run `make; make install` from within the drivers directory
 and then rebuild from the wmbusmeters directory `make`. The new driver is now
 compiled into the binary.
 
-You can also put the new driver file bbb.xmq into /etc/wmbusmeters.drivers.d and it will immediately
-be available to the wmbusmeters program without recompiling.
-
-# Caveat
-
-If you do not get proper readings from the meters with non-standard protocols. apator162, mkradio3, vario451
-then you have to open an issue here and help out by logging a lot of messages and reverse engineer them
-even more..... :-/
+You can also put the new driver file bbb.xmq into /etc/wmbusmeters.drivers.d and it will immediately be available to the wmbusmeters program without recompiling.
 
 # Good free documents on the wireless mbus protocol standard EN 13757
 

@@ -1,3 +1,29 @@
+Version 2.0.0 2026-03-01
+Version 2.0.0-RC1 2026-03-01
+
+Some drives that previously were c++ to decode mfct specific protocols,
+are now written in xmq containing ixml grammars for understanding the mfct specific
+protocol. This is a major step in the evolution of wmbusmeters towards
+having all drivers in editable textfiles instead of c++ code.
+
+ATTENTION! The qwater driver has been replaced with the qwaterv2 driver.
+Note that the field names are different in the new driver.
+New auto lookups will use the qwaterv2, the old qheat will remain for 6 months.
+After which the old qwater driver will be removed, it contains buggy code that
+fail to extract proper readings from the mfct specific telegrams.
+
+ATTENTION! The qheat driver has been replaced with the qheatv2 driver.
+Note that the field names are different in the new drive.
+New auto lookups will use the qheatv2, the old qheat will remain for 6 months.
+After which the old qheat driver will be removed, it contains buggy code that
+fail to extract proper readings from the mfct specific telegrams.
+
+ATTENTION! The apator162 driver has been replaced with an xmq driver with
+mfct specific ixml parsing. It passes all regression tests, but let me know
+if you have a problem!
+
+Hynek Moravec added the picoflux driver. Thanks Hynek!
+
 Version 1.20.0 2026-01-27
 Version 1.20.0-RC1 2026-01-27
 

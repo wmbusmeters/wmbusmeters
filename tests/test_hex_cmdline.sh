@@ -72,6 +72,7 @@ fi
 TESTNAME="Test invalid hex on commandline"
 
 cat > $TEST/test_expected.txt <<EOF
+Bad hex: "2A442D2C998734761B168D2091D37CAC21E1D68CDAFFCD3DC452BD802913FF7B1706CA9E355D6C2701CC2"
 Hex string must have an even length of hexadecimal characters.
 EOF
 
