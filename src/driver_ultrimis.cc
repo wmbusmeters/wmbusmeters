@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2017-2022 Fredrik Öhrström (gpl-3.0-or-later)
+ Copyright (C) 2017-2026 Fredrik Öhrström (gpl-3.0-or-later)
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -72,16 +72,14 @@ namespace
                         AlwaysTrigger, MaskBits(0xffffff),
                         "OK",
                         {
-                            /* What are the bits?
-                               According to the manual this meter offers these alarms:
-                               Back flow
-                               Meter leak
-                               Water main leak
-                               Zero flow
-                               Tampering detected
-                               No water
-                               Low battery
-                            */
+                            { 0x01 ,"TAMPER", TestBit::Set },
+                            { 0x02 ,"LOW_BATTERY", TestBit::Set },
+                            { 0x04 ,"DRY", TestBit::Set },
+                            { 0x08 ,"NO_FLOW", TestBit::Set },
+                            { 0x10 ,"HIGH_TEMPERATURE", TestBit::Set },
+                            { 0x20 ,"BURST", TestBit::Set },
+                            { 0x40 ,"REVERSE", TestBit::Set },
+                            { 0x80 ,"LEAK", TestBit::Set },
                         }
                     },
                 },

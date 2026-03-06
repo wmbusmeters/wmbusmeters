@@ -593,6 +593,8 @@ These telegrams are expected to have the data link layer crc bytes removed alrea
 `{"_":"decode", "telegram":"234433300602010014007a8e0400002f2f0efd3a1147000000008e40fd3a341200000000", "key":"...", "driver":"...", "format":"mbus"}`
 Only the "_" and "telegram" fields are required.
 
+`telegrams.jsonl:jsonl`, to read the file telegrams.jsonl and decode each line as json.
+
 `telegrams.bin:rawtty`, to read raw wmbus telegrams from this file.
 These telegrams are expected to have the data link layer crc bytes removed already!
 
@@ -952,8 +954,9 @@ supplied on the command line it must be a proper hex string with no spaces.
 When a telegram is supplied on the command line, then any valid dll crcs will be automatically removed,
 like when the telegram is suppled in a simulation file.
 
-You can analyze a telegram, this is useful when developing new drivers or trying
-to find which driver is the best fit for an unknown mfct,type,ver combo.
+You can analyze a telegram (test every builtin driver on the telegram) this is useful when developing
+new drivers or trying to find which driver is the best fit for an unknown mfct,type,ver combo.
+It also prints an easy to understand table of the telegram contents.
 
 ```shell
 wmbusmeters --analyze 3E44A5119035246141047A1A0030052F2F#0C06026301000C13688609040B3B0802000C2B220000F00A5A71020A5E72020AA61800004C0636370100426CBF25
