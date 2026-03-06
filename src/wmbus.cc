@@ -2255,20 +2255,51 @@ string Telegram::analyzeParse(OutputFormat format, int *content_length, int *und
     sort(explanations.begin(), explanations.end(),
          [](const Explanation & a, const Explanation & b) -> bool { return a.pos < b.pos; });
 
-    // Calculate how much is understood.
+    // Calculate how much is understood, deduplicating overlapping byte ranges.
+    // When processContent is used (e.g. manufacturer-specific 0F DIF data),
+    // the initial DIF/VIF parse marks all mfct bytes as CONTENT/NONE,
+    // then processContent adds CONTENT/FULL explanations for the same bytes.
+    // Without deduplication these bytes would be double-counted.
+    int max_pos = 0;
     for (auto& e : explanations)
     {
-        if (e.kind == KindOfData::CONTENT)
+        int end = e.pos + e.len;
+        if (end > max_pos) max_pos = end;
+    }
+
+    // Per-byte tracking: 0=not content, 1=content/not-understood, 2=content/understood
+    vector<int> byte_status(max_pos, 0);
+    vector<bool> is_protocol(max_pos, false);
+
+    for (auto& e : explanations)
+    {
+        if (e.kind == KindOfData::PROTOCOL)
         {
-            l += e.len;
-            if (e.understanding == Understanding::PARTIAL ||
-                e.understanding == Understanding::FULL)
+            // Protocol bytes override any previous content marking
+            for (int p = e.pos; p < e.pos + e.len && p < max_pos; p++)
             {
-                // Its content and we have at least some understanding.
-                u += e.len;
+                byte_status[p] = 0;
+                is_protocol[p] = true;
+            }
+        }
+        else if (e.kind == KindOfData::CONTENT)
+        {
+            int level = (e.understanding >= Understanding::PARTIAL) ? 2 : 1;
+            for (int p = e.pos; p < e.pos + e.len && p < max_pos; p++)
+            {
+                // Do not let content override a protocol-marked position
+                if (!is_protocol[p] && level > byte_status[p])
+                    byte_status[p] = level;
             }
         }
     }
+
+    for (int p = 0; p < max_pos; p++)
+    {
+        if (byte_status[p] >= 1) l++;
+        if (byte_status[p] >= 2) u++;
+    }
+
     *content_length = l;
     *understood_content_length = u;
 
