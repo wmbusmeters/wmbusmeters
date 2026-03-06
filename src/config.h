@@ -147,6 +147,7 @@ struct Configuration
     // These extra constant fields can also be part of selected with selectfields.
     std::vector<SendBusContent> send_bus_content; // Telegrams used to wake up a meter for reading or mbus read-out requests.
     std::set<BusDeviceType> probe_for; // Which devices should be probed for? DEVICE_AUTO means all.
+    int decoding_server_port {}; // If > 0, run a TCP decoding server on this port.
     ~Configuration() = default;
 };
 

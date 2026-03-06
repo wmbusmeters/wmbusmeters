@@ -18,6 +18,7 @@
 #include"bus.h"
 #include"cmdline.h"
 #include"config.h"
+#include"decoding_server.h"
 #include"drivers.h"
 #include"meters.h"
 #include"printer.h"
@@ -164,6 +165,11 @@ provided you with this binary. Read the full license for all details.
 #include"short_manual.h"
         puts(short_manual);
         exit(0);
+    }
+
+    if (config->decoding_server_port > 0)
+    {
+        exit(startDecodingServer(config->decoding_server_port));
     }
 
     if (config->daemon)

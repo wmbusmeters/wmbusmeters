@@ -1,0 +1,33 @@
+FROM alpine AS build
+RUN apk add --no-cache alpine-sdk gcc linux-headers libxml2-dev libxslt-dev cmake libusb-dev bash samurai jq netcat-openbsd python3
+
+# Build librtlsdr from source (required dependency)
+RUN git clone --depth 1 https://github.com/steve-m/librtlsdr.git /librtlsdr
+WORKDIR /librtlsdr
+RUN cmake -B build -G Ninja \
+        -DCMAKE_BUILD_TYPE=MinSizeRel \
+        -DCMAKE_INSTALL_PREFIX:PATH=/usr \
+        -DDETACH_KERNEL_DRIVER=ON \
+        -Wno-dev && \
+    cmake --build build -j `nproc` && \
+    cmake --install build
+
+# Build xmq tool (needed for tests)
+RUN git clone --depth 1 https://github.com/libxmq/xmq.git /xmq
+WORKDIR /xmq
+RUN ./configure && make -j`nproc`
+
+# Copy local source
+COPY . /wmbusmeters
+WORKDIR /wmbusmeters
+
+# Clean any host build artifacts then prepare build dir
+RUN rm -rf build build_debug build_arm && \
+    mkdir -p build && \
+    cp /xmq/build/default/release/xmq build/xmq
+
+# Build wmbusmeters
+RUN make -j`nproc`
+
+# Run tests
+RUN make test

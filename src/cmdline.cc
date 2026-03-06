@@ -712,6 +712,17 @@ static shared_ptr<Configuration> parseNormalCommandLine(Configuration *c, int ar
             loadDriver(file_name, NULL);
             continue;
         }
+        if (!strncmp(argv[i], "--decodingserver=", 17) && strlen(argv[i]) > 17)
+        {
+            int port = atoi(argv[i]+17);
+            if (port < 1 || port > 65535)
+            {
+                error("Not a valid port number \"%s\". Must be 1-65535.\n", argv[i]+17);
+            }
+            c->decoding_server_port = port;
+            i++;
+            continue;
+        }
 
         error("Unknown option \"%s\"\n", argv[i]);
     }
@@ -747,7 +758,8 @@ static shared_ptr<Configuration> parseNormalCommandLine(Configuration *c, int ar
         !c->list_fields &&
         !c->list_meters &&
         !c->list_units &&
-        !c->print_driver)
+        !c->print_driver &&
+        c->decoding_server_port == 0)
     {
         error("You must supply at least one device to communicate using (w)mbus.\n");
     }
