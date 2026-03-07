@@ -2172,6 +2172,9 @@ bool Telegram::parseHAN(vector<uchar> &input_frame, MeterKeys *mk, bool warn)
 
 void Telegram::explainParse(string intro, int from)
 {
+    sort(explanations.begin(), explanations.end(),
+         [](const Explanation & a, const Explanation & b) -> bool { return a.pos < b.pos; });
+
     for (auto& p : explanations)
     {
         // Protocol or content?

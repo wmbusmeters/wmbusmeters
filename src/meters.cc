@@ -1552,7 +1552,7 @@ void MeterCommonImplementation::processFieldIXMLs(Telegram *t)
                     dve->addFieldInfo(&fi);
                     fi.performExtraction(this, t, dve);
                     string value = getStringValue(&fi);
-                    debug("(ixml) parsing field content %s\n", value.c_str());
+                    debug("(ixml) parsing field content at offset %d: %s\n", dve->offset, value.c_str());
                     bool ok = parseWithIXML(t, dve->offset, value, fi.ixmlGrammar(), &t->dv_entries);
                     if (!ok)
                     {

@@ -25,14 +25,14 @@ struct DriverDynamic : public virtual MeterCommonImplementation
     DriverDynamic(MeterInfo &mi, DriverInfo &di);
     ~DriverDynamic();
     static bool load(DriverInfo *di, const string &name, const char *content);
-    static XMQProceed add_detect(XMQDoc *doc, XMQNode *detect, DriverInfo *di);
-    static XMQProceed add_use(XMQDoc *doc, XMQNode *field, DriverDynamic *dd);
-    static XMQProceed add_field(XMQDoc *doc, XMQNode *field, DriverDynamic *dd);
-    static XMQProceed add_match(XMQDoc *doc, XMQNode *match, DriverDynamic *dd);
-    static XMQProceed add_combinable(XMQDoc *doc, XMQNode *match, DriverDynamic *dd);
+    static XMQProceed add_detect(XMQDoc *doc, XMQNodePtr detect, DriverInfo *di);
+    static XMQProceed add_use(XMQDoc *doc, XMQNodePtr field, DriverDynamic *dd);
+    static XMQProceed add_field(XMQDoc *doc, XMQNodePtr field, DriverDynamic *dd);
+    static XMQProceed add_match(XMQDoc *doc, XMQNodePtr match, DriverDynamic *dd);
+    static XMQProceed add_combinable(XMQDoc *doc, XMQNodePtr match, DriverDynamic *dd);
 
-    static XMQProceed add_lookup(XMQDoc *doc, XMQNode *lookup, DriverDynamic *dd);
-    static XMQProceed add_map(XMQDoc *doc, XMQNode *map, DriverDynamic *dd);
+    static XMQProceed add_lookup(XMQDoc *doc, XMQNodePtr lookup, DriverDynamic *dd);
+    static XMQProceed add_map(XMQDoc *doc, XMQNodePtr map, DriverDynamic *dd);
 
     const string &fileName() { return file_name_; }
 

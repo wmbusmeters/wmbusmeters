@@ -270,7 +270,8 @@ bool parseDV(Telegram *t,
                 set<VIFCombinable> no_combinable_vifs;
                 set<uint16_t> no_combinable_vifs_raw;
                 key = "0F";
-                (*dv_entries)[key] = { t->mfct_0f_index, DVEntry(t->mfct_0f_index,
+                int offset = start_parse_here+t->mfct_0f_index-1;
+                (*dv_entries)[key] = { offset, DVEntry(offset,
                                                        DifVifKey(key),
                                                        MeasurementType::Instantaneous,
                                                        Vif(0x7f),
@@ -670,7 +671,7 @@ struct OffsetEntries {
 };
 typedef OffsetEntries OffsetEntries;
 
-XMQProceed add_value(XMQDoc *doc, XMQNode *node, void *user_data)
+XMQProceed add_value(XMQDoc *doc, XMQNodePtr node, void *user_data)
 {
     OffsetEntries *oe = (OffsetEntries*)user_data;
     Telegram *t = oe->telegram;
@@ -686,7 +687,7 @@ XMQProceed add_value(XMQDoc *doc, XMQNode *node, void *user_data)
 
     int o = xmqGetIntRel(doc, "@off", node);
 
-    (*dv_entries)[difvifkey] = { o, DVEntry(o,
+    (*dv_entries)[difvifkey] = { offset+o, DVEntry(offset+o,
                                                dvk.str(),
                                                dvk.measurementType(),
                                                Vif(dvk.vif()),
@@ -698,6 +699,16 @@ XMQProceed add_value(XMQDoc *doc, XMQNode *node, void *user_data)
                                                value) };
 
     t->addSpecialExplanation(offset+o, value.length()/2, KindOfData::CONTENT, Understanding::FULL, "*** %s", value.c_str());
+
+    return XMQ_CONTINUE;
+}
+
+XMQProceed update_offset(XMQDoc *doc, XMQNodePtr node, void *user_data)
+{
+    XMQNodePtr o = xmqGetNodeRel(doc, "@off", node);
+    const char *c = xmqGetContent(o);
+    fprintf(stderr, "UPDATTO %s\n", c);
+    xmqSetContent(o, c);
 
     return XMQ_CONTINUE;
 }
@@ -717,7 +728,9 @@ bool parseWithIXML(Telegram *t,
 
     // Add off=12 attributes so that we can print
     // explanations that map to the original telegram.
-    xmqAnnotateOffsets(decode, offset, "off", NULL);
+    xmqAnnotateOffsets(decode, "off", NULL);
+
+    //xmqForeach(decode, "//*[@off]", update_offset, &oe);
 
     if (isDebugEnabled())
     {
