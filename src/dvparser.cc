@@ -269,7 +269,7 @@ bool parseDV(Telegram *t,
                 assert(t->mfct_0f_index >= 0);
                 set<VIFCombinable> no_combinable_vifs;
                 set<uint16_t> no_combinable_vifs_raw;
-                key = "0f";
+                key = "0F";
                 (*dv_entries)[key] = { t->mfct_0f_index, DVEntry(t->mfct_0f_index,
                                                        DifVifKey(key),
                                                        MeasurementType::Instantaneous,
@@ -686,7 +686,7 @@ XMQProceed add_value(XMQDoc *doc, XMQNode *node, void *user_data)
 
     int o = xmqGetIntRel(doc, "@off", node);
 
-    (*dv_entries)[difvifkey] = { offset+o, DVEntry(offset+o,
+    (*dv_entries)[difvifkey] = { o, DVEntry(o,
                                                dvk.str(),
                                                dvk.measurementType(),
                                                Vif(dvk.vif()),
@@ -715,9 +715,9 @@ bool parseWithIXML(Telegram *t,
                                     ixml_grammar,
                                     0);
 
-    // Add o=12 attributes so that we can print
+    // Add off=12 attributes so that we can print
     // explanations that map to the original telegram.
-    xmqAnnotateOffsets(decode, "off", NULL);
+    xmqAnnotateOffsets(decode, offset, "off", NULL);
 
     if (isDebugEnabled())
     {
@@ -728,6 +728,7 @@ bool parseWithIXML(Telegram *t,
         xmqPrint(decode, os);
         xmqFreeOutputSettings(os);
         debug("(ixml) decoded:\n%s", start);
+        t->addIXMLExplanation(offset, start);
         free(start);
     }
 

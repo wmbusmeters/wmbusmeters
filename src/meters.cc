@@ -3407,6 +3407,22 @@ bool MeterCommonImplementation::addOptionalLibraryFields(string field_names)
         markLastFieldAsLibrary();
     }
 
+    if (checkIf(fields,"current_hca"))
+    {
+        addNumericFieldWithExtractor(
+            "current",
+            "The current heat cost allocation for this meter."+help,
+            DEFAULT_PRINT_PROPERTIES,
+            Quantity::HCA,
+            VifScaling::Auto,
+            DifSignedness::Signed,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(VIFRange::HeatCostAllocation)
+            );
+        markLastFieldAsLibrary();
+    }
+
     if (checkIf(fields,"target_hca"))
     {
         addNumericFieldWithExtractor(

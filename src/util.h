@@ -113,6 +113,9 @@ void trace_int(const char* fmt, ...);
 #define debug(...) { if (isDebugEnabled()) { debug_int(__VA_ARGS__); } }
 void debug_int(const char* fmt, ...);
 
+#define debugPrefixed(prefix, content) { if (isDebugEnabled()) { debug_prefixed_int(prefix, content); } }
+void debug_prefixed_int(const char *prefix, const char* content);
+
 void warning(const char* fmt, ...);
 void info(const char* fmt, ...);
 void notice(const char* fmt, ...);

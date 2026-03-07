@@ -842,6 +842,25 @@ void Telegram::addMoreExplanation(int pos, const char* fmt, ...)
     }
 }
 
+void Telegram::addIXMLExplanation(int pos, const char* ixml_parse)
+{
+    bool found = false;
+    for (auto& p : explanations) {
+        if (p.pos == pos)
+        {
+            // Append more information.
+            p.ixml_parse = ixml_parse;
+            // Since we are parsing using IXML, we assume that we have a full understanding.
+            p.understanding = Understanding::FULL;
+            found = true;
+        }
+    }
+
+    if (!found) {
+        debug("(wmbus) warning: cannot find offset %d to add ixml parse \"%s\"\n", pos, ixml_parse);
+    }
+}
+
 void Telegram::addSpecialExplanation(int offset, int len, KindOfData k, Understanding u, const char* fmt, ...)
 {
     char buf[1024];
@@ -2168,6 +2187,10 @@ void Telegram::explainParse(string intro, int from)
         if (p.kind == KindOfData::PROTOCOL && p.understanding == Understanding::FULL) u = " ";
 
         debug("%s %03d %s%s: %s\n", intro.c_str(), p.pos, c, u, p.info.c_str());
+        if (p.ixml_parse != "")
+        {
+            debugPrefixed(intro.c_str(), p.ixml_parse.c_str());
+        }
     }
 }
 

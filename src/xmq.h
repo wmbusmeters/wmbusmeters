@@ -645,7 +645,7 @@ void xmqPrint(XMQDoc *doc, XMQOutputSettings *settings);
          <root o="0">ABC<a o="3">DEF</a>GHIJ<b o="10">xyz</b></root>
     assuming attribute_name="o"
 */
-void xmqAnnotateOffsets(XMQDoc *doc, const char *attribute_name, const char *ns);
+void xmqAnnotateOffsets(XMQDoc *doc, size_t start_offset, const char *attribute_name, const char *ns);
 
 /** Trim xml whitespace. */
 void xmqTrimWhitespace(XMQDoc *doc, int flags);

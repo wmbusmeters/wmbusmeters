@@ -400,6 +400,7 @@ struct Explanation
     int pos {};
     int len {};
     string info;
+    string ixml_parse;
     KindOfData kind {};
     Understanding understanding {};
 
@@ -559,6 +560,7 @@ public:
     void setExplanation(vector<uchar>::iterator &pos, int len, KindOfData k, Understanding u, const char* fmt, ...);
     void addMoreExplanation(int pos, const char* fmt, ...);
     void addMoreExplanation(int pos, string json);
+    void addIXMLExplanation(int pos, const char *ixml_parse);
 
     // Add an explanation of data inside manufacturer specific data.
     void addSpecialExplanation(int offset, int len, KindOfData k, Understanding u, const char* fmt, ...);

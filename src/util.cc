@@ -608,6 +608,23 @@ void debug_int(const char* fmt, ...) {
     }
 }
 
+void debug_prefixed_int(const char *prefix, const char* content) {
+    if (debug_enabled_) {
+        const char *stop = content+strlen(content);
+        const char *line = content;
+        const char *eol = NULL;
+
+        while (line < stop)
+        {
+            eol = strchr(line, '\n');
+            if (!eol) eol = stop;
+            int len = eol-line;
+            debug("%s %.*s\n", prefix, len, line);
+            line = eol+1;
+        }
+    }
+}
+
 void trace_int(const char* fmt, ...) {
     if (trace_enabled_) {
         va_list args;

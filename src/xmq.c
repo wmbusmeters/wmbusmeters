@@ -612,7 +612,7 @@ enum Level;
 #endif
 typedef enum Level Level;
 
-void annotate_offsets(xmlDoc *doc, const char *attribute_name, const char *ns);
+void annotate_offsets(xmlDoc *doc, size_t start_offset, const char *attribute_name, const char *ns);
 int count_necessary_quotes(const char *start, const char *stop, bool *add_nls, bool *add_compound, bool prefer_double_quotes, bool *use_double_quotes);
 size_t count_necessary_slashes(const char *start, const char *stop);
 
@@ -6573,9 +6573,9 @@ void xmqPrint(XMQDoc *doq, XMQOutputSettings *output_settings)
     }
 }
 
-void xmqAnnotateOffsets(XMQDoc *doq, const char *attribute_name, const char *ns)
+void xmqAnnotateOffsets(XMQDoc *doq, size_t start_offset, const char *attribute_name, const char *ns)
 {
-    annotate_offsets(doq->docptr_.xml, attribute_name, ns);
+    annotate_offsets(doq->docptr_.xml, start_offset, attribute_name, ns);
 }
 
 // Use an internal bit for signaling comment trimming.
@@ -18883,10 +18883,10 @@ typedef struct OffsetCounter OffsetCounter;
 
 void annotate_node(OffsetCounter *counter, xmlNode *node);
 
-void annotate_offsets(xmlDoc *doc, const char *attribute_name, const char *ns)
+void annotate_offsets(xmlDoc *doc, size_t start_offset, const char *attribute_name, const char *ns)
 {
     OffsetCounter c;
-    c.offset = 0;
+    c.offset = start_offset;
     c.attribute_name = attribute_name;
     c.ns = ns;
     annotate_node(&c, xmlDocGetRootElement(doc));
