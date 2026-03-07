@@ -53,7 +53,7 @@ namespace
             VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
-            .set(VIFRange::AnyEnergyVIF)
+            .set(DifVifKey("0E03"))
             );
 
         addNumericFieldWithExtractor(
