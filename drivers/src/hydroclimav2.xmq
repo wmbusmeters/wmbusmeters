@@ -1,0 +1,138 @@
+// Copyright (C) 2026 Fredrik Öhrström (gpl-3.0-or-later)
+driver {
+    name           = hydroclimav2
+    meter_type     = HeatCostAllocationMeter
+    default_fields = name,id,status,current_hca,average_ambient_temperature_c,timestamp
+    manufacturer   = BMeters
+    detect {
+        mvt = BMP,99,99
+    //  mvt = BMP,53,08
+    //  mvt = BMP,85,08
+    }
+    library {
+        use = current_hca
+        use = target_hca
+        use = target_date
+    }
+    fields {
+        field {
+            name       = status
+            quantity   = Text
+            info       = 'Status and error flags'
+            attributes = STATUS,INCLUDE_TPL_STATUS
+        }
+        field {
+            name = average_ambient_temperature
+            quantity = Temperature
+            match {
+                measurement_type = Instantaneous
+                vif_range = ExternalTemperature
+            }
+        }
+        field {
+            name = max_ambient_temperature
+            quantity = Temperature
+            match {
+                measurement_type = Maximum
+                vif_range = ExternalTemperature
+            }
+        }
+        field {
+            name = average_heater_temperature
+            quantity = Temperature
+            match {
+                measurement_type = Instantaneous
+                vif_range = FlowTemperature
+            }
+        }
+        field {
+            name                 = mfct_specific_data
+            quantity             = Text
+            attributes           = HIDE
+            match {
+                difvifkey = 0F
+            }
+            /* An IXML grammar for decoding hydroclima telegrams.*/
+
+            ixml = "decode = frame_v10 | frame_v11.
+                    frame_v10 = '10',
+                             StatusWord,
+                             Time,
+                             Date,
+                             AverageAmbient,
+                             MaxAmbient,
+                             MaxAmbientDate,
+                             NumMeasurements,
+                             AverageAmbientPrev,
+                             AverageHeaterPrev,
+                             IU,
+                             TotalIU.
+                    frame_v11 = '11',
+                             StatusWord, { STS Status word }
+                             Time, { TIM Current time }
+                             Date, { DAT Current date }
+                             OpenDate, { DOP Housing open event date }
+                             AverageHeater, { TKA Average heater temperature (current period) }
+                             AverageAmbient, { TOA Average ambient temperature (current period) }
+                             MaxAmbient, { TMH1 Max temperature (previous period) }
+                             MaxAmbientDate, { TMHD1 Date of max temperature }
+                             AverageHeaterPrev, { TKA1 Average heater temperature (previous period) }
+                             AverageAmbientPrev, { TOA1 Average ambient temperature (previous period) }
+                             ConsumptionHistory, { CNI Consumption history }
+                             AmbientTempHistory, { TON Ambient temperature history }
+                             TempCounters, { TK Temperature bin counters }
+                             TotalU. { U Total consumption all periods }
+                    StatusWord = word.
+                    Time = word.
+                    Date = word.
+                    OpenDate = word.
+                    AverageHeater = word, @DV_flow_temp.
+                    AverageAmbient = word, @DV_ext_temp.
+                    MaxAmbient = word, @DV_max_ext_temp.
+                    MaxAmbientDate = word.
+                    AverageHeaterPrev = word.
+                    AverageAmbientPrev = word.
+                    ConsumptionHistory = word, word, word, word.
+                    AmbientTempHistory = word, word, word.
+                    TempCounters = triplet, triplet, triplet.
+                    TotalU = word.
+                    IU = word.
+                    TotalIU = triplet.
+                    NumMeasurements = word.
+                    -hex  = ['A'-'F';'0'-'9'].
+                    -byte = hex, hex.
+                    -word = byte, byte.
+                    -triplet = byte, byte, byte.
+                    -quad = byte, byte, byte, byte.
+
+                    DV_ext_temp>dvk = +'0265'. { int32 External temperature 10⁻² °C }
+                    DV_flow_temp>dvk = +'0259'. { int32 Flow temperature 10⁻² °C }
+                    DV_max_ext_temp>dvk = +'1265'. { max int32 External temperature 10⁻² °C }
+                    DV_max_flow_temp>dvk = +'1259'. { max int32 Flow temperature 10⁻² °C }
+                    "
+        }
+    }
+    tests {
+    /*
+        test {
+            args = 'HCA hydroclimav2 68036198 NOKEY'
+            telegram=2e44b0099861036853087a000020002F2F036E0000000F100043106A7D2C4A078F12202CB1242A06D3062100210000
+            json = '{"_":"telegram","media":"heat cost allocation","meter":"hydroclimav2","name":"HCA","id":"68036198","total_hca":0,"average_ambient_temperature_c":18.66,"max_ambient_temperature_c":47.51,"average_ambient_temperature_last_month_c":15.78,"average_heater_temperature_last_month_c":17.47,"timestamp":"1111-11-11T11:11:11Z"}'
+            fields = 'HCA;68036198;OK;0;18.66;1111-11-11 11:11.11'
+        }*/
+        /*
+        test {
+            args = 'HCAA hydroclimav2 74393723 NOKEY'
+            telegram = 2D44B009233739743308780F9D1300023ED97AEC7BC5908A32C15D8A32C126915AC15AC126912691269187912689
+            json = '{"_":"telegram","media":"heat cost allocation","meter":"hydroclimav2","name":"HCAA","id":"74393723","timestamp":"1111-11-11T11:11:11Z"}'
+            fields = 'HCAA;74393723;null;null;1111-11-11 11:11.11'
+        }
+        test {
+            args = 'HC1 hydroclimav2'
+            comment = 'Version 0x11 of telegram'
+            telegram = 5144B0095209009385088C20807A800040252F2F_036E540200436ED90800426C3F3C0F1100009924293400003713DF08BC163633960E8208D401D90879076006DA080809DA08E537000A3500DF1201830900
+            json = '{}'
+            fields = ''
+        }*/
+    }
+}

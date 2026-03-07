@@ -2264,6 +2264,11 @@ string renderAnalysisAsText(vector<Explanation> &explanations, OutputFormat of)
         }
 
         s += tostrprintf("%03d %s%s: %s%s%s\n", p.pos, c, u, pre, p.info.c_str(), post);
+        if (p.ixml_parse != "")
+        {
+            fprintf(stderr, "PRURURURURURURUR\n");
+            s += p.ixml_parse;
+        }
     }
     return s;
 }
