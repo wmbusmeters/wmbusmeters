@@ -3232,7 +3232,7 @@ bool MeterCommonImplementation::addOptionalLibraryFields(string field_names)
             "target",
             "The energy recorded by this meter at the target date."+help,
             DEFAULT_PRINT_PROPERTIES,
-            Quantity::Volume,
+            Quantity::Energy,
             VifScaling::Auto,
             DifSignedness::Signed,
             FieldMatcher::build()

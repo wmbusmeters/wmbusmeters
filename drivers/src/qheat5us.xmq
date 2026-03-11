@@ -1,0 +1,34 @@
+// Copyright (C) 2026 Fredrik Öhrström (gpl-3.0-or-later)
+driver {
+    name           = qheat5us
+    meter_type     = HeatMeter
+    default_fields = name,id,status,total_kwh,timestamp
+    manufacturer   = Qundis
+    detect {
+        mvt = LSE,23,04
+    }
+    library {
+        use = total_kwh
+        use = target_kwh
+        use = target_date
+        use = meter_date_at_error
+        use = fabrication_no
+        use = meter_datetime
+    }
+    fields {
+        field {
+            name       = status
+            quantity   = Text
+            info       = 'Status and error flags'
+            attributes = STATUS,INCLUDE_TPL_STATUS
+        }
+    }
+    tests {
+        test {
+            args = 'QH qheat5us 67250945 NOKEY'
+            telegram = 2e4465B24509256723047aa20000000c05035612004c0520131100426c3f3c326cffff046d12014a330c7834980437
+            json = '{"_": "telegram","fabrication_no": "37049834","id": "67250945","media": "heat","meter": "qheat5us","meter_date_at_error": "2127-15-31","meter_datetime": "2026-03-10 01:18","name": "QH","status": "OK","target_date": "2025-12-31","target_kwh": 11132,"timestamp": "1111-11-11T11:11:11Z","total_kwh": 12560.3}'
+            fields = 'QH;67250945;OK;12560.3;1111-11-11 11:11.11'
+        }
+    }
+}

@@ -1,4 +1,4 @@
-// Generated 2026-03-07_20:39
+// Generated 2026-03-11_11:18
 test {
     args     = 'Vatten apator08 004444dd NOKEY'
     telegram = 73441486DD4444000303A0B9E527004C4034B31CED0106FF01D093270065F022009661230054D02300EC49240018B424005F012500936D2500FFD525000E3D26001EAC26000B2027000300000000371D0B2000000000000024000000000000280000000000002C0033150C010D2F000000000000
@@ -375,6 +375,12 @@ test {
     telegram = 6e446d141949545605077adf0060055ad21c5cafec3a71c0720754f2ca777e238d0318d35a2de0f8fe592e9a0d0cacbd61dfd2815c21a7fa743d93b5e543847e3e67b5d80816a253db655d4354b1a06c1fb7bae99e0fa322bff37a05fd651c5e3c09968ae4df0d8d911fee33ef31b9
     json     = '{"_":"telegram","media":"water","meter":"picoflux","name":"MyWater","id":"56544919","actuality_duration_s":0,"total_backward_m3":0,"total_m3":4.492,"meter_datetime":"2026-02-09 08:57","status":"OK","timestamp":"1111-11-11T11:11:11Z"}'
     fields   = 'MyWater;56544919;OK;4.492;1111-11-11 11:11.11'
+}
+test {
+    args     = 'QH qheat5us 67250945 NOKEY'
+    telegram = 2e4465B24509256723047aa20000000c05035612004c0520131100426c3f3c326cffff046d12014a330c7834980437
+    json     = '{"_": "telegram","fabrication_no": "37049834","id": "67250945","media": "heat","meter": "qheat5us","meter_date_at_error": "2127-15-31","meter_datetime": "2026-03-10 01:18","name": "QH","status": "OK","target_date": "2025-12-31","target_kwh": 11132,"timestamp": "1111-11-11T11:11:11Z","total_kwh": 12560.3}'
+    fields   = 'QH;67250945;OK;12560.3;1111-11-11 11:11.11'
 }
 test {
     args     = 'QQB qheatv2 67985890 NOKEY'
