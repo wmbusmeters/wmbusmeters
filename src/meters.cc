@@ -2685,7 +2685,12 @@ bool FieldInfo::extractNumeric(Meter *m, Telegram *t, DVEntry *dve)
             // Special case! Transform the decoded unit into the display unit. I.e. kwh was replaced with kvarh.
             decoded_unit = display_unit_;
         }
-        m->setNumericValue(this, dve, display_unit_, convert(extracted_double_value, decoded_unit, display_unit_));
+        double final_value = convert(extracted_double_value, decoded_unit, display_unit_);
+        if (hasNullValue() && final_value == nullValue())
+        {
+            final_value = NAN;
+        }
+        m->setNumericValue(this, dve, display_unit_, final_value);
         t->addMoreExplanation(dve->offset, renderJson(m, dve));
         found = true;
     }
