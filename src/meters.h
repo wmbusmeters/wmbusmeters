@@ -364,6 +364,10 @@ struct FieldInfo
     void setReadableString(ReadableString rs) { readable_string_ = rs; }
     ReadableString readableString() { return readable_string_; }
 
+    void setNullValue(double nv) { has_null_value_ = true; null_value_ = nv; }
+    bool hasNullValue() { return has_null_value_; }
+    double nullValue() { return null_value_; }
+
 private:
 
     int index_; // The field infos for a meter are ordered.
@@ -407,6 +411,10 @@ private:
 
     // If true, then force readable string extraction.
     ReadableString readable_string_ {};
+
+    // If set, this extracted value is treated as null (no data).
+    bool has_null_value_ {};
+    double null_value_ {};
 };
 
 struct BusManager;

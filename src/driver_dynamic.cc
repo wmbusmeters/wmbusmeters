@@ -325,6 +325,16 @@ XMQProceed DriverDynamic::add_field(XMQDoc *doc, XMQNodePtr field, DriverDynamic
     // with 1.123 or 1/32 or 0.33333 or 3.14/2.5
     double force_scale = check_force_scale(xmqGetStringRel(doc, "force_scale", field), dd);
 
+    // A field can declare a null value. When the extracted value equals this, it becomes null in output.
+    const char *null_value_s = xmqGetStringRel(doc, "null_value", field);
+    double null_value = 0;
+    bool has_null_value = false;
+    if (null_value_s)
+    {
+        null_value = atof(null_value_s);
+        has_null_value = true;
+    }
+
     // Now find all matchers.
     FieldMatcher match = FieldMatcher::build();
     dd->tmp_matcher_ = &match;
@@ -359,6 +369,10 @@ XMQProceed DriverDynamic::add_field(XMQDoc *doc, XMQNodePtr field, DriverDynamic
                 display_unit,
                 force_scale
                 );
+            if (has_null_value)
+            {
+                dd->lastAddedField()->setNullValue(null_value);
+            }
         }
         else
         {

@@ -46,6 +46,99 @@ driver {
             }
         }
         field {
+            name = average_ambient_temperature_last_month
+            quantity = Temperature
+            match {
+                measurement_type = Instantaneous
+                vif_range = ExternalTemperature
+                storage_nr = 1
+            }
+        }
+        field {
+            name = average_heater_temperature_last_month
+            quantity = Temperature
+            match {
+                measurement_type = Instantaneous
+                vif_range = FlowTemperature
+                storage_nr = 1
+            }
+        }
+        field {
+            name = consumption_at_set_date_1
+            quantity = HCA
+            match {
+                measurement_type = Instantaneous
+                vif_range = HeatCostAllocation
+                storage_nr = 2
+            }
+        }
+        field {
+            name = consumption_at_set_date_2
+            quantity = HCA
+            match {
+                measurement_type = Instantaneous
+                vif_range = HeatCostAllocation
+                storage_nr = 3
+            }
+        }
+        field {
+            name = consumption_at_set_date_3
+            quantity = HCA
+            match {
+                measurement_type = Instantaneous
+                vif_range = HeatCostAllocation
+                storage_nr = 4
+            }
+        }
+        field {
+            name = consumption_at_set_date_4
+            quantity = HCA
+            match {
+                measurement_type = Instantaneous
+                vif_range = HeatCostAllocation
+                storage_nr = 5
+            }
+        }
+        field {
+            name = ambient_temperature_at_set_date_1
+            quantity = Temperature
+            null_value = -327.68
+            match {
+                measurement_type = Instantaneous
+                vif_range = ExternalTemperature
+                storage_nr = 2
+            }
+        }
+        field {
+            name = ambient_temperature_at_set_date_2
+            quantity = Temperature
+            null_value = -327.68
+            match {
+                measurement_type = Instantaneous
+                vif_range = ExternalTemperature
+                storage_nr = 3
+            }
+        }
+        field {
+            name = ambient_temperature_at_set_date_3
+            quantity = Temperature
+            null_value = -327.68
+            match {
+                measurement_type = Instantaneous
+                vif_range = ExternalTemperature
+                storage_nr = 4
+            }
+        }
+        field {
+            name = total_consumption
+            quantity = HCA
+            match {
+                measurement_type = Instantaneous
+                vif_range = HeatCostAllocation
+                storage_nr = 10
+            }
+        }
+        field {
             name                 = mfct_specific_data
             quantity             = Text
             attributes           = HIDE
@@ -78,8 +171,13 @@ driver {
                              MaxAmbientDate, { TMHD1 Date of max temperature }
                              AverageHeaterPrev, { TKA1 Average heater temperature (previous period) }
                              AverageAmbientPrev, { TOA1 Average ambient temperature (previous period) }
-                             ConsumptionHistory, { CNI Consumption history }
-                             AmbientTempHistory, { TON Ambient temperature history }
+                             CNI1, { CNI1 Consumption history LIFO 0 }
+                             CNI2, { CNI2 Consumption history LIFO 1 }
+                             CNI3, { CNI3 Consumption history LIFO 2 }
+                             CNI4, { CNI4 Consumption history LIFO 3 }
+                             TONI1, { TONI1 Ambient temp history LIFO 0 }
+                             TONI2, { TONI2 Ambient temp history LIFO 1 }
+                             TONI3, { TONI3 Ambient temp history LIFO 2 }
                              TempCounters, { TK Temperature bin counters }
                              TotalU. { U Total consumption all periods }
                     StatusWord = word.
@@ -90,14 +188,19 @@ driver {
                     AverageAmbient = word, @DV_ext_temp.
                     MaxAmbient = word, @DV_max_ext_temp.
                     MaxAmbientDate = word.
-                    AverageHeaterPrev = word.
-                    AverageAmbientPrev = word.
-                    ConsumptionHistory = word, word, word, word.
-                    AmbientTempHistory = word, word, word.
+                    AverageHeaterPrev = word, @DV_flow_temp_s1.
+                    AverageAmbientPrev = word, @DV_ext_temp_s1.
+                    CNI1 = word, @DV_hca_s2.
+                    CNI2 = word, @DV_hca_s3.
+                    CNI3 = word, @DV_hca_s4.
+                    CNI4 = word, @DV_hca_s5.
+                    TONI1 = word, @DV_ext_temp_s2.
+                    TONI2 = word, @DV_ext_temp_s3.
+                    TONI3 = word, @DV_ext_temp_s4.
                     TempCounters = triplet, triplet, triplet.
-                    TotalU = word.
+                    TotalU = triplet, @DV_hca_total.
                     IU = word.
-                    TotalIU = triplet.
+                    TotalIU = triplet, @DV_hca_total.
                     NumMeasurements = word.
                     -hex  = ['A'-'F';'0'-'9'].
                     -byte = hex, hex.
@@ -105,34 +208,43 @@ driver {
                     -triplet = byte, byte, byte.
                     -quad = byte, byte, byte, byte.
 
-                    DV_ext_temp>dvk = +'0265'. { int32 External temperature 10⁻² °C }
-                    DV_flow_temp>dvk = +'0259'. { int32 Flow temperature 10⁻² °C }
-                    DV_max_ext_temp>dvk = +'1265'. { max int32 External temperature 10⁻² °C }
-                    DV_max_flow_temp>dvk = +'1259'. { max int32 Flow temperature 10⁻² °C }
+                    DV_ext_temp>dvk = +'0265'. { int16 External temperature 10⁻² °C }
+                    DV_flow_temp>dvk = +'0259'. { int16 Flow temperature 10⁻² °C }
+                    DV_max_ext_temp>dvk = +'1265'. { max int16 External temperature 10⁻² °C }
+                    DV_ext_temp_s1>dvk = +'4265'. { storage 1 int16 External temperature 10⁻² °C }
+                    DV_flow_temp_s1>dvk = +'4259'. { storage 1 int16 Flow temperature 10⁻² °C }
+                    DV_hca_s2>dvk = +'82016E'. { storage 2 int16 HCA }
+                    DV_hca_s3>dvk = +'C2016E'. { storage 3 int16 HCA }
+                    DV_hca_s4>dvk = +'82026E'. { storage 4 int16 HCA }
+                    DV_hca_s5>dvk = +'C2026E'. { storage 5 int16 HCA }
+                    DV_ext_temp_s2>dvk = +'820165'. { storage 2 int16 External temperature 10⁻² °C }
+                    DV_ext_temp_s3>dvk = +'C20165'. { storage 3 int16 External temperature 10⁻² °C }
+                    DV_ext_temp_s4>dvk = +'820265'. { storage 4 int16 External temperature 10⁻² °C }
+                    DV_hca_total>dvk = +'83056E'. { storage 10 int24 HCA total }
                     "
         }
     }
     tests {
-    /*
         test {
+            comment = 'Version 0x53 frame_v10 NOKEY'
             args = 'HCA hydroclimav2 68036198 NOKEY'
-            telegram=2e44b0099861036853087a000020002F2F036E0000000F100043106A7D2C4A078F12202CB1242A06D3062100210000
-            json = '{"_":"telegram","media":"heat cost allocation","meter":"hydroclimav2","name":"HCA","id":"68036198","total_hca":0,"average_ambient_temperature_c":18.66,"max_ambient_temperature_c":47.51,"average_ambient_temperature_last_month_c":15.78,"average_heater_temperature_last_month_c":17.47,"timestamp":"1111-11-11T11:11:11Z"}'
+            telegram = 2e44b0099861036853087a000020002F2F036E0000000F100043106A7D2C4A078F12202CB1242A06D3062100210000
+            json = '{"_":"telegram","media":"heat cost allocation","meter":"hydroclimav2","name":"HCA","id":"68036198","average_ambient_temperature_c":18.66,"average_ambient_temperature_last_month_c":15.78,"average_heater_temperature_last_month_c":17.47,"current_hca":0,"max_ambient_temperature_c":47.51,"total_consumption_hca":33,"status":"OK","timestamp":"1111-11-11T11:11:11Z"}'
             fields = 'HCA;68036198;OK;0;18.66;1111-11-11 11:11.11'
-        }*/
-        /*
-        test {
-            args = 'HCAA hydroclimav2 74393723 NOKEY'
-            telegram = 2D44B009233739743308780F9D1300023ED97AEC7BC5908A32C15D8A32C126915AC15AC126912691269187912689
-            json = '{"_":"telegram","media":"heat cost allocation","meter":"hydroclimav2","name":"HCAA","id":"74393723","timestamp":"1111-11-11T11:11:11Z"}'
-            fields = 'HCAA;74393723;null;null;1111-11-11 11:11.11'
         }
         test {
-            args = 'HC1 hydroclimav2'
-            comment = 'Version 0x11 of telegram'
+            comment = 'Version 0x85 frame_v11 encrypted'
+            args = 'HC1 hydroclimav2 93000952 NOKEY'
             telegram = 5144B0095209009385088C20807A800040252F2F_036E540200436ED90800426C3F3C0F1100009924293400003713DF08BC163633960E8208D401D90879076006DA080809DA08E537000A3500DF1201830900
-            json = '{}'
-            fields = ''
-        }*/
+            json = '{"_":"telegram","media":"heat cost allocation","meter":"hydroclimav2","name":"HC1","id":"93000952","ambient_temperature_at_set_date_1_c":22.66,"ambient_temperature_at_set_date_2_c":23.12,"ambient_temperature_at_set_date_3_c":22.66,"average_ambient_temperature_c":22.71,"average_ambient_temperature_last_month_c":21.78,"average_heater_temperature_c":49.19,"average_heater_temperature_last_month_c":37.34,"consumption_at_set_date_1_hca":468,"consumption_at_set_date_2_hca":2265,"consumption_at_set_date_3_hca":1913,"consumption_at_set_date_4_hca":1632,"current_hca":596,"max_ambient_temperature_c":58.2,"target_date":"2025-12-31","target_hca":2265,"total_consumption_hca":2435,"status":"OK","timestamp":"1111-11-11T11:11:11Z"}'
+            fields = 'HC1;93000952;OK;596;22.71;1111-11-11 11:11.11'
+        }
+        test {
+            comment = 'Version 0x85 frame_v11 with TONI null sentinel 0x8000'
+            args = 'HC3 hydroclimav2 93001021 NOKEY'
+            telegram = 5144b0092110009385088c20fb7afb4040252F2F_036E000000436E000000426C3F350F110001B9604734CE2E2708FD071B088832940766070000000000000000C407260800802DD400000000000000220000
+            json = '{"_":"telegram","media":"heat cost allocation","meter":"hydroclimav2","name":"HC3","id":"93001021","ambient_temperature_at_set_date_1_c":19.88,"ambient_temperature_at_set_date_2_c":20.86,"ambient_temperature_at_set_date_3_c":null,"average_ambient_temperature_c":20.45,"average_ambient_temperature_last_month_c":18.94,"average_heater_temperature_c":20.87,"average_heater_temperature_last_month_c":19.4,"consumption_at_set_date_1_hca":0,"consumption_at_set_date_2_hca":0,"consumption_at_set_date_3_hca":0,"consumption_at_set_date_4_hca":0,"current_hca":0,"max_ambient_temperature_c":20.75,"target_date":"2025-05-31","target_hca":0,"total_consumption_hca":34,"status":"UNKNOWN_40","timestamp":"1111-11-11T11:11:11Z"}'
+            fields = 'HC3;93001021;UNKNOWN_40;0;20.45;1111-11-11 11:11.11'
+        }
     }
 }

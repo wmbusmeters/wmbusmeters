@@ -573,3 +573,24 @@ test {
     json     = '{"_":"telegram","fabrication_no": "00140655","id": "16466583","media": "cold water","meter": "werhlemodwm","meter_datetime": "2000-00-00 03:43","name": "licznik","next_target_date": "2021-11-25","target_10_date": "2020-07-31","target_10_m3": 0.061,"target_11_date": "2020-08-31","target_11_m3": 0.061,"target_12_date": "2020-09-30","target_12_m3": 0.061,"target_13_date": "2020-10-31","target_13_m3": 0.061,"target_1_date": "2020-11-25","target_1_m3": 0.061,"target_2_date": "2020-11-30","target_2_m3": 0.061,"target_3_date": "2019-12-31","target_3_m3": 0.061,"target_4_date": "2020-01-31","target_4_m3": 0.061,"target_5_date": "2020-02-29","target_5_m3": 0.061,"target_6_date": "2020-03-31","target_6_m3": 0.061,"target_7_date": "2020-04-30","target_7_m3": 0.061,"target_8_date": "2020-05-31","target_8_m3": 0.061,"target_9_date": "2020-06-30","target_9_m3": 0.061,"target_date": "2020-11-25","target_m3": 0.061,"timestamp": "1111-11-11T11:11:11Z","total_m3": 0}'
     fields   = 'licznik;16466583;0;1111-11-11 11:11.11'
 }
+test {
+    comment  = 'hydroclimav2 v0x53 frame_v10 NOKEY'
+    args     = 'HCA hydroclimav2 68036198 NOKEY'
+    telegram = 2e44b0099861036853087a000020002F2F036E0000000F100043106A7D2C4A078F12202CB1242A06D3062100210000
+    json     = '{"_":"telegram","media":"heat cost allocation","meter":"hydroclimav2","name":"HCA","id":"68036198","average_ambient_temperature_c":18.66,"average_ambient_temperature_last_month_c":15.78,"average_heater_temperature_last_month_c":17.47,"current_hca":0,"max_ambient_temperature_c":47.51,"total_consumption_hca":33,"status":"OK","timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'HCA;68036198;OK;0;18.66;1111-11-11 11:11.11'
+}
+test {
+    comment  = 'hydroclimav2 v0x85 frame_v11 encrypted'
+    args     = 'HC1 hydroclimav2 93000952 NOKEY'
+    telegram = 5144B0095209009385088C20807A800040252F2F_036E540200436ED90800426C3F3C0F1100009924293400003713DF08BC163633960E8208D401D90879076006DA080809DA08E537000A3500DF1201830900
+    json     = '{"_":"telegram","media":"heat cost allocation","meter":"hydroclimav2","name":"HC1","id":"93000952","ambient_temperature_at_set_date_1_c":22.66,"ambient_temperature_at_set_date_2_c":23.12,"ambient_temperature_at_set_date_3_c":22.66,"average_ambient_temperature_c":22.71,"average_ambient_temperature_last_month_c":21.78,"average_heater_temperature_c":49.19,"average_heater_temperature_last_month_c":37.34,"consumption_at_set_date_1_hca":468,"consumption_at_set_date_2_hca":2265,"consumption_at_set_date_3_hca":1913,"consumption_at_set_date_4_hca":1632,"current_hca":596,"max_ambient_temperature_c":58.2,"target_date":"2025-12-31","target_hca":2265,"total_consumption_hca":2435,"status":"OK","timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'HC1;93000952;OK;596;22.71;1111-11-11 11:11.11'
+}
+test {
+    comment  = 'hydroclimav2 v0x85 frame_v11 with TONI null sentinel 0x8000'
+    args     = 'HC3 hydroclimav2 93001021 NOKEY'
+    telegram = 5144b0092110009385088c20fb7afb4040252F2F_036E000000436E000000426C3F350F110001B9604734CE2E2708FD071B088832940766070000000000000000C407260800802DD400000000000000220000
+    json     = '{"_":"telegram","media":"heat cost allocation","meter":"hydroclimav2","name":"HC3","id":"93001021","ambient_temperature_at_set_date_1_c":19.88,"ambient_temperature_at_set_date_2_c":20.86,"ambient_temperature_at_set_date_3_c":null,"average_ambient_temperature_c":20.45,"average_ambient_temperature_last_month_c":18.94,"average_heater_temperature_c":20.87,"average_heater_temperature_last_month_c":19.4,"consumption_at_set_date_1_hca":0,"consumption_at_set_date_2_hca":0,"consumption_at_set_date_3_hca":0,"consumption_at_set_date_4_hca":0,"current_hca":0,"max_ambient_temperature_c":20.75,"target_date":"2025-05-31","target_hca":0,"total_consumption_hca":34,"status":"UNKNOWN_40","timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'HC3;93001021;UNKNOWN_40;0;20.45;1111-11-11 11:11.11'
+}
