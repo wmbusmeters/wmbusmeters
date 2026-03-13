@@ -85,6 +85,8 @@ struct WMBusSocket : public virtual BusDeviceCommonImplementation
 
 private:
     void processLine(const string &line);
+    void handleDecode(XMQDoc *doc, const string &line);
+    void handleListDrivers();
     void sendResponse(const string &response);
     void sendError(const string &error_msg, const string &telegram_hex);
 
@@ -172,9 +174,41 @@ void WMBusSocket::sendError(const string &error_msg, const string &telegram_hex)
     sendResponse(json);
 }
 
+void WMBusSocket::handleListDrivers()
+{
+    string json = "{\"drivers\": [";
+
+    bool first = true;
+    for (DriverInfo *di : allDrivers())
+    {
+        if (!first) json += ", ";
+        first = false;
+
+        json += "{\"name\": \"" + escapeJsonString(di->name().str()) + "\"";
+        json += ", \"type\": \"" + string(toString(di->type())) + "\"";
+
+        vector<DriverName> &aliases = di->nameAliases();
+        if (!aliases.empty())
+        {
+            json += ", \"aliases\": [";
+            for (size_t i = 0; i < aliases.size(); ++i)
+            {
+                if (i > 0) json += ", ";
+                json += "\"" + escapeJsonString(aliases[i].str()) + "\"";
+            }
+            json += "]";
+        }
+
+        json += "}";
+    }
+
+    json += "]}";
+    sendResponse(json);
+}
+
 void WMBusSocket::processLine(const string &line)
 {
-    // Parse JSON/XMQ/XML input: {"_": "decode", "telegram": "HEX", "key": "HEX", "driver": "auto", "format": "wmbus"}
+    // Parse JSON/XMQ/XML input
     XMQDoc *doc = xmqNewDoc();
     bool ok = xmqParseBufferWithType(doc, line.c_str(), line.c_str()+line.length(), NULL, XMQ_CONTENT_DETECT, 0);
 
@@ -186,6 +220,30 @@ void WMBusSocket::processLine(const string &line)
         return;
     }
 
+    // Dispatch based on command type.
+    // XMQ maps JSON {"_": "CMD", ...} so that CMD becomes the root element name.
+    XMQNode *root = xmqGetRootNode(doc);
+    const char *cmd = root ? xmqGetName(root) : NULL;
+
+    if (cmd && !strcmp(cmd, "decode"))
+    {
+        handleDecode(doc, line);
+        return;
+    }
+
+    if (cmd && !strcmp(cmd, "list_drivers"))
+    {
+        xmqFreeDoc(doc);
+        handleListDrivers();
+        return;
+    }
+
+    xmqFreeDoc(doc);
+    sendError("unknown command, expected 'decode' or 'list_drivers'", "");
+}
+
+void WMBusSocket::handleDecode(XMQDoc *doc, const string &line)
+{
     string telegram_hex, key_hex, driver_name, format_str;
 
     const char *telegram_hex_s = xmqGetString(doc, "/decode/telegram");
@@ -219,7 +277,7 @@ void WMBusSocket::processLine(const string &line)
         sendError("invalid hex string in 'telegram' field", telegram_hex);
         return;
     }
-    ok = hex2bin(telegram_hex, &input_frame);
+    bool ok = hex2bin(telegram_hex, &input_frame);
     if (!ok)
     {
         sendError("failed to decode hex telegram", telegram_hex);
