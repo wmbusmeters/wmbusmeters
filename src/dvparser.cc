@@ -686,6 +686,7 @@ XMQProceed add_value(XMQDoc *doc, XMQNodePtr node, void *user_data)
     string value = hex;
 
     int o = xmqGetIntRel(doc, "@off", node);
+    o = o/2;
 
     (*dv_entries)[difvifkey] = { offset+o, DVEntry(offset+o,
                                                dvk.str(),
