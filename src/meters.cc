@@ -3412,10 +3412,10 @@ bool MeterCommonImplementation::addOptionalLibraryFields(string field_names)
         markLastFieldAsLibrary();
     }
 
-    if (checkIf(fields,"current_hca"))
+    if (checkIf(fields,"consumption_hca"))
     {
         addNumericFieldWithExtractor(
-            "current",
+            "consumption",
             "The current heat cost allocation for this meter."+help,
             DEFAULT_PRINT_PROPERTIES,
             Quantity::HCA,
