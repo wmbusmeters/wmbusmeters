@@ -2308,7 +2308,7 @@ const char *downloadDir()
     if (download_dir_[0]) return download_dir_;
 
     const char *home = getenv("HOME");
-    snprintf(download_dir_, 256, "%s/.local/share/wmbusmeters/wmbusmeters.drivers.d", home);
+    snprintf(download_dir_, 256, "%s/" DEFAULT_USER_DRIVER_DOWNLOAD_DIR, home);
     return download_dir_;
 }
 
