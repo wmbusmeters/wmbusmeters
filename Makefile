@@ -22,6 +22,8 @@
 
 DESTDIR?=/
 
+DEFAULT_CONF_DIR?=/etc
+
 ifeq "$(DEBUG)" "true"
   include $(wildcard build_debug/*/spec.gmk)
 else
@@ -131,6 +133,10 @@ $(info Building $(VERSION))
 
 FUZZFLAGS ?= -DFUZZING=false
 CXXFLAGS ?= $(EXTRA_CXXFLAGS) $(DEBUG_FLAGS) $(FUZZFLAGS) -fPIC -std=c++11 -Wall -Werror=format-security -Wno-unused-function
+
+# Inject default paths
+CXXFLAGS += -DDEFAULT_CONF_DIR=\"$(DEFAULT_CONF_DIR)\"
+
 # Additional fedora rpm package build flags
 # -O2 -flto=auto -ffat-lto-objects -fexceptions -g -grecord-gcc-switches -pipe -Wall -Werror=format-security -Wp,-D_FORTIFY_SOURCE=2 -Wp,-D_GLIBCXX_ASSERTIONS -fstack-protector-strong -mtune=generic -fasynchronous-unwind-tables -fstack-clash-protection -fcf-protection
 CXXFLAGS += -I$(BUILD)
