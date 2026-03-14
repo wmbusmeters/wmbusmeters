@@ -764,18 +764,13 @@ shared_ptr<Configuration> loadConfiguration(string root, ConfigOverrides overrid
     // The second one is preferable but for backward compatibility the first one is tested first.
     // If there is no /+etc/wmbusmeters.conf then it will look for /+wmbusmeters.conf
 
-    string conf_dir = root;
-    string conf_file = root+"/etc/wmbusmeters.conf";
-    string conf_meter_dir = root+"/etc/wmbusmeters.d";
-    string conf_drivers_dir = root+"/etc/wmbusmeters.drivers.d";
-
-    if (!checkFileExists(conf_file.c_str()))
+    if(root.empty())
     {
-        conf_dir = root+"/etc";
-        conf_file = root+"/wmbusmeters.conf";
-        conf_meter_dir = root+"/wmbusmeters.d";
-        conf_drivers_dir = root+"/wmbusmeters.drivers.d";
+        root = "/etc";
     }
+    string conf_file = root+"/wmbusmeters.conf";
+    string conf_meter_dir = root+"/wmbusmeters.d";
+    string conf_drivers_dir = root+"/wmbusmeters.drivers.d";
 
     debug("(config) loading %s\n", conf_file.c_str());
     bool ok = loadFile(conf_file, &global_conf);
