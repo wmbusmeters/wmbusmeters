@@ -766,7 +766,7 @@ shared_ptr<Configuration> loadConfiguration(string root, ConfigOverrides overrid
 
     if(root.empty())
     {
-        root = "/etc";
+        root = DEFAULT_CONF_DIR;
     }
     string conf_file = root+"/wmbusmeters.conf";
     string conf_meter_dir = root+"/wmbusmeters.d";
