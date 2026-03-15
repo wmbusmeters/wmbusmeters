@@ -21,6 +21,8 @@ AC_CONFIG_AUX_DIR([autoconf])
 AC_CANONICAL_BUILD
 AC_CANONICAL_HOST
 
+PKG_PROG_PKG_CONFIG
+
 m4_include([autoconf/pkg.m4])
 
 PKG_PREREQ(0.29)
@@ -35,18 +37,7 @@ mkdir -p "$OUTPUT_ROOT"
 
 AC_LANG_PUSH([C++])
 
-case $host_os in
-freebsd*)
-	CFLAGS="$CFLAGS -I/usr/local/include"
-	CXXFLAGS="$CXXFLAGS -I/usr/local/include"
-	LDFLAGS="$LDFLAGS -L/usr/local/lib"
-        ;;
-darwin*)
-	CFLAGS="$CFLAGS -I/usr/local/include -I/opt/homebrew/include"
-	CXXFLAGS="$CXXFLAGS -I/usr/local/include -I/opt/homebrew/include"
-	LDFLAGS="$LDFLAGS -L/usr/local/lib -L/opt/homebrew/lib"
-;;
-esac
+PKG_CHECK_MODULES([LIBXML], [libxml-2.0 >= 2.0])
 
 #C_CHECK_LIB(usb, usb_init, [],
 #
@@ -86,7 +77,7 @@ fi
 AC_SUBST(CFLAGS)
 AC_SUBST(CXXFLAGS)
 AC_CONFIG_FILES([$OUTPUT_ROOT/spec.gmk:$SRC_ROOT/autoconf/spec.gmk.in])
-AC_CONFIG_FILES([$OUTPUT_ROOT/Makefile:$SRC_ROOT/autoconf/Makefile.in])
+AC_CONFIG_FILES([$SRC_ROOT/Makefile:$SRC_ROOT/autoconf/Makefile.in])
 
 # Make sure config.status ends up in the build directory instead of the src root.
 CONFIG_STATUS="$OUTPUT_ROOT/config.status"
