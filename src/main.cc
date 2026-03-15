@@ -807,7 +807,7 @@ void start_daemon(string pid_file, string root, ConfigOverrides overrides)
     // If not in daemon mode they will be stored in:
     // ~/.local/share/wmbusmeters/wmbusmeters.drivers.d/downloaded
 
-    setDownloadDir("/var/lib/wmbusmeters/wmbusmeters.drivers.d/downloaded");
+    setDownloadDir(DEFAULT_DEAMON_DRIVER_DOWNLOAD_DIR);
     start_using_config_files(root, true, overrides);
 }
 
