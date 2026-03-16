@@ -120,6 +120,7 @@ bool DriverDynamic::load(DriverInfo *di, const string &file_name, const char *co
         di->setDynamic(file, doc);
 
         xmqForeach(doc, "/driver/detect/mvt", (XMQNodeCallback)add_detect, di);
+        xmqForeach(doc, "/driver/mfct_tpl_status_bits", (XMQNodeCallback)add_mfct_tpl_status, di);
 
         check_detection_triplets(di, file);
 
@@ -514,6 +515,43 @@ XMQProceed DriverDynamic::add_lookup(XMQDoc *doc, XMQNodePtr lookup, DriverDynam
     xmqForeachRel(doc, "map", (XMQNodeCallback)add_map, dd, lookup);
 
     dd->tmp_lookup_->add(rule);
+
+    return XMQ_CONTINUE;
+}
+
+XMQProceed DriverDynamic::add_mfct_tpl_status_map(XMQDoc *doc, XMQNodePtr map, Translate::Rule *rule)
+{
+    const char *name = xmqGetStringRel(doc, "name", map);
+    const char *value_s = xmqGetStringRel(doc, "value", map);
+    const char *test_s = xmqGetStringRel(doc, "test", map);
+
+    if (!name || !value_s || !test_s) return XMQ_CONTINUE;
+
+    uint64_t value = strtoul(value_s, NULL, 0);
+    TestBit test = (strcasecmp(test_s, "set") == 0) ? TestBit::Set : TestBit::NotSet;
+
+    rule->add(Translate::Map(value, name, test));
+
+    return XMQ_CONTINUE;
+}
+
+XMQProceed DriverDynamic::add_mfct_tpl_status(XMQDoc *doc, XMQNodePtr node, DriverInfo *di)
+{
+    const char *mask_bits_s = xmqGetStringRel(doc, "mask_bits", node);
+    const char *default_message = xmqGetStringRel(doc, "default_message", node);
+
+    uint64_t mask_bits = mask_bits_s ? strtoul(mask_bits_s, NULL, 0) : 0xff;
+    if (!default_message) default_message = "OK";
+
+    Translate::Rule rule("TPL_STS", Translate::MapType::BitToString);
+    rule.set(MaskBits(mask_bits));
+    rule.set(DefaultMessage(default_message));
+
+    xmqForeachRel(doc, "map", (XMQNodeCallback)add_mfct_tpl_status_map, &rule, node);
+
+    Translate::Lookup lookup;
+    lookup.add(rule);
+    di->mfctTPLStatusBits() = lookup;
 
     return XMQ_CONTINUE;
 }
