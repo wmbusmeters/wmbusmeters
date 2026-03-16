@@ -52,7 +52,6 @@ AC_SUBST(LIBUSB_LIBS)
 AC_SUBST(CFLAGS)
 AC_SUBST(CXXFLAGS)
 AC_CONFIG_FILES([$OUTPUT_ROOT/spec.gmk:$SRC_ROOT/autoconf/spec.gmk.in])
-AC_CONFIG_FILES([$SRC_ROOT/Makefile:$SRC_ROOT/autoconf/Makefile.in])
 
 # Make sure config.status ends up in the build directory instead of the src root.
 CONFIG_STATUS="$OUTPUT_ROOT/config.status"

@@ -144,9 +144,9 @@ CXXFLAGS +=\
 
 # Additional fedora rpm package build flags
 # -O2 -flto=auto -ffat-lto-objects -fexceptions -g -grecord-gcc-switches -pipe -Wall -Werror=format-security -Wp,-D_FORTIFY_SOURCE=2 -Wp,-D_GLIBCXX_ASSERTIONS -fstack-protector-strong -mtune=generic -fasynchronous-unwind-tables -fstack-clash-protection -fcf-protection
-CXXFLAGS += -I$(BUILD) @LIBXML_CFLAGS@ @LIBRTLSDR_CFLAGS@ @LIBUSB_CFLAGS@
+CXXFLAGS += -I$(BUILD) $(LIBXML_CFLAGS) $(LIBRTLSDR_CFLAGS) $(LIBUSB_CFLAGS@)
 LDFLAGS  ?= $(DEBUG_LDFLAGS)
-LDFLAGS  += @LIBXML_LIBS@ @LIBRTLSDR_LIBS@ @LIBUSB_LIBS@
+LDFLAGS  += $(LIBXML_LIBS) $(LIBRTLSDR_LIBS) $(LIBUSB_LIBS)
 
 
 $(BUILD)/%.o: src/%.cc $(wildcard src/%.h)

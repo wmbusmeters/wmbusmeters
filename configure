@@ -2406,8 +2406,6 @@ fi
 
 ac_config_files="$ac_config_files $OUTPUT_ROOT/spec.gmk:$SRC_ROOT/autoconf/spec.gmk.in"
 
-ac_config_files="$ac_config_files $SRC_ROOT/Makefile:$SRC_ROOT/autoconf/Makefile.in"
-
 
 # Make sure config.status ends up in the build directory instead of the src root.
 CONFIG_STATUS="$OUTPUT_ROOT/config.status"
@@ -3115,7 +3113,6 @@ for ac_config_target in $ac_config_targets
 do
   case $ac_config_target in
     "$OUTPUT_ROOT/spec.gmk") CONFIG_FILES="$CONFIG_FILES $OUTPUT_ROOT/spec.gmk:$SRC_ROOT/autoconf/spec.gmk.in" ;;
-    "$SRC_ROOT/Makefile") CONFIG_FILES="$CONFIG_FILES $SRC_ROOT/Makefile:$SRC_ROOT/autoconf/Makefile.in" ;;
 
   *) as_fn_error $? "invalid argument: '$ac_config_target'" "$LINENO" 5;;
   esac
