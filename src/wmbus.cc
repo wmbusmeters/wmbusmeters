@@ -5093,6 +5093,16 @@ string decodeTPLStatusByteNoMfct(uchar sts)
 
 string decodeTPLStatusByteWithMfct(uchar sts, Translate::Lookup &lookup)
 {
+    if (lookup.hasLookups() && lookup.coversFullByte())
+    {
+        // Manufacturer overrides ALL TPL status bits (e.g. BMeters RFM-AMB).
+        // The lookup covers more than just the vendor-specific bits 5-7,
+        // so we let it handle the entire byte.
+        string t = lookup.translate(sts);
+        if (t.empty()) t = "OK";
+        return t;
+    }
+
     string s = decodeTPLStatusByteOnlyStandardBits(sts);
     string t = "OK";
 
