@@ -37,21 +37,6 @@ namespace
                             "timestamp");
         di.setMeterType(MeterType::WaterMeter);
         di.addLinkMode(LinkMode::S1);
-        di.addMVT(MANUFACTURER_QDS, 0x37,  0x33);
-        di.addMVT(MANUFACTURER_QDS, 0x37,  0x35);
-        di.addMVT(MANUFACTURER_QDS, 0x06,  0x16);
-        di.addMVT(MANUFACTURER_QDS, 0x07,  0x16);
-        di.addMVT(MANUFACTURER_QDS, 0x06,  0x17);
-        di.addMVT(MANUFACTURER_QDS, 0x07,  0x17);
-        di.addMVT(MANUFACTURER_QDS, 0x06,  0x18);
-        di.addMVT(MANUFACTURER_QDS, 0x07,  0x18);
-        di.addMVT(MANUFACTURER_QDS, 0x07,  0x19);
-        di.addMVT(MANUFACTURER_QDS, 0x06,  0x1a);
-        di.addMVT(MANUFACTURER_QDS, 0x07,  0x1a);
-        di.addMVT(MANUFACTURER_QDS, 0x06,  0x1d);
-        di.addMVT(MANUFACTURER_QDS, 0x07,  0x1d);
-        di.addMVT(MANUFACTURER_QDS, 0x06,  0x35);
-        di.addMVT(MANUFACTURER_QDS, 0x07,  0x35);
         di.usesProcessContent();
 
         di.setConstructor([](MeterInfo& mi, DriverInfo& di){ return shared_ptr<Meter>(new Driver(mi, di)); });

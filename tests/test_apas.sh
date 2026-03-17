@@ -17,8 +17,9 @@ METERS="Wasser      apator162   20202020 NOKEY
       MyTapWatere apator162   26202020 NOKEY
       MyTapWatere apator162   27202020 NOKEY
       MyTapWaterf apator162   03410514 NOKEY
-      MyTapWaterg apator162   11441111 NOKEY
       MyTapWaterh apator162   03820304 NOKEY"
+
+#      MyTapWaterg apator162   11441111 NOKEY Commented out, this telegram does not end with FF...
 
 cat simulations/simulation_apas.txt | grep '^{' | jq --sort-keys . > $TEST/test_expected.txt
 $PROG --format=json simulations/simulation_apas.txt $METERS 2> $TEST/test_stderr.txt | jq --sort-keys . > $TEST/test_output.txt

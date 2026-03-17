@@ -842,6 +842,25 @@ void Telegram::addMoreExplanation(int pos, const char* fmt, ...)
     }
 }
 
+void Telegram::addIXMLExplanation(int pos, const char* ixml_parse)
+{
+    bool found = false;
+    for (auto& p : explanations) {
+        if (p.pos == pos)
+        {
+            // Append more information.
+            p.ixml_parse = ixml_parse;
+            // Since we are parsing using IXML, we assume that we have a full understanding.
+            p.understanding = Understanding::FULL;
+            found = true;
+        }
+    }
+
+    if (!found) {
+        debug("(wmbus) warning: cannot find offset %d to add ixml parse \"%s\"\n", pos, ixml_parse);
+    }
+}
+
 void Telegram::addSpecialExplanation(int offset, int len, KindOfData k, Understanding u, const char* fmt, ...)
 {
     char buf[1024];
@@ -2153,6 +2172,9 @@ bool Telegram::parseHAN(vector<uchar> &input_frame, MeterKeys *mk, bool warn)
 
 void Telegram::explainParse(string intro, int from)
 {
+    sort(explanations.begin(), explanations.end(),
+         [](const Explanation & a, const Explanation & b) -> bool { return a.pos < b.pos; });
+
     for (auto& p : explanations)
     {
         // Protocol or content?
@@ -2168,6 +2190,10 @@ void Telegram::explainParse(string intro, int from)
         if (p.kind == KindOfData::PROTOCOL && p.understanding == Understanding::FULL) u = " ";
 
         debug("%s %03d %s%s: %s\n", intro.c_str(), p.pos, c, u, p.info.c_str());
+        if (p.ixml_parse != "")
+        {
+            debugPrefixed(intro.c_str(), p.ixml_parse.c_str());
+        }
     }
 }
 
@@ -2238,6 +2264,10 @@ string renderAnalysisAsText(vector<Explanation> &explanations, OutputFormat of)
         }
 
         s += tostrprintf("%03d %s%s: %s%s%s\n", p.pos, c, u, pre, p.info.c_str(), post);
+        if (p.ixml_parse != "")
+        {
+            s += p.ixml_parse;
+        }
     }
     return s;
 }
@@ -4051,6 +4081,11 @@ bool Telegram::findFormatBytesFromKnownMeterSignatures(vector<uchar> *format_byt
         hex2bin("02FF200413523B", format_bytes);
         debug("(wmbus) using hard coded format for hash 7c0e\n");
     }
+    else if (format_signature == 0x0905)
+    {
+        hex2bin("04FF234413523B06FF1B426C61675167023B04138101E7FF0F", format_bytes);
+        debug("(wmbus) using hard coded format for hash 0905\n");
+    }
     else
     {
         ok = false;
@@ -5058,6 +5093,16 @@ string decodeTPLStatusByteNoMfct(uchar sts)
 
 string decodeTPLStatusByteWithMfct(uchar sts, Translate::Lookup &lookup)
 {
+    if (lookup.hasLookups() && lookup.coversFullByte())
+    {
+        // Manufacturer overrides ALL TPL status bits (e.g. BMeters RFM-AMB).
+        // The lookup covers more than just the vendor-specific bits 5-7,
+        // so we let it handle the entire byte.
+        string t = lookup.translate(sts);
+        if (t.empty()) t = "OK";
+        return t;
+    }
+
     string s = decodeTPLStatusByteOnlyStandardBits(sts);
     string t = "OK";
 

@@ -108,6 +108,7 @@ protected:
     void setMfctTPLStatusBits(Translate::Lookup &lookup);
 
     void markLastFieldAsLibrary();
+    FieldInfo *lastAddedField();
 
     void addNumericFieldWithExtractor(
         string vname,           // Name of value without unit, eg "total" "total_month{storagenr}"
@@ -148,7 +149,9 @@ protected:
         string vname,
         string help,
         PrintProperties print_properties,
-        FieldMatcher matcher);
+        FieldMatcher matcher,
+        string ixml = "",
+        bool entire_payload = false);
 
     void addStringFieldWithExtractorAndLookup(
         string vname,
@@ -188,6 +191,7 @@ protected:
     string renderJsonOnlyDefaultUnit(string vname, Quantity xuantity);
     string debugValues();
 
+    void processFieldIXMLs(Telegram *t);
     void processFieldExtractors(Telegram *t);
     void processFieldCalculators();
     string getStatusField(FieldInfo *fi);
