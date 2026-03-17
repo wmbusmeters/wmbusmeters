@@ -19,12 +19,12 @@ driver {
             attributes           = HIDE
             match_entire_payload = true
             /* An IXML grammar for decoding apator telegrams.
-                This grammar handles the overall structure but so far
-                only extracts the total volume in liters.
-                Sometimes the apator payload leads with a nice 0x0f which
-                means mft specific data. Sometimes the apator payload (older meters?)
-                lead with 0x80 and then we have a good crash test for the difvif parser. :-)
-                (Hint it hasn't crashed so far.) */
+               This grammar handles the overall structure but so far
+               only extracts the total volume in liters.
+               Sometimes the apator payload leads with a nice 0x0f which
+               means mft specific data. Sometimes the apator payload (older meters?)
+               lead with 0x80 and then we have a good crash test for the difvif parser. :-)
+               (Hint it hasn't crashed so far.) */
             ixml = "decode = -byte, status, field*, pad_FF?, checksum.
                     -hex  = ['A'-'F';'0'-'9'].
                     -byte = hex, hex.
@@ -129,10 +129,10 @@ driver {
             fields   = 'W3;02035240;904.398;1111-11-11 11:11.11'
         }
         test {
-             args = 'MyTapWatera apator162 21202020 NOKEY'
-             telegram = 4E4401062020202105077A130040852F2F0F6D4C389300020043840210351F040075012C0B040048D603003E630300CD2C03001EF402000ACE0200A098A39603FFFFFFFFFFFFFFFFFFFFFFFFFF1977
-             json = '{"_":"telegram","media":"water","meter":"apator162","name":"MyTapWatera","id":"21202020","total_m3":270.133,"timestamp":"1111-11-11T11:11:11Z"}'
-             fields = 'MyTapWatera;21202020;270.133;1111-11-11 11:11.11'
+            args     = 'MyTapWatera apator162 21202020 NOKEY'
+            telegram = 4E4401062020202105077A130040852F2F0F6D4C389300020043840210351F040075012C0B040048D603003E630300CD2C03001EF402000ACE0200A098A39603FFFFFFFFFFFFFFFFFFFFFFFFFF1977
+            json     = '{"_":"telegram","media":"water","meter":"apator162","name":"MyTapWatera","id":"21202020","total_m3":270.133,"timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'MyTapWatera;21202020;270.133;1111-11-11 11:11.11'
         }
     }
 }

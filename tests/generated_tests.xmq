@@ -45,6 +45,24 @@ test {
     fields   = 'AqWater;05933237;16.899;1111-11-11 11:11.11'
 }
 test {
+    args     = 'HeatCool c5isf 32022703 NOKEY'
+    telegram = 8E44496A03270232880D7AED0080052F2F0406050200008410069A1700000413BC6F2E00840406E701000082046C2131841406C20B000082146C2131043B00000000042D0000000002595D09025D240802FD17000084800106050200008280016C213C948001AE2501000000849001069A1700008290016C213C849001AE25000000002F2F2F2F2F2F2F2F2F2F2F2F
+    json     = '{"_":"telegram","media":"heat/cooling load","meter":"c5isf","name":"HeatCool","id":"32022703","due_date":"2025-01-01","due_energy_consumption_kwh":487,"flow_temperature_c":23.97,"max_power_last_month_kw":1,"power_kw":0,"prev_1_month_kwh":517,"prev_1_month_date":"2025-12-01","return_temperature_c":20.84,"total_cooling_consumption_kwh":6042,"total_energy_consumption_kwh":517,"total_energy_consumption_last_month_kwh":517,"total_volume_m3":3043.26,"volume_flow_m3h":0,"status":"OK","timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'HeatCool;32022703;517;3043.26;OK;1111-11-11 11:11.11'
+}
+test {
+    args     = 'Heat c5isf 32002044 NOKEY'
+    telegram = 5E44496A4420003288047AFC0050052F2F_0406D00E00000413B28A05008404060000000082046CC121043B00000000042D000000000259E719025D051402FD17000084800106C00C00008280016CC125948001AE25090000002F2F2F2F2F2F
+    json     = '{"_":"telegram","media":"heat","meter":"c5isf","name":"Heat","id":"32002044","due_date":"2022-01-01","due_energy_consumption_kwh":0,"flow_temperature_c":66.31,"max_power_last_month_kw":9,"power_kw":0,"prev_1_month_kwh":3264,"prev_1_month_date":"2022-05-01","return_temperature_c":51.25,"total_energy_consumption_kwh":3792,"total_energy_consumption_last_month_kwh":3264,"total_volume_m3":363.186,"volume_flow_m3h":0,"status":"OK","timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'Heat;32002044;3792;363.186;OK;1111-11-11 11:11.11'
+}
+test {
+    args     = 'Heat c5isf 55445555 NOKEY'
+    telegram = E544496A55554455880D7A320200002F2F_04060000000004130000000002FD17240084800106000000008280016C2124C480010600000080C280016CFFFF84810106000000808281016CFFFFC481010600000080C281016CFFFF84820106000000808282016CFFFFC482010600000080C282016CFFFF84830106000000808283016CFFFFC483010600000080C283016CFFFF84840106000000808284016CFFFFC484010600000080C284016CFFFF84850106000000808285016CFFFFC485010600000080C285016CFFFF84860106000000808286016CFFFFC486010600000080C286016CFFFF
+    json     = '{"_":"telegram","media":"heat/cooling load","meter":"c5isf","name":"Heat","id":"55445555","prev_10_month_kwh":-2147483648,"prev_10_month_date":"2128-03-31","prev_11_month_kwh":-2147483648,"prev_11_month_date":"2128-03-31","prev_12_month_kwh":-2147483648,"prev_12_month_date":"2128-03-31","prev_13_month_kwh":-2147483648,"prev_13_month_date":"2128-03-31","prev_14_month_kwh":-2147483648,"prev_14_month_date":"2128-03-31","prev_1_month_kwh":0,"prev_1_month_date":"2017-04-01","prev_2_month_kwh":-2147483648,"prev_2_month_date":"2128-03-31","prev_3_month_kwh":-2147483648,"prev_3_month_date":"2128-03-31","prev_4_month_kwh":-2147483648,"prev_4_month_date":"2128-03-31","prev_5_month_kwh":-2147483648,"prev_5_month_date":"2128-03-31","prev_6_month_kwh":-2147483648,"prev_6_month_date":"2128-03-31","prev_7_month_kwh":-2147483648,"prev_7_month_date":"2128-03-31","prev_8_month_kwh":-2147483648,"prev_8_month_date":"2128-03-31","prev_9_month_kwh":-2147483648,"prev_9_month_date":"2128-03-31","total_energy_consumption_kwh":0,"total_energy_consumption_last_month_kwh":0,"total_volume_m3":0,"status":"DRY ERROR RETURN_SENSOR_INTERRUPTED","timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'Heat;55445555;0;0;DRY ERROR RETURN_SENSOR_INTERRUPTED;1111-11-11 11:11.11'
+}
+test {
     args     = 'dwater2 dme173 44334433 NOKEY'
     telegram = 5344A5113344334463078C002A900F002C25B7640000BAD0D4FB907B9BE17AFA003107102F2F_0C131717000004FD17000000000C933C000000004C1300020000426C3F3C84046D3B375F318C0413000200002F2F
     json     = '{"_": "telegram","id": "44334433","media": "water","meter": "dme173","name": "dwater2","set_date": "2025-12-31","status": "OK","target_datetime": "2026-01-31 23:59","target_m3": 0.2,"timestamp": "1111-11-11T11:11:11Z","total_at_set_date_m3": 0.2,"total_backward_m3": 0,"total_m3": 1.717}'
@@ -587,6 +605,18 @@ test {
     telegram = 682f2f6808687204010000ac484100b30000000c6e41648401046d9c021732426cff2c4c6e4164840142ec7e1f3c0fc101010c6d16
     json     = '{"_":"telegram","consumption_hca": 1846441,"id": "00000104","media": "other","meter": "relhca","meter_datetime": "2024-02-23 02:28","target_hca": 1846441,"name": "MyRelHCA","next_target_date": "2024-12-31","target_date": "2023-12-31","timestamp": "1111-11-11T11:11:11Z"}'
     fields   = 'MyRelHCA;00000104;1846441;1111-11-11 11:11.11'
+}
+test {
+    args     = 'Pokojak rfmamb 23699558 6C649F296476D737CACB75A2D639CE14'
+    telegram = 5e44b40958956923101b7a7f085005816afb5f6f40ec742610b93c109973edd8c098f505d5dfcfd53dfd72708178e4b81436cb753c6dff5094c48c26607c66419628d424ce41f38f9bd927757d82fa43396aa59a77c694acadab776460d472
+    json     = '{"_":"telegram","media":"room sensor","meter":"rfmamb","name":"Pokojak","id":"23699558","status":"MODULE_REMOVED","current_temperature_c":20.91,"average_temperature_1h_c":20.95,"average_temperature_24h_c":19.5,"maximum_temperature_1h_c":20.98,"minimum_temperature_1h_c":20.91,"maximum_temperature_24h_c":19.88,"minimum_temperature_24h_c":19.07,"current_relative_humidity_rh":35.8,"average_relative_humidity_1h_rh":36.1,"average_relative_humidity_24h_rh":36.9,"minimum_relative_humidity_1h_rh":35.8,"maximum_relative_humidity_1h_rh":36.5,"maximum_relative_humidity_24h_rh":37,"minimum_relative_humidity_24h_rh":36.7,"device_datetime":"2026-02-09 08:59","timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'Pokojak;23699558;20.91;35.8;1111-11-11 11:11.11'
+}
+test {
+    args     = 'Rummet rfmamb 11772288 NOKEY'
+    telegram = 5744b40988227711101b7ab20800000265a00842658f088201659f08226589081265a0086265510852652b0902fb1aba0142fb1ab0018201fb1abd0122fb1aa90112fb1aba0162fb1aa60152fb1af501066d3b3bb36b2a00
+    json     = '{"_":"telegram","media":"room sensor","meter":"rfmamb","name":"Rummet","id":"11772288","status":"MODULE_REMOVED","current_temperature_c":22.08,"average_temperature_1h_c":21.91,"average_temperature_24h_c":22.07,"maximum_temperature_1h_c":22.08,"minimum_temperature_1h_c":21.85,"maximum_temperature_24h_c":23.47,"minimum_temperature_24h_c":21.29,"current_relative_humidity_rh":44.2,"average_relative_humidity_1h_rh":43.2,"average_relative_humidity_24h_rh":44.5,"minimum_relative_humidity_1h_rh":42.5,"maximum_relative_humidity_1h_rh":44.2,"maximum_relative_humidity_24h_rh":50.1,"minimum_relative_humidity_24h_rh":42.2,"device_datetime":"2019-10-11 19:59","timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'Rummet;11772288;22.08;44.2;1111-11-11 11:11.11'
 }
 test {
     args     = 'XYZ sensostar 21750444 NOKEY'

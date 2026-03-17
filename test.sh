@@ -253,6 +253,13 @@ then
     (cd ..; ./additional_tests.sh $PROG)
 fi
 
+# Only run the python3 tests if python3 is installed.
+if command -v python3 > /dev/null 2> /dev/null
+then
+    tests/test_socket.py $PROG
+    if [ "$?" != "0" ]; then RC="1"; fi
+fi
+
 # Only run the netcat tests if netcat is installed.
 if command -v nc > /dev/null 2> /dev/null
 then
