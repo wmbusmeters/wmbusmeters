@@ -5,9 +5,8 @@ driver {
     default_fields = name,id,status,consumption_hca,average_ambient_temperature_c,timestamp
     manufacturer   = BMeters
     detect {
-        mvt = BMP,99,99
-        //  mvt = BMP,53,08
-        //  mvt = BMP,85,08
+        mvt = BMP,53,08
+        mvt = BMP,85,08
     }
     library {
         use = consumption_hca
