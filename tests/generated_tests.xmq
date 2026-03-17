@@ -1,4 +1,4 @@
-// Generated 2026-03-18_08:36
+// Generated 2026-03-17_11:34
 test {
     args     = 'Vatten apator08 004444dd NOKEY'
     telegram = 73441486DD4444000303A0B9E527004C4034B31CED0106FF01D093270065F022009661230054D02300EC49240018B424005F012500936D2500FFD525000E3D26001EAC26000B2027000300000000371D0B2000000000000024000000000000280000000000002C0033150C010D2F000000000000
@@ -61,18 +61,6 @@ test {
     telegram = E544496A55554455880D7A320200002F2F_04060000000004130000000002FD17240084800106000000008280016C2124C480010600000080C280016CFFFF84810106000000808281016CFFFFC481010600000080C281016CFFFF84820106000000808282016CFFFFC482010600000080C282016CFFFF84830106000000808283016CFFFFC483010600000080C283016CFFFF84840106000000808284016CFFFFC484010600000080C284016CFFFF84850106000000808285016CFFFFC485010600000080C285016CFFFF84860106000000808286016CFFFFC486010600000080C286016CFFFF
     json     = '{"_":"telegram","media":"heat/cooling load","meter":"c5isf","name":"Heat","id":"55445555","prev_10_month_kwh":-2147483648,"prev_10_month_date":"2128-03-31","prev_11_month_kwh":-2147483648,"prev_11_month_date":"2128-03-31","prev_12_month_kwh":-2147483648,"prev_12_month_date":"2128-03-31","prev_13_month_kwh":-2147483648,"prev_13_month_date":"2128-03-31","prev_14_month_kwh":-2147483648,"prev_14_month_date":"2128-03-31","prev_1_month_kwh":0,"prev_1_month_date":"2017-04-01","prev_2_month_kwh":-2147483648,"prev_2_month_date":"2128-03-31","prev_3_month_kwh":-2147483648,"prev_3_month_date":"2128-03-31","prev_4_month_kwh":-2147483648,"prev_4_month_date":"2128-03-31","prev_5_month_kwh":-2147483648,"prev_5_month_date":"2128-03-31","prev_6_month_kwh":-2147483648,"prev_6_month_date":"2128-03-31","prev_7_month_kwh":-2147483648,"prev_7_month_date":"2128-03-31","prev_8_month_kwh":-2147483648,"prev_8_month_date":"2128-03-31","prev_9_month_kwh":-2147483648,"prev_9_month_date":"2128-03-31","total_energy_consumption_kwh":0,"total_energy_consumption_last_month_kwh":0,"total_volume_m3":0,"status":"DRY ERROR RETURN_SENSOR_INTERRUPTED","timestamp":"1111-11-11T11:11:11Z"}'
     fields   = 'Heat;55445555;0;0;DRY ERROR RETURN_SENSOR_INTERRUPTED;1111-11-11 11:11.11'
-}
-test {
-    args     = 'Caltos2 caltose 80081809 EB7CA876CAA641DAC39239326F6DD7EA'
-    telegram = 5e44496a09180880fc087a84405005760039129d1ce51ce54ef7b4aa5383f1fd525f87046d4f869a3189e5b0c400ecf9c41ae6ed6cf94810f09f4f113c04cc731e379e62ea0331ec7f8b09511357a7f7a484851c3de2ec414dcfdebd4af67d
-    json     = '{"_":"telegram","media":"heat cost allocation","meter":"caltose","name":"Caltos2","id":"80081809","base_date":"2026-02-01","base_hca":0,"consumption_hca":0,"target_date":"2026-01-01","target_hca":0,"status":"MODE_2F","timestamp":"1111-11-11T11:11:11Z"}'
-    fields   = 'Caltos2;80081809;MODE_2F;0;0;2026-01-01;1111-11-11 11:11.11'
-}
-test {
-    args     = 'Caltos caltose 80081991 6B6B5EB80884328A7B1E45043D39FAAD'
-    telegram = 5e44496a91190880fc087a744050052f05bf0c6baf613a078098e048ae47ffb93083b455065e03de9b7878c8b3bb063637ea5693160e831cc3d4e0470fabbcd4fedb09d289a0025ca7960d5c7b8064b1093037e7a0a57908edb554d17ad587
-    json     = '{"_":"telegram","media":"heat cost allocation","meter":"caltose","name":"Caltos","id":"80081991","base_date":"2026-02-01","base_hca":203,"consumption_hca":225,"target_date":"2026-01-01","target_hca":99,"status":"MODE_2F","timestamp":"1111-11-11T11:11:11Z"}'
-    fields   = 'Caltos;80081991;MODE_2F;225;99;2026-01-01;1111-11-11 11:11.11'
 }
 test {
     args     = 'dwater2 dme173 44334433 NOKEY'
@@ -657,14 +645,44 @@ test {
     fields   = 'licznik;16466583;0;1111-11-11 11:11.11'
 }
 test {
-    args     = 'ZennerHCA zennerhca 80081812 DC7C9EF16126348CDFD52CE6567A9FFD'
-    telegram = 5e44496a12180880fc087a7040500584a63344b5af071a23539c6020cbba81fa6adcfe738682a0924d4f6f7d89d165c9144e4918cdc2d5f86be7b5bd8143528273accc131a13d0b100f2540dc1f2c379dde4984236d3bca424113cf0ee1bbd
-    json     = '{"_":"telegram","media":"heat cost allocation","meter":"zennerhca","name":"ZennerHCA","id":"80081812","consumption_hca":339,"previous_billing_consumption_hca":272,"previous_billing_date":"2026-02-01","status":"DUAL_SENSOR_MODE","target_date":"2026-01-01","target_hca":627,"timestamp":"1111-11-11T11:11:11Z"}'
-    fields   = 'ZennerHCA;80081812;339;2026-01-01;627;DUAL_SENSOR_MODE;1111-11-11 11:11.11'
+    args     = 'MyTapWater multical21 76348799 NOKEY'
+    telegram = 2A442D2C998734761B168D2091D37CAC21576C78_02FF207100041308190000441308190000615B7F616713
+    json     = '{"_":"telegram","media":"cold water","meter":"multical21","name":"MyTapWater","id":"76348799","status":"DRY","total_m3":6.408,"target_m3":6.408,"flow_temperature_c":127,"external_temperature_c":19,"current_status":"DRY","time_dry":"22-31 days","time_reversed":"","time_leaking":"","time_bursting":"","timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'MyTapWater;76348799;6.408;6.408;null;127;19;DRY;1111-11-11 11:11.11'
 }
 test {
-    args     = 'ZennerHCA2 zennerhca 80081907 750381240D0A7E371D4CB8D1869D8F9B'
-    telegram = 5e44496a07190880fc087a714050058922c9598bdddfbb5bbf44b9d54830830eb6be3ba8117dfc88ae1b251837dfecb04e071554125366ef9d72dce87c9a099ad0cd9bf70f4a2e9c4c58d780444219c3f546c887fbc2d93c272e314f925473
-    json     = '{"_":"telegram","media":"heat cost allocation","meter":"zennerhca","name":"ZennerHCA2","id":"80081907","consumption_hca":0,"previous_billing_consumption_hca":0,"previous_billing_date":"2026-02-01","status":"DUAL_SENSOR_MODE","target_date":"2026-01-01","target_hca":2,"timestamp":"1111-11-11T11:11:11Z"}'
-    fields   = 'ZennerHCA2;80081907;0;2026-01-01;2;DUAL_SENSOR_MODE;1111-11-11 11:11.11'
+    args     = 'MyTapWater multical21 76348799 NOKEY'
+    telegram = 23442D2C998734761B168D2087D19EAD217F1779EDA86AB6_710008190000081900007F13
+    json     = '{"_":"telegram","media":"cold water","meter":"multical21","name":"MyTapWater","id":"76348799","status":"DRY","total_m3":6.408,"target_m3":6.408,"flow_temperature_c":127,"external_temperature_c":19,"current_status":"DRY","time_dry":"22-31 days","time_reversed":"","time_leaking":"","time_bursting":"","timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'MyTapWater;76348799;6.408;6.408;null;127;19;DRY;1111-11-11 11:11.11'
+}
+test {
+    args     = 'Vadden multical21 44556677 NOKEY'
+    telegram = 2D442D2C776655441B168D2083B48D3A20_46887802FF20000004132F4E000092013B3D01A1015B028101E7FF0F03
+    json     = '{"_":"telegram","media":"cold water","meter":"multical21","name":"Vadden","id":"44556677","status":"OK","total_m3":20.015,"flow_temperature_c":2,"external_temperature_c":3,"max_flow_m3h":0.317,"current_status":"","time_dry":"","time_reversed":"","time_leaking":"","time_bursting":"","timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'Vadden;44556677;20.015;null;0.317;2;3;OK;1111-11-11 11:11.11'
+}
+test {
+    args     = 'Vadden multical21 44556677 NOKEY'
+    telegram = 21442D2C776655441B168D2079CC8C3A20_F4307912C40DFF00002F4E00003D010203
+    json     = '{"_":"telegram","media":"cold water","meter":"multical21","name":"Vadden","id":"44556677","status":"OK","total_m3":20.015,"flow_temperature_c":2,"external_temperature_c":3,"max_flow_m3h":0.317,"current_status":"","time_dry":"","time_reversed":"","time_leaking":"","time_bursting":"","timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'Vadden;44556677;20.015;null;0.317;2;3;OK;1111-11-11 11:11.11'
+}
+test {
+    args     = 'VATTEN flowiq2200 52525252 NOKEY'
+    telegram = 4D44372C525252523A168D203894DF7920F93278_04FF23000000000413AEAC0000441364A80000426C812A023B000092013BEF01A2013B000006FF1B067000097000A1015B0C91015B14A1016713
+    json     = '{"_":"telegram","media":"cold water","meter":"flowiq2200","name":"VATTEN","id":"52525252","status":"OK","total_m3":44.206,"target_m3":43.108,"target_date":"2020-10-01","flow_m3h":0,"min_flow_temperature_c":12,"max_flow_temperature_c":20,"min_external_temperature_c":19,"max_flow_m3h":0.495,"min_flow_m3h":0,"timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'VATTEN;52525252;OK;44.206;43.108;1111-11-11 11:11.11'
+}
+test {
+    args     = 'Votten flowiq2200 23813076 NOKEY'
+    telegram = 4744372C763081233C168D2056D1ED11205A3C78_04FF2300080000441300000000523B000006FF1B08900008F0FF426CC12B61670A51671B023B000004131F0F00008101E7FF0F13
+    json     = '{"_":"telegram","flow_m3h": 0,"id":"23813076","max_external_temperature_c": 27,"max_flow_m3h": 0,"media":"cold water","meter":"flowiq2200","min_external_temperature_c": 10,"name":"Votten","status":"ERROR_FLAGS_800","target_date":"2022-11-01","target_m3": 0,"timestamp":"1111-11-11T11:11:11Z","total_m3": 3.871}'
+    fields   = 'Votten;23813076;ERROR_FLAGS_800;3.871;0;1111-11-11 11:11.11'
+}
+test {
+    args     = 'Votten flowiq2200 23813076 NOKEY'
+    telegram = 3244372C763081233C168D2057D2ED11205a817905095480_0008000000000000000008900008F0FFC12B0A1B23001F0F000013
+    json     = '{"_":"telegram","media":"cold water","meter":"flowiq2200","name":"Votten","id":"23813076","status":"ERROR_FLAGS_800","total_m3":3.871,"target_m3":0,"target_date":"2022-11-01","flow_m3h":0.035,"max_external_temperature_c":27,"min_external_temperature_c":10,"max_flow_m3h":0,"timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'Votten;23813076;ERROR_FLAGS_800;3.871;0;1111-11-11 11:11.11'
 }

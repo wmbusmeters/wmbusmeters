@@ -2317,6 +2317,17 @@ DriverInfo pickMeterDriver(Telegram *t)
         }
     }
 
+    // No loaded driver matched. Check if a builtin XMQ driver exists for this MVT.
+    const char *builtin_name = findBuiltinDriver(manufacturer, version, type);
+    if (builtin_name)
+    {
+        if (loadBuiltinDriver(builtin_name))
+        {
+            DriverInfo *di = lookupDriver(builtin_name);
+            if (di) return *di;
+        }
+    }
+
     return driver_unknown_;
 }
 
