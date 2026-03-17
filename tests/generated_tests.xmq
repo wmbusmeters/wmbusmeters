@@ -1,4 +1,4 @@
-// Generated 2026-03-15_10:18
+// Generated 2026-03-17_09:10
 test {
     args     = 'Vatten apator08 004444dd NOKEY'
     telegram = 73441486DD4444000303A0B9E527004C4034B31CED0106FF01D093270065F022009661230054D02300EC49240018B424005F012500936D2500FFD525000E3D26001EAC26000B2027000300000000371D0B2000000000000024000000000000280000000000002C0033150C010D2F000000000000
@@ -43,6 +43,24 @@ test {
     telegram = 4644B42557920410050E7237329305B42501075B0030252F2F_04130342000084101300000000046D0D30F62B441349180000426CFF2A02FD17000002FD74DB152F2F2F2F2F2F2F
     json     = '{"_":"telegram","id": "05933237","media": "water","meter": "aquastream","meter_datetime": "2023-11-22 16:13","name": "AqWater","status": "OK","target_date": "2023-10-31","target_m3": 6.217,"timestamp": "1111-11-11T11:11:11Z","total_m3": 16.899,"total_tariff1_m3": 0,"battery_y": 15.328767}'
     fields   = 'AqWater;05933237;16.899;1111-11-11 11:11.11'
+}
+test {
+    args     = 'HeatCool c5isf 32022703 NOKEY'
+    telegram = 8E44496A03270232880D7AED0080052F2F0406050200008410069A1700000413BC6F2E00840406E701000082046C2131841406C20B000082146C2131043B00000000042D0000000002595D09025D240802FD17000084800106050200008280016C213C948001AE2501000000849001069A1700008290016C213C849001AE25000000002F2F2F2F2F2F2F2F2F2F2F2F
+    json     = '{"_":"telegram","media":"heat/cooling load","meter":"c5isf","name":"HeatCool","id":"32022703","due_date_datetime":"2025-01-01 00:00","due_energy_consumption_kwh":487,"flow_temperature_c":23.97,"max_power_last_month_kw":1,"power_kw":0,"prev_1_month_kwh":517,"prev_1_month_datetime":"2025-12-01 00:00","return_temperature_c":20.84,"total_cooling_consumption_kwh":6042,"total_energy_consumption_kwh":517,"total_energy_consumption_last_month_kwh":517,"total_volume_m3":3043.26,"volume_flow_m3h":0,"status":"OK","timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'HeatCool;32022703;517;3043.26;OK;1111-11-11 11:11.11'
+}
+test {
+    args     = 'Heat c5isf 32002044 NOKEY'
+    telegram = 5E44496A4420003288047AFC0050052F2F_0406D00E00000413B28A05008404060000000082046CC121043B00000000042D000000000259E719025D051402FD17000084800106C00C00008280016CC125948001AE25090000002F2F2F2F2F2F
+    json     = '{"_":"telegram","media":"heat","meter":"c5isf","name":"Heat","id":"32002044","due_date_datetime":"2022-01-01 00:00","due_energy_consumption_kwh":0,"flow_temperature_c":66.31,"max_power_last_month_kw":9,"power_kw":0,"prev_1_month_kwh":3264,"prev_1_month_datetime":"2022-05-01 00:00","return_temperature_c":51.25,"total_energy_consumption_kwh":3792,"total_energy_consumption_last_month_kwh":3264,"total_volume_m3":363.186,"volume_flow_m3h":0,"status":"OK","timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'Heat;32002044;3792;363.186;OK;1111-11-11 11:11.11'
+}
+test {
+    args     = 'Heat c5isf 55445555 NOKEY'
+    telegram = E544496A55554455880D7A320200002F2F_04060000000004130000000002FD17240084800106000000008280016C2124C480010600000080C280016CFFFF84810106000000808281016CFFFFC481010600000080C281016CFFFF84820106000000808282016CFFFFC482010600000080C282016CFFFF84830106000000808283016CFFFFC483010600000080C283016CFFFF84840106000000808284016CFFFFC484010600000080C284016CFFFF84850106000000808285016CFFFFC485010600000080C285016CFFFF84860106000000808286016CFFFFC486010600000080C286016CFFFF
+    json     = '{"_":"telegram","media":"heat/cooling load","meter":"c5isf","name":"Heat","id":"55445555","prev_10_month_kwh":-2147483648,"prev_10_month_datetime":"2128-03-31 00:00","prev_11_month_kwh":-2147483648,"prev_11_month_datetime":"2128-03-31 00:00","prev_12_month_kwh":-2147483648,"prev_12_month_datetime":"2128-03-31 00:00","prev_13_month_kwh":-2147483648,"prev_13_month_datetime":"2128-03-31 00:00","prev_14_month_kwh":-2147483648,"prev_14_month_datetime":"2128-03-31 00:00","prev_1_month_kwh":0,"prev_1_month_datetime":"2017-04-01 00:00","prev_2_month_kwh":-2147483648,"prev_2_month_datetime":"2128-03-31 00:00","prev_3_month_kwh":-2147483648,"prev_3_month_datetime":"2128-03-31 00:00","prev_4_month_kwh":-2147483648,"prev_4_month_datetime":"2128-03-31 00:00","prev_5_month_kwh":-2147483648,"prev_5_month_datetime":"2128-03-31 00:00","prev_6_month_kwh":-2147483648,"prev_6_month_datetime":"2128-03-31 00:00","prev_7_month_kwh":-2147483648,"prev_7_month_datetime":"2128-03-31 00:00","prev_8_month_kwh":-2147483648,"prev_8_month_datetime":"2128-03-31 00:00","prev_9_month_kwh":-2147483648,"prev_9_month_datetime":"2128-03-31 00:00","total_energy_consumption_kwh":0,"total_energy_consumption_last_month_kwh":0,"total_volume_m3":0,"status":"DRY ERROR RETURN_SENSOR_INTERRUPTED","timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'Heat;55445555;0;0;DRY ERROR RETURN_SENSOR_INTERRUPTED;1111-11-11 11:11.11'
 }
 test {
     args     = 'dwater2 dme173 44334433 NOKEY'
@@ -613,29 +631,4 @@ test {
     telegram = 68C4C46808637283654616475F03160C000000_041300000000046D2B030000426C992B44133D00000042EC7EB92B0C785506140082016C9E2B8401133D000000C2016C7F2CC401133D00000082026C9F218402133D000000C2026C9D22C402133D00000082036C9F238403133D000000C2036C9E24C403133D00000082046C9F258404133D000000C2046C9E26C404133D00000082056C9F278405133D000000C2056C9F28C405133D00000082066C9E298406133D000000C2066C9F2AC406133D0000000F010000_C316
     json     = '{"_":"telegram","fabrication_no": "00140655","id": "16466583","media": "cold water","meter": "werhlemodwm","meter_datetime": "2000-00-00 03:43","name": "licznik","next_target_date": "2021-11-25","target_10_date": "2020-07-31","target_10_m3": 0.061,"target_11_date": "2020-08-31","target_11_m3": 0.061,"target_12_date": "2020-09-30","target_12_m3": 0.061,"target_13_date": "2020-10-31","target_13_m3": 0.061,"target_1_date": "2020-11-25","target_1_m3": 0.061,"target_2_date": "2020-11-30","target_2_m3": 0.061,"target_3_date": "2019-12-31","target_3_m3": 0.061,"target_4_date": "2020-01-31","target_4_m3": 0.061,"target_5_date": "2020-02-29","target_5_m3": 0.061,"target_6_date": "2020-03-31","target_6_m3": 0.061,"target_7_date": "2020-04-30","target_7_m3": 0.061,"target_8_date": "2020-05-31","target_8_m3": 0.061,"target_9_date": "2020-06-30","target_9_m3": 0.061,"target_date": "2020-11-25","target_m3": 0.061,"timestamp": "1111-11-11T11:11:11Z","total_m3": 0}'
     fields   = 'licznik;16466583;0;1111-11-11 11:11.11'
-}
-test {
-    args     = 'Heat c5isf 55445555 NOKEY'
-    telegram = E544496A55554455880D7A320200002F2F_04060000000004130000000002FD17240084800106000000008280016C2124C480010600000080C280016CFFFF84810106000000808281016CFFFFC481010600000080C281016CFFFF84820106000000808282016CFFFFC482010600000080C282016CFFFF84830106000000808283016CFFFFC483010600000080C283016CFFFF84840106000000808284016CFFFFC484010600000080C284016CFFFF84850106000000808285016CFFFFC485010600000080C285016CFFFF84860106000000808286016CFFFFC486010600000080C286016CFFFF
-    json     = '{"_":"telegram","media":"heat/cooling load","meter":"c5isf","name":"Heat","id":"55445555","prev_10_month_kwh":-2147483648,"prev_10_month_datetime":"2128-03-31 00:00","prev_11_month_kwh":-2147483648,"prev_11_month_datetime":"2128-03-31 00:00","prev_12_month_kwh":-2147483648,"prev_12_month_datetime":"2128-03-31 00:00","prev_13_month_kwh":-2147483648,"prev_13_month_datetime":"2128-03-31 00:00","prev_14_month_kwh":-2147483648,"prev_14_month_datetime":"2128-03-31 00:00","prev_1_month_kwh":0,"prev_1_month_datetime":"2017-04-01 00:00","prev_2_month_kwh":-2147483648,"prev_2_month_datetime":"2128-03-31 00:00","prev_3_month_kwh":-2147483648,"prev_3_month_datetime":"2128-03-31 00:00","prev_4_month_kwh":-2147483648,"prev_4_month_datetime":"2128-03-31 00:00","prev_5_month_kwh":-2147483648,"prev_5_month_datetime":"2128-03-31 00:00","prev_6_month_kwh":-2147483648,"prev_6_month_datetime":"2128-03-31 00:00","prev_7_month_kwh":-2147483648,"prev_7_month_datetime":"2128-03-31 00:00","prev_8_month_kwh":-2147483648,"prev_8_month_datetime":"2128-03-31 00:00","prev_9_month_kwh":-2147483648,"prev_9_month_datetime":"2128-03-31 00:00","total_energy_consumption_kwh":0,"total_energy_consumption_last_month_kwh":0,"total_volume_m3":0,"status":"DRY ERROR RETURN_SENSOR_INTERRUPTED","timestamp":"1111-11-11T11:11:11Z"}'
-    fields   = 'Heat;55445555;0;0;DRY ERROR RETURN_SENSOR_INTERRUPTED;1111-11-11 11:11.11'
-}
-test {
-    args     = 'Heat c5isf 55445555 NOKEY'
-    comment  = 'Type T1A2 telegram (volume history, media=water)'
-    telegram = DA44496A5555445588077A320200002F2F_04140000000084800114000000008280016C2124C480011400000080C280016CFFFF84810114000000808281016CFFFFC481011400000080C281016CFFFF84820114000000808282016CFFFFC482011400000080C282016CFFFF84830114000000808283016CFFFFC483011400000080C283016CFFFF84840114000000808284016CFFFFC484011400000080C284016CFFFF84850114000000808285016CFFFFC485011400000080C285016CFFFF84860114000000808286016CFFFFC486011400000080C286016CFFFF
-    json     = '{"_":"telegram","media":"water","meter":"c5isf","name":"Heat","id":"55445555","prev_10_month_m3":-21474836.48,"prev_10_month_datetime":"2128-03-31 00:00","prev_11_month_m3":-21474836.48,"prev_11_month_datetime":"2128-03-31 00:00","prev_12_month_m3":-21474836.48,"prev_12_month_datetime":"2128-03-31 00:00","prev_13_month_m3":-21474836.48,"prev_13_month_datetime":"2128-03-31 00:00","prev_14_month_m3":-21474836.48,"prev_14_month_datetime":"2128-03-31 00:00","prev_1_month_m3":0,"prev_1_month_datetime":"2017-04-01 00:00","prev_2_month_m3":-21474836.48,"prev_2_month_datetime":"2128-03-31 00:00","prev_3_month_m3":-21474836.48,"prev_3_month_datetime":"2128-03-31 00:00","prev_4_month_m3":-21474836.48,"prev_4_month_datetime":"2128-03-31 00:00","prev_5_month_m3":-21474836.48,"prev_5_month_datetime":"2128-03-31 00:00","prev_6_month_m3":-21474836.48,"prev_6_month_datetime":"2128-03-31 00:00","prev_7_month_m3":-21474836.48,"prev_7_month_datetime":"2128-03-31 00:00","prev_8_month_m3":-21474836.48,"prev_8_month_datetime":"2128-03-31 00:00","prev_9_month_m3":-21474836.48,"prev_9_month_datetime":"2128-03-31 00:00","total_volume_m3":0,"status":"ERROR","timestamp":"1111-11-11T11:11:11Z"}'
-    fields   = 'Heat;55445555;null;0;ERROR;1111-11-11 11:11.11'
-}
-test {
-    args     = 'Heat c5isf 32002044 NOKEY'
-    telegram = 5E44496A4420003288047AFC0050052F2F_0406D00E00000413B28A05008404060000000082046CC121043B00000000042D000000000259E719025D051402FD17000084800106C00C00008280016CC125948001AE25090000002F2F2F2F2F2F
-    json     = '{"_":"telegram","media":"heat","meter":"c5isf","name":"Heat","id":"32002044","due_date_datetime":"2022-01-01 00:00","due_energy_consumption_kwh":0,"flow_temperature_c":66.31,"max_power_last_month_kw":9,"power_kw":0,"prev_1_month_kwh":3264,"prev_1_month_datetime":"2022-05-01 00:00","return_temperature_c":51.25,"total_energy_consumption_kwh":3792,"total_energy_consumption_last_month_kwh":3264,"total_volume_m3":363.186,"volume_flow_m3h":0,"status":"OK","timestamp":"1111-11-11T11:11:11Z"}'
-    fields   = 'Heat;32002044;3792;363.186;OK;1111-11-11 11:11.11'
-}
-test {
-    args     = 'HeatCool c5isf 32022703 NOKEY'
-    telegram = 8E44496A03270232880D7AED0080052F2F0406050200008410069A1700000413BC6F2E00840406E701000082046C2131841406C20B000082146C2131043B00000000042D0000000002595D09025D240802FD17000084800106050200008280016C213C948001AE2501000000849001069A1700008290016C213C849001AE25000000002F2F2F2F2F2F2F2F2F2F2F2F
-    json     = '{"_":"telegram","media":"heat/cooling load","meter":"c5isf","name":"HeatCool","id":"32022703","due_date_datetime":"2025-01-01 00:00","due_energy_consumption_kwh":487,"flow_temperature_c":23.97,"max_power_last_month_kw":1,"power_kw":0,"prev_1_month_kwh":517,"prev_1_month_datetime":"2025-12-01 00:00","return_temperature_c":20.84,"total_cooling_consumption_kwh":6042,"total_energy_consumption_kwh":517,"total_energy_consumption_last_month_kwh":517,"total_volume_m3":3043.26,"volume_flow_m3h":0,"status":"OK","timestamp":"1111-11-11T11:11:11Z"}'
-    fields   = 'HeatCool;32022703;517;3043.26;OK;1111-11-11 11:11.11'
 }
