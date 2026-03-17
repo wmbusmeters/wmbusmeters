@@ -644,3 +644,15 @@ test {
     json     = '{"_":"telegram","media":"room sensor","meter":"rfmamb","name":"Pokojak","id":"23699558","status":"MODULE_REMOVED","current_temperature_c":20.91,"average_temperature_1h_c":20.95,"average_temperature_24h_c":19.5,"maximum_temperature_1h_c":20.98,"minimum_temperature_1h_c":20.91,"maximum_temperature_24h_c":19.88,"minimum_temperature_24h_c":19.07,"current_relative_humidity_rh":35.8,"average_relative_humidity_1h_rh":36.1,"average_relative_humidity_24h_rh":36.9,"minimum_relative_humidity_1h_rh":35.8,"maximum_relative_humidity_1h_rh":36.5,"maximum_relative_humidity_24h_rh":37,"minimum_relative_humidity_24h_rh":36.7,"device_datetime":"2026-02-09 08:59","timestamp":"1111-11-11T11:11:11Z"}'
     fields   = 'Pokojak;23699558;20.91;35.8;1111-11-11 11:11.11'
 }
+test {
+    args     = 'Caltos caltose 80081991 6B6B5EB80884328A7B1E45043D39FAAD'
+    telegram = 5e44496a91190880fc087a744050052f05bf0c6baf613a078098e048ae47ffb93083b455065e03de9b7878c8b3bb063637ea5693160e831cc3d4e0470fabbcd4fedb09d289a0025ca7960d5c7b8064b1093037e7a0a57908edb554d17ad587
+    json     = '{"_":"telegram","media":"heat cost allocation","meter":"caltose","name":"Caltos","id":"80081991","base_date":"2026-02-01","base_hca":203,"consumption_hca":225,"target_date":"2026-01-01","target_hca":99,"status":"MODE_2F","timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'Caltos;80081991;MODE_2F;225;99;2026-01-01;1111-11-11 11:11.11'
+}
+test {
+    args     = 'Caltos2 caltose 80081809 EB7CA876CAA641DAC39239326F6DD7EA'
+    telegram = 5e44496a09180880fc087a84405005760039129d1ce51ce54ef7b4aa5383f1fd525f87046d4f869a3189e5b0c400ecf9c41ae6ed6cf94810f09f4f113c04cc731e379e62ea0331ec7f8b09511357a7f7a484851c3de2ec414dcfdebd4af67d
+    json     = '{"_":"telegram","media":"heat cost allocation","meter":"caltose","name":"Caltos2","id":"80081809","base_date":"2026-02-01","base_hca":0,"consumption_hca":0,"target_date":"2026-01-01","target_hca":0,"status":"MODE_2F","timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'Caltos2;80081809;MODE_2F;0;0;2026-01-01;1111-11-11 11:11.11'
+}

@@ -1,0 +1,52 @@
+// Copyright (C) 2026 Hynek Moravec (gpl-3.0-or-later)
+driver {
+    name           = caltose
+    meter_type     = HeatCostAllocationMeter
+    default_fields = name,id,status,consumption_hca,target_hca,target_date,timestamp
+    detect {
+        mvt = ZRI,FC,08
+    }
+    mfct_tpl_status_bits {
+        mask_bits       = 0xff
+        default_message = OK
+        map { name = BATTERY_WARNING              value = 0x04  test = set }
+        map { name = INVALID_METROLOGICAL_TABLE   value = 0x08  test = set }
+        map { name = REMOVAL                      value = 0x20  test = set }
+        map { name = MODE_2F                      value = 0x40  test = set }
+        map { name = PRODUCT_SCALE                value = 0x80  test = set }
+    }
+    library {
+        use = consumption_hca
+        use = target_hca
+        use = target_date
+    }
+    fields {
+        field {
+            name       = status
+            quantity   = Text
+            info       = 'Status and error flags.'
+            attributes = STATUS,INCLUDE_TPL_STATUS
+        }
+        field {
+            name         = base
+            quantity     = PointInTime
+            info         = 'Base date of compact profile (most recent monthly value).'
+            display_unit = date
+            match {
+                measurement_type = Instantaneous
+                vif_range        = Date
+                storage_nr       = 8
+            }
+        }
+        field {
+            name     = base
+            quantity = HCA
+            info     = 'Base HCA value of compact profile.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = HeatCostAllocation
+                storage_nr       = 8
+            }
+        }
+    }
+}
