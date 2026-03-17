@@ -222,7 +222,7 @@ void WMBusSocket::processLine(const string &line)
 
     // Dispatch based on command type.
     // XMQ maps JSON {"_": "CMD", ...} so that CMD becomes the root element name.
-    XMQNode *root = xmqGetRootNode(doc);
+    XMQNodePtr root = xmqGetRootNode(doc);
     const char *cmd = root ? xmqGetName(root) : NULL;
 
     if (cmd && !strcmp(cmd, "decode"))
