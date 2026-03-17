@@ -4,9 +4,9 @@ driver {
     meter_type     = HeatMeter
     default_fields = name,id,total_energy_consumption_kwh,total_volume_m3,status,timestamp
     detect {
-        mvt = ZRI,0d,88
-        mvt = ZRI,07,88
-        mvt = ZRI,04,88
+        mvt = ZRI,88,0d
+        mvt = ZRI,88,07
+        mvt = ZRI,88,04
     }
     fields {
         // Common fields for T1A1, T1A2, T1B
