@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2023-2024 Fredrik Öhrström (gpl-3.0-or-later)
+ Copyright (C) 2023-2026 Fredrik Öhrström (gpl-3.0-or-later)
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -29,12 +29,15 @@ string check_default_fields(const char *fields, string file);
 void check_detection_triplets(DriverInfo *di, string file);
 
 string check_field_name(const char *name, DriverDynamic *dd);
+string check_field_ixml(const char *ixml, DriverDynamic *dd);
+bool check_field_match_entire_payload(const char *mep, DriverDynamic *dd);
 string check_field_info(const char *info, DriverDynamic *dd);
+ReadableString check_field_readable_string(const char *rs_s, DriverDynamic *dd);
 Quantity check_field_quantity(const char *quantity_s, DriverDynamic *dd);
 VifScaling check_vif_scaling(const char *vif_scaling_s, DriverDynamic *dd);
 DifSignedness check_dif_signedness(const char *dif_signedness_s, DriverDynamic *dd);
 PrintProperties check_print_properties(const char *print_properties_s, DriverDynamic *dd);
-string get_translation(XMQDoc *doc, XMQNode *node, string name, string lang);
+string get_translation(XMQDoc *doc, XMQNodePtr node, string name, string lang);
 string check_calculate(const char *formula, DriverDynamic *dd);
 Unit check_display_unit(const char *display_unit, DriverDynamic *dd);
 double check_force_scale(const char *force_scale, DriverDynamic *dd);
@@ -158,7 +161,7 @@ DriverDynamic::~DriverDynamic()
 {
 }
 
-XMQProceed DriverDynamic::add_detect(XMQDoc *doc, XMQNode *detect, DriverInfo *di)
+XMQProceed DriverDynamic::add_detect(XMQDoc *doc, XMQNodePtr detect, DriverInfo *di)
 {
     string mvt = xmqGetStringRel(doc, ".", detect);
 
@@ -258,7 +261,7 @@ XMQProceed DriverDynamic::add_detect(XMQDoc *doc, XMQNode *detect, DriverInfo *d
     return XMQ_CONTINUE;
 }
 
-XMQProceed DriverDynamic::add_use(XMQDoc *doc, XMQNode *field, DriverDynamic *dd)
+XMQProceed DriverDynamic::add_use(XMQDoc *doc, XMQNodePtr field, DriverDynamic *dd)
 {
     string name = xmqGetStringRel(doc, ".", field);
     bool ok = dd->addOptionalLibraryFields(name);
@@ -272,7 +275,7 @@ XMQProceed DriverDynamic::add_use(XMQDoc *doc, XMQNode *field, DriverDynamic *dd
     return XMQ_CONTINUE;
 }
 
-XMQProceed DriverDynamic::add_field(XMQDoc *doc, XMQNode *field, DriverDynamic *dd)
+XMQProceed DriverDynamic::add_field(XMQDoc *doc, XMQNodePtr field, DriverDynamic *dd)
 {
     // The field name must be supplied without a unit ie total (not total_m3) since units are managed by wmbusmeters.
     string name = check_field_name(xmqGetStringRel(doc, "name", field), dd);
@@ -283,6 +286,16 @@ XMQProceed DriverDynamic::add_field(XMQDoc *doc, XMQNode *field, DriverDynamic *
     // Text fields are either version strings or lookups from status bits.
     // All other fields are numeric, ie they have a unit. This also includes date and datetime.
     bool is_numeric = quantity != Quantity::Text;
+
+    // For ixml parsing of mfct specific payloads, payloads that do not even bother with the 0x0f.
+    bool match_entire_payload = check_field_match_entire_payload(xmqGetStringRel(doc, "match_entire_payload", field), dd);
+
+    if (is_numeric && match_entire_payload)
+    {
+        warning("(driver) error in %s, match_entire_payload can only be enabled for quantity=String.\n",
+                dd->fileName().c_str());
+        match_entire_payload = false;
+    }
 
     // The vif scaling is by default Auto but can be overriden for pesky fields.
     VifScaling vif_scaling = check_vif_scaling(xmqGetStringRel(doc, "vif_scaling", field), dd);
@@ -296,6 +309,12 @@ XMQProceed DriverDynamic::add_field(XMQDoc *doc, XMQNode *field, DriverDynamic *
     // The info fields explains what the value is for. Ie. is storage 1 the previous day or month value etc.
     string info = check_field_info(xmqGetStringRel(doc, "info", field), dd);
 
+    // Check if we override the readable string processing.
+    ReadableString rs = check_field_readable_string(xmqGetStringRel(doc, "readable_string", field), dd);
+
+    // The ixml field can be used to decode mfct specific fields.
+    string ixml = check_field_ixml(xmqGetStringRel(doc, "ixml", field), dd);
+
     // The calculate formula is optional.
     string calculate = check_calculate(xmqGetStringRel(doc, "calculate", field), dd);
 
@@ -306,12 +325,29 @@ XMQProceed DriverDynamic::add_field(XMQDoc *doc, XMQNode *field, DriverDynamic *
     // with 1.123 or 1/32 or 0.33333 or 3.14/2.5
     double force_scale = check_force_scale(xmqGetStringRel(doc, "force_scale", field), dd);
 
+    // A field can declare a null value. When the extracted value equals this, it becomes null in output.
+    const char *null_value_s = xmqGetStringRel(doc, "null_value", field);
+    double null_value = 0;
+    bool has_null_value = false;
+    if (null_value_s)
+    {
+        null_value = atof(null_value_s);
+        has_null_value = true;
+    }
+
     // Now find all matchers.
     FieldMatcher match = FieldMatcher::build();
     dd->tmp_matcher_ = &match;
     int num_matches = xmqForeachRel(doc, "match", (XMQNodeCallback)add_match, dd, field);
     // Check if there were any matches at all, if not, then disable the matcher.
     match.active = num_matches > 0;
+
+    if (match.active && match_entire_payload)
+    {
+        warning("(driver) error in %s, match_entire_payload cannot be combined with match { }.\n",
+                dd->fileName().c_str());
+        match_entire_payload = false;
+    }
 
     // Now find all matchers.
     Translate::Lookup lookup = Translate::Lookup();
@@ -333,6 +369,10 @@ XMQProceed DriverDynamic::add_field(XMQDoc *doc, XMQNode *field, DriverDynamic *
                 display_unit,
                 force_scale
                 );
+            if (has_null_value)
+            {
+                dd->lastAddedField()->setNullValue(null_value);
+            }
         }
         else
         {
@@ -379,14 +419,20 @@ XMQProceed DriverDynamic::add_field(XMQDoc *doc, XMQNode *field, DriverDynamic *
                 name,
                 info,
                 properties,
-                match
+                match,
+                ixml,
+                match_entire_payload
                 );
+            if (rs != ReadableString::Unknown)
+            {
+                dd->lastAddedField()->setReadableString(rs);
+            }
         }
     }
     return XMQ_CONTINUE;
 }
 
-XMQProceed DriverDynamic::add_match(XMQDoc *doc, XMQNode *match, DriverDynamic *dd)
+XMQProceed DriverDynamic::add_match(XMQDoc *doc, XMQNodePtr match, DriverDynamic *dd)
 {
     FieldMatcher *fm = dd->tmp_matcher_;
 
@@ -406,7 +452,7 @@ XMQProceed DriverDynamic::add_match(XMQDoc *doc, XMQNode *match, DriverDynamic *
     return XMQ_CONTINUE;
 }
 
-XMQProceed DriverDynamic::add_combinable(XMQDoc *doc, XMQNode *match, DriverDynamic *dd)
+XMQProceed DriverDynamic::add_combinable(XMQDoc *doc, XMQNodePtr match, DriverDynamic *dd)
 {
     FieldMatcher *fm = dd->tmp_matcher_;
 
@@ -426,7 +472,7 @@ XMQProceed DriverDynamic::add_combinable(XMQDoc *doc, XMQNode *match, DriverDyna
        test  = set
    }
 */
-XMQProceed DriverDynamic::add_map(XMQDoc *doc, XMQNode *map, DriverDynamic *dd)
+XMQProceed DriverDynamic::add_map(XMQDoc *doc, XMQNodePtr map, DriverDynamic *dd)
 {
     const char *name = xmqGetStringRel(doc, "name", map);
     uint64_t value = checked_value(xmqGetStringRel(doc, "value", map), dd);
@@ -450,7 +496,7 @@ XMQProceed DriverDynamic::add_map(XMQDoc *doc, XMQNode *map, DriverDynamic *dd)
         map { } map {}
     }
 */
-XMQProceed DriverDynamic::add_lookup(XMQDoc *doc, XMQNode *lookup, DriverDynamic *dd)
+XMQProceed DriverDynamic::add_lookup(XMQDoc *doc, XMQNodePtr lookup, DriverDynamic *dd)
 {
     const char *name = xmqGetStringRel(doc, "name", lookup);
     Translate::MapType map_type = checked_map_type(xmqGetStringRel(doc, "map_type", lookup), dd);
@@ -604,7 +650,7 @@ string check_field_name(const char *name, DriverDynamic *dd)
     {
         // Special exception to allow operating_time_h
         Quantity q = toQuantity(u);
-        if (q != Quantity::PointInTime)
+        if (q != Quantity::PointInTime && q != Quantity::Time)
         {
             warning("(driver) error in %s, bad field name %s (field names should not have units)\n"
                     "%s\n"
@@ -626,6 +672,26 @@ string check_field_info(const char *info, DriverDynamic *dd)
     if (!info) return "";
 
     return info;
+}
+
+string check_field_ixml(const char *ixml, DriverDynamic *dd)
+{
+    if (!ixml) return "";
+
+    return ixml;
+}
+
+bool check_field_match_entire_payload(const char *mep, DriverDynamic *dd)
+{
+    if (!mep) return false;
+
+    if (!strcmp(mep, "true")) return true;
+    if (!strcmp(mep, "false")) return false;
+
+    warning("(driver) error in %s, match_entire_payload must be true/false not \"%s\"\n",
+            dd->fileName().c_str(), mep);
+
+    return false;
 }
 
 Quantity check_field_quantity(const char *quantity_s, DriverDynamic *dd)
@@ -662,6 +728,26 @@ Quantity check_field_quantity(const char *quantity_s, DriverDynamic *dd)
     }
 
     return quantity;
+}
+
+ReadableString check_field_readable_string(const char *rs_s, DriverDynamic *dd)
+{
+    if (!rs_s) return ReadableString::Unknown;
+
+    ReadableString rs = toReadableString(rs_s);
+
+    if (rs == ReadableString::Unknown)
+    {
+        warning("(driver) error in %s, bad readable_string: %s\n"
+                "Available readable_string:\n"
+                "Normal\n"
+                "Reversed\n",
+                dd->fileName().c_str(),
+                rs_s);
+        throw 1;
+    }
+
+    return rs;
 }
 
 VifScaling check_vif_scaling(const char *vif_scaling_s, DriverDynamic *dd)
@@ -737,7 +823,7 @@ PrintProperties check_print_properties(const char *print_properties_s, DriverDyn
     return print_properties;
 }
 
-string get_translation(XMQDoc *doc, XMQNode *node, string name, string lang)
+string get_translation(XMQDoc *doc, XMQNodePtr node, string name, string lang)
 {
     string xpath = name+"/"+lang;
     const char *txt = xmqGetStringRel(doc, xpath.c_str(), node);

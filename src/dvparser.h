@@ -20,6 +20,7 @@
 
 #include"util.h"
 #include"units.h"
+#include"xmq.h"
 
 #include<map>
 #include<set>
@@ -228,12 +229,61 @@ enum class MeasurementType
 const char *toString(MeasurementType mt);
 MeasurementType toMeasurementType(const char *s);
 
-void extractDV(std::string &s, uchar *dif, int *vif, bool *has_difes, bool *has_vifes);
+struct StorageNr
+{
+    StorageNr(int n) : nr_(n) {}
+    int intValue() { return nr_; }
+    bool operator==(StorageNr s) { return nr_ == s.nr_; }
+    bool operator!=(StorageNr s) { return nr_ != s.nr_; }
+    bool operator>=(StorageNr s) { return nr_ >= s.nr_; }
+    bool operator<=(StorageNr s) { return nr_ <= s.nr_; }
+
+private:
+    int nr_;
+};
+
+typedef struct StorageNr StorageNr;
+
+struct TariffNr
+{
+    TariffNr(int n) : nr_(n) {}
+    int intValue() { return nr_; }
+    bool operator==(TariffNr s) { return nr_ == s.nr_; }
+    bool operator!=(TariffNr s) { return nr_ != s.nr_; }
+    bool operator>=(TariffNr s) { return nr_ >= s.nr_; }
+    bool operator<=(TariffNr s) { return nr_ <= s.nr_; }
+
+private:
+    int nr_;
+};
+
+typedef struct TariffNr TariffNr;
+
+struct SubUnitNr
+{
+    SubUnitNr(int n) : nr_(n) {}
+    int intValue() { return nr_; }
+    bool operator==(SubUnitNr s) { return nr_ == s.nr_; }
+    bool operator!=(SubUnitNr s) { return nr_ != s.nr_; }
+    bool operator>=(SubUnitNr s) { return nr_ >= s.nr_; }
+    bool operator<=(SubUnitNr s) { return nr_ <= s.nr_; }
+
+private:
+    int nr_;
+};
+
+typedef struct SubUnitNr SubUnitNr;
+
+void extractDV(std::string &s, uchar *dif, int *vif, bool *has_difes, bool *has_vifes,
+               MeasurementType *measurement_type,
+               StorageNr *storage_nr,
+               TariffNr *tariff_nr,
+               SubUnitNr *subunit_nr);
 
 struct DifVifKey
 {
     DifVifKey(std::string key) : key_(key) {
-        extractDV(key, &dif_, &vif_, &has_difes_, &has_vifes_);
+        extractDV(key, &dif_, &vif_, &has_difes_, &has_vifes_, &measurement_type_, &storage_nr_, &tariff_nr_, &subunit_nr_);
     }
     std::string str() { return key_; }
     bool operator==(DifVifKey &dvk) { return key_ == dvk.key_; }
@@ -241,14 +291,23 @@ struct DifVifKey
     int vif() { return vif_; }
     bool hasDifes() { return has_difes_; }
     bool hasVifes() { return has_vifes_; }
+    MeasurementType measurementType() { return measurement_type_; }
+    StorageNr storageNr() { return storage_nr_; }
+    TariffNr tariffNr() { return tariff_nr_; }
+    SubUnitNr subUnitNr() { return subunit_nr_; }
 
 private:
 
-    std::string key_;
-    uchar dif_;
-    int vif_;
-    bool has_difes_;
-    bool has_vifes_;
+    std::string key_ {};
+    uchar dif_ {};
+    int vif_ {};
+    bool has_difes_ {};
+    bool has_vifes_ {};
+
+    MeasurementType measurement_type_ {};
+    StorageNr storage_nr_ { 0 };
+    TariffNr tariff_nr_ {0 };
+    SubUnitNr subunit_nr_ { 0 };
 };
 
 void extractDV(DifVifKey &s, uchar *dif, int *vif, bool *has_difes, bool *has_vifes);
@@ -278,48 +337,10 @@ enum class DVEntryCounterType
 DVEntryCounterType toDVEntryCounterType(const std::string &s);
 const char *toString(DVEntryCounterType ct);
 
-struct StorageNr
-{
-    StorageNr(int n) : nr_(n) {}
-    int intValue() { return nr_; }
-    bool operator==(StorageNr s) { return nr_ == s.nr_; }
-    bool operator!=(StorageNr s) { return nr_ != s.nr_; }
-    bool operator>=(StorageNr s) { return nr_ >= s.nr_; }
-    bool operator<=(StorageNr s) { return nr_ <= s.nr_; }
-
-private:
-    int nr_;
-};
 
 static StorageNr AnyStorageNr = StorageNr(-1);
 
-struct TariffNr
-{
-    TariffNr(int n) : nr_(n) {}
-    int intValue() { return nr_; }
-    bool operator==(TariffNr s) { return nr_ == s.nr_; }
-    bool operator!=(TariffNr s) { return nr_ != s.nr_; }
-    bool operator>=(TariffNr s) { return nr_ >= s.nr_; }
-    bool operator<=(TariffNr s) { return nr_ <= s.nr_; }
-
-private:
-    int nr_;
-};
-
 static TariffNr AnyTariffNr = TariffNr(-1);
-
-struct SubUnitNr
-{
-    SubUnitNr(int n) : nr_(n) {}
-    int intValue() { return nr_; }
-    bool operator==(SubUnitNr s) { return nr_ == s.nr_; }
-    bool operator!=(SubUnitNr s) { return nr_ != s.nr_; }
-    bool operator>=(SubUnitNr s) { return nr_ >= s.nr_; }
-    bool operator<=(SubUnitNr s) { return nr_ <= s.nr_; }
-
-private:
-    int nr_;
-};
 
 struct IndexNr
 {
@@ -388,6 +409,8 @@ struct DVEntry
     bool extractLong(uint64_t *out);
     bool extractDate(struct tm *out);
     bool extractReadableString(std::string *out);
+    bool extractReadableStringReversed(std::string *out);
+    bool extractHexString(std::string *out);
     void addFieldInfo(FieldInfo *fi) { field_infos_.insert(fi); }
     bool hasFieldInfo(FieldInfo *fi) { return field_infos_.count(fi) > 0; }
     std::string str();
@@ -523,6 +546,15 @@ bool parseDV(Telegram *t,
              std::vector<uchar>::iterator *format = NULL,
              size_t format_len = 0,
              uint16_t *format_hash = NULL);
+
+// Use an ixml grammar to decode a manufacturer specific block of bytes.
+// hex: a string with uppercase hex "12AB12FF"
+// An ixml grammar document is loaded with  xmqParseBufferWithType with the XMQContentType::CONTENT_IXML
+bool parseWithIXML(Telegram *t,
+                   int offset, // Where the hex starts in the telegram.
+                   std::string hex,
+                   XMQDoc *ixml_grammar,
+                   std::map<std::string,std::pair<int,DVEntry>> *dv_entries);
 
 // Instead of using a hardcoded difvif as key in the extractDV... below,
 // find an existing difvif entry in the values based on the desired value information type.

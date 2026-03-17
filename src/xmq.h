@@ -52,13 +52,13 @@ extern "C" _hideLBfromEditor
 */
 typedef struct XMQDoc XMQDoc;
 
-/** Opaque structure referencing a node/attr in the xmq/xml/json document.
+/** Opaque pointer referencing a node/attr in the xmq/xml/json document.
 
-    XMQNode:
+    XMQNodePtr:
 
-    Structure referencing a node/attr in the xmq/xml/json document.
+    Pointer to a node/attr in the xmq/xml/json document.
 */
-typedef struct XMQNode XMQNode;
+typedef void *XMQNodePtr;
 
 /**
     XMQParseState:
@@ -164,37 +164,23 @@ typedef enum
 } XMQFlagBits;
 
 /**
-    XMQSyntax:
-    @SYNTAX_C: Comments
-    @SYNTAX_Q: Standalone quote.
-    @SYNTAX_E: Entity
-    @SYNTAX_ENS: Element Namespace
-    @SYNTAX_EN: Element Name
-    @SYNTAX_EK: Element Key
-    @SYNTAX_EKV: Element Key Value
-    @SYNTAX_ANS: Attribute NameSpace
-    @SYNTAX_AK: Attribute Key
-    @SYNTAX_AKV: Attribute Key Value
-    @SYNTAX_CP: Compound Parentheses
-    @SYNTAX_NDC: Namespace declaration
-    @SYNTAX_UW: Unicode Whitespace
+   XMQColorName are used to color the output when pretty printing xmq.
 */
-typedef enum
-{
-    SYNTAX_C = 0, // Comments
-    SYNTAX_Q = 1, // Standalone quote.
-    SYNTAX_E = 2, // Entity
-    SYNTAX_ENS = 3, // Element Namespace
-    SYNTAX_EN = 4, // Element Name
-    SYNTAX_EK = 5, // Element Key
-    SYNTAX_EKV = 6, // Element Key Value
-    SYNTAX_ANS = 7, // Attribute NameSpace
-    SYNTAX_AK = 8, // Attribute Key
-    SYNTAX_AKV = 9, // Attribute Key Value
-    SYNTAX_CP = 10, // Compound Parentheses
-    SYNTAX_NDC = 11, // Namespace declaration
-    SYNTAX_UW = 12, // Unicode Whitespace
-} XMQSyntax;
+typedef enum XMQColorName {
+    XMQ_COLOR_C, // Comment
+    XMQ_COLOR_Q, // Quote
+    XMQ_COLOR_E, // Entity
+    XMQ_COLOR_NS, // Name Space (both for element and attribute)
+    XMQ_COLOR_EN, // Element Name
+    XMQ_COLOR_EK, // Element Key
+    XMQ_COLOR_EKV, // Element Key Value
+    XMQ_COLOR_AK, // Attribute Key
+    XMQ_COLOR_AKV, // Attribute Key Value
+    XMQ_COLOR_CP, // Compound Parentheses
+    XMQ_COLOR_NSD, // Name Space Declaration xmlns
+    XMQ_COLOR_UW, // Unicode whitespace
+    XMQ_COLOR_XLS, // Override XLS element names with this color.
+} XMQColorName;
 
 /**
     XMQReader:
@@ -261,7 +247,7 @@ typedef enum
     @node: The node triggering the callback.
     @user_data: The user data supplied to for_each.
 */
-typedef XMQProceed (*XMQNodeCallback)(XMQDoc *doc, XMQNode *node, void *user_data);
+typedef XMQProceed (*XMQNodeCallback)(XMQDoc *doc, XMQNodePtr node, void *user_data);
 
 /**
     XMQParseError:
@@ -557,7 +543,7 @@ void xmqSetOriginalSize(XMQDoc *doq, size_t size);
 
     Get root node suitable for xmqForeach.
 */
-XMQNode *xmqGetRootNode(XMQDoc *doq);
+XMQNodePtr xmqGetRootNode(XMQDoc *doq);
 
 /**
     xmqGetImplementationDoc:
@@ -654,6 +640,13 @@ void xmqSetupPrintSkip(XMQOutputSettings *ps, size_t *skip);
 /** Pretty print the document according to the settings. */
 void xmqPrint(XMQDoc *doc, XMQOutputSettings *settings);
 
+/** Recurse through the document and add offsets.
+    I.e. <root>ABC<a>DEF</a>GHIJ<b>xyz</b></root> wille become
+         <root o="0">ABC<a o="3">DEF</a>GHIJ<b o="10">xyz</b></root>
+    assuming attribute_name="o"
+*/
+void xmqAnnotateOffsets(XMQDoc *doc, const char *attribute_name, const char *ns);
+
 /** Trim xml whitespace. */
 void xmqTrimWhitespace(XMQDoc *doc, int flags);
 
@@ -671,13 +664,34 @@ XMQParseError xmqDocErrno(XMQDoc *doc);
     xmqGetName: get name of node
     @node: Node
 */
-const char *xmqGetName(XMQNode *node);
+const char *xmqGetName(XMQNodePtr node);
 
 /**
     xmqGetContent: get content of element node
     @node: Node
 */
-const char *xmqGetContent(XMQNode *node);
+const char *xmqGetContent(XMQNodePtr node);
+
+/**
+    xmqSetContent: set the raw content of element node
+    @node: Node
+*/
+void xmqSetContent(XMQNodePtr node, const char *raw_content);
+
+/**
+    xmqGetNode:
+    @doc: the xmq doc object
+    @xpath: the location of the content to be returned as a node ptr.
+*/
+XMQNodePtr xmqGetNode(XMQDoc *doc, const char *xpath);
+
+/**
+    xmqGetNodeRel:
+    @doc: the xmq doc object
+    @xpath: the location of the content to be returned as a node ptr.
+    @relative: the xpath is search using this node as the starting point.
+*/
+XMQNodePtr xmqGetNodeRel(XMQDoc *doc, const char *xpath, XMQNodePtr relative);
 
 /**
     xmqGetInt:
@@ -692,7 +706,7 @@ int32_t xmqGetInt(XMQDoc *doc, const char *xpath);
     @xpath: the location of the content to be parsed as an 32 bit signed integer.
     @relative: the xpath is search using this node as the starting point.
 */
-int32_t xmqGetIntRel(XMQDoc *doc, const char *xpath, XMQNode *relative);
+int32_t xmqGetIntRel(XMQDoc *doc, const char *xpath, XMQNodePtr relative);
 
 /**
     xmqGetLong:
@@ -707,7 +721,7 @@ int64_t xmqGetLong(XMQDoc *doc, const char *xpath);
     @xpath: the location of the content to be parsed as an 64 bit signed integer.
     @relative: the xpath is search using this node as the starting point.
 */
-int64_t xmqGetLongRel(XMQDoc *doc, const char *xpath, XMQNode *relative);
+int64_t xmqGetLongRel(XMQDoc *doc, const char *xpath, XMQNodePtr relative);
 
 /**
     xmqGetDouble:
@@ -722,7 +736,7 @@ double xmqGetDouble(XMQDoc *doc, const char *xpath);
     @xpath: the location of the content to be parsed as double float.
     @relative: the xpath is search using this node as the starting point.
 */
-double xmqGetDoubleRel(XMQDoc *doc, const char *xpath, XMQNode *relative);
+double xmqGetDoubleRel(XMQDoc *doc, const char *xpath, XMQNodePtr relative);
 
 /**
     xmqGetString:
@@ -737,7 +751,7 @@ const char *xmqGetString(XMQDoc *doc, const char *xpath);
     @xpath: the location of the content to be parsed as string.
     @relative: the xpath is search using this node as the starting point.
 */
-const char *xmqGetStringRel(XMQDoc *doc, const char *xpath, XMQNode *relative);
+const char *xmqGetStringRel(XMQDoc *doc, const char *xpath, XMQNodePtr relative);
 
 /**
    xmqForeach: Find all locations matching the xpath.
@@ -758,7 +772,7 @@ int xmqForeach(XMQDoc *doq, const char *xpath, XMQNodeCallback cb, void *user_da
 
    Returns the number of hits.
 */
-int xmqForeachRel(XMQDoc *doq, const char *xpath, XMQNodeCallback cb, void *user_data, XMQNode *relative);
+int xmqForeachRel(XMQDoc *doq, const char *xpath, XMQNodeCallback cb, void *user_data, XMQNodePtr relative);
 
 /**
    xmqReplaceEntity: Replace the selected entity with the supplied content.
@@ -776,7 +790,7 @@ int xmqReplaceEntity(XMQDoc *doq, const char *entity, const char *content);
 
    Returns the number of replacements.
 */
-int xmqReplaceEntityWithNode(XMQDoc *doq, const char *entity, XMQDoc *idoq, XMQNode *inode);
+int xmqReplaceEntityWithNode(XMQDoc *doq, const char *entity, XMQDoc *idoq, XMQNodePtr inode);
 
 /**
     xmqVersion:
@@ -931,7 +945,7 @@ void xmqRenderHtmlSettings(XMQOutputSettings *settings,
 */
 void xmqOverrideColor(XMQOutputSettings *settings,
                       const char *render_style,
-                      XMQSyntax sc,
+                      XMQColorName cn,
                       const char *pre,
                       const char *post,
                       const char *ns);

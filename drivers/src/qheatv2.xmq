@@ -1,0 +1,265 @@
+// Copyright (C) 2026 Fredrik Öhrström (gpl-3.0-or-later)
+driver {
+    name           = qheatv2
+    meter_type     = HeatMeter
+    default_fields = name,id,status,total_kwh,timestamp
+    manufacturer   = Qundis
+    detect {
+        mvt = QDS,23,04
+        mvt = QDS,23,37
+        mvt = QDS,3e,04
+        mvt = QDS,3e,37
+        mvt = QDS,46,04
+        mvt = QDS,46,37
+        mvt = QDS,47,04
+        mvt = QDS,47,37
+        mvt = QDS,48,04
+        mvt = QDS,48,37
+    }
+    library {
+        use = meter_datetime
+        use = enhanced_id
+    }
+    fields {
+        field {
+            name       = status
+            quantity   = Text
+            info       = 'Status and error flags'
+            attributes = STATUS,INCLUDE_TPL_STATUS
+            match {
+                measurement_type = Instantaneous
+                vif_range        = ErrorFlags
+            }
+            lookup {
+                /* !!! The status bits are uncertain !!!
+                   The documentation links to some intranet site, Qundis Error Codes Specification v1.7
+                   at https://base/svn/sys/Meter/Gen/G5-5/PUBL/Gen55_SysSpec_Error-Codes_EN_v1.6_any.pdf
+                   Here is a table that might apply:
+                   https://www.manualslib.com/manual/2046543/Qundis-Q-Heat-5-5-Us.html?page=5  */
+                name            = ERROR_FLAGS
+                map_type        = BitToString
+                mask_bits       = 0xffff
+                default_message = OK
+                map {
+                    name = NO_FLOW
+                    // F0
+                    value = 0x0001
+                    test  = Set
+                }
+                map {
+                    name = SUPPLY_SENSOR_INTERRUPTED
+                    // F1
+                    value = 0x0002
+                    test  = Set
+                }
+                map {
+                    name = RETURN_SENSOR_INTERRUPTED
+                    // F2
+                    value = 0x0004
+                    test  = Set
+                }
+                map {
+                    name = TEMPERATURE_ELECTRONICS_ERROR
+                    // F3
+                    value = 0x0008
+                    test  = Set
+                }
+                map {
+                    name = BATTERY_VOLTAGE_ERROR
+                    // F4
+                    value = 0x0010
+                    test  = Set
+                }
+                map {
+                    name = SHORT_CIRCUIT_SUPPLY_SENSOR
+                    // F5
+                    value = 0x0020
+                    test  = Set
+                }
+                map {
+                    name = SHORT_CIRCUIT_RETURN_SENSOR
+                    // F6
+                    value = 0x0040
+                    test  = Set
+                }
+                map {
+                    name = MEMORY_ERROR
+                    // F7
+                    value = 0x0080
+                    test  = Set
+                }
+                map {
+                    name = SABOTAGE
+                    // F8 - F1,2,3,5,6 longer than 8 hours, latching error, no more measurements performed.
+                    value = 0x0100
+                    test  = Set
+                }
+                map {
+                    name = ELECTRONICS_ERROR
+                    // F9
+                    value = 0x0200
+                    test  = Set
+                }
+            }
+        }
+        field {
+            name     = total
+            quantity = Energy
+            match {
+                measurement_type = Instantaneous
+                vif_range        = AnyEnergyVIF
+            }
+        }
+        field {
+            name     = target
+            quantity = Energy
+            match {
+                measurement_type = Instantaneous
+                vif_range        = AnyEnergyVIF
+                storage_nr       = 17
+            }
+        }
+        field {
+            name         = target
+            quantity     = PointInTime
+            display_unit = date
+            match {
+                measurement_type = Instantaneous
+                vif_range        = Date
+                storage_nr       = 17
+            }
+        }
+        field {
+            name     = target_year
+            quantity = Energy
+            match {
+                measurement_type = Instantaneous
+                vif_range        = AnyEnergyVIF
+                storage_nr       = 1
+            }
+        }
+        field {
+            name         = target_year
+            quantity     = PointInTime
+            display_unit = date
+            match {
+                measurement_type = Instantaneous
+                vif_range        = Date
+                storage_nr       = 1
+            }
+        }
+        field {
+            name         = device_error
+            quantity     = PointInTime
+            display_unit = date
+            match {
+                measurement_type = AtError
+                vif_range        = Date
+            }
+        }
+        field {
+            name       = mfct_specific_data
+            quantity   = Text
+            attributes = HIDE
+            match {
+                difvifkey = 0DFF5F
+            }
+            ixml = '''decode = quad, quad, byte,
+                               (energy_100wh |
+                                energy_1kwh |
+                                energy_100kj |
+                                energy_1mj).
+
+                      energy_100wh = '05', error_date, total_100wh, target_year_date, target_year_100wh, target_date, target_year_100wh, byte*.
+                      energy_1kwh  = '06', error_date, total_1kwh, target_year_date, target_year_1kwh, target_date, target_year_1kwh, byte*.
+                      energy_100kj = '0D', error_date, total_100kj, target_year_date, target_year_100kj, target_date, target_year_100kj, byte*.
+                      energy_1mj   = '0E', error_date, total_1mj, target_year_date, target_year_1mj, target_date, target_year_1mj, byte*.
+
+                      error_date = word, @DV_426C.
+                      target_year_date = word, @DV_426C.
+                      target_date = word, @DV_C2086C.
+
+                      total_100wh = quad, @DV_0C05.
+                      total_1kwh  = quad, @DV_0C06.
+                      total_100kj = quad, @DV_0C0D.
+                      total_1mj   = quad, @DV_0C0E.
+
+                      target_year_100wh = quad, @DV_4C05.
+                      target_year_1kwh  = quad, @DV_4C06.
+                      target_year_100kj = quad, @DV_4C0D.
+                      target_year_1mj   = quad, @DV_4C0E.
+
+                      target_100wh = quad, @DV_CC0805.
+                      target_1kwh  = quad, @DV_CC0806.
+                      target_100kj = quad, @DV_CC080D.
+                      target_1mj   = quad, @DV_CC080E.
+
+                      -hex  = ['A'-'F';'0'-'9'].
+                      -byte = hex, hex.
+                      -word = byte, byte.
+                      -triplet = byte, byte, byte.
+                      -quad = byte, byte, byte, byte.
+
+                      DV_0C05>dvk = +'0C05'.
+                      DV_0C06>dvk = +'0C06'.
+                      DV_0C0D>dvk = +'0C0D'.
+                      DV_0C0E>dvk = +'0C0E'.
+
+                      DV_4C05>dvk = +'4C05'.
+                      DV_4C06>dvk = +'4C06'.
+                      DV_4C0D>dvk = +'4C0D'.
+                      DV_4C0E>dvk = +'4C0E'.
+
+                      DV_CC0805>dvk = +'CC0805'.
+                      DV_CC0806>dvk = +'CC0806'.
+                      DV_CC080D>dvk = +'CC080D'.
+                      DV_CC080E>dvk = +'CC080E'.
+
+                      DV_426C>dvk = +'426C'.
+                      DV_C2086C>dvk = +'C2086C'.
+
+                     '''
+        }
+    }
+    tests {
+        test {
+            args     = 'QHeato qheatv2 67228058 NOKEY'
+            telegram = 3C449344957002372337725880226793442304DC0000200C05043900004C0500000000426C9F2CCC080551070000C2086CBE29326CFFFF046D280DB62A
+            json     = '{"_": "telegram","device_error_date": "2128-03-31","id": "67228058","media": "heat","meter": "qheatv2","meter_datetime": "2021-10-22 13:40","name": "QHeato","status": "OK","target_date": "2021-09-30","target_kwh": 75.1,"target_year_date": "2020-12-31","target_year_kwh": 0,"timestamp": "1111-11-11T11:11:11Z","total_kwh": 390.4}'
+            fields   = 'QHeato;67228058;OK;390.4;1111-11-11 11:11.11'
+        }
+        test {
+            args     = 'QQ1 qheatv2 68204641 NOKEY'
+            telegram = 58449344414620684737780779414620689344470c0dff5f3500825a00000e0007c00dffff310803001f3c036800003e34310803000080008000800080008000800000931a92293128190c00002f02fd170000046d000f3235
+            json     = '{"_": "telegram","enhanced_id": "0C47449368204641","id": "68204641","media": "radio converter (meter side)","meter": "qheatv2","meter_datetime": "2025-05-18 15:00","name": "QQ1","status": "OK","target_date": "2025-04-30","target_year_date": "2024-12-31","target_year_kwh": 856.416667,"timestamp": "1111-11-11T11:11:11Z","total_kwh": 856.416667}'
+            fields   = 'QQ1;68204641;OK;856.416667;1111-11-11 11:11.11'
+        }
+        test {
+            args     = 'QHeat55r qheatv2 68267443 NOKEY'
+            comment  = 'Q AMR telegram sent every 7.5 minutes'
+            comment  = 'Q Walk by telegram sent every 112 seconds'
+            telegram = 414493444374266848377243742668934448042A000020_0C06140000004C0600000000426CFFFFCC080600000000C2086C3C3202FD170000326CFFFF046D190F3533
+            json     = '{"_": "telegram","device_error_date": "2128-03-31","id": "68267443","media": "heat","meter": "qheatv2","meter_datetime": "2025-03-21 15:25","name": "QHeat55r","status": "OK","target_date": "2025-02-28","target_kwh": 0,"target_year_date": "2128-03-31","target_year_kwh": 0,"timestamp": "1111-11-11T11:11:11Z","total_kwh": 14}'
+            fields   = 'QHeat55r;68267443;OK;14;1111-11-11 11:11.11'
+        }
+        test {
+            args     = 'QHeat55r qheatv2 68267443 NOKEY'
+            comment  = 'Q Walk by telegram sent every 112 seconds'
+            telegram = 5844934443742668483778_077943742668934448040DFF5F3500822A0000610107C006FFFF14000000FFFF000000003C32000000000080008000800080008000800080008000800080008000002F02FD170000046D1B0F3533
+            json     = '{"_": "telegram","enhanced_id": "0448449368267443","id": "68267443","media": "radio converter (meter side)","meter": "qheatv2","meter_datetime": "2025-03-21 15:27","name": "QHeat55r","status": "OK","target_date": "2025-02-28","target_year_date": "2128-03-31","target_year_kwh": 0,"timestamp": "1111-11-11T11:11:11Z","total_kwh": 14}'
+            fields   = 'QHeat55r;68267443;OK;14;1111-11-11 11:11.11'
+        }
+        test {
+            args = 'QQA qheatv2 67958979 NOKEY'
+            telegram = 58449344798995673E377807797989956793443E040DFF5F3500827D0000810007C006FFFF531100003F3C490900005F318010000083003C0022000B0000000000000000000A002B00510083002F02FD170000046D16085832
+            json = '{"_": "telegram","enhanced_id": "043E449367958979","id": "67958979","media": "radio converter (meter side)","meter": "qheatv2","meter_datetime": "2026-02-24 08:22","name": "QQA","status": "OK","target_date": "2026-01-31","target_year_date": "2025-12-31","target_year_kwh": 1080,"timestamp": "1111-11-11T11:11:11Z","total_kwh": 1153}'
+            fields = 'QQA;67958979;OK;1153;1111-11-11 11:11.11'
+        }
+        test {
+            args = 'QQB qheatv2 67985890 NOKEY'
+            telegram = 41449344905898673e37729058986793443e04120000200c06809300004c0678820000426c3f3ccc080636900000c2086c5f3102fd170000326cffff046d1d095832
+            json = '{"_": "telegram","device_error_date": "2128-03-31","id": "67985890","media": "heat","meter": "qheatv2","meter_datetime": "2026-02-24 09:29","name": "QQB","status": "OK","target_date": "2026-01-31","target_kwh": 9036,"target_year_date": "2025-12-31","target_year_kwh": 8278,"timestamp": "1111-11-11T11:11:11Z","total_kwh": 9380}'
+            fields = 'QQB;67985890;OK;9380;1111-11-11 11:11.11'
+        }
+    }
+}

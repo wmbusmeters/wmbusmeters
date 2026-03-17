@@ -52,7 +52,7 @@ namespace
         vector<uchar> content;
         t->extractPayload(&content);
 
-        if (content.size() < 4) return;
+        if (content.size() < 18) return;
 
         vector<uchar> frame(content.begin() + 2, content.begin() + 18);
         vector<uchar>::iterator pos = frame.begin();

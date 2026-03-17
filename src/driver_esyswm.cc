@@ -144,7 +144,7 @@ namespace
             .set(MeasurementType::Instantaneous)
             .set(DifVifKey("0DFD09"))
             );
-
+        lastAddedField()->setReadableString(ReadableString::Normal);
     }
 }
 
