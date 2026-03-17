@@ -190,9 +190,9 @@ driver {
             }
         }
         field {
-            name     = due
-            quantity = PointInTime
-            info     = 'The due date.'
+            name         = due
+            quantity     = PointInTime
+            info         = 'The due date.'
             display_unit = date
             match {
                 measurement_type = Instantaneous
