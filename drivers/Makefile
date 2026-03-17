@@ -3,7 +3,7 @@ $(shell mkdir -p build/test)
 
 PROG?=../build/wmbusmeters
 
-database:
+database: pretty
 	@./generate.sh $(PROG)
 
 web:

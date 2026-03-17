@@ -13,9 +13,9 @@ driver {
     }
     fields {
         field {
-            name     = status
-            quantity = Text
-            info     = 'Status and error flags.'
+            name       = status
+            quantity   = Text
+            info       = 'Status and error flags.'
             attributes = INCLUDE_TPL_STATUS
             match {
                 measurement_type = Instantaneous
@@ -59,9 +59,9 @@ driver {
             }
         }
         field {
-            name     = set
-            quantity = PointInTime
-            info     = 'The even earlier date?'
+            name         = set
+            quantity     = PointInTime
+            info         = 'The even earlier date?'
             display_unit = date
             match {
                 measurement_type = Instantaneous
@@ -77,7 +77,6 @@ driver {
             json     = '{"_": "telegram","flow_temperature_c": 5.5,"id": "22332233","media": "water","meter": "dme173","name": "dwater","set_date": "2025-12-31","status": "OK","target_datetime": "2026-01-31 23:59","target_m3": 4.674,"timestamp": "1111-11-11T11:11:11Z","total_at_set_date_m3": 0.2,"total_m3": 8.683}'
             fields   = 'dwater;22332233;OK;8.683;1111-11-11 11:11.11'
         }
-
         test {
             args     = 'dwater2 dme173 44334433 NOKEY'
             telegram = 5344A5113344334463078C002A900F002C25B7640000BAD0D4FB907B9BE17AFA003107102F2F_0C131717000004FD17000000000C933C000000004C1300020000426C3F3C84046D3B375F318C0413000200002F2F

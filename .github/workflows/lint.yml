@@ -1,0 +1,32 @@
+name: Lint
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - master
+    paths: 
+      - 'drivers/**'
+  pull_request:
+    paths: 
+      - 'drivers/**'
+
+jobs:
+  lint_xmq:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v6
+    - id: INSTALL_ADDITIONAL_BUILD_DEPENDENCIES
+      run: |
+         sudo apt install -y eatmydata
+         sudo eatmydata apt-get install librtlsdr-dev libusb-dev libxml2-dev libxslt1-dev
+    - id: BUILD_XMQ
+      run: eatmydata make build/xmq && chmod +x ./build/xmq && cp ./build/xmq /usr/local/bin/xmq
+    - id: LINT_XMQ
+      run: eatmydata make pretty
+      working-directory: drivers
+    - id: GIT_DIFF
+      run: |
+        if ! git diff --quiet drivers; then
+        echo "Code is not properly formatted. Please run 'make pretty'in /drivers and commit the changes."
+        exit 1
+        fi

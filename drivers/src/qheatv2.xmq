@@ -164,61 +164,61 @@ driver {
             match {
                 difvifkey = 0DFF5F
             }
-            ixml = '''decode = quad, quad, byte,
-                               (energy_100wh |
-                                energy_1kwh |
-                                energy_100kj |
-                                energy_1mj).
+            ixml = "decode = quad, quad, byte,
+                             (energy_100wh |
+                              energy_1kwh |
+                              energy_100kj |
+                              energy_1mj).
 
-                      energy_100wh = '05', error_date, total_100wh, target_year_date, target_year_100wh, target_date, target_year_100wh, byte*.
-                      energy_1kwh  = '06', error_date, total_1kwh, target_year_date, target_year_1kwh, target_date, target_year_1kwh, byte*.
-                      energy_100kj = '0D', error_date, total_100kj, target_year_date, target_year_100kj, target_date, target_year_100kj, byte*.
-                      energy_1mj   = '0E', error_date, total_1mj, target_year_date, target_year_1mj, target_date, target_year_1mj, byte*.
+                    energy_100wh = '05', error_date, total_100wh, target_year_date, target_year_100wh, target_date, target_year_100wh, byte*.
+                    energy_1kwh  = '06', error_date, total_1kwh, target_year_date, target_year_1kwh, target_date, target_year_1kwh, byte*.
+                    energy_100kj = '0D', error_date, total_100kj, target_year_date, target_year_100kj, target_date, target_year_100kj, byte*.
+                    energy_1mj   = '0E', error_date, total_1mj, target_year_date, target_year_1mj, target_date, target_year_1mj, byte*.
 
-                      error_date = word, @DV_426C.
-                      target_year_date = word, @DV_426C.
-                      target_date = word, @DV_C2086C.
+                    error_date = word, @DV_426C.
+                    target_year_date = word, @DV_426C.
+                    target_date = word, @DV_C2086C.
 
-                      total_100wh = quad, @DV_0C05.
-                      total_1kwh  = quad, @DV_0C06.
-                      total_100kj = quad, @DV_0C0D.
-                      total_1mj   = quad, @DV_0C0E.
+                    total_100wh = quad, @DV_0C05.
+                    total_1kwh  = quad, @DV_0C06.
+                    total_100kj = quad, @DV_0C0D.
+                    total_1mj   = quad, @DV_0C0E.
 
-                      target_year_100wh = quad, @DV_4C05.
-                      target_year_1kwh  = quad, @DV_4C06.
-                      target_year_100kj = quad, @DV_4C0D.
-                      target_year_1mj   = quad, @DV_4C0E.
+                    target_year_100wh = quad, @DV_4C05.
+                    target_year_1kwh  = quad, @DV_4C06.
+                    target_year_100kj = quad, @DV_4C0D.
+                    target_year_1mj   = quad, @DV_4C0E.
 
-                      target_100wh = quad, @DV_CC0805.
-                      target_1kwh  = quad, @DV_CC0806.
-                      target_100kj = quad, @DV_CC080D.
-                      target_1mj   = quad, @DV_CC080E.
+                    target_100wh = quad, @DV_CC0805.
+                    target_1kwh  = quad, @DV_CC0806.
+                    target_100kj = quad, @DV_CC080D.
+                    target_1mj   = quad, @DV_CC080E.
 
-                      -hex  = ['A'-'F';'0'-'9'].
-                      -byte = hex, hex.
-                      -word = byte, byte.
-                      -triplet = byte, byte, byte.
-                      -quad = byte, byte, byte, byte.
+                    -hex  = ['A'-'F';'0'-'9'].
+                    -byte = hex, hex.
+                    -word = byte, byte.
+                    -triplet = byte, byte, byte.
+                    -quad = byte, byte, byte, byte.
 
-                      DV_0C05>dvk = +'0C05'.
-                      DV_0C06>dvk = +'0C06'.
-                      DV_0C0D>dvk = +'0C0D'.
-                      DV_0C0E>dvk = +'0C0E'.
+                    DV_0C05>dvk = +'0C05'.
+                    DV_0C06>dvk = +'0C06'.
+                    DV_0C0D>dvk = +'0C0D'.
+                    DV_0C0E>dvk = +'0C0E'.
 
-                      DV_4C05>dvk = +'4C05'.
-                      DV_4C06>dvk = +'4C06'.
-                      DV_4C0D>dvk = +'4C0D'.
-                      DV_4C0E>dvk = +'4C0E'.
+                    DV_4C05>dvk = +'4C05'.
+                    DV_4C06>dvk = +'4C06'.
+                    DV_4C0D>dvk = +'4C0D'.
+                    DV_4C0E>dvk = +'4C0E'.
 
-                      DV_CC0805>dvk = +'CC0805'.
-                      DV_CC0806>dvk = +'CC0806'.
-                      DV_CC080D>dvk = +'CC080D'.
-                      DV_CC080E>dvk = +'CC080E'.
+                    DV_CC0805>dvk = +'CC0805'.
+                    DV_CC0806>dvk = +'CC0806'.
+                    DV_CC080D>dvk = +'CC080D'.
+                    DV_CC080E>dvk = +'CC080E'.
 
-                      DV_426C>dvk = +'426C'.
-                      DV_C2086C>dvk = +'C2086C'.
+                    DV_426C>dvk = +'426C'.
+                    DV_C2086C>dvk = +'C2086C'.
 
-                     '''
+                   "
         }
     }
     tests {
@@ -250,16 +250,16 @@ driver {
             fields   = 'QHeat55r;68267443;OK;14;1111-11-11 11:11.11'
         }
         test {
-            args = 'QQA qheatv2 67958979 NOKEY'
+            args     = 'QQA qheatv2 67958979 NOKEY'
             telegram = 58449344798995673E377807797989956793443E040DFF5F3500827D0000810007C006FFFF531100003F3C490900005F318010000083003C0022000B0000000000000000000A002B00510083002F02FD170000046D16085832
-            json = '{"_": "telegram","enhanced_id": "043E449367958979","id": "67958979","media": "radio converter (meter side)","meter": "qheatv2","meter_datetime": "2026-02-24 08:22","name": "QQA","status": "OK","target_date": "2026-01-31","target_year_date": "2025-12-31","target_year_kwh": 1080,"timestamp": "1111-11-11T11:11:11Z","total_kwh": 1153}'
-            fields = 'QQA;67958979;OK;1153;1111-11-11 11:11.11'
+            json     = '{"_": "telegram","enhanced_id": "043E449367958979","id": "67958979","media": "radio converter (meter side)","meter": "qheatv2","meter_datetime": "2026-02-24 08:22","name": "QQA","status": "OK","target_date": "2026-01-31","target_year_date": "2025-12-31","target_year_kwh": 1080,"timestamp": "1111-11-11T11:11:11Z","total_kwh": 1153}'
+            fields   = 'QQA;67958979;OK;1153;1111-11-11 11:11.11'
         }
         test {
-            args = 'QQB qheatv2 67985890 NOKEY'
+            args     = 'QQB qheatv2 67985890 NOKEY'
             telegram = 41449344905898673e37729058986793443e04120000200c06809300004c0678820000426c3f3ccc080636900000c2086c5f3102fd170000326cffff046d1d095832
-            json = '{"_": "telegram","device_error_date": "2128-03-31","id": "67985890","media": "heat","meter": "qheatv2","meter_datetime": "2026-02-24 09:29","name": "QQB","status": "OK","target_date": "2026-01-31","target_kwh": 9036,"target_year_date": "2025-12-31","target_year_kwh": 8278,"timestamp": "1111-11-11T11:11:11Z","total_kwh": 9380}'
-            fields = 'QQB;67985890;OK;9380;1111-11-11 11:11.11'
+            json     = '{"_": "telegram","device_error_date": "2128-03-31","id": "67985890","media": "heat","meter": "qheatv2","meter_datetime": "2026-02-24 09:29","name": "QQB","status": "OK","target_date": "2026-01-31","target_kwh": 9036,"target_year_date": "2025-12-31","target_year_kwh": 8278,"timestamp": "1111-11-11T11:11:11Z","total_kwh": 9380}'
+            fields   = 'QQB;67985890;OK;9380;1111-11-11 11:11.11'
         }
     }
 }
