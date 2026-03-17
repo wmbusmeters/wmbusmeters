@@ -24,7 +24,7 @@ driver {
         }
         field {
             name     = meter_date
-            quantity = PointInTime
+            quantity = Text
             info     = 'The meter date.'
             match {
                 measurement_type = Instantaneous
@@ -107,7 +107,7 @@ driver {
         field {
             name     = version
             quantity = Text
-            info     = 'Version.'
+            info     = Version.
             match {
                 measurement_type = Instantaneous
                 vif_range        = ModelVersion
