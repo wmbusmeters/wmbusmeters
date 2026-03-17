@@ -74,52 +74,13 @@ driver {
         }
 
         // Previous month dates (T1A1 and T1A2, storage 32-45)
-        field { name = prev_1_month  quantity = PointInTime  info = 'Previous month 1 date.'   match { measurement_type = Instantaneous  vif_range = Date  storage_nr = 32 } }
-        field { name = prev_2_month  quantity = PointInTime  info = 'Previous month 2 date.'   match { measurement_type = Instantaneous  vif_range = Date  storage_nr = 33 } }
-        field { name = prev_3_month  quantity = PointInTime  info = 'Previous month 3 date.'   match { measurement_type = Instantaneous  vif_range = Date  storage_nr = 34 } }
-        field { name = prev_4_month  quantity = PointInTime  info = 'Previous month 4 date.'   match { measurement_type = Instantaneous  vif_range = Date  storage_nr = 35 } }
-        field { name = prev_5_month  quantity = PointInTime  info = 'Previous month 5 date.'   match { measurement_type = Instantaneous  vif_range = Date  storage_nr = 36 } }
-        field { name = prev_6_month  quantity = PointInTime  info = 'Previous month 6 date.'   match { measurement_type = Instantaneous  vif_range = Date  storage_nr = 37 } }
-        field { name = prev_7_month  quantity = PointInTime  info = 'Previous month 7 date.'   match { measurement_type = Instantaneous  vif_range = Date  storage_nr = 38 } }
-        field { name = prev_8_month  quantity = PointInTime  info = 'Previous month 8 date.'   match { measurement_type = Instantaneous  vif_range = Date  storage_nr = 39 } }
-        field { name = prev_9_month  quantity = PointInTime  info = 'Previous month 9 date.'   match { measurement_type = Instantaneous  vif_range = Date  storage_nr = 40 } }
-        field { name = prev_10_month quantity = PointInTime  info = 'Previous month 10 date.'  match { measurement_type = Instantaneous  vif_range = Date  storage_nr = 41 } }
-        field { name = prev_11_month quantity = PointInTime  info = 'Previous month 11 date.'  match { measurement_type = Instantaneous  vif_range = Date  storage_nr = 42 } }
-        field { name = prev_12_month quantity = PointInTime  info = 'Previous month 12 date.'  match { measurement_type = Instantaneous  vif_range = Date  storage_nr = 43 } }
-        field { name = prev_13_month quantity = PointInTime  info = 'Previous month 13 date.'  match { measurement_type = Instantaneous  vif_range = Date  storage_nr = 44 } }
-        field { name = prev_14_month quantity = PointInTime  info = 'Previous month 14 date.'  match { measurement_type = Instantaneous  vif_range = Date  storage_nr = 45 } }
+        field { name = 'prev_{storage_counter-31counter}_month'  quantity = PointInTime  info = 'Previous month date.'  match { measurement_type = Instantaneous  vif_range = Date  storage_nr = 32,45 } }
 
         // Previous month energy (T1A1, storage 32-45)
-        field { name = prev_1_month  quantity = Energy  info = 'Previous month 1 energy.'   match { measurement_type = Instantaneous  vif_range = AnyEnergyVIF  storage_nr = 32 } }
-        field { name = prev_2_month  quantity = Energy  info = 'Previous month 2 energy.'   match { measurement_type = Instantaneous  vif_range = AnyEnergyVIF  storage_nr = 33 } }
-        field { name = prev_3_month  quantity = Energy  info = 'Previous month 3 energy.'   match { measurement_type = Instantaneous  vif_range = AnyEnergyVIF  storage_nr = 34 } }
-        field { name = prev_4_month  quantity = Energy  info = 'Previous month 4 energy.'   match { measurement_type = Instantaneous  vif_range = AnyEnergyVIF  storage_nr = 35 } }
-        field { name = prev_5_month  quantity = Energy  info = 'Previous month 5 energy.'   match { measurement_type = Instantaneous  vif_range = AnyEnergyVIF  storage_nr = 36 } }
-        field { name = prev_6_month  quantity = Energy  info = 'Previous month 6 energy.'   match { measurement_type = Instantaneous  vif_range = AnyEnergyVIF  storage_nr = 37 } }
-        field { name = prev_7_month  quantity = Energy  info = 'Previous month 7 energy.'   match { measurement_type = Instantaneous  vif_range = AnyEnergyVIF  storage_nr = 38 } }
-        field { name = prev_8_month  quantity = Energy  info = 'Previous month 8 energy.'   match { measurement_type = Instantaneous  vif_range = AnyEnergyVIF  storage_nr = 39 } }
-        field { name = prev_9_month  quantity = Energy  info = 'Previous month 9 energy.'   match { measurement_type = Instantaneous  vif_range = AnyEnergyVIF  storage_nr = 40 } }
-        field { name = prev_10_month quantity = Energy  info = 'Previous month 10 energy.'  match { measurement_type = Instantaneous  vif_range = AnyEnergyVIF  storage_nr = 41 } }
-        field { name = prev_11_month quantity = Energy  info = 'Previous month 11 energy.'  match { measurement_type = Instantaneous  vif_range = AnyEnergyVIF  storage_nr = 42 } }
-        field { name = prev_12_month quantity = Energy  info = 'Previous month 12 energy.'  match { measurement_type = Instantaneous  vif_range = AnyEnergyVIF  storage_nr = 43 } }
-        field { name = prev_13_month quantity = Energy  info = 'Previous month 13 energy.'  match { measurement_type = Instantaneous  vif_range = AnyEnergyVIF  storage_nr = 44 } }
-        field { name = prev_14_month quantity = Energy  info = 'Previous month 14 energy.'  match { measurement_type = Instantaneous  vif_range = AnyEnergyVIF  storage_nr = 45 } }
+        field { name = 'prev_{storage_counter-31counter}_month'  quantity = Energy  info = 'Previous month energy.'  match { measurement_type = Instantaneous  vif_range = AnyEnergyVIF  storage_nr = 32,45 } }
 
         // Previous month volume (T1A2, storage 32-45)
-        field { name = prev_1_month  quantity = Volume  info = 'Previous month 1 volume.'   match { measurement_type = Instantaneous  vif_range = Volume  storage_nr = 32 } }
-        field { name = prev_2_month  quantity = Volume  info = 'Previous month 2 volume.'   match { measurement_type = Instantaneous  vif_range = Volume  storage_nr = 33 } }
-        field { name = prev_3_month  quantity = Volume  info = 'Previous month 3 volume.'   match { measurement_type = Instantaneous  vif_range = Volume  storage_nr = 34 } }
-        field { name = prev_4_month  quantity = Volume  info = 'Previous month 4 volume.'   match { measurement_type = Instantaneous  vif_range = Volume  storage_nr = 35 } }
-        field { name = prev_5_month  quantity = Volume  info = 'Previous month 5 volume.'   match { measurement_type = Instantaneous  vif_range = Volume  storage_nr = 36 } }
-        field { name = prev_6_month  quantity = Volume  info = 'Previous month 6 volume.'   match { measurement_type = Instantaneous  vif_range = Volume  storage_nr = 37 } }
-        field { name = prev_7_month  quantity = Volume  info = 'Previous month 7 volume.'   match { measurement_type = Instantaneous  vif_range = Volume  storage_nr = 38 } }
-        field { name = prev_8_month  quantity = Volume  info = 'Previous month 8 volume.'   match { measurement_type = Instantaneous  vif_range = Volume  storage_nr = 39 } }
-        field { name = prev_9_month  quantity = Volume  info = 'Previous month 9 volume.'   match { measurement_type = Instantaneous  vif_range = Volume  storage_nr = 40 } }
-        field { name = prev_10_month quantity = Volume  info = 'Previous month 10 volume.'  match { measurement_type = Instantaneous  vif_range = Volume  storage_nr = 41 } }
-        field { name = prev_11_month quantity = Volume  info = 'Previous month 11 volume.'  match { measurement_type = Instantaneous  vif_range = Volume  storage_nr = 42 } }
-        field { name = prev_12_month quantity = Volume  info = 'Previous month 12 volume.'  match { measurement_type = Instantaneous  vif_range = Volume  storage_nr = 43 } }
-        field { name = prev_13_month quantity = Volume  info = 'Previous month 13 volume.'  match { measurement_type = Instantaneous  vif_range = Volume  storage_nr = 44 } }
-        field { name = prev_14_month quantity = Volume  info = 'Previous month 14 volume.'  match { measurement_type = Instantaneous  vif_range = Volume  storage_nr = 45 } }
+        field { name = 'prev_{storage_counter-31counter}_month'  quantity = Volume  info = 'Previous month volume.'  match { measurement_type = Instantaneous  vif_range = Volume  storage_nr = 32,45 } }
 
         // T1B billing fields
         field {
@@ -213,19 +174,19 @@ driver {
         test {
             args     = 'Heat c5isf 55445555 NOKEY'
             telegram = E544496A55554455880D7A320200002F2F_04060000000004130000000002FD17240084800106000000008280016C2124C480010600000080C280016CFFFF84810106000000808281016CFFFFC481010600000080C281016CFFFF84820106000000808282016CFFFFC482010600000080C282016CFFFF84830106000000808283016CFFFFC483010600000080C283016CFFFF84840106000000808284016CFFFFC484010600000080C284016CFFFF84850106000000808285016CFFFFC485010600000080C285016CFFFF84860106000000808286016CFFFFC486010600000080C286016CFFFF
-            json     = '{"_":"telegram","media":"heat/cooling load","meter":"c5isf","name":"Heat","id":"55445555","total_energy_consumption_kwh":0,"total_volume_m3":0,"status":"ERROR REVERSE_FLOW SUPPLY_SENSOR_INTERRUPTED","prev_1_month":"2017-04-01","prev_2_month":"2127-15-31","prev_3_month":"2127-15-31","prev_4_month":"2127-15-31","prev_5_month":"2127-15-31","prev_6_month":"2127-15-31","prev_7_month":"2127-15-31","prev_8_month":"2127-15-31","prev_9_month":"2127-15-31","prev_10_month":"2127-15-31","prev_11_month":"2127-15-31","prev_12_month":"2127-15-31","prev_13_month":"2127-15-31","prev_14_month":"2127-15-31","prev_1_month_kwh":0,"prev_2_month_kwh":-2147483648,"prev_3_month_kwh":-2147483648,"prev_4_month_kwh":-2147483648,"prev_5_month_kwh":-2147483648,"prev_6_month_kwh":-2147483648,"prev_7_month_kwh":-2147483648,"prev_8_month_kwh":-2147483648,"prev_9_month_kwh":-2147483648,"prev_10_month_kwh":-2147483648,"prev_11_month_kwh":-2147483648,"prev_12_month_kwh":-2147483648,"prev_13_month_kwh":-2147483648,"prev_14_month_kwh":-2147483648,"total_energy_consumption_last_month_kwh":0,"timestamp":"1111-11-11T11:11:11Z"}'
-            fields   = 'Heat;55445555;0;0;ERROR REVERSE_FLOW SUPPLY_SENSOR_INTERRUPTED;1111-11-11 11:11.11'
+            json     = '{"_":"telegram","media":"heat/cooling load","meter":"c5isf","name":"Heat","id":"55445555","prev_10_month_kwh":-2147483648,"prev_10_month_datetime":"2128-03-31 00:00","prev_11_month_kwh":-2147483648,"prev_11_month_datetime":"2128-03-31 00:00","prev_12_month_kwh":-2147483648,"prev_12_month_datetime":"2128-03-31 00:00","prev_13_month_kwh":-2147483648,"prev_13_month_datetime":"2128-03-31 00:00","prev_14_month_kwh":-2147483648,"prev_14_month_datetime":"2128-03-31 00:00","prev_1_month_kwh":0,"prev_1_month_datetime":"2017-04-01 00:00","prev_2_month_kwh":-2147483648,"prev_2_month_datetime":"2128-03-31 00:00","prev_3_month_kwh":-2147483648,"prev_3_month_datetime":"2128-03-31 00:00","prev_4_month_kwh":-2147483648,"prev_4_month_datetime":"2128-03-31 00:00","prev_5_month_kwh":-2147483648,"prev_5_month_datetime":"2128-03-31 00:00","prev_6_month_kwh":-2147483648,"prev_6_month_datetime":"2128-03-31 00:00","prev_7_month_kwh":-2147483648,"prev_7_month_datetime":"2128-03-31 00:00","prev_8_month_kwh":-2147483648,"prev_8_month_datetime":"2128-03-31 00:00","prev_9_month_kwh":-2147483648,"prev_9_month_datetime":"2128-03-31 00:00","total_energy_consumption_kwh":0,"total_energy_consumption_last_month_kwh":0,"total_volume_m3":0,"status":"DRY ERROR RETURN_SENSOR_INTERRUPTED","timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'Heat;55445555;0;0;DRY ERROR RETURN_SENSOR_INTERRUPTED;1111-11-11 11:11.11'
         }
         test {
             args     = 'Heat c5isf 32002044 NOKEY'
             telegram = 5E44496A4420003288047AFC0050052F2F_0406D00E00000413B28A05008404060000000082046CC121043B00000000042D000000000259E719025D051402FD17000084800106C00C00008280016CC125948001AE25090000002F2F2F2F2F2F
-            json     = '{"_":"telegram","media":"heat","meter":"c5isf","name":"Heat","id":"32002044","total_energy_consumption_kwh":3792,"total_volume_m3":363.186,"status":"OK","prev_1_month":"2022-05-01","prev_1_month_kwh":3264,"due_energy_consumption_kwh":0,"due_date":"2022-01-01","volume_flow_m3h":0,"power_kw":0,"total_energy_consumption_last_month_kwh":3264,"max_power_last_month_kw":9,"flow_temperature_c":66.31,"return_temperature_c":51.25,"timestamp":"1111-11-11T11:11:11Z"}'
+            json     = '{"_":"telegram","media":"heat","meter":"c5isf","name":"Heat","id":"32002044","due_date_datetime":"2022-01-01 00:00","due_energy_consumption_kwh":0,"flow_temperature_c":66.31,"max_power_last_month_kw":9,"power_kw":0,"prev_1_month_kwh":3264,"prev_1_month_datetime":"2022-05-01 00:00","return_temperature_c":51.25,"total_energy_consumption_kwh":3792,"total_energy_consumption_last_month_kwh":3264,"total_volume_m3":363.186,"volume_flow_m3h":0,"status":"OK","timestamp":"1111-11-11T11:11:11Z"}'
             fields   = 'Heat;32002044;3792;363.186;OK;1111-11-11 11:11.11'
         }
         test {
             args     = 'HeatCool c5isf 32022703 NOKEY'
             telegram = 8E44496A03270232880D7AED0080052F2F0406050200008410069A1700000413BC6F2E00840406E701000082046C2131841406C20B000082146C2131043B00000000042D0000000002595D09025D240802FD17000084800106050200008280016C213C948001AE2501000000849001069A1700008290016C213C849001AE25000000002F2F2F2F2F2F2F2F2F2F2F2F
-            json     = '{"_": "telegram","due_date": "2025-01-01","due_energy_consumption_kwh": 487,"flow_temperature_c": 23.97,"id": "32022703","max_power_last_month_kw": 1,"media": "heat/cooling load","meter": "c5isf","name": "HeatCool","power_kw": 0,"prev_1_month": "2025-12-01","prev_1_month_kwh": 517,"return_temperature_c": 20.84,"status": "OK","timestamp": "1111-11-11T11:11:11Z","total_cooling_consumption_kwh": 6042,"total_energy_consumption_kwh": 517,"total_energy_consumption_last_month_kwh": 517,"total_volume_m3": 3043.26,"volume_flow_m3h": 0}'
+            json     = '{"_":"telegram","media":"heat/cooling load","meter":"c5isf","name":"HeatCool","id":"32022703","due_date_datetime":"2025-01-01 00:00","due_energy_consumption_kwh":487,"flow_temperature_c":23.97,"max_power_last_month_kw":1,"power_kw":0,"prev_1_month_kwh":517,"prev_1_month_datetime":"2025-12-01 00:00","return_temperature_c":20.84,"total_cooling_consumption_kwh":6042,"total_energy_consumption_kwh":517,"total_energy_consumption_last_month_kwh":517,"total_volume_m3":3043.26,"volume_flow_m3h":0,"status":"OK","timestamp":"1111-11-11T11:11:11Z"}'
             fields   = 'HeatCool;32022703;517;3043.26;OK;1111-11-11 11:11.11'
         }
     }
