@@ -85,7 +85,7 @@ driver {
             match {
                 measurement_type = Instantaneous
                 vif_range        = AnyVolumeVIF
-                subunit_nr      = 1
+                subunit_nr       = 1
                 tariff_nr        = 0
                 storage_nr       = 0
             }
@@ -97,7 +97,7 @@ driver {
             match {
                 measurement_type = Instantaneous
                 vif_range        = AnyVolumeVIF
-                subunit_nr      = 0
+                subunit_nr       = 0
                 tariff_nr        = 1
                 storage_nr       = 0
             }
@@ -109,7 +109,7 @@ driver {
             match {
                 measurement_type = Instantaneous
                 vif_range        = AnyVolumeVIF
-                subunit_nr      = 0
+                subunit_nr       = 0
                 tariff_nr        = 2
                 storage_nr       = 0
             }
@@ -130,7 +130,7 @@ driver {
             match {
                 measurement_type = Instantaneous
                 vif_range        = AnyEnergyVIF
-                subunit_nr      = 1
+                subunit_nr       = 1
                 tariff_nr        = 0
                 storage_nr       = 0
             }
@@ -142,7 +142,7 @@ driver {
             match {
                 measurement_type = Instantaneous
                 vif_range        = AnyEnergyVIF
-                storage_nr         = 1
+                storage_nr       = 1
             }
         }
         field {
@@ -152,7 +152,7 @@ driver {
             match {
                 measurement_type = Instantaneous
                 vif_range        = AnyEnergyVIF
-                subunit_nr      = 1
+                subunit_nr       = 1
                 tariff_nr        = 0
                 storage_nr       = 1
             }

@@ -34,6 +34,9 @@ struct DriverDynamic : public virtual MeterCommonImplementation
     static XMQProceed add_lookup(XMQDoc *doc, XMQNodePtr lookup, DriverDynamic *dd);
     static XMQProceed add_map(XMQDoc *doc, XMQNodePtr map, DriverDynamic *dd);
 
+    static XMQProceed add_mfct_tpl_status(XMQDoc *doc, XMQNodePtr node, DriverInfo *di);
+    static XMQProceed add_mfct_tpl_status_map(XMQDoc *doc, XMQNodePtr map, Translate::Rule *rule);
+
     const string &fileName() { return file_name_; }
 
 private:

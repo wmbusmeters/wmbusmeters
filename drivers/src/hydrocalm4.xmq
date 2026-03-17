@@ -8,9 +8,9 @@ driver {
     }
     fields {
         field {
-            name     = status
-            quantity = Text
-            info     = status_and_error_flags
+            name       = status
+            quantity   = Text
+            info       = status_and_error_flags
             attributes = INCLUDE_TPL_STATUS
             match {
                 measurement_type = Instantaneous
@@ -23,7 +23,7 @@ driver {
                 default_message = OK
                 map {
                     name  = SABOTAGE
-                    info  = 'SABOTAGE_ENCLOSURE'
+                    info  = SABOTAGE_ENCLOSURE
                     value = 0x80
                     test  = Set
                 }
@@ -55,60 +55,60 @@ driver {
             match {
                 measurement_type = Instantaneous
                 vif_range        = AnyEnergyVIF
-                subunit_nr      = 0
+                subunit_nr       = 0
                 tariff_nr        = 1
                 storage_nr       = 0
             }
         }
         field {
-            name        = total_heating
-            info        = 'Total heating volume of media.'
-            quantity    = Volume
+            name     = total_heating
+            info     = 'Total heating volume of media.'
+            quantity = Volume
             match {
                 measurement_type = Instantaneous
                 vif_range        = Volume
             }
         }
         field {
-            name        = total_cooling
-            info        = 'Total cooling volume of media.'
-            quantity    = Volume
+            name     = total_cooling
+            info     = 'Total cooling volume of media.'
+            quantity = Volume
             match {
                 measurement_type = Instantaneous
                 vif_range        = Volume
-                subunit_nr      = 0
+                subunit_nr       = 0
                 tariff_nr        = 1
                 storage_nr       = 0
             }
         }
         field {
-            name        = c1_volume
-            info        = 'Supply c1 volume.'
-            quantity    = Volume
+            name     = c1_volume
+            info     = 'Supply c1 volume.'
+            quantity = Volume
             match {
                 measurement_type = Instantaneous
                 vif_range        = Volume
-                subunit_nr      = 1
+                subunit_nr       = 1
                 tariff_nr        = 0
                 storage_nr       = 0
             }
         }
         field {
-            name        = c2_volume
-            info        = 'Supply c2 volume.'
-            quantity    = Volume
+            name     = c2_volume
+            info     = 'Supply c2 volume.'
+            quantity = Volume
             match {
                 measurement_type = Instantaneous
                 vif_range        = Volume
-                subunit_nr      = 2
+                subunit_nr       = 2
                 tariff_nr        = 0
                 storage_nr       = 0
             }
         }
         field {
-            name        = supply_temperature
-            info        = 'The supply t1 pipe temperature.'
-            quantity    = Temperature
+            name     = supply_temperature
+            info     = 'The supply t1 pipe temperature.'
+            quantity = Temperature
             match {
                 measurement_type = Instantaneous
                 vif_range        = FlowTemperature
@@ -116,9 +116,9 @@ driver {
             }
         }
         field {
-            name        = return_temperature
-            info        = 'The supply t2 pipe temperature.'
-            quantity    = Temperature
+            name     = return_temperature
+            info     = 'The supply t2 pipe temperature.'
+            quantity = Temperature
             match {
                 measurement_type = Instantaneous
                 vif_range        = ReturnTemperature
@@ -146,28 +146,28 @@ driver {
     tests {
         test {
             args     = 'testm4 hydrocalm4 05171338 NOKEY'
-            comment  = 'Standard-heat'
+            comment  = Standard-heat
             telegram = 2C44B409381317051A0D8C00497A76000000_046D25AA153A0C03000000000C13000000000F6400000000000000
             json     = '{"_":"telegram","media":"heat/cooling load","meter":"hydrocalm4","status":"OK","name":"testm4","id":"05171338","device_datetime":"2024-10-21 10:37","total_heating_kwh":0,"total_heating_m3":0,"timestamp":"1111-11-11T11:11:11Z"}'
             fields   = 'testm4;05171338;OK;0;null;1111-11-11 11:11.11'
         }
         test {
             args     = 'testm4 hydrocalm4 05171338 NOKEY'
-            comment  =  'Combined-heat_cool'
+            comment  = Combined-heat_cool
             telegram = 3A44B409381317051A0D8C00497A7A000000_046D29AA153A0C03000000000C13000000008C1003050000008C1013040000000F6401000000000000
             json     = '{"_":"telegram","media":"heat/cooling load","meter":"hydrocalm4","name":"testm4","id":"05171338","device_datetime":"2024-10-21 10:41","total_cooling_kwh":0.005,"total_cooling_m3":0.004,"total_heating_kwh":0,"total_heating_m3":0,"status":"OK","timestamp":"1111-11-11T11:11:11Z"}'
             fields   = 'testm4;05171338;OK;0;0.005;1111-11-11 11:11.11'
         }
         test {
             args     = 'testm4 hydrocalm4 05171338 NOKEY'
-            comment  = 'Instantaneous-heat_temperature'
+            comment  = Instantaneous-heat_temperature
             telegram = 3E44B409381317051A0D8C00497A7C000000_046D2BAA153A0C03000000000C13000000000B3B0000000B280000000A5930230A5D08250F6402000000000000
             json     = '{"_":"telegram","media":"heat/cooling load","meter":"hydrocalm4","name":"testm4","id":"05171338","device_datetime":"2024-10-21 10:43","power_kw": 0, "return_temperature_c":25.08,"supply_temperature_c":23.3,"total_heating_kwh":0,"total_heating_m3":0,"volume_flow_m3h":0,"status":"OK","timestamp":"1111-11-11T11:11:11Z"}'
             fields   = 'testm4;05171338;OK;0;null;1111-11-11 11:11.11'
         }
         test {
             args     = 'testm4 hydrocalm4 05171338 NOKEY'
-            comment  = 'Instantaneous-heat_pulses'
+            comment  = Instantaneous-heat_pulses
             telegram = 3B44B409381317051A0D8C00497A7E000000_046D2DAA153A0C03000000000C13000000008C4013999900008C804013888800000F6403000000000000
             json     = '{"_":"telegram","c1_volume_m3": 9.999,"c2_volume_m3": 8.888,"device_datetime": "2024-10-21 10:45","id": "05171338","media": "heat/cooling load","meter": "hydrocalm4","name": "testm4","status": "OK","timestamp": "1111-11-11T11:11:11Z","total_heating_kwh": 0,"total_heating_m3": 0}'
             fields   = 'testm4;05171338;OK;0;null;1111-11-11 11:11.11'
@@ -179,6 +179,5 @@ driver {
             json     = '{"_": "telegram","device_datetime": "2025-01-06 17:13","id": "05128041","media": "heat/cooling load","meter": "hydrocalm4","name": "testm5","power_kw": 3e-06,"return_temperature_c": 23.94,"status": "OK","supply_temperature_c": 36.29,"timestamp": "1111-11-11T11:11:11Z","total_heating_kwh": 938.384667,"total_heating_m3": 58.409,"volume_flow_m3h": 0}'
             fields   = 'testm5;05128041;OK;938.384667;null;1111-11-11 11:11.11'
         }
-
     }
 }
