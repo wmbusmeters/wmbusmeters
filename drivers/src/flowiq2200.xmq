@@ -15,9 +15,9 @@ driver {
     }
     fields {
         field {
-            name     = status
-            quantity = Text
-            info     = 'Status of meter. Not fully understood!'
+            name       = status
+            quantity   = Text
+            info       = 'Status of meter. Not fully understood!'
             attributes = STATUS
             match {
                 difvifkey = 04FF23

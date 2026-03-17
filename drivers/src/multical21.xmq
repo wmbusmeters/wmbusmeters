@@ -53,9 +53,9 @@ driver {
             }
         }
         field {
-            name     = status
-            quantity = Text
-            info     = 'Status and error flags.'
+            name       = status
+            quantity   = Text
+            info       = 'Status and error flags.'
             attributes = STATUS
             match {
                 difvifkey = 02FF20
@@ -88,17 +88,17 @@ driver {
             }
         }
         field {
-            name     = current_status
-            quantity = Text
-            info     = 'Status of meter. This field will go away use status instead.'
+            name       = current_status
+            quantity   = Text
+            info       = 'Status of meter. This field will go away use status instead.'
             attributes = DEPRECATED
             match {
                 difvifkey = 02FF20
             }
             lookup {
-                name            = ERROR_FLAGS
-                map_type        = BitToString
-                mask_bits       = 0x000f
+                name      = ERROR_FLAGS
+                map_type  = BitToString
+                mask_bits = 0x000f
                 map {
                     name  = DRY
                     value = 0x01
