@@ -1,4 +1,4 @@
-// Generated 2026-03-17_11:34
+// Generated 2026-03-18_08:36
 test {
     args     = 'Vatten apator08 004444dd NOKEY'
     telegram = 73441486DD4444000303A0B9E527004C4034B31CED0106FF01D093270065F022009661230054D02300EC49240018B424005F012500936D2500FFD525000E3D26001EAC26000B2027000300000000371D0B2000000000000024000000000000280000000000002C0033150C010D2F000000000000
@@ -61,6 +61,18 @@ test {
     telegram = E544496A55554455880D7A320200002F2F_04060000000004130000000002FD17240084800106000000008280016C2124C480010600000080C280016CFFFF84810106000000808281016CFFFFC481010600000080C281016CFFFF84820106000000808282016CFFFFC482010600000080C282016CFFFF84830106000000808283016CFFFFC483010600000080C283016CFFFF84840106000000808284016CFFFFC484010600000080C284016CFFFF84850106000000808285016CFFFFC485010600000080C285016CFFFF84860106000000808286016CFFFFC486010600000080C286016CFFFF
     json     = '{"_":"telegram","media":"heat/cooling load","meter":"c5isf","name":"Heat","id":"55445555","prev_10_month_kwh":-2147483648,"prev_10_month_date":"2128-03-31","prev_11_month_kwh":-2147483648,"prev_11_month_date":"2128-03-31","prev_12_month_kwh":-2147483648,"prev_12_month_date":"2128-03-31","prev_13_month_kwh":-2147483648,"prev_13_month_date":"2128-03-31","prev_14_month_kwh":-2147483648,"prev_14_month_date":"2128-03-31","prev_1_month_kwh":0,"prev_1_month_date":"2017-04-01","prev_2_month_kwh":-2147483648,"prev_2_month_date":"2128-03-31","prev_3_month_kwh":-2147483648,"prev_3_month_date":"2128-03-31","prev_4_month_kwh":-2147483648,"prev_4_month_date":"2128-03-31","prev_5_month_kwh":-2147483648,"prev_5_month_date":"2128-03-31","prev_6_month_kwh":-2147483648,"prev_6_month_date":"2128-03-31","prev_7_month_kwh":-2147483648,"prev_7_month_date":"2128-03-31","prev_8_month_kwh":-2147483648,"prev_8_month_date":"2128-03-31","prev_9_month_kwh":-2147483648,"prev_9_month_date":"2128-03-31","total_energy_consumption_kwh":0,"total_energy_consumption_last_month_kwh":0,"total_volume_m3":0,"status":"DRY ERROR RETURN_SENSOR_INTERRUPTED","timestamp":"1111-11-11T11:11:11Z"}'
     fields   = 'Heat;55445555;0;0;DRY ERROR RETURN_SENSOR_INTERRUPTED;1111-11-11 11:11.11'
+}
+test {
+    args     = 'Caltos2 caltose 80081809 EB7CA876CAA641DAC39239326F6DD7EA'
+    telegram = 5e44496a09180880fc087a84405005760039129d1ce51ce54ef7b4aa5383f1fd525f87046d4f869a3189e5b0c400ecf9c41ae6ed6cf94810f09f4f113c04cc731e379e62ea0331ec7f8b09511357a7f7a484851c3de2ec414dcfdebd4af67d
+    json     = '{"_":"telegram","media":"heat cost allocation","meter":"caltose","name":"Caltos2","id":"80081809","base_date":"2026-02-01","base_hca":0,"consumption_hca":0,"target_date":"2026-01-01","target_hca":0,"status":"MODE_2F","timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'Caltos2;80081809;MODE_2F;0;0;2026-01-01;1111-11-11 11:11.11'
+}
+test {
+    args     = 'Caltos caltose 80081991 6B6B5EB80884328A7B1E45043D39FAAD'
+    telegram = 5e44496a91190880fc087a744050052f05bf0c6baf613a078098e048ae47ffb93083b455065e03de9b7878c8b3bb063637ea5693160e831cc3d4e0470fabbcd4fedb09d289a0025ca7960d5c7b8064b1093037e7a0a57908edb554d17ad587
+    json     = '{"_":"telegram","media":"heat cost allocation","meter":"caltose","name":"Caltos","id":"80081991","base_date":"2026-02-01","base_hca":203,"consumption_hca":225,"target_date":"2026-01-01","target_hca":99,"status":"MODE_2F","timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'Caltos;80081991;MODE_2F;225;99;2026-01-01;1111-11-11 11:11.11'
 }
 test {
     args     = 'dwater2 dme173 44334433 NOKEY'
