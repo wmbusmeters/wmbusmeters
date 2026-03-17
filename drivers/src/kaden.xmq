@@ -17,9 +17,9 @@ driver {
     }
     fields {
         field {
-            name     = status
-            quantity = Text
-            info     = 'Status and error flags'
+            name       = status
+            quantity   = Text
+            info       = 'Status and error flags'
             attributes = STATUS,INCLUDE_TPL_STATUS
             match {
                 measurement_type = Instantaneous
@@ -53,35 +53,33 @@ driver {
             }
         }
         field {
-            name     = no_measurement_duration
-            quantity = Time
-            info     = 'How many hours the meter has been removed from the element during winter.'
+            name         = no_measurement_duration
+            quantity     = Time
+            info         = 'How many hours the meter has been removed from the element during winter.'
             display_unit = h
             match {
                 difvifkey = 0475
             }
         }
         field {
-            name     = no_measurement_duration_last_year
-            quantity = Time
-            info     = 'How many hours the meter has been removed from the element previous winter.'
+            name         = no_measurement_duration_last_year
+            quantity     = Time
+            info         = 'How many hours the meter has been removed from the element previous winter.'
             display_unit = h
             match {
                 difvifkey = 4475
             }
         }
         field {
-            name     = tampering_duration
-            quantity = Time
-            info     = 'Total time the device has been removed from the radiator.'
+            name         = tampering_duration
+            quantity     = Time
+            info         = 'Total time the device has been removed from the radiator.'
             display_unit = h
             match {
                 difvifkey = 0474
             }
         }
-
     }
-
     tests {
         test {
             args     = 'KadenD10 kaden 23800604 82B0551191F51D66EFCDAB8967452301'
@@ -95,6 +93,5 @@ driver {
             json     = '{"_": "telegram","consumption_hca": 859,"external_temperature_c": 32,"fabrication_no": "23701267","flow_temperature_c": 39.3,"id": "23701267","media": "heat cost allocation","meter": "kaden","meter_datetime": "2026-02-09 09:41","name": "KadenC10","no_measurement_duration_h": 2.266667,"no_measurement_duration_last_year_h": 1234.483333,"status": "OK","tampering_duration_h": 0,"target_date": "2127-01-01","target_hca": 2264,"timestamp": "1111-11-11T11:11:11Z"}'
             fields   = 'KadenC10;23701267;OK;859;1111-11-11 11:11.11'
         }
-
     }
 }

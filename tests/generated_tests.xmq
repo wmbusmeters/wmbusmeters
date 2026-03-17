@@ -1,4 +1,4 @@
-// Generated 2026-03-17_09:33
+// Generated 2026-03-17_11:34
 test {
     args     = 'Vatten apator08 004444dd NOKEY'
     telegram = 73441486DD4444000303A0B9E527004C4034B31CED0106FF01D093270065F022009661230054D02300EC49240018B424005F012500936D2500FFD525000E3D26001EAC26000B2027000300000000371D0B2000000000000024000000000000280000000000002C0033150C010D2F000000000000
@@ -599,6 +599,18 @@ test {
     telegram = 682f2f6808687204010000ac484100b30000000c6e41648401046d9c021732426cff2c4c6e4164840142ec7e1f3c0fc101010c6d16
     json     = '{"_":"telegram","consumption_hca": 1846441,"id": "00000104","media": "other","meter": "relhca","meter_datetime": "2024-02-23 02:28","target_hca": 1846441,"name": "MyRelHCA","next_target_date": "2024-12-31","target_date": "2023-12-31","timestamp": "1111-11-11T11:11:11Z"}'
     fields   = 'MyRelHCA;00000104;1846441;1111-11-11 11:11.11'
+}
+test {
+    args     = 'Pokojak rfmamb 23699558 6C649F296476D737CACB75A2D639CE14'
+    telegram = 5e44b40958956923101b7a7f085005816afb5f6f40ec742610b93c109973edd8c098f505d5dfcfd53dfd72708178e4b81436cb753c6dff5094c48c26607c66419628d424ce41f38f9bd927757d82fa43396aa59a77c694acadab776460d472
+    json     = '{"_":"telegram","media":"room sensor","meter":"rfmamb","name":"Pokojak","id":"23699558","status":"MODULE_REMOVED","current_temperature_c":20.91,"average_temperature_1h_c":20.95,"average_temperature_24h_c":19.5,"maximum_temperature_1h_c":20.98,"minimum_temperature_1h_c":20.91,"maximum_temperature_24h_c":19.88,"minimum_temperature_24h_c":19.07,"current_relative_humidity_rh":35.8,"average_relative_humidity_1h_rh":36.1,"average_relative_humidity_24h_rh":36.9,"minimum_relative_humidity_1h_rh":35.8,"maximum_relative_humidity_1h_rh":36.5,"maximum_relative_humidity_24h_rh":37,"minimum_relative_humidity_24h_rh":36.7,"device_datetime":"2026-02-09 08:59","timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'Pokojak;23699558;20.91;35.8;1111-11-11 11:11.11'
+}
+test {
+    args     = 'Rummet rfmamb 11772288 NOKEY'
+    telegram = 5744b40988227711101b7ab20800000265a00842658f088201659f08226589081265a0086265510852652b0902fb1aba0142fb1ab0018201fb1abd0122fb1aa90112fb1aba0162fb1aa60152fb1af501066d3b3bb36b2a00
+    json     = '{"_":"telegram","media":"room sensor","meter":"rfmamb","name":"Rummet","id":"11772288","status":"MODULE_REMOVED","current_temperature_c":22.08,"average_temperature_1h_c":21.91,"average_temperature_24h_c":22.07,"maximum_temperature_1h_c":22.08,"minimum_temperature_1h_c":21.85,"maximum_temperature_24h_c":23.47,"minimum_temperature_24h_c":21.29,"current_relative_humidity_rh":44.2,"average_relative_humidity_1h_rh":43.2,"average_relative_humidity_24h_rh":44.5,"minimum_relative_humidity_1h_rh":42.5,"maximum_relative_humidity_1h_rh":44.2,"maximum_relative_humidity_24h_rh":50.1,"minimum_relative_humidity_24h_rh":42.2,"device_datetime":"2019-10-11 19:59","timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'Rummet;11772288;22.08;44.2;1111-11-11 11:11.11'
 }
 test {
     args     = 'XYZ sensostar 21750444 NOKEY'

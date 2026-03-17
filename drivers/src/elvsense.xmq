@@ -56,10 +56,10 @@ driver {
             }
         }
         field {
-            name     = co2
-            quantity = Dimensionless
-            info     = 'CO2 concentration ppm for 300W meters'
-            vif_scaling = None
+            name         = co2
+            quantity     = Dimensionless
+            info         = 'CO2 concentration ppm for 300W meters'
+            vif_scaling  = None
             display_unit = ppm
             match {
                 difvifkey = 027C03324F43

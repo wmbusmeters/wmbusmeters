@@ -10,13 +10,41 @@ driver {
     mfct_tpl_status_bits {
         mask_bits       = 0x7f
         default_message = OK
-        map { name = APP_BUSY           value = 0x01  test = set }
-        map { name = APP_ERROR          value = 0x02  test = set }
-        map { name = LOW_BATTERY        value = 0x04  test = set }
-        map { name = MODULE_REMOVED     value = 0x08  test = set }
-        map { name = SENSOR_READ_ERROR  value = 0x10  test = set }
-        map { name = TEMP_OUT_OF_RANGE  value = 0x20  test = set }
-        map { name = RH_OUT_OF_RANGE    value = 0x40  test = set }
+        map {
+            name  = APP_BUSY
+            value = 0x01
+            test  = set
+        }
+        map {
+            name  = APP_ERROR
+            value = 0x02
+            test  = set
+        }
+        map {
+            name  = LOW_BATTERY
+            value = 0x04
+            test  = set
+        }
+        map {
+            name  = MODULE_REMOVED
+            value = 0x08
+            test  = set
+        }
+        map {
+            name  = SENSOR_READ_ERROR
+            value = 0x10
+            test  = set
+        }
+        map {
+            name  = TEMP_OUT_OF_RANGE
+            value = 0x20
+            test  = set
+        }
+        map {
+            name  = RH_OUT_OF_RANGE
+            value = 0x40
+            test  = set
+        }
     }
     fields {
         field {

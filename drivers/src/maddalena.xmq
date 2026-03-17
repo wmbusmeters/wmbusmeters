@@ -12,9 +12,9 @@ driver {
     }
     fields {
         field {
-            name     = status
-            quantity = Text
-            info     = 'Status and error flags.'
+            name       = status
+            quantity   = Text
+            info       = 'Status and error flags.'
             attributes = INCLUDE_TPL_STATUS
             match {
                 measurement_type = Instantaneous
