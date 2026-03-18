@@ -22,6 +22,10 @@
 
 DESTDIR?=/
 
+DEFAULT_CONF_DIR?=/etc
+DEFAULT_DEAMON_DRIVER_DOWNLOAD_DIR?=/var/lib/wmbusmeters/wmbusmeters.drivers.d/downloaded
+DEFAULT_USER_DRIVER_DOWNLOAD_DIR?=.local/share/wmbusmeters/wmbusmeters.drivers.d
+
 ifeq "$(DEBUG)" "true"
   include $(wildcard build_debug/*/spec.gmk)
 else
@@ -131,31 +135,31 @@ $(info Building $(VERSION))
 
 FUZZFLAGS ?= -DFUZZING=false
 CXXFLAGS ?= $(EXTRA_CXXFLAGS) $(DEBUG_FLAGS) $(FUZZFLAGS) -fPIC -std=c++11 -Wall -Werror=format-security -Wno-unused-function
+
+# Inject default paths
+CXXFLAGS +=\
+	   -DDEFAULT_CONF_DIR=\"$(DEFAULT_CONF_DIR)\" \
+	   -DDEFAULT_DEAMON_DRIVER_DOWNLOAD_DIR=\"$(DEFAULT_DEAMON_DRIVER_DOWNLOAD_DIR)\" \
+	   -DDEFAULT_USER_DRIVER_DOWNLOAD_DIR=\"$(DEFAULT_USER_DRIVER_DOWNLOAD_DIR)\"
+
 # Additional fedora rpm package build flags
 # -O2 -flto=auto -ffat-lto-objects -fexceptions -g -grecord-gcc-switches -pipe -Wall -Werror=format-security -Wp,-D_FORTIFY_SOURCE=2 -Wp,-D_GLIBCXX_ASSERTIONS -fstack-protector-strong -mtune=generic -fasynchronous-unwind-tables -fstack-clash-protection -fcf-protection
-CXXFLAGS += -I$(BUILD)
+CXXFLAGS += -I$(BUILD) $(LIBXML_CFLAGS) $(LIBRTLSDR_CFLAGS) $(LIBUSB_CFLAGS@)
 LDFLAGS  ?= $(DEBUG_LDFLAGS)
+LDFLAGS  += $(LIBXML_LIBS) $(LIBRTLSDR_LIBS) $(LIBUSB_LIBS)
 
-USBLIB = -lusb-1.0
-
-ifeq ($(shell uname -s),FreeBSD)
-    CXXFLAGS += -I/usr/local/include
-    LDFLAGS  += -L/usr/local/lib
-    USBLIB    =  -lusb
-endif
-
-ifeq ($(shell uname -s),Darwin)
-    CXXFLAGS += -I$(shell brew --prefix)/include
-    LDFLAGS  += -L$(shell brew --prefix)/lib
-endif
+#ifeq ($(shell uname -s),Darwin)
+#   CXXFLAGS += -I$(shell brew --prefix)/include
+#    LDFLAGS  += -L$(shell brew --prefix)/lib
+#endif
 
 $(BUILD)/%.o: src/%.cc $(wildcard src/%.h)
 	$(CXX) $(CXXFLAGS) $< -c -E > $@.src
 	$(CXX) $(CXXFLAGS) $< -MMD -c -o $@
 
 $(BUILD)/%.o: src/%.c $(wildcard src/%.h)
-	$(CXX) -I/usr/include/libxml2 $(CXXFLAGS) $< -c -E > $@.src
-	$(CXX) -I/usr/include/libxml2 -fpermissive $(CXXFLAGS)  $< -MMD -c -o $@
+	$(CXX) $(CXXFLAGS) $< -c -E > $@.src
+	$(CXX) -fpermissive $(CXXFLAGS)  $< -MMD -c -o $@
 
 PROG_OBJS:=\
 	$(BUILD)/address.o \
@@ -271,7 +275,7 @@ $(BUILD)/authors.h:
 
 # Build binary with debug information. ~15M size binary.
 $(BUILD)/wmbusmeters.g: $(PROG_OBJS) $(DRIVER_OBJS) $(BUILD)/main.o $(BUILD)/short_manual.h
-	$(CXX) -o $(BUILD)/wmbusmeters.g $(PROG_OBJS) $(DRIVER_OBJS) $(BUILD)/main.o $(LDFLAGS) -lrtlsdr -lxml2 $(USBLIB) -lpthread
+	$(CXX) -o $(BUILD)/wmbusmeters.g $(PROG_OBJS) $(DRIVER_OBJS) $(BUILD)/main.o $(LDFLAGS) -lpthread
 
 # Production build will have debug information stripped. ~1.5M size binary.
 # DEBUG=true builds, which has address sanitizer code, will always keep the debug information.
@@ -294,10 +298,10 @@ testinternals: $(BUILD)/testinternals
 $(BUILD)/testinternals.o: $(PROG_OBJS) $(DRIVER_OBJS) $(wildcard src/*.h)
 
 $(BUILD)/testinternals: $(BUILD)/testinternals.o
-	$(CXX) -o $(BUILD)/testinternals $(PROG_OBJS) $(DRIVER_OBJS) $(BUILD)/testinternals.o $(LDFLAGS) -lrtlsdr -lxml2 $(USBLIB) -lpthread
+	$(CXX) -o $(BUILD)/testinternals $(PROG_OBJS) $(DRIVER_OBJS) $(BUILD)/testinternals.o $(LDFLAGS)  -lpthread
 
 $(BUILD)/fuzz: $(PROG_OBJS) $(DRIVER_OBJS) $(BUILD)/fuzz.o
-	$(CXX) -o $(BUILD)/fuzz $(PROG_OBJS) $(DRIVER_OBJS) $(BUILD)/fuzz.o $(LDFLAGS) -lrtlsdr -lxml2 -lpthread
+	$(CXX) -o $(BUILD)/fuzz $(PROG_OBJS) $(DRIVER_OBJS) $(BUILD)/fuzz.o $(LDFLAGS) -lpthread
 
 clean_executables:
 	rm -rf build/wmbusmeters* build_arm/wmbusmeters* build_debug/wmbusmeters* build_arm_debug/wmbusmeters* *~

@@ -617,14 +617,17 @@ PACKAGE_URL='https://github.com/wmbusmeters/wmbusmeters'
 
 ac_subst_vars='LTLIBOBJS
 LIBOBJS
-CFLAGS
-OBJEXT
-EXEEXT
-ac_ct_CXX
-CPPFLAGS
-LDFLAGS
 CXXFLAGS
-CXX
+CFLAGS
+LIBUSB_LIBS
+LIBUSB_CFLAGS
+LIBRTLSDR_LIBS
+LIBRTLSDR_CFLAGS
+LIBXML_LIBS
+LIBXML_CFLAGS
+PKG_CONFIG_LIBDIR
+PKG_CONFIG_PATH
+PKG_CONFIG
 host_os
 host_vendor
 host_cpu
@@ -679,12 +682,15 @@ enable_option_checking
       ac_precious_vars='build_alias
 host_alias
 target_alias
-CXX
-CXXFLAGS
-LDFLAGS
-LIBS
-CPPFLAGS
-CCC'
+PKG_CONFIG
+PKG_CONFIG_PATH
+PKG_CONFIG_LIBDIR
+LIBXML_CFLAGS
+LIBXML_LIBS
+LIBRTLSDR_CFLAGS
+LIBRTLSDR_LIBS
+LIBUSB_CFLAGS
+LIBUSB_LIBS'
 
 
 # Initialize some variables set by options.
@@ -1304,13 +1310,21 @@ if test -n "$ac_init_help"; then
   cat <<\_ACEOF
 
 Some influential environment variables:
-  CXX         C++ compiler command
-  CXXFLAGS    C++ compiler flags
-  LDFLAGS     linker flags, e.g. -L<lib dir> if you have libraries in a
-              nonstandard directory <lib dir>
-  LIBS        libraries to pass to the linker, e.g. -l<library>
-  CPPFLAGS    (Objective) C/C++ preprocessor flags, e.g. -I<include dir> if
-              you have headers in a nonstandard directory <include dir>
+  PKG_CONFIG  path to pkg-config utility
+  PKG_CONFIG_PATH
+              directories to add to pkg-config's search path
+  PKG_CONFIG_LIBDIR
+              path overriding pkg-config's built-in search path
+  LIBXML_CFLAGS
+              C compiler flags for LIBXML, overriding pkg-config
+  LIBXML_LIBS linker flags for LIBXML, overriding pkg-config
+  LIBRTLSDR_CFLAGS
+              C compiler flags for LIBRTLSDR, overriding pkg-config
+  LIBRTLSDR_LIBS
+              linker flags for LIBRTLSDR, overriding pkg-config
+  LIBUSB_CFLAGS
+              C compiler flags for LIBUSB, overriding pkg-config
+  LIBUSB_LIBS linker flags for LIBUSB, overriding pkg-config
 
 Use these variables to override the choices made by `configure' or to help
 it to find libraries and programs with nonstandard names/locations.
@@ -1393,92 +1407,6 @@ fi
 ## ------------------------ ##
 ## Autoconf initialization. ##
 ## ------------------------ ##
-
-# ac_fn_cxx_try_compile LINENO
-# ----------------------------
-# Try to compile conftest.$ac_ext, and return whether this succeeded.
-ac_fn_cxx_try_compile ()
-{
-  as_lineno=${as_lineno-"$1"} as_lineno_stack=as_lineno_stack=$as_lineno_stack
-  rm -f conftest.$ac_objext conftest.beam
-  if { { ac_try="$ac_compile"
-case "(($ac_try" in
-  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
-  *) ac_try_echo=$ac_try;;
-esac
-eval ac_try_echo="\"\$as_me:${as_lineno-$LINENO}: $ac_try_echo\""
-printf "%s\n" "$ac_try_echo"; } >&5
-  (eval "$ac_compile") 2>conftest.err
-  ac_status=$?
-  if test -s conftest.err; then
-    grep -v '^ *+' conftest.err >conftest.er1
-    cat conftest.er1 >&5
-    mv -f conftest.er1 conftest.err
-  fi
-  printf "%s\n" "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
-  test $ac_status = 0; } && {
-	 test -z "$ac_cxx_werror_flag" ||
-	 test ! -s conftest.err
-       } && test -s conftest.$ac_objext
-then :
-  ac_retval=0
-else $as_nop
-  printf "%s\n" "$as_me: failed program was:" >&5
-sed 's/^/| /' conftest.$ac_ext >&5
-
-	ac_retval=1
-fi
-  eval $as_lineno_stack; ${as_lineno_stack:+:} unset as_lineno
-  as_fn_set_status $ac_retval
-
-} # ac_fn_cxx_try_compile
-
-# ac_fn_cxx_try_link LINENO
-# -------------------------
-# Try to link conftest.$ac_ext, and return whether this succeeded.
-ac_fn_cxx_try_link ()
-{
-  as_lineno=${as_lineno-"$1"} as_lineno_stack=as_lineno_stack=$as_lineno_stack
-  rm -f conftest.$ac_objext conftest.beam conftest$ac_exeext
-  if { { ac_try="$ac_link"
-case "(($ac_try" in
-  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
-  *) ac_try_echo=$ac_try;;
-esac
-eval ac_try_echo="\"\$as_me:${as_lineno-$LINENO}: $ac_try_echo\""
-printf "%s\n" "$ac_try_echo"; } >&5
-  (eval "$ac_link") 2>conftest.err
-  ac_status=$?
-  if test -s conftest.err; then
-    grep -v '^ *+' conftest.err >conftest.er1
-    cat conftest.er1 >&5
-    mv -f conftest.er1 conftest.err
-  fi
-  printf "%s\n" "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
-  test $ac_status = 0; } && {
-	 test -z "$ac_cxx_werror_flag" ||
-	 test ! -s conftest.err
-       } && test -s conftest$ac_exeext && {
-	 test "$cross_compiling" = yes ||
-	 test -x conftest$ac_exeext
-       }
-then :
-  ac_retval=0
-else $as_nop
-  printf "%s\n" "$as_me: failed program was:" >&5
-sed 's/^/| /' conftest.$ac_ext >&5
-
-	ac_retval=1
-fi
-  # Delete the IPA/IPO (Inter Procedural Analysis/Optimization) information
-  # created by the PGI compiler (conftest_ipa8_conftest.oo), as it would
-  # interfere with the next link command; also delete a directory that is
-  # left behind by Apple's compiler.  We do this before executing the actions.
-  rm -rf conftest.dSYM conftest_ipa8_conftest.oo
-  eval $as_lineno_stack; ${as_lineno_stack:+:} unset as_lineno
-  as_fn_set_status $ac_retval
-
-} # ac_fn_cxx_try_link
 ac_configure_args_raw=
 for ac_arg
 do
@@ -1774,222 +1702,6 @@ printf "%s\n" "$as_me: creating cache $cache_file" >&6;}
   >$cache_file
 fi
 
-# Test code for whether the C++ compiler supports C++98 (global declarations)
-ac_cxx_conftest_cxx98_globals='
-// Does the compiler advertise C++98 conformance?
-#if !defined __cplusplus || __cplusplus < 199711L
-# error "Compiler does not advertise C++98 conformance"
-#endif
-
-// These inclusions are to reject old compilers that
-// lack the unsuffixed header files.
-#include <cstdlib>
-#include <exception>
-
-// <cassert> and <cstring> are *not* freestanding headers in C++98.
-extern void assert (int);
-namespace std {
-  extern int strcmp (const char *, const char *);
-}
-
-// Namespaces, exceptions, and templates were all added after "C++ 2.0".
-using std::exception;
-using std::strcmp;
-
-namespace {
-
-void test_exception_syntax()
-{
-  try {
-    throw "test";
-  } catch (const char *s) {
-    // Extra parentheses suppress a warning when building autoconf itself,
-    // due to lint rules shared with more typical C programs.
-    assert (!(strcmp) (s, "test"));
-  }
-}
-
-template <typename T> struct test_template
-{
-  T const val;
-  explicit test_template(T t) : val(t) {}
-  template <typename U> T add(U u) { return static_cast<T>(u) + val; }
-};
-
-} // anonymous namespace
-'
-
-# Test code for whether the C++ compiler supports C++98 (body of main)
-ac_cxx_conftest_cxx98_main='
-  assert (argc);
-  assert (! argv[0]);
-{
-  test_exception_syntax ();
-  test_template<double> tt (2.0);
-  assert (tt.add (4) == 6.0);
-  assert (true && !false);
-}
-'
-
-# Test code for whether the C++ compiler supports C++11 (global declarations)
-ac_cxx_conftest_cxx11_globals='
-// Does the compiler advertise C++ 2011 conformance?
-#if !defined __cplusplus || __cplusplus < 201103L
-# error "Compiler does not advertise C++11 conformance"
-#endif
-
-namespace cxx11test
-{
-  constexpr int get_val() { return 20; }
-
-  struct testinit
-  {
-    int i;
-    double d;
-  };
-
-  class delegate
-  {
-  public:
-    delegate(int n) : n(n) {}
-    delegate(): delegate(2354) {}
-
-    virtual int getval() { return this->n; };
-  protected:
-    int n;
-  };
-
-  class overridden : public delegate
-  {
-  public:
-    overridden(int n): delegate(n) {}
-    virtual int getval() override final { return this->n * 2; }
-  };
-
-  class nocopy
-  {
-  public:
-    nocopy(int i): i(i) {}
-    nocopy() = default;
-    nocopy(const nocopy&) = delete;
-    nocopy & operator=(const nocopy&) = delete;
-  private:
-    int i;
-  };
-
-  // for testing lambda expressions
-  template <typename Ret, typename Fn> Ret eval(Fn f, Ret v)
-  {
-    return f(v);
-  }
-
-  // for testing variadic templates and trailing return types
-  template <typename V> auto sum(V first) -> V
-  {
-    return first;
-  }
-  template <typename V, typename... Args> auto sum(V first, Args... rest) -> V
-  {
-    return first + sum(rest...);
-  }
-}
-'
-
-# Test code for whether the C++ compiler supports C++11 (body of main)
-ac_cxx_conftest_cxx11_main='
-{
-  // Test auto and decltype
-  auto a1 = 6538;
-  auto a2 = 48573953.4;
-  auto a3 = "String literal";
-
-  int total = 0;
-  for (auto i = a3; *i; ++i) { total += *i; }
-
-  decltype(a2) a4 = 34895.034;
-}
-{
-  // Test constexpr
-  short sa[cxx11test::get_val()] = { 0 };
-}
-{
-  // Test initializer lists
-  cxx11test::testinit il = { 4323, 435234.23544 };
-}
-{
-  // Test range-based for
-  int array[] = {9, 7, 13, 15, 4, 18, 12, 10, 5, 3,
-                 14, 19, 17, 8, 6, 20, 16, 2, 11, 1};
-  for (auto &x : array) { x += 23; }
-}
-{
-  // Test lambda expressions
-  using cxx11test::eval;
-  assert (eval ([](int x) { return x*2; }, 21) == 42);
-  double d = 2.0;
-  assert (eval ([&](double x) { return d += x; }, 3.0) == 5.0);
-  assert (d == 5.0);
-  assert (eval ([=](double x) mutable { return d += x; }, 4.0) == 9.0);
-  assert (d == 5.0);
-}
-{
-  // Test use of variadic templates
-  using cxx11test::sum;
-  auto a = sum(1);
-  auto b = sum(1, 2);
-  auto c = sum(1.0, 2.0, 3.0);
-}
-{
-  // Test constructor delegation
-  cxx11test::delegate d1;
-  cxx11test::delegate d2();
-  cxx11test::delegate d3(45);
-}
-{
-  // Test override and final
-  cxx11test::overridden o1(55464);
-}
-{
-  // Test nullptr
-  char *c = nullptr;
-}
-{
-  // Test template brackets
-  test_template<::test_template<int>> v(test_template<int>(12));
-}
-{
-  // Unicode literals
-  char const *utf8 = u8"UTF-8 string \u2500";
-  char16_t const *utf16 = u"UTF-8 string \u2500";
-  char32_t const *utf32 = U"UTF-32 string \u2500";
-}
-'
-
-# Test code for whether the C compiler supports C++11 (complete).
-ac_cxx_conftest_cxx11_program="${ac_cxx_conftest_cxx98_globals}
-${ac_cxx_conftest_cxx11_globals}
-
-int
-main (int argc, char **argv)
-{
-  int ok = 0;
-  ${ac_cxx_conftest_cxx98_main}
-  ${ac_cxx_conftest_cxx11_main}
-  return ok;
-}
-"
-
-# Test code for whether the C compiler supports C++98 (complete).
-ac_cxx_conftest_cxx98_program="${ac_cxx_conftest_cxx98_globals}
-int
-main (int argc, char **argv)
-{
-  int ok = 0;
-  ${ac_cxx_conftest_cxx98_main}
-  return ok;
-}
-"
-
 
 # Auxiliary files required by this configure script.
 ac_aux_files="config.guess config.sub"
@@ -2264,6 +1976,136 @@ case $host_os in *\ *) host_os=`echo "$host_os" | sed 's/ /-/g'`;; esac
 
 
 
+
+
+
+
+
+
+if test "x$ac_cv_env_PKG_CONFIG_set" != "xset"; then
+	if test -n "$ac_tool_prefix"; then
+  # Extract the first word of "${ac_tool_prefix}pkg-config", so it can be a program name with args.
+set dummy ${ac_tool_prefix}pkg-config; ac_word=$2
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
+printf %s "checking for $ac_word... " >&6; }
+if test ${ac_cv_path_PKG_CONFIG+y}
+then :
+  printf %s "(cached) " >&6
+else $as_nop
+  case $PKG_CONFIG in
+  [\\/]* | ?:[\\/]*)
+  ac_cv_path_PKG_CONFIG="$PKG_CONFIG" # Let the user override the test with a path.
+  ;;
+  *)
+  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  case $as_dir in #(((
+    '') as_dir=./ ;;
+    */) ;;
+    *) as_dir=$as_dir/ ;;
+  esac
+    for ac_exec_ext in '' $ac_executable_extensions; do
+  if as_fn_executable_p "$as_dir$ac_word$ac_exec_ext"; then
+    ac_cv_path_PKG_CONFIG="$as_dir$ac_word$ac_exec_ext"
+    printf "%s\n" "$as_me:${as_lineno-$LINENO}: found $as_dir$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+  done
+IFS=$as_save_IFS
+
+  ;;
+esac
+fi
+PKG_CONFIG=$ac_cv_path_PKG_CONFIG
+if test -n "$PKG_CONFIG"; then
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $PKG_CONFIG" >&5
+printf "%s\n" "$PKG_CONFIG" >&6; }
+else
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
+printf "%s\n" "no" >&6; }
+fi
+
+
+fi
+if test -z "$ac_cv_path_PKG_CONFIG"; then
+  ac_pt_PKG_CONFIG=$PKG_CONFIG
+  # Extract the first word of "pkg-config", so it can be a program name with args.
+set dummy pkg-config; ac_word=$2
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
+printf %s "checking for $ac_word... " >&6; }
+if test ${ac_cv_path_ac_pt_PKG_CONFIG+y}
+then :
+  printf %s "(cached) " >&6
+else $as_nop
+  case $ac_pt_PKG_CONFIG in
+  [\\/]* | ?:[\\/]*)
+  ac_cv_path_ac_pt_PKG_CONFIG="$ac_pt_PKG_CONFIG" # Let the user override the test with a path.
+  ;;
+  *)
+  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  case $as_dir in #(((
+    '') as_dir=./ ;;
+    */) ;;
+    *) as_dir=$as_dir/ ;;
+  esac
+    for ac_exec_ext in '' $ac_executable_extensions; do
+  if as_fn_executable_p "$as_dir$ac_word$ac_exec_ext"; then
+    ac_cv_path_ac_pt_PKG_CONFIG="$as_dir$ac_word$ac_exec_ext"
+    printf "%s\n" "$as_me:${as_lineno-$LINENO}: found $as_dir$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+  done
+IFS=$as_save_IFS
+
+  ;;
+esac
+fi
+ac_pt_PKG_CONFIG=$ac_cv_path_ac_pt_PKG_CONFIG
+if test -n "$ac_pt_PKG_CONFIG"; then
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $ac_pt_PKG_CONFIG" >&5
+printf "%s\n" "$ac_pt_PKG_CONFIG" >&6; }
+else
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
+printf "%s\n" "no" >&6; }
+fi
+
+  if test "x$ac_pt_PKG_CONFIG" = x; then
+    PKG_CONFIG=""
+  else
+    case $cross_compiling:$ac_tool_warned in
+yes:)
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: WARNING: using cross tools not prefixed with host triplet" >&5
+printf "%s\n" "$as_me: WARNING: using cross tools not prefixed with host triplet" >&2;}
+ac_tool_warned=yes ;;
+esac
+    PKG_CONFIG=$ac_pt_PKG_CONFIG
+  fi
+else
+  PKG_CONFIG="$ac_cv_path_PKG_CONFIG"
+fi
+
+fi
+if test -n "$PKG_CONFIG"; then
+	_pkg_min_version=0.9.0
+	{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking pkg-config is at least version $_pkg_min_version" >&5
+printf %s "checking pkg-config is at least version $_pkg_min_version... " >&6; }
+	if $PKG_CONFIG --atleast-pkgconfig-version $_pkg_min_version; then
+		{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+printf "%s\n" "yes" >&6; }
+	else
+		{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
+printf "%s\n" "no" >&6; }
+		PKG_CONFIG=""
+	fi
+fi
+
 SRC_ROOT="$(pwd -L)"
 
 CONF_NAME="${host_cpu}-${host_vendor}-${host_os}"
@@ -2279,778 +2121,292 @@ ac_link='$CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ex
 ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
 
 
-case $host_os in
-freebsd*)
-	CFLAGS="$CFLAGS -I/usr/local/include"
-	CXXFLAGS="$CXXFLAGS -I/usr/local/include"
-	LDFLAGS="$LDFLAGS -L/usr/local/lib"
-        ;;
-darwin*)
-	CFLAGS="$CFLAGS -I/usr/local/include -I/opt/homebrew/include"
-	CXXFLAGS="$CXXFLAGS -I/usr/local/include -I/opt/homebrew/include"
-	LDFLAGS="$LDFLAGS -L/usr/local/lib -L/opt/homebrew/lib"
-;;
-esac
 
-#C_CHECK_LIB(usb, usb_init, [],
-#
-#  C_MSG_ERROR([Could  not find libusb library. Try: sudo apt install libusb-dev])
-#)
+pkg_failed=no
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for LIBXML" >&5
+printf %s "checking for LIBXML... " >&6; }
 
-
-
-
-
-
-
-ac_ext=cpp
-ac_cpp='$CXXCPP $CPPFLAGS'
-ac_compile='$CXX -c $CXXFLAGS $CPPFLAGS conftest.$ac_ext >&5'
-ac_link='$CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
-ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
-if test -z "$CXX"; then
-  if test -n "$CCC"; then
-    CXX=$CCC
-  else
-    if test -n "$ac_tool_prefix"; then
-  for ac_prog in g++ c++ gpp aCC CC cxx cc++ cl.exe FCC KCC RCC xlC_r xlC clang++
-  do
-    # Extract the first word of "$ac_tool_prefix$ac_prog", so it can be a program name with args.
-set dummy $ac_tool_prefix$ac_prog; ac_word=$2
-{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
-printf %s "checking for $ac_word... " >&6; }
-if test ${ac_cv_prog_CXX+y}
-then :
-  printf %s "(cached) " >&6
-else $as_nop
-  if test -n "$CXX"; then
-  ac_cv_prog_CXX="$CXX" # Let the user override the test.
+if test -n "$LIBXML_CFLAGS"; then
+    pkg_cv_LIBXML_CFLAGS="$LIBXML_CFLAGS"
+ elif test -n "$PKG_CONFIG"; then
+    if test -n "$PKG_CONFIG" && \
+    { { printf "%s\n" "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"libxml-2.0 >= 2.0\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "libxml-2.0 >= 2.0") 2>&5
+  ac_status=$?
+  printf "%s\n" "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; then
+  pkg_cv_LIBXML_CFLAGS=`$PKG_CONFIG --cflags "libxml-2.0 >= 2.0" 2>/dev/null`
+		      test "x$?" != "x0" && pkg_failed=yes
 else
-as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
-for as_dir in $PATH
-do
-  IFS=$as_save_IFS
-  case $as_dir in #(((
-    '') as_dir=./ ;;
-    */) ;;
-    *) as_dir=$as_dir/ ;;
-  esac
-    for ac_exec_ext in '' $ac_executable_extensions; do
-  if as_fn_executable_p "$as_dir$ac_word$ac_exec_ext"; then
-    ac_cv_prog_CXX="$ac_tool_prefix$ac_prog"
-    printf "%s\n" "$as_me:${as_lineno-$LINENO}: found $as_dir$ac_word$ac_exec_ext" >&5
-    break 2
-  fi
-done
-  done
-IFS=$as_save_IFS
-
+  pkg_failed=yes
 fi
+ else
+    pkg_failed=untried
 fi
-CXX=$ac_cv_prog_CXX
-if test -n "$CXX"; then
-  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $CXX" >&5
-printf "%s\n" "$CXX" >&6; }
+if test -n "$LIBXML_LIBS"; then
+    pkg_cv_LIBXML_LIBS="$LIBXML_LIBS"
+ elif test -n "$PKG_CONFIG"; then
+    if test -n "$PKG_CONFIG" && \
+    { { printf "%s\n" "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"libxml-2.0 >= 2.0\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "libxml-2.0 >= 2.0") 2>&5
+  ac_status=$?
+  printf "%s\n" "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; then
+  pkg_cv_LIBXML_LIBS=`$PKG_CONFIG --libs "libxml-2.0 >= 2.0" 2>/dev/null`
+		      test "x$?" != "x0" && pkg_failed=yes
 else
-  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
+  pkg_failed=yes
+fi
+ else
+    pkg_failed=untried
+fi
+
+
+
+if test $pkg_failed = yes; then
+   	{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
 printf "%s\n" "no" >&6; }
-fi
 
-
-    test -n "$CXX" && break
-  done
-fi
-if test -z "$CXX"; then
-  ac_ct_CXX=$CXX
-  for ac_prog in g++ c++ gpp aCC CC cxx cc++ cl.exe FCC KCC RCC xlC_r xlC clang++
-do
-  # Extract the first word of "$ac_prog", so it can be a program name with args.
-set dummy $ac_prog; ac_word=$2
-{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
-printf %s "checking for $ac_word... " >&6; }
-if test ${ac_cv_prog_ac_ct_CXX+y}
-then :
-  printf %s "(cached) " >&6
-else $as_nop
-  if test -n "$ac_ct_CXX"; then
-  ac_cv_prog_ac_ct_CXX="$ac_ct_CXX" # Let the user override the test.
+if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
+        _pkg_short_errors_supported=yes
 else
-as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
-for as_dir in $PATH
-do
-  IFS=$as_save_IFS
-  case $as_dir in #(((
-    '') as_dir=./ ;;
-    */) ;;
-    *) as_dir=$as_dir/ ;;
-  esac
-    for ac_exec_ext in '' $ac_executable_extensions; do
-  if as_fn_executable_p "$as_dir$ac_word$ac_exec_ext"; then
-    ac_cv_prog_ac_ct_CXX="$ac_prog"
-    printf "%s\n" "$as_me:${as_lineno-$LINENO}: found $as_dir$ac_word$ac_exec_ext" >&5
-    break 2
-  fi
-done
-  done
-IFS=$as_save_IFS
+        _pkg_short_errors_supported=no
+fi
+        if test $_pkg_short_errors_supported = yes; then
+	        LIBXML_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors --cflags --libs "libxml-2.0 >= 2.0" 2>&1`
+        else
+	        LIBXML_PKG_ERRORS=`$PKG_CONFIG --print-errors --cflags --libs "libxml-2.0 >= 2.0" 2>&1`
+        fi
+	# Put the nasty error message in config.log where it belongs
+	echo "$LIBXML_PKG_ERRORS" >&5
 
-fi
-fi
-ac_ct_CXX=$ac_cv_prog_ac_ct_CXX
-if test -n "$ac_ct_CXX"; then
-  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $ac_ct_CXX" >&5
-printf "%s\n" "$ac_ct_CXX" >&6; }
-else
-  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
+	as_fn_error $? "Package requirements (libxml-2.0 >= 2.0) were not met:
+
+$LIBXML_PKG_ERRORS
+
+Consider adjusting the PKG_CONFIG_PATH environment variable if you
+installed software in a non-standard prefix.
+
+Alternatively, you may set the environment variables LIBXML_CFLAGS
+and LIBXML_LIBS to avoid the need to call pkg-config.
+See the pkg-config man page for more details." "$LINENO" 5
+elif test $pkg_failed = untried; then
+     	{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
 printf "%s\n" "no" >&6; }
-fi
-
-
-  test -n "$ac_ct_CXX" && break
-done
-
-  if test "x$ac_ct_CXX" = x; then
-    CXX="g++"
-  else
-    case $cross_compiling:$ac_tool_warned in
-yes:)
-{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: WARNING: using cross tools not prefixed with host triplet" >&5
-printf "%s\n" "$as_me: WARNING: using cross tools not prefixed with host triplet" >&2;}
-ac_tool_warned=yes ;;
-esac
-    CXX=$ac_ct_CXX
-  fi
-fi
-
-  fi
-fi
-# Provide some information about the compiler.
-printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for C++ compiler version" >&5
-set X $ac_compile
-ac_compiler=$2
-for ac_option in --version -v -V -qversion; do
-  { { ac_try="$ac_compiler $ac_option >&5"
-case "(($ac_try" in
-  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
-  *) ac_try_echo=$ac_try;;
-esac
-eval ac_try_echo="\"\$as_me:${as_lineno-$LINENO}: $ac_try_echo\""
-printf "%s\n" "$ac_try_echo"; } >&5
-  (eval "$ac_compiler $ac_option >&5") 2>conftest.err
-  ac_status=$?
-  if test -s conftest.err; then
-    sed '10a\
-... rest of stderr output deleted ...
-         10q' conftest.err >conftest.er1
-    cat conftest.er1 >&5
-  fi
-  rm -f conftest.er1 conftest.err
-  printf "%s\n" "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
-  test $ac_status = 0; }
-done
-
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-int
-main (void)
-{
-
-  ;
-  return 0;
-}
-_ACEOF
-ac_clean_files_save=$ac_clean_files
-ac_clean_files="$ac_clean_files a.out a.out.dSYM a.exe b.out"
-# Try to create an executable without -o first, disregard a.out.
-# It will help us diagnose broken compilers, and finding out an intuition
-# of exeext.
-{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking whether the C++ compiler works" >&5
-printf %s "checking whether the C++ compiler works... " >&6; }
-ac_link_default=`printf "%s\n" "$ac_link" | sed 's/ -o *conftest[^ ]*//'`
-
-# The possible output files:
-ac_files="a.out conftest.exe conftest a.exe a_out.exe b.out conftest.*"
-
-ac_rmfiles=
-for ac_file in $ac_files
-do
-  case $ac_file in
-    *.$ac_ext | *.xcoff | *.tds | *.d | *.pdb | *.xSYM | *.bb | *.bbg | *.map | *.inf | *.dSYM | *.o | *.obj ) ;;
-    * ) ac_rmfiles="$ac_rmfiles $ac_file";;
-  esac
-done
-rm -f $ac_rmfiles
-
-if { { ac_try="$ac_link_default"
-case "(($ac_try" in
-  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
-  *) ac_try_echo=$ac_try;;
-esac
-eval ac_try_echo="\"\$as_me:${as_lineno-$LINENO}: $ac_try_echo\""
-printf "%s\n" "$ac_try_echo"; } >&5
-  (eval "$ac_link_default") 2>&5
-  ac_status=$?
-  printf "%s\n" "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
-  test $ac_status = 0; }
-then :
-  # Autoconf-2.13 could set the ac_cv_exeext variable to `no'.
-# So ignore a value of `no', otherwise this would lead to `EXEEXT = no'
-# in a Makefile.  We should not override ac_cv_exeext if it was cached,
-# so that the user can short-circuit this test for compilers unknown to
-# Autoconf.
-for ac_file in $ac_files ''
-do
-  test -f "$ac_file" || continue
-  case $ac_file in
-    *.$ac_ext | *.xcoff | *.tds | *.d | *.pdb | *.xSYM | *.bb | *.bbg | *.map | *.inf | *.dSYM | *.o | *.obj )
-	;;
-    [ab].out )
-	# We found the default executable, but exeext='' is most
-	# certainly right.
-	break;;
-    *.* )
-	if test ${ac_cv_exeext+y} && test "$ac_cv_exeext" != no;
-	then :; else
-	   ac_cv_exeext=`expr "$ac_file" : '[^.]*\(\..*\)'`
-	fi
-	# We set ac_cv_exeext here because the later test for it is not
-	# safe: cross compilers may not add the suffix if given an `-o'
-	# argument, so we may need to know it at that point already.
-	# Even if this section looks crufty: it has the advantage of
-	# actually working.
-	break;;
-    * )
-	break;;
-  esac
-done
-test "$ac_cv_exeext" = no && ac_cv_exeext=
-
-else $as_nop
-  ac_file=''
-fi
-if test -z "$ac_file"
-then :
-  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
-printf "%s\n" "no" >&6; }
-printf "%s\n" "$as_me: failed program was:" >&5
-sed 's/^/| /' conftest.$ac_ext >&5
-
-{ { printf "%s\n" "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
-printf "%s\n" "$as_me: error: in \`$ac_pwd':" >&2;}
-as_fn_error 77 "C++ compiler cannot create executables
-See \`config.log' for more details" "$LINENO" 5; }
-else $as_nop
-  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-printf "%s\n" "yes" >&6; }
-fi
-{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for C++ compiler default output file name" >&5
-printf %s "checking for C++ compiler default output file name... " >&6; }
-{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $ac_file" >&5
-printf "%s\n" "$ac_file" >&6; }
-ac_exeext=$ac_cv_exeext
-
-rm -f -r a.out a.out.dSYM a.exe conftest$ac_cv_exeext b.out
-ac_clean_files=$ac_clean_files_save
-{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for suffix of executables" >&5
-printf %s "checking for suffix of executables... " >&6; }
-if { { ac_try="$ac_link"
-case "(($ac_try" in
-  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
-  *) ac_try_echo=$ac_try;;
-esac
-eval ac_try_echo="\"\$as_me:${as_lineno-$LINENO}: $ac_try_echo\""
-printf "%s\n" "$ac_try_echo"; } >&5
-  (eval "$ac_link") 2>&5
-  ac_status=$?
-  printf "%s\n" "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
-  test $ac_status = 0; }
-then :
-  # If both `conftest.exe' and `conftest' are `present' (well, observable)
-# catch `conftest.exe'.  For instance with Cygwin, `ls conftest' will
-# work properly (i.e., refer to `conftest.exe'), while it won't with
-# `rm'.
-for ac_file in conftest.exe conftest conftest.*; do
-  test -f "$ac_file" || continue
-  case $ac_file in
-    *.$ac_ext | *.xcoff | *.tds | *.d | *.pdb | *.xSYM | *.bb | *.bbg | *.map | *.inf | *.dSYM | *.o | *.obj ) ;;
-    *.* ) ac_cv_exeext=`expr "$ac_file" : '[^.]*\(\..*\)'`
-	  break;;
-    * ) break;;
-  esac
-done
-else $as_nop
-  { { printf "%s\n" "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
-printf "%s\n" "$as_me: error: in \`$ac_pwd':" >&2;}
-as_fn_error $? "cannot compute suffix of executables: cannot compile and link
-See \`config.log' for more details" "$LINENO" 5; }
-fi
-rm -f conftest conftest$ac_cv_exeext
-{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $ac_cv_exeext" >&5
-printf "%s\n" "$ac_cv_exeext" >&6; }
-
-rm -f conftest.$ac_ext
-EXEEXT=$ac_cv_exeext
-ac_exeext=$EXEEXT
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-#include <stdio.h>
-int
-main (void)
-{
-FILE *f = fopen ("conftest.out", "w");
- return ferror (f) || fclose (f) != 0;
-
-  ;
-  return 0;
-}
-_ACEOF
-ac_clean_files="$ac_clean_files conftest.out"
-# Check that the compiler produces executables we can run.  If not, either
-# the compiler is broken, or we cross compile.
-{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking whether we are cross compiling" >&5
-printf %s "checking whether we are cross compiling... " >&6; }
-if test "$cross_compiling" != yes; then
-  { { ac_try="$ac_link"
-case "(($ac_try" in
-  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
-  *) ac_try_echo=$ac_try;;
-esac
-eval ac_try_echo="\"\$as_me:${as_lineno-$LINENO}: $ac_try_echo\""
-printf "%s\n" "$ac_try_echo"; } >&5
-  (eval "$ac_link") 2>&5
-  ac_status=$?
-  printf "%s\n" "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
-  test $ac_status = 0; }
-  if { ac_try='./conftest$ac_cv_exeext'
-  { { case "(($ac_try" in
-  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
-  *) ac_try_echo=$ac_try;;
-esac
-eval ac_try_echo="\"\$as_me:${as_lineno-$LINENO}: $ac_try_echo\""
-printf "%s\n" "$ac_try_echo"; } >&5
-  (eval "$ac_try") 2>&5
-  ac_status=$?
-  printf "%s\n" "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
-  test $ac_status = 0; }; }; then
-    cross_compiling=no
-  else
-    if test "$cross_compiling" = maybe; then
-	cross_compiling=yes
-    else
 	{ { printf "%s\n" "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
 printf "%s\n" "$as_me: error: in \`$ac_pwd':" >&2;}
-as_fn_error 77 "cannot run C++ compiled programs.
-If you meant to cross compile, use \`--host'.
+as_fn_error $? "The pkg-config script could not be found or is too old.  Make sure it
+is in your PATH or set the PKG_CONFIG environment variable to the full
+path to pkg-config.
+
+Alternatively, you may set the environment variables LIBXML_CFLAGS
+and LIBXML_LIBS to avoid the need to call pkg-config.
+See the pkg-config man page for more details.
+
+To get pkg-config, see <http://pkg-config.freedesktop.org/>.
 See \`config.log' for more details" "$LINENO" 5; }
-    fi
-  fi
+else
+	LIBXML_CFLAGS=$pkg_cv_LIBXML_CFLAGS
+	LIBXML_LIBS=$pkg_cv_LIBXML_LIBS
+        { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+printf "%s\n" "yes" >&6; }
+
 fi
-{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $cross_compiling" >&5
-printf "%s\n" "$cross_compiling" >&6; }
 
-rm -f conftest.$ac_ext conftest$ac_cv_exeext conftest.out
-ac_clean_files=$ac_clean_files_save
-{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for suffix of object files" >&5
-printf %s "checking for suffix of object files... " >&6; }
-if test ${ac_cv_objext+y}
-then :
-  printf %s "(cached) " >&6
-else $as_nop
-  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
 
-int
-main (void)
-{
 
-  ;
-  return 0;
-}
-_ACEOF
-rm -f conftest.o conftest.obj
-if { { ac_try="$ac_compile"
-case "(($ac_try" in
-  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
-  *) ac_try_echo=$ac_try;;
-esac
-eval ac_try_echo="\"\$as_me:${as_lineno-$LINENO}: $ac_try_echo\""
-printf "%s\n" "$ac_try_echo"; } >&5
-  (eval "$ac_compile") 2>&5
+
+pkg_failed=no
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for LIBRTLSDR" >&5
+printf %s "checking for LIBRTLSDR... " >&6; }
+
+if test -n "$LIBRTLSDR_CFLAGS"; then
+    pkg_cv_LIBRTLSDR_CFLAGS="$LIBRTLSDR_CFLAGS"
+ elif test -n "$PKG_CONFIG"; then
+    if test -n "$PKG_CONFIG" && \
+    { { printf "%s\n" "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"librtlsdr >= 0.6\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "librtlsdr >= 0.6") 2>&5
   ac_status=$?
   printf "%s\n" "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
-  test $ac_status = 0; }
-then :
-  for ac_file in conftest.o conftest.obj conftest.*; do
-  test -f "$ac_file" || continue;
-  case $ac_file in
-    *.$ac_ext | *.xcoff | *.tds | *.d | *.pdb | *.xSYM | *.bb | *.bbg | *.map | *.inf | *.dSYM ) ;;
-    *) ac_cv_objext=`expr "$ac_file" : '.*\.\(.*\)'`
-       break;;
-  esac
-done
-else $as_nop
-  printf "%s\n" "$as_me: failed program was:" >&5
-sed 's/^/| /' conftest.$ac_ext >&5
+  test $ac_status = 0; }; then
+  pkg_cv_LIBRTLSDR_CFLAGS=`$PKG_CONFIG --cflags "librtlsdr >= 0.6" 2>/dev/null`
+		      test "x$?" != "x0" && pkg_failed=yes
+else
+  pkg_failed=yes
+fi
+ else
+    pkg_failed=untried
+fi
+if test -n "$LIBRTLSDR_LIBS"; then
+    pkg_cv_LIBRTLSDR_LIBS="$LIBRTLSDR_LIBS"
+ elif test -n "$PKG_CONFIG"; then
+    if test -n "$PKG_CONFIG" && \
+    { { printf "%s\n" "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"librtlsdr >= 0.6\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "librtlsdr >= 0.6") 2>&5
+  ac_status=$?
+  printf "%s\n" "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; then
+  pkg_cv_LIBRTLSDR_LIBS=`$PKG_CONFIG --libs "librtlsdr >= 0.6" 2>/dev/null`
+		      test "x$?" != "x0" && pkg_failed=yes
+else
+  pkg_failed=yes
+fi
+ else
+    pkg_failed=untried
+fi
 
-{ { printf "%s\n" "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
+
+
+if test $pkg_failed = yes; then
+   	{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
+printf "%s\n" "no" >&6; }
+
+if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
+        _pkg_short_errors_supported=yes
+else
+        _pkg_short_errors_supported=no
+fi
+        if test $_pkg_short_errors_supported = yes; then
+	        LIBRTLSDR_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors --cflags --libs "librtlsdr >= 0.6" 2>&1`
+        else
+	        LIBRTLSDR_PKG_ERRORS=`$PKG_CONFIG --print-errors --cflags --libs "librtlsdr >= 0.6" 2>&1`
+        fi
+	# Put the nasty error message in config.log where it belongs
+	echo "$LIBRTLSDR_PKG_ERRORS" >&5
+
+	as_fn_error $? "Package requirements (librtlsdr >= 0.6) were not met:
+
+$LIBRTLSDR_PKG_ERRORS
+
+Consider adjusting the PKG_CONFIG_PATH environment variable if you
+installed software in a non-standard prefix.
+
+Alternatively, you may set the environment variables LIBRTLSDR_CFLAGS
+and LIBRTLSDR_LIBS to avoid the need to call pkg-config.
+See the pkg-config man page for more details." "$LINENO" 5
+elif test $pkg_failed = untried; then
+     	{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
+printf "%s\n" "no" >&6; }
+	{ { printf "%s\n" "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
 printf "%s\n" "$as_me: error: in \`$ac_pwd':" >&2;}
-as_fn_error $? "cannot compute suffix of object files: cannot compile
+as_fn_error $? "The pkg-config script could not be found or is too old.  Make sure it
+is in your PATH or set the PKG_CONFIG environment variable to the full
+path to pkg-config.
+
+Alternatively, you may set the environment variables LIBRTLSDR_CFLAGS
+and LIBRTLSDR_LIBS to avoid the need to call pkg-config.
+See the pkg-config man page for more details.
+
+To get pkg-config, see <http://pkg-config.freedesktop.org/>.
 See \`config.log' for more details" "$LINENO" 5; }
-fi
-rm -f conftest.$ac_cv_objext conftest.$ac_ext
-fi
-{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $ac_cv_objext" >&5
-printf "%s\n" "$ac_cv_objext" >&6; }
-OBJEXT=$ac_cv_objext
-ac_objext=$OBJEXT
-{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking whether the compiler supports GNU C++" >&5
-printf %s "checking whether the compiler supports GNU C++... " >&6; }
-if test ${ac_cv_cxx_compiler_gnu+y}
-then :
-  printf %s "(cached) " >&6
-else $as_nop
-  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-int
-main (void)
-{
-#ifndef __GNUC__
-       choke me
-#endif
-
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_cxx_try_compile "$LINENO"
-then :
-  ac_compiler_gnu=yes
-else $as_nop
-  ac_compiler_gnu=no
-fi
-rm -f core conftest.err conftest.$ac_objext conftest.beam conftest.$ac_ext
-ac_cv_cxx_compiler_gnu=$ac_compiler_gnu
-
-fi
-{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $ac_cv_cxx_compiler_gnu" >&5
-printf "%s\n" "$ac_cv_cxx_compiler_gnu" >&6; }
-ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
-
-if test $ac_compiler_gnu = yes; then
-  GXX=yes
 else
-  GXX=
+	LIBRTLSDR_CFLAGS=$pkg_cv_LIBRTLSDR_CFLAGS
+	LIBRTLSDR_LIBS=$pkg_cv_LIBRTLSDR_LIBS
+        { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+printf "%s\n" "yes" >&6; }
+
 fi
-ac_test_CXXFLAGS=${CXXFLAGS+y}
-ac_save_CXXFLAGS=$CXXFLAGS
-{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking whether $CXX accepts -g" >&5
-printf %s "checking whether $CXX accepts -g... " >&6; }
-if test ${ac_cv_prog_cxx_g+y}
-then :
-  printf %s "(cached) " >&6
-else $as_nop
-  ac_save_cxx_werror_flag=$ac_cxx_werror_flag
-   ac_cxx_werror_flag=yes
-   ac_cv_prog_cxx_g=no
-   CXXFLAGS="-g"
-   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
 
-int
-main (void)
-{
 
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_cxx_try_compile "$LINENO"
-then :
-  ac_cv_prog_cxx_g=yes
-else $as_nop
-  CXXFLAGS=""
-      cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
 
-int
-main (void)
-{
 
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_cxx_try_compile "$LINENO"
-then :
+pkg_failed=no
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for LIBUSB" >&5
+printf %s "checking for LIBUSB... " >&6; }
 
-else $as_nop
-  ac_cxx_werror_flag=$ac_save_cxx_werror_flag
-	 CXXFLAGS="-g"
-	 cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-int
-main (void)
-{
-
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_cxx_try_compile "$LINENO"
-then :
-  ac_cv_prog_cxx_g=yes
-fi
-rm -f core conftest.err conftest.$ac_objext conftest.beam conftest.$ac_ext
-fi
-rm -f core conftest.err conftest.$ac_objext conftest.beam conftest.$ac_ext
-fi
-rm -f core conftest.err conftest.$ac_objext conftest.beam conftest.$ac_ext
-   ac_cxx_werror_flag=$ac_save_cxx_werror_flag
-fi
-{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $ac_cv_prog_cxx_g" >&5
-printf "%s\n" "$ac_cv_prog_cxx_g" >&6; }
-if test $ac_test_CXXFLAGS; then
-  CXXFLAGS=$ac_save_CXXFLAGS
-elif test $ac_cv_prog_cxx_g = yes; then
-  if test "$GXX" = yes; then
-    CXXFLAGS="-g -O2"
-  else
-    CXXFLAGS="-g"
-  fi
+if test -n "$LIBUSB_CFLAGS"; then
+    pkg_cv_LIBUSB_CFLAGS="$LIBUSB_CFLAGS"
+ elif test -n "$PKG_CONFIG"; then
+    if test -n "$PKG_CONFIG" && \
+    { { printf "%s\n" "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"libusb-1.0 >= 1.0\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "libusb-1.0 >= 1.0") 2>&5
+  ac_status=$?
+  printf "%s\n" "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; then
+  pkg_cv_LIBUSB_CFLAGS=`$PKG_CONFIG --cflags "libusb-1.0 >= 1.0" 2>/dev/null`
+		      test "x$?" != "x0" && pkg_failed=yes
 else
-  if test "$GXX" = yes; then
-    CXXFLAGS="-O2"
-  else
-    CXXFLAGS=
-  fi
+  pkg_failed=yes
 fi
-ac_prog_cxx_stdcxx=no
-if test x$ac_prog_cxx_stdcxx = xno
-then :
-  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for $CXX option to enable C++11 features" >&5
-printf %s "checking for $CXX option to enable C++11 features... " >&6; }
-if test ${ac_cv_prog_cxx_11+y}
-then :
-  printf %s "(cached) " >&6
-else $as_nop
-  ac_cv_prog_cxx_11=no
-ac_save_CXX=$CXX
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-$ac_cxx_conftest_cxx11_program
-_ACEOF
-for ac_arg in '' -std=gnu++11 -std=gnu++0x -std=c++11 -std=c++0x -qlanglvl=extended0x -AA
-do
-  CXX="$ac_save_CXX $ac_arg"
-  if ac_fn_cxx_try_compile "$LINENO"
-then :
-  ac_cv_prog_cxx_cxx11=$ac_arg
+ else
+    pkg_failed=untried
 fi
-rm -f core conftest.err conftest.$ac_objext conftest.beam
-  test "x$ac_cv_prog_cxx_cxx11" != "xno" && break
-done
-rm -f conftest.$ac_ext
-CXX=$ac_save_CXX
-fi
-
-if test "x$ac_cv_prog_cxx_cxx11" = xno
-then :
-  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: unsupported" >&5
-printf "%s\n" "unsupported" >&6; }
-else $as_nop
-  if test "x$ac_cv_prog_cxx_cxx11" = x
-then :
-  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: none needed" >&5
-printf "%s\n" "none needed" >&6; }
-else $as_nop
-  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $ac_cv_prog_cxx_cxx11" >&5
-printf "%s\n" "$ac_cv_prog_cxx_cxx11" >&6; }
-     CXX="$CXX $ac_cv_prog_cxx_cxx11"
-fi
-  ac_cv_prog_cxx_stdcxx=$ac_cv_prog_cxx_cxx11
-  ac_prog_cxx_stdcxx=cxx11
-fi
-fi
-if test x$ac_prog_cxx_stdcxx = xno
-then :
-  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for $CXX option to enable C++98 features" >&5
-printf %s "checking for $CXX option to enable C++98 features... " >&6; }
-if test ${ac_cv_prog_cxx_98+y}
-then :
-  printf %s "(cached) " >&6
-else $as_nop
-  ac_cv_prog_cxx_98=no
-ac_save_CXX=$CXX
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-$ac_cxx_conftest_cxx98_program
-_ACEOF
-for ac_arg in '' -std=gnu++98 -std=c++98 -qlanglvl=extended -AA
-do
-  CXX="$ac_save_CXX $ac_arg"
-  if ac_fn_cxx_try_compile "$LINENO"
-then :
-  ac_cv_prog_cxx_cxx98=$ac_arg
-fi
-rm -f core conftest.err conftest.$ac_objext conftest.beam
-  test "x$ac_cv_prog_cxx_cxx98" != "xno" && break
-done
-rm -f conftest.$ac_ext
-CXX=$ac_save_CXX
-fi
-
-if test "x$ac_cv_prog_cxx_cxx98" = xno
-then :
-  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: unsupported" >&5
-printf "%s\n" "unsupported" >&6; }
-else $as_nop
-  if test "x$ac_cv_prog_cxx_cxx98" = x
-then :
-  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: none needed" >&5
-printf "%s\n" "none needed" >&6; }
-else $as_nop
-  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $ac_cv_prog_cxx_cxx98" >&5
-printf "%s\n" "$ac_cv_prog_cxx_cxx98" >&6; }
-     CXX="$CXX $ac_cv_prog_cxx_cxx98"
-fi
-  ac_cv_prog_cxx_stdcxx=$ac_cv_prog_cxx_cxx98
-  ac_prog_cxx_stdcxx=cxx98
-fi
-fi
-
-ac_ext=cpp
-ac_cpp='$CXXCPP $CPPFLAGS'
-ac_compile='$CXX -c $CXXFLAGS $CPPFLAGS conftest.$ac_ext >&5'
-ac_link='$CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
-ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
-
-
-{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for rtlsdr_get_device_count in -lrtlsdr" >&5
-printf %s "checking for rtlsdr_get_device_count in -lrtlsdr... " >&6; }
-if test ${ac_cv_lib_rtlsdr_rtlsdr_get_device_count+y}
-then :
-  printf %s "(cached) " >&6
-else $as_nop
-  ac_check_lib_save_LIBS=$LIBS
-LIBS="-lrtlsdr  $LIBS"
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-namespace conftest {
-  extern "C" int rtlsdr_get_device_count ();
-}
-int
-main (void)
-{
-return conftest::rtlsdr_get_device_count ();
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_cxx_try_link "$LINENO"
-then :
-  ac_cv_lib_rtlsdr_rtlsdr_get_device_count=yes
-else $as_nop
-  ac_cv_lib_rtlsdr_rtlsdr_get_device_count=no
-fi
-rm -f core conftest.err conftest.$ac_objext conftest.beam \
-    conftest$ac_exeext conftest.$ac_ext
-LIBS=$ac_check_lib_save_LIBS
-fi
-{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_rtlsdr_rtlsdr_get_device_count" >&5
-printf "%s\n" "$ac_cv_lib_rtlsdr_rtlsdr_get_device_count" >&6; }
-if test "x$ac_cv_lib_rtlsdr_rtlsdr_get_device_count" = xyes
-then :
-  printf "%s\n" "#define HAVE_LIBRTLSDR 1" >>confdefs.h
-
-  LIBS="-lrtlsdr $LIBS"
-
-else $as_nop
-
-  as_fn_error $? "Could  not find rtlsdr library. Try: sudo apt install librtlsdr-dev" "$LINENO" 5
-
-fi
-
-
-{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for xmlFreeDoc in -lxml2" >&5
-printf %s "checking for xmlFreeDoc in -lxml2... " >&6; }
-if test ${ac_cv_lib_xml2_xmlFreeDoc+y}
-then :
-  printf %s "(cached) " >&6
-else $as_nop
-  ac_check_lib_save_LIBS=$LIBS
-LIBS="-lxml2  $LIBS"
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-namespace conftest {
-  extern "C" int xmlFreeDoc ();
-}
-int
-main (void)
-{
-return conftest::xmlFreeDoc ();
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_cxx_try_link "$LINENO"
-then :
-  ac_cv_lib_xml2_xmlFreeDoc=yes
-else $as_nop
-  ac_cv_lib_xml2_xmlFreeDoc=no
-fi
-rm -f core conftest.err conftest.$ac_objext conftest.beam \
-    conftest$ac_exeext conftest.$ac_ext
-LIBS=$ac_check_lib_save_LIBS
-fi
-{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_xml2_xmlFreeDoc" >&5
-printf "%s\n" "$ac_cv_lib_xml2_xmlFreeDoc" >&6; }
-if test "x$ac_cv_lib_xml2_xmlFreeDoc" = xyes
-then :
-  printf "%s\n" "#define HAVE_LIBXML2 1" >>confdefs.h
-
-  LIBS="-lxml2 $LIBS"
-
-else $as_nop
-
-  as_fn_error $? "Could  not find libxml2 library. Try: sudo apt install libxml2-dev" "$LINENO" 5
-
-fi
-
-
-{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking libxml include dir" >&5
-printf %s "checking libxml include dir... " >&6; }
-
-if test -d /usr/include/libxml2/libxml/xpath.h
-then
-   CFLAGS="$CFLAGS -I/usr/include/libxml2"
-   CXXFLAGS="$CXXFLAGS -I/usr/include/libxml2"
-   { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: /usr/include/libxml2" >&5
-printf "%s\n" "/usr/include/libxml2" >&6; }
+if test -n "$LIBUSB_LIBS"; then
+    pkg_cv_LIBUSB_LIBS="$LIBUSB_LIBS"
+ elif test -n "$PKG_CONFIG"; then
+    if test -n "$PKG_CONFIG" && \
+    { { printf "%s\n" "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"libusb-1.0 >= 1.0\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "libusb-1.0 >= 1.0") 2>&5
+  ac_status=$?
+  printf "%s\n" "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; then
+  pkg_cv_LIBUSB_LIBS=`$PKG_CONFIG --libs "libusb-1.0 >= 1.0" 2>/dev/null`
+		      test "x$?" != "x0" && pkg_failed=yes
 else
-   LIBXML2INC="$(pkg-config --cflags libxml-2.0)"
-   if test -n "$LIBXML2INC"
-   then
-      CFLAGS="$CFLAGS $LIBXML2INC"
-      CXXFLAGS="$CXXFLAGS $LIBXML2INC"
-      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $LIBXML2INC" >&5
-printf "%s\n" "$LIBXML2INC" >&6; }
-   else
-       LIBXML2INC=$(find / -name xpath.h)
-       { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: not found, but perhaps this? $LIBXML2INC" >&5
-printf "%s\n" "not found, but perhaps this? $LIBXML2INC" >&6; }
-   fi
+  pkg_failed=yes
 fi
+ else
+    pkg_failed=untried
+fi
+
+
+
+if test $pkg_failed = yes; then
+   	{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
+printf "%s\n" "no" >&6; }
+
+if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
+        _pkg_short_errors_supported=yes
+else
+        _pkg_short_errors_supported=no
+fi
+        if test $_pkg_short_errors_supported = yes; then
+	        LIBUSB_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors --cflags --libs "libusb-1.0 >= 1.0" 2>&1`
+        else
+	        LIBUSB_PKG_ERRORS=`$PKG_CONFIG --print-errors --cflags --libs "libusb-1.0 >= 1.0" 2>&1`
+        fi
+	# Put the nasty error message in config.log where it belongs
+	echo "$LIBUSB_PKG_ERRORS" >&5
+
+	as_fn_error $? "Package requirements (libusb-1.0 >= 1.0) were not met:
+
+$LIBUSB_PKG_ERRORS
+
+Consider adjusting the PKG_CONFIG_PATH environment variable if you
+installed software in a non-standard prefix.
+
+Alternatively, you may set the environment variables LIBUSB_CFLAGS
+and LIBUSB_LIBS to avoid the need to call pkg-config.
+See the pkg-config man page for more details." "$LINENO" 5
+elif test $pkg_failed = untried; then
+     	{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
+printf "%s\n" "no" >&6; }
+	{ { printf "%s\n" "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
+printf "%s\n" "$as_me: error: in \`$ac_pwd':" >&2;}
+as_fn_error $? "The pkg-config script could not be found or is too old.  Make sure it
+is in your PATH or set the PKG_CONFIG environment variable to the full
+path to pkg-config.
+
+Alternatively, you may set the environment variables LIBUSB_CFLAGS
+and LIBUSB_LIBS to avoid the need to call pkg-config.
+See the pkg-config man page for more details.
+
+To get pkg-config, see <http://pkg-config.freedesktop.org/>.
+See \`config.log' for more details" "$LINENO" 5; }
+else
+	LIBUSB_CFLAGS=$pkg_cv_LIBUSB_CFLAGS
+	LIBUSB_LIBS=$pkg_cv_LIBUSB_LIBS
+        { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+printf "%s\n" "yes" >&6; }
+
+fi
+
+
+
 
 
 
 ac_config_files="$ac_config_files $OUTPUT_ROOT/spec.gmk:$SRC_ROOT/autoconf/spec.gmk.in"
-
-ac_config_files="$ac_config_files $OUTPUT_ROOT/Makefile:$SRC_ROOT/autoconf/Makefile.in"
 
 
 # Make sure config.status ends up in the build directory instead of the src root.
@@ -3758,7 +3114,6 @@ for ac_config_target in $ac_config_targets
 do
   case $ac_config_target in
     "$OUTPUT_ROOT/spec.gmk") CONFIG_FILES="$CONFIG_FILES $OUTPUT_ROOT/spec.gmk:$SRC_ROOT/autoconf/spec.gmk.in" ;;
-    "$OUTPUT_ROOT/Makefile") CONFIG_FILES="$CONFIG_FILES $OUTPUT_ROOT/Makefile:$SRC_ROOT/autoconf/Makefile.in" ;;
 
   *) as_fn_error $? "invalid argument: \`$ac_config_target'" "$LINENO" 5;;
   esac
