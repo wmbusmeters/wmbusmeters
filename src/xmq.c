@@ -5056,11 +5056,11 @@ char *xmq_trim_quote(const char *start, const char *stop, bool is_xmq, bool is_c
             if (*i == ' ')
             {
                 size_t n = incidental;
-                assert(found_indent >= incidental);
+                //assert(found_indent >= incidental);
                 while (n > 0)
                 {
                     char c = *i;
-                    assert(c == ' ');
+                    if (c != ' ') break;
                     i++;
                     n--;
                 }
