@@ -4,7 +4,7 @@ driver {
     meter_type     = HeatMeter
     default_fields = name,id,total_energy_consumption_kwh,current_power_consumption_kw,total_volume_m3,flow_temperature_c,return_temperature_c,external_temperature_c,status,timestamp
     detect {
-        mvt = APA,04,40
+        mvt = APA,40,04
     }
     library {
         use = operating_time_h

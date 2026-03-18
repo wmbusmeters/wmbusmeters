@@ -699,7 +699,7 @@ bool start(Configuration *config)
         else if (!config->analyze)
         {
             if (!config->logsummary) notice("No meters configured. Printing id:s of all telegrams heard!\n");
-
+            loadAllBuiltinDrivers();
             meter_manager_->onTelegram([](AboutTelegram &about, vector<uchar> frame) {
                     Telegram t;
                     t.about = about;
