@@ -1,0 +1,120 @@
+// Copyright (C) 2021-2022 Fredrik Öhrström (gpl-3.0-or-later)
+driver {
+    name           = elf
+    meter_type     = HeatMeter
+    default_fields = name,id,total_energy_consumption_kwh,current_power_consumption_kw,total_volume_m3,flow_temperature_c,return_temperature_c,external_temperature_c,status,timestamp
+    detect {
+        mvt = APA,04,40
+    }
+    library {
+        use = operating_time_h
+        use = meter_date
+    }
+    fields {
+        field {
+            name       = status
+            quantity   = Text
+            info       = 'Meter status from manufacturer status and tpl status field.'
+            attributes = STATUS,INCLUDE_TPL_STATUS
+            match {
+                difvifkey = 047F
+            }
+            lookup {
+                name            = ERROR_FLAGS
+                map_type        = BitToString
+                mask_bits       = 0xffffffff
+                default_message = OK
+            }
+        }
+        field {
+            name     = total_energy_consumption
+            quantity = Energy
+            info     = 'The total energy consumption recorded by this meter.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = AnyEnergyVIF
+            }
+        }
+        field {
+            name     = current_power_consumption
+            quantity = Power
+            info     = 'Current power consumption.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = PowerW
+            }
+        }
+        field {
+            name     = total_volume
+            quantity = Volume
+            info     = 'Total volume of heat media.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = Volume
+            }
+        }
+        field {
+            name     = total_energy_consumption_at_date
+            quantity = Energy
+            info     = 'The total energy consumption recorded at the target date.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = AnyEnergyVIF
+                storage_nr       = 1
+            }
+        }
+        field {
+            name     = flow_temperature
+            quantity = Temperature
+            info     = 'The flow temperature.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = FlowTemperature
+            }
+        }
+        field {
+            name     = return_temperature
+            quantity = Temperature
+            info     = 'The return temperature.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = ReturnTemperature
+            }
+        }
+        field {
+            name     = external_temperature
+            quantity = Temperature
+            info     = 'The external temperature.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = ExternalTemperature
+            }
+        }
+        field {
+            name     = version
+            quantity = Text
+            info     = Version.
+            match {
+                measurement_type = Instantaneous
+                vif_range        = ModelVersion
+            }
+        }
+        field {
+            name     = battery
+            quantity = Voltage
+            info     = 'Battery voltage.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = Voltage
+            }
+        }
+    }
+    tests {
+        test {
+            args     = 'Hetta elf 01885619 NOKEY'
+            telegram = 51440186010905001837721956880101064004DA000020026CA9220E017799241103000C13641320000A2D00000A5A90060A5E800544050E77000001FD0C010A6564370AFD4731030A274907047F00000002
+            json     = '{"_":"telegram","media":"heat","meter":"elf","name":"Hetta","id":"01885619","status":"ERROR_FLAGS_2000000","meter_date":"2021-02-09","total_energy_consumption_kwh":3112.49977,"current_power_consumption_kw":0,"total_volume_m3":201.364,"total_energy_consumption_at_date_kwh":3047.8,"flow_temperature_c":69,"return_temperature_c":58,"external_temperature_c":37.64,"operating_time_h":17976,"version":"01","battery_v":3.31,"timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'Hetta;01885619;3112.49977;0;201.364;69;58;37.64;ERROR_FLAGS_2000000;1111-11-11 11:11.11'
+        }
+    }
+}
