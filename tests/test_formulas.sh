@@ -18,7 +18,7 @@ $PROG --format=json \
       | jq --sort-keys . > $TEST/test_output.txt
 
 cat <<EOF | jq --sort-keys . > $TEST/test_expected.txt
-{"_":"telegram","media":"cold water","meter":"kamwater","name":"MyTapWater","id":"76348799","addtemp_c":1119,"external_temperature_c":19,"external_temperature_f":66.2,"flow_temperature_c":127,"min_external_temperature_c":19,"sumtemp_c":146,"target_m3":6.408,"total_m3":6.408,"current_status":"DRY","status":"DRY","time_bursting":"","time_dry":"22-31 days","time_leaking":"","time_reversed":"","timestamp":"1111-11-11T11:11:11Z"}
+{"_":"telegram","media":"cold water","meter":"kamwater","name":"MyTapWater","id":"76348799","addtemp_c":1119,"external_temperature_c":19,"external_temperature_f":66.2,"flow_temperature_c":127,"sumtemp_c":146,"target_m3":6.408,"total_m3":6.408,"current_status":"DRY","status":"DRY","time_bursting":"","time_dry":"22-31 days","time_leaking":"","time_reversed":"","timestamp":"1111-11-11T11:11:11Z"}
 EOF
 
 if [ "$?" = "0" ]
