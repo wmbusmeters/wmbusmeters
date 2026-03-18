@@ -13,7 +13,7 @@ Received telegram from: 76348799
           manufacturer: (KAM) Kamstrup Energi (0x2c2d)
                   type: Cold water meter (0x16) encrypted
                    ver: 0x1b
-                driver: multical21
+                driver: kamwater
 EOF
 
 $PROG 2A442D2C998734761B168D2091D37CAC21E1D68CDAFFCD3DC452BD802913FF7B1706CA9E355D6C2701CC24 > $TEST/test_output.txt 2>&1
