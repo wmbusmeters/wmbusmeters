@@ -46,6 +46,7 @@ parts:
       fi
     plugin: autotools
     build-packages:
+      - pkg-config
       - g++
       - make
       - librtlsdr-dev
