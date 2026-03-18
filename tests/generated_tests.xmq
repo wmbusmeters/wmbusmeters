@@ -1,4 +1,4 @@
-// Generated 2026-03-18_10:04
+// Generated 2026-03-18_12:53
 test {
     args     = 'Vatten apator08 004444dd NOKEY'
     telegram = 73441486DD4444000303A0B9E527004C4034B31CED0106FF01D093270065F022009661230054D02300EC49240018B424005F012500936D2500FFD525000E3D26001EAC26000B2027000300000000371D0B2000000000000024000000000000280000000000002C0033150C010D2F000000000000
@@ -97,6 +97,12 @@ test {
     telegram = 684E4E68080172280417230106420455000000_0C7828041723026C103902FD1700000E0A6342693401000C13634630000A3B00000A2D00000A5A49020A5E44020C22762101003C2215000000047E17090000_4116
     json     = '{"_":"telegram","current_power_kw": 0,"current_volume_flow_m3h": 0,"fabrication_no": "23170428","id": "23170428","media": "heat","meter": "elf2","meter_date": "2024-09-16","name": "Heato","on_time_at_error_h": 15,"on_time_h": 12176,"status": "OK","t1_temperature_c": 24.9,"t2_temperature_c": 24.4,"timestamp": "1111-11-11T11:11:11Z","total_energy_kwh": 3741.507306,"total_volume_m3": 304.663}'
     fields   = 'Heato;23170428;OK;3741.507306;1111-11-11 11:11.11'
+}
+test {
+    args     = 'Hetta elf 01885619 NOKEY'
+    telegram = 51440186010905001837721956880101064004DA000020026CA9220E017799241103000C13641320000A2D00000A5A90060A5E800544050E77000001FD0C010A6564370AFD4731030A274907047F00000002
+    json     = '{"_":"telegram","media":"heat","meter":"elf","name":"Hetta","id":"01885619","status":"ERROR_FLAGS_2000000","meter_date":"2021-02-09","total_energy_consumption_kwh":3112.49977,"current_power_consumption_kw":0,"total_volume_m3":201.364,"total_energy_consumption_at_date_kwh":3047.8,"flow_temperature_c":69,"return_temperature_c":58,"external_temperature_c":37.64,"operating_time_h":17976,"version":"01","battery_v":3.31,"timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'Hetta;01885619;3112.49977;0;201.364;69;58;37.64;ERROR_FLAGS_2000000;1111-11-11 11:11.11'
 }
 test {
     args     = 'Gas elster 05105025 NOKEY'
