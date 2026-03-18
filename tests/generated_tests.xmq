@@ -1,4 +1,4 @@
-// Generated 2026-03-17_11:34
+// Generated 2026-03-18_07:26
 test {
     args     = 'Vatten apator08 004444dd NOKEY'
     telegram = 73441486DD4444000303A0B9E527004C4034B31CED0106FF01D093270065F022009661230054D02300EC49240018B424005F012500936D2500FFD525000E3D26001EAC26000B2027000300000000371D0B2000000000000024000000000000280000000000002C0033150C010D2F000000000000
@@ -391,6 +391,48 @@ test {
     fields   = 'Pressing;77000317;LOW;1.02;1.03;1.02;1111-11-11 11:11.11'
 }
 test {
+    args     = 'Votten flowiq2200 23813076 NOKEY'
+    telegram = 3244372C763081233C168D2057D2ED11205a817905095480_0008000000000000000008900008F0FFC12B0A1B23001F0F000013
+    json     = '{"_":"telegram","media":"cold water","meter":"kamwater","name":"Votten","id":"23813076","external_temperature_c":19,"flow_m3h":0.035,"max_external_temperature_c":27,"max_flow_m3h":0,"min_external_temperature_c":10,"target_m3":0,"target_date":"2022-11-01","total_m3":3.871,"status":"ERROR_FLAGS_800","timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'Votten;23813076;3.871;0;ERROR_FLAGS_800;1111-11-11 11:11.11'
+}
+test {
+    args     = 'Votten flowiq2200 23813076 NOKEY'
+    telegram = 4744372C763081233C168D2056D1ED11205A3C78_04FF2300080000441300000000523B000006FF1B08900008F0FF426CC12B61670A51671B023B000004131F0F00008101E7FF0F13
+    json     = '{"_":"telegram","media":"cold water","meter":"kamwater","name":"Votten","id":"23813076","external_temperature_c":19,"flow_m3h":0,"max_external_temperature_c":27,"max_flow_m3h":0,"min_external_temperature_c":10,"target_m3":0,"target_date":"2022-11-01","total_m3":3.871,"status":"ERROR_FLAGS_800","timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'Votten;23813076;3.871;0;ERROR_FLAGS_800;1111-11-11 11:11.11'
+}
+test {
+    args     = 'VATTEN flowiq2200 52525252 NOKEY'
+    telegram = 4D44372C525252523A168D203894DF7920F93278_04FF23000000000413AEAC0000441364A80000426C812A023B000092013BEF01A2013B000006FF1B067000097000A1015B0C91015B14A1016713
+    json     = '{"_":"telegram","media":"cold water","meter":"kamwater","name":"VATTEN","id":"52525252","external_temperature_c":19,"flow_m3h":0,"flow_temperature_c":12,"max_flow_m3h":0.495,"max_flow_temperature_c":20,"min_external_temperature_c":19,"min_flow_m3h":0,"min_flow_temperature_c":12,"target_m3":43.108,"target_date":"2020-10-01","total_m3":44.206,"status":"OK","timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'VATTEN;52525252;44.206;43.108;OK;1111-11-11 11:11.11'
+}
+test {
+    args     = 'Vadden multical21 44556677 NOKEY'
+    telegram = 21442D2C776655441B168D2079CC8C3A20_F4307912C40DFF00002F4E00003D010203
+    json     = '{"_":"telegram","media":"cold water","meter":"kamwater","name":"Vadden","id":"44556677","external_temperature_c":3,"flow_temperature_c":2,"max_flow_m3h":0.317,"min_flow_temperature_c":2,"total_m3":20.015,"current_status":"","status":"OK","time_bursting":"","time_dry":"","time_leaking":"","time_reversed":"","timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'Vadden;44556677;20.015;null;OK;1111-11-11 11:11.11'
+}
+test {
+    args     = 'Vadden multical21 44556677 NOKEY'
+    telegram = 2D442D2C776655441B168D2083B48D3A20_46887802FF20000004132F4E000092013B3D01A1015B028101E7FF0F03
+    json     = '{"_":"telegram","media":"cold water","meter":"kamwater","name":"Vadden","id":"44556677","external_temperature_c":3,"flow_temperature_c":2,"max_flow_m3h":0.317,"min_flow_temperature_c":2,"total_m3":20.015,"current_status":"","status":"OK","time_bursting":"","time_dry":"","time_leaking":"","time_reversed":"","timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'Vadden;44556677;20.015;null;OK;1111-11-11 11:11.11'
+}
+test {
+    args     = 'MyTapWater multical21 76348799 NOKEY'
+    telegram = 23442D2C998734761B168D2087D19EAD217F1779EDA86AB6_710008190000081900007F13
+    json     = '{"_":"telegram","media":"cold water","meter":"kamwater","name":"MyTapWater","id":"76348799","external_temperature_c":19,"flow_temperature_c":127,"min_external_temperature_c":19,"target_m3":6.408,"total_m3":6.408,"current_status":"DRY","status":"DRY","time_bursting":"","time_dry":"22-31 days","time_leaking":"","time_reversed":"","timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'MyTapWater;76348799;6.408;6.408;DRY;1111-11-11 11:11.11'
+}
+test {
+    args     = 'MyTapWater multical21 76348799 NOKEY'
+    telegram = 2A442D2C998734761B168D2091D37CAC21576C78_02FF207100041308190000441308190000615B7F616713
+    json     = '{"_":"telegram","media":"cold water","meter":"kamwater","name":"MyTapWater","id":"76348799","external_temperature_c":19,"flow_temperature_c":127,"min_external_temperature_c":19,"target_m3":6.408,"total_m3":6.408,"current_status":"DRY","status":"DRY","time_bursting":"","time_dry":"22-31 days","time_leaking":"","time_reversed":"","timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'MyTapWater;76348799;6.408;6.408;DRY;1111-11-11 11:11.11'
+}
+test {
     args     = 'mywater maddalena 24018699 NOKEY'
     telegram = 4E4424349986012401077AF2000020_2F2F0413A7000000046D0E0C163B04FD17000000000E789986012401FF441300000000426C01018401134A00000082016C1F3AD3013B470500C4016D1B14153B
     json     = '{"_":"telegram","media":"water","meter":"maddalena","name":"mywater","id":"24018699","target_m3":0,"target_date":"2000-01-01","total_m3":0.167,"status":"OK","fabrication_no":"FF0124018699","meter_datetime":"2024-11-22 12:14","timestamp":"1111-11-11T11:11:11Z"}'
@@ -643,46 +685,4 @@ test {
     telegram = 68C4C46808637283654616475F03160C000000_041300000000046D2B030000426C992B44133D00000042EC7EB92B0C785506140082016C9E2B8401133D000000C2016C7F2CC401133D00000082026C9F218402133D000000C2026C9D22C402133D00000082036C9F238403133D000000C2036C9E24C403133D00000082046C9F258404133D000000C2046C9E26C404133D00000082056C9F278405133D000000C2056C9F28C405133D00000082066C9E298406133D000000C2066C9F2AC406133D0000000F010000_C316
     json     = '{"_":"telegram","fabrication_no": "00140655","id": "16466583","media": "cold water","meter": "werhlemodwm","meter_datetime": "2000-00-00 03:43","name": "licznik","next_target_date": "2021-11-25","target_10_date": "2020-07-31","target_10_m3": 0.061,"target_11_date": "2020-08-31","target_11_m3": 0.061,"target_12_date": "2020-09-30","target_12_m3": 0.061,"target_13_date": "2020-10-31","target_13_m3": 0.061,"target_1_date": "2020-11-25","target_1_m3": 0.061,"target_2_date": "2020-11-30","target_2_m3": 0.061,"target_3_date": "2019-12-31","target_3_m3": 0.061,"target_4_date": "2020-01-31","target_4_m3": 0.061,"target_5_date": "2020-02-29","target_5_m3": 0.061,"target_6_date": "2020-03-31","target_6_m3": 0.061,"target_7_date": "2020-04-30","target_7_m3": 0.061,"target_8_date": "2020-05-31","target_8_m3": 0.061,"target_9_date": "2020-06-30","target_9_m3": 0.061,"target_date": "2020-11-25","target_m3": 0.061,"timestamp": "1111-11-11T11:11:11Z","total_m3": 0}'
     fields   = 'licznik;16466583;0;1111-11-11 11:11.11'
-}
-test {
-    args     = 'MyTapWater multical21 76348799 NOKEY'
-    telegram = 2A442D2C998734761B168D2091D37CAC21576C78_02FF207100041308190000441308190000615B7F616713
-    json     = '{"_":"telegram","media":"cold water","meter":"multical21","name":"MyTapWater","id":"76348799","status":"DRY","total_m3":6.408,"target_m3":6.408,"flow_temperature_c":127,"external_temperature_c":19,"current_status":"DRY","time_dry":"22-31 days","time_reversed":"","time_leaking":"","time_bursting":"","timestamp":"1111-11-11T11:11:11Z"}'
-    fields   = 'MyTapWater;76348799;6.408;6.408;null;127;19;DRY;1111-11-11 11:11.11'
-}
-test {
-    args     = 'MyTapWater multical21 76348799 NOKEY'
-    telegram = 23442D2C998734761B168D2087D19EAD217F1779EDA86AB6_710008190000081900007F13
-    json     = '{"_":"telegram","media":"cold water","meter":"multical21","name":"MyTapWater","id":"76348799","status":"DRY","total_m3":6.408,"target_m3":6.408,"flow_temperature_c":127,"external_temperature_c":19,"current_status":"DRY","time_dry":"22-31 days","time_reversed":"","time_leaking":"","time_bursting":"","timestamp":"1111-11-11T11:11:11Z"}'
-    fields   = 'MyTapWater;76348799;6.408;6.408;null;127;19;DRY;1111-11-11 11:11.11'
-}
-test {
-    args     = 'Vadden multical21 44556677 NOKEY'
-    telegram = 2D442D2C776655441B168D2083B48D3A20_46887802FF20000004132F4E000092013B3D01A1015B028101E7FF0F03
-    json     = '{"_":"telegram","media":"cold water","meter":"multical21","name":"Vadden","id":"44556677","status":"OK","total_m3":20.015,"flow_temperature_c":2,"external_temperature_c":3,"max_flow_m3h":0.317,"current_status":"","time_dry":"","time_reversed":"","time_leaking":"","time_bursting":"","timestamp":"1111-11-11T11:11:11Z"}'
-    fields   = 'Vadden;44556677;20.015;null;0.317;2;3;OK;1111-11-11 11:11.11'
-}
-test {
-    args     = 'Vadden multical21 44556677 NOKEY'
-    telegram = 21442D2C776655441B168D2079CC8C3A20_F4307912C40DFF00002F4E00003D010203
-    json     = '{"_":"telegram","media":"cold water","meter":"multical21","name":"Vadden","id":"44556677","status":"OK","total_m3":20.015,"flow_temperature_c":2,"external_temperature_c":3,"max_flow_m3h":0.317,"current_status":"","time_dry":"","time_reversed":"","time_leaking":"","time_bursting":"","timestamp":"1111-11-11T11:11:11Z"}'
-    fields   = 'Vadden;44556677;20.015;null;0.317;2;3;OK;1111-11-11 11:11.11'
-}
-test {
-    args     = 'VATTEN flowiq2200 52525252 NOKEY'
-    telegram = 4D44372C525252523A168D203894DF7920F93278_04FF23000000000413AEAC0000441364A80000426C812A023B000092013BEF01A2013B000006FF1B067000097000A1015B0C91015B14A1016713
-    json     = '{"_":"telegram","media":"cold water","meter":"flowiq2200","name":"VATTEN","id":"52525252","status":"OK","total_m3":44.206,"target_m3":43.108,"target_date":"2020-10-01","flow_m3h":0,"min_flow_temperature_c":12,"max_flow_temperature_c":20,"min_external_temperature_c":19,"max_flow_m3h":0.495,"min_flow_m3h":0,"timestamp":"1111-11-11T11:11:11Z"}'
-    fields   = 'VATTEN;52525252;OK;44.206;43.108;1111-11-11 11:11.11'
-}
-test {
-    args     = 'Votten flowiq2200 23813076 NOKEY'
-    telegram = 4744372C763081233C168D2056D1ED11205A3C78_04FF2300080000441300000000523B000006FF1B08900008F0FF426CC12B61670A51671B023B000004131F0F00008101E7FF0F13
-    json     = '{"_":"telegram","flow_m3h": 0,"id":"23813076","max_external_temperature_c": 27,"max_flow_m3h": 0,"media":"cold water","meter":"flowiq2200","min_external_temperature_c": 10,"name":"Votten","status":"ERROR_FLAGS_800","target_date":"2022-11-01","target_m3": 0,"timestamp":"1111-11-11T11:11:11Z","total_m3": 3.871}'
-    fields   = 'Votten;23813076;ERROR_FLAGS_800;3.871;0;1111-11-11 11:11.11'
-}
-test {
-    args     = 'Votten flowiq2200 23813076 NOKEY'
-    telegram = 3244372C763081233C168D2057D2ED11205a817905095480_0008000000000000000008900008F0FFC12B0A1B23001F0F000013
-    json     = '{"_":"telegram","media":"cold water","meter":"flowiq2200","name":"Votten","id":"23813076","status":"ERROR_FLAGS_800","total_m3":3.871,"target_m3":0,"target_date":"2022-11-01","flow_m3h":0.035,"max_external_temperature_c":27,"min_external_temperature_c":10,"max_flow_m3h":0,"timestamp":"1111-11-11T11:11:11Z"}'
-    fields   = 'Votten;23813076;ERROR_FLAGS_800;3.871;0;1111-11-11 11:11.11'
 }

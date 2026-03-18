@@ -1,12 +1,20 @@
 // Copyright (C) 2017-2022 Fredrik Öhrström (gpl-3.0-or-later)
 driver {
-    name           = flowiq2200
+    name           = kamwater
+    aliases        = multical21,flowiq2200
     meter_type     = WaterMeter
-    default_fields = name,id,status,total_m3,target_m3,timestamp
+    default_fields = name,id,total_m3,target_m3,status,timestamp
     detect {
+        mvt = KAM,1b,06
+        // multical21
+        mvt = KAM,1b,16
+        // multical21
         mvt = KAW,3a,16
+        // flowiq2200
         mvt = KAW,3c,16
+        // flowiq2200
         mvt = KAM,1d,16
+        // flowiq2200
     }
     library {
         use = total_m3
@@ -17,8 +25,8 @@ driver {
         field {
             name       = status
             quantity   = Text
-            info       = 'Status of meter. Not fully understood!'
-            attributes = STATUS
+            info       = 'Status and error flags.'
+            attributes = STATUS,INCLUDE_TPL_STATUS
             match {
                 difvifkey = 04FF23
             }
@@ -27,6 +35,75 @@ driver {
                 map_type        = BitToString
                 mask_bits       = 0xffffffff
                 default_message = OK
+                map {
+                    name  = DRY
+                    value = 0x01
+                    test  = Set
+                }
+                map {
+                    name  = REVERSE
+                    value = 0x02
+                    test  = Set
+                }
+                map {
+                    name  = LEAK
+                    value = 0x04
+                    test  = Set
+                }
+                map {
+                    name  = BURST
+                    value = 0x08
+                    test  = Set
+                }
+            }
+        }
+        field {
+            name       = status16
+            quantity   = Text
+            info       = 'Status and error flags.'
+            attributes = INJECT_INTO_STATUS,HIDE
+            match {
+                difvifkey = 02FF20
+            }
+            lookup {
+                name            = ERROR_FLAGS
+                map_type        = BitToString
+                mask_bits       = 0x000f
+                default_message = OK
+                map {
+                    name  = DRY
+                    value = 0x01
+                    test  = Set
+                }
+                map {
+                    name  = REVERSE
+                    value = 0x02
+                    test  = Set
+                }
+                map {
+                    name  = LEAK
+                    value = 0x04
+                    test  = Set
+                }
+                map {
+                    name  = BURST
+                    value = 0x08
+                    test  = Set
+                }
+            }
+        }
+        field {
+            name       = current_status
+            quantity   = Text
+            info       = 'Status of meter. This field will go away use status instead.'
+            attributes = DEPRECATED
+            match {
+                difvifkey = 02FF20
+            }
+            lookup {
+                name      = ERROR_FLAGS
+                map_type  = BitToString
+                mask_bits = 0x000f
                 map {
                     name  = DRY
                     value = 0x01
@@ -59,9 +136,50 @@ driver {
             }
         }
         field {
-            name     = min_flow_temperature
+            name     = flow_temperature
             quantity = Temperature
             info     = 'The water temperature.'
+            match {
+                measurement_type = Minimum
+                vif_range        = FlowTemperature
+                storage_nr       = 0,255
+            }
+        }
+        field {
+            name     = external_temperature
+            quantity = Temperature
+            info     = 'The external temperature outside of the meter.'
+            match {
+                measurement_type = Any
+                vif_range        = ExternalTemperature
+                storage_nr       = 0,255
+                add_combinable   = Any
+            }
+        }
+        field {
+            name     = min_external_temperature
+            quantity = Temperature
+            info     = 'The lowest external temperature outside of the meter.'
+            match {
+                measurement_type = Minimum
+                vif_range        = ExternalTemperature
+                storage_nr       = 1,2
+            }
+        }
+        field {
+            name     = max_flow
+            quantity = Flow
+            info     = 'The maximum flow recorded during previous period.'
+            match {
+                measurement_type = Maximum
+                vif_range        = VolumeFlow
+                storage_nr       = 0,255
+            }
+        }
+        field {
+            name     = min_flow_temperature
+            quantity = Temperature
+            info     = 'The minimum water temperature.'
             match {
                 measurement_type = Minimum
                 vif_range        = FlowTemperature
@@ -79,23 +197,13 @@ driver {
             }
         }
         field {
-            name     = min_external_temperature
+            name     = max_external_temperature
             quantity = Temperature
-            info     = 'The external temperature outside of the meter.'
-            match {
-                measurement_type = Minimum
-                vif_range        = ExternalTemperature
-                storage_nr       = 1,2
-            }
-        }
-        field {
-            name     = max_flow
-            quantity = Flow
-            info     = 'The maximum flow recorded during previous period.'
+            info     = 'The maximum temperature recorded during previous period.'
             match {
                 measurement_type = Maximum
-                vif_range        = VolumeFlow
-                storage_nr       = 1,2
+                vif_range        = ExternalTemperature
+                storage_nr       = 1
             }
         }
         field {
@@ -106,16 +214,6 @@ driver {
                 measurement_type = Minimum
                 vif_range        = VolumeFlow
                 storage_nr       = 2
-            }
-        }
-        field {
-            name     = max_external_temperature
-            quantity = Temperature
-            info     = 'The maximum temperature recorded during previous period.'
-            match {
-                measurement_type = Maximum
-                vif_range        = ExternalTemperature
-                storage_nr       = 1
             }
         }
         field {
@@ -333,22 +431,46 @@ driver {
     }
     tests {
         test {
+            args     = 'MyTapWater multical21 76348799 NOKEY'
+            telegram = 2A442D2C998734761B168D2091D37CAC21576C78_02FF207100041308190000441308190000615B7F616713
+            json     = '{"_":"telegram","media":"cold water","meter":"kamwater","name":"MyTapWater","id":"76348799","external_temperature_c":19,"flow_temperature_c":127,"min_external_temperature_c":19,"target_m3":6.408,"total_m3":6.408,"current_status":"DRY","status":"DRY","time_bursting":"","time_dry":"22-31 days","time_leaking":"","time_reversed":"","timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'MyTapWater;76348799;6.408;6.408;DRY;1111-11-11 11:11.11'
+        }
+        test {
+            args     = 'MyTapWater multical21 76348799 NOKEY'
+            telegram = 23442D2C998734761B168D2087D19EAD217F1779EDA86AB6_710008190000081900007F13
+            json     = '{"_":"telegram","media":"cold water","meter":"kamwater","name":"MyTapWater","id":"76348799","external_temperature_c":19,"flow_temperature_c":127,"min_external_temperature_c":19,"target_m3":6.408,"total_m3":6.408,"current_status":"DRY","status":"DRY","time_bursting":"","time_dry":"22-31 days","time_leaking":"","time_reversed":"","timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'MyTapWater;76348799;6.408;6.408;DRY;1111-11-11 11:11.11'
+        }
+        test {
+            args     = 'Vadden multical21 44556677 NOKEY'
+            telegram = 2D442D2C776655441B168D2083B48D3A20_46887802FF20000004132F4E000092013B3D01A1015B028101E7FF0F03
+            json     = '{"_":"telegram","media":"cold water","meter":"kamwater","name":"Vadden","id":"44556677","external_temperature_c":3,"flow_temperature_c":2,"max_flow_m3h":0.317,"min_flow_temperature_c":2,"total_m3":20.015,"current_status":"","status":"OK","time_bursting":"","time_dry":"","time_leaking":"","time_reversed":"","timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'Vadden;44556677;20.015;null;OK;1111-11-11 11:11.11'
+        }
+        test {
+            args     = 'Vadden multical21 44556677 NOKEY'
+            telegram = 21442D2C776655441B168D2079CC8C3A20_F4307912C40DFF00002F4E00003D010203
+            json     = '{"_":"telegram","media":"cold water","meter":"kamwater","name":"Vadden","id":"44556677","external_temperature_c":3,"flow_temperature_c":2,"max_flow_m3h":0.317,"min_flow_temperature_c":2,"total_m3":20.015,"current_status":"","status":"OK","time_bursting":"","time_dry":"","time_leaking":"","time_reversed":"","timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'Vadden;44556677;20.015;null;OK;1111-11-11 11:11.11'
+        }
+        test {
             args     = 'VATTEN flowiq2200 52525252 NOKEY'
             telegram = 4D44372C525252523A168D203894DF7920F93278_04FF23000000000413AEAC0000441364A80000426C812A023B000092013BEF01A2013B000006FF1B067000097000A1015B0C91015B14A1016713
-            json     = '{"_":"telegram","media":"cold water","meter":"flowiq2200","name":"VATTEN","id":"52525252","status":"OK","total_m3":44.206,"target_m3":43.108,"target_date":"2020-10-01","flow_m3h":0,"min_flow_temperature_c":12,"max_flow_temperature_c":20,"min_external_temperature_c":19,"max_flow_m3h":0.495,"min_flow_m3h":0,"timestamp":"1111-11-11T11:11:11Z"}'
-            fields   = 'VATTEN;52525252;OK;44.206;43.108;1111-11-11 11:11.11'
+            json     = '{"_":"telegram","media":"cold water","meter":"kamwater","name":"VATTEN","id":"52525252","external_temperature_c":19,"flow_m3h":0,"flow_temperature_c":12,"max_flow_m3h":0.495,"max_flow_temperature_c":20,"min_external_temperature_c":19,"min_flow_m3h":0,"min_flow_temperature_c":12,"target_m3":43.108,"target_date":"2020-10-01","total_m3":44.206,"status":"OK","timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'VATTEN;52525252;44.206;43.108;OK;1111-11-11 11:11.11'
         }
         test {
             args     = 'Votten flowiq2200 23813076 NOKEY'
             telegram = 4744372C763081233C168D2056D1ED11205A3C78_04FF2300080000441300000000523B000006FF1B08900008F0FF426CC12B61670A51671B023B000004131F0F00008101E7FF0F13
-            json     = '{"_":"telegram","flow_m3h": 0,"id":"23813076","max_external_temperature_c": 27,"max_flow_m3h": 0,"media":"cold water","meter":"flowiq2200","min_external_temperature_c": 10,"name":"Votten","status":"ERROR_FLAGS_800","target_date":"2022-11-01","target_m3": 0,"timestamp":"1111-11-11T11:11:11Z","total_m3": 3.871}'
-            fields   = 'Votten;23813076;ERROR_FLAGS_800;3.871;0;1111-11-11 11:11.11'
+            json     = '{"_":"telegram","media":"cold water","meter":"kamwater","name":"Votten","id":"23813076","external_temperature_c":19,"flow_m3h":0,"max_external_temperature_c":27,"max_flow_m3h":0,"min_external_temperature_c":10,"target_m3":0,"target_date":"2022-11-01","total_m3":3.871,"status":"ERROR_FLAGS_800","timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'Votten;23813076;3.871;0;ERROR_FLAGS_800;1111-11-11 11:11.11'
         }
         test {
             args     = 'Votten flowiq2200 23813076 NOKEY'
             telegram = 3244372C763081233C168D2057D2ED11205a817905095480_0008000000000000000008900008F0FFC12B0A1B23001F0F000013
-            json     = '{"_":"telegram","media":"cold water","meter":"flowiq2200","name":"Votten","id":"23813076","status":"ERROR_FLAGS_800","total_m3":3.871,"target_m3":0,"target_date":"2022-11-01","flow_m3h":0.035,"max_external_temperature_c":27,"min_external_temperature_c":10,"max_flow_m3h":0,"timestamp":"1111-11-11T11:11:11Z"}'
-            fields   = 'Votten;23813076;ERROR_FLAGS_800;3.871;0;1111-11-11 11:11.11'
+            json     = '{"_":"telegram","media":"cold water","meter":"kamwater","name":"Votten","id":"23813076","external_temperature_c":19,"flow_m3h":0.035,"max_external_temperature_c":27,"max_flow_m3h":0,"min_external_temperature_c":10,"target_m3":0,"target_date":"2022-11-01","total_m3":3.871,"status":"ERROR_FLAGS_800","timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'Votten;23813076;3.871;0;ERROR_FLAGS_800;1111-11-11 11:11.11'
         }
     }
 }
