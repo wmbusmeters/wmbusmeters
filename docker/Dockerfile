@@ -17,7 +17,7 @@ RUN cmake -B build -G Ninja \
     cmake --build build -j `nproc` && \
     cmake --install build
 WORKDIR /wmbusmeters
-RUN make -j`nproc`
+RUN ./configure && make -j`nproc`
 WORKDIR /rtl-wmbus
 RUN make -j`nproc` release && chmod 755 build/rtl_wmbus
 WORKDIR /rtl_433
