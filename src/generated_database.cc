@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2024 Fredrik Öhrström (gpl-3.0-or-later)
+ Copyright (C) 2024-2026 Fredrik Öhrström (gpl-3.0-or-later)
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -14,7 +14,10 @@
  You should have received a copy of the GNU General Public License
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-// Generated 2026-03-18_10:04
+
+// This source is generated from drivers/src/*.xmq
+// Run "cd drivers; make install" to regenerate this file.
+
 BuiltinDriver builtins_[] =
 {
     { "apator08", "", "driver{name=apator08 meter_type=WaterMeter default_fields=name,id,total_m3,timestamp manufacturer=Apator model=08 detect{mvt=APT,03,03 mvt=APT,0F,0F}fields{field{name=total quantity=Volume force_scale=1/3 match{measurement_type=Instantaneous vif_range=Volume}}field{name=mfct_specific_data quantity=Text match_entire_payload=true ixml=('decode = total, byte*.'&#10;'total = quad, @DV_0413.'&#10;\"-hex  = ['A'-'F';'0'-'9'].\"&#10;'-byte = hex, hex.'&#10;'-quad = byte, byte, byte, byte.'&#10;\"DV_0413>dvk = +'0413'.\")}}}", false },

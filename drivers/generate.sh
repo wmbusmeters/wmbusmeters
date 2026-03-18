@@ -5,7 +5,7 @@ export OUT="build/generated_database.cc"
 
 cat > $OUT <<EOF
 /*
- Copyright (C) 2024 Fredrik Öhrström (gpl-3.0-or-later)
+ Copyright (C) 2024-2026 Fredrik Öhrström (gpl-3.0-or-later)
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -21,7 +21,8 @@ cat > $OUT <<EOF
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-// Generated $(date +%Y-%m-%d_%H:%M)
+// This source is generated from drivers/src/*.xmq
+// Run "cd drivers; make install" to regenerate this file.
 
 BuiltinDriver builtins_[] =
 {
