@@ -1,0 +1,78 @@
+// Copyright (C) 2025-2026 Fredrik Öhrström (gpl-3.0-or-later)
+driver {
+    name           = zennerhca
+    meter_type     = HeatCostAllocationMeter
+    default_fields = name,id,consumption_hca,target_date,target_hca,status,timestamp
+    detect {
+        mvt = ZRI,FC,08
+    }
+    library {
+        use = consumption_hca
+        use = target_hca
+        use = target_date
+    }
+    fields {
+        field {
+            name       = status
+            quantity   = Text
+            info       = 'Meter status from TPL status byte.'
+            attributes = STATUS,INCLUDE_TPL_STATUS
+            lookup {
+                name            = TPL_FLAGS
+                map_type        = BitToString
+                mask_bits       = 0xe0
+                default_message = OK
+                map {
+                    name  = REMOVAL
+                    value = 0x20
+                    test  = Set
+                }
+                map {
+                    name  = DUAL_SENSOR_MODE
+                    value = 0x40
+                    test  = Set
+                }
+                map {
+                    name  = PRODUCT_SCALE
+                    value = 0x80
+                    test  = Set
+                }
+            }
+        }
+        field {
+            name         = previous_billing
+            quantity     = PointInTime
+            display_unit = date
+            info         = 'Last month billing date.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = Date
+                storage_nr       = 8
+            }
+        }
+        field {
+            name     = previous_billing_consumption
+            quantity = HCA
+            info     = 'HCA at last month billing date.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = HeatCostAllocation
+                storage_nr       = 8
+            }
+        }
+    }
+    tests {
+        test {
+            args     = 'ZennerHCA zennerhca 80081812 DC7C9EF16126348CDFD52CE6567A9FFD'
+            telegram = 5e44496a12180880fc087a7040500584a63344b5af071a23539c6020cbba81fa6adcfe738682a0924d4f6f7d89d165c9144e4918cdc2d5f86be7b5bd8143528273accc131a13d0b100f2540dc1f2c379dde4984236d3bca424113cf0ee1bbd
+            json     = '{"_":"telegram","media":"heat cost allocation","meter":"zennerhca","name":"ZennerHCA","id":"80081812","consumption_hca":339,"previous_billing_consumption_hca":272,"previous_billing_date":"2026-02-01","status":"DUAL_SENSOR_MODE","target_date":"2026-01-01","target_hca":627,"timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'ZennerHCA;80081812;339;2026-01-01;627;DUAL_SENSOR_MODE;1111-11-11 11:11.11'
+        }
+        test {
+            args     = 'ZennerHCA2 zennerhca 80081907 750381240D0A7E371D4CB8D1869D8F9B'
+            telegram = 5e44496a07190880fc087a714050058922c9598bdddfbb5bbf44b9d54830830eb6be3ba8117dfc88ae1b251837dfecb04e071554125366ef9d72dce87c9a099ad0cd9bf70f4a2e9c4c58d780444219c3f546c887fbc2d93c272e314f925473
+            json     = '{"_":"telegram","media":"heat cost allocation","meter":"zennerhca","name":"ZennerHCA2","id":"80081907","consumption_hca":0,"previous_billing_consumption_hca":0,"previous_billing_date":"2026-02-01","status":"DUAL_SENSOR_MODE","target_date":"2026-01-01","target_hca":2,"timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'ZennerHCA2;80081907;0;2026-01-01;2;DUAL_SENSOR_MODE;1111-11-11 11:11.11'
+        }
+    }
+}
