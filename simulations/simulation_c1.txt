@@ -17,7 +17,7 @@ telegram=|21442D2C776655441B168D2079CC8C3A20_F4307912C40DFF00002F4E00003D010203|
 # Test FlowIQ2200 C1 telegrams
 
 telegram=|4D44372C525252523A168D203894DF7920F93278_04FF23000000000413AEAC0000441364A80000426C812A023B000092013BEF01A2013B000006FF1B067000097000A1015B0C91015B14A1016713|
-{"_":"telegram","media":"cold water","meter":"kamwater","name":"MyWater","id":"52525252","external_temperature_c":19,"flow_m3h":0,"flow_temperature_c":12,"max_flow_m3h":0.495,"max_flow_temperature_c":20,"min_external_temperature_c":19,"min_flow_m3h":0,"min_flow_temperature_c":12,"target_m3":43.108,"target_date":"2020-10-01","total_m3":44.206,"status":"OK","timestamp":"1111-11-11T11:11:11Z"}
+{"_":"telegram","media":"cold water","meter":"kamwater","name":"MyWater","id":"52525252","external_temperature_c":19,"flow_m3h":0,"flow_temperature_c":12,"max_flow_m3h":0.495,"max_flow_temperature_c":20,"external_temperature_c":19,"min_flow_m3h":0,"min_flow_temperature_c":12,"target_m3":43.108,"target_date":"2020-10-01","total_m3":44.206,"status":"OK","timestamp":"1111-11-11T11:11:11Z"}
 
 # Test QCaloric C1 telegrams
 
