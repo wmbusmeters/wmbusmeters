@@ -34,9 +34,9 @@ TESTNAME="Test analyze encrypted (no-key) ctr full telegram"
 TESTRESULT="ERROR"
 
 cat > $TEST/test_expected.txt <<EOF
-Auto driver    : multical21
+Auto driver    : kamwater
 Similar driver : unknown 00/00
-Using driver   : multical21 00/00
+Using driver   : kamwater 00/00
 000   : 2a length (42 bytes)
 001   : 44 dll-c (from meter SND_NR)
 002   : 2d2c dll-mfct (KAM)
@@ -53,7 +53,7 @@ Using driver   : multical21 00/00
 {
     "_":"telegram",
     "media":"cold water",
-    "meter":"multical21",
+    "meter":"kamwater",
     "name":"",
     "id":"76348799",
     "timestamp":"1111-11-11T11:11:11Z"
@@ -72,9 +72,9 @@ TESTNAME="Test analyze encrypted (no-key) ctr compact telegram"
 TESTRESULT="ERROR"
 
 cat > $TEST/test_expected.txt <<EOF
-Auto driver    : multical21
+Auto driver    : kamwater
 Similar driver : unknown 00/00
-Using driver   : multical21 00/00
+Using driver   : kamwater 00/00
 000   : 23 length (35 bytes)
 001   : 44 dll-c (from meter SND_NR)
 002   : 2d2c dll-mfct (KAM)
@@ -91,7 +91,7 @@ Using driver   : multical21 00/00
 {
     "_":"telegram",
     "media":"cold water",
-    "meter":"multical21",
+    "meter":"kamwater",
     "name":"",
     "id":"76348799",
     "timestamp":"1111-11-11T11:11:11Z"
@@ -110,10 +110,10 @@ TESTNAME="Test analyze encrypted (with-key) ctr full telegram"
 TESTRESULT="ERROR"
 
 cat > $TEST/test_expected.txt <<EOF
-Auto driver    : multical21
-Similar driver : multical21 12/12
-Using driver   : multical21 00/00
-000   : 2a length (42 bytes)
+Auto driver    : kamwater
+Similar driver : kamwater 12/12
+Using driver   : kamwater 00/00
+000   : 2a length (42 bytes)(OK)
 001   : 44 dll-c (from meter SND_NR)
 002   : 2d2c dll-mfct (KAM)
 004   : 99873476 dll-id (76348799)
@@ -128,7 +128,7 @@ Using driver   : multical21 00/00
 020   : 02 dif (16 Bit Integer/Binary Instantaneous value)
 021   : FF vif (Manufacturer specific)
 022   : 20 vife (?)
-023 C!: 7100 ("status":"DRY") ("current_status":"DRY") ("time_dry":"22-31 days") ("time_reversed":"") ("time_leaking":"") ("time_bursting":"")
+023 C!: 7100 ("status16":"DRY") ("current_status":"DRY") ("time_dry":"22-31 days") ("time_reversed":"") ("time_leaking":"") ("time_bursting":"")
 025   : 04 dif (32 Bit Integer/Binary Instantaneous value)
 026   : 13 vif (Volume l)
 027 C!: 08190000 ("total_m3":6.408)
@@ -140,16 +140,17 @@ Using driver   : multical21 00/00
 039 C!: 7F ("flow_temperature_c":127)
 040   : 61 dif (8 Bit Integer/Binary Minimum value storagenr=1)
 041   : 67 vif (External temperature °C)
-042 C!: 13 ("external_temperature_c":19)
+042 C!: 13 ("external_temperature_c":19) ("min_external_temperature_c":19)
 
 {
     "_":"telegram",
     "media":"cold water",
-    "meter":"multical21",
+    "meter":"kamwater",
     "name":"",
     "id":"76348799",
     "external_temperature_c":19,
     "flow_temperature_c":127,
+    "min_external_temperature_c":19,
     "target_m3":6.408,
     "total_m3":6.408,
     "current_status":"DRY",
@@ -174,10 +175,10 @@ TESTNAME="Test analyze encrypted (no-key) ctr compact telegram"
 TESTRESULT="ERROR"
 
 cat > $TEST/test_expected.txt <<EOF
-Auto driver    : multical21
-Similar driver : multical21 12/12
-Using driver   : multical21 00/00
-000   : 23 length (35 bytes)
+Auto driver    : kamwater
+Similar driver : kamwater 12/12
+Using driver   : kamwater 00/00
+000   : 23 length (35 bytes)(OK)
 001   : 44 dll-c (from meter SND_NR)
 002   : 2d2c dll-mfct (KAM)
 004   : 99873476 dll-id (76348799)
@@ -191,20 +192,21 @@ Using driver   : multical21 00/00
 019   : 79 tpl-ci-field (EN 13757-3 Application Layer with Compact frame (no tplh))
 020   : eda8 format signature
 022   : e475 data crc
-024 C!: 7100 ("status":"DRY") ("current_status":"DRY") ("time_dry":"22-31 days") ("time_reversed":"") ("time_leaking":"") ("time_bursting":"")
+024 C!: 7100 ("status16":"DRY") ("current_status":"DRY") ("time_dry":"22-31 days") ("time_reversed":"") ("time_leaking":"") ("time_bursting":"")
 026 C!: 09190000 ("total_m3":6.409)
 030 C!: 09190000 ("target_m3":6.409)
 034 C!: 7F ("flow_temperature_c":127)
-035 C!: 16 ("external_temperature_c":22)
+035 C!: 16 ("external_temperature_c":22) ("min_external_temperature_c":22)
 
 {
     "_":"telegram",
     "media":"cold water",
-    "meter":"multical21",
+    "meter":"kamwater",
     "name":"",
     "id":"76348799",
     "external_temperature_c":22,
     "flow_temperature_c":127,
+    "min_external_temperature_c":22,
     "target_m3":6.409,
     "total_m3":6.409,
     "current_status":"DRY",

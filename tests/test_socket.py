@@ -34,7 +34,7 @@ TEST_CASES = [
             "key": "28F64A24988064A079AA2C807D6102AE",
         },
         {
-            "meter": "multical21",
+            "meter": "kamwater",
             "id": "76348799",
             "media": "cold water",
             "total_m3": 6.408,
@@ -109,7 +109,7 @@ TEST_CASES = [
             "driver": "multical21",
         },
         {
-            "meter": "multical21",
+            "meter": "kamwater",
             "id": "76348799",
             "total_m3": 6.408,
         },
@@ -160,7 +160,7 @@ TEST_CASES = [
             "format": "wmbus",
         },
         {
-            "meter": "multical21",
+            "meter": "kamwater",
             "id": "76348799",
             "total_m3": 6.408,
         },
@@ -176,7 +176,7 @@ TEST_CASES = [
                 isinstance(v, list)
                 and len(v) > 10
                 and all(isinstance(d, dict) and "name" in d and "type" in d for d in v)
-                and any(d["name"] == "multical21" for d in v)
+                and any(d["name"] == "kamwater" for d in v)
             ),
         },
     ),
