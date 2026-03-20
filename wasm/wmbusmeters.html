@@ -1,0 +1,1248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>wmbusmeters</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+    :root {
+        --black: #0a0a0a;
+        --bg: #0f1114;
+        --surface: #161a1f;
+        --surface2: #1c2128;
+        --border: #2a3038;
+        --border-focus: #4a9;
+        --text: #c8cdd3;
+        --text-dim: #6a737d;
+        --text-bright: #e6eaef;
+        --green: #3fb950;
+        --green-dim: #238636;
+        --green-glow: rgba(63, 185, 80, 0.15);
+        --cyan: #58a6ff;
+        --amber: #d29922;
+        --red: #f85149;
+        --violet: #bc8cff;
+        --mono: 'IBM Plex Mono', 'Menlo', monospace;
+        --sans: 'DM Sans', system-ui, sans-serif;
+        --radius: 6px;
+    }
+
+    * { margin:0; padding:0; box-sizing:border-box; }
+
+    body {
+        font-family: var(--sans);
+        background: var(--bg);
+        color: var(--text);
+        height: 100vh;
+        display: grid;
+        grid-template-columns: 320px 1fr;
+        grid-template-rows: auto 1fr auto;
+        overflow: hidden;
+    }
+
+    /* ── Top Bar ─────────────────────────────────────────── */
+    .topbar {
+        grid-column: 1 / -1;
+        background: var(--black);
+        border-bottom: 1px solid var(--border);
+        padding: 0 20px;
+        height: 48px;
+        display: flex;
+        align-items: center;
+        gap: 16px;
+    }
+
+    .topbar-logo {
+        font-family: var(--mono);
+        font-weight: 600;
+        font-size: 14px;
+        color: var(--green);
+        letter-spacing: -0.02em;
+        white-space: nowrap;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .topbar-logo .ver {
+        font-weight: 400;
+        font-size: 11px;
+        color: var(--text-dim);
+    }
+
+    .topbar-divider {
+        width: 1px;
+        height: 24px;
+        background: var(--border);
+    }
+
+    .topbar-group {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .topbar-label {
+        font-size: 11px;
+        color: var(--text-dim);
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+    }
+
+    .topbar-status {
+        margin-left: auto;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-family: var(--mono);
+        font-size: 12px;
+        color: var(--text-dim);
+    }
+
+    .dot {
+        width: 8px; height: 8px;
+        border-radius: 50%;
+        background: var(--text-dim);
+        flex-shrink: 0;
+    }
+
+    .dot.on {
+        background: var(--green);
+        box-shadow: 0 0 8px var(--green);
+        animation: blink 2s infinite;
+    }
+
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.4} }
+
+    /* ── Shared Controls ─────────────────────────────────── */
+    select, input[type="text"] {
+        font-family: var(--mono);
+        font-size: 12px;
+        padding: 5px 8px;
+        background: var(--surface);
+        color: var(--text);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        outline: none;
+    }
+    select:focus, input:focus { border-color: var(--border-focus); }
+
+    button {
+        font-family: var(--sans);
+        font-size: 12px;
+        font-weight: 500;
+        padding: 5px 12px;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        background: var(--surface);
+        color: var(--text);
+        cursor: pointer;
+        transition: all .15s;
+        white-space: nowrap;
+    }
+    button:hover { background: var(--surface2); border-color: var(--text-dim); }
+    button:disabled { opacity:.35; cursor:not-allowed; }
+    button.primary { background: var(--green-dim); border-color: var(--green-dim); color: #fff; }
+    button.primary:hover { background: var(--green); }
+    button.danger { border-color: var(--red); color: var(--red); }
+    button.danger:hover { background: rgba(248,81,73,.1); }
+
+    /* ── Sidebar ─────────────────────────────────────────── */
+    .sidebar {
+        background: var(--surface);
+        border-right: 1px solid var(--border);
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .sidebar-section {
+        padding: 16px;
+        border-bottom: 1px solid var(--border);
+    }
+
+    .sidebar-section:last-child { border-bottom: none; }
+
+    .section-title {
+        font-size: 10px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: var(--text-dim);
+        margin-bottom: 10px;
+    }
+
+    .field-row {
+        display: flex;
+        gap: 6px;
+        align-items: center;
+        margin-bottom: 6px;
+    }
+
+    .field-row label {
+        font-size: 11px;
+        color: var(--text-dim);
+        min-width: 52px;
+        text-align: right;
+    }
+
+    .field-row input, .field-row select {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .meter-list {
+        font-family: var(--mono);
+        font-size: 11px;
+    }
+
+    .meter-item {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 8px;
+        border-radius: var(--radius);
+        background: var(--bg);
+        margin-bottom: 4px;
+        border: 1px solid var(--border);
+    }
+
+    .meter-item .name { color: var(--cyan); font-weight: 500; }
+    .meter-item .driver { color: var(--violet); }
+    .meter-item .id { color: var(--amber); flex:1; }
+    .meter-item .key { color: var(--text-dim); font-size:9px; }
+
+    .meter-item .remove {
+        background: none; border: none; color: var(--text-dim); cursor: pointer;
+        font-size: 14px; padding: 0 2px; line-height: 1;
+    }
+    .meter-item .remove:hover { color: var(--red); }
+
+    .toggle-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 4px 0;
+    }
+
+    .toggle-row span {
+        font-size: 12px;
+        color: var(--text);
+    }
+
+    .toggle {
+        position: relative;
+        width: 32px; height: 18px;
+        background: var(--border);
+        border-radius: 9px;
+        cursor: pointer;
+        transition: background .2s;
+    }
+    .toggle.on { background: var(--green-dim); }
+    .toggle::after {
+        content: '';
+        position: absolute;
+        top: 2px; left: 2px;
+        width: 14px; height: 14px;
+        background: var(--text);
+        border-radius: 50%;
+        transition: transform .2s;
+    }
+    .toggle.on::after { transform: translateX(14px); }
+
+    /* ── Terminal ─────────────────────────────────────────── */
+    .terminal-wrap {
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .terminal-toolbar {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 6px 16px;
+        background: var(--surface);
+        border-bottom: 1px solid var(--border);
+        font-size: 11px;
+        flex-shrink: 0;
+    }
+
+    .terminal-toolbar .tab {
+        padding: 4px 10px;
+        border-radius: var(--radius);
+        cursor: pointer;
+        color: var(--text-dim);
+        font-weight: 500;
+    }
+    .terminal-toolbar .tab.active { background: var(--bg); color: var(--green); }
+    .terminal-toolbar .tab:hover { color: var(--text); }
+
+    .terminal {
+        flex: 1;
+        background: var(--black);
+        overflow-y: auto;
+        padding: 12px 16px;
+        font-family: var(--mono);
+        font-size: 12.5px;
+        line-height: 1.65;
+        color: var(--text);
+        position: relative;
+    }
+
+    /* Scanline overlay */
+    .terminal::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        background: repeating-linear-gradient(
+            0deg,
+            transparent,
+            transparent 2px,
+            rgba(0,0,0,.04) 2px,
+            rgba(0,0,0,.04) 4px
+        );
+        z-index: 1;
+    }
+
+    .term-line { padding: 1px 0; word-break: break-all; position: relative; z-index: 2; }
+    .term-line.dim { color: var(--text-dim); }
+    .term-line.green { color: var(--green); }
+    .term-line.cyan { color: var(--cyan); }
+    .term-line.amber { color: var(--amber); }
+    .term-line.red { color: var(--red); }
+    .term-line.violet { color: var(--violet); }
+    .term-line.bright { color: var(--text-bright); }
+    .term-line.json { color: var(--text-dim); white-space: pre-wrap; }
+    .term-line.hr { color: var(--green); font-weight: 500; }
+
+    /* ── Status Bar ──────────────────────────────────────── */
+    .statusbar {
+        grid-column: 1 / -1;
+        background: var(--green-dim);
+        color: #fff;
+        font-family: var(--mono);
+        font-size: 11px;
+        padding: 0 16px;
+        height: 24px;
+        display: flex;
+        align-items: center;
+        gap: 20px;
+    }
+
+    .statusbar.disconnected {
+        background: var(--surface);
+        color: var(--text-dim);
+    }
+
+    .statusbar span { white-space: nowrap; }
+
+    /* ── Scrollbar ───────────────────────────────────────── */
+    ::-webkit-scrollbar { width: 8px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--text-dim); }
+
+    /* ── Responsive ──────────────────────────────────────── */
+    @media (max-width: 800px) {
+        body { grid-template-columns: 1fr; }
+        .sidebar { display: none; }
+    }
+</style>
+</head>
+<body>
+
+<!-- ── Top Bar ────────────────────────────────────────────────── -->
+<div class="topbar">
+    <div class="topbar-logo">
+        <span style="font-size:18px">⚡</span>
+        wmbusmeters
+        <span class="ver" id="wasmVersion"></span>
+    </div>
+
+    <div class="topbar-divider"></div>
+
+    <div class="topbar-group">
+        <button class="primary" id="btnConnect" onclick="autoDetect()">⚡ Auto Detect</button>
+        <div class="topbar-divider"></div>
+        <span class="topbar-label">Manual</span>
+        <select id="deviceProto" style="width:100px;">
+            <option value="amb8465">AMB8465</option>
+            <option value="tarvos2">Tarvos-II</option>
+            <option value="raw">RAW (AMB8665)</option>
+        </select>
+        <select id="baudRate" style="width:72px;">
+            <option value="9600" selected>9600</option>
+            <option value="19200">19200</option>
+            <option value="38400">38400</option>
+            <option value="57600">57600</option>
+            <option value="115200">115200</option>
+        </select>
+        <button id="btnManualConnect" onclick="doConnect()">Connect</button>
+        <button class="danger" id="btnDisconnect" onclick="doDisconnect()" disabled>Disconnect</button>
+    </div>
+
+    <div class="topbar-status">
+        <div class="dot" id="wasmDot"></div>
+        <span id="wasmLabel">loading…</span>
+        <div class="topbar-divider"></div>
+        <div class="dot" id="connDot"></div>
+        <span id="connLabel">disconnected</span>
+    </div>
+</div>
+
+<!-- ── Sidebar ────────────────────────────────────────────────── -->
+<div class="sidebar">
+
+    <!-- Meter Definitions -->
+    <div class="sidebar-section">
+        <div class="section-title">Meters</div>
+        <div class="field-row">
+            <label>Name</label>
+            <input type="text" id="mName" placeholder="MyMeter" />
+        </div>
+        <div class="field-row">
+            <label>Driver</label>
+            <select id="mDriver"><option value="auto">auto</option></select>
+        </div>
+        <div class="field-row">
+            <label>ID</label>
+            <input type="text" id="mId" placeholder="12345678 or *" />
+        </div>
+        <div class="field-row">
+            <label>Key</label>
+            <input type="text" id="mKey" placeholder="AES-128 hex (optional)" />
+        </div>
+        <div class="field-row" style="justify-content:flex-end;">
+            <button onclick="addMeter()">+ Add Meter</button>
+        </div>
+        <div class="meter-list" id="meterList">
+            <div style="color:var(--text-dim); font-size:11px; padding:8px 0; text-align:center;">
+                No meters — all telegrams will be printed
+            </div>
+        </div>
+    </div>
+
+    <!-- Output Options -->
+    <div class="sidebar-section">
+        <div class="section-title">Output</div>
+        <div class="field-row">
+            <label>Format</label>
+            <select id="optFormat">
+                <option value="json" selected>JSON</option>
+                <option value="fields">Fields</option>
+                <option value="hr">Human Readable</option>
+            </select>
+        </div>
+        <div class="toggle-row">
+            <span>Pretty JSON</span>
+            <div class="toggle on" id="optPretty" onclick="toggleOpt(this)"></div>
+        </div>
+        <div class="toggle-row">
+            <span>Verbose</span>
+            <div class="toggle" id="optVerbose" onclick="toggleOpt(this)"></div>
+        </div>
+        <div class="toggle-row">
+            <span>Log telegrams</span>
+            <div class="toggle" id="optLogTelegrams" onclick="toggleOpt(this)"></div>
+        </div>
+    </div>
+
+    <!-- Link Mode -->
+    <div class="sidebar-section">
+        <div class="section-title">Link Mode</div>
+        <div class="field-row">
+            <select id="linkMode" style="flex:1">
+                <option value="0x09">C2/T2-Other (C1+T1)</option>
+                <option value="0x08">T2-Other (T1)</option>
+                <option value="0x0e">C2-Other (C1)</option>
+                <option value="0x03">S2 (S1/S1-m)</option>
+            </select>
+            <button onclick="setLinkMode()" id="btnSetMode" disabled>Set</button>
+        </div>
+    </div>
+
+    <!-- Device Commands -->
+    <div class="sidebar-section">
+        <div class="section-title">Device Commands</div>
+        <div style="display:flex; gap:4px; flex-wrap:wrap;">
+            <button onclick="sendCmd('fw')" id="btnFw" disabled>FW Version</button>
+            <button onclick="sendCmd('serial')" id="btnSerial" disabled>Serial No</button>
+            <button onclick="sendCmd('info')" id="btnInfo" disabled>Get Config</button>
+            <button onclick="sendCmd('reset')" id="btnReset" disabled>Reset</button>
+        </div>
+        <div style="margin-top:8px;">
+            <div class="section-title">Write Register</div>
+            <div class="field-row">
+                <label>Addr</label>
+                <input type="text" id="regAddr" placeholder="45" maxlength="2" style="width:50px;" />
+                <label>Val</label>
+                <input type="text" id="regVal" placeholder="09" maxlength="2" style="width:50px;" />
+                <button onclick="writeReg()" id="btnWriteReg" disabled>Write</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="sidebar-section" style="margin-top:auto;">
+        <div style="display:flex; gap:4px;">
+            <button onclick="clearTerminal()" style="flex:1">Clear</button>
+            <button onclick="exportData()" style="flex:1">Export JSON</button>
+        </div>
+    </div>
+</div>
+
+<!-- ── Terminal ───────────────────────────────────────────────── -->
+<div class="terminal-wrap">
+    <div class="terminal-toolbar">
+        <div class="tab active" data-view="output">Output</div>
+        <div class="tab" data-view="raw">Raw Bytes</div>
+        <div style="margin-left:auto; color:var(--text-dim); font-family:var(--mono); font-size:11px;">
+            <span id="termTelegrams">0</span> telegrams
+        </div>
+    </div>
+    <div class="terminal" id="terminal"></div>
+</div>
+
+<!-- ── Status Bar ────────────────────────────────────────────── -->
+<div class="statusbar disconnected" id="statusbar">
+    <span id="sbDevice">No device</span>
+    <span id="sbBytes">0 bytes</span>
+    <span id="sbTelegrams">0 telegrams</span>
+    <span id="sbUptime">--:--</span>
+    <span style="margin-left:auto;" id="sbWasm">WASM loading…</span>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════════════════
+// wmbusmeters Web Terminal
+// Alles Protokoll + Dekodierung in WASM, JS nur UI
+// ═══════════════════════════════════════════════════════════════════════════
+
+// ── WASM + Bridge ──────────────────────────────────────────────────────────
+let wasmModule = null, wasmReady = false, wm = {};
+const bridge = { ports: [] };
+
+globalThis.getDeviceCount = () => bridge.ports.length;
+
+globalThis.openDeviceFull = (idx, baud, databits, stopbits, parity) => {
+    // Wird bereits in autoDetect/manualConnect geöffnet, daher hier nichts tun
+    console.log('openDeviceFull', idx, baud, databits, stopbits, parity);
+};
+
+globalThis.writeSerial = (idx, ptr, len) => {
+    const dev = bridge.ports[idx];
+    if (!dev?.writer) return;
+    const data = new Uint8Array(wasmModule.HEAPU8.buffer, ptr, len);
+    dev.writer.write(data).catch(e => termPrint('ERROR: bridge write error - ' + e.message, 'red'));
+};
+
+globalThis.closeSerialPort = async function(index) {
+    termPrint('closeSerialPort - ' + index, 'dim');
+    const dev = bridge.ports[index];
+    if (dev) {
+        if (dev.reader) {
+            dev.reading = createDeferredPromise();
+            try {
+                await dev.reading.promise;
+                dev.reader.releaseLock();
+                dev.reader.cancel()
+            } catch (e) {
+                termPrint('ERROR: reader cancel error - ' + e.message, 'red');
+            }
+            // try { dev.reader.releaseLock(); } catch(e) { termPrint('ERROR: reader releaseLock error - ' + e.message, 'red') }
+        }
+            // try { dev.writer.releaseLock(); } catch(e) { termPrint('ERROR: writer releaseLock error - ' + e.message, 'red') }
+        if (dev.port) {
+            await dev.port.close().catch(e => termPrint('ERROR: port close error - ' + e.message, 'red'));
+        }
+    }
+};
+
+
+async function initWasm() {
+    try {
+        const s = document.createElement('script');
+        s.src = 'dist/wmbusmeters.js';
+        document.head.appendChild(s);
+        await new Promise((ok, no) => { s.onload=ok; s.onerror=()=>no(new Error('dist/wmbusmeters.js not found')); });
+        wasmModule = await WMBusMeters();
+
+        wm.free        = wasmModule.cwrap('wm_free_result',        null,     []);
+        wm.version     = wasmModule.cwrap('wm_version',            'string', []);
+        wm.listDrivers = wasmModule.cwrap('wm_list_drivers',       'string', []);
+        wm.decode      = wasmModule.cwrap('wm_decode',             'string', ['string','string','string']);
+        wm.serialOpen  = wasmModule.cwrap('wm_serial_open',        'string', ['number','number','number','number','number']);
+        wm.serialClose = wasmModule.cwrap('wm_serial_close',       null,     ['number']);
+        wm.configProto = wasmModule.cwrap('wm_configure_protocol', 'string', ['number','string']);
+        wm.sendCmd     = wasmModule.cwrap('wm_send_command',       'string', ['number','number','string']);
+        wm.process     = wasmModule.cwrap('wm_process_buffer',     'string', ['number','string','string']);
+        wm.onData      = wasmModule.cwrap('serial_on_data',        null,     ['number','number','number']);
+        wm.detectDeviceAtBaud = wasmModule.cwrap('wm_detect_device_at_baud', 'string', ['number', 'number'], { async: true });
+
+        wasmReady = true;
+        const ver = wm.version();
+        document.getElementById('wasmVersion').textContent = ver;
+        document.getElementById('wasmDot').classList.add('on');
+        document.getElementById('wasmLabel').textContent = 'ready';
+        document.getElementById('sbWasm').textContent = ver;
+        termPrint(`${ver}`, 'green');
+        termPrint('wmbusmeters compiled to WebAssembly — ready.', 'dim');
+        termPrint('', 'dim');
+
+        // Fill driver dropdown
+        try {
+            const r = JSON.parse(wm.listDrivers()); wm.free();
+            if (r.ok) {
+                const sel = document.getElementById('mDriver');
+                r.drivers.forEach(d => { const o = document.createElement('option'); o.value=o.textContent=d; sel.appendChild(o); });
+            }
+        } catch(e){}
+
+    } catch(e) {
+        document.getElementById('wasmLabel').textContent = 'error';
+        document.getElementById('sbWasm').textContent = 'WASM error: ' + e.message;
+        termPrint('ERROR: ' + e.message, 'red');
+    }
+}
+
+function createDeferredPromise() {
+  let res;
+  let rej;
+  const promise = new Promise((resolve, reject) => {
+    res = resolve
+    rej = reject
+  })
+
+  return { promise, resolve: res, reject: rej };
+}
+
+
+async function bridgeReadLoop(idx) {
+    const dev = bridge.ports[idx];
+    if (!dev || !dev.port) return;
+    const reader = dev.port.readable.getReader();
+    dev.reader = reader;
+    dev.reading = null;
+    try {
+        while (dev.reading === null) {
+            const { value, done } = await reader.read();
+            if (done) break;
+            if (!value?.length) continue;
+            const ptr = wasmModule._malloc(value.length);
+            wasmModule.HEAPU8.set(value, ptr);
+            wm.onData(idx, ptr, value.length);
+            wasmModule._free(ptr);
+            totalBytes += value.length;
+            if (activeView === 'raw') {
+                termPrint('◀ ' + Array.from(value).map(b=>b.toString(16).padStart(2,'0').toUpperCase()).join(' '), 'dim');
+            }
+        }
+        this.reading.resolve();
+    } catch(e) {
+        this.reading?.reject(e);
+    } finally {
+        try { reader.releaseLock(); } catch(e) {}
+    }
+}
+
+// ── State ──────────────────────────────────────────────────────────────────
+let isConnected = false, deviceIndex = null, pollInterval = null;
+let totalBytes = 0, totalTelegrams = 0;
+let connectionStart = null, uptimeInterval = null;
+let meters = [];      // { name, driver, id, key }
+let allResults = [];  // for export
+let activeView = 'output';
+
+// CMD constants per protocol
+const CMDS = {
+    amb8465:  { SET_MODE:0x04, RESET:0x05, SET:0x09, GET:0x0A, SERIAL:0x0B, FW:0x0C, FACTORY:0x11 },
+    tarvos2:  { SET_MODE:0x04, RESET:0x05, SET:0x09, GET:0x0A, SERIAL:0x0B, FW:0x0C, FACTORY:0x12 },
+    raw:      {}
+};
+
+function currentProto() { return document.getElementById('deviceProto').value; }
+function currentCmds() { return CMDS[currentProto()] || {}; }
+
+// ── Terminal Output ────────────────────────────────────────────────────────
+const term = document.getElementById('terminal');
+
+function termPrint(text, cls = '') {
+    const el = document.createElement('div');
+    el.className = 'term-line' + (cls ? ' ' + cls : '');
+    el.textContent = text;
+    term.appendChild(el);
+    term.scrollTop = term.scrollHeight;
+}
+
+function termPrintHtml(html, cls = '') {
+    const el = document.createElement('div');
+    el.className = 'term-line' + (cls ? ' ' + cls : '');
+    el.innerHTML = html;
+    term.appendChild(el);
+    term.scrollTop = term.scrollHeight;
+}
+
+function clearTerminal() {
+    term.innerHTML = '';
+    totalTelegrams = 0;
+    totalBytes = 0;
+    allResults = [];
+    updateStatus();
+    termPrint('Terminal cleared.', 'dim');
+}
+
+// ── Tab Switching ──────────────────────────────────────────────────────────
+document.querySelectorAll('.terminal-toolbar .tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+        document.querySelector('.tab.active').classList.remove('active');
+        tab.classList.add('active');
+        activeView = tab.dataset.view;
+    });
+});
+
+// ── Auto-Detection (WASM-basiert, Zweiphasen) ─────────────────────────────
+// Phase 1: wm_detect_send_probe() sendet Probes für AMB8465/3665, IM871A, CUL, RC1180
+// Phase 2: wm_detect_analyze() liest rxBuffer und matcht bekannte Antwort-Patterns
+// Spiegelt detectAMB8465AMB3665(), detectIM871AIM170A(), detectCUL(), detectRC1180()
+
+// Baudraten ohne 38400 (CUL)
+const BAUD_CANDIDATES = [9600, 19200, 57600, 115200];
+
+// Hilfsfunktion für Promise mit Timeout
+function withTimeout(promise, ms, timeoutError = new Error('Timeout')) {
+    let timer;
+    return Promise.race([
+        promise,
+        new Promise((_, reject) => {
+            timer = setTimeout(() => reject(timeoutError), ms);
+        })
+    ]).finally(() => clearTimeout(timer));
+}
+
+async function autoDetect() {
+    if (!wasmReady) { termPrint('WASM not ready.', 'red'); return; }
+
+    termPrint('(detect) requesting serial port…', 'dim');
+    let serialPort;
+    try {
+        serialPort = await navigator.serial.requestPort();
+    } catch(e) {
+        termPrint('(detect) cancelled.', 'dim');
+        return;
+    }
+
+    const info = serialPort.getInfo();
+    if (info.usbVendorId) {
+        const vid = '0x' + info.usbVendorId.toString(16).padStart(4,'0').toUpperCase();
+        const pid = '0x' + info.usbProductId.toString(16).padStart(4,'0').toUpperCase();
+        termPrint(`(detect) USB device: VID=${vid} PID=${pid}`, 'cyan');
+    }
+
+    for (const baud of BAUD_CANDIDATES) {
+        termPrint(`(detect) probing @ ${baud} baud…`, 'dim');
+        let idx = -1;
+        try {
+            await serialPort.open({ baudRate: baud, dataBits: 8, stopBits: 1, parity: 'none', flowControl: 'none' });
+
+            idx = bridge.ports.length;
+            const writer = serialPort.writable.getWriter();
+            bridge.ports.push({ port: serialPort, writer, reader: null, reading: false });
+
+            let r = JSON.parse(wm.serialOpen(idx, baud, 8, 1, 0));
+            wm.free();
+            if (!r.ok) throw new Error('serialOpen failed');
+
+            bridgeReadLoop(idx);
+
+            // Erkennung mit Timeout (3 Sekunden)
+            const detectPromise = new Promise(async (resolve, reject) => {
+                try {
+                    const result = await wm.detectDeviceAtBaud(idx, baud);
+                    wm.free();
+                    resolve(JSON.parse(result));
+                } catch(e) {
+                    reject(e);
+                }
+            });
+
+            const detectResult = await Promise.race([
+                detectPromise,
+                new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 5000))
+            ]);
+
+            if (detectResult.ok && detectResult.detected) {
+                termPrint(`(detect) ✓ ${detectResult.type} detected @ ${baud} baud (id: ${detectResult.device_id || '?'})`, 'green');
+
+                const typeToProto = {
+                    amb8465: 'amb8465',
+                    amb3665: 'amb8465',
+                    im871a: 'im871a',
+                    im170a: 'im871a',
+                    cul: 'raw',
+                    rc1180: 'raw',
+                    iu891a: 'raw'
+                };
+                const proto = typeToProto[detectResult.type] || 'raw';
+
+                document.getElementById('deviceProto').value = proto;
+                document.getElementById('baudRate').value = String(detectResult.baud || baud);
+
+                const cr = JSON.parse(wm.configProto(idx, proto));
+                wm.free();
+                if (!cr.ok) throw new Error('configProto failed');
+
+                deviceIndex = idx;
+                isConnected = true;
+                connectionStart = Date.now();
+                uptimeInterval = setInterval(updateUptime, 1000);
+
+                termPrint(`Connected: ${detectResult.type} (${proto}) @ ${baud} baud`, 'green');
+                if (meters.length === 0) termPrint('No meters configured. Printing all received telegrams.', 'amber');
+                termPrint('Listening for telegrams…', 'dim');
+                termPrint('', 'dim');
+
+                updateUI();
+                startPolling(idx);
+
+                if (proto !== 'raw') {
+                    const c = CMDS[proto];
+                    if (c?.FW) setTimeout(() => { if (isConnected) wasmSendCmd(c.FW); }, 300);
+                    if (c?.SERIAL) setTimeout(() => { if (isConnected) wasmSendCmd(c.SERIAL); }, 600);
+                }
+                return;
+            }
+
+            termPrint(`(detect)   no known device response`, 'dim');
+            // Aufräumen
+            const dev = bridge.ports[idx];
+            if (dev) {
+                dev.reading = false;
+                try { await dev.reader?.cancel(); } catch(e) {}
+                try { dev.writer?.releaseLock(); } catch(e) {}
+            }
+            wm.serialClose(idx);
+            await serialPort.close();
+            bridge.ports.pop();
+
+        } catch(e) {
+            termPrint(`(detect)   error: ${e.message}`, 'dim');
+            // Aufräumen
+            if (idx !== -1) {
+                const dev = bridge.ports[idx];
+                if (dev) {
+                    dev.reading = false;
+                    try { await dev.reader?.cancel(); } catch(e) {}
+                    try { dev.writer?.releaseLock(); } catch(e) {}
+                }
+                wm.serialClose(idx);
+                bridge.ports.pop();
+            }
+            try { await serialPort.close(); } catch(_) {}
+        }
+    }
+
+    termPrint('(detect) no command-mode device found at any baud rate.', 'amber');
+    termPrint('(detect) opening as RAW listener @ 115200…', 'amber');
+    try {
+        document.getElementById('deviceProto').value = 'raw';
+        document.getElementById('baudRate').value = '115200';
+        await serialPort.open({ baudRate:115200, dataBits:8, stopBits:1, parity:'none', flowControl:'none' });
+        const idx = bridge.ports.length;
+        const writer = serialPort.writable.getWriter();
+        bridge.ports.push({ port:serialPort, writer, reader:null, reading:false });
+        let r = JSON.parse(wm.serialOpen(idx, 115200, 8, 1, 0));
+        wm.free();
+        if (!r.ok) throw new Error('serialOpen failed');
+        bridgeReadLoop(idx);
+        r = JSON.parse(wm.configProto(idx, 'raw'));
+        wm.free();
+        if (!r.ok) throw new Error('configProto failed');
+        deviceIndex = idx;
+        isConnected = true;
+        connectionStart = Date.now();
+        uptimeInterval = setInterval(updateUptime, 1000);
+        termPrint('Connected: raw @ 115200 baud', 'green');
+        if (meters.length === 0) termPrint('No meters configured. Printing all received telegrams.', 'amber');
+        termPrint('Listening for telegrams…', 'dim');
+        termPrint('', 'dim');
+        updateUI();
+        startPolling(idx);
+    } catch(e) {
+        termPrint(`(detect) ✗ failed: ${e.message}. Try manual connect.`, 'red');
+    }
+}
+
+// Connect with a specific port (for RAW fallback)
+async function doConnectWith(serialPort, protoName, baud) {
+    try {
+        await serialPort.open({ baudRate: baud, dataBits: 8, stopBits: 1, parity: 'none', flowControl: 'none' });
+    } catch(e) {
+        // May already be open from detection
+        if (!e.message.includes('already open')) throw e;
+    }
+
+    const idx = bridge.ports.length;
+    bridge.ports.push({ port: serialPort, writer: serialPort.writable.getWriter(), reader: null, reading: false });
+
+    let r = JSON.parse(wm.serialOpen(idx, baud, 8, 1, 0)); wm.free();
+    if (!r.ok) { termPrint('serial open failed: ' + r.error, 'red'); return; }
+
+    r = JSON.parse(wm.configProto(idx, protoName)); wm.free();
+    if (!r.ok) { termPrint('protocol config failed: ' + r.error, 'red'); return; }
+
+    deviceIndex = idx;
+    isConnected = true;
+    connectionStart = Date.now();
+    uptimeInterval = setInterval(updateUptime, 1000);
+
+    termPrint(`Connected: ${protoName} @ ${baud} baud`, 'green');
+    if (meters.length === 0) termPrint('No meters configured. Printing all received telegrams.', 'amber');
+    else termPrint(`${meters.length} meter(s) configured.`, 'dim');
+    termPrint('Listening for telegrams…', 'dim');
+    termPrint('', 'dim');
+
+    updateUI();
+    bridgeReadLoop(idx);
+    startPolling(idx);
+
+    // Auto-probe device info
+    if (protoName !== 'raw') {
+        const c = CMDS[protoName];
+        setTimeout(() => { if (isConnected) wasmSendCmd(c.FW); }, 300);
+        setTimeout(() => { if (isConnected) wasmSendCmd(c.SERIAL); }, 600);
+    }
+}
+
+// ── Manual Connect (uses UI dropdowns) ─────────────────────────────────────
+async function doConnect() {
+    if (!wasmReady) { termPrint('WASM not ready.', 'red'); return; }
+    try {
+        const serialPort = await navigator.serial.requestPort();
+        const baud = parseInt(document.getElementById('baudRate').value);
+        const proto = currentProto();
+
+        await serialPort.open({ baudRate:baud, dataBits:8, stopBits:1, parity:'none', flowControl:'none' });
+        const idx = bridge.ports.length;
+        bridge.ports.push({ port:serialPort, writer:serialPort.writable.getWriter(), reader:null, reading:false });
+
+        let r = JSON.parse(wm.serialOpen(idx, baud, 8, 1, 0)); wm.free();
+        if (!r.ok) { termPrint('serial open failed: ' + r.error, 'red'); return; }
+
+        r = JSON.parse(wm.configProto(idx, proto)); wm.free();
+        if (!r.ok) { termPrint('protocol config failed: ' + r.error, 'red'); return; }
+
+        deviceIndex = idx;
+        isConnected = true;
+        connectionStart = Date.now();
+        uptimeInterval = setInterval(updateUptime, 1000);
+
+        termPrint(`Connected: ${proto} @ ${baud} baud`, 'green');
+        if (meters.length === 0) {
+            termPrint('No meters configured. Printing all received telegrams.', 'amber');
+        } else {
+            termPrint(`${meters.length} meter(s) configured.`, 'dim');
+        }
+        termPrint('Listening for telegrams…', 'dim');
+        termPrint('', 'dim');
+
+        updateUI();
+        bridgeReadLoop(idx);
+        startPolling(idx);
+
+        // Auto-probe
+        if (proto !== 'raw') {
+            const c = currentCmds();
+            setTimeout(() => { if (isConnected) wasmSendCmd(c.FW); }, 300);
+            setTimeout(() => { if (isConnected) wasmSendCmd(c.SERIAL); }, 600);
+        }
+    } catch(e) {
+        termPrint('Connection error: ' + e.message, 'red');
+    }
+}
+
+async function doDisconnect() {
+    isConnected = false;
+    if (wasmReady && deviceIndex !== null) wm.serialClose(deviceIndex);
+    const dev = bridge.ports[deviceIndex];
+    if (dev) {
+        dev.reading = false;
+        try { dev.reader?.cancel(); } catch(e) {}
+        try { dev.writer?.releaseLock(); } catch(e) {}
+        try { await dev.port.close(); } catch(e) {}
+    }
+    if (pollInterval) { clearInterval(pollInterval); pollInterval = null; }
+    if (uptimeInterval) { clearInterval(uptimeInterval); uptimeInterval = null; }
+    deviceIndex = null;
+    termPrint('Disconnected.', 'amber');
+    updateUI();
+}
+
+// ── Polling: WASM process_buffer ───────────────────────────────────────────
+function startPolling(idx) {
+    pollInterval = setInterval(() => {
+        if (!isConnected || !wasmReady) return;
+        try {
+            // Determine key: from matched meter or global
+            const globalKey = '';  // meters have individual keys
+            const raw = wm.process(idx, globalKey, 'auto');
+            wm.free();
+            const res = JSON.parse(raw);
+            if (!res.ok) return;
+
+            if (res.bytes > 0) updateStatus();
+
+            // Telegrams
+            for (const t of res.telegrams) {
+                totalTelegrams++;
+                allResults.push({ timestamp: new Date().toISOString(), ...t });
+
+                // Try to match a configured meter
+                const matched = matchMeter(t);
+                if (matched) {
+                    // Re-decode with the meter's key if it has one
+                    // (process_buffer already decoded, but we may need the key)
+                    if (matched.key && t.data?.error === 'decryption failed') {
+                        // Retry with key via wm_decode
+                        const hex = t.data?.hex || '';
+                        // TODO: re-decode with key — needs hex in output
+                    }
+                }
+
+                if (activeView === 'output') {
+                    renderTelegram(t, matched);
+                }
+
+                if (t.rssi_dbm !== undefined) {
+                    document.getElementById('sbTelegrams').textContent = `${totalTelegrams} telegrams`;
+                }
+                document.getElementById('termTelegrams').textContent = totalTelegrams;
+            }
+
+            // Command responses
+            for (const r of res.responses) {
+                renderResponse(r);
+            }
+        } catch(e) { /* ignore */ }
+    }, 25);
+}
+
+function matchMeter(t) {
+    if (meters.length === 0) return null;
+    const tid = t.id || (t.data && t.data.id) || '';
+    for (const m of meters) {
+        if (m.id === '*' || m.id === tid) return m;
+        if (m.driver !== 'auto' && t.driver === m.driver) return m;
+    }
+    return null;
+}
+
+// ── Render Telegram ────────────────────────────────────────────────────────
+function renderTelegram(t, matched) {
+    const fmt = document.getElementById('optFormat').value;
+    const pretty = document.getElementById('optPretty').classList.contains('on');
+    const verbose = document.getElementById('optVerbose').classList.contains('on');
+
+    const name = matched ? matched.name : '?';
+    const data = t.data || {};
+    const id = t.id || data.id || '?';
+    const driver = t.driver || '?';
+    const media = data.media || data.meter || '';
+
+    if (!t.ok) {
+        termPrint(`[${id}] ${t.error || 'decode failed'}`, 'amber');
+        return;
+    }
+
+    if (fmt === 'json') {
+        // JSON output (like wmbusmeters --json)
+        const output = pretty ? JSON.stringify(data, null, 2) : JSON.stringify(data);
+        termPrint(output, 'json');
+    }
+    else if (fmt === 'hr') {
+        // Human readable (like default wmbusmeters output)
+        let line = `${name};${id};${media};${driver}`;
+        const skipKeys = ['media','meter','name','id','timestamp','device','rssi_dbm'];
+        for (const [k, v] of Object.entries(data)) {
+            if (skipKeys.includes(k)) continue;
+            line += `;${v}`;
+        }
+        termPrint(line, 'hr');
+    }
+    else if (fmt === 'fields') {
+        // Fields output (tab separated)
+        let line = `${name}\t${id}\t${media}\t${driver}`;
+        const skipKeys = ['media','meter','name','id','timestamp','device','rssi_dbm'];
+        for (const [k, v] of Object.entries(data)) {
+            if (skipKeys.includes(k)) continue;
+            line += `\t${v}`;
+        }
+        termPrint(line, 'bright');
+    }
+
+    if (verbose) {
+        const rssi = t.rssi_dbm !== undefined ? ` rssi=${t.rssi_dbm.toFixed(0)}dBm` : '';
+        termPrint(`  (${driver}) ${id} ${media}${rssi}`, 'dim');
+    }
+}
+
+function renderResponse(r) {
+    const colors = { fw_version:'cyan', serial_no:'cyan', reset:'amber', set:'green',
+                     set_mode:'green', get:'dim', factory_reset:'red' };
+    const c = colors[r.type] || 'dim';
+    termPrint(`[${r.type}] ${r.info || r.payload}`, c);
+}
+
+// ── Send Commands ──────────────────────────────────────────────────────────
+function wasmSendCmd(cmd, payload = '') {
+    if (!wasmReady || deviceIndex === null) return;
+    try {
+        const r = JSON.parse(wm.sendCmd(deviceIndex, cmd, payload)); wm.free();
+        if (r.ok) {
+            const logTg = document.getElementById('optLogTelegrams').classList.contains('on');
+            if (logTg) termPrint(`→ ${r.frame}`, 'dim');
+        } else {
+            termPrint('send error: ' + r.error, 'red');
+        }
+    } catch(e) {}
+}
+
+function sendCmd(type) {
+    const c = currentCmds();
+    if (type === 'fw') wasmSendCmd(c.FW);
+    else if (type === 'serial') wasmSendCmd(c.SERIAL);
+    else if (type === 'info') { wasmSendCmd(c.SERIAL); setTimeout(()=>wasmSendCmd(c.GET, '0080'), 200); }
+    else if (type === 'reset') wasmSendCmd(c.RESET);
+}
+
+async function setLinkMode() {
+    const mode = parseInt(document.getElementById('linkMode').value);
+    wasmSendCmd(currentCmds().SET_MODE, mode.toString(16).padStart(2,'0'));
+    termPrint(`Link mode set to 0x${mode.toString(16).padStart(2,'0').toUpperCase()}`, 'green');
+}
+
+function writeReg() {
+    const a = parseInt(document.getElementById('regAddr').value, 16);
+    const v = parseInt(document.getElementById('regVal').value, 16);
+    if (isNaN(a) || isNaN(v)) { termPrint('Invalid hex', 'red'); return; }
+    wasmSendCmd(currentCmds().SET, a.toString(16).padStart(2,'0') + v.toString(16).padStart(2,'0'));
+}
+
+// ── Meter Management ───────────────────────────────────────────────────────
+function addMeter() {
+    const name   = document.getElementById('mName').value.trim() || 'Meter' + (meters.length+1);
+    const driver = document.getElementById('mDriver').value;
+    const id     = document.getElementById('mId').value.trim() || '*';
+    const key    = document.getElementById('mKey').value.trim();
+
+    meters.push({ name, driver, id, key });
+    renderMeterList();
+    termPrint(`(config) added meter: ${name} ${driver} ${id} ${key ? 'key=***' : 'nokey'}`, 'dim');
+
+    document.getElementById('mName').value = '';
+    document.getElementById('mId').value = '';
+    document.getElementById('mKey').value = '';
+}
+
+function removeMeter(i) {
+    const m = meters.splice(i, 1)[0];
+    renderMeterList();
+    termPrint(`(config) removed meter: ${m.name}`, 'dim');
+}
+
+function renderMeterList() {
+    const el = document.getElementById('meterList');
+    if (meters.length === 0) {
+        el.innerHTML = '<div style="color:var(--text-dim);font-size:11px;padding:8px 0;text-align:center;">No meters — all telegrams will be printed</div>';
+        return;
+    }
+    el.innerHTML = meters.map((m, i) => `
+        <div class="meter-item">
+            <span class="name">${esc(m.name)}</span>
+            <span class="driver">${esc(m.driver)}</span>
+            <span class="id">${esc(m.id)}</span>
+            ${m.key ? '<span class="key">🔑</span>' : ''}
+            <span class="remove" onclick="removeMeter(${i})">×</span>
+        </div>
+    `).join('');
+}
+
+function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+// ── Toggle Helper ──────────────────────────────────────────────────────────
+function toggleOpt(el) { el.classList.toggle('on'); }
+
+// ── Export ──────────────────────────────────────────────────────────────────
+function exportData() {
+    if (!allResults.length) { termPrint('Nothing to export.', 'amber'); return; }
+    const blob = new Blob([JSON.stringify(allResults, null, 2)], {type:'application/json'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `wmbusmeters-${new Date().toISOString().slice(0,19).replace(/:/g,'-')}.json`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+    termPrint(`Exported ${allResults.length} results.`, 'green');
+}
+
+// ── UI Updates ─────────────────────────────────────────────────────────────
+function updateUI() {
+    document.getElementById('btnConnect').disabled = isConnected;
+    document.getElementById('btnManualConnect').disabled = isConnected;
+    document.getElementById('btnDisconnect').disabled = !isConnected;
+    document.getElementById('deviceProto').disabled = isConnected;
+    document.getElementById('baudRate').disabled = isConnected;
+
+    const isRaw = currentProto() === 'raw';
+    ['btnSetMode','btnFw','btnSerial','btnInfo','btnReset','btnWriteReg'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) { el.disabled = !isConnected || isRaw; }
+    });
+
+    const connDot = document.getElementById('connDot');
+    const sb = document.getElementById('statusbar');
+    if (isConnected) {
+        connDot.classList.add('on');
+        document.getElementById('connLabel').textContent = currentProto();
+        sb.classList.remove('disconnected');
+        document.getElementById('sbDevice').textContent = `${currentProto()} @ ${document.getElementById('baudRate').value}`;
+    } else {
+        connDot.classList.remove('on');
+        document.getElementById('connLabel').textContent = 'disconnected';
+        sb.classList.add('disconnected');
+        document.getElementById('sbDevice').textContent = 'No device';
+    }
+    updateStatus();
+}
+
+function updateStatus() {
+    document.getElementById('sbBytes').textContent = `${totalBytes} bytes`;
+    document.getElementById('sbTelegrams').textContent = `${totalTelegrams} telegrams`;
+    document.getElementById('termTelegrams').textContent = totalTelegrams;
+}
+
+function updateUptime() {
+    if (!connectionStart) return;
+    const s = Math.floor((Date.now() - connectionStart) / 1000);
+    document.getElementById('sbUptime').textContent =
+        `${Math.floor(s/60).toString().padStart(2,'0')}:${(s%60).toString().padStart(2,'0')}`;
+}
+
+// ── Init ───────────────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+    updateUI();
+    if (!('serial' in navigator)) {
+        termPrint('Web Serial API not supported. Use Chrome or Edge.', 'red');
+        document.getElementById('btnConnect').disabled = true;
+    }
+    initWasm();
+});
+
+window.addEventListener('beforeunload', () => { if (isConnected) doDisconnect(); });
+</script>
+</body>
+</html>

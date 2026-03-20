@@ -1,0 +1,2 @@
+#define XMQ_NO_LIBXML
+#define XMQ_NO_XMQ_PRINTING
