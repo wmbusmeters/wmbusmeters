@@ -20,6 +20,23 @@
 
 #include<string>
 
+#include"meters.h"
+
+typedef unsigned char uchar;
+
+struct BuiltinDriver
+{
+    const char *name;
+    const char *aliases;
+    const char *content;
+    bool loaded;
+};
+
+struct MapToDriver {
+    MVT mvt;
+    const char *name;
+};
+
 void prepareBuiltinDrivers();
 void loadDriversFromDir(std::string dir);
 bool loadBuiltinDriver(std::string driver_name);

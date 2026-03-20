@@ -24,6 +24,8 @@ cat > $OUT <<EOF
 // This source is generated from drivers/src/*.xmq
 // Run "cd drivers; make install" to regenerate this file.
 
+#include"drivers.h"
+
 BuiltinDriver builtins_[] =
 {
 EOF

@@ -21,7 +21,6 @@
 
 #include"util.h"
 #include"drivers.h"
-#include"meters.h"
 
 using namespace std;
 
@@ -44,19 +43,6 @@ void loadDriversFromDir(std::string dir)
         string s = loadDriver(file_name, NULL);
     }
 }
-
-struct BuiltinDriver
-{
-    const char *name;
-    const char *aliases;
-    const char *content;
-    bool loaded;
-};
-
-struct MapToDriver {
-    MVT mvt;
-    const char *name;
-};
 
 #include"generated_database.cc"
 
