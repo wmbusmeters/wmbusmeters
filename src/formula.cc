@@ -20,6 +20,7 @@
 #include"meters.h"
 #include"units.h"
 
+#include<assert.h>
 #include<cmath>
 #include<string.h>
 #include<limits>

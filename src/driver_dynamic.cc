@@ -20,6 +20,7 @@
 #include"driver_dynamic.h"
 #include"xmq.h"
 
+#include<assert.h>
 #include<string.h>
 
 using namespace std;

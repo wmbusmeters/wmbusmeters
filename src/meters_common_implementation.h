@@ -23,6 +23,7 @@
 #include"threads.h"
 #include"units.h"
 
+#include<assert.h>
 #include<map>
 #include<set>
 

@@ -23,7 +23,6 @@
 #include"drivers.h"
 #include"xmq.h"
 
-#include<assert.h>
 #include<pthread.h>
 #include<semaphore.h>
 #include<errno.h>

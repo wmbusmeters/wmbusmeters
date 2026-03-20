@@ -27,8 +27,8 @@
 #include"util.h"
 #include"wmbus.h"
 
+#include <assert.h>
 #include <algorithm>
-#include <errno.h>
 #include <fcntl.h>
 #include <pthread.h>
 #include <semaphore.h>

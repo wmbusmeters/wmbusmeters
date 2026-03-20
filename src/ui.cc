@@ -18,6 +18,8 @@
 #include"ui.h"
 #include"util.h"
 
+#include<assert.h>
+
 using namespace std;
 
 int screen_width_;
