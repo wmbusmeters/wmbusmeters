@@ -14,7 +14,6 @@
  You should have received a copy of the GNU General Public License
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-using namespace std;
 
 #include"bus.h"
 #include"cmdline.h"
@@ -42,6 +41,7 @@ using namespace std;
 #include <syslog.h>
 #include <unistd.h>
 
+using namespace std;
 
 shared_ptr<BusManager> createBusManager(shared_ptr<SerialCommunicationManager> serial_manager,
                                         shared_ptr<MeterManager> meter_manager)
