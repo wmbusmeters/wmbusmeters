@@ -23,6 +23,8 @@ cat > $OUT <<EOF
 
 // Generated $(date +%Y-%m-%d_%H:%M)
 
+#include"drivers.h"
+
 BuiltinDriver builtins_[] =
 {
 EOF
