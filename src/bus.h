@@ -35,40 +35,40 @@ struct Configuration;
 
 struct BusManager
 {
-    BusManager(shared_ptr<SerialCommunicationManager> serial_manager,
-               shared_ptr<MeterManager> meter_manager);
+    BusManager(std::shared_ptr<SerialCommunicationManager> serial_manager,
+               std::shared_ptr<MeterManager> meter_manager);
 
     void detectAndConfigureWmbusDevices(Configuration *config, DetectionType dt);
     void removeAllBusDevices();
     void checkForDeadWmbusDevices(Configuration *config);
-    void openBusDeviceAndPotentiallySetLinkmodes(Configuration *config, string how, Detected *detected);
-    shared_ptr<BusDevice> createWmbusObject(Detected *detected, Configuration *config);
+    void openBusDeviceAndPotentiallySetLinkmodes(Configuration *config, std::string how, Detected *detected);
+    std::shared_ptr<BusDevice> createWmbusObject(Detected *detected, Configuration *config);
 
     void runAnySimulations();
     void regularCheckup();
     void sendQueue();
 
     int numBusDevices() { return  bus_devices_.size(); }
-    BusDevice *findBus(string bus_alias);
+    BusDevice *findBus(std::string bus_alias);
     void queueSendBusContent(const SendBusContent &sbc);
 
 private:
 
-    void remove_lost_serial_devices_from_ignore_list(vector<string> &devices);
+    void remove_lost_serial_devices_from_ignore_list(std::vector<std::string> &devices);
     void perform_auto_scan_of_serial_devices(Configuration *config);
     void perform_auto_scan_of_swradio_devices(Configuration *config);
     void find_specified_device_and_mark_as_handled(Configuration *c, Detected *d);
     bool find_specified_device_and_update_detected(Configuration *c, Detected *d);
-    void remove_lost_swradio_devices_from_ignore_list(vector<string> &devices);
+    void remove_lost_swradio_devices_from_ignore_list(std::vector<std::string> &devices);
     SpecifiedDevice *find_specified_device_from_detected(Configuration *c, Detected *d);
 
 
-    shared_ptr<SerialCommunicationManager> serial_manager_;
-    shared_ptr<MeterManager> meter_manager_;
+    std::shared_ptr<SerialCommunicationManager> serial_manager_;
+    std::shared_ptr<MeterManager> meter_manager_;
 
     // Current active set of wmbus devices that can receive telegrams.
     // This can change during runtime, plugging/unplugging wmbus dongles.
-    vector<shared_ptr<BusDevice>> bus_devices_;
+    std::vector<std::shared_ptr<BusDevice>> bus_devices_;
     RecursiveMutex bus_devices_mutex_;
 #define LOCK_BUS_DEVICES(where) WITH(bus_devices_mutex_, bus_devices_mutex, where)
 
@@ -100,7 +100,7 @@ private:
     bool printed_warning_ = false;
 };
 
-shared_ptr<BusManager> createBusManager(shared_ptr<SerialCommunicationManager> serial_manager,
-                                        shared_ptr<MeterManager> meter_manager);
+std::shared_ptr<BusManager> createBusManager(std::shared_ptr<SerialCommunicationManager> serial_manager,
+                                        std::shared_ptr<MeterManager> meter_manager);
 
 #endif

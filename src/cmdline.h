@@ -24,9 +24,7 @@
 #include<string.h>
 #include<vector>
 
-using namespace std;
-
-shared_ptr<Configuration> parseCommandLine(int argc, char **argv);
+std::shared_ptr<Configuration> parseCommandLine(int argc, char **argv);
 void enableEarlyLoggingFromCommandLine(int argc, char **argv);
 
 #endif

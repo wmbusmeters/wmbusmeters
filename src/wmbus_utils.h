@@ -22,14 +22,14 @@
 #include "threads.h"
 #include "wmbus.h"
 
-bool decrypt_ELL_AES_CTR(Telegram *t, vector<uchar> &frame, vector<uchar>::iterator &pos, vector<uchar> &aeskey);
-bool decrypt_TPL_AES_CBC_IV(Telegram *t, vector<uchar> &frame, vector<uchar>::iterator &pos, vector<uchar> &aeskey,
+bool decrypt_ELL_AES_CTR(Telegram *t,std::vector<uchar> &frame,std::vector<uchar>::iterator &pos,std::vector<uchar> &aeskey);
+bool decrypt_TPL_AES_CBC_IV(Telegram *t,std::vector<uchar> &frame,std::vector<uchar>::iterator &pos,std::vector<uchar> &aeskey,
                             int *num_encrypted_bytes,
                             int *num_not_encrypted_at_end);
-bool decrypt_TPL_AES_CBC_NO_IV(Telegram *t, vector<uchar> &frame, vector<uchar>::iterator &pos, vector<uchar> &aeskey,
+bool decrypt_TPL_AES_CBC_NO_IV(Telegram *t,std::vector<uchar> &frame,std::vector<uchar>::iterator &pos,std::vector<uchar> &aeskey,
                                int *num_encrypted_bytes,
                                int *num_not_encrypted_at_end);
 
-string frameTypeKamstrupC1(int ft);
+std::string frameTypeKamstrupC1(int ft);
 
 #endif

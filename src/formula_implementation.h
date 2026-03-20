@@ -31,8 +31,8 @@ struct NumericFormula
     SIUnit &siunit() { return siunit_; }
     // Calculate the formula and return the value in the given "to" unit.
     virtual double calculate(SIUnit to) = 0;
-    virtual string str() = 0;
-    virtual string tree() = 0;
+    virtual std::string str() = 0;
+    virtual std::string tree() = 0;
     virtual ~NumericFormula() = 0;
 
     FormulaImplementation *formula() { return formula_; }
@@ -47,8 +47,8 @@ struct NumericFormulaConstant : public NumericFormula
 {
     NumericFormulaConstant(FormulaImplementation *f, Unit u, double c) : NumericFormula(f, u), constant_(c) {}
     double calculate(SIUnit to);
-    string str();
-    string tree();
+    std::string str();
+    std::string tree();
     ~NumericFormulaConstant();
 
     private:
@@ -58,17 +58,17 @@ struct NumericFormulaConstant : public NumericFormula
 
 struct NumericFormulaMeterField : public NumericFormula
 {
-    NumericFormulaMeterField(FormulaImplementation *f, Unit u, string v, Quantity q)
+    NumericFormulaMeterField(FormulaImplementation *f, Unit u, std::string v, Quantity q)
         : NumericFormula(f, u), vname_(v), quantity_(q) {}
 
     double calculate(SIUnit to);
-    string str();
-    string tree();
+    std::string str();
+    std::string tree();
     ~NumericFormulaMeterField();
 
     private:
 
-    string vname_;
+    std::string vname_;
     Quantity quantity_;
 };
 
@@ -77,8 +77,8 @@ struct NumericFormulaDVEntryField : public NumericFormula
     NumericFormulaDVEntryField(FormulaImplementation *f, Unit u, DVEntryCounterType ct) : NumericFormula(f, u), counter_(ct) {}
 
     double calculate(SIUnit to);
-    string str();
-    string tree();
+    std::string str();
+    std::string tree();
     ~NumericFormulaDVEntryField();
 
     private:
@@ -89,9 +89,9 @@ struct NumericFormulaDVEntryField : public NumericFormula
 struct NumericFormulaPair : public NumericFormula
 {
     NumericFormulaPair(FormulaImplementation *f, SIUnit siu,
-                       unique_ptr<NumericFormula> &a,
-                       unique_ptr<NumericFormula> &b,
-                       string name, string op)
+                       std::unique_ptr<NumericFormula> &a,
+                       std::unique_ptr<NumericFormula> &b,
+                       std::string name, std::string op)
         : NumericFormula(f, siu),
         left_(std::move(a)),
         right_(std::move(b)),
@@ -99,8 +99,8 @@ struct NumericFormulaPair : public NumericFormula
         op_(op)
     {}
 
-    string str();
-    string tree();
+    std::string str();
+    std::string tree();
     ~NumericFormulaPair();
 
 protected:
@@ -114,8 +114,8 @@ protected:
 struct NumericFormulaAddition : public NumericFormulaPair
 {
     NumericFormulaAddition(FormulaImplementation *f, SIUnit siu,
-                           unique_ptr<NumericFormula> &a,
-                           unique_ptr<NumericFormula> &b)
+                           std::unique_ptr<NumericFormula> &a,
+                           std::unique_ptr<NumericFormula> &b)
         : NumericFormulaPair(f, siu, a, b, "ADD", "+") {}
 
     double calculate(SIUnit to);
@@ -126,8 +126,8 @@ struct NumericFormulaAddition : public NumericFormulaPair
 struct NumericFormulaSubtraction : public NumericFormulaPair
 {
     NumericFormulaSubtraction(FormulaImplementation *f, SIUnit siu,
-                              unique_ptr<NumericFormula> &a,
-                              unique_ptr<NumericFormula> &b)
+                              std::unique_ptr<NumericFormula> &a,
+                              std::unique_ptr<NumericFormula> &b)
         : NumericFormulaPair(f, siu, a, b, "SUB", "-") {}
 
     double calculate(SIUnit to);
@@ -138,8 +138,8 @@ struct NumericFormulaSubtraction : public NumericFormulaPair
 struct NumericFormulaMultiplication : public NumericFormulaPair
 {
     NumericFormulaMultiplication(FormulaImplementation *f, SIUnit siu,
-                                 unique_ptr<NumericFormula> &a,
-                                 unique_ptr<NumericFormula> &b)
+                                 std::unique_ptr<NumericFormula> &a,
+                                 std::unique_ptr<NumericFormula> &b)
         : NumericFormulaPair(f, siu, a, b, "TIMES", "×") {}
 
     double calculate(SIUnit to);
@@ -150,8 +150,8 @@ struct NumericFormulaMultiplication : public NumericFormulaPair
 struct NumericFormulaDivision : public NumericFormulaPair
 {
     NumericFormulaDivision(FormulaImplementation *f, SIUnit siu,
-                           unique_ptr<NumericFormula> &a,
-                           unique_ptr<NumericFormula> &b)
+                           std::unique_ptr<NumericFormula> &a,
+                           std::unique_ptr<NumericFormula> &b)
         : NumericFormulaPair(f, siu, a, b, "DIV", "÷") {}
 
     double calculate(SIUnit to);
@@ -162,8 +162,8 @@ struct NumericFormulaDivision : public NumericFormulaPair
 struct NumericFormulaExponentiation : public NumericFormulaPair
 {
     NumericFormulaExponentiation(FormulaImplementation *f, SIUnit siu,
-                                 unique_ptr<NumericFormula> &a,
-                                 unique_ptr<NumericFormula> &b)
+                                 std::unique_ptr<NumericFormula> &a,
+                                 std::unique_ptr<NumericFormula> &b)
         : NumericFormulaPair(f, siu, a, b, "EXP", "^") {}
 
     double calculate(SIUnit to);
@@ -174,12 +174,12 @@ struct NumericFormulaExponentiation : public NumericFormulaPair
 struct NumericFormulaSquareRoot : public NumericFormula
 {
     NumericFormulaSquareRoot(FormulaImplementation *f, SIUnit siu,
-                             unique_ptr<NumericFormula> &inner)
+                             std::unique_ptr<NumericFormula> &inner)
         : NumericFormula(f, siu), inner_(std::move(inner)) {}
 
     double calculate(SIUnit to);
-    string str();
-    string tree();
+    std::string str();
+    std::string tree();
 
     ~NumericFormulaSquareRoot();
 
@@ -216,23 +216,23 @@ struct Token
     size_t start;
     size_t len;
 
-    string str(const string &s);
-    string vals(const string &s);
-    double val(const string &s);
-    Unit unit(const string &s);
+    std::string str(const std::string &s);
+    std::string vals(const std::string &s);
+    double val(const std::string &s);
+    Unit unit(const std::string &s);
 
-    string withMarker(const string &s);
+    std::string withMarker(const std::string &s);
 };
 
 struct FormulaImplementation : public Formula
 {
-    bool parse(Meter *m, const string &f);
+    bool parse(Meter *m, const std::string &f);
     bool valid();
-    string errors();
+    std::string errors();
     double calculate(Unit to, DVEntry *dve = NULL, Meter *m = NULL);
     void clear();
-    string str();
-    string tree();
+    std::string str();
+    std::string tree();
     SIUnit &siUnit();
     void setMeter(Meter *m);
     void setDVEntry(DVEntry *dve);
