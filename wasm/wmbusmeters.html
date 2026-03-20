@@ -581,7 +581,7 @@ async function initWasm() {
         wm.serialClose = wasmModule.cwrap('wm_serial_close',       null,     ['number']);
         wm.configProto = wasmModule.cwrap('wm_configure_protocol', 'string', ['number','string']);
         wm.sendCmd     = wasmModule.cwrap('wm_send_command',       'string', ['number','number','string']);
-        wm.process     = wasmModule.cwrap('wm_process_buffer',     'string', ['number','string','string']);
+        wm.process     = wasmModule.cwrap('wm_process_buffer',     'string', ['number','string','string'], { async: true });
         wm.onData      = wasmModule.cwrap('serial_on_data',        null,     ['number','number','number']);
         wm.detectDeviceAtBaud = wasmModule.cwrap('wm_detect_device_at_baud', 'string', ['number', 'number'], { async: true });
 
@@ -985,12 +985,12 @@ async function doDisconnect() {
 
 // ── Polling: WASM process_buffer ───────────────────────────────────────────
 function startPolling(idx) {
-    pollInterval = setInterval(() => {
+    pollInterval = setInterval(async () => {
         if (!isConnected || !wasmReady) return;
         try {
             // Determine key: from matched meter or global
             const globalKey = '';  // meters have individual keys
-            const raw = wm.process(idx, globalKey, 'auto');
+            const raw = await wm.process(idx, globalKey, 'auto');
             wm.free();
             const res = JSON.parse(raw);
             if (!res.ok) return;
