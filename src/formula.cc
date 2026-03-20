@@ -24,6 +24,8 @@
 #include<string.h>
 #include<limits>
 
+using namespace std;
+
 NumericFormula::~NumericFormula() { }
 NumericFormulaConstant::~NumericFormulaConstant() { }
 NumericFormulaMeterField::~NumericFormulaMeterField() { }

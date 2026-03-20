@@ -16,11 +16,13 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include<cstring>
 #include<set>
+
 #include"manufacturers.h"
 #include"manufacturer_specificities.h"
 #include"meters.h"
+
+using namespace std;
 
 std::set<int> diehl_manufacturers = {
     MANUFACTURER_DME,

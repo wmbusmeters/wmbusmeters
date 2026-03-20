@@ -23,6 +23,8 @@
 #include<assert.h>
 #include<memory.h>
 
+using namespace std;
+
 bool decrypt_ELL_AES_CTR(Telegram *t, vector<uchar> &frame, vector<uchar>::iterator &pos, vector<uchar> &aeskey)
 {
     if (aeskey.size() == 0) return true;

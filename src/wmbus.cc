@@ -35,6 +35,8 @@
 #include<deque>
 #include<algorithm>
 
+using namespace std;
+
 struct LinkModeInfo
 {
     LinkMode mode;

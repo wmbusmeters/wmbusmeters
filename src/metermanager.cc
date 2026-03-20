@@ -33,6 +33,7 @@
 #include<stdexcept>
 #include<time.h>
 
+using namespace std;
 
 struct MeterManagerImplementation : public virtual MeterManager
 {

@@ -23,7 +23,6 @@
 #include"wmbus.h"
 #include"dvparser.h"
 
-#include<string.h>
 #include<unistd.h>
 
 using namespace std;

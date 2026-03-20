@@ -19,6 +19,8 @@
 
 #include <cmath>
 
+using namespace std;
+
 namespace
 {
     struct Driver : public virtual MeterCommonImplementation

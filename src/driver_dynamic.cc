@@ -22,6 +22,8 @@
 
 #include<string.h>
 
+using namespace std;
+
 string check_driver_name(const char *name, string file);
 string check_aliases(const char *aliases, string file);
 MeterType check_meter_type(const char *meter_type_s, string file);

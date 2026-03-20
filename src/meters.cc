@@ -25,6 +25,7 @@
 #include"wmbus.h"
 #include"wmbus_utils.h"
 
+#include<assert.h>
 #include<algorithm>
 #include<cmath>
 #include<limits>
@@ -32,6 +33,8 @@
 #include<numeric>
 #include<stdexcept>
 #include<time.h>
+
+using namespace std;
 
 map<string, DriverInfo> *registered_drivers_ = NULL;
 vector<DriverInfo*> *registered_drivers_list_ = NULL;
