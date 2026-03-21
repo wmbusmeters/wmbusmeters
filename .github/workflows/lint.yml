@@ -30,3 +30,16 @@ jobs:
         echo "Code is not properly formatted. Please run 'make pretty'in /drivers and commit the changes."
         exit 1
         fi
+
+  integrity_authors:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v6
+    - id: GENERATE_AUTHORS
+      run: ./scripts/generate_authors.sh ./src/authors.h
+    - id: GIT_DIFF
+      run: |
+        if ! git diff --quiet src; then
+        echo "Code is not properly formatted. Please run 'make pretty'in /drivers and commit the changes."
+        exit 1
+        fi
