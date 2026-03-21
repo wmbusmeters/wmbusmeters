@@ -38,4 +38,4 @@ provided you with this binary. Read the full license for all details.
 
 )LICENSE";
 
-#endif // LICENSE_H
+#endif
