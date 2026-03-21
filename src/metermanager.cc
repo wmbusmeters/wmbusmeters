@@ -24,6 +24,7 @@
 #include"wmbus.h"
 #include"wmbus_utils.h"
 
+#include<assert.h>
 #include<algorithm>
 #include<chrono>
 #include<cmath>
@@ -33,6 +34,7 @@
 #include<stdexcept>
 #include<time.h>
 
+using namespace std;
 
 struct MeterManagerImplementation : public virtual MeterManager
 {

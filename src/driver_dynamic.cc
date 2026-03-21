@@ -20,7 +20,10 @@
 #include"driver_dynamic.h"
 #include"xmq.h"
 
+#include<assert.h>
 #include<string.h>
+
+using namespace std;
 
 string check_driver_name(const char *name, string file);
 string check_aliases(const char *aliases, string file);

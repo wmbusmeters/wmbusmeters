@@ -30,6 +30,7 @@
 #include"dvparser.h"
 #include"xmq.h"
 
+#include<assert.h>
 #include<string.h>
 #include<set>
 

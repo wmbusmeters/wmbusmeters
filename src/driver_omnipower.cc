@@ -17,6 +17,8 @@
 
 #include"meters_common_implementation.h"
 
+using namespace std;
+
 /*
 Implemented October 2020 Janus Bo Andersen:
 Implements Kamstrup OmniPower, energy meter.

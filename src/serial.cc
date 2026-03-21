@@ -46,6 +46,8 @@
 #include <linux/serial.h>
 #endif
 
+using namespace std;
+
 // return a positive integer (file descriptor) on success.
 // return -1 for failure to open. return -2 for already locked.
 static int openSerialTTY(const char *tty, int baud_rate, PARITY parity);

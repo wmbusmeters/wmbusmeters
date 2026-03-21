@@ -90,4 +90,4 @@ LIST_OF_IM871A_LINK_MODES
 #undef X
 };
 
-string toString(LinkModeIM871A lm);
+std::string toString(LinkModeIM871A lm);

@@ -24,7 +24,6 @@
 
 #include<assert.h>
 #include<pthread.h>
-#include<errno.h>
 #include<memory.h>
 #include<semaphore.h>
 #include<unistd.h>

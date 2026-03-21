@@ -23,7 +23,6 @@
 #include<assert.h>
 #include<pthread.h>
 #include<semaphore.h>
-#include<errno.h>
 #include<unistd.h>
 
 using namespace std;

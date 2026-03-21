@@ -20,6 +20,8 @@
 #include"meters_common_implementation.h"
 #include"manufacturer_specificities.h"
 
+using namespace std;
+
 namespace
 {
     /** Contains all the booleans required to store the alarms of a PRIOS device. */
