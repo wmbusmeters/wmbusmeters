@@ -23,7 +23,7 @@ Copyright (C) 2017-2026 Fredrik Öhrström
                    2026 Hynek Moravec
                    2025 obidobi
                    2025 Karel Blavka
-                   2024 the wmbusmeters project
+                   2024 Marton Czwick
                    2024 Arthur van Dorp
                    2023 Andreas Horrer
                    2022 thecem

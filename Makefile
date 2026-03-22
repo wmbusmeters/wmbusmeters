@@ -286,12 +286,8 @@ $(BUILD)/wmbusmeters: $(BUILD)/wmbusmeters.g
 $(BUILD)/wmbusmetersd: $(BUILD)/wmbusmeters
 	cp $(BUILD)/wmbusmeters $(BUILD)/wmbusmetersd
 
-$(BUILD)/short_manual.h: README.md
-	echo 'R"MANUAL(' > $(BUILD)/short_manual.h
-	sed -n '/wmbusmeters version/,/```/p' README.md \
-	| grep -v 'wmbusmeters version' \
-	| grep -v '```' >> $(BUILD)/short_manual.h
-	echo ')MANUAL";' >> $(BUILD)/short_manual.h
+$(BUILD)/short_manual.h:
+	./scripts/generate_short_manual.sh ./src/short_manual.h
 
 testinternals: $(BUILD)/testinternals
 
