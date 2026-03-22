@@ -1,4 +1,5 @@
-// Copyright (C) 2024 the wmbusmeters project (CC0-1.0)
+/* Copyright (C) 2024 Marton Czwick (CC0-1.0)
+   Copyright (C) 2024 Fredrik Öhrström (CC0-1.0) */
 driver {
     name           = maddalena
     meter_type     = WaterMeter
