@@ -134,7 +134,7 @@ endif
 $(info Building $(VERSION))
 
 FUZZFLAGS ?= -DFUZZING=false
-CXXFLAGS ?= $(EXTRA_CXXFLAGS) $(DEBUG_FLAGS) $(FUZZFLAGS) -fPIC -std=c++11 -Wall -Werror=format-security -Wno-unused-function
+CXXFLAGS ?= $(EXTRA_CXXFLAGS) $(DEBUG_FLAGS) $(FUZZFLAGS) -fPIC -std=c++17 -Wall -Werror=format-security -Wno-unused-function
 
 # Inject default paths
 CXXFLAGS +=\
@@ -271,7 +271,7 @@ snapcraft:
 $(BUILD)/main.o: $(BUILD)/short_manual.h $(BUILD)/version.h $(BUILD)/authors.h
 
 $(BUILD)/authors.h:
-	./scripts/generate_authors.sh $(BUILD)/authors.h
+	./scripts/generate_authors.sh ./src/authors.h
 
 # Build binary with debug information. ~15M size binary.
 $(BUILD)/wmbusmeters.g: $(PROG_OBJS) $(DRIVER_OBJS) $(BUILD)/main.o $(BUILD)/short_manual.h
