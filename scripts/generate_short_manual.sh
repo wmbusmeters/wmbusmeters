@@ -13,20 +13,6 @@ fi
 # Retrieve the current year to update the copyright notice
 CURRENT_YEAR=$(date +%Y)
 
-(grep -rEc "Copyright \(C\) (....-)?.... [^\(]+ \(.+\)" src drivers/src | grep :0 > "$TMP")
-
-if [ -s "$TMP" ]
-then
-    echo "These files do not have a proper copyright notice:"
-    sed 's/:0//' "$TMP"
-    exit 1
-fi
-
-(grep -rEo "Copyright \(C\) (....-)?.... [^\(]+ \(.+\)" src drivers/src \
-    | cut -f 2 -d ':' \
-    | tr -s ' ' \
-    | sed 's/(C) \([0-9][0-9][0-9][0-9]\) /(C) \1-\1 /' > "$TMP")
-
 {
     echo "/*"
     echo " Copyright (C) 2017-$CURRENT_YEAR Fredrik Öhrström (gpl-3.0-or-later)"
@@ -45,21 +31,15 @@ fi
     echo " along with this program.  If not, see <http://www.gnu.org/licenses/>."
     echo "*/"
     echo ""
-    echo "#ifndef AUTHORS_H"
-    echo "#define AUTHORS_H"
+    echo "#ifndef SHORT_MANUAL_H"
+    echo "#define SHORT_MANUAL_H"
     echo ""
-    echo 'inline constexpr const char* AUTHORS = R"AUTHORS('
-    echo "Copyright (C) 2017-${CURRENT_YEAR} Fredrik Öhrström"
+    echo 'inline constexpr const char* SHORT_MANUAL = R"MANUAL('
+    sed -n '/wmbusmeters version/,/```/p' README.md \
+        | grep -v 'wmbusmeters version' \
+        | grep -v '```'
 
-    sed 's/ <.*>//' "$TMP" | \
-        sed 's/ [0-9][0-9][0-9][0-9]-/ /' | \
-        sed 's/ (.[^)].*)//g' | \
-        grep -v Öhrström | \
-        sort -rn | \
-        sed 's/Copyright (C) /                   /' | \
-        uniq
-
-    echo ')AUTHORS";'
+    echo ')MANUAL";'
     echo "#endif"
 } > "$OUT"
 
