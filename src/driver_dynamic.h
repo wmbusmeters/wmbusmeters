@@ -24,7 +24,7 @@ struct DriverDynamic : public virtual MeterCommonImplementation
 {
     DriverDynamic(MeterInfo &mi, DriverInfo &di);
     ~DriverDynamic();
-    static bool load(DriverInfo *di, const string &name, const char *content);
+    static bool load(DriverInfo *di, const std::string &name, const char *content);
     static XMQProceed add_detect(XMQDoc *doc, XMQNodePtr detect, DriverInfo *di);
     static XMQProceed add_use(XMQDoc *doc, XMQNodePtr field, DriverDynamic *dd);
     static XMQProceed add_field(XMQDoc *doc, XMQNodePtr field, DriverDynamic *dd);
@@ -37,11 +37,11 @@ struct DriverDynamic : public virtual MeterCommonImplementation
     static XMQProceed add_mfct_tpl_status(XMQDoc *doc, XMQNodePtr node, DriverInfo *di);
     static XMQProceed add_mfct_tpl_status_map(XMQDoc *doc, XMQNodePtr map, Translate::Rule *rule);
 
-    const string &fileName() { return file_name_; }
+    const std::string &fileName() { return file_name_; }
 
 private:
 
-    string file_name_;
+    std::string file_name_;
     FieldMatcher *tmp_matcher_;
     Translate::Lookup *tmp_lookup_;
     Translate::Rule *tmp_rule_;

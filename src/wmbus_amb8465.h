@@ -60,4 +60,4 @@ LIST_OF_AMBER_8465_8336_LINK_MODES
 #undef X
 };
 
-string toString(LinkModeAMB lm);
+std::string toString(LinkModeAMB lm);

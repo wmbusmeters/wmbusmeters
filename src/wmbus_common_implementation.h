@@ -24,23 +24,23 @@
 
 struct BusDeviceCommonImplementation : public virtual BusDevice
 {
-    BusDeviceCommonImplementation(string bus_alias,
+    BusDeviceCommonImplementation(std::string bus_alias,
                                   BusDeviceType t,
-                                  shared_ptr<SerialCommunicationManager> manager,
-                                  shared_ptr<SerialDevice> serial_override,
+                                  std::shared_ptr<SerialCommunicationManager> manager,
+                                  std::shared_ptr<SerialDevice> serial_override,
                                   bool is_serial);
     ~BusDeviceCommonImplementation();
 
-    string busAlias();
-    string hr();
+    std::string busAlias();
+    std::string hr();
     bool isSerial();
     BusDeviceType type();
-    void onTelegram(function<bool(AboutTelegram&,vector<uchar>)> cb);
-    bool sendTelegram(LinkMode link_mode, TelegramFormat format, vector<uchar> &content);
-    bool handleTelegram(AboutTelegram &about, vector<uchar> frame);
+    void onTelegram(std::function<bool(AboutTelegram&,std::vector<uchar>)> cb);
+    bool sendTelegram(LinkMode link_mode, TelegramFormat format,std::vector<uchar> &content);
+    bool handleTelegram(AboutTelegram &about,std::vector<uchar> frame);
     void checkStatus();
     bool isWorking();
-    string dongleId();
+    std::string dongleId();
     DeviceMode deviceMode();
     void setTimeout(int seconds, std::string expected_activity);
     void setResetInterval(int seconds);
@@ -53,7 +53,7 @@ struct BusDeviceCommonImplementation : public virtual BusDevice
     bool serialOverride() { return serial_override_; }
     void markSerialAsOverriden() { serial_override_ = true; }
 
-    string device() { if (serial_) return serial_->device(); else return "?"; }
+    std::string device() { if (serial_) return serial_->device(); else return "?"; }
     // Wait for a response to arrive from the device.
     bool waitForResponse(int id);
     // Notify the waiter that the response has arrived.
@@ -65,7 +65,7 @@ struct BusDeviceCommonImplementation : public virtual BusDevice
 
     protected:
 
-    shared_ptr<SerialCommunicationManager> manager_;
+    std::shared_ptr<SerialCommunicationManager> manager_;
     void protocolErrorDetected();
     void resetProtocolErrorCount();
     bool areLinkModesConfigured();
@@ -83,15 +83,15 @@ struct BusDeviceCommonImplementation : public virtual BusDevice
     private:
 
     // Bus alias.
-    string bus_alias_;
+    std::string bus_alias_;
     // Uses a serial tty?
     bool is_serial_ {};
     bool is_working_ {};
-    vector<function<bool(AboutTelegram&,vector<uchar>)>> telegram_listeners_;
+    std::vector<std::function<bool(AboutTelegram&,std::vector<uchar>)>> telegram_listeners_;
     BusDeviceType type_ {};
     int protocol_error_count_ {};
     time_t timeout_ {}; // If longer silence than timeout, then reset dongle! It might have hanged!
-    string expected_activity_ {}; // During which times should we care about timeouts?
+    std::string expected_activity_ {}; // During which times should we care about timeouts?
     time_t last_received_ {}; // When as the last telegram reception?
     time_t last_reset_ {}; // When did we last attempt a reset of the dongle?
     int reset_timeout_ {}; // When set to 23*3600 reset the device once every 23 hours.
@@ -100,19 +100,19 @@ struct BusDeviceCommonImplementation : public virtual BusDevice
     LinkModeSet link_modes_ {};
     Detected detected_ {}; // Used to remember how this device was setup.
 
-    shared_ptr<SerialDevice> serial_;
+    std::shared_ptr<SerialDevice> serial_;
 
 protected:
 
     // When a wmbus dongle transmits a telegram, then it will use this id.
     // It can often be changed by configuring the wmbud dongle.
-    string cached_device_id_;
+    std::string cached_device_id_;
     // Generated human readable name: eg
     // * /dev/ttyUSB0:im871a[12345678]
     // * rtlmbus[longantenna]
-    string cached_hr_;
+    std::string cached_hr_;
     // Some dongles have a unique id (that cannot be changed) in addition to the transmit id.
-    string cached_device_unique_id_;
+    std::string cached_device_unique_id_;
 
     // Lock this mutex when you sent a request to the wmbus device
     // Unlock when you received the response or it timedout.

@@ -20,8 +20,6 @@
 
 #include "util.h"
 
-#include <assert.h>
-#include <errno.h>
 #include <functional>
 #include <pthread.h>
 #include <sys/types.h>

@@ -18,11 +18,9 @@
 #include<string>
 #include<vector>
 
-using namespace std;
-
-void invokeShell(string program, vector<string> args, vector<string> envs);
-int  invokeShellCaptureOutput(string program, vector<string> args, vector<string> envs, string *out, bool do_not_warn_if_fail);
-bool invokeBackgroundShell(string program, vector<string> args, vector<string> envs, int *out, int *pid);
+void invokeShell(std::string program, std::vector<std::string> args, std::vector<std::string> envs);
+int  invokeShellCaptureOutput(std::string program, std::vector<std::string> args, std::vector<std::string> envs, std::string *out, bool do_not_warn_if_fail);
+bool invokeBackgroundShell(std::string program, std::vector<std::string> args, std::vector<std::string> envs, int *out, int *pid);
 bool stillRunning(int pid);
 void stopBackgroundShell(int pid);
-void detectProcesses(string cmd, vector<int> *pids);
+void detectProcesses(std::string cmd, std::vector<int> *pids);

@@ -19,6 +19,8 @@
 #include "wmbus_utils.h"
 #include <cmath>
 
+using namespace std;
+
 namespace
 {
     struct Driver : public virtual MeterCommonImplementation

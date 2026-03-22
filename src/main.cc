@@ -26,8 +26,10 @@
 #include"shell.h"
 #include"threads.h"
 #include"util.h"
-#include"version.h"
 #include"wmbus.h"
+
+#include"authors.h"
+#include"version.h"
 
 #include <algorithm>
 #include <errno.h>
@@ -101,8 +103,6 @@ int main(int argc, char **argv)
 
     if (config->license)
     {
-        const char * authors =
-#include"authors.h"
         const char * license =
             R"LICENSE(
 This program is free software: you can redistribute it and/or modify
@@ -123,7 +123,7 @@ But you can also request the source from the person/company that
 provided you with this binary. Read the full license for all details.
 
 )LICENSE";
-        printf("%s%s", authors, license);
+        printf("%s%s", AUTHORS, license);
         exit(0);
     }
 

@@ -26,6 +26,8 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
+using namespace std;
+
 // Posix says that this variable just exists.
 // (On some systems this is also declared in unistd.h)
 extern char **environ;

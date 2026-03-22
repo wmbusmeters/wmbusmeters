@@ -37,6 +37,8 @@
 
 #include"meters_common_implementation.h"
 
+using namespace std;
+
 namespace
 {
     struct Driver : public virtual MeterCommonImplementation

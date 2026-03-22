@@ -19,39 +19,37 @@
 #include"meters.h"
 #include"wmbus.h"
 
-using namespace std;
-
 struct Printer {
     Printer(bool json,
             bool pretty_print_json,
             bool fields,
             char separator,
-            bool meterfiles, string &meterfiles_dir,
-            bool use_logfile, string &logfile,
-            vector<string> new_meter_shell_cmdlines,
-            vector<string> shell_cmdlines,
+            bool meterfiles, std::string &meterfiles_dir,
+            bool use_logfile, std::string &logfile,
+            std::vector<std::string> new_meter_shell_cmdlines,
+            std::vector<std::string> shell_cmdlines,
             bool overwrite,
             MeterFileNaming naming,
             MeterFileTimestamp timestamp);
 
-    void print(Telegram *t, Meter *meter, vector<string> *more_json, vector<string> *selected_fields);
+    void print(Telegram *t, Meter *meter, std::vector<std::string> *more_json, std::vector<std::string> *selected_fields);
 
     private:
 
     bool json_, pretty_print_json_, fields_;
     bool use_meterfiles_;
-    string meterfiles_dir_;
+    std::string meterfiles_dir_;
     bool use_logfile_;
-    string logfile_;
+    std::string logfile_;
     char separator_;
-    vector<string> new_meter_shell_cmdlines_;
-    vector<string> shell_cmdlines_;
+    std::vector<std::string> new_meter_shell_cmdlines_;
+    std::vector<std::string> shell_cmdlines_;
     bool overwrite_;
     MeterFileNaming naming_;
     MeterFileTimestamp timestamp_;
 
-    void printNewMeterShells(Meter *meter, vector<string> &envs);
-    void printShells(Meter *meter, vector<string> &envs);
-    void printFiles(Meter *meter, Telegram *t, string &human_readable, string &fields, string &json);
+    void printNewMeterShells(Meter *meter, std::vector<std::string> &envs);
+    void printShells(Meter *meter, std::vector<std::string> &envs);
+    void printFiles(Meter *meter, Telegram *t, std::string &human_readable, std::string &fields, std::string &json);
 
 };
