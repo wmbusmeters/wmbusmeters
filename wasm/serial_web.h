@@ -6,7 +6,7 @@
 #include <map>
 #include <memory>
 #include <functional>
-#include "serial.h"  // Original SerialDevice und SerialCommunicationManager
+#include "serial.h"
 
 using namespace std;
 
@@ -22,7 +22,6 @@ struct SerialDeviceImp : public SerialDevice
 
     SerialDeviceImp(int idx);
 
-    // SerialDevice Interface
     bool open(bool fail_if_not_ok) override;
     void close() override;
     bool send(vector<uchar>& data) override;
@@ -44,7 +43,6 @@ struct SerialDeviceImp : public SerialDevice
     bool checkIfDataIsPending() override;
     SerialCommunicationManager* manager() override;
 
-    // Eigene Hilfsfunktionen
     void setBaudrate(int b) { baudrate = b; }
     void setDatabits(int d) { databits = d; }
     void setStopbits(int s) { stopbits = s; }
@@ -54,6 +52,10 @@ struct SerialDeviceImp : public SerialDevice
 struct SerialCommunicationManagerImp : public SerialCommunicationManager
 {
     vector<shared_ptr<SerialDeviceImp>> devices;
+    bool running_ = false;
+
+    // Listen callbacks: device → callback
+    map<SerialDevice*, function<void()>> listen_callbacks_;
 
     // SerialCommunicationManager Interface
     shared_ptr<SerialDevice> createSerialDeviceTTY(string dev, int baud_rate, PARITY parity, string purpose) override;
@@ -69,7 +71,7 @@ struct SerialCommunicationManagerImp : public SerialCommunicationManager
     void expectDevicesToWork() override;
     void stop() override;
     void startEventLoop() override;
-    void waitForStop() override;
+    void waitForStop() override;  // Event loop with emscripten_sleep
     bool isRunning() override;
 
     int startRegularCallback(string name, int seconds, function<void()> callback) override;
@@ -83,7 +85,18 @@ struct SerialCommunicationManagerImp : public SerialCommunicationManager
     shared_ptr<SerialDevice> lookup(string device) override;
     bool removeNonWorking(string device) override;
 
-    void tickleEventLoop(); // Wird von SerialDeviceImp benötigt
+    void tickleEventLoop();
+
+    // Tick listen callbacks once — called from Semaphore::wait() polling
+    // so that processSerialData() can run during command/response exchanges.
+    void tickCallbacks();
+
+    // Register a device opened by JS
+    void registerWebDevice(int index);
+    SerialDeviceImp* findByIndex(int index);
 };
+
+// Global instance — shared between bindings.cc and the pipeline
+extern SerialCommunicationManagerImp* g_web_serial_manager;
 
 #endif

@@ -4,899 +4,274 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>wmbusmeters</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="./assets/main.css">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+    --bg:#0a0a0a; --surface:#141414; --border:#252525;
+    --text:#b0b8c0; --dim:#555e68; --bright:#e0e4e8;
+    --green:#3fb950; --cyan:#58a6ff; --amber:#d29922; --red:#f85149;
+    --mono:'IBM Plex Mono','Menlo',monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:var(--mono);background:var(--bg);color:var(--text);height:100vh;display:flex;flex-direction:column;overflow:hidden}
+
+.topbar{background:var(--surface);border-bottom:1px solid var(--border);padding:0 16px;height:40px;display:flex;align-items:center;gap:12px;font-size:12px;flex-shrink:0}
+.topbar .logo{color:var(--green);font-weight:600;font-size:13px}
+.topbar .ver{color:var(--dim);font-weight:400;font-size:11px;margin-left:6px}
+.topbar .sep{width:1px;height:20px;background:var(--border)}
+.topbar .dot{width:7px;height:7px;border-radius:50%;background:var(--dim)}
+.topbar .dot.on{background:var(--green);box-shadow:0 0 6px var(--green)}
+.topbar .lbl{color:var(--dim)}
+.topbar select,.topbar button{font-family:var(--mono);font-size:11px;padding:3px 8px;background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:4px;cursor:pointer}
+.topbar button:hover{border-color:var(--dim)}
+.topbar button.g{border-color:var(--green);color:var(--green)}
+.topbar button.g:hover{background:#1a2f1a}
+.topbar button:disabled{opacity:.3;cursor:default}
+
+.port-tag{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;background:var(--bg);border:1px solid var(--border);border-radius:4px;font-size:11px;color:var(--cyan)}
+.port-tag .port-dot{width:5px;height:5px;border-radius:50%;background:var(--green)}
+.port-tag .port-remove{color:var(--dim);cursor:pointer;margin-left:2px}
+.port-tag .port-remove:hover{color:var(--red)}
+
+.terminal{flex:1;overflow-y:auto;padding:12px 16px;font-size:12.5px;line-height:1.65;background:var(--bg)}
+.line{padding:1px 0;white-space:pre-wrap;word-break:break-all}
+.line.dim{color:var(--dim)} .line.green{color:var(--green)} .line.cyan{color:var(--cyan)}
+.line.amber{color:var(--amber)} .line.red{color:var(--red)} .line.bright{color:var(--bright)}
+
+.prompt-wrap{display:flex;align-items:center;gap:0;background:var(--surface);border-top:1px solid var(--border);padding:0 16px;height:32px;flex-shrink:0}
+.prompt-wrap .ps{color:var(--green);font-size:12px;white-space:nowrap}
+.prompt-wrap input{flex:1;background:transparent;border:none;outline:none;color:var(--bright);font-family:var(--mono);font-size:12px;padding:0 6px}
+
+.statusbar{background:var(--surface);border-top:1px solid var(--border);padding:0 16px;height:24px;display:flex;align-items:center;gap:16px;font-size:10px;color:var(--dim);flex-shrink:0}
+::-webkit-scrollbar{width:6px} ::-webkit-scrollbar-track{background:transparent} ::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+</style>
 </head>
 <body>
 
-<!-- ── Top Bar ────────────────────────────────────────────────── -->
 <div class="topbar">
-    <div class="topbar-logo">
-        <span style="font-size:18px">⚡</span>
-        wmbusmeters
-        <span class="ver" id="wasmVersion"></span>
-    </div>
-
-    <div class="topbar-divider"></div>
-
-    <div class="topbar-group">
-        <button class="primary" id="btnConnect" onclick="autoDetect()">⚡ Auto Detect</button>
-        <div class="topbar-divider"></div>
-        <span class="topbar-label">Manual</span>
-        <select id="deviceProto" style="width:100px;">
-            <option value="amb8465">AMB8465</option>
-            <option value="tarvos2">Tarvos-II</option>
-            <option value="raw">RAW (AMB8665)</option>
-        </select>
-        <select id="baudRate" style="width:72px;">
-            <option value="9600" selected>9600</option>
-            <option value="19200">19200</option>
-            <option value="38400">38400</option>
-            <option value="57600">57600</option>
-            <option value="115200">115200</option>
-        </select>
-        <button id="btnManualConnect" onclick="doConnect()">Connect</button>
-        <button class="danger" id="btnDisconnect" onclick="doDisconnect()" disabled>Disconnect</button>
-    </div>
-
-    <div class="topbar-status">
-        <div class="dot" id="wasmDot"></div>
-        <span id="wasmLabel">loading…</span>
-        <div class="topbar-divider"></div>
-        <div class="dot" id="connDot"></div>
-        <span id="connLabel">disconnected</span>
-    </div>
+    <span class="logo">wmbusmeters<span class="ver" id="ver"></span></span>
+    <div class="sep"></div>
+    <div class="dot" id="wasmDot"></div>
+    <span class="lbl" id="wasmLbl">loading…</span>
+    <div class="sep"></div>
+    <button class="g" id="btnAddPort" onclick="addPort()">+ Add Port</button>
+    <div id="portTags"></div>
 </div>
 
-<!-- ── Sidebar ────────────────────────────────────────────────── -->
-<div class="sidebar">
+<div class="terminal" id="term"></div>
 
-    <!-- Meter Definitions -->
-    <div class="sidebar-section">
-        <div class="section-title">Meters</div>
-        <div class="field-row">
-            <label>Name</label>
-            <input type="text" id="mName" placeholder="MyMeter" />
-        </div>
-        <div class="field-row">
-            <label>Driver</label>
-            <select id="mDriver"><option value="auto">auto</option></select>
-        </div>
-        <div class="field-row">
-            <label>ID</label>
-            <input type="text" id="mId" placeholder="12345678 or *" />
-        </div>
-        <div class="field-row">
-            <label>Key</label>
-            <input type="text" id="mKey" placeholder="AES-128 hex (optional)" />
-        </div>
-        <div class="field-row" style="justify-content:flex-end;">
-            <button onclick="addMeter()">+ Add Meter</button>
-        </div>
-        <div class="meter-list" id="meterList">
-            <div style="color:var(--text-dim); font-size:11px; padding:8px 0; text-align:center;">
-                No meters — all telegrams will be printed
-            </div>
-        </div>
-    </div>
-
-    <!-- Output Options -->
-    <div class="sidebar-section">
-        <div class="section-title">Output</div>
-        <div class="field-row">
-            <label>Format</label>
-            <select id="optFormat">
-                <option value="json" selected>JSON</option>
-                <option value="fields">Fields</option>
-                <option value="hr">Human Readable</option>
-            </select>
-        </div>
-        <div class="toggle-row">
-            <span>Pretty JSON</span>
-            <div class="toggle on" id="optPretty" onclick="toggleOpt(this)"></div>
-        </div>
-        <div class="toggle-row">
-            <span>Verbose</span>
-            <div class="toggle" id="optVerbose" onclick="toggleOpt(this)"></div>
-        </div>
-        <div class="toggle-row">
-            <span>Log telegrams</span>
-            <div class="toggle" id="optLogTelegrams" onclick="toggleOpt(this)"></div>
-        </div>
-    </div>
-
-    <!-- Link Mode -->
-    <div class="sidebar-section">
-        <div class="section-title">Link Mode</div>
-        <div class="field-row">
-            <select id="linkMode" style="flex:1">
-                <option value="0x09">C2/T2-Other (C1+T1)</option>
-                <option value="0x08">T2-Other (T1)</option>
-                <option value="0x0e">C2-Other (C1)</option>
-                <option value="0x03">S2 (S1/S1-m)</option>
-            </select>
-            <button onclick="setLinkMode()" id="btnSetMode" disabled>Set</button>
-        </div>
-    </div>
-
-    <!-- Device Commands -->
-    <div class="sidebar-section">
-        <div class="section-title">Device Commands</div>
-        <div style="display:flex; gap:4px; flex-wrap:wrap;">
-            <button onclick="sendCmd('fw')" id="btnFw" disabled>FW Version</button>
-            <button onclick="sendCmd('serial')" id="btnSerial" disabled>Serial No</button>
-            <button onclick="sendCmd('info')" id="btnInfo" disabled>Get Config</button>
-            <button onclick="sendCmd('reset')" id="btnReset" disabled>Reset</button>
-        </div>
-        <div style="margin-top:8px;">
-            <div class="section-title">Write Register</div>
-            <div class="field-row">
-                <label>Addr</label>
-                <input type="text" id="regAddr" placeholder="45" maxlength="2" style="width:50px;" />
-                <label>Val</label>
-                <input type="text" id="regVal" placeholder="09" maxlength="2" style="width:50px;" />
-                <button onclick="writeReg()" id="btnWriteReg" disabled>Write</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Actions -->
-    <div class="sidebar-section" style="margin-top:auto;">
-        <div style="display:flex; gap:4px;">
-            <button onclick="clearTerminal()" style="flex:1">Clear</button>
-            <button onclick="exportData()" style="flex:1">Export JSON</button>
-        </div>
-    </div>
+<div class="prompt-wrap">
+    <span class="ps">wmbusmeters$&nbsp;</span>
+    <input type="text" id="input" placeholder="e.g. auto:t1  or  --listmeters  or  --help" autofocus />
 </div>
 
-<!-- ── Terminal ───────────────────────────────────────────────── -->
-<div class="terminal-wrap">
-    <div class="terminal-toolbar">
-        <div class="tab active" data-view="output">Output</div>
-        <div class="tab" data-view="raw">Raw Bytes</div>
-        <div style="margin-left:auto; color:var(--text-dim); font-family:var(--mono); font-size:11px;">
-            <span id="termTelegrams">0</span> telegrams
-        </div>
-    </div>
-    <div class="terminal" id="terminal"></div>
+<div class="statusbar">
+    <span id="sbStatus">ready</span>
+    <span id="sbPorts">no ports</span>
 </div>
 
-<!-- ── Status Bar ────────────────────────────────────────────── -->
-<div class="statusbar disconnected" id="statusbar">
-    <span id="sbDevice">No device</span>
-    <span id="sbBytes">0 bytes</span>
-    <span id="sbTelegrams">0 telegrams</span>
-    <span id="sbUptime">--:--</span>
-    <span style="margin-left:auto;" id="sbWasm">WASM loading…</span>
-</div>
+<script src="serial-manager.js"></script>
 
 <script>
-// ═══════════════════════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════
 // wmbusmeters Web Terminal
-// Alles Protokoll + Dekodierung in WASM, JS nur UI
-// ═══════════════════════════════════════════════════════════════════════════
+//
+// "Add Port" registers a WebSerial port.
+// Then you type commands exactly like the CLI:
+//   auto:t1
+//   webserial:0:t1 MyMeter multical21 12345678 KEY
+//   --listmeters
+//   --analyze=...
+// wmbusmeters main() uses the registered port(s).
+// ═══════════════════════════════════════════════════════
 
-// ── WASM + Bridge ──────────────────────────────────────────────────────────
 let wasmModule = null, wasmReady = false, wm = {};
-const bridge = { ports: [] };
+let mainRunning = false;
 
-globalThis.getDeviceCount = () => bridge.ports.length;
+// ── 1. Serial manager (before WASM) ──────────────────
+const serialMgr = new SerialCommunicationManagerImp();
+serialMgr.registerGlobals();
 
-globalThis.openDeviceFull = (idx, baud, databits, stopbits, parity) => {
-    // Wird bereits in autoDetect/manualConnect geöffnet, daher hier nichts tun
-    console.log('openDeviceFull', idx, baud, databits, stopbits, parity);
-};
+// ── Terminal ──────────────────────────────────────────
+const term = document.getElementById('term');
+function print(text, cls) {
+    const el = document.createElement('div');
+    el.className = 'line' + (cls ? ' ' + cls : '');
+    el.textContent = text;
+    term.appendChild(el);
+    if (term.scrollHeight - term.scrollTop - term.clientHeight < 200)
+        term.scrollTop = term.scrollHeight;
+}
 
-globalThis.writeSerial = (idx, ptr, len) => {
-    const dev = bridge.ports[idx];
-    if (!dev?.writer) return;
-    const data = new Uint8Array(wasmModule.HEAPU8.buffer, ptr, len);
-    dev.writer.write(data).catch(e => termPrint('ERROR: bridge write error - ' + e.message, 'red'));
-};
-
-globalThis.closeSerialPort = async function(index) {
-    termPrint('closeSerialPort - ' + index, 'dim');
-    const dev = bridge.ports[index];
-    if (dev) {
-        if (dev.reader) {
-            dev.reading = createDeferredPromise();
-            try {
-                await dev.reading.promise;
-                dev.reader.releaseLock();
-                dev.reader.cancel()
-            } catch (e) {
-                termPrint('ERROR: reader cancel error - ' + e.message, 'red');
-            }
-            // try { dev.reader.releaseLock(); } catch(e) { termPrint('ERROR: reader releaseLock error - ' + e.message, 'red') }
-        }
-            // try { dev.writer.releaseLock(); } catch(e) { termPrint('ERROR: writer releaseLock error - ' + e.message, 'red') }
-        if (dev.port) {
-            await dev.port.close().catch(e => termPrint('ERROR: port close error - ' + e.message, 'red'));
-        }
-    }
-};
-
-
+// ── 2. WASM Init ─────────────────────────────────────
 async function initWasm() {
     try {
         const s = document.createElement('script');
         s.src = 'dist/wmbusmeters.js';
         document.head.appendChild(s);
-        await new Promise((ok, no) => { s.onload=ok; s.onerror=()=>no(new Error('dist/wmbusmeters.js not found')); });
-        wasmModule = await WMBusMeters();
+        await new Promise((ok, no) => { s.onload = ok; s.onerror = () => no(new Error('dist/wmbusmeters.js not found')); });
 
-        wm.free        = wasmModule.cwrap('wm_free_result',        null,     []);
-        wm.version     = wasmModule.cwrap('wm_version',            'string', []);
-        wm.listDrivers = wasmModule.cwrap('wm_list_drivers',       'string', []);
-        wm.decode      = wasmModule.cwrap('wm_decode',             'string', ['string','string','string']);
-        wm.serialOpen  = wasmModule.cwrap('wm_serial_open',        'string', ['number','number','number','number','number']);
-        wm.serialClose = wasmModule.cwrap('wm_serial_close',       null,     ['number']);
-        wm.configProto = wasmModule.cwrap('wm_configure_protocol', 'string', ['number','string']);
-        wm.sendCmd     = wasmModule.cwrap('wm_send_command',       'string', ['number','number','string']);
-        wm.process     = wasmModule.cwrap('wm_process_buffer',     'string', ['number','string','string'], { async: true });
-        wm.onData      = wasmModule.cwrap('serial_on_data',        null,     ['number','number','number']);
-        wm.detectDeviceAtBaud = wasmModule.cwrap('wm_detect_device_at_baud', 'string', ['number', 'number'], { async: true });
+        wasmModule = await WMBusMeters({
+            print:    (text) => print(text),
+            printErr: (text) => print(text, 'amber'),
+        });
+
+        serialMgr.setWasmModule(wasmModule);
+
+        wm.free    = wasmModule.cwrap('wm_free_result', null, []);
+        wm.version = wasmModule.cwrap('wm_version', 'string', []);
+        wm.main    = wasmModule.cwrap('wm_main', 'string', ['string'], { async: true });
+        wm.stop    = wasmModule.cwrap('wm_stop', null, []);
 
         wasmReady = true;
-        const ver = wm.version();
-        document.getElementById('wasmVersion').textContent = ver;
+        const v = wm.version();
+        document.getElementById('ver').textContent = ' ' + v;
         document.getElementById('wasmDot').classList.add('on');
-        document.getElementById('wasmLabel').textContent = 'ready';
-        document.getElementById('sbWasm').textContent = ver;
-        termPrint(`${ver}`, 'green');
-        termPrint('wmbusmeters compiled to WebAssembly — ready.', 'dim');
-        termPrint('', 'dim');
+        document.getElementById('wasmLbl').textContent = 'ready';
 
-        // Fill driver dropdown
-        try {
-            const r = JSON.parse(wm.listDrivers()); wm.free();
-            if (r.ok) {
-                const sel = document.getElementById('mDriver');
-                r.drivers.forEach(d => { const o = document.createElement('option'); o.value=o.textContent=d; sel.appendChild(o); });
-            }
-        } catch(e){}
+        print(v, 'green');
+        print('', 'dim');
+        print('Usage:', 'dim');
+        print('  1. Click "+ Add Port" to register your wMBus dongle', 'dim');
+        print('  2. Type a command below — same syntax as the CLI:', 'dim');
+        print('', 'dim');
+        print('     auto:t1                              listen on auto-detected device', 'cyan');
+        print('     auto:t1 MyMeter multical21 12345678  listen + decode specific meter', 'cyan');
+        print('     --listmeters                         list available drivers', 'cyan');
+        print('     --listfields=multical21               list fields for a driver', 'cyan');
+        print('     --analyze=...                        analyze a hex telegram', 'cyan');
+        print('     --help                               full help', 'cyan');
+        print('', 'dim');
+        print('  Type "stop" to stop a running session.', 'dim');
+        print('  Type "clear" to clear the terminal.', 'dim');
+        print('', 'dim');
 
-    } catch(e) {
-        document.getElementById('wasmLabel').textContent = 'error';
-        document.getElementById('sbWasm').textContent = 'WASM error: ' + e.message;
-        termPrint('ERROR: ' + e.message, 'red');
+    } catch (e) {
+        document.getElementById('wasmLbl').textContent = 'error';
+        print('WASM load failed: ' + e.message, 'red');
     }
 }
 
-function createDeferredPromise() {
-  let res;
-  let rej;
-  const promise = new Promise((resolve, reject) => {
-    res = resolve
-    rej = reject
-  })
+// ── Add Port ──────────────────────────────────────────
+// Opens the browser serial port dialog.
+// The port is registered so wmbusmeters can find it
+// via listSerialTTYs() → "webserial:0" etc.
+async function addPort() {
+    if (!wasmReady) { print('WASM not ready yet.', 'red'); return; }
 
-  return { promise, resolve: res, reject: rej };
-}
-
-
-async function bridgeReadLoop(idx) {
-    const dev = bridge.ports[idx];
-    if (!dev || !dev.port) return;
-    const reader = dev.port.readable.getReader();
-    dev.reader = reader;
-    dev.reading = null;
     try {
-        while (dev.reading === null) {
-            const { value, done } = await reader.read();
-            if (done) break;
-            if (!value?.length) continue;
-            const ptr = wasmModule._malloc(value.length);
-            wasmModule.HEAPU8.set(value, ptr);
-            wm.onData(idx, ptr, value.length);
-            wasmModule._free(ptr);
-            totalBytes += value.length;
-            if (activeView === 'raw') {
-                termPrint('◀ ' + Array.from(value).map(b=>b.toString(16).padStart(2,'0').toUpperCase()).join(' '), 'dim');
-            }
+        const baud = 9600; // Default — wmbusmeters will re-open at the right baud during detection
+        const dev = await serialMgr.requestAndOpen(baud);
+        if (!dev) { print('Failed to open port.', 'red'); return; }
+
+        const info = dev.getInfo();
+        const vid = info.usbVendorId ? `VID=0x${info.usbVendorId.toString(16).padStart(4,'0')}` : '';
+        const pid = info.usbProductId ? `PID=0x${info.usbProductId.toString(16).padStart(4,'0')}` : '';
+        const usb = [vid, pid].filter(Boolean).join(' ');
+
+        print(`Port added: /dev/ttyUSB${dev.index}${usb ? ' (' + usb + ')' : ''}`, 'green');
+        print(`Use it as: auto:t1  or  /dev/ttyUSB${dev.index}:t1`, 'dim');
+        print('', 'dim');
+
+        renderPortTags();
+
+    } catch (e) {
+        if (e.name === 'NotFoundError') {
+            // User cancelled the dialog
+        } else {
+            print('Port error: ' + e.message, 'red');
         }
-        this.reading.resolve();
-    } catch(e) {
-        this.reading?.reject(e);
-    } finally {
-        try { reader.releaseLock(); } catch(e) {}
     }
 }
 
-// ── State ──────────────────────────────────────────────────────────────────
-let isConnected = false, deviceIndex = null, pollInterval = null;
-let totalBytes = 0, totalTelegrams = 0;
-let connectionStart = null, uptimeInterval = null;
-let meters = [];      // { name, driver, id, key }
-let allResults = [];  // for export
-let activeView = 'output';
-
-// CMD constants per protocol
-const CMDS = {
-    amb8465:  { SET_MODE:0x04, RESET:0x05, SET:0x09, GET:0x0A, SERIAL:0x0B, FW:0x0C, FACTORY:0x11 },
-    tarvos2:  { SET_MODE:0x04, RESET:0x05, SET:0x09, GET:0x0A, SERIAL:0x0B, FW:0x0C, FACTORY:0x12 },
-    raw:      {}
-};
-
-function currentProto() { return document.getElementById('deviceProto').value; }
-function currentCmds() { return CMDS[currentProto()] || {}; }
-
-// ── Terminal Output ────────────────────────────────────────────────────────
-const term = document.getElementById('terminal');
-
-function termPrint(text, cls = '') {
-    const el = document.createElement('div');
-    el.className = 'term-line' + (cls ? ' ' + cls : '');
-    el.textContent = text;
-    term.appendChild(el);
-    term.scrollTop = term.scrollHeight;
+// ── Remove Port ───────────────────────────────────────
+async function removePort(index) {
+    if (mainRunning) {
+        print('Cannot remove port while running — type "stop" first.', 'amber');
+        return;
+    }
+    await serialMgr.closeByIndex(index);
+    print(`Port /dev/ttyUSB${index} removed.`, 'dim');
+    renderPortTags();
 }
 
-function termPrintHtml(html, cls = '') {
-    const el = document.createElement('div');
-    el.className = 'term-line' + (cls ? ' ' + cls : '');
-    el.innerHTML = html;
-    term.appendChild(el);
-    term.scrollTop = term.scrollHeight;
+// ── Port Tags UI ──────────────────────────────────────
+function renderPortTags() {
+    const container = document.getElementById('portTags');
+    container.innerHTML = '';
+
+    const count = serialMgr.getDeviceCount();
+    document.getElementById('sbPorts').textContent = count === 0 ? 'no ports' : count + ' port(s)';
+
+    // Iterate through known devices
+    for (let i = 0; i < 10; i++) {
+        const dev = serialMgr.findByIndex(i);
+        if (!dev || !dev.isOpen) continue;
+
+        const info = dev.getInfo();
+        const vid = info.usbVendorId ? info.usbVendorId.toString(16).padStart(4,'0') : '';
+
+        const tag = document.createElement('span');
+        tag.className = 'port-tag';
+        tag.innerHTML = `<span class="port-dot"></span>/dev/ttyUSB${dev.index}${vid ? ' <span style="color:var(--dim)">' + vid + '</span>' : ''}<span class="port-remove" onclick="removePort(${dev.index})">×</span>`;
+        container.appendChild(tag);
+    }
 }
 
-function clearTerminal() {
-    term.innerHTML = '';
-    totalTelegrams = 0;
-    totalBytes = 0;
-    allResults = [];
-    updateStatus();
-    termPrint('Terminal cleared.', 'dim');
-}
+// ── Command Input ─────────────────────────────────────
+document.getElementById('input').addEventListener('keydown', e => {
+    if (e.key !== 'Enter') return;
+    const cmd = e.target.value.trim();
+    e.target.value = '';
+    if (!cmd) return;
 
-// ── Tab Switching ──────────────────────────────────────────────────────────
-document.querySelectorAll('.terminal-toolbar .tab').forEach(tab => {
-    tab.addEventListener('click', () => {
-        document.querySelector('.tab.active').classList.remove('active');
-        tab.classList.add('active');
-        activeView = tab.dataset.view;
-    });
+    if (cmd === 'clear') { term.innerHTML = ''; return; }
+    if (cmd === 'stop') {
+        if (mainRunning) { wm.stop(); print('Stopping...', 'amber'); }
+        else print('Nothing running.', 'dim');
+        return;
+    }
+
+    execCommand(cmd);
 });
 
-// ── Auto-Detection (WASM-basiert, Zweiphasen) ─────────────────────────────
-// Phase 1: wm_detect_send_probe() sendet Probes für AMB8465/3665, IM871A, CUL, RC1180
-// Phase 2: wm_detect_analyze() liest rxBuffer und matcht bekannte Antwort-Patterns
-// Spiegelt detectAMB8465AMB3665(), detectIM871AIM170A(), detectCUL(), detectRC1180()
+async function execCommand(cmd) {
+    print('$ wmbusmeters ' + cmd, 'bright');
 
-// Baudraten ohne 38400 (CUL)
-const BAUD_CANDIDATES = [9600, 19200, 57600, 115200];
+    if (!wasmReady) { print('WASM not loaded yet.', 'red'); return; }
+    if (mainRunning) { print('Already running — type "stop" first.', 'amber'); return; }
 
-// Hilfsfunktion für Promise mit Timeout
-function withTimeout(promise, ms, timeoutError = new Error('Timeout')) {
-    let timer;
-    return Promise.race([
-        promise,
-        new Promise((_, reject) => {
-            timer = setTimeout(() => reject(timeoutError), ms);
-        })
-    ]).finally(() => clearTimeout(timer));
-}
+    mainRunning = true;
+    document.getElementById('sbStatus').textContent = 'running...';
 
-async function autoDetect() {
-    if (!wasmReady) { termPrint('WASM not ready.', 'red'); return; }
-
-    termPrint('(detect) requesting serial port…', 'dim');
-    let serialPort;
     try {
-        serialPort = await navigator.serial.requestPort();
-    } catch(e) {
-        termPrint('(detect) cancelled.', 'dim');
-        return;
-    }
-
-    const info = serialPort.getInfo();
-    if (info.usbVendorId) {
-        const vid = '0x' + info.usbVendorId.toString(16).padStart(4,'0').toUpperCase();
-        const pid = '0x' + info.usbProductId.toString(16).padStart(4,'0').toUpperCase();
-        termPrint(`(detect) USB device: VID=${vid} PID=${pid}`, 'cyan');
-    }
-
-    for (const baud of BAUD_CANDIDATES) {
-        termPrint(`(detect) probing @ ${baud} baud…`, 'dim');
-        let idx = -1;
-        try {
-            await serialPort.open({ baudRate: baud, dataBits: 8, stopBits: 1, parity: 'none', flowControl: 'none' });
-
-            idx = bridge.ports.length;
-            const writer = serialPort.writable.getWriter();
-            bridge.ports.push({ port: serialPort, writer, reader: null, reading: false });
-
-            let r = JSON.parse(wm.serialOpen(idx, baud, 8, 1, 0));
-            wm.free();
-            if (!r.ok) throw new Error('serialOpen failed');
-
-            bridgeReadLoop(idx);
-
-            // Erkennung mit Timeout (3 Sekunden)
-            const detectPromise = new Promise(async (resolve, reject) => {
-                try {
-                    const result = await wm.detectDeviceAtBaud(idx, baud);
-                    wm.free();
-                    resolve(JSON.parse(result));
-                } catch(e) {
-                    reject(e);
-                }
-            });
-
-            const detectResult = await Promise.race([
-                detectPromise,
-                new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 5000))
-            ]);
-
-            if (detectResult.ok && detectResult.detected) {
-                termPrint(`(detect) ✓ ${detectResult.type} detected @ ${baud} baud (id: ${detectResult.device_id || '?'})`, 'green');
-
-                const typeToProto = {
-                    amb8465: 'amb8465',
-                    amb3665: 'amb8465',
-                    im871a: 'im871a',
-                    im170a: 'im871a',
-                    cul: 'raw',
-                    rc1180: 'raw',
-                    iu891a: 'raw'
-                };
-                const proto = typeToProto[detectResult.type] || 'raw';
-
-                document.getElementById('deviceProto').value = proto;
-                document.getElementById('baudRate').value = String(detectResult.baud || baud);
-
-                const cr = JSON.parse(wm.configProto(idx, proto));
-                wm.free();
-                if (!cr.ok) throw new Error('configProto failed');
-
-                deviceIndex = idx;
-                isConnected = true;
-                connectionStart = Date.now();
-                uptimeInterval = setInterval(updateUptime, 1000);
-
-                termPrint(`Connected: ${detectResult.type} (${proto}) @ ${baud} baud`, 'green');
-                if (meters.length === 0) termPrint('No meters configured. Printing all received telegrams.', 'amber');
-                termPrint('Listening for telegrams…', 'dim');
-                termPrint('', 'dim');
-
-                updateUI();
-                startPolling(idx);
-
-                if (proto !== 'raw') {
-                    const c = CMDS[proto];
-                    if (c?.FW) setTimeout(() => { if (isConnected) wasmSendCmd(c.FW); }, 300);
-                    if (c?.SERIAL) setTimeout(() => { if (isConnected) wasmSendCmd(c.SERIAL); }, 600);
-                }
-                return;
-            }
-
-            termPrint(`(detect)   no known device response`, 'dim');
-            // Aufräumen
-            const dev = bridge.ports[idx];
-            if (dev) {
-                dev.reading = false;
-                try { await dev.reader?.cancel(); } catch(e) {}
-                try { dev.writer?.releaseLock(); } catch(e) {}
-            }
-            wm.serialClose(idx);
-            await serialPort.close();
-            bridge.ports.pop();
-
-        } catch(e) {
-            termPrint(`(detect)   error: ${e.message}`, 'dim');
-            // Aufräumen
-            if (idx !== -1) {
-                const dev = bridge.ports[idx];
-                if (dev) {
-                    dev.reading = false;
-                    try { await dev.reader?.cancel(); } catch(e) {}
-                    try { dev.writer?.releaseLock(); } catch(e) {}
-                }
-                wm.serialClose(idx);
-                bridge.ports.pop();
-            }
-            try { await serialPort.close(); } catch(_) {}
-        }
-    }
-
-    termPrint('(detect) no command-mode device found at any baud rate.', 'amber');
-    termPrint('(detect) opening as RAW listener @ 115200…', 'amber');
-    try {
-        document.getElementById('deviceProto').value = 'raw';
-        document.getElementById('baudRate').value = '115200';
-        await serialPort.open({ baudRate:115200, dataBits:8, stopBits:1, parity:'none', flowControl:'none' });
-        const idx = bridge.ports.length;
-        const writer = serialPort.writable.getWriter();
-        bridge.ports.push({ port:serialPort, writer, reader:null, reading:false });
-        let r = JSON.parse(wm.serialOpen(idx, 115200, 8, 1, 0));
+        const raw = await wm.main(cmd);
         wm.free();
-        if (!r.ok) throw new Error('serialOpen failed');
-        bridgeReadLoop(idx);
-        r = JSON.parse(wm.configProto(idx, 'raw'));
-        wm.free();
-        if (!r.ok) throw new Error('configProto failed');
-        deviceIndex = idx;
-        isConnected = true;
-        connectionStart = Date.now();
-        uptimeInterval = setInterval(updateUptime, 1000);
-        termPrint('Connected: raw @ 115200 baud', 'green');
-        if (meters.length === 0) termPrint('No meters configured. Printing all received telegrams.', 'amber');
-        termPrint('Listening for telegrams…', 'dim');
-        termPrint('', 'dim');
-        updateUI();
-        startPolling(idx);
-    } catch(e) {
-        termPrint(`(detect) ✗ failed: ${e.message}. Try manual connect.`, 'red');
-    }
-}
 
-// Connect with a specific port (for RAW fallback)
-async function doConnectWith(serialPort, protoName, baud) {
-    try {
-        await serialPort.open({ baudRate: baud, dataBits: 8, stopBits: 1, parity: 'none', flowControl: 'none' });
-    } catch(e) {
-        // May already be open from detection
-        if (!e.message.includes('already open')) throw e;
-    }
-
-    const idx = bridge.ports.length;
-    bridge.ports.push({ port: serialPort, writer: serialPort.writable.getWriter(), reader: null, reading: false });
-
-    let r = JSON.parse(wm.serialOpen(idx, baud, 8, 1, 0)); wm.free();
-    if (!r.ok) { termPrint('serial open failed: ' + r.error, 'red'); return; }
-
-    r = JSON.parse(wm.configProto(idx, protoName)); wm.free();
-    if (!r.ok) { termPrint('protocol config failed: ' + r.error, 'red'); return; }
-
-    deviceIndex = idx;
-    isConnected = true;
-    connectionStart = Date.now();
-    uptimeInterval = setInterval(updateUptime, 1000);
-
-    termPrint(`Connected: ${protoName} @ ${baud} baud`, 'green');
-    if (meters.length === 0) termPrint('No meters configured. Printing all received telegrams.', 'amber');
-    else termPrint(`${meters.length} meter(s) configured.`, 'dim');
-    termPrint('Listening for telegrams…', 'dim');
-    termPrint('', 'dim');
-
-    updateUI();
-    bridgeReadLoop(idx);
-    startPolling(idx);
-
-    // Auto-probe device info
-    if (protoName !== 'raw') {
-        const c = CMDS[protoName];
-        setTimeout(() => { if (isConnected) wasmSendCmd(c.FW); }, 300);
-        setTimeout(() => { if (isConnected) wasmSendCmd(c.SERIAL); }, 600);
-    }
-}
-
-// ── Manual Connect (uses UI dropdowns) ─────────────────────────────────────
-async function doConnect() {
-    if (!wasmReady) { termPrint('WASM not ready.', 'red'); return; }
-    try {
-        const serialPort = await navigator.serial.requestPort();
-        const baud = parseInt(document.getElementById('baudRate').value);
-        const proto = currentProto();
-
-        await serialPort.open({ baudRate:baud, dataBits:8, stopBits:1, parity:'none', flowControl:'none' });
-        const idx = bridge.ports.length;
-        bridge.ports.push({ port:serialPort, writer:serialPort.writable.getWriter(), reader:null, reading:false });
-
-        let r = JSON.parse(wm.serialOpen(idx, baud, 8, 1, 0)); wm.free();
-        if (!r.ok) { termPrint('serial open failed: ' + r.error, 'red'); return; }
-
-        r = JSON.parse(wm.configProto(idx, proto)); wm.free();
-        if (!r.ok) { termPrint('protocol config failed: ' + r.error, 'red'); return; }
-
-        deviceIndex = idx;
-        isConnected = true;
-        connectionStart = Date.now();
-        uptimeInterval = setInterval(updateUptime, 1000);
-
-        termPrint(`Connected: ${proto} @ ${baud} baud`, 'green');
-        if (meters.length === 0) {
-            termPrint('No meters configured. Printing all received telegrams.', 'amber');
-        } else {
-            termPrint(`${meters.length} meter(s) configured.`, 'dim');
-        }
-        termPrint('Listening for telegrams…', 'dim');
-        termPrint('', 'dim');
-
-        updateUI();
-        bridgeReadLoop(idx);
-        startPolling(idx);
-
-        // Auto-probe
-        if (proto !== 'raw') {
-            const c = currentCmds();
-            setTimeout(() => { if (isConnected) wasmSendCmd(c.FW); }, 300);
-            setTimeout(() => { if (isConnected) wasmSendCmd(c.SERIAL); }, 600);
-        }
-    } catch(e) {
-        termPrint('Connection error: ' + e.message, 'red');
-    }
-}
-
-async function doDisconnect() {
-    isConnected = false;
-    if (wasmReady && deviceIndex !== null) wm.serialClose(deviceIndex);
-    const dev = bridge.ports[deviceIndex];
-    if (dev) {
-        dev.reading = false;
-        try { dev.reader?.cancel(); } catch(e) {}
-        try { dev.writer?.releaseLock(); } catch(e) {}
-        try { await dev.port.close(); } catch(e) {}
-    }
-    if (pollInterval) { clearInterval(pollInterval); pollInterval = null; }
-    if (uptimeInterval) { clearInterval(uptimeInterval); uptimeInterval = null; }
-    deviceIndex = null;
-    termPrint('Disconnected.', 'amber');
-    updateUI();
-}
-
-// ── Polling: WASM process_buffer ───────────────────────────────────────────
-function startPolling(idx) {
-    pollInterval = setInterval(async () => {
-        if (!isConnected || !wasmReady) return;
         try {
-            // Determine key: from matched meter or global
-            const globalKey = '';  // meters have individual keys
-            const raw = await wm.process(idx, globalKey, 'auto');
-            wm.free();
             const res = JSON.parse(raw);
-            if (!res.ok) return;
-
-            if (res.bytes > 0) updateStatus();
-
-            // Telegrams
-            for (const t of res.telegrams) {
-                totalTelegrams++;
-                allResults.push({ timestamp: new Date().toISOString(), ...t });
-
-                // Try to match a configured meter
-                const matched = matchMeter(t);
-                if (matched) {
-                    // Re-decode with the meter's key if it has one
-                    // (process_buffer already decoded, but we may need the key)
-                    if (matched.key && t.data?.error === 'decryption failed') {
-                        // Retry with key via wm_decode
-                        const hex = t.data?.hex || '';
-                        // TODO: re-decode with key — needs hex in output
-                    }
-                }
-
-                if (activeView === 'output') {
-                    renderTelegram(t, matched);
-                }
-
-                if (t.rssi_dbm !== undefined) {
-                    document.getElementById('sbTelegrams').textContent = `${totalTelegrams} telegrams`;
-                }
-                document.getElementById('termTelegrams').textContent = totalTelegrams;
+            if (res.exit_code !== 0) {
+                print(`(exit code: ${res.exit_code})`, 'amber');
             }
+        } catch (e) {}
 
-            // Command responses
-            for (const r of res.responses) {
-                renderResponse(r);
-            }
-        } catch(e) { /* ignore */ }
-    }, 25);
-}
-
-function matchMeter(t) {
-    if (meters.length === 0) return null;
-    const tid = t.id || (t.data && t.data.id) || '';
-    for (const m of meters) {
-        if (m.id === '*' || m.id === tid) return m;
-        if (m.driver !== 'auto' && t.driver === m.driver) return m;
-    }
-    return null;
-}
-
-// ── Render Telegram ────────────────────────────────────────────────────────
-function renderTelegram(t, matched) {
-    const fmt = document.getElementById('optFormat').value;
-    const pretty = document.getElementById('optPretty').classList.contains('on');
-    const verbose = document.getElementById('optVerbose').classList.contains('on');
-
-    const name = matched ? matched.name : '?';
-    const data = t.data || {};
-    const id = t.id || data.id || '?';
-    const driver = t.driver || '?';
-    const media = data.media || data.meter || '';
-
-    if (!t.ok) {
-        termPrint(`[${id}] ${t.error || 'decode failed'}`, 'amber');
-        return;
+    } catch (e) {
+        print('WASM error: ' + e.message, 'red');
     }
 
-    if (fmt === 'json') {
-        // JSON output (like wmbusmeters --json)
-        const output = pretty ? JSON.stringify(data, null, 2) : JSON.stringify(data);
-        termPrint(output, 'json');
-    }
-    else if (fmt === 'hr') {
-        // Human readable (like default wmbusmeters output)
-        let line = `${name};${id};${media};${driver}`;
-        const skipKeys = ['media','meter','name','id','timestamp','device','rssi_dbm'];
-        for (const [k, v] of Object.entries(data)) {
-            if (skipKeys.includes(k)) continue;
-            line += `;${v}`;
-        }
-        termPrint(line, 'hr');
-    }
-    else if (fmt === 'fields') {
-        // Fields output (tab separated)
-        let line = `${name}\t${id}\t${media}\t${driver}`;
-        const skipKeys = ['media','meter','name','id','timestamp','device','rssi_dbm'];
-        for (const [k, v] of Object.entries(data)) {
-            if (skipKeys.includes(k)) continue;
-            line += `\t${v}`;
-        }
-        termPrint(line, 'bright');
-    }
-
-    if (verbose) {
-        const rssi = t.rssi_dbm !== undefined ? ` rssi=${t.rssi_dbm.toFixed(0)}dBm` : '';
-        termPrint(`  (${driver}) ${id} ${media}${rssi}`, 'dim');
-    }
+    mainRunning = false;
+    document.getElementById('sbStatus').textContent = 'ready';
+    document.getElementById('btnAddPort').disabled = false;
 }
 
-function renderResponse(r) {
-    const colors = { fw_version:'cyan', serial_no:'cyan', reset:'amber', set:'green',
-                     set_mode:'green', get:'dim', factory_reset:'red' };
-    const c = colors[r.type] || 'dim';
-    termPrint(`[${r.type}] ${r.info || r.payload}`, c);
-}
-
-// ── Send Commands ──────────────────────────────────────────────────────────
-function wasmSendCmd(cmd, payload = '') {
-    if (!wasmReady || deviceIndex === null) return;
-    try {
-        const r = JSON.parse(wm.sendCmd(deviceIndex, cmd, payload)); wm.free();
-        if (r.ok) {
-            const logTg = document.getElementById('optLogTelegrams').classList.contains('on');
-            if (logTg) termPrint(`→ ${r.frame}`, 'dim');
-        } else {
-            termPrint('send error: ' + r.error, 'red');
-        }
-    } catch(e) {}
-}
-
-function sendCmd(type) {
-    const c = currentCmds();
-    if (type === 'fw') wasmSendCmd(c.FW);
-    else if (type === 'serial') wasmSendCmd(c.SERIAL);
-    else if (type === 'info') { wasmSendCmd(c.SERIAL); setTimeout(()=>wasmSendCmd(c.GET, '0080'), 200); }
-    else if (type === 'reset') wasmSendCmd(c.RESET);
-}
-
-async function setLinkMode() {
-    const mode = parseInt(document.getElementById('linkMode').value);
-    wasmSendCmd(currentCmds().SET_MODE, mode.toString(16).padStart(2,'0'));
-    termPrint(`Link mode set to 0x${mode.toString(16).padStart(2,'0').toUpperCase()}`, 'green');
-}
-
-function writeReg() {
-    const a = parseInt(document.getElementById('regAddr').value, 16);
-    const v = parseInt(document.getElementById('regVal').value, 16);
-    if (isNaN(a) || isNaN(v)) { termPrint('Invalid hex', 'red'); return; }
-    wasmSendCmd(currentCmds().SET, a.toString(16).padStart(2,'0') + v.toString(16).padStart(2,'0'));
-}
-
-// ── Meter Management ───────────────────────────────────────────────────────
-function addMeter() {
-    const name   = document.getElementById('mName').value.trim() || 'Meter' + (meters.length+1);
-    const driver = document.getElementById('mDriver').value;
-    const id     = document.getElementById('mId').value.trim() || '*';
-    const key    = document.getElementById('mKey').value.trim();
-
-    meters.push({ name, driver, id, key });
-    renderMeterList();
-    termPrint(`(config) added meter: ${name} ${driver} ${id} ${key ? 'key=***' : 'nokey'}`, 'dim');
-
-    document.getElementById('mName').value = '';
-    document.getElementById('mId').value = '';
-    document.getElementById('mKey').value = '';
-}
-
-function removeMeter(i) {
-    const m = meters.splice(i, 1)[0];
-    renderMeterList();
-    termPrint(`(config) removed meter: ${m.name}`, 'dim');
-}
-
-function renderMeterList() {
-    const el = document.getElementById('meterList');
-    if (meters.length === 0) {
-        el.innerHTML = '<div style="color:var(--text-dim);font-size:11px;padding:8px 0;text-align:center;">No meters — all telegrams will be printed</div>';
-        return;
-    }
-    el.innerHTML = meters.map((m, i) => `
-        <div class="meter-item">
-            <span class="name">${esc(m.name)}</span>
-            <span class="driver">${esc(m.driver)}</span>
-            <span class="id">${esc(m.id)}</span>
-            ${m.key ? '<span class="key">🔑</span>' : ''}
-            <span class="remove" onclick="removeMeter(${i})">×</span>
-        </div>
-    `).join('');
-}
-
-function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-
-// ── Toggle Helper ──────────────────────────────────────────────────────────
-function toggleOpt(el) { el.classList.toggle('on'); }
-
-// ── Export ──────────────────────────────────────────────────────────────────
-function exportData() {
-    if (!allResults.length) { termPrint('Nothing to export.', 'amber'); return; }
-    const blob = new Blob([JSON.stringify(allResults, null, 2)], {type:'application/json'});
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = `wmbusmeters-${new Date().toISOString().slice(0,19).replace(/:/g,'-')}.json`;
-    a.click();
-    URL.revokeObjectURL(a.href);
-    termPrint(`Exported ${allResults.length} results.`, 'green');
-}
-
-// ── UI Updates ─────────────────────────────────────────────────────────────
-function updateUI() {
-    document.getElementById('btnConnect').disabled = isConnected;
-    document.getElementById('btnManualConnect').disabled = isConnected;
-    document.getElementById('btnDisconnect').disabled = !isConnected;
-    document.getElementById('deviceProto').disabled = isConnected;
-    document.getElementById('baudRate').disabled = isConnected;
-
-    const isRaw = currentProto() === 'raw';
-    ['btnSetMode','btnFw','btnSerial','btnInfo','btnReset','btnWriteReg'].forEach(id => {
-        const el = document.getElementById(id);
-        if (el) { el.disabled = !isConnected || isRaw; }
-    });
-
-    const connDot = document.getElementById('connDot');
-    const sb = document.getElementById('statusbar');
-    if (isConnected) {
-        connDot.classList.add('on');
-        document.getElementById('connLabel').textContent = currentProto();
-        sb.classList.remove('disconnected');
-        document.getElementById('sbDevice').textContent = `${currentProto()} @ ${document.getElementById('baudRate').value}`;
-    } else {
-        connDot.classList.remove('on');
-        document.getElementById('connLabel').textContent = 'disconnected';
-        sb.classList.add('disconnected');
-        document.getElementById('sbDevice').textContent = 'No device';
-    }
-    updateStatus();
-}
-
-function updateStatus() {
-    document.getElementById('sbBytes').textContent = `${totalBytes} bytes`;
-    document.getElementById('sbTelegrams').textContent = `${totalTelegrams} telegrams`;
-    document.getElementById('termTelegrams').textContent = totalTelegrams;
-}
-
-function updateUptime() {
-    if (!connectionStart) return;
-    const s = Math.floor((Date.now() - connectionStart) / 1000);
-    document.getElementById('sbUptime').textContent =
-        `${Math.floor(s/60).toString().padStart(2,'0')}:${(s%60).toString().padStart(2,'0')}`;
-}
-
-// ── Init ───────────────────────────────────────────────────────────────────
+// ── Init ──────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
-    updateUI();
     if (!('serial' in navigator)) {
-        termPrint('Web Serial API not supported. Use Chrome or Edge.', 'red');
-        document.getElementById('btnConnect').disabled = true;
+        print('Web Serial API not supported — use Chrome or Edge.', 'red');
+        document.getElementById('btnAddPort').disabled = true;
     }
     initWasm();
 });
-
-window.addEventListener('beforeunload', () => { if (isConnected) doDisconnect(); });
 </script>
 </body>
 </html>

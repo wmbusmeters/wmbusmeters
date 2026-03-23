@@ -40,6 +40,8 @@
 #include<time.h>
 #include<unistd.h>
 
+#include"version.h"
+
 #if defined(__APPLE__) && defined(__MACH__)
 #include <mach-o/dyld.h>
 #endif
@@ -388,7 +390,7 @@ void enableSyslog() {
     syslog_enabled_ = true;
 }
 
-const char *version_;
+const char *version_ = VERSION;
 
 void setVersion(const char *v)
 {
