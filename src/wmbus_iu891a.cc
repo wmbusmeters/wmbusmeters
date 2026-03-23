@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2017-2024 Fredrik Öhrström (gpl-3.0-or-later)
+ Copyright (C) 2017-2026 Fredrik Öhrström (gpl-3.0-or-later)
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -745,6 +745,28 @@ AccessCheck detectIU891A(Detected *detected, shared_ptr<SerialCommunicationManag
                                                        &status_byte,
                                                        &rssi_dbm);
 
+    // Read full frames (crc checked out) but ignore frames that are not the expected rsp frame.
+    // This results in skipping received radio telegrams if we are trying to detect the dongle
+    // while it is already configured for receiving.
+    while (status == FullFrame &&
+           (endpoint_id != SAP_DEVMGMT_ID || msg_id != DEVMGMT_MSG_GET_DEVICE_INFO_RSP))
+    {
+        // Remove this frame, probably a received telegram.
+        response.erase(response.begin(), response.begin()+frame_length);
+        // Read any more data that might have arrived.
+        vector<uchar> more;
+        serial->receive(&more);
+        response.insert(response.end(), more.begin(), more.end());
+        // Try to parse the next frame.
+        status = WMBusIU891A::checkIU891AFrame(response,
+                                               payload,
+                                               &frame_length,
+                                               &endpoint_id,
+                                               &msg_id,
+                                               &status_byte,
+                                               &rssi_dbm);
+    }
+
     if (status != FullFrame ||
         endpoint_id != SAP_DEVMGMT_ID ||
         msg_id != DEVMGMT_MSG_GET_DEVICE_INFO_RSP)
@@ -779,6 +801,28 @@ AccessCheck detectIU891A(Detected *detected, shared_ptr<SerialCommunicationManag
                                            &msg_id,
                                            &status_byte,
                                            &rssi_dbm);
+
+    // Read full frames (crc checked out) but ignore frames that are not the expected rsp frame.
+    // This results in skipping received radio telegrams if we are trying to detect the dongle
+    // while it is already configured for receiving.
+    while (status == FullFrame &&
+           (endpoint_id != SAP_WMBUSGW_ID || msg_id != WMBUSGW_GET_WMBUS_ADDRESS_RSP))
+    {
+        // Remove this frame, probably a received telegram.
+        response.erase(response.begin(), response.begin()+frame_length);
+        // Read any more data that might have arrived.
+        vector<uchar> more;
+        serial->receive(&more);
+        response.insert(response.end(), more.begin(), more.end());
+        // Try to parse the next frame.
+        status = WMBusIU891A::checkIU891AFrame(response,
+                                               payload,
+                                               &frame_length,
+                                               &endpoint_id,
+                                               &msg_id,
+                                               &status_byte,
+                                               &rssi_dbm);
+    }
 
     if (status != FullFrame ||
         endpoint_id != SAP_WMBUSGW_ID ||
