@@ -17,6 +17,7 @@
 
 #include"util.h"
 #include"shell.h"
+#include"version.h"
 
 #include<algorithm>
 #include<assert.h>
@@ -413,7 +414,7 @@ bool enableLogfile(const string& logfile, bool daemon)
         strftime(buf, sizeof(buf), "%Y-%m-%d %H:%M:%S", localtime(&now));
         int n = 0;
         if (daemon) {
-            n = fprintf(output, "(wmbusmeters) logging started %s %s\n", buf, version_);
+            n = fprintf(output, "(wmbusmeters) logging started %s %s\n", buf, VERSION);
             if (n == 0) {
                 logfile_enabled_ = false;
                 return false;

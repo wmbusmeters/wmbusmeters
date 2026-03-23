@@ -29,6 +29,8 @@
 #include"wmbus.h"
 
 #include"authors.h"
+#include"license.h"
+#include"short_manual.h"
 #include"version.h"
 
 #include <algorithm>
@@ -87,8 +89,6 @@ int main(int argc, char **argv)
 {
     tzset(); // Load the current timezone.
 
-    setVersion(VERSION);
-
     enableEarlyLoggingFromCommandLine(argc, argv);
     prepareBuiltinDrivers();
 
@@ -96,34 +96,14 @@ int main(int argc, char **argv)
 
     if (config->version)
     {
-        printf("wmbusmeters: %s\n", getVersion());
+        printf("wmbusmeters: %s\n", VERSION);
         printf(COMMIT "\n");
         exit(0);
     }
 
     if (config->license)
     {
-        const char * license =
-            R"LICENSE(
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
-You can download the source here: https://github.com/wmbusmeters/wmbusmeters
-But you can also request the source from the person/company that
-provided you with this binary. Read the full license for all details.
-
-)LICENSE";
-        printf("%s%s", AUTHORS, license);
+        printf("%s%s", AUTHORS, LICENSE);
         exit(0);
     }
 
@@ -160,9 +140,7 @@ provided you with this binary. Read the full license for all details.
     if (config->need_help)
     {
         printf("wmbusmeters version: " VERSION "\n");
-        const char *short_manual =
-#include"short_manual.h"
-        puts(short_manual);
+        puts(SHORT_MANUAL);
         exit(0);
     }
 

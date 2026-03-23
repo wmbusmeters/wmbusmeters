@@ -4,11 +4,7 @@ on:
   push:
     branches:
       - master
-    paths: 
-      - 'drivers/**'
   pull_request:
-    paths: 
-      - 'drivers/**'
 
 jobs:
   lint_xmq:
@@ -40,6 +36,20 @@ jobs:
     - id: GIT_DIFF
       run: |
         if ! git diff --quiet src; then
-        echo "Code is not properly formatted. Please run 'make pretty'in /drivers and commit the changes."
+        echo "authors.h is not up to date. Please run './scripts/generate_authors.sh ./src/authors.h' and commit the changes."
+        exit 1
+        fi
+
+
+  integrity_short_manual:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v6
+    - id: GENERATE_SHORT_MANUAL
+      run: ./scripts/generate_short_manual.sh ./src/short_manual.h
+    - id: GIT_DIFF
+      run: |
+        if ! git diff --quiet src; then
+        echo "short_manual.h is not up to date. Please run './scripts/generate_short_manual.sh ./src/short_manual.h' and commit the changes."
         exit 1
         fi
