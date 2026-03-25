@@ -22,6 +22,7 @@
 #include <fcntl.h>
 #include <memory.h>
 #include <pthread.h>
+#include <stdexcept>
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <unistd.h>
@@ -283,10 +284,7 @@ int invokeShellCaptureOutput(string program, vector<string> args, vector<string>
 #else
         execvpe(program.c_str(), (char*const*)&argv[0], (char*const*)&env[0]);
 #endif
-
-        perror("Execvp failed:");
-        error("(shell) invoking %s failed!\n", program.c_str());
-        return 127;
+        throw std::runtime_error{std::string{"execvp failed: "} + strerror(errno)};
     }
 
     close(link[1]);
