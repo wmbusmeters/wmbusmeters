@@ -130,9 +130,9 @@ Lock::Lock(RecursiveMutex *rmutex, const char *func_name)
 Lock::~Lock()
 {
     trace("[UNLOCKING] %s %s (%s %d)\n", rmutex_->name_, func_name_, rmutex_->locked_in_func_, rmutex_->locked_by_pid_);
-    pthread_mutex_unlock(&rmutex_->mutex_);
     rmutex_->locked_in_func_ = "";
     rmutex_->locked_by_pid_ = 0;
+    pthread_mutex_unlock(&rmutex_->mutex_);
     trace("[UNLOCKED]  %s %s (%s %d)\n", rmutex_->name_, func_name_, rmutex_->locked_in_func_, rmutex_->locked_by_pid_);
 }
 
