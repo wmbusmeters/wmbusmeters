@@ -327,7 +327,8 @@ int invokeShellCaptureOutput(string program, vector<string> args, vector<string>
     }
     if (WIFSIGNALED(status)) {
         // Child forcefully terminated
-        debug("(shell) %d terminated due to signal %d\n", pid,  WTERMSIG(status));
+        rc = WTERMSIG(status);
+        debug("(shell) %d terminated due to signal %d\n", pid, rc);
     } else
     {
         debug("(shell) %d exited\n", pid);
