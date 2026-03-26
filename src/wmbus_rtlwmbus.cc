@@ -175,7 +175,7 @@ shared_ptr<BusDevice> openRTLWMBUS(Detected detected,
             }
             else
             {
-                warning("Warning! rtl_wbus executable lacks -f option! Without this option rtl_wmbus cannot detect when rtl-sdr stops working.\n"
+                warning("Warning! rtl_wmbus executable lacks -f option! Without this option rtl_wmbus cannot detect when rtl-sdr stops working.\n"
                         "Please upgrade rtl_wmbus.\n");
             }
 

@@ -1872,6 +1872,35 @@ string lookForExecutable(const string& prog, string bin_dir, string default_dir)
     {
         return tmp;
     }
+    // Search in PATH.
+    const char *path_env = getenv("PATH");
+    if (path_env)
+    {
+        string path(path_env);
+        size_t start = 0;
+        size_t end;
+        while ((end = path.find(':', start)) != string::npos)
+        {
+            if (end > start)
+            {
+                tmp = path.substr(start, end - start) + "/" + prog;
+                if (checkFileExists(tmp.c_str()))
+                {
+                    return tmp;
+                }
+            }
+            start = end + 1;
+        }
+        // Check the last (or only) directory in PATH.
+        if (start < path.size())
+        {
+            tmp = path.substr(start) + "/" + prog;
+            if (checkFileExists(tmp.c_str()))
+            {
+                return tmp;
+            }
+        }
+    }
     return "";
 }
 
