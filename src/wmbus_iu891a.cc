@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2017-2024 Fredrik Öhrström (gpl-3.0-or-later)
+ Copyright (C) 2017-2026 Fredrik Öhrström (gpl-3.0-or-later)
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -524,7 +524,8 @@ FrameStatus WMBusIU891A::checkIU891AFrame(vector<uchar> &data,
 
     removeSlipFraming(data, frame_length_out, msg);
 
-    if (msg.size() < 5) return PartialFrame;
+    // If frame_length_out is zero, then no slip frame was found.
+    if (frame_length_out == 0 || msg.size() < 5) return PartialFrame;
 
     *endpoint_id_out = msg[0];
     *msg_id_out = msg[1];
@@ -728,7 +729,17 @@ AccessCheck detectIU891A(Detected *detected, shared_ptr<SerialCommunicationManag
 
     // Wait for 100ms so that the USB stick have time to prepare a response.
     usleep(100*1000);
-    serial->receive(&response);
+    // Now read until a full slip frame has been received.
+    int count = 0;
+    for (;;)
+    {
+        serial->receive(&response);
+        if (response.size() == 0) break;
+        ssize_t f = slipFrameSize(response);
+        if (f != -1) break;
+        debug("(iu891a) reading more slip\n");
+        if (++count > 5) break; // Give up.
+    }
 
     int endpoint_id = 0;
     int msg_id = 0;
@@ -744,6 +755,37 @@ AccessCheck detectIU891A(Detected *detected, shared_ptr<SerialCommunicationManag
                                                        &msg_id,
                                                        &status_byte,
                                                        &rssi_dbm);
+    count = 0;
+    while (frame_length == 0 ||
+           status != FullFrame ||
+           endpoint_id != SAP_DEVMGMT_ID ||
+           msg_id != DEVMGMT_MSG_GET_DEVICE_INFO_RSP)
+    {
+        if (++count > 5) {
+            debug("(iu891a) detection gives up reading device info\n");
+            break; // Give up.
+        }
+        debug("(iu891a) skipping frame frame_length=%d status=%s endpoint_id=%d msg_id=%d\n",
+              frame_length, toString(status), endpoint_id, msg_id);
+
+        if (status != PartialFrame && frame_length > 0)
+        {
+            // Remove this frame, it was either irrelevant or an error.
+            response.erase(response.begin(), response.begin()+frame_length);
+        }
+        vector<uchar> more;
+        serial->receive(&more);
+        response.insert(response.end(), more.begin(), more.end());
+        // Try to parse the next frame.
+        status = WMBusIU891A::checkIU891AFrame(response,
+                                               payload,
+                                               &frame_length,
+                                               &endpoint_id,
+                                               &msg_id,
+                                               &status_byte,
+                                               &rssi_dbm);
+    }
+
 
     if (status != FullFrame ||
         endpoint_id != SAP_DEVMGMT_ID ||
@@ -770,7 +812,17 @@ AccessCheck detectIU891A(Detected *detected, shared_ptr<SerialCommunicationManag
 
     // Wait for 100ms so that the USB stick have time to prepare a response.
     usleep(100*1000);
-    serial->receive(&response);
+    // Now read until a full slip frame has been received.
+    count = 0;
+    for (;;)
+    {
+        serial->receive(&response);
+        if (response.size() == 0) break;
+        ssize_t f = slipFrameSize(response);
+        if (f != -1) break;
+        debug("(iu891a) reading more slip\n");
+        if (++count > 5) break; // Give up
+    }
 
     status = WMBusIU891A::checkIU891AFrame(response,
                                            payload,
@@ -779,6 +831,35 @@ AccessCheck detectIU891A(Detected *detected, shared_ptr<SerialCommunicationManag
                                            &msg_id,
                                            &status_byte,
                                            &rssi_dbm);
+
+    count = 0;
+    while (frame_length == 0 || // If zero, then no SLIP END was found, read more.
+           status != FullFrame ||
+           endpoint_id != SAP_WMBUSGW_ID ||
+           msg_id != WMBUSGW_GET_WMBUS_ADDRESS_RSP)
+    {
+        if (++count > 5) {
+            debug("(iu891a) detection gives up reading address\n");
+            break; // Give up.
+        }
+        if (status != PartialFrame && frame_length > 0)
+        {
+            // Remove this frame, it was either irrelevant or an error.
+            response.erase(response.begin(), response.begin()+frame_length);
+        }
+        // Read any more data that might have arrived.
+        vector<uchar> more;
+        serial->receive(&more);
+        response.insert(response.end(), more.begin(), more.end());
+        // Try to parse the next frame.
+        status = WMBusIU891A::checkIU891AFrame(response,
+                                               payload,
+                                               &frame_length,
+                                               &endpoint_id,
+                                               &msg_id,
+                                               &status_byte,
+                                               &rssi_dbm);
+    }
 
     if (status != FullFrame ||
         endpoint_id != SAP_WMBUSGW_ID ||

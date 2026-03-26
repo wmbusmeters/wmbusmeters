@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2017-2025 Fredrik Öhrström (gpl-3.0-or-later)
+ Copyright (C) 2017-2026 Fredrik Öhrström (gpl-3.0-or-later)
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -1987,6 +1987,18 @@ string binaryAsciiSafeToString(const string& v)
 #define SLIP_ESC             0xdb    /* indicates byte stuffing */
 #define SLIP_ESC_END         0xdc    /* ESC ESC_END means END data byte */
 #define SLIP_ESC_ESC         0xdd    /* ESC ESC_ESC means ESC data byte */
+
+ssize_t slipFrameSize(vector<uchar>& msg)
+{
+    ssize_t i;
+
+    for (i = 0; i < msg.size(); ++i)
+    {
+        uchar c = msg[i];
+        if (c == SLIP_END) return i;
+    }
+    return -1;
+}
 
 void addSlipFraming(vector<uchar>& from, vector<uchar> &to)
 {

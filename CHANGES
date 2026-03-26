@@ -1,5 +1,36 @@
+Fix iu891a problem where a configured dongle that received telegrams
+was not properly detected when wmbusmeters was restarted.
+The buffer with received telegrams interfered with the detection logic.
+
+Added qheatus driver.
+
+Improve apator162 driver to handle telegrams with no FF byte before checksum.
+
+Hynek Moravec contributed several drivers:
+Converted multical21 and flowiq2200 c++ drivers to a single kamwater.xmq driver.
+Converted Zenner Minomess/APZ from C++ to minomess.xmq driver.
+Added zennerhca.xmq driver for Zenner HCA meters.
+Added caltose.xmq driver for Zenner Caltos E (D1605) HCA meters.
+Converted rfmamb to xmq and added mfct_tpl_status_bits support to xmq.
+Converted c5isf to xmq.
+Converted hydroclimav2 xmq driver and added support for null sentinels,
+ie a numeric value that signals no value, aka null in the json output.
+He also improved analyze parse.
+Thanks Hynek!
+
+pepe82sh improved configure script and build support for FreeBSD. Thanks Pepe!
+
+icho911 added support for the new iU893A-XL wmbus dongle. Thanks icho911!
+
+majherek fixed ssl/tls problems in alpine docker build. Thanks majherek!
+
+Jan Kundrát contributed compressed telegram signatures for kamwater meters.
 
 Amir Fuhrmann contributed socket support for wmbusmeters. Thanks Amir!
+
+Aras Abbasi contributed cleanups and refactoring of the source code. Aras also
+added the elf.xmq driver to replace the old c++ driver
+and added automatic linting of xmq files. Thanks Aras!
 
 Version 2.0.0 2026-03-01
 Version 2.0.0-RC1 2026-03-01

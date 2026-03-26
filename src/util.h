@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2017-2022 Fredrik Öhrström (gpl-3.0-or-later)
+ Copyright (C) 2017-2026 Fredrik Öhrström (gpl-3.0-or-later)
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -209,6 +209,10 @@ uint16_t crc16_EN13757(uchar *data, size_t len);
 uint16_t crc16_CCITT(uchar *data, uint16_t length);
 bool     crc16_CCITT_check(uchar *data, uint16_t length);
 
+// Scan the buffer after the byte SLIP END = 0xc0
+// return its index if exists, otherwise -1.
+ssize_t slipFrameSize(std::vector<uchar>& msg);
+// Add a SLIP_END and escape any 0xc0 with 0xdbdc and and 0xdb with 0xdbdd.
 void addSlipFraming(std::vector<uchar>& from, std::vector<uchar> &to);
 // Frame length is set to zero if no frame was found.
 void removeSlipFraming(std::vector<uchar>& from, size_t *frame_length, std::vector<uchar> &to);
