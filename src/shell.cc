@@ -82,6 +82,7 @@ void invokeShell(string program, vector<string> args, vector<string> envs)
     int status;
     if (pid == 0) {
         // I am the child!
+        restoreSignalHandlers();
         close(0); // Close stdin
 #if (defined(__APPLE__) && defined(__MACH__)) || defined(__FreeBSD__)
         execve(program.c_str(), (char*const*)&argv[0], (char*const*)&env[0]);
@@ -90,7 +91,9 @@ void invokeShell(string program, vector<string> args, vector<string> envs)
 #endif
 
         perror("Execvp failed:");
-        error("(shell) invoking %s failed!\n", program.c_str());
+        // Use _exit() to avoid running parent's atexit handlers and destructors
+        // which can deadlock in a forked child.
+        _exit(127);
     } else {
         if (pid == -1) {
             error("(shell) could not fork!\n");
@@ -102,7 +105,10 @@ void invokeShell(string program, vector<string> args, vector<string> envs)
             // Child exited properly.
             int rc = WEXITSTATUS(status);
             debug("(shell) %s: return code %d\n", program.c_str(), rc);
-            if (rc != 0) {
+            if (rc == 127) {
+                warning("(shell) invoking %s failed!\n", program.c_str());
+            }
+            else if (rc != 0) {
                 warning("(shell) %s exited with non-zero return code: %d\n", program.c_str(), rc);
             }
         }
@@ -158,8 +164,9 @@ bool invokeBackgroundShell(string program, vector<string> args, vector<string> e
 #endif
 
         perror("Execvp failed:");
-        error("(bgshell) invoking %s failed!\n", program.c_str());
-        return false;
+        // Use _exit() to avoid running parent's atexit handlers and destructors
+        // which can deadlock in a forked child.
+        _exit(127);
     }
 
     // Make reads from the pipe non-blocking.
@@ -188,6 +195,9 @@ bool stillRunning(int pid)
     if (WIFEXITED(status)) {
         // Child exited properly.
         int rc = WEXITSTATUS(status);
+        if (rc == 127) {
+            warning("(bgshell) invoking child %d failed!\n", pid);
+        }
         debug("(bgshell) %d exited with return code %d\n", pid, rc);
     }
     else if (WIFSIGNALED(status)) {
@@ -269,6 +279,7 @@ int invokeShellCaptureOutput(string program, vector<string> args, vector<string>
     pid = fork();
     if (pid == 0) {
         // I am the child!
+        restoreSignalHandlers();
         // Redirect stdout and stderr to pipe
         dup2 (link[1], STDOUT_FILENO);
         dup2 (link[1], STDERR_FILENO);
@@ -285,8 +296,9 @@ int invokeShellCaptureOutput(string program, vector<string> args, vector<string>
 #endif
 
         perror("Execvp failed:");
-        error("(shell) invoking %s failed!\n", program.c_str());
-        return 127;
+        // Use _exit() to avoid running parent's atexit handlers and destructors
+        // which can deadlock in a forked child.
+        _exit(127);
     }
 
     close(link[1]);
@@ -320,7 +332,10 @@ int invokeShellCaptureOutput(string program, vector<string> args, vector<string>
         // Child exited properly.
         rc = WEXITSTATUS(status);
         debug("(shell) return code %d\n", rc);
-        if (rc != 0) {
+        if (rc == 127) {
+            warning("(shell) invoking %s failed!\n", program.c_str());
+        }
+        else if (rc != 0) {
             if (!do_not_warn_if_fail)
             {
                 warning("(shell) exited with non-zero return code: %d\n", rc);
