@@ -5505,7 +5505,7 @@ bool xmqParseFile(XMQDoc *doq, const char *file, const char *implicit_root, int 
 
 const char *xmqVersion()
 {
-    return "4.0.1-modified";
+    return "4.1.0-modified";
 }
 
 void do_whitespace(XMQParseState *state,
@@ -18917,6 +18917,8 @@ void annotate_offsets(xmlDoc *doc, const char *attribute_name, const char *ns)
 
 void annotate_node(OffsetCounter *counter, xmlNode *node)
 {
+    if (!node) return;
+
     char buf[64];
     snprintf(buf, 64, "%d", counter->offset);
     xmlSetProp(node, (xmlChar*)counter->attribute_name, (xmlChar*)buf);

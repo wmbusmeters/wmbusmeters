@@ -1990,12 +1990,12 @@ string binaryAsciiSafeToString(const string& v)
 
 ssize_t slipFrameSize(vector<uchar>& msg)
 {
-    ssize_t i;
+    size_t i;
 
     for (i = 0; i < msg.size(); ++i)
     {
         uchar c = msg[i];
-        if (c == SLIP_END) return i;
+        if (c == SLIP_END) return (ssize_t)i;
     }
     return -1;
 }
