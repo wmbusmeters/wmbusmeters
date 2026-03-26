@@ -619,6 +619,7 @@ ac_subst_vars='LTLIBOBJS
 LIBOBJS
 CXXFLAGS
 CFLAGS
+CONF_NAME
 LIBUSB_LIBS
 LIBUSB_CFLAGS
 LIBRTLSDR_LIBS
@@ -2400,6 +2401,7 @@ else
 printf "%s\n" "yes" >&6; }
 
 fi
+
 
 
 

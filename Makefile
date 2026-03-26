@@ -26,10 +26,10 @@ DEFAULT_CONF_DIR?=/etc
 DEFAULT_DEAMON_DRIVER_DOWNLOAD_DIR?=/var/lib/wmbusmeters/wmbusmeters.drivers.d/downloaded
 DEFAULT_USER_DRIVER_DOWNLOAD_DIR?=.local/share/wmbusmeters/wmbusmeters.drivers.d
 
-ifeq "$(DEBUG)" "true"
-  include $(wildcard build_debug/*/spec.gmk)
-else
-  include $(wildcard build/*/spec.gmk)
+include $(wildcard build/*/spec.gmk)
+
+ifeq (,$(CONF_NAME))
+    $(error Run configure first!)
 endif
 
 ifeq "$(HOST)" "arm"
