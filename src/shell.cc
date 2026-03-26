@@ -332,13 +332,15 @@ int invokeShellCaptureOutput(string program, vector<string> args, vector<string>
         // Child exited properly.
         rc = WEXITSTATUS(status);
         debug("(shell) return code %d\n", rc);
-        if (rc == 127) {
-            warning("(shell) invoking %s failed!\n", program.c_str());
-        }
-        else if (rc != 0) {
+        if (rc != 0) {
             if (!do_not_warn_if_fail)
             {
-                warning("(shell) exited with non-zero return code: %d\n", rc);
+                if (rc == 127) {
+                    warning("(shell) invoking %s failed!\n", program.c_str());
+                }
+                else {
+                    warning("(shell) exited with non-zero return code: %d\n", rc);
+                }
             }
         }
     }

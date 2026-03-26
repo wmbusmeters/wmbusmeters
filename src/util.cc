@@ -1881,18 +1881,24 @@ string lookForExecutable(const string& prog, string bin_dir, string default_dir)
         size_t end;
         while ((end = path.find(':', start)) != string::npos)
         {
-            tmp = path.substr(start, end - start) + "/" + prog;
-            if (checkFileExists(tmp.c_str()))
+            if (end > start)
             {
-                return tmp;
+                tmp = path.substr(start, end - start) + "/" + prog;
+                if (checkFileExists(tmp.c_str()))
+                {
+                    return tmp;
+                }
             }
             start = end + 1;
         }
         // Check the last (or only) directory in PATH.
-        tmp = path.substr(start) + "/" + prog;
-        if (checkFileExists(tmp.c_str()))
+        if (start < path.size())
         {
-            return tmp;
+            tmp = path.substr(start) + "/" + prog;
+            if (checkFileExists(tmp.c_str()))
+            {
+                return tmp;
+            }
         }
     }
     return "";
