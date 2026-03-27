@@ -16,7 +16,7 @@ jobs:
          sudo apt install -y eatmydata
          sudo eatmydata apt-get install librtlsdr-dev libusb-dev libxml2-dev libxslt1-dev
     - id: BUILD_XMQ
-      run: eatmydata make build/xmq && chmod +x ./build/xmq && cp ./build/xmq /usr/local/bin/xmq
+      run: eatmydata ./configure && make build/xmq && chmod +x ./build/xmq && cp ./build/xmq /usr/local/bin/xmq
     - id: LINT_XMQ
       run: eatmydata make pretty
       working-directory: drivers
