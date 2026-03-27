@@ -360,8 +360,8 @@ testdriverd: build/xmq
 	@./tests/test_drivers.sh build_debug/wmbusmeters driver_${DRIVER}.cc
 
 update_manufacturers:
-	./scripts/generate_dlms_csv.sh ./DLMS_Flagids.csv
-	iconv -f utf-8 -t ascii//TRANSLIT -c DLMS_Flagids.csv -o tmp.flags
+	./scripts/generate_dlms_csv.sh ./DLMS_Flagids.tsv
+	iconv -f utf-8 -t ascii//TRANSLIT -c DLMS_Flagids.tsv -o tmp.flags
 	cat tmp.flags | grep -v ^# | cut -f 1 > list.flags
 	cat tmp.flags | grep -v ^# | cut -f 2 > names.flags
 	cat tmp.flags | grep -v ^# | cut -f 3 > countries.flags
