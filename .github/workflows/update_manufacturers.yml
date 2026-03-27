@@ -1,0 +1,33 @@
+name: Update DLMS list
+
+on:
+  schedule:
+    - cron: '0 14 * * 5' # Every Friday at 14:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Update Manufacturers
+        run: |
+            make update_manufacturers
+
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v8
+        with:
+          commit-message: Update manufacturers
+          title: "Update manufacturers"
+          labels: dlms
+          body: |
+            Updated the DLMS list of manufacturers and generated the corresponding
+            manufacturers.h file.
+          branch: automated/dlms-update
+          delete-branch: true
