@@ -209,6 +209,8 @@ uint16_t crc16_EN13757(uchar *data, size_t len);
 uint16_t crc16_CCITT(uchar *data, uint16_t length);
 bool     crc16_CCITT_check(uchar *data, uint16_t length);
 
+// Check if buffer is all SLIP END = 0xc0.
+bool slipAllEND(std::vector<uchar>& msg);
 // Scan the buffer after the byte SLIP END = 0xc0
 // return its index if exists, otherwise -1.
 ssize_t slipFrameSize(std::vector<uchar>& msg);

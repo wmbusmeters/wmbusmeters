@@ -2017,14 +2017,32 @@ string binaryAsciiSafeToString(const string& v)
 #define SLIP_ESC_END         0xdc    /* ESC ESC_END means END data byte */
 #define SLIP_ESC_ESC         0xdd    /* ESC ESC_ESC means ESC data byte */
 
+bool slipAllEND(vector<uchar>& msg)
+{
+    for (size_t i = 0; i < msg.size(); ++i)
+    {
+        uchar c = msg[i];
+        if (c != SLIP_END) return false;
+    }
+    return true;
+}
+
 ssize_t slipFrameSize(vector<uchar>& msg)
 {
     size_t i;
 
+    // Skip any leading 0xc0, they do not count.
     for (i = 0; i < msg.size(); ++i)
     {
         uchar c = msg[i];
-        if (c == SLIP_END) return (ssize_t)i;
+        if (c != SLIP_END) break;
+    }
+
+    size_t from = i;
+    for (; i < msg.size(); ++i)
+    {
+        uchar c = msg[i];
+        if (c == SLIP_END) return (ssize_t)(i-from);
     }
     return -1;
 }
@@ -2061,17 +2079,21 @@ void removeSlipFraming(vector<uchar>& from, size_t *frame_length, vector<uchar> 
     size_t i;
     bool found_end = false;
 
+    // Skip any leading C0:s aka SLIP_ENDs.
     for (i = 0; i < from.size(); ++i)
+    {
+        uchar c = from[i];
+        if (c != SLIP_END) break;
+    }
+
+    for (; i < from.size(); ++i)
     {
         uchar c = from[i];
         if (c == SLIP_END)
         {
-            if (to.size() > 0)
-            {
-                found_end = true;
-                i++;
-                break;
-            }
+            found_end = true;
+            i++;
+            break;
         }
         else if (c == SLIP_ESC)
         {
@@ -2099,7 +2121,6 @@ void removeSlipFraming(vector<uchar>& from, size_t *frame_length, vector<uchar> 
         *frame_length = 0;
         to.clear();
     }
-
 }
 
 // Check if hex string is likely to be ascii

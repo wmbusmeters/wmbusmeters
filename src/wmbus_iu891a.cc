@@ -522,6 +522,8 @@ FrameStatus WMBusIU891A::checkIU891AFrame(vector<uchar> &data,
 {
     vector<uchar> msg;
 
+    if (slipAllEND(data)) return ErrorInFrame; // Discard this part, since it is all C0.
+
     removeSlipFraming(data, frame_length_out, msg);
 
     // If frame_length_out is zero, then no slip frame was found.
@@ -708,11 +710,6 @@ AccessCheck detectIU891A(Detected *detected, shared_ptr<SerialCommunicationManag
         return AccessCheck::NoSuchDevice;
     }
 
-    vector<uchar> response;
-    // First clear out any data in the queue.
-    serial->receive(&response);
-    response.clear();
-
     vector<uchar> init;
     init.resize(30);
     for (int i=0; i<30; ++i)
@@ -729,6 +726,9 @@ AccessCheck detectIU891A(Detected *detected, shared_ptr<SerialCommunicationManag
 
     // Wait for 100ms so that the USB stick have time to prepare a response.
     usleep(100*1000);
+
+    vector<uchar> response;
+
     // Now read until a full slip frame has been received.
     int count = 0;
     for (;;)
@@ -738,7 +738,7 @@ AccessCheck detectIU891A(Detected *detected, shared_ptr<SerialCommunicationManag
         ssize_t f = slipFrameSize(response);
         if (f != -1) break;
         debug("(iu891a) reading more slip\n");
-        if (++count > 5) break; // Give up.
+        if (++count > 10) break; // Give up.
     }
 
     int endpoint_id = 0;
@@ -761,7 +761,7 @@ AccessCheck detectIU891A(Detected *detected, shared_ptr<SerialCommunicationManag
            endpoint_id != SAP_DEVMGMT_ID ||
            msg_id != DEVMGMT_MSG_GET_DEVICE_INFO_RSP)
     {
-        if (++count > 5) {
+        if (++count > 10) {
             debug("(iu891a) detection gives up reading device info\n");
             break; // Give up.
         }
@@ -821,7 +821,7 @@ AccessCheck detectIU891A(Detected *detected, shared_ptr<SerialCommunicationManag
         ssize_t f = slipFrameSize(response);
         if (f != -1) break;
         debug("(iu891a) reading more slip\n");
-        if (++count > 5) break; // Give up
+        if (++count > 10) break; // Give up
     }
 
     status = WMBusIU891A::checkIU891AFrame(response,
@@ -838,7 +838,7 @@ AccessCheck detectIU891A(Detected *detected, shared_ptr<SerialCommunicationManag
            endpoint_id != SAP_WMBUSGW_ID ||
            msg_id != WMBUSGW_GET_WMBUS_ADDRESS_RSP)
     {
-        if (++count > 5) {
+        if (++count > 10) {
             debug("(iu891a) detection gives up reading address\n");
             break; // Give up.
         }
