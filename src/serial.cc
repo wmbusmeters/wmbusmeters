@@ -1467,13 +1467,56 @@ bool SerialCommunicationManagerImp::removeNonWorking(string device)
 }
 
 
-#if not defined(__linux__)
+#if (defined(__APPLE__) && defined(__MACH__)) || defined(__FreeBSD__)
+
+int sorty(const struct dirent **a, const struct dirent **b)
+{
+    return strcmp((*a)->d_name, (*b)->d_name);
+}
+
+vector<string> SerialCommunicationManagerImp::listSerialTTYs()
+{
+    struct dirent **entries;
+    vector<string> found_serials;
+    string devdir = "/dev/";
+
+    int n = scandir(devdir.c_str(), &entries, NULL, sorty);
+    if (n < 0)
+    {
+        perror("scandir");
+        return found_serials;
+    }
+
+    for (int i = 0; i < n; ++i)
+    {
+        string name = entries[i]->d_name;
+        free(entries[i]);
+
+        if (name == ".." || name == ".")
+        {
+            continue;
+        }
+
+        // Match cu.usbserial-* and cu.usbmodem* devices (USB serial adapters)
+        if (name.rfind("cu.usbserial", 0) == 0 ||
+            name.rfind("cu.usbmodem", 0) == 0)
+        {
+            found_serials.push_back(devdir + name);
+        }
+    }
+    free(entries);
+
+    return found_serials;
+}
+
+#elif not defined(__linux__)
+
 vector<string> SerialCommunicationManagerImp::listSerialTTYs()
 {
     vector<string> list;
-    list.push_back("Please add code here!");
     return list;
 }
+
 #endif
 
 #if defined(__linux__)

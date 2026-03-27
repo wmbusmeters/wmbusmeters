@@ -466,10 +466,6 @@ bool handleDeviceOrHex(Configuration *c, string devicefilehex)
     {
         c->use_auto_device_detect = true;
         c->auto_device_linkmodes = specified_device.linkmodes;
-
-#if defined(__APPLE__) && defined(__MACH__)
-        error("You cannot use auto on macosx. You must specify the device tty or rtlwmbus.\n");
-#endif
     }
     else
     {
