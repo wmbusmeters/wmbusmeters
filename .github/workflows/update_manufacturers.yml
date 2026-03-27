@@ -18,6 +18,7 @@ jobs:
 
       - name: Update Manufacturers
         run: |
+            ./configure
             make update_manufacturers
 
       - name: Create Pull Request
