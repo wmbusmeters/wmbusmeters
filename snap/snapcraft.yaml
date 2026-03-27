@@ -69,7 +69,7 @@ parts:
       - etc/wmbusmeters.conf
 
   rtl-wmbus:
-    source: "https://github.com/weetmuts/rtl-wmbus.git"
+    source: "https://github.com/wmbusmeters/rtl-wmbus.git"
     plugin: make
     make-parameters:
       - DESTDIR=/usr
