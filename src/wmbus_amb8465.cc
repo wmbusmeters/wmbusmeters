@@ -700,7 +700,7 @@ FrameStatus WMBusAmber::checkAMB8465Frame(vector<uchar> &data,
             verbose("(amb8465) no sensible telegram found, clearing buffer.\n");
             uchar last = data[data.size()-1];
             data.clear();
-            data.insert(data.end(), &last, &last+1); // Re-insert the last byte.
+            data.insert(data.end(), last); // Re-insert the last byte.
             return PartialFrame;
         }
     }
@@ -807,8 +807,7 @@ void WMBusAmber::processSerialData()
             vector<uchar> payload;
             if (payload_len > 0)
             {
-                uchar l = payload_len;
-                payload.insert(payload.end(), &l, &l+1); // Re-insert the len byte.
+                payload.insert(payload.end(), payload_len); // Re-insert the len byte.
                 payload.insert(payload.end(), read_buffer_.begin()+payload_offset, read_buffer_.begin()+payload_offset+payload_len);
             }
 
