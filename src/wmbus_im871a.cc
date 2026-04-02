@@ -899,8 +899,7 @@ void WMBusIM871aIM170A::processSerialData()
                 if (endpoint == RADIOLINK_ID &&
                     msgid == RADIOLINK_MSG_WMBUSMSG_IND)
                 {
-                    uchar l = payload_len;
-                    payload.insert(payload.begin(), &l, &l+1); // Re-insert the len byte.
+                    payload.insert(payload.begin(), payload_len); // Re-insert the len byte.
                 }
                 // Insert the payload.
                 payload.insert(payload.end(),
