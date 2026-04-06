@@ -23,11 +23,14 @@
 #include <memory.h>
 #include <pthread.h>
 #include <sys/types.h>
+#if !defined(_WIN32)
 #include <sys/wait.h>
 #include <unistd.h>
+#endif
 
 using namespace std;
 
+#if !defined(_WIN32)
 // Posix says that this variable just exists.
 // (On some systems this is also declared in unistd.h)
 extern char **environ;
@@ -376,3 +379,37 @@ void detectProcesses(string cmd, vector<int> *pids)
         pch = strtok (NULL, " \n");
     }
 }
+
+#else // _WIN32
+
+void invokeShell(string program, vector<string> args, vector<string> envs)
+{
+    warning("(shell) invokeShell not supported on Windows\n");
+}
+
+bool invokeBackgroundShell(string program, vector<string> args, vector<string> envs, int *fd_out, int *pid)
+{
+    warning("(shell) invokeBackgroundShell not supported on Windows\n");
+    return false;
+}
+
+bool stillRunning(int pid)
+{
+    return false;
+}
+
+void stopBackgroundShell(int pid)
+{
+}
+
+int invokeShellCaptureOutput(string program, vector<string> args, vector<string> envs, string *out, bool do_not_warn_if_fail)
+{
+    warning("(shell) invokeShellCaptureOutput not supported on Windows\n");
+    return 127;
+}
+
+void detectProcesses(string cmd, vector<int> *pids)
+{
+}
+
+#endif // !_WIN32

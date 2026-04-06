@@ -305,7 +305,7 @@ private:
 
     bool getConfig();
 
-    friend AccessCheck detectIU891A(Detected *detected, shared_ptr<SerialCommunicationManager> manager);
+    friend DeviceAccess detectIU891A(Detected *detected, shared_ptr<SerialCommunicationManager> manager);
     void handleDevMgmt(int msgid, vector<uchar> &payload);
     void handleWMbusGateway(int msgid, vector<uchar> &payload);
 
@@ -696,7 +696,7 @@ bool WMBusIU891A::sendTelegram(LinkMode lm, TelegramFormat format, vector<uchar>
     return false;
 }
 
-AccessCheck detectIU891A(Detected *detected, shared_ptr<SerialCommunicationManager> manager)
+DeviceAccess detectIU891A(Detected *detected, shared_ptr<SerialCommunicationManager> manager)
 {
     assert(detected->found_file != "");
 
@@ -707,7 +707,7 @@ AccessCheck detectIU891A(Detected *detected, shared_ptr<SerialCommunicationManag
     if (!ok)
     {
         verbose("(iu891a) could not open tty %s for detection\n", detected->found_file.c_str());
-        return AccessCheck::NoSuchDevice;
+        return DeviceAccess::NoSuchDevice;
     }
 
     vector<uchar> init;
@@ -793,7 +793,7 @@ AccessCheck detectIU891A(Detected *detected, shared_ptr<SerialCommunicationManag
     {
         verbose("(iu891a) are you there? no.\n");
         serial->close();
-        return AccessCheck::NoProperResponse;
+        return DeviceAccess::NoProperResponse;
     }
 
     debugPayload("(iu891a) device info response", payload);
@@ -867,7 +867,7 @@ AccessCheck detectIU891A(Detected *detected, shared_ptr<SerialCommunicationManag
     {
         verbose("(iu891a) are you there? I thought so, but no.\n");
         serial->close();
-        return AccessCheck::NoProperResponse;
+        return DeviceAccess::NoProperResponse;
     }
 
     debugPayload("(iu891a) wmbus address response", payload);
@@ -881,7 +881,7 @@ AccessCheck detectIU891A(Detected *detected, shared_ptr<SerialCommunicationManag
 
     verbose("(iu891a) are you there? yes %s\n", wa.dongleId().c_str());
 
-    return AccessCheck::AccessOK;
+    return DeviceAccess::AccessOK;
 }
 
 void WMBusIU891A::handleDevMgmt(int msgid, vector<uchar> &payload)

@@ -819,7 +819,12 @@ void test_periods()
     // if tm_gmtoff is zero, then we are in Greenwich!
     // if tm_gmtoff is 3600 then we are in Stockholm!
 
+#if !defined(_WIN32)
     t -= value.tm_gmtoff;
+#else
+    // tm_gmtoff is a GNU extension; on Windows use _timezone for local UTC offset
+    t += _timezone;
+#endif
 
     // We have now adjusted the t so that it should be thursday at 1 am.
     // The following test should therefore work inependently on

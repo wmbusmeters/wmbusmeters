@@ -24,11 +24,22 @@
 
 #include <algorithm>
 #include <assert.h>
+#include <functional>
+#include <memory.h>
+#include <stdio.h>
+
+#if defined(_WIN32)
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
+#include <io.h>
+#include <fcntl.h>
+#include <initguid.h>
+#include <setupapi.h>
+#include <devguid.h>
+#else
 #include <dirent.h>
 #include <fcntl.h>
-#include <functional>
 #include <libgen.h>
-#include <memory.h>
 #include <pthread.h>
 #include <sys/file.h>
 #include <sys/ioctl.h>
@@ -38,24 +49,55 @@
 #include <sys/socket.h>
 #include <sys/stat.h>
 #include <sys/un.h>
-#include <stdio.h>
 #include <termios.h>
 #include <unistd.h>
-
 #if defined(__linux__)
 #include <linux/serial.h>
+#endif
 #endif
 
 using namespace std;
 
+#ifdef _WIN32
+// Background thread that forwards COM port data through an anonymous pipe,
+// allowing the event loop's select()-style polling to work on Windows.
+struct ComReadThreadData
+{
+    HANDLE com_handle;
+    HANDLE pipe_write;
+    volatile bool running;
+};
+
+static DWORD WINAPI comReadThread(LPVOID param)
+{
+    ComReadThreadData *data = static_cast<ComReadThreadData*>(param);
+    uint8_t buf[4096];
+    while (data->running && data->com_handle != INVALID_HANDLE_VALUE)
+    {
+        DWORD bytes_read = 0;
+        if (ReadFile(data->com_handle, buf, sizeof(buf), &bytes_read, NULL) && bytes_read > 0)
+        {
+            DWORD written = 0;
+            WriteFile(data->pipe_write, buf, bytes_read, &written, NULL);
+        }
+    }
+    return 0;
+}
+#endif // _WIN32
+
 // return a positive integer (file descriptor) on success.
 // return -1 for failure to open. return -2 for already locked.
+#if !defined(_WIN32)
 static int openSerialTTY(const char *tty, int baud_rate, PARITY parity);
 static string showTTYSettings(int fd);
+#endif
 
 struct SerialDeviceImp;
 struct SerialDeviceTTY;
+#if !defined(_WIN32)
 struct SerialDeviceCommand;
+struct SerialDeviceSocket;
+#endif
 struct SerialDeviceFile;
 struct SerialDeviceSimulator;
 struct Timer
@@ -101,10 +143,10 @@ struct SerialCommunicationManagerImp : public SerialCommunicationManager
     int startRegularCallback(string name, int seconds, function<void()> callback);
     void stopRegularCallback(int id);
 
-    AccessCheck checkAccess(string device,
+    DeviceAccess checkAccess(string device,
                             shared_ptr<SerialCommunicationManager> manager,
                             string extra_info,
-                            function<AccessCheck(string,shared_ptr<SerialCommunicationManager>)> extra_probe);
+                            function<DeviceAccess(string,shared_ptr<SerialCommunicationManager>)> extra_probe);
 
     vector<string> listSerialTTYs();
     shared_ptr<SerialDevice> lookup(std::string device);
@@ -174,10 +216,18 @@ struct SerialDeviceImp : public SerialDevice
     bool checkIfDataIsPending()
     {
         if (!opened() || !working()) return false; // No data can be pending if device is not opened nor working.
+#ifdef _WIN32
+        HANDLE h = (HANDLE)_get_osfhandle(fd_);
+        if (h == INVALID_HANDLE_VALUE) return false;
+        DWORD available = 0;
+        if (!PeekNamedPipe(h, NULL, 0, NULL, &available, NULL)) return false;
+        return available > 0;
+#else
         int available = -1;
         int rc = ioctl(fd_, FIONREAD, &available);
         if (rc == -1) return false;
         return available > 0;
+#endif
     }
 
     SerialDeviceImp(SerialCommunicationManagerImp *manager, string purpose)
@@ -235,6 +285,25 @@ int SerialDeviceImp::receive(vector<uchar> *data)
 
     while (true)
     {
+#ifdef _WIN32
+        // On Windows, pipe fds don't support non-blocking reads; use
+        // PeekNamedPipe to check available bytes before each ReadFile call.
+        HANDLE h = (HANDLE)_get_osfhandle(fd_);
+        DWORD available = 0;
+        if (h == INVALID_HANDLE_VALUE || !PeekNamedPipe(h, NULL, 0, NULL, &available, NULL) || available == 0)
+        {
+            break;
+        }
+        data->resize(num_read + available);
+        DWORD nr_dw = 0;
+        if (!ReadFile(h, &(*data)[num_read], available, &nr_dw, NULL))
+        {
+            close_me = true;
+            break;
+        }
+        num_read += (int)nr_dw;
+        continue;
+#else
         data->resize(num_read+1024);
         int nr = read(fd_, &((*data)[num_read]), 1024);
         if (nr > 0)
@@ -270,6 +339,7 @@ int SerialDeviceImp::receive(vector<uchar> *data)
             }
             break;
         }
+#endif // _WIN32
     }
     data->resize(num_read);
 
@@ -308,6 +378,12 @@ struct SerialDeviceTTY : public SerialDeviceImp
     string device_;
     int baud_rate_ {};
     PARITY parity_ {};
+#ifdef _WIN32
+    HANDLE com_handle_ = INVALID_HANDLE_VALUE;
+    HANDLE pipe_write_ = INVALID_HANDLE_VALUE;
+    HANDLE read_thread_ = NULL;
+    ComReadThreadData *thread_data_ = nullptr;
+#endif
 };
 
 SerialDeviceTTY::SerialDeviceTTY(string device, int baud_rate, PARITY parity,
@@ -328,6 +404,94 @@ SerialDeviceTTY::~SerialDeviceTTY()
 bool SerialDeviceTTY::open(bool fail_if_not_ok)
 {
     assert(device_ != "");
+#ifdef _WIN32
+    // Prefix with \\.\ so COM10 and above work correctly.
+    string port = (device_.compare(0, 4, "\\\\.\\") == 0) ? device_ : ("\\\\.\\" + device_);
+    com_handle_ = CreateFileA(port.c_str(),
+                              GENERIC_READ | GENERIC_WRITE,
+                              0, NULL, OPEN_EXISTING, 0, NULL);
+    if (com_handle_ == INVALID_HANDLE_VALUE)
+    {
+        if (fail_if_not_ok) error("Could not open %s\n", device_.c_str());
+        verbose("(serialtty) could not open %s\n", device_.c_str());
+        return false;
+    }
+
+    DCB dcb = {};
+    dcb.DCBlength = sizeof(dcb);
+    if (!GetCommState(com_handle_, &dcb))
+    {
+        CloseHandle(com_handle_);
+        com_handle_ = INVALID_HANDLE_VALUE;
+        if (fail_if_not_ok) error("Could not get comm state for %s\n", device_.c_str());
+        return false;
+    }
+    dcb.BaudRate = (DWORD)baud_rate_;
+    dcb.ByteSize = 8;
+    dcb.StopBits = ONESTOPBIT;
+    dcb.fOutxCtsFlow = FALSE;
+    dcb.fRtsControl  = RTS_CONTROL_DISABLE;
+    dcb.fOutX = FALSE;
+    dcb.fInX  = FALSE;
+    if (parity_ == PARITY::NONE)       { dcb.Parity = NOPARITY;   dcb.fParity = FALSE; }
+    else if (parity_ == PARITY::EVEN)  { dcb.Parity = EVENPARITY; dcb.fParity = TRUE;  }
+    else if (parity_ == PARITY::ODD)   { dcb.Parity = ODDPARITY;  dcb.fParity = TRUE;  }
+    if (!SetCommState(com_handle_, &dcb))
+    {
+        CloseHandle(com_handle_);
+        com_handle_ = INVALID_HANDLE_VALUE;
+        if (fail_if_not_ok) error("Could not configure %s\n", device_.c_str());
+        return false;
+    }
+
+    // ReadFile blocks up to ReadTotalTimeoutConstant ms then returns 0 bytes –
+    // the background thread uses this as a cheap non-busy wait.
+    COMMTIMEOUTS ct = {};
+    ct.ReadIntervalTimeout         = 0;
+    ct.ReadTotalTimeoutMultiplier  = 0;
+    ct.ReadTotalTimeoutConstant    = 100;   // 100 ms read timeout
+    ct.WriteTotalTimeoutConstant   = 1000;
+    ct.WriteTotalTimeoutMultiplier = 0;
+    SetCommTimeouts(com_handle_, &ct);
+
+    // Create an anonymous pipe so that the event loop can watch a regular fd.
+    HANDLE pipe_read;
+    if (!CreatePipe(&pipe_read, &pipe_write_, NULL, 0))
+    {
+        CloseHandle(com_handle_);
+        com_handle_ = INVALID_HANDLE_VALUE;
+        if (fail_if_not_ok) error("Could not create pipe for %s\n", device_.c_str());
+        return false;
+    }
+    fd_ = _open_osfhandle((intptr_t)pipe_read, _O_RDONLY | _O_BINARY);
+    if (fd_ < 0)
+    {
+        CloseHandle(pipe_read);
+        CloseHandle(pipe_write_);
+        CloseHandle(com_handle_);
+        com_handle_ = INVALID_HANDLE_VALUE;
+        pipe_write_  = INVALID_HANDLE_VALUE;
+        if (fail_if_not_ok) error("Could not wrap pipe for %s\n", device_.c_str());
+        return false;
+    }
+
+    thread_data_ = new ComReadThreadData { com_handle_, pipe_write_, true };
+    read_thread_ = CreateThread(NULL, 0, comReadThread, thread_data_, 0, NULL);
+    if (read_thread_ == NULL)
+    {
+        _close(fd_); fd_ = -1;
+        CloseHandle(pipe_write_);
+        CloseHandle(com_handle_);
+        com_handle_ = INVALID_HANDLE_VALUE;
+        pipe_write_  = INVALID_HANDLE_VALUE;
+        delete thread_data_; thread_data_ = nullptr;
+        if (fail_if_not_ok) error("Could not start read thread for %s\n", device_.c_str());
+        return false;
+    }
+
+    verbose("(serialtty) opened %s fd %d (%s)\n", device_.c_str(), fd_, purpose_.c_str());
+    return true;
+#else
     bool ok = checkCharacterDeviceExists(device_.c_str(), fail_if_not_ok);
     if (!ok) return false;
     fd_ = openSerialTTY(device_.c_str(), baud_rate_, parity_);
@@ -345,13 +509,36 @@ bool SerialDeviceTTY::open(bool fail_if_not_ok)
     }
     verbose("(serialtty) opened %s fd %d (%s)\n", device_.c_str(), fd_, purpose_.c_str());
     return true;
+#endif
 }
 
 void SerialDeviceTTY::close()
 {
     if (fd_ == -1) return;
+#ifdef _WIN32
+    if (thread_data_) thread_data_->running = false;
+    if (com_handle_ != INVALID_HANDLE_VALUE)
+    {
+        CloseHandle(com_handle_);
+        com_handle_ = INVALID_HANDLE_VALUE;
+    }
+    if (read_thread_ != NULL)
+    {
+        WaitForSingleObject(read_thread_, 2000);
+        CloseHandle(read_thread_);
+        read_thread_ = NULL;
+    }
+    delete thread_data_; thread_data_ = nullptr;
+    _close(fd_); // also closes the underlying pipe-read HANDLE
+    if (pipe_write_ != INVALID_HANDLE_VALUE)
+    {
+        CloseHandle(pipe_write_);
+        pipe_write_ = INVALID_HANDLE_VALUE;
+    }
+#else
     ::flock(fd_, LOCK_UN);
     ::close(fd_);
+#endif
     fd_ = -1;
     if (on_disappear_ && !resetting_)
     {
@@ -370,6 +557,18 @@ bool SerialDeviceTTY::send(vector<uchar> &data)
     assert(data.size() > 0);
 
     bool rc = true;
+#ifdef _WIN32
+    DWORD written = 0;
+    if (!WriteFile(com_handle_, data.data(), (DWORD)data.size(), &written, NULL)
+        || written != (DWORD)data.size())
+    {
+        rc = false;
+        if (isDebugEnabled()) {
+            string msg = bin2hex(data);
+            debug("(serial %s) failed to send \"%s\"\n", device_.c_str(), msg.c_str());
+        }
+    }
+#else
     int n = data.size();
     int written = 0;
     while (true)
@@ -389,17 +588,17 @@ bool SerialDeviceTTY::send(vector<uchar> &data)
         if (written == n) break;
     }
 
-    if (isDebugEnabled()) {
-        string msg = bin2hex(data);
-        debug("(serial %s) sent \"%s\"\n", device_.c_str(), msg.c_str());
-    }
-
     if (signalsInstalled())
     {
         if (getEventLoopThread()) pthread_kill(getEventLoopThread(), SIGUSR1);
     }
 
     end:
+#endif
+    if (isDebugEnabled() && rc) {
+        string msg = bin2hex(data);
+        debug("(serial %s) sent \"%s\"\n", device_.c_str(), msg.c_str());
+    }
     return rc;
 }
 
@@ -407,17 +606,19 @@ bool SerialDeviceTTY::working()
 {
     if (resetting_) return true;
     if (fd_ == -1) return false;
-
+#ifdef _WIN32
+    return com_handle_ != INVALID_HANDLE_VALUE;
+#else
     bool working = checkCharacterDeviceExists(device_.c_str(), false);
-
     if (!working) {
         debug("(serial) device %s is gone\n", device_.c_str());
     }
-
     return working;
+#endif
 }
 
 
+#if !defined(_WIN32)
 struct SerialDeviceCommand : public SerialDeviceImp
 {
     SerialDeviceCommand(string identifier, string command, vector<string> args, vector<string> envs,
@@ -545,6 +746,7 @@ bool SerialDeviceCommand::send(vector<uchar> &data)
     end:
     return rc;
 }
+#endif // !defined(_WIN32)
 
 struct SerialDeviceFile : public SerialDeviceImp
 {
@@ -581,9 +783,11 @@ bool SerialDeviceFile::open(bool fail_if_not_ok)
     if (file_ == "stdin")
     {
         fd_ = 0;
+#if !defined(_WIN32)
         int flags = fcntl(0, F_GETFL);
         flags |= O_NONBLOCK;
         fcntl(0, F_SETFL, flags);
+#endif
         setIsStdin();
         verbose("(serialfile) reading from stdin (%s)\n", purpose_.c_str());
     }
@@ -591,7 +795,11 @@ bool SerialDeviceFile::open(bool fail_if_not_ok)
     {
         bool ok = checkFileExists(file_.c_str());
         if (!ok) return false;
+#if defined(_WIN32)
+        fd_ = ::_open(file_.c_str(), _O_RDONLY | _O_BINARY);
+#else
         fd_ = ::open(file_.c_str(), O_RDONLY | O_NONBLOCK);
+#endif
         if (fd_ == -1)
         {
             if (fail_if_not_ok)
@@ -612,8 +820,12 @@ bool SerialDeviceFile::open(bool fail_if_not_ok)
 void SerialDeviceFile::close()
 {
     if (fd_ == -1) return;
+#if !defined(_WIN32)
     ::flock(fd_, LOCK_UN);
     ::close(fd_);
+#else
+    ::_close(fd_);
+#endif
     fd_ = -1;
 
     manager_->tickleEventLoop();
@@ -625,14 +837,14 @@ bool SerialDeviceFile::working()
 {
     if (resetting_) return true;
     if (fd_ == -1) return false;
+#if !defined(_WIN32)
     int n = -1;
     int rc = ioctl(fd_, FIONREAD, &n);
     // The file descriptor was bad.
     if (rc != 0) return false;
-
     // There is still data available for reading.
     if (n > 0) return true;
-
+#endif
     // Oh it is still open, lets continue use it.
     // This could be stdin for example.
     return true;
@@ -673,6 +885,7 @@ struct SerialDeviceSimulator : public SerialDeviceImp
     vector<uchar> data_;
 };
 
+#if !defined(_WIN32)
 struct SerialDeviceSocket : public SerialDeviceImp
 {
     SerialDeviceSocket(string path, SerialCommunicationManagerImp *manager, string purpose);
@@ -895,6 +1108,7 @@ int SerialDeviceSocket::receive(vector<uchar> *data)
 
     return num_read;
 }
+#endif // !defined(_WIN32)
 
 SerialCommunicationManagerImp::SerialCommunicationManagerImp(time_t exit_after_seconds,
                                                              bool start_event_loop)
@@ -907,7 +1121,9 @@ SerialCommunicationManagerImp::SerialCommunicationManagerImp(time_t exit_after_s
         startEventLoopThread(call(this, eventLoop));
         startTimerLoopThread(call(this, timerLoop));
     }
+#if !defined(_WIN32)
     wakeMeUpOnSigChld(getEventLoopThread());
+#endif
     start_time_ = time(NULL);
     exit_after_seconds_ = exit_after_seconds;
 }
@@ -926,7 +1142,12 @@ shared_ptr<SerialDevice> SerialCommunicationManagerImp::createSerialDeviceComman
                                                                                   vector<string> envs,
                                                                                   string purpose)
 {
+#if defined(_WIN32)
+    error("createSerialDeviceCommand is not supported on Windows.\n");
+    return nullptr;
+#else
     return addSerialDeviceForManagement(new SerialDeviceCommand(identifier, command, args, envs, this, purpose));
+#endif
 }
 
 shared_ptr<SerialDevice> SerialCommunicationManagerImp::createSerialDeviceFile(string file, string purpose)
@@ -941,7 +1162,12 @@ shared_ptr<SerialDevice> SerialCommunicationManagerImp::createSerialDeviceSimula
 
 shared_ptr<SerialDevice> SerialCommunicationManagerImp::createSerialDeviceSocket(string path, string purpose)
 {
+#if defined(_WIN32)
+    error("createSerialDeviceSocket is not supported on Windows.\n");
+    return nullptr;
+#else
     return addSerialDeviceForManagement(new SerialDeviceSocket(path, this, purpose));
+#endif
 }
 
 void SerialCommunicationManagerImp::listenTo(SerialDevice *sd, function<void()> cb)
@@ -981,12 +1207,14 @@ void SerialCommunicationManagerImp::stop()
         running_ = false;
         if (getMainThread() != 0)
         {
+#if !defined(_WIN32)
             if (signalsInstalled())
             {
                 if (getMainThread()) pthread_kill(getMainThread(), SIGUSR2);
                 if (getEventLoopThread()) pthread_kill(getEventLoopThread(), SIGUSR1);
                 if (getTimerLoopThread()) pthread_kill(getTimerLoopThread(), SIGUSR1);
             }
+#endif
         }
     }
 }
@@ -1008,16 +1236,21 @@ void SerialCommunicationManagerImp::waitForStop()
             LOCK_SERIAL_DEVICES(wait_for_stop);
             if (serial_devices_.size() == 0) break;
         }
+#if defined(_WIN32)
+        Sleep(1000);
+#else
         int rc = usleep(1000*1000);
         if (rc == -1 && errno == EINTR)
         {
             debug("(serial) MAIN thread interrupted\n");
             continue;
         }
+#endif
     }
 
     closeAllDoNotRemove();
 
+#if !defined(_WIN32)
     if (signalsInstalled())
     {
         if (getEventLoopThread()) pthread_kill(getEventLoopThread(), SIGUSR1);
@@ -1026,6 +1259,7 @@ void SerialCommunicationManagerImp::waitForStop()
 
     pthread_join(getEventLoopThread(), NULL);
     pthread_join(getTimerLoopThread(), NULL);
+#endif
 }
 
 bool SerialCommunicationManagerImp::isRunning()
@@ -1048,11 +1282,13 @@ void SerialCommunicationManagerImp::tickleEventLoop()
 {
     LOCK_SERIAL_DEVICES(tickle);
 
+#if !defined(_WIN32)
     if (signalsInstalled())
     {
         // Tickle the event loop to use the new file descriptor in the select.
         if (getEventLoopThread()) pthread_kill(getEventLoopThread(), SIGUSR1);
     }
+#endif
 }
 
 void SerialCommunicationManagerImp::removeNonWorkingSerialDevices()
@@ -1138,12 +1374,16 @@ void *SerialCommunicationManagerImp::timerLoop()
 {
     while (running_)
     {
+#if defined(_WIN32)
+        Sleep(1000);
+#else
         int rc = usleep(1000*1000);
         if (rc == -1 && errno == EINTR)
         {
             debug("(serial) TIMER thread interrupted\n");
             continue;
         }
+#endif
 
         time_t curr = time(NULL);
 
@@ -1168,6 +1408,79 @@ void *SerialCommunicationManagerImp::eventLoop()
 {
     LOCK_EVENT_LOOP(eventLoop);
 
+#if defined(_WIN32)
+    // Windows event loop: select() does not work on COM-port or pipe handles.
+    // Instead, poll each device using PeekNamedPipe (via checkIfDataIsPending).
+    while (running_)
+    {
+        bool all_working = true;
+        bool data_available = false;
+
+        vector<shared_ptr<SerialDevice>> to_be_notified;
+        {
+            LOCK_SERIAL_DEVICES(win_poll_devices);
+
+            for (shared_ptr<SerialDevice> &sd : serial_devices_)
+            {
+                if (sd->opened() && !sd->working()) all_working = false;
+
+                if (sd->opened() && sd->working() && !sd->resetting()
+                    && sd->fd() >= 0 && !sd->skippingCallbacks())
+                {
+                    SerialDeviceImp *si = dynamic_cast<SerialDeviceImp*>(sd.get());
+                    if (si && si->checkIfDataIsPending())
+                    {
+                        trace("[SERIAL] data available on fd %d\n", sd->fd());
+                        to_be_notified.push_back(sd);
+                        data_available = true;
+                    }
+                }
+            }
+        }
+
+        if (!all_working && expect_devices_to_work_)
+        {
+            debug("(serial) not all devices working, emergency exit!\n");
+            stop();
+            break;
+        }
+
+        for (shared_ptr<SerialDevice> &sd : to_be_notified)
+        {
+            SerialDeviceImp *si = dynamic_cast<SerialDeviceImp*>(sd.get());
+            if (si->on_data_) si->on_data_();
+        }
+
+        vector<shared_ptr<SerialDevice>> non_working;
+        {
+            LOCK_SERIAL_DEVICES(win_find_non_working);
+            for (shared_ptr<SerialDevice> &sd : serial_devices_)
+            {
+                if (sd->opened() && !sd->working() && !sd->isClosed()) non_working.push_back(sd);
+            }
+        }
+
+        for (shared_ptr<SerialDevice> &sd : non_working)
+        {
+            debug("(serial) closing non working fd=%d \"%s\"\n", sd->fd(), sd->device().c_str());
+            sd->close();
+        }
+
+        removeNonWorkingSerialDevices();
+
+        if (non_working.size() > 0 && expect_devices_to_work_)
+        {
+            debug("(serial) non working devices found, exiting.\n");
+            stop();
+            break;
+        }
+
+        if (!running_) break;
+
+        // Avoid busy-spinning: sleep briefly when no data was available.
+        if (!data_available) Sleep(10);
+    }
+#else
     fd_set readfds;
 
     while (running_)
@@ -1281,6 +1594,7 @@ void *SerialCommunicationManagerImp::eventLoop()
             break;
         }
     }
+#endif // _WIN32
     verbose("(serial) event loop stopped!\n");
 
     return NULL;
@@ -1293,6 +1607,7 @@ shared_ptr<SerialCommunicationManager> createSerialCommunicationManager(time_t e
                                                                                     start_event_loop));
 }
 
+#if !defined(_WIN32)
 static int openSerialTTY(const char *tty, int baud_rate, PARITY parity)
 {
     int rc = 0;
@@ -1402,6 +1717,7 @@ err:
     }
     return fd;
 }
+#endif // !defined(_WIN32)
 
 SerialCommunicationManager::~SerialCommunicationManager()
 {
@@ -1466,8 +1782,58 @@ bool SerialCommunicationManagerImp::removeNonWorking(string device)
     return found_and_removed;
 }
 
+#if defined(_WIN32)
 
-#if (defined(__APPLE__) && defined(__MACH__)) || defined(__FreeBSD__)
+static const DWORD kPortNameMax      = 256;
+static const DWORD kFriendlyNameMax  = 256;
+static const DWORD kHardwareIdMax    = 256;
+
+// Convert wide string to UTF-8.
+static string winWideToUtf8(const wchar_t *ws)
+{
+    int n = WideCharToMultiByte(CP_UTF8, 0, ws, -1, NULL, 0, NULL, NULL);
+    if (n <= 0) return "";
+    string s(n - 1, '\0');
+    WideCharToMultiByte(CP_UTF8, 0, ws, -1, &s[0], n, NULL, NULL);
+    return s;
+}
+
+vector<string> SerialCommunicationManagerImp::listSerialTTYs()
+{
+    vector<string> found_serials;
+
+    HDEVINFO devs = SetupDiGetClassDevsW(
+        (const GUID *)&GUID_DEVCLASS_PORTS,
+        NULL, NULL, DIGCF_PRESENT);
+    if (devs == INVALID_HANDLE_VALUE) return found_serials;
+
+    SP_DEVINFO_DATA info = {};
+    info.cbSize = sizeof(info);
+
+    for (DWORD idx = 0; SetupDiEnumDeviceInfo(devs, idx, &info); ++idx)
+    {
+        HKEY hk = SetupDiOpenDevRegKey(devs, &info,
+                                       DICS_FLAG_GLOBAL, 0, DIREG_DEV, KEY_READ);
+        if (hk == INVALID_HANDLE_VALUE) continue;
+
+        wchar_t portName[kPortNameMax] = {};
+        DWORD len = sizeof(portName);
+        LONG ret = RegQueryValueExW(hk, L"PortName", NULL, NULL,
+                                    (LPBYTE)portName, &len);
+        RegCloseKey(hk);
+
+        if (ret != ERROR_SUCCESS) continue;
+        // Skip parallel ports.
+        if (wcsncmp(portName, L"LPT", 3) == 0) continue;
+
+        found_serials.push_back(winWideToUtf8(portName));
+    }
+
+    SetupDiDestroyDeviceInfoList(devs);
+    return found_serials;
+}
+
+#elif (defined(__APPLE__) && defined(__MACH__)) || defined(__FreeBSD__)
 
 int sorty(const struct dirent **a, const struct dirent **b)
 {
@@ -1631,8 +1997,9 @@ vector<string> SerialCommunicationManagerImp::listSerialTTYs()
     return found_serials;
 }
 
-#endif
+#endif // __linux__
 
+#if !defined(_WIN32)
 #define CHECK_SPEED(x) { if (speed == x) return #x; }
 
 string translateSpeed(speed_t speed)
@@ -1871,11 +2238,12 @@ err:
 
     return "error";
 }
+#endif // !defined(_WIN32)
 
-AccessCheck SerialCommunicationManagerImp::checkAccess(string device,
+DeviceAccess SerialCommunicationManagerImp::checkAccess(string device,
                                                        shared_ptr<SerialCommunicationManager> manager,
                                                        string extra_info,
-                                                       function<AccessCheck(string,shared_ptr<SerialCommunicationManager>)> extra_probe)
+                                                       function<DeviceAccess(string,shared_ptr<SerialCommunicationManager>)> extra_probe)
 {
     assert(device != "");
 
@@ -1886,14 +2254,29 @@ AccessCheck SerialCommunicationManagerImp::checkAccess(string device,
 
     debug("(%s) check if %s can be accessed\n", extra_info.c_str(), device.c_str());
 
-    AccessCheck ac = checkIfExistsAndHasAccess(device);
+#if defined(_WIN32)
+    // On Windows, try opening the port briefly to verify access.
+    string port = (device.compare(0, 4, "\\\\.\\") == 0) ? device : ("\\\\.\\" + device);
+    HANDLE h = CreateFileA(port.c_str(), GENERIC_READ | GENERIC_WRITE,
+                           0, NULL, OPEN_EXISTING, 0, NULL);
+    if (h == INVALID_HANDLE_VALUE) return DeviceAccess::NoSuchDevice;
+    CloseHandle(h);
+    if (extra_probe)
+    {
+        DeviceAccess ac = extra_probe(device, manager);
+        verbose("(%s) probe returns %s\n", extra_info.c_str(), toString(ac));
+        return ac;
+    }
+    return DeviceAccess::AccessOK;
+#else
+    DeviceAccess ac = checkIfExistsAndHasAccess(device);
 
-    if (ac == AccessCheck::AccessOK)
+    if (ac == DeviceAccess::AccessOK)
     {
         if (!extra_probe)
         {
             verbose("(%s) tty %s can be accessed\n", extra_info.c_str(), device.c_str());
-            return AccessCheck::AccessOK;
+            return DeviceAccess::AccessOK;
         }
         verbose("(%s) tty %s can be accessed now probing...\n", extra_info.c_str(), device.c_str());
         ac = extra_probe(device, manager);
@@ -1901,22 +2284,23 @@ AccessCheck SerialCommunicationManagerImp::checkAccess(string device,
         return ac;
     }
 
-    if (ac == AccessCheck::NoPermission)
+    if (ac == DeviceAccess::NoPermission)
     {
         verbose("(serial) you do not have the correct permissions to open the tty %s, but at least you share the same access group.\n",
                 device.c_str());
-        return AccessCheck::NoPermission;
+        return DeviceAccess::NoPermission;
     }
 
-    if (ac == AccessCheck::NotSameGroup)
+    if (ac == DeviceAccess::NotSameGroup)
     {
         verbose("(serial) you do not have the correct permissions to open the tty %s and you do not share the same access group.\n",
                 device.c_str());
-        return AccessCheck::NotSameGroup;
+        return DeviceAccess::NotSameGroup;
     }
 
     verbose("(serial) cannot open/find tty %s.\n",
             device.c_str());
 
-    return AccessCheck::NoSuchDevice;
+    return DeviceAccess::NoSuchDevice;
+#endif // !defined(_WIN32)
 }

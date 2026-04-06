@@ -164,7 +164,7 @@ private:
     Firmware_IU880B firmware_;
     RadioConfig_IU880B radio_config_;
 
-    friend AccessCheck detectIU880B(Detected *detected, shared_ptr<SerialCommunicationManager> manager);
+    friend DeviceAccess detectIU880B(Detected *detected, shared_ptr<SerialCommunicationManager> manager);
     void handleDevMgmt(int msgid, vector<uchar> &payload);
     void handleRadioLink(int msgid, vector<uchar> &payload, int rssi_dbm);
     void handleRadioLinkTest(int msgid, vector<uchar> &payload);
@@ -520,7 +520,7 @@ static void buildRequest(int endpoint_id, int msg_id, vector<uchar>& body, vecto
 }
 
 
-AccessCheck detectIU880B(Detected *detected, shared_ptr<SerialCommunicationManager> manager)
+DeviceAccess detectIU880B(Detected *detected, shared_ptr<SerialCommunicationManager> manager)
 {
     assert(detected->found_file != "");
 
@@ -531,7 +531,7 @@ AccessCheck detectIU880B(Detected *detected, shared_ptr<SerialCommunicationManag
     if (!ok)
     {
         verbose("(iu880b) could not open tty %s for detection\n", detected->found_file.c_str());
-        return AccessCheck::NoSuchDevice;
+        return DeviceAccess::NoSuchDevice;
     }
 
     vector<uchar> response;
@@ -578,7 +578,7 @@ AccessCheck detectIU880B(Detected *detected, shared_ptr<SerialCommunicationManag
     {
         verbose("(iu880b) are you there? no.\n");
         serial->close();
-        return AccessCheck::NoProperResponse;
+        return DeviceAccess::NoProperResponse;
     }
 
     serial->close();
@@ -596,5 +596,5 @@ AccessCheck detectIU880B(Detected *detected, shared_ptr<SerialCommunicationManag
 
     verbose("(iu880b) are you there? yes %s\n", di.uid.c_str());
 
-    return AccessCheck::AccessOK;
+    return DeviceAccess::AccessOK;
 }

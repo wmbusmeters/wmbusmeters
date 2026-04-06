@@ -21,12 +21,9 @@
 
 #include<algorithm>
 #include<assert.h>
-#include<dirent.h>
 #include<errno.h>
 #include<fcntl.h>
 #include<functional>
-#include<grp.h>
-#include<pwd.h>
 #include<math.h>
 #include<set>
 #include<signal.h>
@@ -37,9 +34,18 @@
 #include<sys/stat.h>
 #include<sys/time.h>
 #include<sys/types.h>
-#include<syslog.h>
 #include<time.h>
+
+#if !defined(_WIN32)
+#include<dirent.h>
+#include<grp.h>
+#include<pwd.h>
+#include<syslog.h>
 #include<unistd.h>
+#else
+#define WIN32_LEAN_AND_MEAN
+#include<windows.h>
+#endif
 
 #if defined(__APPLE__) && defined(__MACH__)
 #include <mach-o/dyld.h>
@@ -51,6 +57,8 @@ using namespace std;
 function<void()> exit_handler_;
 
 bool got_hupped_ {};
+
+#if !defined(_WIN32)
 
 void exitHandler(int signum)
 {
@@ -132,6 +140,23 @@ void restoreSignalHandlers()
     sigaction(SIGUSR1, &old_usr1, NULL);
     sigaction(SIGUSR2, &old_usr2, NULL);
 }
+
+#else // _WIN32 — stub out POSIX signal handling
+
+bool gotHupped() { return false; }
+// wakeMeUpOnSigChld not available on Windows (pthread_t not in scope)
+void exitHandler(int) { if (exit_handler_) exit_handler_(); }
+void onExit(function<void()> cb)
+{
+    // On Windows, only SIGINT/SIGTERM are available; install a basic handler.
+    exit_handler_ = cb;
+    signal(SIGINT,  [](int){ if (exit_handler_) exit_handler_(); });
+    signal(SIGTERM, [](int){ if (exit_handler_) exit_handler_(); });
+}
+bool signalsInstalled() { return exit_handler_ != NULL; }
+void restoreSignalHandlers() { exit_handler_ = NULL; }
+
+#endif // _WIN32
 
 int char2int(char input)
 {
@@ -518,8 +543,12 @@ void output_stuff(int syslog_level, bool use_timestamp, const char *fmt, va_list
     else
     if (syslog_enabled_)
     {
+#if !defined(_WIN32)
         // Do not print timestamps in the syslog since it already adds timestamps.
         vsyslog(syslog_level, fmt, args);
+#else
+        vfprintf(stderr, fmt, args);
+#endif
     }
     else
     {
@@ -961,6 +990,20 @@ bool crc16_CCITT_check(uchar *data, uint16_t length)
 
 bool listFiles(const string& dir, vector<string> *files)
 {
+#if defined(_WIN32)
+    WIN32_FIND_DATAA fd;
+    string pattern = dir + "\\*";
+    HANDLE h = FindFirstFileA(pattern.c_str(), &fd);
+    if (h == INVALID_HANDLE_VALUE) return false;
+    do {
+        if (strcmp(fd.cFileName, ".") == 0 || strcmp(fd.cFileName, "..") == 0) continue;
+        size_t len = strlen(fd.cFileName);
+        if (len > 0 && fd.cFileName[len-1] == '~') continue;
+        files->push_back(string(fd.cFileName));
+    } while (FindNextFileA(h, &fd));
+    FindClose(h);
+    return true;
+#else
     DIR *dp = NULL;
     struct dirent *dptr = NULL;
 
@@ -987,6 +1030,7 @@ bool listFiles(const string& dir, vector<string> *files)
     closedir(dp);
 
     return true;
+#endif
 }
 
 int loadFile(const string& file, vector<string> *lines)
@@ -1240,34 +1284,39 @@ void addMonths(struct tm *date, int months)
     date->tm_mday = day;
 }
 
-const char* toString(AccessCheck ac)
+const char* toString(DeviceAccess ac)
 {
     switch (ac)
     {
-    case AccessCheck::NoSuchDevice: return "NoSuchDevice";
-    case AccessCheck::NoProperResponse: return "NoProperResponse";
-    case AccessCheck::NoPermission: return "NoPermission";
-    case AccessCheck::NotSameGroup: return "NotSameGroup";
-    case AccessCheck::AccessOK: return "AccessOK";
+    case DeviceAccess::NoSuchDevice: return "NoSuchDevice";
+    case DeviceAccess::NoProperResponse: return "NoProperResponse";
+    case DeviceAccess::NoPermission: return "NoPermission";
+    case DeviceAccess::NotSameGroup: return "NotSameGroup";
+    case DeviceAccess::AccessOK: return "AccessOK";
     }
     return "?";
 }
 
-AccessCheck checkIfExistsAndHasAccess(const string& device)
+DeviceAccess checkIfExistsAndHasAccess(const string& device)
 {
+#if defined(_WIN32)
+    // On Windows the serial.cc checkAccess() uses CreateFile directly;
+    // this function is not called on Windows.
+    return DeviceAccess::NoSuchDevice;
+#else
     struct stat device_sb;
 
     int ok = stat(device.c_str(), &device_sb);
 
     // The file did not exist.
-    if (ok) return AccessCheck::NoSuchDevice;
+    if (ok) return DeviceAccess::NoSuchDevice;
 
     int r = access(device.c_str(), R_OK);
     int w = access(device.c_str(), W_OK);
     if (r == 0 && w == 0)
     {
         // We have read and write access!
-        return AccessCheck::AccessOK;
+        return DeviceAccess::AccessOK;
     }
 
     // We are not permitted to read and write to this tty. Why?
@@ -1298,13 +1347,14 @@ AccessCheck checkIfExistsAndHasAccess(const string& device)
         {
             // We belong to the same group as the tty. Typically dialout.
             // Then there is some other reason for the lack of access.
-            return AccessCheck::NoPermission;
+            return DeviceAccess::NoPermission;
         }
     }
     // We have examined all the groups that we belong to and yet not
     // found the device's group. We can at least conclude that we
     // being in the device's group would help, ie dialout.
-    return AccessCheck::NotSameGroup;
+    return DeviceAccess::NotSameGroup;
+#endif // _WIN32
 }
 
 int countSetBits(int v)
@@ -1357,7 +1407,7 @@ string currentYear()
     struct timeval tv;
     gettimeofday(&tv, NULL);
 
-    strftime(datetime, 20, "%Y", localtime(&tv.tv_sec));
+    { time_t t_ = (time_t)tv.tv_sec; strftime(datetime, 20, "%Y", localtime(&t_)); }
     return string(datetime);
 }
 
@@ -1369,7 +1419,7 @@ string currentYearMonth()
     struct timeval tv;
     gettimeofday(&tv, NULL);
 
-    strftime(datetime, 20, "%Y-%m", localtime(&tv.tv_sec));
+    { time_t t_ = (time_t)tv.tv_sec; strftime(datetime, 20, "%Y-%m", localtime(&t_)); }
     return string(datetime);
 }
 
@@ -1381,7 +1431,7 @@ string currentYearMonthDay()
     struct timeval tv;
     gettimeofday(&tv, NULL);
 
-    strftime(datetime, 20, "%Y-%m-%d", localtime(&tv.tv_sec));
+    { time_t t_ = (time_t)tv.tv_sec; strftime(datetime, 20, "%Y-%m-%d", localtime(&t_)); }
     return string(datetime);
 }
 
@@ -1393,7 +1443,7 @@ string currentHour()
     struct timeval tv;
     gettimeofday(&tv, NULL);
 
-    strftime(datetime, 20, "%Y-%m-%d_%H", localtime(&tv.tv_sec));
+    { time_t t_ = (time_t)tv.tv_sec; strftime(datetime, 20, "%Y-%m-%d_%H", localtime(&t_)); }
     return string(datetime);
 }
 
@@ -1405,7 +1455,7 @@ string currentMinute()
     struct timeval tv;
     gettimeofday(&tv, NULL);
 
-    strftime(datetime, 20, "%Y-%m-%d_%H:%M", localtime(&tv.tv_sec));
+    { time_t t_ = (time_t)tv.tv_sec; strftime(datetime, 20, "%Y-%m-%d_%H:%M", localtime(&t_)); }
     return string(datetime);
 }
 
@@ -1417,7 +1467,7 @@ string currentSeconds()
     struct timeval tv;
     gettimeofday(&tv, NULL);
 
-    strftime(datetime, 20, "%Y-%m-%d_%H:%M:%S", localtime(&tv.tv_sec));
+    { time_t t_ = (time_t)tv.tv_sec; strftime(datetime, 20, "%Y-%m-%d_%H:%M:%S", localtime(&t_)); }
     return string(datetime);
 }
 
@@ -1429,7 +1479,7 @@ string currentMicros()
     struct timeval tv;
     gettimeofday(&tv, NULL);
 
-    strftime(datetime, 20, "%Y-%m-%d_%H:%M:%S", localtime(&tv.tv_sec));
+    { time_t t_ = (time_t)tv.tv_sec; strftime(datetime, 20, "%Y-%m-%d_%H:%M:%S", localtime(&t_)); }
     return string(datetime)+"."+to_string(tv.tv_usec);
 }
 
@@ -1828,7 +1878,11 @@ string currentProcessExe()
     char buf[1024];
     memset(buf, 0, 1024);
 
-#if defined(__APPLE__) && defined(__MACH__)
+#if defined(_WIN32)
+    DWORD n = GetModuleFileNameA(NULL, buf, sizeof(buf)-1);
+    if (n == 0) return "";
+    return buf;
+#elif defined(__APPLE__) && defined(__MACH__)
     uint32_t size = sizeof(buf);
 
     int rs = _NSGetExecutablePath(buf,&size);

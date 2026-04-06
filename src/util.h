@@ -19,6 +19,9 @@
 #define UTIL_H
 
 #include<signal.h>
+#if !defined(_WIN32)
+#include<pthread.h>
+#endif
 #include<cstdint>
 #include<string>
 #include<functional>
@@ -29,7 +32,9 @@
 void onExit(std::function<void()> cb);
 void restoreSignalHandlers();
 bool gotHupped();
+#if !defined(_WIN32)
 void wakeMeUpOnSigChld(pthread_t t);
+#endif
 bool signalsInstalled();
 
 typedef unsigned char uchar;
@@ -236,9 +241,9 @@ void trimWhitespace(std::string *s);
 // Locked means that some other process has locked the tty.
 // NoSuchDevice means the tty does not exist.
 // NoProperResponse means that we talked to something, but we do not know what it is.
-enum class AccessCheck { NoSuchDevice, NoProperResponse, NoPermission, NotSameGroup, AccessOK };
-const char* toString(AccessCheck ac);
-AccessCheck checkIfExistsAndHasAccess(const std::string& device);
+enum class DeviceAccess { NoSuchDevice, NoProperResponse, NoPermission, NotSameGroup, AccessOK };
+const char* toString(DeviceAccess ac);
+DeviceAccess checkIfExistsAndHasAccess(const std::string& device);
 // Count the number of 1:s in the binary number v.
 int countSetBits(int v);
 

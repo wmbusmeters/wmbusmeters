@@ -17,8 +17,14 @@
 
 #include "threads.h"
 
+#if defined(_WIN32)
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
+#include <time.h>
+#else
 #include <unistd.h>
 #include <sys/resource.h>
+#endif
 #include <stdio.h>
 
 #if defined(__APPLE__) && defined(__MACH__)
@@ -123,7 +129,11 @@ Lock::Lock(RecursiveMutex *rmutex, const char *func_name)
     trace("[LOCKING] %s %s (%s %d)\n", rmutex_->name_, func_name_, rmutex_->locked_in_func_, rmutex->locked_by_pid_);
     pthread_mutex_lock(&rmutex_->mutex_);
     rmutex->locked_in_func_ = func_name;
+#if defined(_WIN32)
+    rmutex->locked_by_pid_ = (int)GetCurrentProcessId();
+#else
     rmutex->locked_by_pid_ = getpid();
+#endif
     trace("[LOCKED]  %s %s (%s %d)\n", rmutex_->name_, func_name_, rmutex_->locked_in_func_, rmutex->locked_by_pid_);
 }
 
@@ -190,20 +200,24 @@ void Semaphore::notify()
 
 size_t getPeakRSS()
 {
+#if defined(_WIN32)
+    return 0;
+#else
     struct rusage rusage;
-
     getrusage( RUSAGE_SELF, &rusage );
-
 #if defined(__APPLE__) && defined(__MACH__)
     return (size_t)rusage.ru_maxrss;
 #else
     return (size_t)(rusage.ru_maxrss * 1024L);
 #endif
+#endif
 }
 
 size_t getCurrentRSS()
 {
-#if defined(__APPLE__) && defined(__MACH__)
+#if defined(_WIN32)
+    return 0;
+#elif defined(__APPLE__) && defined(__MACH__)
 
     struct mach_task_basic_info info;
 

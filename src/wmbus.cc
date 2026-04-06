@@ -5624,8 +5624,8 @@ Detected detectBusDeviceOnTTY(string tty,
 
     bool has_auto = probe_for.count(BusDeviceType::DEVICE_AUTO);
 
-    AccessCheck ac = handler->checkAccess(tty, handler);
-    if (ac != AccessCheck::AccessOK)
+    DeviceAccess ac = handler->checkAccess(tty, handler);
+    if (ac != DeviceAccess::AccessOK)
     {
         // Oups, some low level problem (permissions/groups etc) that means that we will not
         // be able to talk to the device. Lets stop here.
@@ -5643,7 +5643,7 @@ Detected detectBusDeviceOnTTY(string tty,
     // assumes this device is configured for 9600 bps, which seems to be the default.
     if (has_auto || probe_for.count(BusDeviceType::DEVICE_AMB8465) || probe_for.count(BusDeviceType::DEVICE_AMB3665))
     {
-        if (detectAMB8465AMB3665(&detected, handler) == AccessCheck::AccessOK)
+        if (detectAMB8465AMB3665(&detected, handler) == DeviceAccess::AccessOK)
         {
             return detected;
         }
@@ -5653,7 +5653,7 @@ Detected detectBusDeviceOnTTY(string tty,
     // assumes this device is configured for 57600 bps, which seems to be the default.
     if (has_auto || probe_for.count(BusDeviceType::DEVICE_IM871A) || probe_for.count(BusDeviceType::DEVICE_IM170A))
     {
-        if (detectIM871AIM170A(&detected, handler) == AccessCheck::AccessOK)
+        if (detectIM871AIM170A(&detected, handler) == DeviceAccess::AccessOK)
         {
             return detected;
         }
@@ -5663,7 +5663,7 @@ Detected detectBusDeviceOnTTY(string tty,
     // assumes this device is configured for 19200 bps, which seems to be the default.
     if (has_auto || probe_for.count(BusDeviceType::DEVICE_RC1180))
     {
-        if (detectRC1180(&detected, handler) == AccessCheck::AccessOK)
+        if (detectRC1180(&detected, handler) == DeviceAccess::AccessOK)
         {
             return detected;
         }
@@ -5673,7 +5673,7 @@ Detected detectBusDeviceOnTTY(string tty,
     // assumes this device is configured for 38400 bps, which seems to be the default.
     if (has_auto || probe_for.count(BusDeviceType::DEVICE_CUL))
     {
-        if (detectCUL(&detected, handler) == AccessCheck::AccessOK)
+        if (detectCUL(&detected, handler) == DeviceAccess::AccessOK)
         {
             return detected;
         }
@@ -5683,7 +5683,7 @@ Detected detectBusDeviceOnTTY(string tty,
     // assumes this device is configured for 115200 bps, which seems to be the default.
     if (has_auto || probe_for.count(BusDeviceType::DEVICE_IU891A))
     {
-        if (detectIU891A(&detected, handler) == AccessCheck::AccessOK)
+        if (detectIU891A(&detected, handler) == DeviceAccess::AccessOK)
         {
             return detected;
         }
@@ -5812,28 +5812,28 @@ Detected detectBusDeviceWithCommand(SpecifiedDevice &specified_device,
     return detected;
 }
 
-AccessCheck detectUNKNOWN(Detected *detected, shared_ptr<SerialCommunicationManager> handler)
+DeviceAccess detectUNKNOWN(Detected *detected, shared_ptr<SerialCommunicationManager> handler)
 {
-    return AccessCheck::NoSuchDevice;
+    return DeviceAccess::NoSuchDevice;
 }
 
-AccessCheck detectSKIP(Detected *detected, shared_ptr<SerialCommunicationManager> handler)
+DeviceAccess detectSKIP(Detected *detected, shared_ptr<SerialCommunicationManager> handler)
 {
-    return AccessCheck::NoSuchDevice;
+    return DeviceAccess::NoSuchDevice;
 }
 
-AccessCheck detectSIMULATION(Detected *detected, shared_ptr<SerialCommunicationManager> handler)
+DeviceAccess detectSIMULATION(Detected *detected, shared_ptr<SerialCommunicationManager> handler)
 {
-    return AccessCheck::NoSuchDevice;
+    return DeviceAccess::NoSuchDevice;
 }
 
-AccessCheck detectAUTO(Detected *detected, shared_ptr<SerialCommunicationManager> handler)
+DeviceAccess detectAUTO(Detected *detected, shared_ptr<SerialCommunicationManager> handler)
 {
     // Detection of auto is currently not implemented here, but elsewhere.
-    return AccessCheck::NoSuchDevice;
+    return DeviceAccess::NoSuchDevice;
 }
 
-AccessCheck reDetectDevice(Detected *detected, shared_ptr<SerialCommunicationManager> handler)
+DeviceAccess reDetectDevice(Detected *detected, shared_ptr<SerialCommunicationManager> handler)
 {
     BusDeviceType type = detected->specified_device.type;
 
@@ -5842,7 +5842,7 @@ LIST_OF_MBUS_DEVICES
 #undef X
 
     assert(0);
-    return AccessCheck::NoSuchDevice;
+    return DeviceAccess::NoSuchDevice;
 }
 
 bool usesRTLSDR(BusDeviceType t)

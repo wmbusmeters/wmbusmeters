@@ -37,15 +37,18 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <pthread.h>
-#include <semaphore.h>
 #include <set>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+
+#if !defined(_WIN32)
+#include <semaphore.h>
 #include <syslog.h>
 #include <unistd.h>
+#endif
 
 using namespace std;
 
@@ -729,6 +732,7 @@ bool start(Configuration *config)
     return gotHupped();
 }
 
+#if !defined(_WIN32)
 void start_daemon(string pid_file, string root, ConfigOverrides overrides)
 {
     setlogmask(LOG_UPTO (LOG_INFO));
@@ -788,6 +792,13 @@ void start_daemon(string pid_file, string root, ConfigOverrides overrides)
     setDownloadDir("/var/lib/wmbusmeters/wmbusmeters.drivers.d/downloaded");
     start_using_config_files(root, true, overrides);
 }
+#else // _WIN32
+void start_daemon(string pid_file, string root, ConfigOverrides overrides)
+{
+    warning("Daemon mode not supported on Windows.\n");
+    start_using_config_files(root, false, overrides);
+}
+#endif // !_WIN32
 
 void start_using_config_files(string root, bool is_daemon, ConfigOverrides overrides)
 {

@@ -1,4 +1,5 @@
 build/
+build_windows/
 build_debug
 build_arm/
 build_arm_debug/

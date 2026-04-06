@@ -18,6 +18,7 @@
 #include"rtlsdr.h"
 #include"util.h"
 
+#if !defined(_WIN32)
 // Include rtl-sdr which is licensed under GPL v2 or later
 // so it happily relicenses with wmbusmeters under GPL v3 or later.
 
@@ -101,12 +102,12 @@ int indexFromRtlSdrSerial(std::string serialnr)
     return -1;
 }
 
-AccessCheck detectRTLSDR(string serialnr, Detected *detected)
+DeviceAccess detectRTLSDR(string serialnr, Detected *detected)
 {
     if (detected->specified_device.type != BusDeviceType::DEVICE_RTLWMBUS &&
         detected->specified_device.type != BusDeviceType::DEVICE_RTL433)
     {
-        return AccessCheck::NoSuchDevice;
+        return DeviceAccess::NoSuchDevice;
     }
 
     uint32_t n = rtlsdr_get_device_count();
@@ -124,13 +125,22 @@ AccessCheck detectRTLSDR(string serialnr, Detected *detected)
             lms.addLinkMode(LinkMode::C1);
             lms.addLinkMode(LinkMode::T1);
             detected->setAsFound(serialnr, detected->specified_device.type, 0, false, lms);
-            return AccessCheck::AccessOK;
+            return DeviceAccess::AccessOK;
         }
     }
 
     // Something is wrong.
-    return AccessCheck::NoSuchDevice;
+    return DeviceAccess::NoSuchDevice;
 }
+
+#else // _WIN32
+
+using namespace std;
+std::vector<std::string> listRtlSdrDevices() { return {}; }
+int indexFromRtlSdrSerial(std::string) { return -1; }
+DeviceAccess detectRTLSDR(std::string, Detected *) { return DeviceAccess::NoSuchDevice; }
+
+#endif // !_WIN32
 
 /*
 Find /dev/swradio0 1 2 3 etc

@@ -16,6 +16,10 @@
 # To compile for Raspberry PI ARM:
 # make HOST=arm
 #
+# To cross-compile for Windows (requires mingw-w64):
+# sudo apt-get install mingw-w64
+# make HOST=windows
+#
 # To build with debug information:
 # make DEBUG=true
 # make DEBUG=true HOST=arm
@@ -26,23 +30,58 @@ DEFAULT_CONF_DIR?=/etc
 DEFAULT_DEAMON_DRIVER_DOWNLOAD_DIR?=/var/lib/wmbusmeters/wmbusmeters.drivers.d/downloaded
 DEFAULT_USER_DRIVER_DOWNLOAD_DIR?=.local/share/wmbusmeters/wmbusmeters.drivers.d
 
-include $(wildcard build/*/spec.gmk)
-
-ifeq (,$(CONF_NAME))
-    $(error Run configure first!)
+ifeq "$(HOST)" "windows"
+    # Windows cross-compilation via MinGW-w64. No configure step required.
+    # Requires: sudo apt-get install mingw-w64
+    # libxml2 is built automatically by the $(MINGW_LIBXML2_A) target below.
+    CONF_NAME:=x86_64-w64-mingw32
+    override CXX:=x86_64-w64-mingw32-g++
+    override STRIP:=x86_64-w64-mingw32-strip
+    BUILD=build_windows
+    EXE=.exe
+    DEBARCH=
+    # RTL-SDR and USB are Linux-only; omit them.
+    LIBRTLSDR_CFLAGS:=
+    LIBRTLSDR_LIBS:=
+    LIBUSB_CFLAGS:=
+    LIBUSB_LIBS:=
+    # MinGW-compiled libxml2 built automatically into build_windows/mingw_libs/ (not checked into git).
+    MINGW_LIBXML2_A:=build_windows/mingw_libs/libxml2/usr/x86_64-w64-mingw32/lib/libxml2.a
+    MINGW_LIBXML2_SYSROOT:=build_windows/mingw_libs/libxml2/usr/x86_64-w64-mingw32
+    LIBXML_CFLAGS:=-I$(MINGW_LIBXML2_SYSROOT)/include/libxml2 -DLIBXML_STATIC
+    LIBXML_LIBS:=-L$(MINGW_LIBXML2_SYSROOT)/lib -lxml2
+    # Force-include compatibility header (in src/) to supply POSIX shims for Windows.
+    WINDOWS_COMPAT_FLAGS:=-include src/win_compat.h -Isrc
+    # Windows system libraries needed by serial.cc.
+    WINDOWS_LDFLAGS:=-lws2_32 -lsetupapi -lbcrypt -static -static-libgcc -static-libstdc++
+else
+    include $(wildcard build/*/spec.gmk)
+    ifeq (,$(CONF_NAME))
+        $(error Run configure first!)
+    endif
+    EXE=
+    WINDOWS_LDFLAGS=
+    WINDOWS_COMPAT_FLAGS=
+    ifeq "$(HOST)" "arm"
+        CXX?=arm-linux-gnueabihf-g++
+        STRIP?=arm-linux-gnueabihf-strip
+        BUILD=build_arm
+        DEBARCH=armhf
+    else
+        CXX?=g++
+        STRIP?=strip
+#--strip-unneeded --remove-section=.comment --remove-section=.note
+        BUILD=build
+        DEBARCH=amd64
+    endif
 endif
 
-ifeq "$(HOST)" "arm"
-    CXX?=arm-linux-gnueabihf-g++
-    STRIP?=arm-linux-gnueabihf-strip
-    BUILD=build_arm
-    DEBARCH=armhf
+# On Windows builds, all .o compilations depend on the MinGW libxml2 being present.
+# On other builds this is empty and has no effect.
+ifeq "$(HOST)" "windows"
+MINGW_LIBXML2_DEP=$(MINGW_LIBXML2_A)
 else
-    CXX?=g++
-    STRIP?=strip
-#--strip-unneeded --remove-section=.comment --remove-section=.note
-    BUILD=build
-    DEBARCH=amd64
+MINGW_LIBXML2_DEP=
 endif
 
 ifeq "$(DEBUG)" "true"
@@ -73,7 +112,7 @@ else
     else
         # Release build
         DEBUG_FLAGS=-Os -g
-        STRIP_BINARY=cp $(BUILD)/wmbusmeters $(BUILD)/wmbusmeters.g; $(STRIP) $(BUILD)/wmbusmeters
+        STRIP_BINARY=cp $(BUILD)/wmbusmeters$(EXE) $(BUILD)/wmbusmeters.g$(EXE); $(STRIP) $(BUILD)/wmbusmeters$(EXE)
         GCOV=To_run_gcov_add_DEBUG=true
     endif
 endif
@@ -144,7 +183,7 @@ CXXFLAGS +=\
 
 # Additional fedora rpm package build flags
 # -O2 -flto=auto -ffat-lto-objects -fexceptions -g -grecord-gcc-switches -pipe -Wall -Werror=format-security -Wp,-D_FORTIFY_SOURCE=2 -Wp,-D_GLIBCXX_ASSERTIONS -fstack-protector-strong -mtune=generic -fasynchronous-unwind-tables -fstack-clash-protection -fcf-protection
-CXXFLAGS += -I$(BUILD) $(LIBXML_CFLAGS) $(LIBRTLSDR_CFLAGS) $(LIBUSB_CFLAGS@)
+CXXFLAGS += -I$(BUILD) $(LIBXML_CFLAGS) $(LIBRTLSDR_CFLAGS) $(LIBUSB_CFLAGS@) $(WINDOWS_COMPAT_FLAGS)
 LDFLAGS  ?= $(DEBUG_LDFLAGS)
 LDFLAGS  += $(LIBXML_LIBS) $(LIBRTLSDR_LIBS) $(LIBUSB_LIBS)
 
@@ -153,11 +192,11 @@ LDFLAGS  += $(LIBXML_LIBS) $(LIBRTLSDR_LIBS) $(LIBUSB_LIBS)
 #    LDFLAGS  += -L$(shell brew --prefix)/lib
 #endif
 
-$(BUILD)/%.o: src/%.cc $(wildcard src/%.h)
+$(BUILD)/%.o: src/%.cc $(wildcard src/%.h) | $(MINGW_LIBXML2_DEP)
 	$(CXX) $(CXXFLAGS) $< -c -E > $@.src
 	$(CXX) $(CXXFLAGS) $< -MMD -c -o $@
 
-$(BUILD)/%.o: src/%.c $(wildcard src/%.h)
+$(BUILD)/%.o: src/%.c $(wildcard src/%.h) | $(MINGW_LIBXML2_DEP)
 	$(CXX) $(CXXFLAGS) $< -c -E > $@.src
 	$(CXX) -fpermissive $(CXXFLAGS)  $< -MMD -c -o $@
 
@@ -211,7 +250,10 @@ else
 endif
 DRIVER_OBJS:=$(patsubst src/%.cc,$(BUILD)/%.o,$(DRIVER_OBJS))
 
-all: $(BUILD)/wmbusmeters $(BUILD)/wmbusmetersd $(BUILD)/wmbusmeters.g $(BUILD)/testinternals
+all: $(BUILD)/wmbusmeters$(EXE) $(BUILD)/wmbusmetersd$(EXE) $(BUILD)/wmbusmeters.g$(EXE) $(BUILD)/testinternals$(EXE)
+
+windows:
+	$(MAKE) HOST=windows
 
 # Create a local binary only package.
 deb_local:
@@ -273,18 +315,34 @@ $(BUILD)/main.o: $(BUILD)/short_manual.h $(BUILD)/version.h $(BUILD)/authors.h
 $(BUILD)/authors.h:
 	./scripts/generate_authors.sh ./src/authors.h
 
+# Build MinGW static libxml2 (only needed for HOST=windows).
+# Built from 3rdparty/libxml2 (out-of-tree) and installed into build_windows/mingw_libs/.
+$(MINGW_LIBXML2_A):
+	@echo "Building MinGW libxml2 from 3rdparty/libxml2 for Windows cross-compilation..."
+	@set -e; \
+	  if [ -f 3rdparty/libxml2/Makefile ]; then $(MAKE) -C 3rdparty/libxml2 distclean >/dev/null 2>&1 || true; fi; \
+	  LIBXML2_BUILD=$$(mktemp -d); \
+	  cd $$LIBXML2_BUILD && \
+	  $(abspath 3rdparty/libxml2/configure) --quiet --host=x86_64-w64-mingw32 --enable-static --disable-shared \
+	    --without-python --without-http --without-iconv \
+	    --without-zlib --prefix=/usr/x86_64-w64-mingw32 && \
+	  make -j$$(nproc) && \
+	  make install DESTDIR=$(abspath build_windows/mingw_libs/libxml2) && \
+	  rm -rf $$LIBXML2_BUILD
+	@echo "MinGW libxml2 ready in build_windows/mingw_libs/"
+
 # Build binary with debug information. ~15M size binary.
-$(BUILD)/wmbusmeters.g: $(PROG_OBJS) $(DRIVER_OBJS) $(BUILD)/main.o $(BUILD)/short_manual.h
-	$(CXX) -o $(BUILD)/wmbusmeters.g $(PROG_OBJS) $(DRIVER_OBJS) $(BUILD)/main.o $(LDFLAGS) -lpthread
+$(BUILD)/wmbusmeters.g$(EXE): $(PROG_OBJS) $(DRIVER_OBJS) $(BUILD)/main.o $(BUILD)/short_manual.h
+	$(CXX) -o $(BUILD)/wmbusmeters.g$(EXE) $(PROG_OBJS) $(DRIVER_OBJS) $(BUILD)/main.o $(LDFLAGS) $(WINDOWS_LDFLAGS) -lpthread
 
 # Production build will have debug information stripped. ~1.5M size binary.
 # DEBUG=true builds, which has address sanitizer code, will always keep the debug information.
-$(BUILD)/wmbusmeters: $(BUILD)/wmbusmeters.g
-	cp $(BUILD)/wmbusmeters.g $(BUILD)/wmbusmeters
+$(BUILD)/wmbusmeters$(EXE): $(BUILD)/wmbusmeters.g$(EXE)
+	cp $(BUILD)/wmbusmeters.g$(EXE) $(BUILD)/wmbusmeters$(EXE)
 	$(STRIP_BINARY)
 
-$(BUILD)/wmbusmetersd: $(BUILD)/wmbusmeters
-	cp $(BUILD)/wmbusmeters $(BUILD)/wmbusmetersd
+$(BUILD)/wmbusmetersd$(EXE): $(BUILD)/wmbusmeters$(EXE)
+	cp $(BUILD)/wmbusmeters$(EXE) $(BUILD)/wmbusmetersd$(EXE)
 
 $(BUILD)/short_manual.h:
 	./scripts/generate_short_manual.sh ./src/short_manual.h
@@ -293,22 +351,22 @@ testinternals: $(BUILD)/testinternals
 
 $(BUILD)/testinternals.o: $(PROG_OBJS) $(DRIVER_OBJS) $(wildcard src/*.h)
 
-$(BUILD)/testinternals: $(BUILD)/testinternals.o
-	$(CXX) -o $(BUILD)/testinternals $(PROG_OBJS) $(DRIVER_OBJS) $(BUILD)/testinternals.o $(LDFLAGS)  -lpthread
+$(BUILD)/testinternals$(EXE): $(BUILD)/testinternals.o
+	$(CXX) -o $(BUILD)/testinternals$(EXE) $(PROG_OBJS) $(DRIVER_OBJS) $(BUILD)/testinternals.o $(LDFLAGS) $(WINDOWS_LDFLAGS) -lpthread
 
-$(BUILD)/fuzz: $(PROG_OBJS) $(DRIVER_OBJS) $(BUILD)/fuzz.o
-	$(CXX) -o $(BUILD)/fuzz $(PROG_OBJS) $(DRIVER_OBJS) $(BUILD)/fuzz.o $(LDFLAGS) -lpthread
+$(BUILD)/fuzz$(EXE): $(PROG_OBJS) $(DRIVER_OBJS) $(BUILD)/fuzz.o
+	$(CXX) -o $(BUILD)/fuzz$(EXE) $(PROG_OBJS) $(DRIVER_OBJS) $(BUILD)/fuzz.o $(LDFLAGS) $(WINDOWS_LDFLAGS) -lpthread
 
 clean_executables:
-	rm -rf build/wmbusmeters* build_arm/wmbusmeters* build_debug/wmbusmeters* build_arm_debug/wmbusmeters* *~
-	rm -rf build/testinternal* build_arm/testinternal* build_debug/testinternal* build_arm_debug/testinternal*
+	rm -rf build/wmbusmeters* build_arm/wmbusmeters* build_debug/wmbusmeters* build_arm_debug/wmbusmeters* build_windows/wmbusmeters* *~
+	rm -rf build/testinternal* build_arm/testinternal* build_debug/testinternal* build_arm_debug/testinternal* build_windows/testinternal*
 	$(RM) testaes/test_input.txt testaes/test_stderr.txt
 	$(RM) testoutput/test_expected.txt testoutput/test_input.txt \
           testoutput/test_response.txt testoutput/test_responses.txt \
           testoutput/test_stderr.txt
 
 clean:
-	rm -rf build/* build_arm/* build_debug/* build_arm_debug/* build_profile/* *~
+	rm -rf build/* build_arm/* build_debug/* build_arm_debug/* build_profile/* build_windows/* *~
 	$(RM) testaes/test_input.txt testaes/test_stderr.txt
 	$(RM) testoutput/test_expected.txt testoutput/test_input.txt \
           testoutput/test_response.txt testoutput/test_responses.txt \
@@ -485,4 +543,4 @@ build/xmq: 3rdparty/xmq/build/default/release/xmq
 # Include dependency information generated by gcc in a previous compile.
 include $(wildcard $(patsubst %.o,%.d,$(PROG_OBJS) $(DRIVER_OBJS)))
 
-.PHONY: deb test testd deploy release_major release_minor release_rc collect_copyrights
+.PHONY: deb test testd deploy release_major release_minor release_rc collect_copyrights windows

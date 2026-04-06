@@ -112,10 +112,10 @@ struct SerialCommunicationManager
     virtual void stopRegularCallback(int id) = 0;
 
     // Verify if the device can be accessed and verbose any failures.
-    virtual AccessCheck checkAccess(std::string device,
+    virtual DeviceAccess checkAccess(std::string device,
                                     std::shared_ptr<SerialCommunicationManager> manager, // Silly but for now, needs shared pointer to itself....
                                     std::string extra_info = "",
-                                    std::function<AccessCheck(std::string,std::shared_ptr<SerialCommunicationManager>)> extra_probe = NULL) = 0;
+                                    std::function<DeviceAccess(std::string,std::shared_ptr<SerialCommunicationManager>)> extra_probe = NULL) = 0;
     // List all real serial devices (avoid pseudo ttys)
     virtual std::vector<std::string> listSerialTTYs() = 0;
     // Return a serial device for the given device, if it exists! Otherwise NULL.

@@ -25,7 +25,6 @@
 #include<assert.h>
 #include<algorithm>
 #include<fcntl.h>
-#include<grp.h>
 #include<pthread.h>
 #include<semaphore.h>
 #include<string.h>
@@ -467,8 +466,8 @@ FrameStatus WMBusRTLWMBUS::checkRTLWMBUSFrame(vector<uchar> &data,
     return FullFrame;
 }
 
-AccessCheck detectRTLWMBUS(Detected *detected, shared_ptr<SerialCommunicationManager> handler)
+DeviceAccess detectRTLWMBUS(Detected *detected, shared_ptr<SerialCommunicationManager> handler)
 {
     assert(0);
-    return AccessCheck::NoSuchDevice;
+    return DeviceAccess::NoSuchDevice;
 }

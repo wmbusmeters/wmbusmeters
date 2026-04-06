@@ -23,7 +23,6 @@
 
 #include<assert.h>
 #include<fcntl.h>
-#include<grp.h>
 #include<pthread.h>
 #include<semaphore.h>
 #include<string.h>
@@ -365,8 +364,8 @@ FrameStatus WMBusRTL433::checkRTL433Frame(vector<uchar> &data,
     return FullFrame;
 }
 
-AccessCheck detectRTL433(Detected *detected, shared_ptr<SerialCommunicationManager> handler)
+DeviceAccess detectRTL433(Detected *detected, shared_ptr<SerialCommunicationManager> handler)
 {
     assert(0);
-    return AccessCheck::NoSuchDevice;
+    return DeviceAccess::NoSuchDevice;
 }

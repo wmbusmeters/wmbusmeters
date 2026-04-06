@@ -38,8 +38,12 @@
 #include <string.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+#if !defined(_WIN32)
 #include <syslog.h>
 #include <unistd.h>
+#else
+#include <windows.h>
+#endif
 
 using namespace std;
 
@@ -262,7 +266,11 @@ shared_ptr<BusDevice> BusManager::createWmbusObject(Detected *detected, Configur
         warning("(main) internal error! cannot create an unknown device! exiting!\n");
         if (config->daemon) {
             // If starting as a daemon, wait a bit so that systemd have time to catch up.
+#if defined(_WIN32)
+            Sleep(1000);
+#else
             sleep(1);
+#endif
         }
         exit(1);
         break;
@@ -689,8 +697,8 @@ void BusManager::perform_auto_scan_of_swradio_devices(Configuration *config)
             debug("(main) rtlsdr device %s not currently used.\n", serialnr.c_str());
             Detected detected;
             detected.specified_device.type = BusDeviceType::DEVICE_RTLWMBUS;
-            AccessCheck ac = detectRTLSDR(serialnr, &detected);
-            if (ac != AccessCheck::AccessOK)
+            DeviceAccess ac = detectRTLSDR(serialnr, &detected);
+            if (ac != DeviceAccess::AccessOK)
             {
                 // We cannot access this swradio device.
                 not_swradio_wmbus_devices_.insert(serialnr);
