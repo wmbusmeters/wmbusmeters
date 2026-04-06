@@ -526,8 +526,11 @@ FrameStatus WMBusIU891A::checkIU891AFrame(vector<uchar> &data,
 
     removeSlipFraming(data, frame_length_out, msg);
 
-    // If frame_length_out is zero, then no slip frame was found.
-    if (frame_length_out == 0 || msg.size() < 5) return PartialFrame;
+    // If frame_length_out is zero, then no END slip frame marker was found.
+    // Collect some more.
+    if (*frame_length_out == 0) return PartialFrame;
+    // If the msg is less than five bytes, discard this frame.
+    if (msg.size() < 5) return ErrorInFrame;
 
     *endpoint_id_out = msg[0];
     *msg_id_out = msg[1];

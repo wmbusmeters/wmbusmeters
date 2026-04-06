@@ -237,8 +237,7 @@ void WMBusRawTTY::processSerialData()
             vector<uchar> payload;
             if (payload_len > 0)
             {
-                uchar l = payload_len;
-                payload.insert(payload.end(), &l, &l+1); // Re-insert the len byte.
+                payload.insert(payload.end(), payload_len); // Re-insert the len byte.
                 payload.insert(payload.end(), data_buffer_.begin()+payload_offset, data_buffer_.begin()+payload_offset+payload_len);
             }
             data_buffer_.erase(data_buffer_.begin(), data_buffer_.begin()+frame_length);
