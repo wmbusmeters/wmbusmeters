@@ -23,6 +23,8 @@
 #include<assert.h>
 #include<errno.h>
 #include<fcntl.h>
+#include<filesystem>
+#include<fstream>
 #include<functional>
 #include<math.h>
 #include<set>
@@ -46,6 +48,8 @@
 #define WIN32_LEAN_AND_MEAN
 #include<windows.h>
 #endif
+
+namespace fs = std::filesystem;
 
 #if defined(__APPLE__) && defined(__MACH__)
 #include <mach-o/dyld.h>
@@ -752,55 +756,25 @@ bool checkCharacterDeviceExists(const char *tty, bool fail_if_not)
 
 bool checkFileExists(const char *file)
 {
-    struct stat info;
-
-    int rc = stat(file, &info);
-    if (rc != 0) {
-        return false;
-    }
-    if (!S_ISREG(info.st_mode)) {
-        return false;
-    }
-    return true;
+    return fs::is_regular_file(file);
 }
 
 bool checkIfSimulationFile(const char *file)
 {
-    if (!checkFileExists(file))
-    {
-        return false;
-    }
-    const char *filename = strrchr(file, '/');
-    if (filename) {
-        filename++;
-    } else {
-        filename = file;
-    }
-    if (filename < file) filename = file;
-    if (strncmp(filename, "simulation", 10)) {
-        return false;
-    }
-    return true;
+    if (!checkFileExists(file)) return false;
+    string name = fs::path(file).filename().string();
+    return name.rfind("simulation", 0) == 0;
 }
 
 bool checkIfDirExists(const char *dir)
 {
-    struct stat info;
-
-    int rc = stat(dir, &info);
-    if (rc != 0) {
-        return false;
-    }
-    if (!S_ISDIR(info.st_mode)) {
-        return false;
-    }
-    if (info.st_mode & S_IWUSR &&
-        info.st_mode & S_IRUSR &&
-        info.st_mode & S_IXUSR) {
-        // Check the directory is writeable.
-        return true;
-    }
-    return false;
+    std::error_code ec;
+    fs::file_status st = fs::status(dir, ec);
+    if (ec || !fs::is_directory(st)) return false;
+    auto perms = st.permissions();
+    return (perms & fs::perms::owner_read)  != fs::perms::none &&
+           (perms & fs::perms::owner_write) != fs::perms::none &&
+           (perms & fs::perms::owner_exec)  != fs::perms::none;
 }
 
 void debugPayload(const string& intro, vector<uchar> &payload)
@@ -990,74 +964,28 @@ bool crc16_CCITT_check(uchar *data, uint16_t length)
 
 bool listFiles(const string& dir, vector<string> *files)
 {
-#if defined(_WIN32)
-    WIN32_FIND_DATAA fd;
-    string pattern = dir + "\\*";
-    HANDLE h = FindFirstFileA(pattern.c_str(), &fd);
-    if (h == INVALID_HANDLE_VALUE) return false;
-    do {
-        if (strcmp(fd.cFileName, ".") == 0 || strcmp(fd.cFileName, "..") == 0) continue;
-        size_t len = strlen(fd.cFileName);
-        if (len > 0 && fd.cFileName[len-1] == '~') continue;
-        files->push_back(string(fd.cFileName));
-    } while (FindNextFileA(h, &fd));
-    FindClose(h);
-    return true;
-#else
-    DIR *dp = NULL;
-    struct dirent *dptr = NULL;
-
-    if (NULL == (dp = opendir(dir.c_str())))
+    std::error_code ec;
+    if (!fs::is_directory(dir, ec)) return false;
+    for (const auto& entry : fs::directory_iterator(dir, ec))
     {
-        return false;
+        if (ec) return false;
+        string name = entry.path().filename().string();
+        if (name.empty() || name.back() == '~') continue;
+        files->push_back(name);
     }
-    while(NULL != (dptr = ::readdir(dp)))
-    {
-        if (!strcmp(dptr->d_name,".") ||
-            !strcmp(dptr->d_name,".."))
-        {
-            // Ignore . ..  dirs.
-            continue;
-        }
-        size_t len = strlen(dptr->d_name);
-        if (len > 0 && dptr->d_name[len-1] == '~')
-        {
-            // Ignore emacs backup files ending in ~
-            continue;
-        }
-        files->push_back(string(dptr->d_name));
-    }
-    closedir(dp);
-
     return true;
-#endif
 }
 
 int loadFile(const string& file, vector<string> *lines)
 {
-    char block[32768+1];
-    vector<uchar> buf;
-
-    int fd = open(file.c_str(), O_RDONLY);
-    if (fd == -1) {
+    std::ifstream ifs(file, std::ios::binary);
+    if (!ifs) return -1;
+    vector<uchar> buf((std::istreambuf_iterator<char>(ifs)), std::istreambuf_iterator<char>());
+    if (ifs.fail() && !ifs.eof())
+    {
+        error("Could not read file %s\n", file.c_str());
         return -1;
     }
-    while (true) {
-        ssize_t n = read(fd, block, sizeof(block));
-        if (n == -1) {
-            if (errno == EINTR) {
-                continue;
-            }
-            error("Could not read file %s errno=%d\n", file.c_str(), errno);
-            close(fd);
-            return -1;
-        }
-        buf.insert(buf.end(), block, block+n);
-        if (n < (ssize_t)sizeof(block)) {
-            break;
-        }
-    }
-    close(fd);
 
     bool eof, err;
     auto i = buf.begin();
@@ -1077,31 +1005,27 @@ int loadFile(const string& file, vector<string> *lines)
 
 bool loadFile(const string& file, vector<char> *buf)
 {
-    int blocksize = 1024;
-    char block[blocksize];
-
-    int fd = open(file.c_str(), O_RDONLY);
-    if (fd == -1) {
-        warning("Could not open file %s errno=%d\n", file.c_str(), errno);
+    if (buf == nullptr)
+    {
+        warning("Could not read file %s (buffer is null)\n", file.c_str());
         return false;
     }
-    while (true) {
-        ssize_t n = read(fd, block, sizeof(block));
-        if (n == -1) {
-            if (errno == EINTR) {
-                continue;
-            }
-            warning("Could not read file %s errno=%d\n", file.c_str(), errno);
-            close(fd);
 
-            return false;
-        }
-        buf->insert(buf->end(), block, block+n);
-        if (n < (ssize_t)sizeof(block)) {
-            break;
-        }
+    std::ifstream ifs(file, std::ios::binary);
+    if (!ifs)
+    {
+        warning("Could not open file %s: %s\n", file.c_str(), strerror(errno));
+        return false;
     }
-    close(fd);
+
+    buf->insert(buf->end(), std::istreambuf_iterator<char>(ifs), std::istreambuf_iterator<char>());
+
+    if (ifs.bad())
+    {
+        warning("Could not read file %s\n", file.c_str());
+        return false;
+    }
+
     return true;
 }
 

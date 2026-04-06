@@ -26,6 +26,13 @@
 #if !defined(_WIN32)
 #include <sys/wait.h>
 #include <unistd.h>
+#else
+#include <windows.h>
+#include <psapi.h>
+#include <algorithm>
+#include <cctype>
+#include <vector>
+#include <sstream>
 #endif
 
 using namespace std;
@@ -382,34 +389,263 @@ void detectProcesses(string cmd, vector<int> *pids)
 
 #else // _WIN32
 
+static string buildCommandLine(string program, vector<string> args)
+{
+    string cmd = "\"" + program + "\"";
+    for (auto &a : args)
+    {
+        cmd += " \"" + a + "\"";
+    }
+    return cmd;
+}
+
 void invokeShell(string program, vector<string> args, vector<string> envs)
 {
-    warning("(shell) invokeShell not supported on Windows\n");
+    string cmd = buildCommandLine(program, args);
+
+    STARTUPINFOA si = { sizeof(si) };
+    PROCESS_INFORMATION pi = {};
+
+    debug("(shell) exec \"%s\"\n", cmd.c_str());
+
+    BOOL ok = CreateProcessA(
+        NULL,
+        (LPSTR)cmd.c_str(),
+        NULL,
+        NULL,
+        FALSE,
+        0,
+        NULL,
+        NULL,
+        &si,
+        &pi
+    );
+
+    if (!ok)
+    {
+        error("(shell) CreateProcess failed: %lu\n", GetLastError());
+        return;
+    }
+
+    WaitForSingleObject(pi.hProcess, INFINITE);
+
+    DWORD rc = 0;
+    GetExitCodeProcess(pi.hProcess, &rc);
+
+    debug("(shell) return code %lu\n", rc);
+
+    if (rc != 0)
+    {
+        warning("(shell) %s exited with non-zero return code: %lu\n", program.c_str(), rc);
+    }
+
+    CloseHandle(pi.hProcess);
+    CloseHandle(pi.hThread);
 }
 
 bool invokeBackgroundShell(string program, vector<string> args, vector<string> envs, int *fd_out, int *pid)
 {
-    warning("(shell) invokeBackgroundShell not supported on Windows\n");
-    return false;
+    HANDLE readPipe, writePipe;
+
+    SECURITY_ATTRIBUTES sa = {};
+    sa.nLength = sizeof(sa);
+    sa.bInheritHandle = TRUE;
+
+    if (!CreatePipe(&readPipe, &writePipe, &sa, 0))
+    {
+        error("(bgshell) CreatePipe failed\n");
+        return false;
+    }
+
+    SetHandleInformation(readPipe, HANDLE_FLAG_INHERIT, 0);
+
+    string cmd = buildCommandLine(program, args);
+
+    STARTUPINFOA si = {};
+    si.cb = sizeof(si);
+    si.dwFlags = STARTF_USESTDHANDLES;
+    si.hStdOutput = writePipe;
+    si.hStdError = writePipe;
+    si.hStdInput = NULL;
+
+    PROCESS_INFORMATION pi = {};
+
+    BOOL ok = CreateProcessA(
+        NULL,
+        (LPSTR)cmd.c_str(),
+        NULL,
+        NULL,
+        TRUE,
+        CREATE_NO_WINDOW,
+        NULL,
+        NULL,
+        &si,
+        &pi
+    );
+
+    CloseHandle(writePipe);
+
+    if (!ok)
+    {
+        error("(bgshell) CreateProcess failed: %lu\n", GetLastError());
+        CloseHandle(readPipe);
+        return false;
+    }
+
+    *pid = (int)pi.dwProcessId;
+    *fd_out = _open_osfhandle((intptr_t)readPipe, _O_RDONLY);
+
+    CloseHandle(pi.hThread);
+    CloseHandle(pi.hProcess);
+
+    return true;
 }
 
 bool stillRunning(int pid)
 {
-    return false;
+    HANDLE h = OpenProcess(SYNCHRONIZE, FALSE, pid);
+    if (!h) return false;
+
+    DWORD res = WaitForSingleObject(h, 0);
+    CloseHandle(h);
+
+    return res == WAIT_TIMEOUT;
 }
 
 void stopBackgroundShell(int pid)
 {
+    HANDLE h = OpenProcess(PROCESS_TERMINATE, FALSE, pid);
+    if (!h)
+    {
+        debug("(bgshell) could not open process %d\n", pid);
+        return;
+    }
+
+    TerminateProcess(h, 1);
+    CloseHandle(h);
 }
 
 int invokeShellCaptureOutput(string program, vector<string> args, vector<string> envs, string *out, bool do_not_warn_if_fail)
 {
-    warning("(shell) invokeShellCaptureOutput not supported on Windows\n");
-    return 127;
+    HANDLE readPipe, writePipe;
+
+    SECURITY_ATTRIBUTES sa = {};
+    sa.nLength = sizeof(sa);
+    sa.bInheritHandle = TRUE;
+
+    if (!CreatePipe(&readPipe, &writePipe, &sa, 0))
+    {
+        error("(shell) CreatePipe failed\n");
+        return 127;
+    }
+
+    SetHandleInformation(readPipe, HANDLE_FLAG_INHERIT, 0);
+
+    string cmd = buildCommandLine(program, args);
+
+    STARTUPINFOA si = {};
+    si.cb = sizeof(si);
+    si.dwFlags = STARTF_USESTDHANDLES;
+    si.hStdOutput = writePipe;
+    si.hStdError = writePipe;
+    si.hStdInput = NULL;
+
+    PROCESS_INFORMATION pi = {};
+
+    BOOL ok = CreateProcessA(
+        NULL,
+        (LPSTR)cmd.c_str(),
+        NULL,
+        NULL,
+        TRUE,
+        CREATE_NO_WINDOW,
+        NULL,
+        NULL,
+        &si,
+        &pi
+    );
+
+    CloseHandle(writePipe);
+
+    if (!ok)
+    {
+        error("(shell) CreateProcess failed: %lu\n", GetLastError());
+        CloseHandle(readPipe);
+        return 127;
+    }
+
+    string data;
+    char buffer[4096];
+    DWORD bytesRead;
+
+    while (ReadFile(readPipe, buffer, sizeof(buffer), &bytesRead, NULL) && bytesRead > 0)
+    {
+        data.append(buffer, bytesRead);
+    }
+
+    CloseHandle(readPipe);
+
+    WaitForSingleObject(pi.hProcess, INFINITE);
+
+    DWORD rc = 0;
+    GetExitCodeProcess(pi.hProcess, &rc);
+
+    CloseHandle(pi.hProcess);
+    CloseHandle(pi.hThread);
+
+    *out = data;
+
+    if (rc != 0 && !do_not_warn_if_fail)
+    {
+        warning("(shell) %s exited with code %lu\n", program.c_str(), rc);
+    }
+
+    return (int)rc;
 }
 
 void detectProcesses(string cmd, vector<int> *pids)
 {
+    string target = cmd;
+    transform(target.begin(), target.end(), target.begin(), ::tolower);
+
+    DWORD bufferSize = 4096;
+    vector<DWORD> pids_vec(bufferSize / sizeof(DWORD));
+    DWORD bytes_returned;
+
+    while (true) {
+        if (!EnumProcesses(pids_vec.data(), bufferSize, &bytes_returned)) {
+            debug("(detectProcesses) EnumProcesses failed: %lu\n", GetLastError());
+            return;
+        }
+        if (bytes_returned < bufferSize) break;
+        bufferSize *= 2;
+        pids_vec.resize(bufferSize / sizeof(DWORD));
+    }
+
+    DWORD num_pids = bytes_returned / sizeof(DWORD);
+    for (DWORD i = 0; i < num_pids; ++i) {
+        DWORD pid = pids_vec[i];
+        if (pid == 0) continue;
+
+        HANDLE hProcess = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ,
+                                      FALSE, pid);
+        if (!hProcess) continue;
+
+        char processName[MAX_PATH];
+        if (GetModuleBaseNameA(hProcess, NULL, processName, sizeof(processName)) == 0) {
+            CloseHandle(hProcess);
+            continue;
+        }
+        CloseHandle(hProcess);
+
+        string curr(processName);
+        transform(curr.begin(), curr.end(), curr.begin(),
+                  [](unsigned char c) { return tolower(c); });
+
+        if (curr == target) {
+            pids->push_back(pid);
+        }
+    }
 }
 
-#endif // !_WIN32
+#endif // _WIN32

@@ -19,10 +19,14 @@
 #include"drivers.h"
 #include"meters.h"
 #include"units.h"
+#include"util.h"
 
+#include<filesystem>
 #include<vector>
 #include<string>
 #include<string.h>
+
+namespace fs = std::filesystem;
 
 using namespace std;
 
@@ -760,24 +764,36 @@ shared_ptr<Configuration> loadConfiguration(string root, ConfigOverrides overrid
     // The second one is preferable but for backward compatibility the first one is tested first.
     // If there is no /+etc/wmbusmeters.conf then it will look for /+wmbusmeters.conf
 
-    string conf_dir = root;
-    string conf_file = root+"/etc/wmbusmeters.conf";
-    string conf_meter_dir = root+"/etc/wmbusmeters.d";
-    string conf_drivers_dir = root+"/etc/wmbusmeters.drivers.d";
+    // On Windows with no explicit root, use the directory containing the exe.
+    // On Linux/macOS, root is typically "" (meaning /) or an explicit prefix.
+#ifdef _WIN32
+    if (root.empty()) root = fs::path(currentProcessExe()).parent_path().string();
+#endif
 
-    if (!checkFileExists(conf_file.c_str()))
+    fs::path base(root);
+
+    fs::path conf_file     = base / "etc" / "wmbusmeters.conf";
+    fs::path conf_meter_dir    = base / "etc" / "wmbusmeters.d";
+    fs::path conf_drivers_dir  = base / "etc" / "wmbusmeters.drivers.d";
+
+    if (!checkFileExists(conf_file.string().c_str()))
     {
-        conf_dir = root+"/etc";
-        conf_file = root+"/wmbusmeters.conf";
-        conf_meter_dir = root+"/wmbusmeters.d";
-        conf_drivers_dir = root+"/wmbusmeters.drivers.d";
+        conf_file         = base / "wmbusmeters.conf";
+        conf_meter_dir    = base / "wmbusmeters.d";
+        conf_drivers_dir  = base / "wmbusmeters.drivers.d";
     }
 
-    debug("(config) loading %s\n", conf_file.c_str());
-    bool ok = loadFile(conf_file, &global_conf);
+    string conf_meter_dir_s   = conf_meter_dir.string();
+    string conf_drivers_dir_s = conf_drivers_dir.string();
+
+    debug("(config) loading %s\n", conf_file.string().c_str());
+    bool ok = loadFile(conf_file.string(), &global_conf);
     global_conf.push_back('\n');
 
-    if (!ok) exit(1);
+    if (!ok) {
+        error("Failed to load configuration file: %s\n", conf_file.string().c_str());
+        exit(1);
+    }
 
     auto i = global_conf.begin();
 
@@ -883,18 +899,18 @@ shared_ptr<Configuration> loadConfiguration(string root, ConfigOverrides overrid
         handleLogfile(c, overrides.logfile_override);
     }
 
-    loadDriversFromDir(conf_drivers_dir);
+    loadDriversFromDir(conf_drivers_dir_s);
 
     // Load meters AFTER the drivers have been loaded. That is better...
 
     vector<string> meters;
-    listFiles(conf_meter_dir, &meters);
+    listFiles(conf_meter_dir_s, &meters);
 
     for (auto& f : meters)
     {
         vector<char> meter_conf;
-        string file = conf_meter_dir+"/"+f;
-        loadFile(file.c_str(), &meter_conf);
+        string file = (conf_meter_dir / f).string();
+        loadFile(file, &meter_conf);
         meter_conf.push_back('\n');
         parseMeterConfig(c, meter_conf, file);
     }

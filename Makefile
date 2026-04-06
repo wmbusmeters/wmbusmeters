@@ -53,7 +53,7 @@ ifeq "$(HOST)" "windows"
     # Force-include compatibility header (in src/) to supply POSIX shims for Windows.
     WINDOWS_COMPAT_FLAGS:=-include src/win_compat.h -Isrc
     # Windows system libraries needed by serial.cc.
-    WINDOWS_LDFLAGS:=-lws2_32 -lsetupapi -lbcrypt -static -static-libgcc -static-libstdc++
+    WINDOWS_LDFLAGS:=-lws2_32 -lsetupapi -lbcrypt -static -static-libgcc -static-libstdc++ -lpsapi
 else
     include $(wildcard build/*/spec.gmk)
     ifeq (,$(CONF_NAME))
