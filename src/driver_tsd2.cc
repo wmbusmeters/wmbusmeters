@@ -54,7 +54,7 @@ namespace
 
     void Driver::processContent(Telegram *t)
     {
-        vector<uchar> data;
+        vector<uint8_t> data;
         t->extractPayload(&data);
 
         if(data.size() < 3)

@@ -307,7 +307,7 @@ int invokeShellCaptureOutput(string program, vector<string> args, vector<string>
     delete[] p;
 
     string data;
-    uchar buf[32768];
+    uint8_t buf[32768];
     for(;;)
     {
         ssize_t n = read(fd_out, buf, sizeof(buf));

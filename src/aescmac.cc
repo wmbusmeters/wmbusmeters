@@ -15,22 +15,23 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include<stdio.h>
-#include<memory.h>
 #include"aes.h"
 #include"aescmac.h"
 #include"util.h"
 
-uchar vec87[16] = {
+#include <cstdint>
+#include <memory.h>
+
+uint8_t vec87[16] = {
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x87
 };
 
-void generateSubkeys(uchar *key, uchar *K1, uchar *K2)
+void generateSubkeys(uint8_t *key, uint8_t *K1, uint8_t *K2)
 {
-    uchar L[16];
-    uchar Z[16];
-    uchar tmp[16];
+    uint8_t L[16];
+    uint8_t Z[16];
+    uint8_t tmp[16];
 
     memset(Z, 0, 16);
 
@@ -57,7 +58,7 @@ void generateSubkeys(uchar *key, uchar *K1, uchar *K2)
     }
 }
 
-void pad(uchar *in, uchar *out, int len)
+void pad(uint8_t *in, uint8_t *out, int len)
 {
     for (int i = 0; i < 16; i++)
     {
@@ -76,12 +77,12 @@ void pad(uchar *in, uchar *out, int len)
     }
 }
 
-void AES_CMAC(uchar *key, uchar *input, int len, uchar *mac)
+void AES_CMAC(uint8_t *key, uint8_t *input, int len, uint8_t *mac)
 {
     bool len_is_multiple_of_block;
-    uchar X[16], Y[16];
-    uchar K1[16], K2[16];
-    uchar M_last[16], padded[16];
+    uint8_t X[16], Y[16];
+    uint8_t K1[16], K2[16];
+    uint8_t M_last[16], padded[16];
 
     generateSubkeys(key, K1, K2);
 

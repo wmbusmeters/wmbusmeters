@@ -181,6 +181,7 @@ PROG_OBJS:=\
 	$(BUILD)/shell.o \
 	$(BUILD)/sha256.o \
 	$(BUILD)/threads.o \
+	$(BUILD)/testbit.o \
 	$(BUILD)/translatebits.o \
 	$(BUILD)/util.o \
 	$(BUILD)/units.o \

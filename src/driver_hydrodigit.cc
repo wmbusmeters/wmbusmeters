@@ -109,13 +109,13 @@ namespace {
 
     }
 
-    double fromMonthly(uchar first_byte, uchar second_byte, uchar third_byte) {
+    double fromMonthly(uint8_t first_byte, uint8_t second_byte, uint8_t third_byte) {
         return ((double) (third_byte << 16 | second_byte << 8 | first_byte))
                 / 100.0;
     }
 
-    double fromBackflow(uchar first_byte, uchar second_byte, uchar third_byte,
-            uchar fourth_byte) {
+    double fromBackflow(uint8_t first_byte, uint8_t second_byte, uint8_t third_byte,
+            uint8_t fourth_byte) {
         return ((double) (fourth_byte << 24 | third_byte << 16
                 | second_byte << 8 | first_byte)) / 1000.0;
     }
@@ -151,8 +151,8 @@ namespace {
         }
     }
 
-    double getVoltage(uchar voltage_byte) {
-        uchar relevant_half = voltage_byte & 0x0F; // ensure dumping of top half
+    double getVoltage(uint8_t voltage_byte) {
+        uint8_t relevant_half = voltage_byte & 0x0F; // ensure dumping of top half
         switch (relevant_half) {
             case 0x01:
                 return 1.9;
@@ -196,7 +196,7 @@ namespace {
         if (t->mfct_0f_index == -1) return; // Check that there is mfct data.
         int offset = t->header_size + t->mfct_0f_index;
 
-        vector<uchar> bytes;
+        vector<uint8_t> bytes;
         t->extractMfctData(&bytes); // Extract raw frame data after the DIF 0x0F.
 
         debugPayload("(hydrodigit mfct)", bytes);
@@ -205,7 +205,7 @@ namespace {
         int len = bytes.size();
 
         if (i >= len) return;
-        uchar frame_identifier = bytes[i];
+        uint8_t frame_identifier = bytes[i];
 
         t->addSpecialExplanation(i + offset, 1, KindOfData::PROTOCOL,
                 Understanding::FULL, "*** %02X frame content", frame_identifier);
@@ -229,7 +229,7 @@ namespace {
             // values obtained from software by changing value from 0x00-0F
             // changing the top half didn't seem to change anything, but it might require a combination with other bytes
             // my meters have 0x0A and 0x2A but the data seems same
-            uchar somethingAndVoltage = bytes[i];
+            uint8_t somethingAndVoltage = bytes[i];
             double voltage = getVoltage(somethingAndVoltage & 0x0F);
             t->addSpecialExplanation(i + offset, 1, KindOfData::CONTENT,
                     Understanding::FULL,
@@ -245,12 +245,12 @@ namespace {
             if (!explanation.empty()) explanation += " ";
             explanation += "FRAUD_DATE";
 
-            uchar fraud_year = bytes[i];
-            uchar fraud_month_raw = bytes[i + 1];
-            uchar fraud_day = bytes[i + 2];
+            uint8_t fraud_year = bytes[i];
+            uint8_t fraud_month_raw = bytes[i + 1];
+            uint8_t fraud_day = bytes[i + 2];
 
-            uchar fraud_month = fraud_month_raw & 0x0F;
-            uchar fraud_flags = fraud_month_raw & 0xE0;
+            uint8_t fraud_month = fraud_month_raw & 0x0F;
+            uint8_t fraud_flags = fraud_month_raw & 0xE0;
 
             // Vytvoření popisu typů podvodu
             std::string fraud_type_desc;
@@ -288,9 +288,9 @@ namespace {
             if (!explanation.empty()) explanation += " ";
             explanation += "LEAK_DATE";
 
-            uchar leak_year = bytes[i];
-            uchar leak_month = bytes[i + 1];
-            uchar leak_day = bytes[i + 2];
+            uint8_t leak_year = bytes[i];
+            uint8_t leak_month = bytes[i + 1];
+            uint8_t leak_day = bytes[i + 2];
             // its BCD so I just print it as is
             t->addSpecialExplanation(i + offset, 3, KindOfData::CONTENT,
                     Understanding::FULL,
@@ -357,7 +357,7 @@ namespace {
         if (i >= len) return;
         // changing this byte didn't seem to do anything
         // and it's always 00 on my meters
-        uchar unknown = bytes[i];
+        uint8_t unknown = bytes[i];
         t->addSpecialExplanation(i + offset, 1, KindOfData::CONTENT,
                 Understanding::NONE,
                 "*** %02X unknown data",

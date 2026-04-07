@@ -55,7 +55,7 @@ LIST_OF_IU891A_DEVMGMT_ERROR_CODES
 };
 
 const char *toString(ErrorCodeIU891ADevMgmt ec);
-ErrorCodeIU891ADevMgmt toErrorCodeIU891ADevMgmt(uchar c);
+ErrorCodeIU891ADevMgmt toErrorCodeIU891ADevMgmt(uint8_t c);
 
 #define WMBUSGW_GET_ACTIVE_CONFIGURATION_REQ 0x01
 #define WMBUSGW_GET_ACTIVE_CONFIGURATION_RSP 0x02
@@ -149,4 +149,4 @@ LIST_OF_IU891A_WMBUSGW_ERROR_CODES
 };
 
 const char *toString(ErrorCodeIU891AWMBUSGW ec);
-ErrorCodeIU891AWMBUSGW toErrorCodeIU891AWMBUSGW(uchar c);
+ErrorCodeIU891AWMBUSGW toErrorCodeIU891AWMBUSGW(uint8_t c);

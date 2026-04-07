@@ -68,7 +68,7 @@ namespace
         // Which means that the entire payload is manufacturer specific.
 
         map<string,pair<int,DVEntry>> vendor_values;
-        vector<uchar> content;
+        vector<uint8_t> content;
 
         t->extractPayload(&content);
 
@@ -81,8 +81,8 @@ namespace
                        tostrprintf("%d-%02d-%02dT02:00:00Z", prev_date_year+2000, prev_date_month, prev_date_day));
 
         // Previous consumption
-        uchar prev_lo = content[3];
-        uchar prev_hi = content[4];
+        uint8_t prev_lo = content[3];
+        uint8_t prev_hi = content[4];
         double prev = (256.0*prev_hi+prev_lo)/10.0;
 
         // Current date
@@ -94,8 +94,8 @@ namespace
                                    currentYear().c_str(), current_date_month, current_date_day));
 
         // Current consumption
-        uchar curr_lo = content[7];
-        uchar curr_hi = content[8];
+        uint8_t curr_lo = content[7];
+        uint8_t curr_hi = content[8];
         double curr = (256.0*curr_hi+curr_lo)/10.0;
 
         double total_water_consumption_m3 = prev+curr;

@@ -74,17 +74,17 @@ namespace
                         "Average heater temperature last month.");
     }
 
-    double toTemperature(uchar hi, uchar lo)
+    double toTemperature(uint8_t hi, uint8_t lo)
     {
         return ((double)((hi<<8) | lo))/100.0;
     }
 
-    double toIndicationU(uchar hi, uchar lo)
+    double toIndicationU(uint8_t hi, uint8_t lo)
     {
         return ((double)((hi<<8) | lo))/10.0;
     }
 
-    double toTotalIndicationU(uchar hihi, uchar hi, uchar lo)
+    double toTotalIndicationU(uint8_t hihi, uint8_t hi, uint8_t lo)
     {
         int x = (hihi << 16) | (hi<<8) | lo;
         return ((double)x)/10.0;
@@ -108,7 +108,7 @@ namespace
     {
         int offset = t->header_size+t->mfct_0f_index;
 
-        vector<uchar> bytes;
+        vector<uint8_t> bytes;
         t->extractMfctData(&bytes); // Extract raw frame data after the DIF 0x0F.
 
         debugPayload("(hydroclima mfct)", bytes);
@@ -118,7 +118,7 @@ namespace
         string info;
 
         if (i >= len) return;
-        uchar frame_identifier = bytes[i];
+        uint8_t frame_identifier = bytes[i];
         t->addSpecialExplanation(i+offset, 1, KindOfData::PROTOCOL, Understanding::FULL,
                                  "*** %02X frame identifier %s", frame_identifier,
                                  frame_identifier == 0x10 ? "OK" :"UNKNOWN");
@@ -205,7 +205,7 @@ namespace
     {
         int offset = t->header_size+t->mfct_0f_index;
 
-        vector<uchar> bytes;
+        vector<uint8_t> bytes;
         t->extractMfctData(&bytes); // Extract raw frame data after the DIF 0x0F.
 
         debugPayload("(hydroclima mfct)", bytes);

@@ -17,6 +17,7 @@
 
 #include"rtlsdr.h"
 #include"util.h"
+#include"wmbus.h"
 
 // Include rtl-sdr which is licensed under GPL v2 or later
 // so it happily relicenses with wmbusmeters under GPL v3 or later.

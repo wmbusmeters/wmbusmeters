@@ -18,8 +18,8 @@
 #include"translatebits.h"
 #include"util.h"
 
-#include<assert.h>
-#include<string.h>
+#include<cassert>
+#include<cstring>
 
 using namespace Translate;
 using namespace std;

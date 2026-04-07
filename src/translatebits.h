@@ -18,11 +18,11 @@
 #ifndef TRANSLATEBITS_H
 #define TRANSLATEBITS_H
 
+#include"testbit.h"
+
 #include<cstdint>
 #include<string>
 #include<vector>
-
-#include"util.h"
 
 struct TriggerBits
 {

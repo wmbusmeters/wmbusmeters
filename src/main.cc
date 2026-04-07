@@ -17,33 +17,19 @@
 
 #include"bus.h"
 #include"cmdline.h"
-#include"config.h"
 #include"drivers.h"
-#include"meters.h"
 #include"printer.h"
-#include"rtlsdr.h"
-#include"serial.h"
-#include"shell.h"
-#include"threads.h"
-#include"util.h"
-#include"wmbus.h"
+#include"meters.h"
 
 #include"authors.h"
 #include"license.h"
 #include"short_manual.h"
 #include"version.h"
 
-#include <algorithm>
-#include <errno.h>
+#include <cstring>
 #include <fcntl.h>
-#include <pthread.h>
-#include <semaphore.h>
 #include <set>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 #include <sys/stat.h>
-#include <sys/types.h>
 #include <syslog.h>
 #include <unistd.h>
 
@@ -678,7 +664,7 @@ bool start(Configuration *config)
         {
             if (!config->logsummary) notice("No meters configured. Printing id:s of all telegrams heard!\n");
             loadAllBuiltinDrivers();
-            meter_manager_->onTelegram([](AboutTelegram &about, vector<uchar> frame) {
+            meter_manager_->onTelegram([](AboutTelegram &about, vector<uint8_t> frame) {
                     Telegram t;
                     t.about = about;
                     MeterKeys mk;

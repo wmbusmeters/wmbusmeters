@@ -18,12 +18,11 @@
 #ifndef UTIL_H
 #define UTIL_H
 
-#include<signal.h>
 #include<cstdint>
-#include<string>
 #include<functional>
 #include<map>
 #include<set>
+#include<string>
 #include<vector>
 
 void onExit(std::function<void()> cb);
@@ -32,21 +31,12 @@ bool gotHupped();
 void wakeMeUpOnSigChld(pthread_t t);
 bool signalsInstalled();
 
-typedef unsigned char uchar;
-
 #define call(A,B) ([&](){A->B();})
 #define calll(A,B,T) ([&](T t){A->B(t);})
 
-enum class TestBit
-{
-    Unknown,
-    Set,
-    NotSet
-};
-
-uchar bcd2bin(uchar c);
-uchar revbcd2bin(uchar c);
-uchar reverse(uchar c);
+uint8_t bcd2bin(uint8_t c);
+uint8_t revbcd2bin(uint8_t c);
+uint8_t reverse(uint8_t c);
 // A BCD string 102030405060 is reversed to 605040302010
 std::string reverseBCD(const std::string& v);
 // A hex string encoding ascii chars is reversed and safely translated into a readable string.
@@ -56,7 +46,7 @@ std::string binaryAsciiSafeToString(const std::string& v);
 // Check if hex string is likely to be ascii
 bool isLikelyAscii(const std::string& v);
 
-bool isHexChar(uchar c);
+bool isHexChar(uint8_t c);
 
 // Flex strings contain hexadecimal digits and permit # | and whitespace.
 bool isHexStringFlex(const char* txt, bool *invalid);
@@ -65,13 +55,13 @@ bool isHexStringFlex(const std::string &txt, bool *invalid);
 bool isHexStringStrict(const char* txt, bool *invalid);
 bool isHexStringStrict(const std::string &txt, bool *invalid);
 int char2int(char input);
-bool hex2bin(const char* src, std::vector<uchar> *target);
-bool hex2bin(const std::string &src, std::vector<uchar> *target);
-bool hex2bin(std::vector<uchar> &src, std::vector<uchar> *target);
-std::string bin2hex(const std::vector<uchar> &target);
-std::string bin2hex(std::vector<uchar>::iterator data, std::vector<uchar>::iterator end, int len);
-std::string bin2hex(std::vector<uchar> &data, int offset, int len);
-std::string safeString(std::vector<uchar> &target);
+bool hex2bin(const char* src, std::vector<uint8_t> *target);
+bool hex2bin(const std::string &src, std::vector<uint8_t> *target);
+bool hex2bin(std::vector<uint8_t> &src, std::vector<uint8_t> *target);
+std::string bin2hex(const std::vector<uint8_t> &target);
+std::string bin2hex(std::vector<uint8_t>::iterator data, std::vector<uint8_t>::iterator end, int len);
+std::string bin2hex(std::vector<uint8_t> &data, int offset, int len);
+std::string safeString(std::vector<uint8_t> &target);
 void strprintf(std::string *s, const char* fmt, ...);
 std::string tostrprintf(const char* fmt, ...);
 std::string tostrprintf(const std::string *fmt, ...);
@@ -93,8 +83,8 @@ double addMonths(double t, int m);
 
 bool stringFoundCaseIgnored(const std::string& haystack, const std::string& needle);
 
-void xorit(uchar *srca, uchar *srcb, uchar *dest, int len);
-void shiftLeft(uchar *srca, uchar *srcb, int len);
+void xorit(uint8_t *srca, uint8_t *srcb, uint8_t *dest, int len);
+void shiftLeft(uint8_t *srca, uint8_t *srcb, int len);
 std::string format3fdot3f(double v);
 bool enableLogfile(const std::string& logfile, bool daemon);
 void disableLogfile();
@@ -142,9 +132,9 @@ bool isLogTelegramsEnabled();
 
 void setNoNetwork(bool v);
 void setBasicAuth(const std::string& cred);
-void debugPayload(const std::string& intro, std::vector<uchar> &payload);
-void debugPayload(const std::string& intro, std::vector<uchar> &payload, std::vector<uchar>::iterator &pos);
-void logTelegram(std::vector<uchar> &original, std::vector<uchar> &parsed, int header_size, int suffix_size);
+void debugPayload(const std::string& intro, std::vector<uint8_t> &payload);
+void debugPayload(const std::string& intro, std::vector<uint8_t> &payload, std::vector<uint8_t>::iterator &pos);
+void logTelegram(std::vector<uint8_t> &original, std::vector<uint8_t> &parsed, int header_size, int suffix_size);
 
 void setDownloadDir(const char *dir);
 const char *downloadDir();
@@ -178,7 +168,7 @@ std::set<std::string> splitStringIntoSet(const std::string &s, char c);
 // I.e. the : colon inside CMD is not used for splitting.
 std::vector<std::string> splitDeviceString(const std::string &s);
 
-void incrementIV(uchar *iv, size_t len);
+void incrementIV(uint8_t *iv, size_t len);
 
 bool checkCharacterDeviceExists(const char *tty, bool fail_if_not);
 bool checkFileExists(const char *file);
@@ -188,9 +178,9 @@ bool listFiles(const std::string& dir, std::vector<std::string> *files);
 int loadFile(const std::string& file, std::vector<std::string> *lines);
 bool loadFile(const std::string& file, std::vector<char> *buf);
 
-std::string eatTo(std::vector<uchar> &v, std::vector<uchar>::iterator &i, int c, size_t max, bool *eof, bool *err);
+std::string eatTo(std::vector<uint8_t> &v, std::vector<uint8_t>::iterator &i, int c, size_t max, bool *eof, bool *err);
 
-void padWithZeroesTo(std::vector<uchar> *content, size_t len, std::vector<uchar> *full_content);
+void padWithZeroesTo(std::vector<uint8_t> *content, size_t len, std::vector<uint8_t> *full_content);
 std::string padLeft(const std::string& input, int width);
 
 // Parse text string into seconds, 5h = (3600*5) 2m = (60*2) 1s = 1
@@ -203,21 +193,21 @@ int parseTime(const std::string& time);
 bool isInsideTimePeriod(time_t now, std::string periods);
 bool isValidTimePeriod(const std::string& periods);
 
-uint16_t crc16_EN13757(uchar *data, size_t len);
+uint16_t crc16_EN13757(uint8_t *data, size_t len);
 
 // This crc is used by im871a for its serial communication.
-uint16_t crc16_CCITT(uchar *data, uint16_t length);
-bool     crc16_CCITT_check(uchar *data, uint16_t length);
+uint16_t crc16_CCITT(uint8_t *data, uint16_t length);
+bool     crc16_CCITT_check(uint8_t *data, uint16_t length);
 
 // Check if buffer is all SLIP END = 0xc0.
-bool slipAllEND(std::vector<uchar>& msg);
+bool slipAllEND(std::vector<uint8_t>& msg);
 // Scan the buffer after the byte SLIP END = 0xc0
 // return its index if exists, otherwise -1.
-ssize_t slipFrameSize(std::vector<uchar>& msg);
+ssize_t slipFrameSize(std::vector<uint8_t>& msg);
 // Add a SLIP_END and escape any 0xc0 with 0xdbdc and and 0xdb with 0xdbdd.
-void addSlipFraming(std::vector<uchar>& from, std::vector<uchar> &to);
+void addSlipFraming(std::vector<uint8_t>& from, std::vector<uint8_t> &to);
 // Frame length is set to zero if no frame was found.
-void removeSlipFraming(std::vector<uchar>& from, size_t *frame_length, std::vector<uchar> &to);
+void removeSlipFraming(std::vector<uint8_t>& from, size_t *frame_length, std::vector<uint8_t> &to);
 
 // Eat characters from the vector v, iterating using i, until the end char c is found.
 // If end char == -1, then do not expect any end char, get all until eof.
@@ -258,9 +248,9 @@ std::string currentMicros();
 
 #define CHECK(n) if (!hasBytes(n, pos, frame)) return expectedMore(__LINE__);
 
-bool hasBytes(int n, std::vector<uchar>::iterator &pos, std::vector<uchar> &frame);
+bool hasBytes(int n, std::vector<uint8_t>::iterator &pos, std::vector<uint8_t> &frame);
 
-bool startsWith(const std::string& s, std::vector<uchar> &data);
+bool startsWith(const std::string& s, std::vector<uint8_t> &data);
 
 // Sum the memory used by the heap and stack.
 size_t memoryUsage();
@@ -283,7 +273,7 @@ std::string lookForExecutable(const std::string& prog, std::string bin_dir, std:
 bool parseExtras(const std::string& s, std::map<std::string,std::string> *extras);
 void checkIfMultipleWmbusMetersRunning();
 
-bool findBytes(std::vector<uchar> &v, uchar a, uchar b, uchar c, size_t *out);
+bool findBytes(std::vector<uint8_t> &v, uint8_t a, uint8_t b, uint8_t c, size_t *out);
 
 enum class OutputFormat
 {
@@ -311,7 +301,7 @@ std::string sortStatusString(const std::string &a);
 // If a vector is empty, then there will be an assert (with some compiler flags) if we use &v[0]
 // even if we do not intend to actually use the pointer to uchars!
 // So provide safeVectorPtr which will return NULL instead of assert-crashing.
-uchar *safeButUnsafeVectorPtr(std::vector<uchar> &v);
+uint8_t *safeButUnsafeVectorPtr(std::vector<uint8_t> &v);
 
 // Count utf8 unicode code points.
 int strlen_utf8(const char *s);
@@ -322,8 +312,6 @@ bool is_lowercase_alnum_text(const char *text);
 
 // The language that the user expects driver and other messages in.
 const std::string &language();
-
-TestBit toTestBit(const char *s);
 
 #ifndef FUZZING
 #define FUZZING false

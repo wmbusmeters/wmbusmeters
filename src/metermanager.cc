@@ -23,6 +23,7 @@
 #include"units.h"
 #include"wmbus.h"
 #include"wmbus_utils.h"
+#include"util.h"
 
 #include<assert.h>
 #include<algorithm>
@@ -48,7 +49,7 @@ private:
     bool analyze_verbose_;
     vector<MeterInfo> meter_templates_;
     vector<shared_ptr<Meter>> meters_;
-    vector<function<bool(AboutTelegram&,vector<uchar>)>> telegram_listeners_;
+    vector<function<bool(AboutTelegram&,vector<uint8_t>)>> telegram_listeners_;
     function<void(Telegram*t,Meter*)> on_meter_updated_;
 
 public:
@@ -105,7 +106,7 @@ public:
         int mfct = t->dll_mfct;
         int media = t->dll_type;
         int version = t->dll_version;
-        uchar *id_b = t->dll_id_b;
+        uint8_t *id_b = t->dll_id_b;
 
         if (t->tpl_id_found)
         {
@@ -130,7 +131,7 @@ public:
         warning("(meter) to add support for this unknown mfct,media,version combination\n");
     }
 
-    bool handleTelegram(AboutTelegram &about, vector<uchar> input_frame, bool simulated)
+    bool handleTelegram(AboutTelegram &about, vector<uint8_t> input_frame, bool simulated)
     {
         if (should_analyze_)
         {
@@ -289,7 +290,7 @@ public:
         return handled;
     }
 
-    void onTelegram(function<bool(AboutTelegram &about, vector<uchar>)> cb)
+    void onTelegram(function<bool(AboutTelegram &about, vector<uint8_t>)> cb)
     {
         telegram_listeners_.push_back(cb);
     }
@@ -325,7 +326,7 @@ public:
                                   int *best_understood,
                                   Telegram &t,
                                   AboutTelegram &about,
-                                  vector<uchar> &input_frame,
+                                  vector<uint8_t> &input_frame,
                                   bool simulated,
                                   string only)
     {
@@ -399,7 +400,7 @@ public:
         return best_driver;
     }
 
-    void analyzeTelegram(AboutTelegram &about, vector<uchar> &input_frame, bool simulated)
+    void analyzeTelegram(AboutTelegram &about, vector<uint8_t> &input_frame, bool simulated)
     {
         loadAllBuiltinDrivers();
         Telegram t;

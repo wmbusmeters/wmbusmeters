@@ -30,14 +30,14 @@
 
 using namespace std;
 
-static void buildRequest(int endpoint_id, int msg_id, vector<uchar>& body, vector<uchar>& out);
+static void buildRequest(int endpoint_id, int msg_id, vector<uint8_t>& body, vector<uint8_t>& out);
 
 struct DeviceInfo_IU880B
 {
     // 0x90 = iM880A (obsolete) 0x92 = iM880A-L (128k) 0x93 = iU880A (128k) 0x98 = iM880B 0x99 = iU880B 0xA0 = iM881A 0xA1 = iU881A
-    uchar module_type {};
+    uint8_t module_type {};
     uint16_t device_address {};
-    uchar group_address {};
+    uint8_t group_address {};
     string uid;
 
     string str()
@@ -57,7 +57,7 @@ struct DeviceInfo_IU880B
         return s;
     }
 
-    bool decode(vector<uchar> &bytes)
+    bool decode(vector<uint8_t> &bytes)
     {
         if (bytes.size() < 9) return false;
         int i = 0;
@@ -74,8 +74,8 @@ struct DeviceInfo_IU880B
 
 struct Firmware_IU880B
 {
-    uchar minor {};
-    uchar major {};
+    uint8_t minor {};
+    uint8_t major {};
     uint16_t build_count {};
     string image;
 
@@ -84,7 +84,7 @@ struct Firmware_IU880B
         return ""+to_string(major)+"."+to_string(minor)+"."+to_string(build_count)+" "+image;
     }
 
-    bool decode(vector<uchar> &bytes)
+    bool decode(vector<uint8_t> &bytes)
     {
         if (bytes.size() < 4) return false;
         int i = 0;
@@ -105,7 +105,7 @@ struct RadioConfig_IU880B
         return s;
     }
 
-    bool decode(vector<uchar> &bytes)
+    bool decode(vector<uint8_t> &bytes)
     {
         return true;
     }
@@ -134,7 +134,7 @@ struct LoRaIU880B : public virtual BusDeviceCommonImplementation
         // Otherwise its a single link mode.
         return 1 == countSetBits(lms.asBits());
     }
-    bool sendTelegram(LinkMode lm, TelegramFormat format, vector<uchar> &content);
+    bool sendTelegram(LinkMode lm, TelegramFormat format, vector<uint8_t> &content);
 
     void processSerialData();
     void simulate() { }
@@ -143,8 +143,8 @@ struct LoRaIU880B : public virtual BusDeviceCommonImplementation
     ~LoRaIU880B() {
     }
 
-    static FrameStatus checkIU880BFrame(vector<uchar> &data,
-                                        vector<uchar> &out,
+    static FrameStatus checkIU880BFrame(vector<uint8_t> &data,
+                                        vector<uint8_t> &out,
                                         size_t *frame_length,
                                         int *endpoint_id_out,
                                         int *msg_id_out,
@@ -153,9 +153,9 @@ struct LoRaIU880B : public virtual BusDeviceCommonImplementation
 
 private:
 
-    vector<uchar> read_buffer_;
-    vector<uchar> request_;
-    vector<uchar> response_;
+    vector<uint8_t> read_buffer_;
+    vector<uint8_t> request_;
+    vector<uint8_t> response_;
 
     bool getDeviceInfoAndFirmware();
 
@@ -165,10 +165,10 @@ private:
     RadioConfig_IU880B radio_config_;
 
     friend AccessCheck detectIU880B(Detected *detected, shared_ptr<SerialCommunicationManager> manager);
-    void handleDevMgmt(int msgid, vector<uchar> &payload);
-    void handleRadioLink(int msgid, vector<uchar> &payload, int rssi_dbm);
-    void handleRadioLinkTest(int msgid, vector<uchar> &payload);
-    void handleHWTest(int msgid, vector<uchar> &payload);
+    void handleDevMgmt(int msgid, vector<uint8_t> &payload);
+    void handleRadioLink(int msgid, vector<uint8_t> &payload, int rssi_dbm);
+    void handleRadioLinkTest(int msgid, vector<uint8_t> &payload);
+    void handleHWTest(int msgid, vector<uint8_t> &payload);
 
 };
 
@@ -272,7 +272,7 @@ bool LoRaIU880B::deviceSetLinkModes(LinkModeSet lms)
 
     LOCK_WMBUS_EXECUTING_COMMAND(set_link_modes);
 
-    vector<uchar> init;
+    vector<uint8_t> init;
     init.resize(30);
     for (int i=0; i<30; ++i)
     {
@@ -281,7 +281,7 @@ bool LoRaIU880B::deviceSetLinkModes(LinkModeSet lms)
     // Wake-up the dongle.
     serial()->send(init);
 
-    vector<uchar> body = { 0x02 }; // 2 means listen to all traffic
+    vector<uint8_t> body = { 0x02 }; // 2 means listen to all traffic
     request_.clear();
     buildRequest(DEVMGMT_ID, DEVMGMT_MSG_SET_RADIO_MODE_REQ, body, request_);
 
@@ -296,15 +296,15 @@ bool LoRaIU880B::deviceSetLinkModes(LinkModeSet lms)
     return true;
 }
 
-FrameStatus LoRaIU880B::checkIU880BFrame(vector<uchar> &data,
-                                         vector<uchar> &out,
+FrameStatus LoRaIU880B::checkIU880BFrame(vector<uint8_t> &data,
+                                         vector<uint8_t> &out,
                                          size_t *frame_length_out,
                                          int *endpoint_id_out,
                                          int *msg_id_out,
                                          int *status_byte_out,
                                          int *rssi_dbm)
 {
-    vector<uchar> msg;
+    vector<uint8_t> msg;
 
     removeSlipFraming(data, frame_length_out, msg);
 
@@ -315,8 +315,8 @@ FrameStatus LoRaIU880B::checkIU880BFrame(vector<uchar> &data,
     *status_byte_out = msg[2];
 
     uint16_t crc = ~crc16_CCITT(&msg[0], msg.size()-2);
-    uchar crc_lo = crc & 0xff;
-    uchar crc_hi = crc >> 8;
+    uint8_t crc_lo = crc & 0xff;
+    uint8_t crc_hi = crc >> 8;
 
     if (msg[msg.size()-2] != crc_lo || msg[msg.size()-1] != crc_hi)
     {
@@ -336,7 +336,7 @@ FrameStatus LoRaIU880B::checkIU880BFrame(vector<uchar> &data,
 
 void LoRaIU880B::processSerialData()
 {
-    vector<uchar> data;
+    vector<uint8_t> data;
 
     // Receive and accumulated serial data until a full frame has been received.
     serial()->receive(&data);
@@ -349,7 +349,7 @@ void LoRaIU880B::processSerialData()
     int status_byte;
     int rssi_dbm = 0;
 
-    vector<uchar> payload;
+    vector<uint8_t> payload;
 
     for (;;)
     {
@@ -390,7 +390,7 @@ void LoRaIU880B::processSerialData()
     }
 }
 
-void LoRaIU880B::handleDevMgmt(int msgid, vector<uchar> &payload)
+void LoRaIU880B::handleDevMgmt(int msgid, vector<uint8_t> &payload)
 {
     switch (msgid) {
         case DEVMGMT_MSG_PING_RSP:
@@ -417,15 +417,15 @@ void LoRaIU880B::handleDevMgmt(int msgid, vector<uchar> &payload)
     notifyResponseIsHere(msgid);
 }
 
-void LoRaIU880B::handleRadioLink(int msgid, vector<uchar> &frame, int rssi_dbm)
+void LoRaIU880B::handleRadioLink(int msgid, vector<uint8_t> &frame, int rssi_dbm)
 {
 }
 
-void LoRaIU880B::handleRadioLinkTest(int msgid, vector<uchar> &payload)
+void LoRaIU880B::handleRadioLinkTest(int msgid, vector<uint8_t> &payload)
 {
 }
 
-void LoRaIU880B::handleHWTest(int msgid, vector<uchar> &payload)
+void LoRaIU880B::handleHWTest(int msgid, vector<uint8_t> &payload)
 {
 }
 
@@ -436,13 +436,13 @@ bool LoRaIU880B::getDeviceInfoAndFirmware()
 
     LOCK_WMBUS_EXECUTING_COMMAND(get_device_info);
 
-    vector<uchar> empty_body;
+    vector<uint8_t> empty_body;
     request_.clear();
     buildRequest(DEVMGMT_ID, DEVMGMT_MSG_GET_DEVICE_INFO_REQ, empty_body, request_);
 
     verbose("(iu880b) get device info\n");
 
-    vector<uchar> init;
+    vector<uint8_t> init;
     init.resize(30);
     for (int i=0; i<30; ++i)
     {
@@ -500,14 +500,14 @@ bool LoRaIU880B::getDeviceInfoAndFirmware()
     return true;
 }
 
-bool LoRaIU880B::sendTelegram(LinkMode lm, TelegramFormat format, vector<uchar> &content)
+bool LoRaIU880B::sendTelegram(LinkMode lm, TelegramFormat format, vector<uint8_t> &content)
 {
     return false;
 }
 
-static void buildRequest(int endpoint_id, int msg_id, vector<uchar>& body, vector<uchar>& out)
+static void buildRequest(int endpoint_id, int msg_id, vector<uint8_t>& body, vector<uint8_t>& out)
 {
-    vector<uchar> request;
+    vector<uint8_t> request;
     request.push_back(endpoint_id);
     request.push_back(msg_id);
     request.insert(request.end(), body.begin(), body.end());
@@ -534,12 +534,12 @@ AccessCheck detectIU880B(Detected *detected, shared_ptr<SerialCommunicationManag
         return AccessCheck::NoSuchDevice;
     }
 
-    vector<uchar> response;
+    vector<uint8_t> response;
     // First clear out any data in the queue.
     serial->receive(&response);
     response.clear();
 
-    vector<uchar> init;
+    vector<uint8_t> init;
     init.resize(30);
     for (int i=0; i<30; ++i)
     {
@@ -548,8 +548,8 @@ AccessCheck detectIU880B(Detected *detected, shared_ptr<SerialCommunicationManag
     // Wake-up the dongle.
     serial->send(init);
 
-    vector<uchar> body;
-    vector<uchar> request;
+    vector<uint8_t> body;
+    vector<uint8_t> request;
     buildRequest(DEVMGMT_ID, DEVMGMT_MSG_GET_DEVICE_INFO_REQ, body, request);
     serial->send(request);
 
@@ -562,7 +562,7 @@ AccessCheck detectIU880B(Detected *detected, shared_ptr<SerialCommunicationManag
     int status_byte = 0;
     size_t frame_length = 0;
     int rssi_dbm = 0;
-    vector<uchar> payload;
+    vector<uint8_t> payload;
 
     FrameStatus status = LoRaIU880B::checkIU880BFrame(response,
                                                       payload,

@@ -60,7 +60,7 @@ namespace
             .set(VIFRange::DateTime));
     }
 
-    uchar decode_vectors_[16][6] = { { 117, 150, 122, 16, 26, 10 }, { 91, 127, 112, 19, 34, 19 }, { 179, 24, 185, 11, 142, 153 },
+    uint8_t decode_vectors_[16][6] = { { 117, 150, 122, 16, 26, 10 }, { 91, 127, 112, 19, 34, 19 }, { 179, 24, 185, 11, 142, 153 },
                                      { 142, 125, 121, 7, 74, 22 }, { 181, 145, 7, 154, 203, 105 }, { 184, 163, 50, 161, 57, 14 },
                                      { 189, 128, 156, 126, 96, 153 }, { 39, 92, 180, 196, 128, 163 }, { 48, 208, 10, 206, 25, 3 },
                                      { 194, 76, 240, 5, 165, 134 }, { 84, 75, 22, 152, 17, 94 }, { 75, 238, 12, 201, 125, 162 },
@@ -72,16 +72,16 @@ namespace
         if (t->tpl_cfg == 0x1006)
         {
             // This is the old type of meter and some values needs to be de-obfuscated.
-            vector<uchar> frame;
+            vector<uint8_t> frame;
             t->extractFrame(&frame);
 
             debugPayload("(rftx1) decoding raw frame", frame);
 
-            uchar decoded_total[6];
+            uint8_t decoded_total[6];
 
             for (int i = 0; i < 6; ++i)
             {
-                decoded_total[i] = (uchar)(frame[0xf + i] ^ frame[0xb] ^ decode_vectors_[frame[0xb] & 0x0f][i]);
+                decoded_total[i] = (uint8_t)(frame[0xf + i] ^ frame[0xb] ^ decode_vectors_[frame[0xb] & 0x0f][i]);
             }
 
             double total = 0;

@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2020 Fredrik Öhrström (gpl-3.0-or-later)
+ Copyright (C) 2017-2026 Fredrik Öhrström (gpl-3.0-or-later)
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -15,11 +15,16 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef _AESCMAC_H_
-#define _AESCMAC_H_
+#ifndef TESTBIT_H
+#define TESTBIT_H
 
-#include <cstdint>
+enum class TestBit
+{
+    Unknown,
+    Set,
+    NotSet
+};
 
-void AES_CMAC (uint8_t *key, uint8_t *input, int length, uint8_t *mac);
+TestBit toTestBit(const char *s);
 
-#endif //_AESCMAC_H_
+#endif

@@ -31,24 +31,24 @@
 
 using namespace std;
 
-uchar xorChecksum(vector<uchar> &msg, size_t offset, size_t len);
+uint8_t xorChecksum(vector<uint8_t> &msg, size_t offset, size_t len);
 
 struct ConfigAMB8465AMB3665
 {
     BusDeviceType module_type {};
-    uchar uart_ctl0 {};
-    uchar uart_ctl1 {};
-    uchar uart_cmd_out_enable {};
+    uint8_t uart_ctl0 {};
+    uint8_t uart_ctl1 {};
+    uint8_t uart_cmd_out_enable {};
 
-    uchar b1_add_disable {};
+    uint8_t b1_add_disable {};
 
-    uchar c_field {};
+    uint8_t c_field {};
     uint16_t mfct {};
     uint32_t id {};
-    uchar version {};
-    uchar media {};
+    uint8_t version {};
+    uint8_t media {};
 
-    uchar auto_rssi {};
+    uint8_t auto_rssi {};
 
     string dongleId()
     {
@@ -64,7 +64,7 @@ struct ConfigAMB8465AMB3665
         return ids;
     }
 
-    bool decodeNoFrame(vector<uchar> &bytes, size_t o)
+    bool decodeNoFrame(vector<uint8_t> &bytes, size_t o)
     {
         if (bytes.size() < o+69) return false;
 
@@ -83,7 +83,7 @@ struct ConfigAMB8465AMB3665
         return true;
     }
 
-    bool decode8465(vector<uchar> &bytes, size_t offset)
+    bool decode8465(vector<uint8_t> &bytes, size_t offset)
     {
         // The first 5 bytes are:
         // 0xFF
@@ -114,8 +114,8 @@ struct ConfigAMB8465AMB3665
 
         decodeNoFrame(bytes, o);
 
-        uchar received_crc = bytes[offset + 0x7e - 1];
-        uchar calculated_crc = xorChecksum(bytes, offset, 0x7e - 1);
+        uint8_t received_crc = bytes[offset + 0x7e - 1];
+        uint8_t calculated_crc = xorChecksum(bytes, offset, 0x7e - 1);
         if (received_crc != calculated_crc)
         {
             debug("(amb8465) bad crc in response! Expected %02x but got %02x\n", calculated_crc, received_crc);
@@ -128,7 +128,7 @@ struct ConfigAMB8465AMB3665
         return true;
     }
 
-    bool decode3665(vector<uchar> &bytes, size_t offset)
+    bool decode3665(vector<uint8_t> &bytes, size_t offset)
     {
         // The first 5 bytes are:
         // 0xFF
@@ -159,8 +159,8 @@ struct ConfigAMB8465AMB3665
 
         decodeNoFrame(bytes, o);
 
-        uchar received_crc = bytes[offset + 0x86 - 1];
-        uchar calculated_crc = xorChecksum(bytes, offset, 0x7e - 1);
+        uint8_t received_crc = bytes[offset + 0x86 - 1];
+        uint8_t calculated_crc = xorChecksum(bytes, offset, 0x7e - 1);
         if (received_crc != calculated_crc)
         {
             debug("(amb3665) bad crc in response! Expected %02x but got %02x\n", calculated_crc, received_crc);
@@ -220,7 +220,7 @@ N2g 0x0D --> N2f (0x0D)
 
 */
 
-uchar setupAmberBusDeviceToReceiveTelegrams(LinkModeSet lms)
+uint8_t setupAmberBusDeviceToReceiveTelegrams(LinkModeSet lms)
 {
     if (lms.has(LinkMode::C1) && lms.has(LinkMode::T1))
     {
@@ -301,7 +301,7 @@ uchar setupAmberBusDeviceToReceiveTelegrams(LinkModeSet lms)
     return 0xff;
 }
 
-uchar setupAmberBusDeviceToSendTelegram(LinkMode lm)
+uint8_t setupAmberBusDeviceToSendTelegram(LinkMode lm)
 {
     if (lm == LinkMode::S1)
     {
@@ -404,7 +404,7 @@ struct WMBusAmber : public virtual BusDeviceCommonImplementation
     void processSerialData();
     bool getConfiguration();
     void simulate() { }
-    bool sendTelegram(LinkMode lm, TelegramFormat format, vector<uchar> &content);
+    bool sendTelegram(LinkMode lm, TelegramFormat format, vector<uint8_t> &content);
 
     WMBusAmber(string alias, shared_ptr<SerialDevice> serial, shared_ptr<SerialCommunicationManager> manager, BusDeviceType dt);
     ~WMBusAmber() {
@@ -412,24 +412,24 @@ struct WMBusAmber : public virtual BusDeviceCommonImplementation
     }
 
 private:
-    vector<uchar> read_buffer_; // Must be protected by LOCK_WMBUS_RECEIVING_BUFFER(where)
-    vector<uchar> request_;
-    vector<uchar> response_;
+    vector<uint8_t> read_buffer_; // Must be protected by LOCK_WMBUS_RECEIVING_BUFFER(where)
+    vector<uint8_t> request_;
+    vector<uint8_t> response_;
 
     LinkModeSet link_modes_ {};
-    uchar last_set_link_mode_ { 0x01 };
+    uint8_t last_set_link_mode_ { 0x01 };
     bool rssi_expected_ {};
     struct timeval timestamp_last_rx_ {};
 
     ConfigAMB8465AMB3665 device_config_;
 
-    FrameStatus checkAMB8465Frame(vector<uchar> &data,
+    FrameStatus checkAMB8465Frame(vector<uint8_t> &data,
                                   size_t *frame_length,
                                   int *msgid_out,
                                   int *payload_len_out,
                                   int *payload_offset,
                                   int *rssi_dbm);
-    void handleMessage(int msgid, vector<uchar> &frame, int rssi_dbm);
+    void handleMessage(int msgid, vector<uint8_t> &frame, int rssi_dbm);
 };
 
 shared_ptr<BusDevice> openAmber(Detected detected,
@@ -478,10 +478,10 @@ void WMBusAmber::deviceReset()
     timerclear(&timestamp_last_rx_);
 }
 
-uchar xorChecksum(vector<uchar> &msg, size_t offset, size_t len)
+uint8_t xorChecksum(vector<uint8_t> &msg, size_t offset, size_t len)
 {
     assert(msg.size() >= len+offset);
-    uchar c = 0;
+    uint8_t c = 0;
     for (size_t i=offset; i<len+offset; ++i) {
         c ^= msg[i];
     }
@@ -633,7 +633,7 @@ bool WMBusAmber::deviceSetLinkModes(LinkModeSet lms)
     return rc;
 }
 
-FrameStatus WMBusAmber::checkAMB8465Frame(vector<uchar> &data,
+FrameStatus WMBusAmber::checkAMB8465Frame(vector<uint8_t> &data,
                                           size_t *frame_length,
                                           int *msgid_out,
                                           int *payload_len_out,
@@ -669,7 +669,7 @@ FrameStatus WMBusAmber::checkAMB8465Frame(vector<uchar> &data,
 
         debug("(amb8465) received full command frame\n");
 
-        uchar cs = xorChecksum(data, 0, *frame_length-1);
+        uint8_t cs = xorChecksum(data, 0, *frame_length-1);
         if (data[*frame_length-1] != cs) {
             verbose("(amb8465) checksum error %02x (should %02x)\n", data[*frame_length-1], cs);
         }
@@ -698,7 +698,7 @@ FrameStatus WMBusAmber::checkAMB8465Frame(vector<uchar> &data,
             // No sensible telegram in the buffer. Flush it!
             // But not the last char, because the next char could be a valid c field.
             verbose("(amb8465) no sensible telegram found, clearing buffer.\n");
-            uchar last = data[data.size()-1];
+            uint8_t last = data[data.size()-1];
             data.clear();
             data.insert(data.end(), last); // Re-insert the last byte.
             return PartialFrame;
@@ -732,7 +732,7 @@ FrameStatus WMBusAmber::checkAMB8465Frame(vector<uchar> &data,
 
 void WMBusAmber::processSerialData()
 {
-    vector<uchar> data;
+    vector<uint8_t> data;
 
     // Receive and accumulated serial data until a full frame has been received.
     serial()->receive(&data);
@@ -804,7 +804,7 @@ void WMBusAmber::processSerialData()
         }
         if (status == FullFrame)
         {
-            vector<uchar> payload;
+            vector<uint8_t> payload;
             if (payload_len > 0)
             {
                 payload.insert(payload.end(), payload_len); // Re-insert the len byte.
@@ -818,7 +818,7 @@ void WMBusAmber::processSerialData()
     }
 }
 
-void WMBusAmber::handleMessage(int msgid, vector<uchar> &frame, int rssi_dbm)
+void WMBusAmber::handleMessage(int msgid, vector<uint8_t> &frame, int rssi_dbm)
 {
     switch (msgid) {
     case (0): // Transparent telegram mode (no 0xff header)
@@ -872,7 +872,7 @@ void WMBusAmber::handleMessage(int msgid, vector<uchar> &frame, int rssi_dbm)
     }
 }
 
-bool WMBusAmber::sendTelegram(LinkMode lm, TelegramFormat format, vector<uchar> &content)
+bool WMBusAmber::sendTelegram(LinkMode lm, TelegramFormat format, vector<uint8_t> &content)
 {
     if (serial()->readonly()) return true; // Feeding from stdin or file.
     if (content.size() > 250) return false;
@@ -883,7 +883,7 @@ bool WMBusAmber::sendTelegram(LinkMode lm, TelegramFormat format, vector<uchar> 
 
     if (serial()->readonly()) return true; // Feeding from stdin or file.
 
-    uchar link_mode = setupAmberBusDeviceToSendTelegram(lm);
+    uint8_t link_mode = setupAmberBusDeviceToSendTelegram(lm);
 
     if (link_mode == 0xff)
     {
@@ -997,7 +997,7 @@ AccessCheck detectAMB8465AMB3665(Detected *detected, shared_ptr<SerialCommunicat
         return AccessCheck::NoSuchDevice;
     }
 
-    vector<uchar> response;
+    vector<uint8_t> response;
     int count = 1;
     // First clear out any data in the queue, this might require multiple reads.
     for (;;)
@@ -1029,7 +1029,7 @@ AccessCheck detectAMB8465AMB3665(Detected *detected, shared_ptr<SerialCommunicat
     }
 
     // Query all of the non-volatile parameter memory.
-    vector<uchar> request;
+    vector<uint8_t> request;
     request.resize(6);
     request[0] = AMBER_SERIAL_SOF;
     request[1] = CMD_GET_REQ;
@@ -1068,7 +1068,7 @@ AccessCheck detectAMB8465AMB3665(Detected *detected, shared_ptr<SerialCommunicat
     usleep(1000*100);
 
     ConfigAMB8465AMB3665 config;
-    vector<uchar> data;
+    vector<uint8_t> data;
     bool ok_8465 {};
     bool ok_3665 {};
 
@@ -1165,12 +1165,12 @@ static AccessCheck tryFactoryResetAMB8465(string device, shared_ptr<SerialCommun
         return AccessCheck::NoSuchDevice;
     }
 
-    vector<uchar> data;
+    vector<uint8_t> data;
     // First clear out any data in the queue.
     serial->receive(&data);
     data.clear();
 
-    vector<uchar> request_;
+    vector<uint8_t> request_;
     request_.resize(4);
     request_[0] = AMBER_SERIAL_SOF;
     request_[1] = CMD_FACTORYRESET_REQ;
@@ -1190,7 +1190,7 @@ static AccessCheck tryFactoryResetAMB8465(string device, shared_ptr<SerialCommun
         // Eat bytes until a 0xff appears to get in sync with the proper response.
         // Extraneous bytes might be due to a partially read telegram.
         data.erase(data.begin());
-        vector<uchar> more;
+        vector<uint8_t> more;
         serial->receive(&more);
         if (more.size() > 0) {
             data.insert(data.end(), more.begin(), more.end());

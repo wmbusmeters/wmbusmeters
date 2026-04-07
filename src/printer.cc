@@ -18,6 +18,8 @@
 #include"printer.h"
 #include"shell.h"
 
+#include<memory.h>
+
 using namespace std;
 
 Printer::Printer(bool json, bool pretty_print_json, bool fields, char separator,

@@ -18,11 +18,8 @@
 #ifndef DRIVERS_H_
 #define DRIVERS_H_
 
+#include<cstdint>
 #include<string>
-
-#include"meters.h"
-
-typedef unsigned char uchar;
 
 struct BuiltinDriver
 {
@@ -30,6 +27,13 @@ struct BuiltinDriver
     const char *aliases;
     const char *content;
     bool loaded;
+};
+
+struct MVT
+{
+    uint16_t mfct;
+    uint8_t version;
+    uint8_t type;
 };
 
 struct MapToDriver {
@@ -41,7 +45,7 @@ void prepareBuiltinDrivers();
 void loadDriversFromDir(std::string dir);
 bool loadBuiltinDriver(std::string driver_name);
 void loadAllBuiltinDrivers();
-const char *findBuiltinDriver(uint16_t mfct, uchar ver, uchar type);
+const char *findBuiltinDriver(uint16_t mfct, uint8_t ver, uint8_t type);
 void removeBuiltinDriver(std::string driver_name);
 
 #endif

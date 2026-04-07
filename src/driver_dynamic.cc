@@ -17,10 +17,11 @@
 
 #include"meters_common_implementation.h"
 
+#include"testbit.h"
 #include"driver_dynamic.h"
 #include"xmq.h"
 
-#include<assert.h>
+#include<cassert>
 #include<string.h>
 
 using namespace std;

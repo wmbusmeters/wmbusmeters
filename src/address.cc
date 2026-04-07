@@ -17,10 +17,11 @@
 
 #include"address.h"
 #include"manufacturers.h"
+#include"util.h"
 
-#include<assert.h>
 #include<algorithm>
-#include<string.h>
+#include<cassert>
+#include<cstring>
 
 using namespace std;
 
@@ -107,7 +108,7 @@ vector<string> splitSequenceOfAddressExpressionsAtCommas(const string& mes)
 {
     vector<string> r;
     bool eof, err;
-    vector<uchar> v (mes.begin(), mes.end());
+    vector<uint8_t> v (mes.begin(), mes.end());
     auto i = v.begin();
 
     for (;;) {
@@ -202,7 +203,7 @@ bool hasWildCard(const string& mes)
     return mes.find('*') != string::npos;
 }
 
-bool AddressExpression::match(const std::string &i, uint16_t m, uchar v, uchar t)
+bool AddressExpression::match(const std::string &i, uint16_t m, uint8_t v, uint8_t t)
 {
     if (!(mfct == 0xffff || mfct == m)) return false;
     if (!(version == 0xff || version == v)) return false;
@@ -302,7 +303,7 @@ bool AddressExpression::parse(const string &in)
         string type_hex = id.substr(14,2);
         id = id.substr(0,8);
 
-        vector<uchar> data;
+        vector<uint8_t> data;
         bool ok = hex2bin(mfct_hex.c_str(), &data);
         if (!ok) return false;
         if (data.size() != 2) return false;
@@ -329,7 +330,7 @@ bool AddressExpression::parse(const string &in)
         {
             if (parts[i][1] != '=') return false;
 
-            vector<uchar> data;
+            vector<uint8_t> data;
             bool ok = hex2bin(&parts[i][2], &data);
             if (!ok) return false;
             if (data.size() != 1) return false;
@@ -360,7 +361,7 @@ bool AddressExpression::parse(const string &in)
             if (parts[i][1] != '=') return false;
             if (parts[i][0] != 'M') return false;
 
-            vector<uchar> data;
+            vector<uint8_t> data;
             bool ok = hex2bin(&parts[i][2], &data);
             if (!ok) return false;
             if (data.size() != 2) return false;
@@ -467,7 +468,7 @@ string manufacturerFlag(int m_field) {
     return flag;
 }
 
-void Address::decodeMfctFirst(const vector<uchar>::iterator &pos)
+void Address::decodeMfctFirst(const vector<uint8_t>::iterator &pos)
 {
     mfct = *(pos+1) << 8 | *(pos+0);
     id = tostrprintf("%02x%02x%02x%02x", *(pos+5), *(pos+4), *(pos+3), *(pos+2));
@@ -475,7 +476,7 @@ void Address::decodeMfctFirst(const vector<uchar>::iterator &pos)
     type = *(pos+7);
 }
 
-void Address::decodeIdFirst(const vector<uchar>::iterator &pos)
+void Address::decodeIdFirst(const vector<uint8_t>::iterator &pos)
 {
     id = tostrprintf("%02x%02x%02x%02x", *(pos+3), *(pos+2), *(pos+1), *(pos+0));
     mfct = *(pos+5) << 8 | *(pos+4);

@@ -17,9 +17,9 @@
 
 #include"cmdline.h"
 #include"drivers.h"
-#include"meters.h"
 #include"util.h"
 
+#include<cstring>
 #include<string>
 #include<unistd.h>
 

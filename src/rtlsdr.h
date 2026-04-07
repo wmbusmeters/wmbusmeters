@@ -18,10 +18,11 @@
 #ifndef RTLSDR_H
 #define RTLSDR_H
 
-#include "wmbus.h"
-
 #include<string>
 #include<vector>
+
+struct Detected;
+enum class AccessCheck;
 
 std::vector<std::string> listRtlSdrDevices();
 AccessCheck detectRTLSDR(std::string serialnr, Detected *detected);

@@ -231,7 +231,7 @@ void WMBusXmqTTY::processLine(const string &line)
     xmqFreeDoc(doc);
 
     // Convert hex to binary
-    vector<uchar> input_frame;
+    vector<uint8_t> input_frame;
     bool invalid_hex = false;
     if (!isHexStringStrict(telegram_hex, &invalid_hex))
     {
@@ -411,13 +411,13 @@ void WMBusXmqTTY::processLine(const string &line)
 
 void WMBusXmqTTY::processSerialData()
 {
-    vector<uchar> data;
+    vector<uint8_t> data;
 
     // Receive serial data
     serial()->receive(&data);
 
     // Append to line buffer
-    for (uchar c : data)
+    for (uint8_t c : data)
     {
         if (c == '\n')
         {

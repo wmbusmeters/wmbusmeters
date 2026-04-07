@@ -18,18 +18,15 @@
 #ifndef WMBUS_UTILS_H
 #define WMBUS_UTILS_H
 
-#include "util.h"
-#include "threads.h"
-#include "wmbus.h"
+#include<vector>
+#include<cstdint>
 
-bool decrypt_ELL_AES_CTR(Telegram *t,std::vector<uchar> &frame,std::vector<uchar>::iterator &pos,std::vector<uchar> &aeskey);
-bool decrypt_TPL_AES_CBC_IV(Telegram *t,std::vector<uchar> &frame,std::vector<uchar>::iterator &pos,std::vector<uchar> &aeskey,
+bool decrypt_ELL_AES_CTR(Telegram *t,std::vector<uint8_t> &frame,std::vector<uint8_t>::iterator &pos,std::vector<uint8_t> &aeskey);
+bool decrypt_TPL_AES_CBC_IV(Telegram *t,std::vector<uint8_t> &frame,std::vector<uint8_t>::iterator &pos,std::vector<uint8_t> &aeskey,
                             int *num_encrypted_bytes,
                             int *num_not_encrypted_at_end);
-bool decrypt_TPL_AES_CBC_NO_IV(Telegram *t,std::vector<uchar> &frame,std::vector<uchar>::iterator &pos,std::vector<uchar> &aeskey,
+bool decrypt_TPL_AES_CBC_NO_IV(Telegram *t,std::vector<uint8_t> &frame,std::vector<uint8_t>::iterator &pos,std::vector<uint8_t> &aeskey,
                                int *num_encrypted_bytes,
                                int *num_not_encrypted_at_end);
-
-std::string frameTypeKamstrupC1(int ft);
 
 #endif

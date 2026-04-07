@@ -17,9 +17,10 @@
 
 #include"units.h"
 #include"util.h"
-#include<assert.h>
+
+#include<cassert>
+#include<cstring>
 #include<math.h>
-#include<string.h>
 #include<limits>
 
 using namespace std;
@@ -629,7 +630,7 @@ LIST_OF_SI_CONVERSIONS
     return Unit::Unknown;
 }
 
-string super(uchar c)
+string super(uint8_t c)
 {
     switch (c)
     {

@@ -18,10 +18,10 @@
 #ifndef FORMULA_H
 #define FORMULA_H
 
+#include"units.h"
+
 #include<memory>
 #include<vector>
-
-#include"units.h"
 
 struct Meter;
 struct FieldInfo;

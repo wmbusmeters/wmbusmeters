@@ -19,16 +19,13 @@
 #define METER_H_
 
 #include"address.h"
+#include"drivers.h"
 #include"dvparser.h"
 #include"formula.h"
-#include"util.h"
-#include"units.h"
-#include"translatebits.h"
-#include"xmq.h"
 #include"wmbus.h"
+#include"translatebits.h"
+#include"util.h"
 
-#include<functional>
-#include<numeric>
 #include<string>
 #include<vector>
 
@@ -150,13 +147,6 @@ struct MeterInfo
 //
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-struct MVT
-{
-    uint16_t mfct;
-    uchar version;
-    uchar type;
-};
-
 struct DriverInfo
 {
 private:
@@ -186,7 +176,7 @@ public:
     void addLinkMode(LinkMode lm) { linkmodes_.addLinkMode(lm); }
     void forceMfctIndex(int i) { force_mfct_index_ = i; }
     void setConstructor(std::function<std::shared_ptr<Meter>(MeterInfo&,DriverInfo&)> c) { constructor_ = c; }
-    void addMVT(uint16_t mfct, uchar type, uchar ver) { mvts_.push_back({ mfct, ver, type }); }
+    void addMVT(uint16_t mfct, uint8_t type, uint8_t ver) { mvts_.push_back({ mfct, ver, type }); }
     void usesProcessContent() { has_process_content_ = true; }
     void setDynamic(const std::string &file_name, XMQDoc *driver) {
         dynamic_file_name_ = file_name;
@@ -213,9 +203,9 @@ public:
     LinkModeSet linkModes() { return linkmodes_; }
     Translate::Lookup &mfctTPLStatusBits() { return mfct_tpl_status_bits_; }
     std::shared_ptr<Meter> construct(MeterInfo& mi) { return constructor_(mi, *this); }
-    bool detect(uint16_t mfct, uchar version, uchar type);
-    bool isValidMedia(uchar type);
-    bool isCloseEnoughMedia(uchar type);
+    bool detect(uint16_t mfct, uint8_t version, uint8_t type);
+    bool isValidMedia(uint8_t type);
+    bool isCloseEnoughMedia(uint8_t type);
     int forceMfctIndex() { return force_mfct_index_; }
     bool hasProcessContent() { return has_process_content_; }
 };
@@ -455,7 +445,7 @@ struct Meter
     virtual void setStringValue(FieldInfo *fi, std::string v, DVEntry *dve) = 0;
     virtual void setStringValue(std::string vname, std::string v, DVEntry *dve = NULL) = 0;
     virtual std::string getStringValue(FieldInfo *fi) = 0;
-    virtual std::string decodeTPLStatusByte(uchar sts) = 0;
+    virtual std::string decodeTPLStatusByte(uint8_t sts) = 0;
 
     virtual void onUpdate(std::function<void(Telegram*t,Meter*)> cb) = 0;
     virtual int numUpdates() = 0;
@@ -475,7 +465,7 @@ struct Meter
     // The handleTelegram expects an input_frame where the DLL crcs have been removed.
     // Returns true of this meter handled this telegram!
     // Sets id_match to true, if there was an id match, even though the telegram could not be properly handled.
-    virtual bool handleTelegram(AboutTelegram &about, std::vector<uchar> input_frame,
+    virtual bool handleTelegram(AboutTelegram &about, std::vector<uint8_t> input_frame,
                                 bool simulated, std::vector<Address> *addresses,
                                 bool *id_match, Telegram *out_t = NULL) = 0;
     virtual MeterKeys *meterKeys() = 0;
@@ -504,14 +494,14 @@ struct MeterManager
     virtual Meter*lastAddedMeter() = 0;
     virtual void removeAllMeters() = 0;
     virtual void forEachMeter(std::function<void(Meter*)> cb) = 0;
-    virtual bool handleTelegram(AboutTelegram &about, std::vector<uchar> data, bool simulated) = 0;
+    virtual bool handleTelegram(AboutTelegram &about, std::vector<uint8_t> data, bool simulated) = 0;
     virtual bool hasAllMetersReceivedATelegram() = 0;
     virtual bool hasMeters() = 0;
-    virtual void onTelegram(std::function<bool(AboutTelegram&, std::vector<uchar>)> cb) = 0;
+    virtual void onTelegram(std::function<bool(AboutTelegram&, std::vector<uint8_t>)> cb) = 0;
     virtual void whenMeterUpdated(std::function<void(Telegram*t,Meter*)> cb) = 0;
     virtual void pollMeters(std::shared_ptr<BusManager> bus) = 0;
     virtual void analyzeEnabled(bool b, OutputFormat f, std::string force_driver, std::string key, bool verbose, int profile) = 0;
-    virtual void analyzeTelegram(AboutTelegram &about, std::vector<uchar> &input_frame, bool simulated) = 0;
+    virtual void analyzeTelegram(AboutTelegram &about, std::vector<uint8_t> &input_frame, bool simulated) = 0;
 
     virtual ~MeterManager() = default;
 };

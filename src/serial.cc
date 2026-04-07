@@ -14,7 +14,6 @@
  You should have received a copy of the GNU General Public License
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-
 #include"util.h"
 #include"rtlsdr.h"
 #include"serial.h"
@@ -23,13 +22,15 @@
 #include"timings.h"
 
 #include <algorithm>
-#include <assert.h>
+#include <cassert>
+#include <cstdint>
 #include <dirent.h>
 #include <fcntl.h>
 #include <functional>
 #include <libgen.h>
 #include <memory.h>
 #include <pthread.h>
+#include <signal.h>
 #include <sys/file.h>
 #include <sys/ioctl.h>
 #include <sys/select.h>
@@ -38,7 +39,6 @@
 #include <sys/socket.h>
 #include <sys/stat.h>
 #include <sys/un.h>
-#include <stdio.h>
 #include <termios.h>
 #include <unistd.h>
 
@@ -154,9 +154,9 @@ struct SerialDeviceImp : public SerialDevice
     void disableCallbacks() { no_callbacks_ = true; }
     void enableCallbacks() { no_callbacks_ = false; }
     bool skippingCallbacks() { return no_callbacks_; }
-    void fill(vector<uchar> &data) {};
-    int receive(vector<uchar> *data);
-    bool waitFor(uchar c);
+    void fill(vector<uint8_t> &data) {};
+    int receive(vector<uint8_t> *data);
+    bool waitFor(uint8_t c);
     bool working() { return resetting_ || fd_ != -1; }
     bool resetting() { return resetting_; }
     bool opened() { return resetting_ || fd_ != -2; }
@@ -212,9 +212,9 @@ protected:
     friend struct SerialCommunicationManagerImp;
 };
 
-bool SerialDeviceImp::waitFor(uchar c)
+bool SerialDeviceImp::waitFor(uint8_t c)
 {
-    vector<uchar> data;
+    vector<uint8_t> data;
     for (;;)
     {
         int n = receive(&data);
@@ -224,7 +224,7 @@ bool SerialDeviceImp::waitFor(uchar c)
     return false;
 }
 
-int SerialDeviceImp::receive(vector<uchar> *data)
+int SerialDeviceImp::receive(vector<uint8_t> *data)
 {
     LOCK_READ_SERIAL(receive);
 
@@ -299,7 +299,7 @@ struct SerialDeviceTTY : public SerialDeviceImp
 
     bool open(bool fail_if_not_ok);
     void close();
-    bool send(vector<uchar> &data);
+    bool send(vector<uint8_t> &data);
     bool working();
     string device() { return device_; }
 
@@ -363,7 +363,7 @@ void SerialDeviceTTY::close()
     verbose("(serialtty) closed %s (%s)\n", device_.c_str(), purpose_.c_str());
 }
 
-bool SerialDeviceTTY::send(vector<uchar> &data)
+bool SerialDeviceTTY::send(vector<uint8_t> &data)
 {
     LOCK_WRITE_SERIAL(send);
 
@@ -427,7 +427,7 @@ struct SerialDeviceCommand : public SerialDeviceImp
 
     bool open(bool fail_if_not_ok);
     void close();
-    bool send(vector<uchar> &data);
+    bool send(vector<uint8_t> &data);
     int available();
     bool working();
     string device() { return identifier_; }
@@ -517,7 +517,7 @@ bool SerialDeviceCommand::working()
     return false;
 }
 
-bool SerialDeviceCommand::send(vector<uchar> &data)
+bool SerialDeviceCommand::send(vector<uint8_t> &data)
 {
     LOCK_WRITE_SERIAL(sendcmd);
 
@@ -554,7 +554,7 @@ struct SerialDeviceFile : public SerialDeviceImp
     bool open(bool fail_if_not_ok);
     void close();
     bool working();
-    bool send(vector<uchar> &data);
+    bool send(vector<uint8_t> &data);
     int available();
     string device() { return file_; }
 
@@ -638,7 +638,7 @@ bool SerialDeviceFile::working()
     return true;
 }
 
-bool SerialDeviceFile::send(vector<uchar> &data)
+bool SerialDeviceFile::send(vector<uint8_t> &data)
 {
     return true;
 }
@@ -655,10 +655,10 @@ struct SerialDeviceSimulator : public SerialDeviceImp
     bool open(bool fail_if_not_ok) { return true; };
     void close() { };
     bool readonly() { return true; }
-    bool send(vector<uchar> &data) { return true; };
-    void fill(vector<uchar> &data) { data_ = data; on_data_(); }; // Fill buffer and trigger callback.
+    bool send(vector<uint8_t> &data) { return true; };
+    void fill(vector<uint8_t> &data) { data_ = data; on_data_(); }; // Fill buffer and trigger callback.
 
-    int receive(vector<uchar> *data)
+    int receive(vector<uint8_t> *data)
     {
         *data = data_;
         data_.clear();
@@ -670,7 +670,7 @@ struct SerialDeviceSimulator : public SerialDeviceImp
 
     private:
 
-    vector<uchar> data_;
+    vector<uint8_t> data_;
 };
 
 struct SerialDeviceSocket : public SerialDeviceImp
@@ -680,7 +680,7 @@ struct SerialDeviceSocket : public SerialDeviceImp
 
     bool open(bool fail_if_not_ok);
     void close();
-    bool send(vector<uchar> &data);
+    bool send(vector<uint8_t> &data);
     bool working();
     string device() { return path_; }
 
@@ -688,7 +688,7 @@ struct SerialDeviceSocket : public SerialDeviceImp
     void disconnectClient();
     bool hasClient() { return client_fd_ >= 0; }
 
-    int receive(vector<uchar> *data);
+    int receive(vector<uint8_t> *data);
 
 private:
 
@@ -825,7 +825,7 @@ bool SerialDeviceSocket::working()
     return listen_fd_ >= 0;
 }
 
-bool SerialDeviceSocket::send(vector<uchar> &data)
+bool SerialDeviceSocket::send(vector<uint8_t> &data)
 {
     if (client_fd_ < 0) return false;
 
@@ -855,7 +855,7 @@ bool SerialDeviceSocket::send(vector<uchar> &data)
     return true;
 }
 
-int SerialDeviceSocket::receive(vector<uchar> *data)
+int SerialDeviceSocket::receive(vector<uint8_t> *data)
 {
     LOCK_READ_SERIAL(receive_socket);
 

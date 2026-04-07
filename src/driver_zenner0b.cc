@@ -71,7 +71,7 @@ namespace
         // bytes 8-11:  total consumption counter (little-endian, units of 1/256000 m³)
         // bytes 12:    padding (0x00)
 
-        vector<uchar> bytes;
+        vector<uint8_t> bytes;
         t->extractMfctData(&bytes); // Extract raw frame data after the DIF 0x0F.
 
         if (bytes.size() < 12) return;

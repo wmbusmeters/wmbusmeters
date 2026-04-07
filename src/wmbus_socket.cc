@@ -15,13 +15,8 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include"wmbus.h"
 #include"wmbus_common_implementation.h"
-#include"wmbus_utils.h"
-#include"serial.h"
 #include"meters.h"
-#include"drivers.h"
-#include"xmq.h"
 
 #include<pthread.h>
 #include<semaphore.h>
@@ -158,7 +153,7 @@ bool WMBusSocket::deviceSetLinkModes(LinkModeSet lms)
 void WMBusSocket::sendResponse(const string &response)
 {
     string line = response + "\n";
-    vector<uchar> data(line.begin(), line.end());
+    vector<uint8_t> data(line.begin(), line.end());
     serial()->send(data);
 }
 
@@ -269,7 +264,7 @@ void WMBusSocket::handleDecode(XMQDoc *doc, const string &line)
     xmqFreeDoc(doc);
 
     // Convert hex to binary
-    vector<uchar> input_frame;
+    vector<uint8_t> input_frame;
     bool invalid_hex = false;
     if (!isHexStringStrict(telegram_hex, &invalid_hex))
     {
@@ -444,7 +439,7 @@ void WMBusSocket::processSerialData()
     }
 
     // Client is connected, read data
-    vector<uchar> data;
+    vector<uint8_t> data;
     int n = serial()->receive(&data);
 
     if (n == 0 && serial()->hasClient())
@@ -457,7 +452,7 @@ void WMBusSocket::processSerialData()
     }
 
     // Append to line buffer and process complete lines
-    for (uchar c : data)
+    for (uint8_t c : data)
     {
         if (c == '\n')
         {

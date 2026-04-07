@@ -4,8 +4,7 @@
 #ifndef _AES_H_
 #define _AES_H_
 
-#include <stdint.h>
-
+#include <cstdint>
 
 // #define the macros below to 1/0 to enable/disable the mode of operation.
 //

@@ -18,7 +18,7 @@
 #include"ui.h"
 #include"util.h"
 
-#include<assert.h>
+#include<cassert>
 
 using namespace std;
 

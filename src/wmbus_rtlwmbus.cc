@@ -67,20 +67,20 @@ struct WMBusRTLWMBUS : public virtual BusDeviceCommonImplementation
 private:
 
     string serialnr_;
-    vector<uchar> read_buffer_;
-    vector<uchar> received_payload_;
+    vector<uint8_t> read_buffer_;
+    vector<uint8_t> received_payload_;
     bool warning_dll_len_printed_ {};
 
     LinkModeSet device_link_modes_;
 
-    FrameStatus checkRTLWMBUSFrame(vector<uchar> &data,
+    FrameStatus checkRTLWMBUSFrame(vector<uint8_t> &data,
                                    size_t *hex_frame_length,
                                    int *hex_payload_len_out,
                                    int *hex_payload_offset,
                                    double *rssi,
 				   LinkMode *lm,
                                    struct tm *timestamp);
-    void handleMessage(vector<uchar> &frame);
+    void handleMessage(vector<uint8_t> &frame);
 
     string setup_;
 };
@@ -252,7 +252,7 @@ void WMBusRTLWMBUS::simulate()
 
 void WMBusRTLWMBUS::processSerialData()
 {
-    vector<uchar> data;
+    vector<uint8_t> data;
 
     // Receive and accumulated serial data until a full frame has been received.
     serial()->receive(&data);
@@ -295,10 +295,10 @@ void WMBusRTLWMBUS::processSerialData()
         }
         else if (status == FullFrame)
         {
-            vector<uchar> payload;
+            vector<uint8_t> payload;
             if (hex_payload_len > 0)
             {
-                vector<uchar> hex;
+                vector<uint8_t> hex;
                 hex.insert(hex.end(), read_buffer_.begin()+hex_payload_offset, read_buffer_.begin()+hex_payload_offset+hex_payload_len);
                 bool ok = hex2bin(hex, &payload);
                 if (!ok)
@@ -342,7 +342,7 @@ void WMBusRTLWMBUS::processSerialData()
     }
 }
 
-FrameStatus WMBusRTLWMBUS::checkRTLWMBUSFrame(vector<uchar> &data,
+FrameStatus WMBusRTLWMBUS::checkRTLWMBUSFrame(vector<uint8_t> &data,
                                               size_t *hex_frame_length,
                                               int *hex_payload_len_out,
                                               int *hex_payload_offset,

@@ -33,7 +33,7 @@ using namespace std;
 
 struct DeviceInfo_IU891A
 {
-    uchar module_type; // 109=0x6d=iM891A-XL 110=0x6e=iU891A-XL 163=0xa3=iM881A-XL 113=0x71=iU893-XL
+    uint8_t module_type; // 109=0x6d=iM891A-XL 110=0x6e=iU891A-XL 163=0xa3=iM881A-XL 113=0x71=iU893-XL
     uint32_t uid;
     string uids;
     string product_type;
@@ -58,7 +58,7 @@ struct DeviceInfo_IU891A
         return s+ss;
     }
 
-    bool decode(vector<uchar> &bytes)
+    bool decode(vector<uint8_t> &bytes)
     {
         if (bytes.size() < 8) return false;
         int i = 0;
@@ -83,7 +83,7 @@ struct WMBusAddressInfo_IU891A
         return s;
     }
 
-    bool decode(vector<uchar> &bytes)
+    bool decode(vector<uint8_t> &bytes)
     {
         if (bytes.size() < 8) return false;
         int i = 0;
@@ -130,7 +130,7 @@ struct Config_IU891A
         return s;
     }
 
-    void encode(vector<uchar> &bytes, uchar lm)
+    void encode(vector<uint8_t> &bytes, uint8_t lm)
     {
         bytes.clear();
         bytes.resize(11);
@@ -148,11 +148,11 @@ struct Config_IU891A
         bytes[i++] = (recalibrate_in_ms >> 24) & 0xff;
     }
 
-    bool decode(vector<uchar> &bytes)
+    bool decode(vector<uint8_t> &bytes)
     {
         if (bytes.size() < 11) return false;
         size_t i = 0;
-        uchar c = bytes[i++];
+        uint8_t c = bytes[i++];
         link_modes.clear();
         if (c == LINK_MODE_OFF)
         {
@@ -198,7 +198,7 @@ LIST_OF_IU891A_DEVMGMT_ERROR_CODES
     }
 }
 
-ErrorCodeIU891ADevMgmt toErrorCodeIU891ADevMgmt(uchar c)
+ErrorCodeIU891ADevMgmt toErrorCodeIU891ADevMgmt(uint8_t c)
 {
     switch (c)
     {
@@ -220,7 +220,7 @@ LIST_OF_IU891A_WMBUSGW_ERROR_CODES
     }
 }
 
-ErrorCodeIU891AWMBUSGW toErrorCodeIU891AWMBUSGW(uchar c)
+ErrorCodeIU891AWMBUSGW toErrorCodeIU891AWMBUSGW(uint8_t c)
 {
     switch (c)
     {
@@ -236,7 +236,7 @@ struct WMBusIU891A : public virtual BusDeviceCommonImplementation
     bool ping();
     string getDeviceId();
     string getDeviceUniqueId();
-    uchar getFirmwareVersion();
+    uint8_t getFirmwareVersion();
     LinkModeSet getLinkModes();
     void deviceReset();
     bool deviceSetLinkModes(LinkModeSet lms);
@@ -271,7 +271,7 @@ struct WMBusIU891A : public virtual BusDeviceCommonImplementation
         // Otherwise its a single link mode.
         return 1 == countSetBits(lms.asBits());
     }
-    bool sendTelegram(LinkMode lm, TelegramFormat format, vector<uchar> &content);
+    bool sendTelegram(LinkMode lm, TelegramFormat format, vector<uint8_t> &content);
 
     void processSerialData();
     void simulate() { }
@@ -280,15 +280,15 @@ struct WMBusIU891A : public virtual BusDeviceCommonImplementation
     ~WMBusIU891A() {
     }
 
-    static FrameStatus checkIU891AFrame(vector<uchar> &data,
-                                        vector<uchar> &out,
+    static FrameStatus checkIU891AFrame(vector<uint8_t> &data,
+                                        vector<uint8_t> &out,
                                         size_t *frame_length,
                                         int *endpoint_id_out,
                                         int *msg_id_out,
                                         int *status_out,
                                         int *rssi_dbm);
 
-    static void extractFrame(vector<uchar> &payload, int *rssi_dbm, vector<uchar> *frame);
+    static void extractFrame(vector<uint8_t> &payload, int *rssi_dbm, vector<uint8_t> *frame);
 
 private:
 
@@ -296,9 +296,9 @@ private:
     WMBusAddressInfo_IU891A device_wmbus_address_ {};
     Config_IU891A device_config_ {};
 
-    vector<uchar> read_buffer_;
-    vector<uchar> request_;
-    vector<uchar> response_;
+    vector<uint8_t> read_buffer_;
+    vector<uint8_t> request_;
+    vector<uint8_t> response_;
 
     bool getDeviceInfo();
     bool loaded_device_info_ {};
@@ -306,8 +306,8 @@ private:
     bool getConfig();
 
     friend AccessCheck detectIU891A(Detected *detected, shared_ptr<SerialCommunicationManager> manager);
-    void handleDevMgmt(int msgid, vector<uchar> &payload);
-    void handleWMbusGateway(int msgid, vector<uchar> &payload);
+    void handleDevMgmt(int msgid, vector<uint8_t> &payload);
+    void handleWMbusGateway(int msgid, vector<uint8_t> &payload);
 
 };
 
@@ -344,9 +344,9 @@ WMBusIU891A::WMBusIU891A(BusDeviceType type, string alias, shared_ptr<SerialDevi
     reset();
 }
 
-static void buildRequest(int endpoint_id, int msg_id, vector<uchar>& body, vector<uchar>& out)
+static void buildRequest(int endpoint_id, int msg_id, vector<uint8_t>& body, vector<uint8_t>& out)
 {
-    vector<uchar> request;
+    vector<uint8_t> request;
     request.push_back(endpoint_id);
     request.push_back(msg_id);
     request.insert(request.end(), body.begin(), body.end());
@@ -397,7 +397,7 @@ string WMBusIU891A::getDeviceUniqueId()
     return cached_device_unique_id_;
 }
 
-uchar WMBusIU891A::getFirmwareVersion()
+uint8_t WMBusIU891A::getFirmwareVersion()
 {
     if (serial()->readonly()) return 0x15; // Feeding from stdin or file.
 
@@ -425,7 +425,7 @@ void WMBusIU891A::deviceReset()
     // set the link modes properly.
 }
 
-uchar setupIMSTBusDeviceToReceiveTelegrams(LinkModeSet lms)
+uint8_t setupIMSTBusDeviceToReceiveTelegrams(LinkModeSet lms)
 {
     if (lms.has(LinkMode::C1) && lms.has(LinkMode::T1))
     {
@@ -479,8 +479,8 @@ bool WMBusIU891A::deviceSetLinkModes(LinkModeSet lms)
 
     LOCK_WMBUS_EXECUTING_COMMAND(set_link_modes);
 
-    vector<uchar> body;
-    vector<uchar> request;
+    vector<uint8_t> body;
+    vector<uint8_t> request;
 
     device_config_.option_bits &= 0xfffe; // forward all received telegrams to wmbusmeters.
     device_config_.option_bits |= 0x0006; // get notified when received and sent.
@@ -500,7 +500,7 @@ bool WMBusIU891A::deviceSetLinkModes(LinkModeSet lms)
     return true;
 }
 
-void WMBusIU891A::extractFrame(vector<uchar> &payload, int *rssi_dbm, vector<uchar> *frame)
+void WMBusIU891A::extractFrame(vector<uint8_t> &payload, int *rssi_dbm, vector<uint8_t> *frame)
 {
     // Serial data from dongle:
     // C0_09_20_9F436D38_00_00_02_E7_1844AE4C4455223368077A55000000041389E20100023B0000_AF59_C0
@@ -512,15 +512,15 @@ void WMBusIU891A::extractFrame(vector<uchar> &payload, int *rssi_dbm, vector<uch
     frame->insert(frame->begin(), payload.begin()+8, payload.end());
 }
 
-FrameStatus WMBusIU891A::checkIU891AFrame(vector<uchar> &data,
-                                          vector<uchar> &out,
+FrameStatus WMBusIU891A::checkIU891AFrame(vector<uint8_t> &data,
+                                          vector<uint8_t> &out,
                                           size_t *frame_length_out,
                                           int *endpoint_id_out,
                                           int *msg_id_out,
                                           int *status_byte_out,
                                           int *rssi_dbm)
 {
-    vector<uchar> msg;
+    vector<uint8_t> msg;
 
     if (slipAllEND(data)) return ErrorInFrame; // Discard this part, since it is all C0.
 
@@ -537,8 +537,8 @@ FrameStatus WMBusIU891A::checkIU891AFrame(vector<uchar> &data,
     *status_byte_out = msg[2];
 
     uint16_t crc = ~crc16_CCITT(&msg[0], msg.size()-2);
-    uchar crc_lo = crc & 0xff;
-    uchar crc_hi = crc >> 8;
+    uint8_t crc_lo = crc & 0xff;
+    uint8_t crc_hi = crc >> 8;
 
     if (msg[msg.size()-2] != crc_lo || msg[msg.size()-1] != crc_hi)
     {
@@ -567,7 +567,7 @@ FrameStatus WMBusIU891A::checkIU891AFrame(vector<uchar> &data,
 
 void WMBusIU891A::processSerialData()
 {
-    vector<uchar> data;
+    vector<uint8_t> data;
 
     // Receive and accumulated serial data until a full frame has been received.
     serial()->receive(&data);
@@ -580,7 +580,7 @@ void WMBusIU891A::processSerialData()
     int status_byte;
     int rssi_dbm = 0;
 
-    vector<uchar> payload;
+    vector<uint8_t> payload;
 
     for (;;)
     {
@@ -626,8 +626,8 @@ bool WMBusIU891A::getDeviceInfo()
 
     LOCK_WMBUS_EXECUTING_COMMAND(get_device_info);
 
-    vector<uchar> body;
-    vector<uchar> request;
+    vector<uint8_t> body;
+    vector<uint8_t> request;
 
     buildRequest(SAP_DEVMGMT_ID, DEVMGMT_MSG_GET_DEVICE_INFO_REQ, body, request);
 
@@ -669,8 +669,8 @@ bool WMBusIU891A::getConfig()
 
     LOCK_WMBUS_EXECUTING_COMMAND(get_config);
 
-    vector<uchar> body;
-    vector<uchar> request;
+    vector<uint8_t> body;
+    vector<uint8_t> request;
 
     buildRequest(SAP_WMBUSGW_ID, WMBUSGW_GET_ACTIVE_CONFIGURATION_REQ, body, request);
 
@@ -691,7 +691,7 @@ bool WMBusIU891A::getConfig()
     return true;
 }
 
-bool WMBusIU891A::sendTelegram(LinkMode lm, TelegramFormat format, vector<uchar> &content)
+bool WMBusIU891A::sendTelegram(LinkMode lm, TelegramFormat format, vector<uint8_t> &content)
 {
     if (serial()->readonly()) return true;
     if (content.size() > 250) return false;
@@ -713,7 +713,7 @@ AccessCheck detectIU891A(Detected *detected, shared_ptr<SerialCommunicationManag
         return AccessCheck::NoSuchDevice;
     }
 
-    vector<uchar> init;
+    vector<uint8_t> init;
     init.resize(30);
     for (int i=0; i<30; ++i)
     {
@@ -722,15 +722,15 @@ AccessCheck detectIU891A(Detected *detected, shared_ptr<SerialCommunicationManag
     // Wake-up the dongle.
     serial->send(init);
 
-    vector<uchar> body;
-    vector<uchar> request;
+    vector<uint8_t> body;
+    vector<uint8_t> request;
     buildRequest(SAP_DEVMGMT_ID, DEVMGMT_MSG_GET_DEVICE_INFO_REQ, body, request);
     serial->send(request);
 
     // Wait for 100ms so that the USB stick have time to prepare a response.
     usleep(100*1000);
 
-    vector<uchar> response;
+    vector<uint8_t> response;
 
     // Now read until a full slip frame has been received.
     int count = 0;
@@ -749,7 +749,7 @@ AccessCheck detectIU891A(Detected *detected, shared_ptr<SerialCommunicationManag
     int status_byte = 0;
     size_t frame_length = 0;
     int rssi_dbm = 0;
-    vector<uchar> payload;
+    vector<uint8_t> payload;
 
     FrameStatus status = WMBusIU891A::checkIU891AFrame(response,
                                                        payload,
@@ -776,7 +776,7 @@ AccessCheck detectIU891A(Detected *detected, shared_ptr<SerialCommunicationManag
             // Remove this frame, it was either irrelevant or an error.
             response.erase(response.begin(), response.begin()+frame_length);
         }
-        vector<uchar> more;
+        vector<uint8_t> more;
         serial->receive(&more);
         response.insert(response.end(), more.begin(), more.end());
         // Try to parse the next frame.
@@ -851,7 +851,7 @@ AccessCheck detectIU891A(Detected *detected, shared_ptr<SerialCommunicationManag
             response.erase(response.begin(), response.begin()+frame_length);
         }
         // Read any more data that might have arrived.
-        vector<uchar> more;
+        vector<uint8_t> more;
         serial->receive(&more);
         response.insert(response.end(), more.begin(), more.end());
         // Try to parse the next frame.
@@ -887,7 +887,7 @@ AccessCheck detectIU891A(Detected *detected, shared_ptr<SerialCommunicationManag
     return AccessCheck::AccessOK;
 }
 
-void WMBusIU891A::handleDevMgmt(int msgid, vector<uchar> &payload)
+void WMBusIU891A::handleDevMgmt(int msgid, vector<uint8_t> &payload)
 {
     switch (msgid) {
         case DEVMGMT_MSG_PING_RSP:
@@ -909,7 +909,7 @@ void WMBusIU891A::handleDevMgmt(int msgid, vector<uchar> &payload)
 }
 
 
-void WMBusIU891A::handleWMbusGateway(int msgid, vector<uchar> &payload)
+void WMBusIU891A::handleWMbusGateway(int msgid, vector<uint8_t> &payload)
 {
     switch (msgid) {
         case WMBUSGW_GET_WMBUS_ADDRESS_RSP:
@@ -924,7 +924,7 @@ void WMBusIU891A::handleWMbusGateway(int msgid, vector<uchar> &payload)
         case WMBUSGW_RX_MESSAGE_IND:
         {
             // Invoke common telegram reception code in BusDeviceCommonImplementation.
-            vector<uchar> frame;
+            vector<uint8_t> frame;
             int rssi_dbm;
 
             extractFrame(payload, &rssi_dbm, &frame);

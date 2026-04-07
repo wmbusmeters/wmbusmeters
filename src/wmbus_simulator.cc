@@ -17,11 +17,10 @@
 
 #include"serial.h"
 #include"util.h"
-#include"wmbus.h"
 #include"wmbus_common_implementation.h"
 #include"wmbus_utils.h"
 
-#include<assert.h>
+#include<cassert>
 #include<errno.h>
 #include<fcntl.h>
 #include<pthread.h>
@@ -50,7 +49,7 @@ struct WMBusSimulator : public BusDeviceCommonImplementation
     WMBusSimulator(string alias, string file, string hex, shared_ptr<SerialCommunicationManager> manager);
 
 private:
-    vector<uchar> received_payload_;
+    vector<uint8_t> received_payload_;
     vector<function<void(Telegram*)>> telegram_listeners_;
 
     string file_;
@@ -169,7 +168,7 @@ void WMBusSimulator::simulate()
             continue;
         }
 
-        vector<uchar> payload;
+        vector<uint8_t> payload;
         bool ok = hex2bin(hex.c_str(), &payload);
         if (!ok)
         {

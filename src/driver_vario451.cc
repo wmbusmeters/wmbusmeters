@@ -66,13 +66,13 @@ namespace
         // Which means that the entire payload is manufacturer specific.
 
         map<string,pair<int,DVEntry>> vendor_values;
-        vector<uchar> content;
+        vector<uint8_t> content;
 
         t->extractPayload(&content);
         if (content.size() < 9) return;
 
-        uchar prev_lo = content[3];
-        uchar prev_hi = content[4];
+        uint8_t prev_lo = content[3];
+        uint8_t prev_hi = content[4];
         double prev_gj = (256.0*prev_hi+prev_lo)/1000;
 
         string prevs;
@@ -82,8 +82,8 @@ namespace
         t->explanations.push_back(Explanation(offset, 2, prevs, KindOfData::CONTENT, Understanding::FULL));
         t->addMoreExplanation(offset, " energy used in previous billing period (%f GJ)", prev_gj);
 
-        uchar curr_lo = content[7];
-        uchar curr_hi = content[8];
+        uint8_t curr_lo = content[7];
+        uint8_t curr_hi = content[8];
         double curr_gj = (256.0*curr_hi+curr_lo)/1000;
 
         string currs;

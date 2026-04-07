@@ -15,10 +15,12 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include"dvparser.h"
 #include"formula.h"
 #include"formula_implementation.h"
 #include"meters.h"
 #include"units.h"
+#include"util.h"
 
 #include<assert.h>
 #include<cmath>

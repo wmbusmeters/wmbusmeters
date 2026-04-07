@@ -16,11 +16,13 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include<set>
-
 #include"manufacturers.h"
 #include"manufacturer_specificities.h"
 #include"meters.h"
+#include"wmbus.h"
+
+#include<set>
+#include<cstdint>
 
 using namespace std;
 
@@ -60,7 +62,7 @@ DiehlAddressTransformMethod mustTransformDiehlAddress(DiehlFrameInterpretation i
 }
 
 // Diehl: Determines how to interpret frame
-DiehlFrameInterpretation detectDiehlFrameInterpretation(uchar c_field, int m_field, uchar ci_field, int tpl_cfg)
+DiehlFrameInterpretation detectDiehlFrameInterpretation(uint8_t c_field, int m_field, uint8_t ci_field, int tpl_cfg)
 {
     if (diehl_manufacturers.find(m_field) != diehl_manufacturers.end())
     {
@@ -120,32 +122,32 @@ DiehlFrameInterpretation detectDiehlFrameInterpretation(uchar c_field, int m_fie
 }
 
 // Diehl: Determines how to interpret frame
-DiehlFrameInterpretation detectDiehlFrameInterpretation(const vector<uchar>& frame)
+DiehlFrameInterpretation detectDiehlFrameInterpretation(const vector<uint8_t>& frame)
 {
     if (frame.size() < 15)
         return DiehlFrameInterpretation::NA;
 
-    uchar c_field = frame[1];
+    uint8_t c_field = frame[1];
     int m_field = frame[3] <<8 | frame[2];
-    uchar ci_field = frame[10];
+    uint8_t ci_field = frame[10];
     int tpl_cfg = frame[14] <<8 | frame[13];
     return detectDiehlFrameInterpretation(c_field, m_field, ci_field, tpl_cfg);
 }
 
 // Diehl: Is "A field" coded differently from standard?
-DiehlAddressTransformMethod mustTransformDiehlAddress(const vector<uchar>& frame)
+DiehlAddressTransformMethod mustTransformDiehlAddress(const vector<uint8_t>& frame)
 {
     return mustTransformDiehlAddress(detectDiehlFrameInterpretation(frame));
 }
 
 // Diehl: transform "A field" to make it compliant to standard
-void transformDiehlAddress(vector<uchar>& frame, DiehlAddressTransformMethod transform_method)
+void transformDiehlAddress(vector<uint8_t>& frame, DiehlAddressTransformMethod transform_method)
 {
     if (transform_method == DiehlAddressTransformMethod::SWAPPING)
     {
         debug("(diehl) Pre-processing: swapping address field\n");
-        uchar version = frame[4];
-        uchar type    = frame[5];
+        uint8_t version = frame[4];
+        uint8_t type    = frame[5];
         for (int i = 4; i < 8; i++)
         {
             frame[i] = frame[i+2];
@@ -166,7 +168,7 @@ void transformDiehlAddress(vector<uchar>& frame, DiehlAddressTransformMethod tra
 }
 
 // Diehl: decode LFSR encrypted data used in Izar/PRIOS and Sharky meters
-vector<uchar> decodeDiehlLfsr(const vector<uchar> &origin, const vector<uchar> &frame, uint32_t key, DiehlLfsrCheckMethod check_method, uint32_t check_value)
+vector<uint8_t> decodeDiehlLfsr(const vector<uint8_t> &origin, const vector<uint8_t> &frame, uint32_t key, DiehlLfsrCheckMethod check_method, uint32_t check_value)
 {
     // modify seed key with header values
     key ^= uint32FromBytes(origin, 2); // manufacturer + address[0-1]
@@ -174,14 +176,14 @@ vector<uchar> decodeDiehlLfsr(const vector<uchar> &origin, const vector<uchar> &
     key ^= uint32FromBytes(frame, 10); // ci + some more bytes from the telegram...
 
     int size = frame.size() - 15;
-    vector<uchar> decoded(size);
+    vector<uint8_t> decoded(size);
 
     for (int i = 0; i < size; ++i) {
         // calculate new key (LFSR)
         // https://en.wikipedia.org/wiki/Linear-feedback_shift_register
         for (int j = 0; j < 8; ++j) {
             // calculate new bit value (xor of selected bits from previous key)
-            uchar bit = ((key & 0x2) != 0) ^ ((key & 0x4) != 0) ^ ((key & 0x800) != 0) ^ ((key & 0x80000000) != 0);
+            uint8_t bit = ((key & 0x2) != 0) ^ ((key & 0x4) != 0) ^ ((key & 0x800) != 0) ^ ((key & 0x80000000) != 0);
             // shift key bits and add new one at the end
             key = (key << 1) | bit;
         }
@@ -214,7 +216,7 @@ vector<uchar> decodeDiehlLfsr(const vector<uchar> &origin, const vector<uchar> &
     return decoded;
 }
 
-uint32_t uint32FromBytes(const vector<uchar> &data, int offset, bool reverse)
+uint32_t uint32FromBytes(const vector<uint8_t> &data, int offset, bool reverse)
 {
     if (reverse)
         return ((uint32_t)data[offset + 3] << 24) |
@@ -228,7 +230,7 @@ uint32_t uint32FromBytes(const vector<uchar> &data, int offset, bool reverse)
             (uint32_t)data[offset + 3];
 }
 
-uint32_t convertKey(const vector<uchar> &bytes)
+uint32_t convertKey(const vector<uint8_t> &bytes)
 {
     uint32_t key1 = uint32FromBytes(bytes, 0);
     uint32_t key2 = uint32FromBytes(bytes, 4);
@@ -238,28 +240,28 @@ uint32_t convertKey(const vector<uchar> &bytes)
 
 uint32_t convertKey(const char *hex)
 {
-    vector<uchar> bytes;
+    vector<uint8_t> bytes;
     hex2bin(hex, &bytes);
     return convertKey(bytes);
 }
 
 // Common: add default manufacturers key if none specified and we know one for the given frame
-void addDefaultManufacturerKeyIfAny(const vector<uchar> &frame, TPLSecurityMode tpl_sec_mode, MeterKeys *meter_keys)
+void addDefaultManufacturerKeyIfAny(const vector<uint8_t> &frame, TPLSecurityMode tpl_sec_mode, MeterKeys *meter_keys)
 {
     if (!meter_keys->hasConfidentialityKey()
         && tpl_sec_mode == TPLSecurityMode::AES_CBC_IV
         && detectDiehlFrameInterpretation(frame) == DiehlFrameInterpretation::OMS)
     {
-        vector<uchar> half;
+        vector<uint8_t> half;
         hex2bin(PRIOS_DEFAULT_KEY2, &half);
-        meter_keys->confidentiality_key = vector<uchar>(half.begin(), half.end());
+        meter_keys->confidentiality_key = vector<uint8_t>(half.begin(), half.end());
         meter_keys->confidentiality_key.insert(meter_keys->confidentiality_key.end(), half.begin(), half.end());
         debug("(mfct) added default key\n");
     }
 }
 
 // Diehl: initialize support of default keys in a meter
-void initializeDiehlDefaultKeySupport(const vector<uchar> &confidentiality_key, vector<uint32_t>& keys)
+void initializeDiehlDefaultKeySupport(const vector<uint8_t> &confidentiality_key, vector<uint32_t>& keys)
 {
     if (!confidentiality_key.empty())
         keys.push_back(convertKey(confidentiality_key));
@@ -273,7 +275,7 @@ void initializeDiehlDefaultKeySupport(const vector<uchar> &confidentiality_key, 
 }
 
 // Diehl: Is payload real data crypted (LFSR)?
-bool mustDecryptDiehlRealData(const vector<uchar>& frame)
+bool mustDecryptDiehlRealData(const vector<uint8_t>& frame)
 {
     DiehlFrameInterpretation fi = detectDiehlFrameInterpretation(frame);
     debug("(diehl) frame %s\n", toString(fi));
@@ -281,12 +283,12 @@ bool mustDecryptDiehlRealData(const vector<uchar>& frame)
 }
 
 // Diehl: decrypt real data payload (LFSR)
-bool decryptDielhRealData(Telegram *t, vector<uchar> &frame, vector<uchar>::iterator &pos, const vector<uchar> &confidentiality_key)
+bool decryptDielhRealData(Telegram *t, vector<uint8_t> &frame, vector<uint8_t>::iterator &pos, const vector<uint8_t> &confidentiality_key)
 {
     vector<uint32_t> keys;
     initializeDiehlDefaultKeySupport(confidentiality_key, keys);
 
-    vector<uchar> decoded_content;
+    vector<uint8_t> decoded_content;
     for (auto& key : keys) {
         decoded_content = decodeDiehlLfsr(t->original.empty() ? frame : t->original, frame, key, DiehlLfsrCheckMethod::CHECKSUM_AND_0XEF, frame[14] & 0xEF);
         if (!decoded_content.empty())

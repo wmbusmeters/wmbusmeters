@@ -18,12 +18,10 @@
 #ifndef UI_H
 #define UI_H
 
-#include<assert.h>
-#include<curses.h>
+#include<cassert>
 #include<form.h>
 #include<menu.h>
 #include<string.h>
-#include<stdio.h>
 #include<stdlib.h>
 
 #include<functional>

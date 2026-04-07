@@ -68,14 +68,14 @@ struct WMBusCUL : public virtual BusDeviceCommonImplementation
 private:
 
     LinkModeSet link_modes_ {};
-    vector<uchar> read_buffer_;
-    vector<uchar> received_payload_;
+    vector<uint8_t> read_buffer_;
+    vector<uint8_t> received_payload_;
     string sent_command_;
     string received_response_;
 
-    FrameStatus checkCULFrame(vector<uchar> &data,
+    FrameStatus checkCULFrame(vector<uint8_t> &data,
                               size_t *hex_frame_length,
-                              vector<uchar> &payload,
+                              vector<uint8_t> &payload,
                               int *rssi_dbm);
 
     string setup_;
@@ -166,7 +166,7 @@ bool WMBusCUL::deviceSetLinkModes(LinkModeSet lms)
     }
 
     // 'brc' command: b - wmbus, r - receive, c - c mode (with t)
-    vector<uchar> msg(5);
+    vector<uint8_t> msg(5);
     msg[0] = 'b';
     msg[1] = 'r';
     if (lms.has(LinkMode::C1)) {
@@ -222,7 +222,7 @@ void WMBusCUL::simulate()
 {
 }
 
-string expectedResponses(vector<uchar> &data)
+string expectedResponses(vector<uint8_t> &data)
 {
     string safe = safeString(data);
     if (safe.find("CMODE") != string::npos) return "CMODE";
@@ -233,7 +233,7 @@ string expectedResponses(vector<uchar> &data)
 
 void WMBusCUL::processSerialData()
 {
-    vector<uchar> data;
+    vector<uint8_t> data;
 
     // Receive and accumulate serial data until a full frame has been received.
     serial()->receive(&data);
@@ -243,7 +243,7 @@ void WMBusCUL::processSerialData()
     read_buffer_.insert(read_buffer_.end(), data.begin(), data.end());
 
     size_t frame_length;
-    vector<uchar> payload;
+    vector<uint8_t> payload;
     int rssi_dbm;
 
     for (;;)
@@ -286,9 +286,9 @@ void WMBusCUL::processSerialData()
     }
 }
 
-FrameStatus WMBusCUL::checkCULFrame(vector<uchar> &data,
+FrameStatus WMBusCUL::checkCULFrame(vector<uint8_t> &data,
                                     size_t *hex_frame_length,
-                                    vector<uchar> &payload,
+                                    vector<uint8_t> &payload,
                                     int *rssi_dbm)
 {
     if (data.size() == 0) return PartialFrame;
@@ -321,8 +321,8 @@ FrameStatus WMBusCUL::checkCULFrame(vector<uchar> &data,
     }
 
     // Extract LQI and RSSI from message (appended 1 byte LQI and 1 byte RSSI at the end)
-    vector<uchar> hex_buffer;
-    vector<uchar> lqi_rssi;
+    vector<uint8_t> hex_buffer;
+    vector<uint8_t> lqi_rssi;
     hex_buffer.insert(hex_buffer.end(), data.begin()+eolp-eof_len-4, data.begin()+eolp-eof_len);
     bool ok = hex2bin(hex_buffer, &lqi_rssi);
     if(!ok)
@@ -350,7 +350,7 @@ FrameStatus WMBusCUL::checkCULFrame(vector<uchar> &data,
         // C1 telegram in frame format B
         // bY..44............<CR><LF>
         *hex_frame_length = eolp;
-        vector<uchar> hex;
+        vector<uint8_t> hex;
         // If reception is started with X01, then there are no RSSI bytes.
         // If started with X21, then there are two RSSI bytes (4 hex digits at the end).
         // Now we always start with X21.
@@ -386,7 +386,7 @@ FrameStatus WMBusCUL::checkCULFrame(vector<uchar> &data,
         // T1 telegram in frame format A
         // b..44..............<CR><LF>
         *hex_frame_length = eolp;
-        vector<uchar> hex;
+        vector<uint8_t> hex;
         // If reception is started with X01, then there are no RSSI bytes.
         // If started with X21, then there are two RSSI bytes (4 hex digits at the end).
         // Now we always start with X21.
@@ -431,10 +431,10 @@ AccessCheck detectCUL(Detected *detected, shared_ptr<SerialCommunicationManager>
     for (int i=0; i<3; ++i)
     {
         // Try three times, it seems slow sometimes.
-        vector<uchar> data;
+        vector<uint8_t> data;
 
         // get the version string: "V 1.67 nanoCUL868" or similar
-        vector<uchar> msg(3);
+        vector<uint8_t> msg(3);
         msg[0] = CMD_GET_VERSION; // V
         msg[1] = 0x0d;
         msg[2] = 0x0a;

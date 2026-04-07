@@ -231,14 +231,14 @@ LIST_OF_MANUFACTURERS
 
 }
 
-void Telegram::addAddressMfctFirst(const vector<uchar>::iterator &pos)
+void Telegram::addAddressMfctFirst(const vector<uint8_t>::iterator &pos)
 {
     Address a;
     a.decodeMfctFirst(pos);
     addresses.push_back(a);
 }
 
-void Telegram::addAddressIdFirst(const vector<uchar>::iterator &pos)
+void Telegram::addAddressIdFirst(const vector<uint8_t>::iterator &pos)
 {
     Address a;
     a.decodeIdFirst(pos);
@@ -247,7 +247,7 @@ void Telegram::addAddressIdFirst(const vector<uchar>::iterator &pos)
 
 void Telegram::print()
 {
-    uchar a=0, b=0, c=0, d=0;
+    uint8_t a=0, b=0, c=0, d=0;
     if (dll_id.size() >= 4)
     {
         a = dll_id[0];
@@ -398,7 +398,7 @@ void Telegram::printTPL()
 // Store the hashes of the last 10 telegrams here.
 deque<SHA256_HASH> seen_telegrams;
 
-bool seen_this_telegram_before(vector<uchar> &frame)
+bool seen_this_telegram_before(vector<uint8_t> &frame)
 {
     SHA256_HASH hash;
     Sha256Calculate(safeButUnsafeVectorPtr(frame), frame.size(), &hash);
@@ -422,9 +422,9 @@ bool seen_this_telegram_before(vector<uchar> &frame)
 
 // Store the dll_a (6 bytes composed of 4 id + 1 ver + 1 media )
 // for telegrams that has been warned about!
-deque<vector<uchar>> warning_printed_for_telegrams;
+deque<vector<uint8_t>> warning_printed_for_telegrams;
 
-bool warned_for_telegram_before(Telegram *t, vector<uchar> &dll_a)
+bool warned_for_telegram_before(Telegram *t, vector<uint8_t> &dll_a)
 {
     auto i = std::find(warning_printed_for_telegrams.begin(), warning_printed_for_telegrams.end(), dll_a);
 
@@ -781,7 +781,7 @@ string ciType(int ci_field)
     return "?";
 }
 
-void Telegram::addExplanationAndIncrementPos(vector<uchar>::iterator &pos, int len, KindOfData k, Understanding u, const char* fmt, ...)
+void Telegram::addExplanationAndIncrementPos(vector<uint8_t>::iterator &pos, int len, KindOfData k, Understanding u, const char* fmt, ...)
 {
     char buf[1024];
     buf[1023] = 0;
@@ -797,7 +797,7 @@ void Telegram::addExplanationAndIncrementPos(vector<uchar>::iterator &pos, int l
     pos += len;
 }
 
-void Telegram::setExplanation(vector<uchar>::iterator &pos, int len, KindOfData k, Understanding u, const char* fmt, ...)
+void Telegram::setExplanation(vector<uint8_t>::iterator &pos, int len, KindOfData k, Understanding u, const char* fmt, ...)
 {
     char buf[1024];
     buf[1023] = 0;
@@ -882,7 +882,7 @@ bool expectedMore(int line)
     return false;
 }
 
-bool Telegram::parseMBusDLLandTPL(vector<uchar>::iterator &pos)
+bool Telegram::parseMBusDLLandTPL(vector<uint8_t>::iterator &pos)
 {
     int remaining = distance(pos, frame.end());
 
@@ -950,7 +950,7 @@ bool Telegram::parseMBusDLLandTPL(vector<uchar>::iterator &pos)
     return false;
 }
 
-bool Telegram::parseDLL(vector<uchar>::iterator &pos)
+bool Telegram::parseDLL(vector<uint8_t>::iterator &pos)
 {
     int remaining = distance(pos, frame.end());
     if (remaining == 0) return expectedMore(__LINE__);
@@ -1012,7 +1012,7 @@ string Telegram::toStringFromELLSN(int sn)
     return info;
 }
 
-bool Telegram::parseELL(vector<uchar>::iterator &pos)
+bool Telegram::parseELL(vector<uint8_t>::iterator &pos)
 {
     int remaining = distance(pos, frame.end());
     if (remaining == 0) return false;
@@ -1167,7 +1167,7 @@ bool Telegram::parseELL(vector<uchar>::iterator &pos)
     return true;
 }
 
-bool Telegram::parseNWL(vector<uchar>::iterator &pos)
+bool Telegram::parseNWL(vector<uint8_t>::iterator &pos)
 {
     int remaining = distance(pos, frame.end());
     if (remaining == 0) return false;
@@ -1183,13 +1183,13 @@ bool Telegram::parseNWL(vector<uchar>::iterator &pos)
 
     if (remaining < len+1) return expectedMore(__LINE__);
 
-    uchar nwl = *pos;
+    uint8_t nwl = *pos;
     addExplanationAndIncrementPos(pos, 1, KindOfData::PROTOCOL, Understanding::FULL, "%02x nwl?", nwl);
 
     return true;
 }
 
-bool Telegram::parseAFL(vector<uchar>::iterator &pos)
+bool Telegram::parseAFL(vector<uint8_t>::iterator &pos)
 {
     // 90 0F (len) 002C (fc) 25 (mc) 49EE 0A00 77C1 9D3D 1A08 ABCD --- 729067296179161102F
     // 90 0F (len) 002C (fc) 25 (mc) 0C39 0000 ED17 6BBB B159 1ADB --- 7A1D003007103EA
@@ -1351,11 +1351,11 @@ string Telegram::toStringFromTPLConfig(int cfg)
     return info;
 }
 
-bool Telegram::parseTPLConfig(std::vector<uchar>::iterator &pos)
+bool Telegram::parseTPLConfig(std::vector<uint8_t>::iterator &pos)
 {
     CHECK(2);
-    uchar cfg1 = *(pos+0);
-    uchar cfg2 = *(pos+1);
+    uint8_t cfg1 = *(pos+0);
+    uint8_t cfg2 = *(pos+1);
     tpl_cfg = cfg2 << 8 | cfg1;
 
     if (tpl_cfg & 0x1f00)
@@ -1389,8 +1389,8 @@ bool Telegram::parseTPLConfig(std::vector<uchar>::iterator &pos)
 
         if (tpl_kdf_selection == 1)
         {
-            vector<uchar> input;
-            vector<uchar> mac;
+            vector<uint8_t> input;
+            vector<uint8_t> mac;
             mac.resize(16);
 
             // DC C ID 0x07 0x07 0x07 0x07 0x07 0x07 0x07
@@ -1451,7 +1451,7 @@ bool Telegram::parseTPLConfig(std::vector<uchar>::iterator &pos)
     return true;
 }
 
-bool Telegram::parseShortTPL(std::vector<uchar>::iterator &pos)
+bool Telegram::parseShortTPL(std::vector<uint8_t>::iterator &pos)
 {
     CHECK(1);
 
@@ -1470,7 +1470,7 @@ bool Telegram::parseShortTPL(std::vector<uchar>::iterator &pos)
     return true;
 }
 
-bool Telegram::parseLongTPL(std::vector<uchar>::iterator &pos)
+bool Telegram::parseLongTPL(std::vector<uint8_t>::iterator &pos)
 {
     CHECK(8);
     addAddressIdFirst(pos);
@@ -1515,14 +1515,14 @@ bool Telegram::parseLongTPL(std::vector<uchar>::iterator &pos)
     return ok;
 }
 
-bool Telegram::checkMAC(std::vector<uchar> &frame,
-                        std::vector<uchar>::iterator from,
-                        std::vector<uchar>::iterator to,
-                        std::vector<uchar> &inmac,
-                        std::vector<uchar> &mackey)
+bool Telegram::checkMAC(std::vector<uint8_t> &frame,
+                        std::vector<uint8_t>::iterator from,
+                        std::vector<uint8_t>::iterator to,
+                        std::vector<uint8_t> &inmac,
+                        std::vector<uint8_t> &mackey)
 {
-    vector<uchar> input;
-    vector<uchar> mac;
+    vector<uint8_t> input;
+    vector<uint8_t> mac;
     mac.resize(16);
 
     if (mackey.size() != 16) return false;
@@ -1557,9 +1557,9 @@ bool Telegram::checkMAC(std::vector<uchar> &frame,
     return ok;
 }
 
-bool loadFormatBytesFromSignature(uint16_t format_signature, vector<uchar> *format_bytes);
+bool loadFormatBytesFromSignature(uint16_t format_signature, vector<uint8_t> *format_bytes);
 
-bool Telegram::alreadyDecryptedCBC(vector<uchar>::iterator &pos)
+bool Telegram::alreadyDecryptedCBC(vector<uint8_t>::iterator &pos)
 {
     CHECK(2);
     if (*(pos+0) != 0x2f || *(pos+1) != 0x2f) return false;
@@ -1567,7 +1567,7 @@ bool Telegram::alreadyDecryptedCBC(vector<uchar>::iterator &pos)
     return true;
 }
 
-bool Telegram::potentiallyDecrypt(vector<uchar>::iterator &pos)
+bool Telegram::potentiallyDecrypt(vector<uint8_t>::iterator &pos)
 {
     if (tpl_sec_mode == TPLSecurityMode::AES_CBC_IV)
     {
@@ -1626,8 +1626,8 @@ bool Telegram::potentiallyDecrypt(vector<uchar>::iterator &pos)
         // Now the frame from pos and onwards has been decrypted.
 
         CHECK(2);
-        uchar a = *(pos+0);
-        uchar b = *(pos+1);
+        uint8_t a = *(pos+0);
+        uint8_t b = *(pos+1);
 
         addExplanationAndIncrementPos(pos, 2, KindOfData::PROTOCOL, Understanding::FULL,
                                       "%02x%02x decrypt check bytes (%s)", *(pos+0), *(pos+1),
@@ -1729,8 +1729,8 @@ bool Telegram::potentiallyDecrypt(vector<uchar>::iterator &pos)
 
         // Now the frame from pos and onwards has been decrypted.
         CHECK(2);
-        uchar a = *(pos+0);
-        uchar b = *(pos+1);
+        uint8_t a = *(pos+0);
+        uint8_t b = *(pos+1);
         addExplanationAndIncrementPos(pos, 2, KindOfData::PROTOCOL, Understanding::FULL,
                                       "%02x%02x decrypt check bytes (%s)", a, b,
                                       (a == 0x2f && b == 0x2f) ? "OK":"ERROR should be 2f2f");
@@ -1795,7 +1795,7 @@ bool Telegram::potentiallyDecrypt(vector<uchar>::iterator &pos)
     return true;
 }
 
-bool Telegram::parse_TPL_72(vector<uchar>::iterator &pos)
+bool Telegram::parse_TPL_72(vector<uint8_t>::iterator &pos)
 {
     bool ok = parseLongTPL(pos);
     if (!ok) return false;
@@ -1817,7 +1817,7 @@ bool Telegram::parse_TPL_72(vector<uchar>::iterator &pos)
     return true;
 }
 
-bool Telegram::parse_TPL_78(vector<uchar>::iterator &pos)
+bool Telegram::parse_TPL_78(vector<uint8_t>::iterator &pos)
 {
     header_size = distance(frame.begin(), pos);
     int remaining = distance(pos, frame.end())-suffix_size;
@@ -1826,18 +1826,18 @@ bool Telegram::parse_TPL_78(vector<uchar>::iterator &pos)
     return true;
 }
 
-bool Telegram::parse_TPL_79(vector<uchar>::iterator &pos)
+bool Telegram::parse_TPL_79(vector<uint8_t>::iterator &pos)
 {
     // Compact frame
     CHECK(2);
-    uchar ecrc0 = *(pos+0);
-    uchar ecrc1 = *(pos+1);
+    uint8_t ecrc0 = *(pos+0);
+    uint8_t ecrc1 = *(pos+1);
     size_t offset = distance(frame.begin(), pos);
     addExplanationAndIncrementPos(pos, 2, KindOfData::PROTOCOL, Understanding::FULL,
                                   "%02x%02x format signature", ecrc0, ecrc1);
     format_signature = ecrc1<<8 | ecrc0;
 
-    vector<uchar> format_bytes;
+    vector<uint8_t> format_bytes;
     bool ok = loadFormatBytesFromSignature(format_signature, &format_bytes);
     if (!ok) {
         // We have not yet seen a long frame, but we know the formats for some
@@ -1859,7 +1859,7 @@ bool Telegram::parse_TPL_79(vector<uchar>::iterator &pos)
             return false;
         }
     }
-    vector<uchar>::iterator format = format_bytes.begin();
+    vector<uint8_t>::iterator format = format_bytes.begin();
 
     // 2,3 = crc for payload = hash over both DRH and data bytes. Or is it only over the data bytes?
     CHECK(2);
@@ -1876,7 +1876,7 @@ bool Telegram::parse_TPL_79(vector<uchar>::iterator &pos)
     return true;
 }
 
-bool Telegram::parse_TPL_7A(vector<uchar>::iterator &pos)
+bool Telegram::parse_TPL_7A(vector<uint8_t>::iterator &pos)
 {
     bool ok = parseShortTPL(pos);
     if (!ok) return false;
@@ -1897,7 +1897,7 @@ bool Telegram::parse_TPL_7A(vector<uchar>::iterator &pos)
     return true;
 }
 
-bool Telegram::parseTPL(vector<uchar>::iterator &pos)
+bool Telegram::parseTPL(vector<uint8_t>::iterator &pos)
 {
     int remaining = distance(pos, frame.end());
     if (remaining == 0) return false;
@@ -1961,12 +1961,12 @@ void Telegram::preProcess()
     if (diehl_method != DiehlAddressTransformMethod::NONE)
     {
         debug("(diehl) preprocess necessary %s\n", toString(diehl_method));
-        original = vector<uchar>(frame.begin(), frame.begin() + 10);
+        original = vector<uint8_t>(frame.begin(), frame.begin() + 10);
         transformDiehlAddress(frame, diehl_method);
     }
 }
 
-bool Telegram::parse(vector<uchar> &input_frame, MeterKeys *mk, bool warn)
+bool Telegram::parse(vector<uint8_t> &input_frame, MeterKeys *mk, bool warn)
 {
     switch (about.type)
     {
@@ -1978,7 +1978,7 @@ bool Telegram::parse(vector<uchar> &input_frame, MeterKeys *mk, bool warn)
     return false;
 }
 
-bool Telegram::parseHeader(vector<uchar> &input_frame)
+bool Telegram::parseHeader(vector<uint8_t> &input_frame)
 {
     switch (about.type)
     {
@@ -1990,7 +1990,7 @@ bool Telegram::parseHeader(vector<uchar> &input_frame)
     return false;
 }
 
-bool Telegram::parseWMBUSHeader(vector<uchar> &input_frame)
+bool Telegram::parseWMBUSHeader(vector<uint8_t> &input_frame)
 {
     assert(about.type == FrameType::WMBUS);
 
@@ -2003,7 +2003,7 @@ bool Telegram::parseWMBUSHeader(vector<uchar> &input_frame)
     explanations.clear();
     suffix_size = 0;
     frame = input_frame;
-    vector<uchar>::iterator pos = frame.begin();
+    vector<uint8_t>::iterator pos = frame.begin();
     // Parsed accumulates parsed bytes.
     parsed.clear();
     // Fixes quirks from non-compliant meters to make telegram compatible with the standard
@@ -2030,7 +2030,7 @@ bool Telegram::parseWMBUSHeader(vector<uchar> &input_frame)
     return true;
 }
 
-bool Telegram::parseWMBUS(vector<uchar> &input_frame, MeterKeys *mk, bool warn)
+bool Telegram::parseWMBUS(vector<uint8_t> &input_frame, MeterKeys *mk, bool warn)
 {
     assert(about.type == FrameType::WMBUS);
 
@@ -2042,7 +2042,7 @@ bool Telegram::parseWMBUS(vector<uchar> &input_frame, MeterKeys *mk, bool warn)
     assert(meter_keys != NULL);
     bool ok;
     frame = input_frame;
-    vector<uchar>::iterator pos = frame.begin();
+    vector<uint8_t>::iterator pos = frame.begin();
     // Parsed accumulates parsed bytes.
     parsed.clear();
     // Fixes quirks from non-compliant meters to make telegram compatible with the standard
@@ -2107,7 +2107,7 @@ bool Telegram::parseWMBUS(vector<uchar> &input_frame, MeterKeys *mk, bool warn)
     return true;
 }
 
-bool Telegram::parseMBUSHeader(vector<uchar> &input_frame)
+bool Telegram::parseMBUSHeader(vector<uint8_t> &input_frame)
 {
     assert(about.type == FrameType::MBUS);
 
@@ -2120,7 +2120,7 @@ bool Telegram::parseMBUSHeader(vector<uchar> &input_frame)
     explanations.clear();
     suffix_size = 0;
     frame = input_frame;
-    vector<uchar>::iterator pos = frame.begin();
+    vector<uint8_t>::iterator pos = frame.begin();
     // Parsed accumulates parsed bytes.
     parsed.clear();
 
@@ -2130,7 +2130,7 @@ bool Telegram::parseMBUSHeader(vector<uchar> &input_frame)
     return true;
 }
 
-bool Telegram::parseMBUS(vector<uchar> &input_frame, MeterKeys *mk, bool warn)
+bool Telegram::parseMBUS(vector<uint8_t> &input_frame, MeterKeys *mk, bool warn)
 {
     assert(about.type == FrameType::MBUS);
 
@@ -2142,7 +2142,7 @@ bool Telegram::parseMBUS(vector<uchar> &input_frame, MeterKeys *mk, bool warn)
     assert(meter_keys != NULL);
     bool ok;
     frame = input_frame;
-    vector<uchar>::iterator pos = frame.begin();
+    vector<uint8_t>::iterator pos = frame.begin();
     // Parsed accumulates parsed bytes.
     parsed.clear();
 
@@ -2158,14 +2158,14 @@ bool Telegram::parseMBUS(vector<uchar> &input_frame, MeterKeys *mk, bool warn)
     return true;
 }
 
-bool Telegram::parseHANHeader(vector<uchar> &input_frame)
+bool Telegram::parseHANHeader(vector<uint8_t> &input_frame)
 {
     assert(about.type == FrameType::HAN);
 
     return false;
 }
 
-bool Telegram::parseHAN(vector<uchar> &input_frame, MeterKeys *mk, bool warn)
+bool Telegram::parseHAN(vector<uint8_t> &input_frame, MeterKeys *mk, bool warn)
 {
     assert(about.type == FrameType::HAN);
 
@@ -2373,7 +2373,7 @@ string Telegram::autoDetectPossibleDrivers()
     return possibles;
 }
 
-const char *mbusCField(uchar c_field)
+const char *mbusCField(uint8_t c_field)
 {
     string s;
     switch (c_field)
@@ -2383,7 +2383,7 @@ const char *mbusCField(uchar c_field)
     return "?";
 }
 
-const char *mbusCiField(uchar c_field)
+const char *mbusCiField(uint8_t c_field)
 {
     string s;
     switch (c_field)
@@ -3300,7 +3300,7 @@ const char *timePP(int nn) {
     return "?";
 }
 
-string vif_7B_FirstExtensionType(uchar dif, uchar vif, uchar vife)
+string vif_7B_FirstExtensionType(uint8_t dif, uint8_t vif, uint8_t vife)
 {
     assert(vif == 0xfb);
 
@@ -3475,7 +3475,7 @@ string vif_7B_FirstExtensionType(uchar dif, uchar vif, uchar vife)
     return "?";
 }
 
-string vif_7D_SecondExtensionType(uchar dif, uchar vif, uchar vife)
+string vif_7D_SecondExtensionType(uint8_t dif, uint8_t vif, uint8_t vife)
 {
     assert(vif == 0xfd);
 
@@ -3750,13 +3750,13 @@ string vif_7D_SecondExtensionType(uchar dif, uchar vif, uchar vife)
     return "?";
 }
 
-string vif_6F_ThirdExtensionType(uchar dif, uchar vif, uchar vife)
+string vif_6F_ThirdExtensionType(uint8_t dif, uint8_t vif, uint8_t vife)
 {
     assert(vif == 0xef);
     return "?";
 }
 
-string vif_7F_ManufacturerExtensionType(uchar dif, uchar vif, uchar vife)
+string vif_7F_ManufacturerExtensionType(uint8_t dif, uint8_t vif, uint8_t vife)
 {
     assert(vif == 0xff);
     return "?";
@@ -3974,7 +3974,7 @@ string vifeType(int dif, int vif, int vife)
     return "?";
 }
 
-double toDoubleFromBytes(vector<uchar> &bytes, int len) {
+double toDoubleFromBytes(vector<uint8_t> &bytes, int len) {
     double d = 0;
     for (int i=0; i<len; ++i) {
         double x = bytes[i];
@@ -3983,7 +3983,7 @@ double toDoubleFromBytes(vector<uchar> &bytes, int len) {
     return d;
 }
 
-double toDoubleFromBCD(vector<uchar> &bytes, int len) {
+double toDoubleFromBCD(vector<uint8_t> &bytes, int len) {
     double d = 0;
     for (int i=0; i<len; ++i) {
         double x = bytes[i]&0xf;
@@ -3996,7 +3996,7 @@ double toDoubleFromBCD(vector<uchar> &bytes, int len) {
 
 double dataAsDouble(int dif, int vif, int vife, string data)
 {
-    vector<uchar> bytes;
+    vector<uint8_t> bytes;
     hex2bin(data, &bytes);
 
     int t = dif & 0x0f;
@@ -4026,7 +4026,7 @@ double dataAsDouble(int dif, int vif, int vife, string data)
 
 uint64_t dataAsUint64(int dif, int vif, int vife, string data)
 {
-    vector<uchar> bytes;
+    vector<uint8_t> bytes;
     hex2bin(data, &bytes);
 
     int t = dif & 0x0f;
@@ -4081,7 +4081,7 @@ string measurementTypeName(MeasurementType mt)
 BusDevice::~BusDevice() {
 }
 
-bool Telegram::findFormatBytesFromKnownMeterSignatures(vector<uchar> *format_bytes)
+bool Telegram::findFormatBytesFromKnownMeterSignatures(vector<uint8_t> *format_bytes)
 {
     bool ok = true;
     if (format_signature == 0xa8ed)
@@ -4201,12 +4201,12 @@ string BusDeviceCommonImplementation::busAlias()
     return bus_alias_;
 }
 
-void BusDeviceCommonImplementation::onTelegram(function<bool(AboutTelegram&,vector<uchar>)> cb)
+void BusDeviceCommonImplementation::onTelegram(function<bool(AboutTelegram&,vector<uint8_t>)> cb)
 {
     telegram_listeners_.push_back(cb);
 }
 
-bool BusDeviceCommonImplementation::sendTelegram(LinkMode link_mode, TelegramFormat format, vector<uchar> &content)
+bool BusDeviceCommonImplementation::sendTelegram(LinkMode link_mode, TelegramFormat format, vector<uint8_t> &content)
 {
     warning("(bus) Trying to send telegram to bus that has not implemented sending!\n");
     return false;
@@ -4231,7 +4231,7 @@ bool getDetailedFirst()
     return detailed_first_;
 }
 
-bool BusDeviceCommonImplementation::handleTelegram(AboutTelegram &about, vector<uchar> frame)
+bool BusDeviceCommonImplementation::handleTelegram(AboutTelegram &about, vector<uint8_t> frame)
 {
     bool handled = false;
     last_received_ = time(NULL);
@@ -4642,25 +4642,25 @@ LIST_OF_ELL_SECURITY_MODES
     return ELLSecurityMode::RESERVED;
 }
 
-void Telegram::extractMfctData(vector<uchar> *pl)
+void Telegram::extractMfctData(vector<uint8_t> *pl)
 {
     pl->clear();
     if (mfct_0f_index == -1) return;
 
-    vector<uchar>::iterator from = frame.begin()+header_size+mfct_0f_index;
-    vector<uchar>::iterator to = frame.end()-suffix_size;
+    vector<uint8_t>::iterator from = frame.begin()+header_size+mfct_0f_index;
+    vector<uint8_t>::iterator to = frame.end()-suffix_size;
     pl->insert(pl->end(), from, to);
 }
 
-void Telegram::extractPayload(vector<uchar> *pl)
+void Telegram::extractPayload(vector<uint8_t> *pl)
 {
     pl->clear();
-    vector<uchar>::iterator from = frame.begin()+header_size;
-    vector<uchar>::iterator to = frame.end()-suffix_size;
+    vector<uint8_t>::iterator from = frame.begin()+header_size;
+    vector<uint8_t>::iterator to = frame.end()-suffix_size;
     pl->insert(pl->end(), from, to);
 }
 
-void Telegram::extractFrame(vector<uchar> *fr)
+void Telegram::extractFrame(vector<uint8_t> *fr)
 {
     *fr = frame;
 }
@@ -4712,7 +4712,7 @@ LIST_OF_AFL_AUTH_TYPES
     return AFLAuthenticationType::Reserved1;
 }
 
-bool trimCRCsFrameFormatAInternal(std::vector<uchar> &payload, bool fail_is_ok)
+bool trimCRCsFrameFormatAInternal(std::vector<uint8_t> &payload, bool fail_is_ok)
 {
     if (payload.size() < 12) {
         if (!fail_is_ok)
@@ -4727,7 +4727,7 @@ bool trimCRCsFrameFormatAInternal(std::vector<uchar> &payload, bool fail_is_ok)
         debugPayload("(wmbus) trimming frame A", payload);
     }
 
-    vector<uchar> out;
+    vector<uint8_t> out;
 
     uint16_t calc_crc = crc16_EN13757(safeButUnsafeVectorPtr(payload), 10);
     uint16_t check_crc = payload[10] << 8 | payload[11];
@@ -4804,7 +4804,7 @@ bool trimCRCsFrameFormatAInternal(std::vector<uchar> &payload, bool fail_is_ok)
     return true;
 }
 
-bool trimCRCsFrameFormatBInternal(std::vector<uchar> &payload, bool fail_is_ok)
+bool trimCRCsFrameFormatBInternal(std::vector<uint8_t> &payload, bool fail_is_ok)
 {
     if (payload.size() < 12) {
         if (!fail_is_ok)
@@ -4819,7 +4819,7 @@ bool trimCRCsFrameFormatBInternal(std::vector<uchar> &payload, bool fail_is_ok)
         debugPayload("(wmbus) trimming frame B", payload);
     }
 
-    vector<uchar> out;
+    vector<uint8_t> out;
     size_t crc1_pos, crc2_pos;
     if (len <= 128)
     {
@@ -4832,7 +4832,7 @@ bool trimCRCsFrameFormatBInternal(std::vector<uchar> &payload, bool fail_is_ok)
         crc2_pos = len-2;
     }
 
-    uchar *from1 = &payload[0];
+    uint8_t *from1 = &payload[0];
     size_t len1 = crc1_pos;
     uint16_t calc_crc = crc16_EN13757(from1, len1);
     uint16_t check_crc = payload[crc1_pos] << 8 | payload[crc1_pos+1];
@@ -4854,7 +4854,7 @@ bool trimCRCsFrameFormatBInternal(std::vector<uchar> &payload, bool fail_is_ok)
 
     if (crc2_pos > 0)
     {
-        uchar *from2 = &payload[crc1_pos+2];
+        uint8_t *from2 = &payload[crc1_pos+2];
         size_t len2 = crc2_pos-crc1_pos-2;
         calc_crc = crc16_EN13757(from2, len2);
         check_crc = payload[crc2_pos] << 8 | payload[crc2_pos+1];
@@ -4890,23 +4890,23 @@ bool trimCRCsFrameFormatBInternal(std::vector<uchar> &payload, bool fail_is_ok)
     return true;
 }
 
-void removeAnyDLLCRCs(std::vector<uchar> &payload)
+void removeAnyDLLCRCs(std::vector<uint8_t> &payload)
 {
     bool trimmed = trimCRCsFrameFormatAInternal(payload, true);
     if (!trimmed) trimCRCsFrameFormatBInternal(payload, true);
 }
 
-bool trimCRCsFrameFormatA(std::vector<uchar> &payload)
+bool trimCRCsFrameFormatA(std::vector<uint8_t> &payload)
 {
     return trimCRCsFrameFormatAInternal(payload, false);
 }
 
-bool trimCRCsFrameFormatB(std::vector<uchar> &payload)
+bool trimCRCsFrameFormatB(std::vector<uint8_t> &payload)
 {
     return trimCRCsFrameFormatBInternal(payload, false);
 }
 
-FrameStatus checkWMBusFrame(vector<uchar> &data,
+FrameStatus checkWMBusFrame(vector<uint8_t> &data,
                             size_t *frame_length,
                             int *payload_len_out,
                             int *payload_offset,
@@ -4946,7 +4946,7 @@ FrameStatus checkWMBusFrame(vector<uchar> &data,
             {
                 payload_len = data[i];
                 size_t remaining = data.size()-i;
-                if (data[i]+1 == (uchar)remaining && data[i+1] == 0x44)
+                if (data[i]+1 == (uint8_t)remaining && data[i+1] == 0x44)
                 {
                     found = true;
                     offset = i+1;
@@ -5001,7 +5001,7 @@ FrameStatus checkWMBusFrame(vector<uchar> &data,
     return FullFrame;
 }
 
-FrameStatus checkMBusFrame(vector<uchar> &data,
+FrameStatus checkMBusFrame(vector<uint8_t> &data,
                            size_t *frame_length,
                            int *payload_len_out,
                            int *payload_offset,
@@ -5079,16 +5079,16 @@ FrameStatus checkMBusFrame(vector<uchar> &data,
         }
         return PartialFrame;
     }
-    uchar stop = data[*frame_length-1];
+    uint8_t stop = data[*frame_length-1];
     if (stop != 0x16)
     {
         warning("(mbus) stop byte (0x%02x) at pos %d is not 0x16, clearing buffer.\n", stop, *frame_length-1);
         data.clear();
         return ErrorInFrame;
     }
-    uchar csc = 0;
+    uint8_t csc = 0;
     for (size_t i=4; i<(*frame_length-2); ++i) csc += data[i];
-    uchar cs = data[*frame_length-2];
+    uint8_t cs = data[*frame_length-2];
     if (cs != csc)
     {
         warning("(mbus) expected checksum 0x%02x but got 0x%02x, clearing buffer.\n", csc, cs);
@@ -5105,7 +5105,7 @@ FrameStatus checkMBusFrame(vector<uchar> &data,
     return FullFrame;
 }
 
-string decodeTPLStatusByteOnlyStandardBits(uchar sts)
+string decodeTPLStatusByteOnlyStandardBits(uint8_t sts)
 {
     // Bits 0-4 are standard defined. Bits 5-7 are mfct specific.
     string s;
@@ -5124,7 +5124,7 @@ string decodeTPLStatusByteOnlyStandardBits(uchar sts)
     return s;
 }
 
-string decodeTPLStatusByteNoMfct(uchar sts)
+string decodeTPLStatusByteNoMfct(uint8_t sts)
 {
     string t = "OK";
 
@@ -5136,7 +5136,7 @@ string decodeTPLStatusByteNoMfct(uchar sts)
     return t;
 }
 
-string decodeTPLStatusByteWithMfct(uchar sts, Translate::Lookup &lookup)
+string decodeTPLStatusByteWithMfct(uint8_t sts, Translate::Lookup &lookup)
 {
     if (lookup.hasLookups() && lookup.coversFullByte())
     {

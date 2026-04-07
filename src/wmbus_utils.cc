@@ -25,16 +25,16 @@
 
 using namespace std;
 
-bool decrypt_ELL_AES_CTR(Telegram *t, vector<uchar> &frame, vector<uchar>::iterator &pos, vector<uchar> &aeskey)
+bool decrypt_ELL_AES_CTR(Telegram *t, vector<uint8_t> &frame, vector<uint8_t>::iterator &pos, vector<uint8_t> &aeskey)
 {
     if (aeskey.size() == 0) return true;
 
-    vector<uchar> encrypted_bytes;
-    vector<uchar> decrypted_bytes;
+    vector<uint8_t> encrypted_bytes;
+    vector<uint8_t> decrypted_bytes;
     encrypted_bytes.insert(encrypted_bytes.end(), pos, frame.end());
     debugPayload("(ELL) decrypting", encrypted_bytes);
 
-    uchar iv[16];
+    uint8_t iv[16];
     int i=0;
     // M-field
     iv[i++] = t->dll_mfct_b[0]; iv[i++] = t->dll_mfct_b[1];
@@ -52,7 +52,7 @@ bool decrypt_ELL_AES_CTR(Telegram *t, vector<uchar> &frame, vector<uchar>::itera
     // BC
     iv[i++] = 0;
 
-    vector<uchar> ivv(iv, iv+16);
+    vector<uint8_t> ivv(iv, iv+16);
     string s = bin2hex(ivv);
     debug("(ELL) IV %s\n", s.c_str());
 
@@ -68,17 +68,17 @@ bool decrypt_ELL_AES_CTR(Telegram *t, vector<uchar> &frame, vector<uchar>::itera
         assert(block_size > 0 && block_size <= 16);
 
         // Generate the pseudo-random bits from the IV and the key.
-        uchar xordata[16];
+        uint8_t xordata[16];
         AES_ECB_encrypt(iv, safeButUnsafeVectorPtr(aeskey), xordata, 16);
 
         // Xor the data with the pseudo-random bits to decrypt into tmp.
-        uchar tmp[block_size];
+        uint8_t tmp[block_size];
         xorit(xordata, &encrypted_bytes[offset], tmp, block_size);
 
         debug("(ELL) block %d block_size %d offset %zu\n", block, block_size, offset);
         block++;
 
-        vector<uchar> tmpv(tmp, tmp+block_size);
+        vector<uint8_t> tmpv(tmp, tmp+block_size);
         debugPayload("(ELL) decrypted", tmpv);
 
         decrypted_bytes.insert(decrypted_bytes.end(), tmpv.begin(), tmpv.end());
@@ -95,20 +95,14 @@ bool decrypt_ELL_AES_CTR(Telegram *t, vector<uchar> &frame, vector<uchar>::itera
     return true;
 }
 
-string frameTypeKamstrupC1(int ft) {
-    if (ft == 0x78) return "long frame";
-    if (ft == 0x79) return "short frame";
-    return "?";
-}
-
 bool decrypt_TPL_AES_CBC_IV(Telegram *t,
-                            vector<uchar> &frame,
-                            vector<uchar>::iterator &pos,
-                            vector<uchar> &aeskey,
+                            vector<uint8_t> &frame,
+                            vector<uint8_t>::iterator &pos,
+                            vector<uint8_t> &aeskey,
                             int *num_encrypted_bytes,
                             int *num_not_encrypted_at_end)
 {
-    vector<uchar> buffer;
+    vector<uint8_t> buffer;
     buffer.insert(buffer.end(), pos, frame.end());
 
     size_t num_bytes_to_decrypt = frame.end()-pos;
@@ -155,7 +149,7 @@ bool decrypt_TPL_AES_CBC_IV(Telegram *t,
         if (num_bytes_to_decrypt < 16) return false;
     }
 
-    uchar iv[16];
+    uint8_t iv[16];
     int i=0;
     // If there is a tpl_id, then use it, else use ddl_id.
     if (t->tpl_id_found)
@@ -178,13 +172,13 @@ bool decrypt_TPL_AES_CBC_IV(Telegram *t,
     // ACC
     for (int j=0; j<8; ++j) { iv[i++] = t->tpl_acc; }
 
-    vector<uchar> ivv(iv, iv+16);
+    vector<uint8_t> ivv(iv, iv+16);
     string s = bin2hex(ivv);
     debug("(TPL) IV %s\n", s.c_str());
 
-    uchar buffer_data[num_bytes_to_decrypt];
+    uint8_t buffer_data[num_bytes_to_decrypt];
     memcpy(buffer_data, safeButUnsafeVectorPtr(buffer), num_bytes_to_decrypt);
-    uchar decrypted_data[num_bytes_to_decrypt];
+    uint8_t decrypted_data[num_bytes_to_decrypt];
 
     AES_CBC_decrypt_buffer(decrypted_data, buffer_data, num_bytes_to_decrypt, safeButUnsafeVectorPtr(aeskey), iv);
 
@@ -204,13 +198,13 @@ bool decrypt_TPL_AES_CBC_IV(Telegram *t,
     return true;
 }
 
-bool decrypt_TPL_AES_CBC_NO_IV(Telegram *t, vector<uchar> &frame, vector<uchar>::iterator &pos, vector<uchar> &aeskey,
+bool decrypt_TPL_AES_CBC_NO_IV(Telegram *t, vector<uint8_t> &frame, vector<uint8_t>::iterator &pos, vector<uint8_t> &aeskey,
                                int *num_encrypted_bytes,
                                int *num_not_encrypted_at_end)
 {
     if (aeskey.size() == 0) return true;
 
-    vector<uchar> buffer;
+    vector<uint8_t> buffer;
     buffer.insert(buffer.end(), pos, frame.end());
 
     size_t num_bytes_to_decrypt = buffer.size();
@@ -247,16 +241,16 @@ bool decrypt_TPL_AES_CBC_NO_IV(Telegram *t, vector<uchar> &frame, vector<uchar>:
         assert (num_bytes_to_decrypt % 16 == 0);
     }
 
-    uchar iv[16];
+    uint8_t iv[16];
     memset(iv, 0, sizeof(iv));
 
-    vector<uchar> ivv(iv, iv+16);
+    vector<uint8_t> ivv(iv, iv+16);
     string s = bin2hex(ivv);
     debug("(TPL) IV %s\n", s.c_str());
 
-    uchar buffer_data[num_bytes_to_decrypt];
+    uint8_t buffer_data[num_bytes_to_decrypt];
     memcpy(buffer_data, safeButUnsafeVectorPtr(buffer), num_bytes_to_decrypt);
-    uchar decrypted_data[num_bytes_to_decrypt];
+    uint8_t decrypted_data[num_bytes_to_decrypt];
 
     AES_CBC_decrypt_buffer(decrypted_data, buffer_data, num_bytes_to_decrypt, safeButUnsafeVectorPtr(aeskey), iv);
 

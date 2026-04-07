@@ -62,12 +62,12 @@ namespace
         // Which means that the entire payload is manufacturer specific.
 
         map<string,pair<int,DVEntry>> vendor_values;
-        vector<uchar> content;
+        vector<uint8_t> content;
 
         t->extractPayload(&content);
 
-        uchar prev_lo = content[3];
-        uchar prev_hi = content[4];
+        uint8_t prev_lo = content[3];
+        uint8_t prev_hi = content[4];
         double prev = (256.0*prev_hi+prev_lo)/10.0;
 
         /*
@@ -79,8 +79,8 @@ namespace
         t->addMoreExplanation(offset, " prev consumption (%f m3)", prev);
         */
 
-        uchar curr_lo = content[7];
-        uchar curr_hi = content[8];
+        uint8_t curr_lo = content[7];
+        uint8_t curr_hi = content[8];
         double curr = (256.0*curr_hi+curr_lo)/10.0;
 
         /*

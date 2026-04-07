@@ -16,10 +16,10 @@
 */
 
 #include "threads.h"
+#include "util.h"
 
 #include <unistd.h>
 #include <sys/resource.h>
-#include <stdio.h>
 
 #if defined(__APPLE__) && defined(__MACH__)
 #include <mach/mach.h>

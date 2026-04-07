@@ -51,7 +51,7 @@ namespace
 
     void Driver::processContent(Telegram *t)
     {
-        vector<uchar> content;
+        vector<uint8_t> content;
         t->extractPayload(&content);
 
         // Overwrite the non-standard 0x11 with 0x07 which means water.

@@ -51,16 +51,16 @@ namespace
 
     void Driver::processContent(Telegram *t)
     {
-        vector<uchar> content;
+        vector<uint8_t> content;
         t->extractPayload(&content);
 
         if (content.size() < 18) return;
 
-        vector<uchar> frame(content.begin() + 2, content.begin() + 18);
-        vector<uchar>::iterator pos = frame.begin();
+        vector<uint8_t> frame(content.begin() + 2, content.begin() + 18);
+        vector<uint8_t>::iterator pos = frame.begin();
 
         // TODO: read specified key from input
-        vector<uchar> aes_key(16, 0);
+        vector<uint8_t> aes_key(16, 0);
 
         int num_encrypted_bytes = 0;
         int num_not_encrypted_at_end = 0;

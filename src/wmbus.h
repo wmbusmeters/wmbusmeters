@@ -23,17 +23,20 @@
 #include"manufacturers.h"
 #include"serial.h"
 #include"translatebits.h"
-#include"util.h"
 
-#include<inttypes.h>
 #include<map>
 #include<set>
+#include<string>
+#include<memory>
+#include<vector>
+
+enum class OutputFormat;
 
 // Check and remove the data link layer CRCs from a wmbus telegram.
 // If the CRCs do not pass the test, return false.
-void removeAnyDLLCRCs(std::vector<uchar> &payload);
-bool trimCRCsFrameFormatA(std::vector<uchar> &payload);
-bool trimCRCsFrameFormatB(std::vector<uchar> &payload);
+void removeAnyDLLCRCs(std::vector<uint8_t> &payload);
+bool trimCRCsFrameFormatA(std::vector<uint8_t> &payload);
+bool trimCRCsFrameFormatB(std::vector<uint8_t> &payload);
 
 #define LIST_OF_MBUS_DEVICES \
     X(UNKNOWN,unknown,false,false,detectUNKNOWN)     \
@@ -344,8 +347,8 @@ int toLen(AFLAuthenticationType aat);
 
 struct MeterKeys
 {
-    std::vector<uchar> confidentiality_key;
-    std::vector<uchar> authentication_key;
+    std::vector<uint8_t> confidentiality_key;
+    std::vector<uint8_t> authentication_key;
 
     bool hasConfidentialityKey() { return confidentiality_key.size() > 0; }
     bool hasAuthenticationKey() { return authentication_key.size() > 0; }
@@ -438,65 +441,65 @@ public:
     int dll_len {}; // The length of the telegram, 1 byte.
     int dll_c {};   // 1 byte control code, SND_NR=0x44
 
-    uchar dll_mfct_b[2]; //  2 bytes
+    uint8_t dll_mfct_b[2]; //  2 bytes
     int dll_mfct {};
 
-    uchar mbus_primary_address; // Single byte address 0-250 for mbus devices.
-    uchar mbus_ci; // MBus control information field.
+    uint8_t mbus_primary_address; // Single byte address 0-250 for mbus devices.
+    uint8_t mbus_ci; // MBus control information field.
 
-    std::vector<uchar> dll_a; // A field 6 bytes
+    std::vector<uint8_t> dll_a; // A field 6 bytes
     // The 6 a field bytes are composed of 4 id bytes, version and type.
-    uchar dll_id_b[4] {};    // 4 bytes, address in BCD = 8 decimal 00000000...99999999 digits.
-    std::vector<uchar> dll_id; // 4 bytes, human readable order.
-    uchar dll_version {}; // 1 byte
-    uchar dll_type {}; // 1 byte
+    uint8_t dll_id_b[4] {};    // 4 bytes, address in BCD = 8 decimal 00000000...99999999 digits.
+    std::vector<uint8_t> dll_id; // 4 bytes, human readable order.
+    uint8_t dll_version {}; // 1 byte
+    uint8_t dll_type {}; // 1 byte
 
     // ELL
-    uchar ell_ci {}; // 1 byte
-    uchar ell_cc {}; // 1 byte
-    uchar ell_acc {}; // 1 byte
-    uchar ell_sn_b[4] {}; // 4 bytes
+    uint8_t ell_ci {}; // 1 byte
+    uint8_t ell_cc {}; // 1 byte
+    uint8_t ell_acc {}; // 1 byte
+    uint8_t ell_sn_b[4] {}; // 4 bytes
     int   ell_sn {}; // 4 bytes
-    uchar ell_sn_session {}; // 4 bits
+    uint8_t ell_sn_session {}; // 4 bits
     int   ell_sn_time {}; // 25 bits
-    uchar ell_sn_sec {}; // 3 bits
+    uint8_t ell_sn_sec {}; // 3 bits
     ELLSecurityMode ell_sec_mode {}; // Based on 3 bits from above.
-    uchar ell_pl_crc_b[2] {}; // 2 bytes
+    uint8_t ell_pl_crc_b[2] {}; // 2 bytes
     uint16_t ell_pl_crc {}; // 2 bytes
 
-    uchar ell_mfct_b[2] {}; // 2 bytes;
+    uint8_t ell_mfct_b[2] {}; // 2 bytes;
     int   ell_mfct {};
     bool  ell_id_found {};
-    uchar ell_id_b[6] {}; // 4 bytes;
-    uchar ell_version {}; // 1 byte
-    uchar ell_type {};  // 1 byte
+    uint8_t ell_id_b[6] {}; // 4 bytes;
+    uint8_t ell_version {}; // 1 byte
+    uint8_t ell_type {};  // 1 byte
 
     // NWL
     int nwl_ci {}; // 1 byte
 
     // AFL
-    uchar afl_ci {}; // 1 byte
-    uchar afl_len {}; // 1 byte
-    uchar afl_fc_b[2] {}; // 2 byte fragmentation control
+    uint8_t afl_ci {}; // 1 byte
+    uint8_t afl_len {}; // 1 byte
+    uint8_t afl_fc_b[2] {}; // 2 byte fragmentation control
     uint16_t afl_fc {};
-    uchar afl_mcl {}; // 1 byte message control
+    uint8_t afl_mcl {}; // 1 byte message control
 
     bool afl_ki_found {};
-    uchar afl_ki_b[2] {}; // 2 byte key information
+    uint8_t afl_ki_b[2] {}; // 2 byte key information
     uint16_t afl_ki {};
 
     bool afl_counter_found {};
-    uchar afl_counter_b[4] {}; // 4 bytes
+    uint8_t afl_counter_b[4] {}; // 4 bytes
     uint32_t afl_counter {};
 
     bool afl_mlen_found {};
     int afl_mlen {};
 
     bool must_check_mac {};
-    std::vector<uchar> afl_mac_b;
+    std::vector<uint8_t> afl_mac_b;
 
     // TPL
-    std::vector<uchar>::iterator tpl_start;
+    std::vector<uint8_t>::iterator tpl_start;
     int tpl_ci {}; // 1 byte
     int tpl_acc {}; // 1 byte
     int tpl_sts {}; // 1 byte
@@ -507,56 +510,56 @@ public:
     int tpl_num_encr_blocks {};
     int tpl_cfg_ext {}; // 1 byte
     int tpl_kdf_selection {}; // 1 byte
-    std::vector<uchar> tpl_generated_key; // 16 bytes
-    std::vector<uchar> tpl_generated_mac_key; // 16 bytes
+    std::vector<uint8_t> tpl_generated_key; // 16 bytes
+    std::vector<uint8_t> tpl_generated_mac_key; // 16 bytes
 
     bool  tpl_id_found {}; // If set to true, then tpl_id_b contains valid values.
-    std::vector<uchar> tpl_a; // A field 6 bytes
+    std::vector<uint8_t> tpl_a; // A field 6 bytes
     // The 6 a field bytes are composed of 4 id bytes, version and type.
-    uchar tpl_id_b[4] {}; // 4 bytes
-    uchar tpl_mfct_b[2] {}; // 2 bytes
+    uint8_t tpl_id_b[4] {}; // 4 bytes
+    uint8_t tpl_mfct_b[2] {}; // 2 bytes
     int   tpl_mfct {};
-    uchar tpl_version {}; // 1 bytes
-    uchar tpl_type {}; // 1 bytes
+    uint8_t tpl_version {}; // 1 bytes
+    uint8_t tpl_type {}; // 1 bytes
 
     // The format signature is used for compact frames.
     int format_signature {};
 
-    std::vector<uchar> frame; // Content of frame, potentially decrypted.
-    std::vector<uchar> parsed;  // Parsed bytes with explanations.
+    std::vector<uint8_t> frame; // Content of frame, potentially decrypted.
+    std::vector<uint8_t> parsed;  // Parsed bytes with explanations.
     int header_size {}; // Size of headers before the APL content.
     int suffix_size {}; // Size of suffix after the APL content. Usually empty, but can be MACs!
     int mfct_0f_index = -1; // -1 if not found, else index of the 0f byte, if found, inside the difvif data after the header.
     int mfct_1f_index = -1; // -1 if not found, else index of the 1f byte, if found, then there are more records in the next telegram.
     int force_mfct_index = -1; // Force all data after this offset to be mfct specific. Used for meters not using 0f.
-    void extractFrame(std::vector<uchar> *fr); // Extract to full frame.
-    void extractPayload(std::vector<uchar> *pl); // Extract frame data containing the measurements, after the header and not the suffix.
-    void extractMfctData(std::vector<uchar> *pl); // Extract frame data after the DIF 0x0F.
+    void extractFrame(std::vector<uint8_t> *fr); // Extract to full frame.
+    void extractPayload(std::vector<uint8_t> *pl); // Extract frame data containing the measurements, after the header and not the suffix.
+    void extractMfctData(std::vector<uint8_t> *pl); // Extract frame data after the DIF 0x0F.
 
     bool handled {}; // Set to true, when a meter has accepted the telegram.
 
-    bool parseHeader(std::vector<uchar> &input_frame);
-    bool parse(std::vector<uchar> &input_frame, MeterKeys *mk, bool warn);
+    bool parseHeader(std::vector<uint8_t> &input_frame);
+    bool parse(std::vector<uint8_t> &input_frame, MeterKeys *mk, bool warn);
 
-    bool parseMBUSHeader(std::vector<uchar> &input_frame);
-    bool parseMBUS(std::vector<uchar> &input_frame, MeterKeys *mk, bool warn);
+    bool parseMBUSHeader(std::vector<uint8_t> &input_frame);
+    bool parseMBUS(std::vector<uint8_t> &input_frame, MeterKeys *mk, bool warn);
 
-    bool parseWMBUSHeader(std::vector<uchar> &input_frame);
-    bool parseWMBUS(std::vector<uchar> &input_frame, MeterKeys *mk, bool warn);
+    bool parseWMBUSHeader(std::vector<uint8_t> &input_frame);
+    bool parseWMBUS(std::vector<uint8_t> &input_frame, MeterKeys *mk, bool warn);
 
-    bool parseHANHeader(std::vector<uchar> &input_frame);
-    bool parseHAN(std::vector<uchar> &input_frame, MeterKeys *mk, bool warn);
+    bool parseHANHeader(std::vector<uint8_t> &input_frame);
+    bool parseHAN(std::vector<uint8_t> &input_frame, MeterKeys *mk, bool warn);
 
-    void addAddressMfctFirst(const std::vector<uchar>::iterator &pos);
-    void addAddressIdFirst(const std::vector<uchar>::iterator &pos);
+    void addAddressMfctFirst(const std::vector<uint8_t>::iterator &pos);
+    void addAddressIdFirst(const std::vector<uint8_t>::iterator &pos);
 
     void print();
 
     // A vector of indentations and explanations, to be printed
     // below the raw data bytes to explain the telegram content.
     std::vector<Explanation> explanations;
-    void addExplanationAndIncrementPos(std::vector<uchar>::iterator &pos, int len, KindOfData k, Understanding u, const char* fmt, ...);
-    void setExplanation(std::vector<uchar>::iterator &pos, int len, KindOfData k, Understanding u, const char* fmt, ...);
+    void addExplanationAndIncrementPos(std::vector<uint8_t>::iterator &pos, int len, KindOfData k, Understanding u, const char* fmt, ...);
+    void setExplanation(std::vector<uint8_t>::iterator &pos, int len, KindOfData k, Understanding u, const char* fmt, ...);
     void addMoreExplanation(int pos, const char* fmt, ...);
     void addMoreExplanation(int pos, std::string json);
     void addIXMLExplanation(int pos, const char *ixml_parse);
@@ -579,7 +582,7 @@ public:
     std::string autoDetectPossibleDrivers();
 
     // part of original telegram bytes, only filled if pre-processing modifies it
-    std::vector<uchar> original;
+    std::vector<uint8_t> original;
 
 private:
 
@@ -591,13 +594,13 @@ private:
     // Fixes quirks from non-compliant meters to make telegram compatible with the standard
     void preProcess();
 
-    bool parseMBusDLLandTPL(std::vector<uchar>::iterator &pos);
+    bool parseMBusDLLandTPL(std::vector<uint8_t>::iterator &pos);
 
-    bool parseDLL(std::vector<uchar>::iterator &pos);
-    bool parseELL(std::vector<uchar>::iterator &pos);
-    bool parseNWL(std::vector<uchar>::iterator &pos);
-    bool parseAFL(std::vector<uchar>::iterator &pos);
-    bool parseTPL(std::vector<uchar>::iterator &pos);
+    bool parseDLL(std::vector<uint8_t>::iterator &pos);
+    bool parseELL(std::vector<uint8_t>::iterator &pos);
+    bool parseNWL(std::vector<uint8_t>::iterator &pos);
+    bool parseAFL(std::vector<uint8_t>::iterator &pos);
+    bool parseTPL(std::vector<uint8_t>::iterator &pos);
 
     void printDLL();
     void printELL();
@@ -605,26 +608,26 @@ private:
     void printAFL();
     void printTPL();
 
-    bool parse_TPL_72(std::vector<uchar>::iterator &pos);
-    bool parse_TPL_78(std::vector<uchar>::iterator &pos);
-    bool parse_TPL_79(std::vector<uchar>::iterator &pos);
-    bool parse_TPL_7A(std::vector<uchar>::iterator &pos);
-    bool alreadyDecryptedCBC(std::vector<uchar>::iterator &pos);
-    bool potentiallyDecrypt(std::vector<uchar>::iterator &pos);
-    bool parseTPLConfig(std::vector<uchar>::iterator &pos);
+    bool parse_TPL_72(std::vector<uint8_t>::iterator &pos);
+    bool parse_TPL_78(std::vector<uint8_t>::iterator &pos);
+    bool parse_TPL_79(std::vector<uint8_t>::iterator &pos);
+    bool parse_TPL_7A(std::vector<uint8_t>::iterator &pos);
+    bool alreadyDecryptedCBC(std::vector<uint8_t>::iterator &pos);
+    bool potentiallyDecrypt(std::vector<uint8_t>::iterator &pos);
+    bool parseTPLConfig(std::vector<uint8_t>::iterator &pos);
     static std::string toStringFromELLSN(int sn);
     static std::string toStringFromTPLConfig(int cfg);
     static std::string toStringFromAFLFC(int fc);
     static std::string toStringFromAFLMC(int mc);
 
-    bool parseShortTPL(std::vector<uchar>::iterator &pos);
-    bool parseLongTPL(std::vector<uchar>::iterator &pos);
-    bool checkMAC(std::vector<uchar> &frame,
-                  std::vector<uchar>::iterator from,
-                  std::vector<uchar>::iterator to,
-                  std::vector<uchar> &mac,
-                  std::vector<uchar> &mackey);
-    bool findFormatBytesFromKnownMeterSignatures(std::vector<uchar> *format_bytes);
+    bool parseShortTPL(std::vector<uint8_t>::iterator &pos);
+    bool parseLongTPL(std::vector<uint8_t>::iterator &pos);
+    bool checkMAC(std::vector<uint8_t> &frame,
+                  std::vector<uint8_t>::iterator from,
+                  std::vector<uint8_t>::iterator to,
+                  std::vector<uint8_t> &mac,
+                  std::vector<uint8_t> &mackey);
+    bool findFormatBytesFromKnownMeterSignatures(std::vector<uint8_t> *format_bytes);
 };
 
 struct SendBusContent
@@ -672,8 +675,8 @@ struct BusDevice
     virtual bool canSetLinkModes(LinkModeSet lms) = 0;
     virtual void setLinkModes(LinkModeSet lms) = 0;
     virtual void setDeviceMode(DeviceMode mode) = 0;
-    virtual void onTelegram(std::function<bool(AboutTelegram&,std::vector<uchar>)> cb) = 0;
-    virtual bool sendTelegram(LinkMode link_mode, TelegramFormat format, std::vector<uchar> &content) = 0;
+    virtual void onTelegram(std::function<bool(AboutTelegram&,std::vector<uint8_t>)> cb) = 0;
+    virtual bool sendTelegram(LinkMode link_mode, TelegramFormat format, std::vector<uint8_t> &content) = 0;
     virtual SerialDevice *serial() = 0;
     // Return true of the serial has been overridden, usually with stdin or a file.
     virtual bool serialOverride() = 0;
@@ -783,13 +786,13 @@ std::string vifeType(int dif, int vif, int vife); // Long description
 
 // Decode only the standard defined bits in the tpl status byte. Ignore the top 3 bits.
 // Return "OK" if sts == 0
-std::string decodeTPLStatusByteOnlyStandardBits(uchar sts);
+std::string decodeTPLStatusByteOnlyStandardBits(uint8_t sts);
 // Decode the standard bits and report the top 3 bits if set as for example: UNKNOWN_0x80
 // Return "OK" if sts == 0
-std::string decodeTPLStatusByteNoMfct(uchar sts);
+std::string decodeTPLStatusByteNoMfct(uint8_t sts);
 // Decode the standard bits and translate the top 3 bits if set.
 // Return "OK" if sts == 0
-std::string decodeTPLStatusByteWithMfct(uchar sts, Translate::Lookup &lookup);
+std::string decodeTPLStatusByteWithMfct(uint8_t sts, Translate::Lookup &lookup);
 
 int difLenBytes(int dif);
 MeasurementType difMeasurementType(int dif);
@@ -801,13 +804,13 @@ enum FrameStatus { PartialFrame, FullFrame, ErrorInFrame, TextAndNotFrame };
 const char *toString(FrameStatus fs);
 
 
-FrameStatus checkWMBusFrame(std::vector<uchar> &data,
+FrameStatus checkWMBusFrame(std::vector<uint8_t> &data,
                             size_t *frame_length,
                             int *payload_len_out,
                             int *payload_offset,
                             bool only_test);
 
-FrameStatus checkMBusFrame(std::vector<uchar> &data,
+FrameStatus checkMBusFrame(std::vector<uint8_t> &data,
                            size_t *frame_length,
                            int *payload_len_out,
                            int *payload_offset,
@@ -842,12 +845,12 @@ Detected detectBusDeviceOnTTY(std::string tty,
                               std::string bps = std::string());
 
 // Remember meters id/mfct/ver/type combos that we should only warn once for.
-bool warned_for_telegram_before(Telegram *t, std::vector<uchar> &dll_a);
+bool warned_for_telegram_before(Telegram *t, std::vector<uint8_t> &dll_a);
 
 ////////////////// MBUS
 
-const char *mbusCField(uchar c_field);
-const char *mbusCiField(uchar ci_field);
+const char *mbusCField(uint8_t c_field);
+const char *mbusCiField(uint8_t ci_field);
 
 int genericifyMedia(int media);
 bool isCloseEnough(int media1, int media2);

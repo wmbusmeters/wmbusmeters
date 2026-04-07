@@ -18,12 +18,14 @@
 #ifndef METERS_COMMON_IMPLEMENTATION_H_
 #define METERS_COMMON_IMPLEMENTATION_H_
 
+#include"address.h"
 #include"dvparser.h"
 #include"meters.h"
 #include"threads.h"
+#include"translatebits.h"
 #include"units.h"
 
-#include<assert.h>
+#include<cassert>
 #include<map>
 #include<set>
 
@@ -170,7 +172,7 @@ protected:
     // The default implementation of poll does nothing.
     // Override for mbus meters that need to be queried and likewise for C2/T2 wmbus-meters.
     void poll(std::shared_ptr<BusManager> bus);
-    bool handleTelegram(AboutTelegram &about,std::vector<uchar> frame,
+    bool handleTelegram(AboutTelegram &about,std::vector<uint8_t> frame,
                         bool simulated, std::vector<Address> *addresses,
                         bool *id_match, Telegram *out_analyzed = NULL);
     void createMeterEnv(std::string id,
@@ -212,7 +214,7 @@ protected:
     bool hasNumericValue(FieldInfo *fi);
     bool hasStringValue(FieldInfo *fi);
 
-    std::string decodeTPLStatusByte(uchar sts);
+    std::string decodeTPLStatusByte(uint8_t sts);
 
     bool addOptionalLibraryFields(std::string fields);
 

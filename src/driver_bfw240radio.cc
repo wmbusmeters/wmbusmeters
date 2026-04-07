@@ -69,7 +69,7 @@ namespace
     }
 
 
-    int getHistoric(int n, vector<uchar> &content)
+    int getHistoric(int n, vector<uint8_t> &content)
     {
         assert(n >= 0 && n < 18);
         assert(content.size() >= 40);
@@ -77,7 +77,7 @@ namespace
         int offset = (n*12)/8;
         int remainder = (n*12)%8;
 
-        uchar lo, hi;
+        uint8_t lo, hi;
 
         if (remainder == 0)
         {
@@ -109,7 +109,7 @@ namespace
     */
     void Driver::processContent(Telegram *t)
     {
-        vector<uchar> content;
+        vector<uint8_t> content;
         t->extractPayload(&content);
 
         if (content.size() < 40) return;

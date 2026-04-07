@@ -49,12 +49,12 @@ struct WMBusRawTTY : public virtual BusDeviceCommonImplementation
 
 private:
 
-    void copy(vector<uchar> *from, vector<uchar> *to);
+    void copy(vector<uint8_t> *from, vector<uint8_t> *to);
 
-    vector<uchar> read_buffer_;
-    vector<uchar> data_buffer_;
+    vector<uint8_t> read_buffer_;
+    vector<uint8_t> data_buffer_;
     LinkModeSet link_modes_;
-    vector<uchar> received_payload_;
+    vector<uint8_t> received_payload_;
 };
 
 shared_ptr<BusDevice> openRawTTYInternal(Detected detected,
@@ -140,7 +140,7 @@ bool WMBusRawTTY::deviceSetLinkModes(LinkModeSet lms)
     return true;
 }
 
-void WMBusRawTTY::copy(vector<uchar> *from, vector<uchar> *to)
+void WMBusRawTTY::copy(vector<uint8_t> *from, vector<uint8_t> *to)
 {
     if (type() == BusDeviceType::DEVICE_RAWTTY)
     {
@@ -154,10 +154,10 @@ void WMBusRawTTY::copy(vector<uchar> *from, vector<uchar> *to)
     if (type() == BusDeviceType::DEVICE_HEXTTY)
     {
         // We expect hex chars incoming. Everything else is thrown away.
-        vector<uchar> hex;
+        vector<uint8_t> hex;
         int num_hex = 0;
         int num_other = 0;
-        for (uchar c : *from)
+        for (uint8_t c : *from)
         {
             if (isHexChar(c))
             {
@@ -181,7 +181,7 @@ void WMBusRawTTY::copy(vector<uchar> *from, vector<uchar> *to)
                 hex.pop_back();
             }
             // We now have an even number of hex chars to work with!
-            vector<uchar> bin;
+            vector<uint8_t> bin;
             bool ok = hex2bin(hex, &bin);
             assert(ok);
             debug("converted %zu hex bytes into %zu binary bytes.\n", hex.size(), bin.size());
@@ -195,7 +195,7 @@ void WMBusRawTTY::copy(vector<uchar> *from, vector<uchar> *to)
 
 void WMBusRawTTY::processSerialData()
 {
-    vector<uchar> data;
+    vector<uint8_t> data;
 
     // Receive and accumulated serial data until a full frame has been received.
     serial()->receive(&data);
@@ -234,7 +234,7 @@ void WMBusRawTTY::processSerialData()
         }
         if (status == FullFrame)
         {
-            vector<uchar> payload;
+            vector<uint8_t> payload;
             if (payload_len > 0)
             {
                 payload.insert(payload.end(), payload_len); // Re-insert the len byte.

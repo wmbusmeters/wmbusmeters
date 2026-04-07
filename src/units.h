@@ -18,10 +18,10 @@
 #ifndef UNITS_H
 #define UNITS_H
 
-#include<assert.h>
+#include<cassert>
+#include<cstdint>
 #include<string>
 #include<vector>
-#include<cstdint>
 
 // A named quantity has a preferred unit,
 // ie Volume has m3 (cubic meters) Energy has kwh, Power has kw.

@@ -18,7 +18,7 @@
 #ifndef SERIAL_H_
 #define SERIAL_H_
 
-#include"util.h"
+enum class AccessCheck;
 
 #include<functional>
 #include<memory>
@@ -42,12 +42,12 @@ struct SerialDevice
     // Explicitly closed fd == -1
     virtual bool isClosed() = 0;
     // Send will return true only if sending on a tty.
-    virtual bool send(std::vector<uchar> &data) = 0;
+    virtual bool send(std::vector<uint8_t> &data) = 0;
     // Receive returns the number of bytes received.
-    virtual int receive(std::vector<uchar> *data) = 0;
+    virtual int receive(std::vector<uint8_t> *data) = 0;
     // Read and skip until the desired character is found
     // and no further bytes can be read.
-    virtual bool waitFor(uchar c) = 0;
+    virtual bool waitFor(uint8_t c) = 0;
     virtual int fd() = 0;
     virtual bool opened() = 0;
     virtual bool working() = 0;
@@ -64,7 +64,7 @@ struct SerialDevice
     virtual std::string device() = 0;
 
     virtual bool checkIfDataIsPending() = 0;
-    virtual void fill(std::vector<uchar> &data) = 0; // Fill buffer with raw data.
+    virtual void fill(std::vector<uint8_t> &data) = 0; // Fill buffer with raw data.
     virtual SerialCommunicationManager *manager() = 0;
 
     // Socket-specific methods (no-op defaults for non-socket devices)

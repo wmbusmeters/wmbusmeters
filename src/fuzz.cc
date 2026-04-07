@@ -17,10 +17,7 @@
 
 #include"cmdline.h"
 #include"meters.h"
-#include"printer.h"
 #include"serial.h"
-#include"util.h"
-#include"wmbus.h"
 #include"dvparser.h"
 
 #include<unistd.h>
@@ -32,7 +29,7 @@ int main(int argc, char **argv)
     // Fuzzying currently only tests the parsing of difvif wmbus data.
     // The binary difvif data is sent on stdin.
     char buf[1024];
-    vector<uchar> databytes;
+    vector<uint8_t> databytes;
     vector<char> *ptr = reinterpret_cast<vector<char>*>(&databytes);
     if (argc > 1 && argv[1][0] != 0)
     {
@@ -52,7 +49,7 @@ int main(int argc, char **argv)
     map<string,pair<int,DVEntry>> dv_entries;
 
     Telegram t;
-    vector<uchar>::iterator i = databytes.begin();
+    vector<uint8_t>::iterator i = databytes.begin();
 
     parseDV(&t, databytes, i, databytes.size(), &dv_entries);
 }

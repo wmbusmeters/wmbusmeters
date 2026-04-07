@@ -70,7 +70,7 @@ namespace
         // 00826100 _ 35AE6A130B8A8CF07C0C6F9EA35C8C5274671347D73DA9810CD664F2F9616388CE7B4835BD06D7E2253741F2667DC5D8C
         if (content.length() >= 8)
         {
-            vector<uchar> bytes;
+            vector<uint8_t> bytes;
             content = content.substr(0, 8);
             ok = hex2bin(content, &bytes);
             if (!ok) return;

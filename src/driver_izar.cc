@@ -52,7 +52,7 @@ namespace
         string currentAlarmsText(IzarAlarms &alarms);
         string previousAlarmsText(IzarAlarms &alarms);
 
-        vector<uchar> decodePrios(const vector<uchar> &origin, const vector<uchar> &payload, uint32_t key);
+        vector<uint8_t> decodePrios(const vector<uint8_t> &origin, const vector<uint8_t> &payload, uint32_t key);
 
         vector<uint32_t> keys;
     };
@@ -188,11 +188,11 @@ namespace
 
     void Driver::processContent(Telegram *t)
     {
-        vector<uchar> frame;
+        vector<uint8_t> frame;
         t->extractFrame(&frame);
-        vector<uchar> origin = t->original.empty() ? frame : t->original;
+        vector<uint8_t> origin = t->original.empty() ? frame : t->original;
 
-        vector<uchar> decoded_content;
+        vector<uint8_t> decoded_content;
         for (auto& key : keys) {
             decoded_content = decodePrios(origin, frame, key);
             if (!decoded_content.empty())
@@ -224,9 +224,9 @@ namespace
             setStringValue("serial_number", tostrprintf("%06d", serial_number), NULL);
 
             // get letters
-            uchar supplier_code = '@' + (((origin[9] & 0x0F) << 1) | (origin[8] >> 7));
-            uchar meter_type = '@' + ((origin[8] & 0x7C) >> 2);
-            uchar diameter = '@' + (((origin[8] & 0x03) << 3) | (origin[7] >> 5));
+            uint8_t supplier_code = '@' + (((origin[9] & 0x0F) << 1) | (origin[8] >> 7));
+            uint8_t meter_type = '@' + ((origin[8] & 0x7C) >> 2);
+            uint8_t diameter = '@' + (((origin[8] & 0x03) << 3) | (origin[7] >> 5));
             // build the prefix
             string prefix = tostrprintf("%c%02d%c%c", supplier_code, yy, meter_type, diameter);
             setStringValue("prefix", prefix, NULL);
@@ -281,7 +281,7 @@ namespace
         setStringValue("previous_alarms", previousAlarmsText(alarms));
     }
 
-    vector<uchar> Driver::decodePrios(const vector<uchar> &origin, const vector<uchar> &frame, uint32_t key)
+    vector<uint8_t> Driver::decodePrios(const vector<uint8_t> &origin, const vector<uint8_t> &frame, uint32_t key)
     {
         return decodeDiehlLfsr(origin, frame, key, DiehlLfsrCheckMethod::HEADER_1_BYTE, 0x4B);
     }

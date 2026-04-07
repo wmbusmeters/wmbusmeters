@@ -18,22 +18,18 @@
 #include"bus.h"
 #include"cmdline.h"
 #include"config.h"
-#include"meters.h"
-#include"printer.h"
 #include"rtlsdr.h"
 #include"serial.h"
 #include"shell.h"
 #include"threads.h"
 #include"util.h"
-#include"wmbus.h"
 
-#include <assert.h>
 #include <algorithm>
+#include <cassert>
 #include <fcntl.h>
 #include <pthread.h>
 #include <semaphore.h>
 #include <set>
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
@@ -165,7 +161,7 @@ void BusManager::openBusDeviceAndPotentiallySetLinkmodes(Configuration *config, 
         debug("(main) added %s to files\n", detected->found_file.c_str());
         simulation_files_.insert(detected->specified_device.file);
     }
-    wmbus->onTelegram([&, simulated](AboutTelegram &about,vector<uchar> data){return meter_manager_->handleTelegram(about, data, simulated);});
+    wmbus->onTelegram([&, simulated](AboutTelegram &about,vector<uint8_t> data){return meter_manager_->handleTelegram(about, data, simulated);});
     wmbus->setTimeout(config->alarm_timeout, config->alarm_expected_activity);
 }
 
@@ -834,7 +830,7 @@ void BusManager::sendQueue()
             warning("(bus) could not send too long hex, maximum is 500 hex chars %s\n", sbc.content.c_str());
             continue;
         }
-        vector<uchar> content;
+        vector<uint8_t> content;
         bool ok = hex2bin(sbc.content, &content);
         if (!ok)
         {

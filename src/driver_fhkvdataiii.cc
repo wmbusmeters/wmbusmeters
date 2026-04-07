@@ -80,7 +80,7 @@ namespace
         // simple wrapped inside a wmbus telegram since the ci-field is 0xa0.
         // Which means that the entire payload is manufacturer specific.
 
-        vector<uchar> content;
+        vector<uint8_t> content;
 
         t->extractPayload(&content);
 
@@ -94,8 +94,8 @@ namespace
 
         // Previous Date ////////////////////////////////////////////////////////
 
-        uchar date_prev_lo = content[1];
-        uchar date_prev_hi = content[2];
+        uint8_t date_prev_lo = content[1];
+        uint8_t date_prev_hi = content[2];
         int date_prev = (256.0*date_prev_hi+date_prev_lo);
 
         int day_prev = (date_prev >> 0) & 0x1F;
@@ -117,8 +117,8 @@ namespace
 
         // Previous Consumption //////////////////////////////////////////////////////////
 
-        uchar prev_lo = content[3];
-        uchar prev_hi = content[4];
+        uint8_t prev_lo = content[3];
+        uint8_t prev_hi = content[4];
         double prev = (256.0*prev_hi+prev_lo);
         double previous_hca = prev;
         setNumericValue("previous", Unit::HCA, previous_hca);
@@ -131,8 +131,8 @@ namespace
 
         // Current Date //////////////////////////////////////////////////////////////////
 
-        uchar date_curr_lo = content[5];
-        uchar date_curr_hi = content[6];
+        uint8_t date_curr_lo = content[5];
+        uint8_t date_curr_hi = content[6];
         int date_curr = (256.0*date_curr_hi+date_curr_lo);
 
         int day_curr = (date_curr >> 4) & 0x1F;
@@ -159,8 +159,8 @@ namespace
 
         // Current Consumption ///////////////////////////////////////////////////////////
 
-        uchar curr_lo = content[7];
-        uchar curr_hi = content[8];
+        uint8_t curr_lo = content[7];
+        uint8_t curr_hi = content[8];
         double current_hca = (256.0*curr_hi+curr_lo);
 
         setNumericValue("current", Unit::HCA, current_hca);
@@ -173,10 +173,10 @@ namespace
 
         // Temperatures //////////////////////////////////////////////
 
-        uchar room_tlo;
-        uchar room_thi;
-        uchar radiator_tlo;
-        uchar radiator_thi;
+        uint8_t room_tlo;
+        uint8_t room_thi;
+        uint8_t radiator_tlo;
+        uint8_t radiator_thi;
         int offset = 9;
 
         if(t->dll_version == 0x94)

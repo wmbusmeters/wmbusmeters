@@ -39,10 +39,10 @@ using namespace std;
 
 struct IM871ADeviceInfo
 {
-    uchar module_type; // 0x33 = im871a 0x36 = im170a
-    uchar device_mode; // 0 = collector(other) 1 = meter
-    uchar firmware_version; // 13 hci 1.6 and 14 hci 1.7
-    uchar hci_version;  // serial protocol?
+    uint8_t module_type; // 0x33 = im871a 0x36 = im170a
+    uint8_t device_mode; // 0 = collector(other) 1 = meter
+    uint8_t firmware_version; // 13 hci 1.6 and 14 hci 1.7
+    uint8_t hci_version;  // serial protocol?
     uint32_t uid;
 
     string str()
@@ -63,7 +63,7 @@ struct IM871ADeviceInfo
         return s+ss;
     }
 
-    bool decode(vector<uchar> &bytes)
+    bool decode(vector<uint8_t> &bytes)
     {
         if (bytes.size() < 8) return false;
         int i = 0;
@@ -79,24 +79,24 @@ struct IM871ADeviceInfo
 struct ConfigIM871AIM170A
 {
     // first variable group
-    uchar device_mode;
-    uchar link_mode;
-    uchar c_field;
+    uint8_t device_mode;
+    uint8_t link_mode;
+    uint8_t c_field;
     uint16_t mfct;
     uint32_t id;
-    uchar version;
-    uchar media;
-    uchar radio_channel;
+    uint8_t version;
+    uint8_t media;
+    uint8_t radio_channel;
 
     // second variable group
-    uchar radio_power_level;
-    uchar radio_data_rate;
-    uchar radio_rx_window;
-    uchar auto_power_saving;
-    uchar auto_rssi;
-    uchar auto_rx_timestamp;
-    uchar led_control;
-    uchar rtc_control;
+    uint8_t radio_power_level;
+    uint8_t radio_data_rate;
+    uint8_t radio_rx_window;
+    uint8_t auto_power_saving;
+    uint8_t auto_rssi;
+    uint8_t auto_rx_timestamp;
+    uint8_t led_control;
+    uint8_t rtc_control;
 
     string dongleId()
     {
@@ -121,11 +121,11 @@ struct ConfigIM871AIM170A
         return s+ids;
     }
 
-    bool decode(vector<uchar> &bytes)
+    bool decode(vector<uint8_t> &bytes)
     {
         if (bytes.size() < 2) return false;
         size_t i = 0;
-        uchar iiflag1 = bytes[i++]; if (i >= bytes.size()) return false;
+        uint8_t iiflag1 = bytes[i++]; if (i >= bytes.size()) return false;
         if (iiflag1 & 0x01) { device_mode = bytes[i++]; } if (i >= bytes.size()) return false;
         if (iiflag1 & 0x02) { link_mode = bytes[i++]; } if (i >= bytes.size()) return false;
         if (iiflag1 & 0x04) { c_field = bytes[i++]; } if (i+1 >= bytes.size()) return false;
@@ -135,7 +135,7 @@ struct ConfigIM871AIM170A
         if (iiflag1 & 0x40) { media = bytes[i++]; } if (i >= bytes.size()) return false;
         if (iiflag1 & 0x80) { radio_channel = bytes[i++]; } if (i >= bytes.size()) return false;
 
-        uchar iiflag2 = bytes[i++]; if (i >= bytes.size()) return false;
+        uint8_t iiflag2 = bytes[i++]; if (i >= bytes.size()) return false;
         if (iiflag2 & 0x01) { radio_power_level = bytes[i++]; } if (i >= bytes.size()) return false;
         if (iiflag2 & 0x02) { radio_data_rate = bytes[i++]; } if (i >= bytes.size()) return false;
         if (iiflag2 & 0x04) { radio_rx_window = bytes[i++]; } if (i >= bytes.size()) return false;
@@ -165,7 +165,7 @@ struct WMBusIM871aIM170A : public virtual BusDeviceCommonImplementation
     bool ping();
     string getDeviceId();
     string getDeviceUniqueId();
-    uchar getFirmwareVersion();
+    uint8_t getFirmwareVersion();
     LinkModeSet getLinkModes();
     void deviceReset();
     bool deviceSetLinkModes(LinkModeSet lms);
@@ -220,7 +220,7 @@ struct WMBusIM871aIM170A : public virtual BusDeviceCommonImplementation
         // Otherwise its a single link mode.
         return 1 == countSetBits(lms.asBits());
     }
-    bool sendTelegram(LinkMode lm, TelegramFormat format, vector<uchar> &content);
+    bool sendTelegram(LinkMode lm, TelegramFormat format, vector<uint8_t> &content);
 
     void processSerialData();
     void simulate() { }
@@ -229,7 +229,7 @@ struct WMBusIM871aIM170A : public virtual BusDeviceCommonImplementation
     ~WMBusIM871aIM170A() {
     }
 
-    static FrameStatus checkIM871AFrame(vector<uchar> &data,
+    static FrameStatus checkIM871AFrame(vector<uint8_t> &data,
                                         size_t *frame_length, int *endpoint_out, int *msgid_out,
                                         int *payload_len_out, int *payload_offset,
                                         int *rssi_dbm);
@@ -239,11 +239,11 @@ private:
     IM871ADeviceInfo device_info_ {};
     ConfigIM871AIM170A device_config_ {};
 
-    uchar last_set_link_mode_ { 0x00 };
+    uint8_t last_set_link_mode_ { 0x00 };
 
-    vector<uchar> read_buffer_;
-    vector<uchar> request_;
-    vector<uchar> response_;
+    vector<uint8_t> read_buffer_;
+    vector<uint8_t> request_;
+    vector<uint8_t> response_;
 
     bool getDeviceInfo();
     bool loaded_device_info_ {};
@@ -251,10 +251,10 @@ private:
     bool getConfig();
 
     friend AccessCheck detectIM871AIM170A(Detected *detected, shared_ptr<SerialCommunicationManager> manager);
-    void handleDevMgmt(int msgid, vector<uchar> &payload);
-    void handleRadioLink(int msgid, vector<uchar> &payload, int rssi_dbm);
-    void handleRadioLinkTest(int msgid, vector<uchar> &payload);
-    void handleHWTest(int msgid, vector<uchar> &payload);
+    void handleDevMgmt(int msgid, vector<uint8_t> &payload);
+    void handleRadioLink(int msgid, vector<uint8_t> &payload, int rssi_dbm);
+    void handleRadioLinkTest(int msgid, vector<uint8_t> &payload);
+    void handleHWTest(int msgid, vector<uint8_t> &payload);
 };
 
 
@@ -355,7 +355,7 @@ string WMBusIM871aIM170A::getDeviceUniqueId()
     return cached_device_unique_id_;
 }
 
-uchar WMBusIM871aIM170A::getFirmwareVersion()
+uint8_t WMBusIM871aIM170A::getFirmwareVersion()
 {
     if (serial()->readonly()) return 0x15; // Feeding from stdin or file.
 
@@ -535,7 +535,7 @@ void WMBusIM871aIM170A::deviceReset()
     // set the link modes properly.
 }
 
-uchar setupIMSTBusDeviceToReceiveTelegrams(LinkModeSet lms, int firmware)
+uint8_t setupIMSTBusDeviceToReceiveTelegrams(LinkModeSet lms, int firmware)
 {
     if (lms.has(LinkMode::C1) && lms.has(LinkMode::T1))
     {
@@ -601,7 +601,7 @@ uchar setupIMSTBusDeviceToReceiveTelegrams(LinkModeSet lms, int firmware)
     return 0xff;
 }
 
-uchar setupIMSTBusDeviceToSendTelegram(LinkMode lm)
+uint8_t setupIMSTBusDeviceToSendTelegram(LinkMode lm)
 {
     if (lm == LinkMode::S1)
     {
@@ -730,7 +730,7 @@ bool WMBusIM871aIM170A::deviceSetLinkModes(LinkModeSet lms)
     return rc;
 }
 
-FrameStatus WMBusIM871aIM170A::checkIM871AFrame(vector<uchar> &data,
+FrameStatus WMBusIM871aIM170A::checkIM871AFrame(vector<uint8_t> &data,
                                                 size_t *frame_length, int *endpoint_out, int *msgid_out,
                                                 int *payload_len_out, int *payload_offset,
                                                 int *rssi_dbm)
@@ -858,7 +858,7 @@ FrameStatus WMBusIM871aIM170A::checkIM871AFrame(vector<uchar> &data,
 
 void WMBusIM871aIM170A::processSerialData()
 {
-    vector<uchar> data;
+    vector<uint8_t> data;
 
     // Receive and accumulated serial data until a full frame has been received.
     serial()->receive(&data);
@@ -893,7 +893,7 @@ void WMBusIM871aIM170A::processSerialData()
         }
         if (status == FullFrame)
         {
-            vector<uchar> payload;
+            vector<uint8_t> payload;
             if (payload_len > 0)
             {
                 if (endpoint == RADIOLINK_ID &&
@@ -920,7 +920,7 @@ void WMBusIM871aIM170A::processSerialData()
     }
 }
 
-void WMBusIM871aIM170A::handleDevMgmt(int msgid, vector<uchar> &payload)
+void WMBusIM871aIM170A::handleDevMgmt(int msgid, vector<uint8_t> &payload)
 {
     switch (msgid) {
         case DEVMGMT_MSG_PING_RSP: // 0x02
@@ -950,7 +950,7 @@ void WMBusIM871aIM170A::handleDevMgmt(int msgid, vector<uchar> &payload)
     }
 }
 
-void WMBusIM871aIM170A::handleRadioLink(int msgid, vector<uchar> &frame, int rssi_dbm)
+void WMBusIM871aIM170A::handleRadioLink(int msgid, vector<uint8_t> &frame, int rssi_dbm)
 {
     switch (msgid) {
     case RADIOLINK_MSG_WMBUSMSG_IND: // 0x03
@@ -975,7 +975,7 @@ void WMBusIM871aIM170A::handleRadioLink(int msgid, vector<uchar> &frame, int rss
     }
 }
 
-void WMBusIM871aIM170A::handleRadioLinkTest(int msgid, vector<uchar> &payload)
+void WMBusIM871aIM170A::handleRadioLinkTest(int msgid, vector<uint8_t> &payload)
 {
     switch (msgid) {
     default:
@@ -983,7 +983,7 @@ void WMBusIM871aIM170A::handleRadioLinkTest(int msgid, vector<uchar> &payload)
     }
 }
 
-void WMBusIM871aIM170A::handleHWTest(int msgid, vector<uchar> &payload)
+void WMBusIM871aIM170A::handleHWTest(int msgid, vector<uint8_t> &payload)
 {
     switch (msgid) {
     default:
@@ -991,7 +991,7 @@ void WMBusIM871aIM170A::handleHWTest(int msgid, vector<uchar> &payload)
     }
 }
 
-bool extract_response(vector<uchar> &data, vector<uchar> &response, int expected_endpoint, int expected_msgid)
+bool extract_response(vector<uint8_t> &data, vector<uint8_t> &response, int expected_endpoint, int expected_msgid)
 {
     size_t frame_length;
     int endpoint, msgid, payload_len, payload_offset, rssi_dbm;
@@ -1062,7 +1062,7 @@ bool WMBusIM871aIM170A::getConfig()
     return device_config_.decode(response_);
 }
 
-bool WMBusIM871aIM170A::sendTelegram(LinkMode lm, TelegramFormat format, vector<uchar> &content)
+bool WMBusIM871aIM170A::sendTelegram(LinkMode lm, TelegramFormat format, vector<uint8_t> &content)
 {
     if (serial()->readonly()) return true;
     if (content.size() > 250) return false;
@@ -1072,7 +1072,7 @@ bool WMBusIM871aIM170A::sendTelegram(LinkMode lm, TelegramFormat format, vector<
     {
         LOCK_WMBUS_EXECUTING_COMMAND(sendTelegram);
 
-        uchar l = setupIMSTBusDeviceToSendTelegram(lm);
+        uint8_t l = setupIMSTBusDeviceToSendTelegram(lm);
 
         if (l != last_set_link_mode_)
         {
@@ -1198,12 +1198,12 @@ AccessCheck detectIM871AIM170A(Detected *detected, shared_ptr<SerialCommunicatio
         return AccessCheck::NoSuchDevice;
     }
 
-    vector<uchar> response;
+    vector<uint8_t> response;
     // First clear out any data in the queue.
     serial->receive(&response);
     response.clear();
 
-    vector<uchar> request;
+    vector<uint8_t> request;
     request.resize(4);
     request[0] = IM871A_SERIAL_SOF;
     request[1] = DEVMGMT_ID;
@@ -1229,7 +1229,7 @@ AccessCheck detectIM871AIM170A(Detected *detected, shared_ptr<SerialCommunicatio
         return AccessCheck::NoProperResponse;
     }
 
-    vector<uchar> payload;
+    vector<uint8_t> payload;
     payload.insert(payload.end(), response.begin()+payload_offset, response.begin()+payload_offset+payload_len);
 
     debugPayload("(device info bytes)", payload);

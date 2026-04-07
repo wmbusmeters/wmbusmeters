@@ -27,7 +27,7 @@ namespace
         Driver(MeterInfo &mi, DriverInfo &di);
 
         void processContent(Telegram *t);
-        string dateToString(uchar date_lo, uchar date_hi);
+        string dateToString(uint8_t date_lo, uint8_t date_hi);
     };
 
     static bool ok = staticRegisterDriver([](DriverInfo&di)
@@ -81,7 +81,7 @@ namespace
 
     void Driver::processContent(Telegram *t)
     {
-        vector<uchar> content;
+        vector<uint8_t> content;
         t->extractPayload(&content);
 
         if (t->tpl_ci == 0xB6) {
@@ -113,32 +113,32 @@ namespace
         // Note: may be wrong, requires confirmation as all meters I see in range
         //       report start date 1.05, installed in 2016 and field is A0A1h
         // Note: NOT byte swapped. Accidentally? works via dateToString conversion.
-        uchar season_start_date_lo = content[1];
-        uchar season_start_date_hi = content[0];
+        uint8_t season_start_date_lo = content[1];
+        uint8_t season_start_date_hi = content[0];
         string season_start_date = dateToString(season_start_date_lo, season_start_date_hi);
         setStringValue("season_start_date", season_start_date, NULL);
 
         // Previous season total allocation
-        uchar prev_lo = content[4];
-        uchar prev_hi = content[5];
+        uint8_t prev_lo = content[4];
+        uint8_t prev_hi = content[5];
         double previous_hca = (256.0*prev_hi+prev_lo);
         setNumericValue("previous", Unit::HCA, previous_hca);
 
         // Electronic seal break date
-        uchar esb_date_lo = content[6];
-        uchar esb_date_hi = content[7];
+        uint8_t esb_date_lo = content[6];
+        uint8_t esb_date_hi = content[7];
         string esb_date = dateToString(esb_date_lo, esb_date_hi);
         setStringValue("esb_date", esb_date, NULL);
 
         // Current season allocation
-        uchar curr_lo = content[8];
-        uchar curr_hi = content[9];
+        uint8_t curr_lo = content[8];
+        uint8_t curr_hi = content[9];
         double current_hca = (256.0*curr_hi+curr_lo);
         setNumericValue("current", Unit::HCA, current_hca);
 
         // Current date reported by meter
-        uchar date_curr_lo = content[10];
-        uchar date_curr_hi = content[11];
+        uint8_t date_curr_lo = content[10];
+        uint8_t date_curr_hi = content[11];
         string current_date = dateToString(date_curr_lo, date_curr_hi);
         setStringValue("current_date", current_date, NULL);
 
@@ -155,7 +155,7 @@ namespace
         setNumericValue("temp_room_avg", Unit::C, temp_room_avg);
     }
 
-    string Driver::dateToString(uchar date_lo, uchar date_hi) {
+    string Driver::dateToString(uint8_t date_lo, uint8_t date_hi) {
         // Data format (MSB -> LSB):
         // 2 bits of unknown data (or part of a year, but left over for season date
         //                         hack, and it doesn't matter until 2064 anyway...)

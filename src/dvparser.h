@@ -18,7 +18,6 @@
 #ifndef DVPARSER_H
 #define DVPARSER_H
 
-#include"util.h"
 #include"units.h"
 #include"xmq.h"
 
@@ -274,11 +273,11 @@ private:
 
 typedef struct SubUnitNr SubUnitNr;
 
-void extractDV(std::string &s, uchar *dif, int *vif, bool *has_difes, bool *has_vifes,
-               MeasurementType *measurement_type,
-               StorageNr *storage_nr,
-               TariffNr *tariff_nr,
-               SubUnitNr *subunit_nr);
+void extractDV(std::string &s, uint8_t *dif, int *vif, bool *has_difes, bool *has_vifes,
+    MeasurementType *measurement_type,
+    StorageNr *storage_nr,
+    TariffNr *tariff_nr,
+    SubUnitNr *subunit_nr);
 
 struct DifVifKey
 {
@@ -287,7 +286,7 @@ struct DifVifKey
     }
     std::string str() { return key_; }
     bool operator==(DifVifKey &dvk) { return key_ == dvk.key_; }
-    uchar dif() { return dif_; }
+    uint8_t dif() { return dif_; }
     int vif() { return vif_; }
     bool hasDifes() { return has_difes_; }
     bool hasVifes() { return has_vifes_; }
@@ -299,7 +298,7 @@ struct DifVifKey
 private:
 
     std::string key_ {};
-    uchar dif_ {};
+    uint8_t dif_ {};
     int vif_ {};
     bool has_difes_ {};
     bool has_vifes_ {};
@@ -310,7 +309,11 @@ private:
     SubUnitNr subunit_nr_ { 0 };
 };
 
-void extractDV(DifVifKey &s, uchar *dif, int *vif, bool *has_difes, bool *has_vifes);
+void extractDV(DifVifKey &s, uint8_t *dif, int *vif, bool *has_difes, bool *has_vifes,
+    MeasurementType *measurement_type,
+    StorageNr *storage_nr,
+    TariffNr *tariff_nr,
+    SubUnitNr *subunit_nr);
 
 static DifVifKey NoDifVifKey = DifVifKey("");
 
@@ -534,16 +537,16 @@ struct FieldMatcher
     std::string str();
 };
 
-bool loadFormatBytesFromSignature(uint16_t format_signature, std::vector<uchar> *format_bytes);
+bool loadFormatBytesFromSignature(uint16_t format_signature, std::vector<uint8_t> *format_bytes);
 
 struct Telegram;
 
 bool parseDV(Telegram *t,
-             std::vector<uchar> &databytes,
-             std::vector<uchar>::iterator data,
+             std::vector<uint8_t> &databytes,
+             std::vector<uint8_t>::iterator data,
              size_t data_len,
              std::map<std::string,std::pair<int,DVEntry>> *dv_entries,
-             std::vector<uchar>::iterator *format = NULL,
+             std::vector<uint8_t>::iterator *format = NULL,
              size_t format_len = 0,
              uint16_t *format_hash = NULL);
 
@@ -573,7 +576,7 @@ bool hasKey(std::map<std::string,std::pair<int,DVEntry>> *values, std::string ke
 bool extractDVuint8(std::map<std::string,std::pair<int,DVEntry>> *values,
                     std::string key,
                     int *offset,
-                    uchar *value);
+                    uint8_t *value);
 
 bool extractDVuint16(std::map<std::string,std::pair<int,DVEntry>> *values,
                      std::string key,

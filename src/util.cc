@@ -20,9 +20,9 @@
 #include"version.h"
 
 #include<algorithm>
-#include<assert.h>
+#include<cassert>
+#include<cerrno>
 #include<dirent.h>
-#include<errno.h>
 #include<fcntl.h>
 #include<functional>
 #include<grp.h>
@@ -144,24 +144,24 @@ int char2int(char input)
     return -1;
 }
 
-bool isHexChar(uchar c)
+bool isHexChar(uint8_t c)
 {
     return char2int(c) != -1;
 }
 
 // The byte 0x13 i converted into the integer value 13.
-uchar bcd2bin(uchar c)
+uint8_t bcd2bin(uint8_t c)
 {
     return (c&15)+(c>>4)*10;
 }
 
 // The byte 0x13 is converted into the integer value 31.
-uchar revbcd2bin(uchar c)
+uint8_t revbcd2bin(uint8_t c)
 {
     return (c&15)*10+(c>>4);
 }
 
-uchar reverse(uchar c)
+uint8_t reverse(uint8_t c)
 {
     return ((c&15)<<4) | (c>>4);
 }
@@ -213,7 +213,7 @@ bool isHexStringStrict(const string &txt, bool *invalid)
     return isHexString(txt.c_str(), invalid, true);
 }
 
-bool hex2bin(const char* src, vector<uchar> *target)
+bool hex2bin(const char* src, vector<uint8_t> *target)
 {
     if (!src) return false;
     while(*src && src[1]) {
@@ -231,12 +231,12 @@ bool hex2bin(const char* src, vector<uchar> *target)
     return true;
 }
 
-bool hex2bin(const string &src, vector<uchar> *target)
+bool hex2bin(const string &src, vector<uint8_t> *target)
 {
     return hex2bin(src.c_str(), target);
 }
 
-bool hex2bin(vector<uchar> &src, vector<uchar> *target)
+bool hex2bin(vector<uint8_t> &src, vector<uint8_t> *target)
 {
     if (src.size() % 2 == 1) return false;
     for (size_t i=0; i<src.size(); i+=2) {
@@ -252,7 +252,7 @@ bool hex2bin(vector<uchar> &src, vector<uchar> *target)
 
 char const hexChar[16] = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A','B','C','D','E','F'};
 
-string bin2hex(const vector<uchar> &target) {
+string bin2hex(const vector<uint8_t> &target) {
     string str;
     for (size_t i = 0; i < target.size(); ++i) {
         const char ch = target[i];
@@ -262,7 +262,7 @@ string bin2hex(const vector<uchar> &target) {
     return str;
 }
 
-string bin2hex(vector<uchar>::iterator data, vector<uchar>::iterator end, int len) {
+string bin2hex(vector<uint8_t>::iterator data, vector<uint8_t>::iterator end, int len) {
     string str;
     while (data != end && len-- > 0) {
         const char ch = *data;
@@ -273,9 +273,9 @@ string bin2hex(vector<uchar>::iterator data, vector<uchar>::iterator end, int le
     return str;
 }
 
-string bin2hex(vector<uchar> &data, int offset, int len) {
+string bin2hex(vector<uint8_t> &data, int offset, int len) {
     string str;
-    vector<uchar>::iterator i = data.begin();
+    vector<uint8_t>::iterator i = data.begin();
     i += offset;
     while (i != data.end() && len-- > 0) {
         const char ch = *i;
@@ -286,7 +286,7 @@ string bin2hex(vector<uchar> &data, int offset, int len) {
     return str;
 }
 
-string safeString(vector<uchar> &target) {
+string safeString(vector<uint8_t> &target) {
     string str;
     for (size_t i = 0; i < target.size(); ++i) {
         const char ch = target[i];
@@ -342,14 +342,14 @@ void strprintf(string *s, const char* fmt, ...)
     *s = buf;
 }
 
-void xorit(uchar *srca, uchar *srcb, uchar *dest, int len)
+void xorit(uint8_t *srca, uint8_t *srcb, uint8_t *dest, int len)
 {
     for (int i=0; i<len; ++i) { dest[i] = srca[i]^srcb[i]; }
 }
 
-void shiftLeft(uchar *srca, uchar *srcb, int len)
+void shiftLeft(uint8_t *srca, uint8_t *srcb, int len)
 {
-    uchar overflow = 0;
+    uint8_t overflow = 0;
 
     for (int i = len-1; i >= 0; i--)
     {
@@ -685,8 +685,8 @@ bool isNumber(const string& fq)
     return true;
 }
 
-void incrementIV(uchar *iv, size_t len) {
-    uchar *p = iv+len-1;
+void incrementIV(uint8_t *iv, size_t len) {
+    uint8_t *p = iv+len-1;
     while (p >= iv) {
         int pp = *p;
         (*p)++;
@@ -774,7 +774,7 @@ bool checkIfDirExists(const char *dir)
     return false;
 }
 
-void debugPayload(const string& intro, vector<uchar> &payload)
+void debugPayload(const string& intro, vector<uint8_t> &payload)
 {
     if (isDebugEnabled())
     {
@@ -783,7 +783,7 @@ void debugPayload(const string& intro, vector<uchar> &payload)
     }
 }
 
-void debugPayload(const string& intro, vector<uchar> &payload, vector<uchar>::iterator &pos)
+void debugPayload(const string& intro, vector<uint8_t> &payload, vector<uint8_t>::iterator &pos)
 {
     if (isDebugEnabled())
     {
@@ -792,14 +792,14 @@ void debugPayload(const string& intro, vector<uchar> &payload, vector<uchar>::it
     }
 }
 
-void logTelegram(vector<uchar> &original, vector<uchar> &parsed, int header_size, int suffix_size)
+void logTelegram(vector<uint8_t> &original, vector<uint8_t> &parsed, int header_size, int suffix_size)
 {
     if (isLogTelegramsEnabled())
     {
-        vector<uchar> logged = parsed;
+        vector<uint8_t> logged = parsed;
         if (!original.empty())
         {
-            logged = vector<uchar>(parsed);
+            logged = vector<uint8_t>(parsed);
             for (unsigned int i = 0; i < original.size(); i++)
             {
                 logged[i] = original[i];
@@ -825,7 +825,7 @@ void logTelegram(vector<uchar> &original, vector<uchar> &parsed, int header_size
     }
 }
 
-string eatTo(vector<uchar> &v, vector<uchar>::iterator &i, int c, size_t max, bool *eof, bool *err)
+string eatTo(vector<uint8_t> &v, vector<uint8_t>::iterator &i, int c, size_t max, bool *eof, bool *err)
 {
     string s;
 
@@ -851,7 +851,7 @@ string eatTo(vector<uchar> &v, vector<uchar>::iterator &i, int c, size_t max, bo
     return s;
 }
 
-void padWithZeroesTo(vector<uchar> *content, size_t len, vector<uchar> *full_content)
+void padWithZeroesTo(vector<uint8_t> *content, size_t len, vector<uint8_t> *full_content)
 {
     if (content->size() < len) {
         warning("Padded with zeroes.", (int)len);
@@ -895,7 +895,7 @@ int parseTime(const string& s)
 
 #define CRC16_EN_13757 0x3D65
 
-uint16_t crc16_EN13757_per_byte(uint16_t crc, uchar b)
+uint16_t crc16_EN13757_per_byte(uint16_t crc, uint8_t b)
 {
     unsigned char i;
 
@@ -913,7 +913,7 @@ uint16_t crc16_EN13757_per_byte(uint16_t crc, uchar b)
     return crc;
 }
 
-uint16_t crc16_EN13757(uchar *data, size_t len)
+uint16_t crc16_EN13757(uint8_t *data, size_t len)
 {
     uint16_t crc = 0x0000;
 
@@ -931,14 +931,14 @@ uint16_t crc16_EN13757(uchar *data, size_t len)
 #define CRC16_GOOD_VALUE 0x0F47
 #define CRC16_POLYNOM    0x8408
 
-uint16_t crc16_CCITT(uchar *data, uint16_t length)
+uint16_t crc16_CCITT(uint8_t *data, uint16_t length)
 {
     uint16_t initVal = CRC16_INIT_VALUE;
     uint16_t crc = initVal;
     while(length--)
     {
         int bits = 8;
-        uchar byte = *data++;
+        uint8_t byte = *data++;
         while(bits--)
         {
             if((byte & 1) ^ (crc & 1))
@@ -953,7 +953,7 @@ uint16_t crc16_CCITT(uchar *data, uint16_t length)
     return crc;
 }
 
-bool crc16_CCITT_check(uchar *data, uint16_t length)
+bool crc16_CCITT_check(uint8_t *data, uint16_t length)
 {
     uint16_t crc = ~crc16_CCITT(data, length);
     return crc == CRC16_GOOD_VALUE;
@@ -992,7 +992,7 @@ bool listFiles(const string& dir, vector<string> *files)
 int loadFile(const string& file, vector<string> *lines)
 {
     char block[32768+1];
-    vector<uchar> buf;
+    vector<uint8_t> buf;
 
     int fd = open(file.c_str(), O_RDONLY);
     if (fd == -1) {
@@ -1433,14 +1433,14 @@ string currentMicros()
     return string(datetime)+"."+to_string(tv.tv_usec);
 }
 
-bool hasBytes(int n, vector<uchar>::iterator &pos, vector<uchar> &frame)
+bool hasBytes(int n, vector<uint8_t>::iterator &pos, vector<uint8_t> &frame)
 {
     int remaining = distance(pos, frame.end());
     if (remaining < n) return false;
     return true;
 }
 
-bool startsWith(const string& s, vector<uchar> &data)
+bool startsWith(const string& s, vector<uint8_t> &data)
 {
     if (s.length() > data.size()) return false;
 
@@ -1959,7 +1959,7 @@ bool isValidBps(const string& b)
     return false;
 }
 
-bool findBytes(vector<uchar> &v, uchar a, uchar b, uchar c, size_t *out)
+bool findBytes(vector<uint8_t> &v, uint8_t a, uint8_t b, uint8_t c, size_t *out)
 {
     size_t p = 0;
 
@@ -1997,7 +1997,7 @@ string reverseBCD(const string& v)
 
 string reverseBinaryAsciiSafeToString(const string& v)
 {
-    vector<uchar> bytes;
+    vector<uint8_t> bytes;
     bool ok = hex2bin(v, &bytes);
     if (!ok) return "BADHEX:"+v;
     reverse(bytes.begin(), bytes.end());
@@ -2006,7 +2006,7 @@ string reverseBinaryAsciiSafeToString(const string& v)
 
 string binaryAsciiSafeToString(const string& v)
 {
-    vector<uchar> bytes;
+    vector<uint8_t> bytes;
     bool ok = hex2bin(v, &bytes);
     if (!ok) return "BADHEX:"+v;
     return safeString(bytes);
@@ -2017,40 +2017,40 @@ string binaryAsciiSafeToString(const string& v)
 #define SLIP_ESC_END         0xdc    /* ESC ESC_END means END data byte */
 #define SLIP_ESC_ESC         0xdd    /* ESC ESC_ESC means ESC data byte */
 
-bool slipAllEND(vector<uchar>& msg)
+bool slipAllEND(vector<uint8_t>& msg)
 {
     for (size_t i = 0; i < msg.size(); ++i)
     {
-        uchar c = msg[i];
+        uint8_t c = msg[i];
         if (c != SLIP_END) return false;
     }
     return true;
 }
 
-ssize_t slipFrameSize(vector<uchar>& msg)
+ssize_t slipFrameSize(vector<uint8_t>& msg)
 {
     size_t i;
 
     // Skip any leading 0xc0, they do not count.
     for (i = 0; i < msg.size(); ++i)
     {
-        uchar c = msg[i];
+        uint8_t c = msg[i];
         if (c != SLIP_END) break;
     }
 
     size_t from = i;
     for (; i < msg.size(); ++i)
     {
-        uchar c = msg[i];
+        uint8_t c = msg[i];
         if (c == SLIP_END) return (ssize_t)(i-from);
     }
     return -1;
 }
 
-void addSlipFraming(vector<uchar>& from, vector<uchar> &to)
+void addSlipFraming(vector<uint8_t>& from, vector<uint8_t> &to)
 {
     to.push_back(SLIP_END);
-    for (uchar c : from)
+    for (uint8_t c : from)
     {
         if (c == SLIP_END)
         {
@@ -2070,7 +2070,7 @@ void addSlipFraming(vector<uchar>& from, vector<uchar> &to)
     to.push_back(SLIP_END);
 }
 
-void removeSlipFraming(vector<uchar>& from, size_t *frame_length, vector<uchar> &to)
+void removeSlipFraming(vector<uint8_t>& from, size_t *frame_length, vector<uint8_t> &to)
 {
     *frame_length = 0;
     to.clear();
@@ -2082,13 +2082,13 @@ void removeSlipFraming(vector<uchar>& from, size_t *frame_length, vector<uchar> 
     // Skip any leading C0:s aka SLIP_ENDs.
     for (i = 0; i < from.size(); ++i)
     {
-        uchar c = from[i];
+        uint8_t c = from[i];
         if (c != SLIP_END) break;
     }
 
     for (; i < from.size(); ++i)
     {
-        uchar c = from[i];
+        uint8_t c = from[i];
         if (c == SLIP_END)
         {
             found_end = true;
@@ -2126,7 +2126,7 @@ void removeSlipFraming(vector<uchar>& from, size_t *frame_length, vector<uchar> 
 // Check if hex string is likely to be ascii
 bool isLikelyAscii(const string& v)
 {
-    vector<uchar> val;
+    vector<uint8_t> val;
     bool ok = hex2bin(v, &val);
 
     // For example 64 bits:
@@ -2213,7 +2213,7 @@ string sortStatusString(const string &a)
 
     for (size_t i=0; i<a.length(); ++i)
     {
-        uchar c = a[i];
+        uint8_t c = a[i];
         if (c == ' ')
         {
             if (curr.length() > 0)
@@ -2249,7 +2249,7 @@ string sortStatusString(const string &a)
     return result;
 }
 
-uchar *safeButUnsafeVectorPtr(vector<uchar> &v)
+uint8_t *safeButUnsafeVectorPtr(vector<uint8_t> &v)
 {
     if (v.size() == 0) return NULL;
     return &v[0];
@@ -2323,13 +2323,6 @@ const std::string &language()
     }
 
     return lang_;
-}
-
-TestBit toTestBit(const char *s)
-{
-    if (!strcmp(s, "Set")) return TestBit::Set;
-    if (!strcmp(s, "NotSet")) return TestBit::NotSet;
-    return TestBit::Unknown;
 }
 
 string basic_auth_cred_ {};

@@ -69,15 +69,15 @@ namespace
         // Which means that the entire payload is manufacturer specific.
 
         map<string,pair<int,DVEntry>> vendor_values;
-        vector<uchar> content;
+        vector<uint8_t> content;
 
         t->extractPayload(&content);
 
         if (content.size() < 9) return;
 
-        uchar prev_lo = content[3];
-        uchar prev_hi = content[4];
-        uchar prev_hihi = content[5];
+        uint8_t prev_lo = content[3];
+        uint8_t prev_hi = content[4];
+        uint8_t prev_hihi = content[5];
         double prev = (65536.0*prev_hihi+256.0*prev_hi+prev_lo);
 
         string prevs;
@@ -88,9 +88,9 @@ namespace
         t->explanations.push_back(pe);
         t->addMoreExplanation(offset, " energy used in previous billing period (%f KWH)", prev);
 
-        uchar curr_lo = content[7];
-        uchar curr_hi = content[8];
-        uchar curr_hihi = content[9];
+        uint8_t curr_lo = content[7];
+        uint8_t curr_hi = content[8];
+        uint8_t curr_hihi = content[9];
         double curr = (65536.0*curr_hihi+256.0*curr_hi+curr_lo);
 
         string currs;

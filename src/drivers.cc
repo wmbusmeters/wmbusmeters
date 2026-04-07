@@ -15,12 +15,13 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include<vector>
-#include<string>
-#include<map>
-
-#include"util.h"
 #include"drivers.h"
+#include"meters.h"
+
+#include<cstdint>
+#include<map>
+#include<string>
+#include<vector>
 
 using namespace std;
 
@@ -81,7 +82,7 @@ void loadAllBuiltinDrivers()
     }
 }
 
-const char *findBuiltinDriver(uint16_t mfct, uchar ver, uchar type)
+const char *findBuiltinDriver(uint16_t mfct, uint8_t ver, uint8_t type)
 {
     uint32_t key = mfct << 16  | ver << 8 | type;
     if (builtins_mvt_lookup_.count(key) == 0)

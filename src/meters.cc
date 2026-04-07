@@ -25,14 +25,15 @@
 #include"wmbus.h"
 #include"wmbus_utils.h"
 
-#include<assert.h>
 #include<algorithm>
+#include<cassert>
 #include<cmath>
 #include<limits>
 #include<memory.h>
 #include<numeric>
 #include<stdexcept>
 #include<time.h>
+#include<unistd.h>
 
 using namespace std;
 
@@ -123,7 +124,7 @@ void addRegisteredDriver(DriverInfo di)
     (*registered_drivers_list_).push_back(lookupDriver(di.name().str()));
 }
 
-bool DriverInfo::detect(uint16_t mfct, uchar version, uchar type)
+bool DriverInfo::detect(uint16_t mfct, uint8_t version, uint8_t type)
 {
     for (auto &dd : mvts_)
     {
@@ -147,7 +148,7 @@ void DriverInfo::setAliases(string a)
     }
 }
 
-bool DriverInfo::isValidMedia(uchar type)
+bool DriverInfo::isValidMedia(uint8_t type)
 {
     for (auto &dd : mvts_)
     {
@@ -160,7 +161,7 @@ DriverInfo::~DriverInfo()
 {
 }
 
-bool DriverInfo::isCloseEnoughMedia(uchar type)
+bool DriverInfo::isCloseEnoughMedia(uint8_t type)
 {
     for (auto &dd : mvts_)
     {
@@ -804,7 +805,7 @@ void MeterCommonImplementation::addStringField(string vname,
             ));
 }
 
-bool send_primary_poll(Meter *m, BusDevice *bus_device, AddressExpression *ae, bool next_telegram, uchar fcb)
+bool send_primary_poll(Meter *m, BusDevice *bus_device, AddressExpression *ae, bool next_telegram, uint8_t fcb)
 {
     const char *again;
 
@@ -819,13 +820,13 @@ bool send_primary_poll(Meter *m, BusDevice *bus_device, AddressExpression *ae, b
         return false;
     }
 
-    vector<uchar> buf;
+    vector<uint8_t> buf;
     buf.resize(5);
     buf[0] = 0x10; // Start
     if (fcb == 0) buf[1] = 0x5b; // REQ_UD2 fcb==0
     else          buf[1] = 0x7b; // REQ_UD2 fcb==1
     buf[2] = idnum & 0xff;
-    uchar cs = 0;
+    uint8_t cs = 0;
     for (int i=1; i<3; ++i) cs += buf[i];
     buf[3] = cs; // checksum
     buf[4] = 0x16; // Stop
@@ -841,7 +842,7 @@ bool send_primary_poll(Meter *m, BusDevice *bus_device, AddressExpression *ae, b
     return true;
 }
 
-bool send_secondary_poll(Meter *m, BusDevice *bus_device, AddressExpression *ae, bool next_telegram, uchar fcb)
+bool send_secondary_poll(Meter *m, BusDevice *bus_device, AddressExpression *ae, bool next_telegram, uint8_t fcb)
 {
     // A full secondary address 12345678 was specified.
     const char *again;
@@ -852,7 +853,7 @@ bool send_secondary_poll(Meter *m, BusDevice *bus_device, AddressExpression *ae,
     if (!next_telegram)
     {
         // Only send the setup secondary address for the first UD_REQ2.
-        vector<uchar> idhex;
+        vector<uint8_t> idhex;
         bool ok = hex2bin(ae->id, &idhex);
 
         if (!ok || idhex.size() != 4)
@@ -861,7 +862,7 @@ bool send_secondary_poll(Meter *m, BusDevice *bus_device, AddressExpression *ae,
             return false;
         }
 
-        vector<uchar> buf;
+        vector<uint8_t> buf;
         buf.resize(17);
         buf[0] = 0x68;
         buf[1] = 0x0b;
@@ -880,7 +881,7 @@ bool send_secondary_poll(Meter *m, BusDevice *bus_device, AddressExpression *ae,
         buf[13] = ae->version; // version/generation
         buf[14] = ae->type; // type/media/device
 
-        uchar cs = 0;
+        uint8_t cs = 0;
         for (int i=4; i<15; ++i) cs += buf[i];
         buf[15] = cs; // checksum
         buf[16] = 0x16; // Stop
@@ -893,13 +894,13 @@ bool send_secondary_poll(Meter *m, BusDevice *bus_device, AddressExpression *ae,
         usleep(1000*500);
     }
 
-    vector<uchar> buf;
+    vector<uint8_t> buf;
     buf.resize(5);
     buf[0] = 0x10; // Start
     if (fcb == 0) buf[1] = 0x5b; // REQ_UD2 fcb==0
     else          buf[1] = 0x7b; // REQ_UD2 fcb==1
     buf[2] = 0xfd; // Address 253 previously primed with the secondary address.
-    uchar cs = 0;
+    uint8_t cs = 0;
     for (int i=1; i<3; ++i) cs += buf[i];
     buf[3] = cs; // checksum
     buf[4] = 0x16; // Stop
@@ -957,7 +958,7 @@ void MeterCommonImplementation::poll(shared_ptr<BusManager> bus_manager)
     // https://m-bus.com/documentation-wired/07-network-layer
     // A valid secondary selection command will force the fcb bit in the meter to 0.
     // The next fcb bit should therefore be 1 to make sure we send a fresh telegram.
-    uchar fcb = 1;
+    uint8_t fcb = 1;
     bool next_telegram = false;
     int num_repolls = 0;
     for (;;)
@@ -1447,7 +1448,7 @@ string concatFields(Meter *m, Telegram *t, char c, vector<FieldInfo> &prints, bo
     return buf;
 }
 
-bool MeterCommonImplementation::handleTelegram(AboutTelegram &about, vector<uchar> input_frame,
+bool MeterCommonImplementation::handleTelegram(AboutTelegram &about, vector<uint8_t> input_frame,
                                                bool simulated, vector<Address> *addresses,
                                                bool *id_match, Telegram *out_analyzed)
 {
@@ -1546,14 +1547,14 @@ void MeterCommonImplementation::processFieldIXMLs(Telegram *t)
             if (fi.matchEntirePayload())
             {
                 // Special case for mfct specific meters not compliant with difvif parsing.
-                vector<uchar> content;
+                vector<uint8_t> content;
                 t->extractPayload(&content);
                 string value = bin2hex(content);
                 debug("(ixml) parsing entire payload %s\n", value.c_str());
                 bool ok = parseWithIXML(t, t->header_size, value, fi.ixmlGrammar(), &t->dv_entries);
                 if (!ok)
                 {
-                    vector<uchar> frame;
+                    vector<uint8_t> frame;
                     t->extractFrame(&frame);
                     string hex = bin2hex(frame);
 
@@ -1602,7 +1603,7 @@ void MeterCommonImplementation::processFieldIXMLs(Telegram *t)
                     bool ok = parseWithIXML(t, dve->offset, value, fi.ixmlGrammar(), &t->dv_entries);
                     if (!ok)
                     {
-                        vector<uchar> frame;
+                        vector<uint8_t> frame;
                         t->extractFrame(&frame);
                         string hex = bin2hex(frame);
 
@@ -1914,7 +1915,7 @@ string MeterCommonImplementation::getStringValue(FieldInfo *fi)
     return value;
 }
 
-string MeterCommonImplementation::decodeTPLStatusByte(uchar sts)
+string MeterCommonImplementation::decodeTPLStatusByte(uint8_t sts)
 {
     return ::decodeTPLStatusByteWithMfct(sts, mfct_tpl_status_bits_);
 }
@@ -2574,7 +2575,7 @@ bool isValidKey(const string& key, MeterInfo &mi)
         // seen any telegram using that mode.
         if (key.length() != 32) return false;
     }
-    vector<uchar> tmp;
+    vector<uint8_t> tmp;
     return hex2bin(key, &tmp);
 }
 

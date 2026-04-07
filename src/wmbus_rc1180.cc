@@ -35,7 +35,7 @@ using namespace std;
 
 const int DEFAULT_BAUD_RATE = 19200;
 
-enum class RcUartBaudRate : uchar
+enum class RcUartBaudRate : uint8_t
 {
     b2400 = 1,
     b4800 = 2,
@@ -90,23 +90,23 @@ catch(const std::exception& e)
 struct ConfigRC1180
 {
     // first variable group
-    uchar radio_channel {}; // S=11 T1=12 R2=1-10
-    uchar radio_power {};
-    uchar radio_data_rate {}; // S=2 T1=3 R2=1
-    uchar mbus_mode {}; // S1=0 T1=1
-    uchar sleep_mode {}; // 0=disable sleep 1=enable sleep
-    uchar rssi_mode {}; // 0=disabled 1=enabled (append rssi to telegram)
+    uint8_t radio_channel {}; // S=11 T1=12 R2=1-10
+    uint8_t radio_power {};
+    uint8_t radio_data_rate {}; // S=2 T1=3 R2=1
+    uint8_t mbus_mode {}; // S1=0 T1=1
+    uint8_t sleep_mode {}; // 0=disable sleep 1=enable sleep
+    uint8_t rssi_mode {}; // 0=disabled 1=enabled (append rssi to telegram)
 
-    uchar preamble_length {}; // S: 4(short) 70(long) T: 4(meter) 3(other) R: 10
+    uint8_t preamble_length {}; // S: 4(short) 70(long) T: 4(meter) 3(other) R: 10
 
     uint16_t mfct {};
     uint32_t id {};
-    uchar version {};
-    uchar media {};
+    uint8_t version {};
+    uint8_t media {};
 
     RcUartBaudRate uart_baud_rate {}; // 5=19200
-    uchar uart_flow_ctrl {}; // 0=None 1=CTS only 2=CTS/RTS 3=RXTX(RS485)
-    uchar data_interface {}; // 0=MBUS with DLL 1=App data without mbus header
+    uint8_t uart_flow_ctrl {}; // 0=None 1=CTS only 2=CTS/RTS 3=RXTX(RS485)
+    uint8_t data_interface {}; // 0=MBUS with DLL 1=App data without mbus header
 
     string dongleId()
     {
@@ -130,7 +130,7 @@ struct ConfigRC1180
                            radio_channel, radio_power, radio_data_rate, preamble_length, mbus_mode);
     }
 
-    bool decode(vector<uchar> &bytes)
+    bool decode(vector<uint8_t> &bytes)
     {
         if (bytes.size() != 257) return false;
 
@@ -197,9 +197,9 @@ struct WMBusRC1180 : public virtual BusDeviceCommonImplementation
 private:
     ConfigRC1180 device_config_;
 
-    vector<uchar> read_buffer_;
-    vector<uchar> request_;
-    vector<uchar> response_;
+    vector<uint8_t> read_buffer_;
+    vector<uint8_t> request_;
+    vector<uint8_t> response_;
 
     LinkModeSet link_modes_ {};
 };
@@ -337,7 +337,7 @@ void WMBusRC1180::simulate()
 
 void WMBusRC1180::processSerialData()
 {
-    vector<uchar> data;
+    vector<uint8_t> data;
 
     // Receive and accumulated serial data until a full frame has been received.
     serial()->receive(&data);
@@ -368,7 +368,7 @@ void WMBusRC1180::processSerialData()
         }
         if (status == FullFrame)
         {
-            vector<uchar> payload;
+            vector<uint8_t> payload;
             int rssi = 0;
             bool extra_byte = device_config_.usingRssi();
 
@@ -399,8 +399,8 @@ try
     bool ok = serial->open(false);
     if (!ok) return AccessCheck::NoSuchDevice;
 
-    vector<uchar> data;
-    vector<uchar> msg(1);
+    vector<uint8_t> data;
+    vector<uint8_t> msg(1);
 
     // Send a single 0x00 byte. This will trigger the device to enter command mode
     // the device then responds with '>'
@@ -447,7 +447,7 @@ try
     if (co.rssi_mode == 0)
     {
         // Change the config so that the device appends an rssi byte.
-        vector<uchar> updat(4);
+        vector<uint8_t> updat(4);
         update[0] = 'M';
         update[1] = 0x05; // Register 5, rssi_mode
         update[2] = 1;    // Set value to 1 = enabled.

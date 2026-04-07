@@ -22,7 +22,6 @@
 #include"config.h"
 #include"formula_implementation.h"
 #include"meters.h"
-#include"printer.h"
 #include"serial.h"
 #include"translatebits.h"
 #include"util.h"
@@ -154,7 +153,7 @@ void test_crc()
         printf("ERROR! %4x should be f147\n", crc);
     }
 
-    uchar block[10];
+    uint8_t block[10];
     block[0]=0xEE;
     block[1]=0x44;
     block[2]=0x9A;
@@ -194,9 +193,9 @@ bool tst_parse(const char *data, std::map<std::string,std::pair<int,DVEntry>> *d
     debug("\n\nTest nr %d......\n\n", testnr);
     bool b;
     Telegram t;
-    vector<uchar> databytes;
+    vector<uint8_t> databytes;
     hex2bin(data, &databytes);
-    vector<uchar>::iterator i = databytes.begin();
+    vector<uint8_t>::iterator i = databytes.begin();
 
     b = parseDV(&t, databytes, i, databytes.size(), dv_entries);
 
@@ -541,8 +540,8 @@ void test_ids()
 void tst_address(string s, bool valid,
                  string id, bool has_wildcard,
                  string mfct,
-                 uchar version,
-                 uchar type,
+                 uint8_t version,
+                 uint8_t type,
                  bool mbus_primary,
                  bool filter_out)
 {
@@ -589,7 +588,7 @@ void tst_address(string s, bool valid,
     }
 }
 
-void tst_address_match(string expr, string id, uint16_t m, uchar v, uchar t, bool match, bool filter_out)
+void tst_address_match(string expr, string id, uint16_t m, uint8_t v, uint8_t t, bool match, bool filter_out)
 {
     AddressExpression e;
     bool ok = e.parse(expr);
@@ -755,9 +754,9 @@ void eqn(int a, int b, const char *tn)
 
 void test_kdf()
 {
-    vector<uchar> key;
-    vector<uchar> input;
-    vector<uchar> mac;
+    vector<uint8_t> key;
+    vector<uint8_t> input;
+    vector<uint8_t> mac;
 
     hex2bin("2b7e151628aed2a6abf7158809cf4f3c", &key);
     mac.resize(16);
@@ -1344,7 +1343,7 @@ void test_sbc()
 
 void test_aes()
 {
-    vector<uchar> key;
+    vector<uint8_t> key;
 
     hex2bin("0123456789abcdef0123456789abcdef", &key);
     string poe =
@@ -1356,22 +1355,22 @@ void test_aes()
         poe += ".";
     }
 
-    uchar iv[16];
+    uint8_t iv[16];
     memset(iv, 0xaa, 16);
 
-    uchar in[poe.length()];
+    uint8_t in[poe.length()];
     memcpy(in, &poe[0], poe.size());
 
     debug("(aes) input: \"%s\"\n", poe.c_str());
 
-    uchar out[sizeof(in)];
+    uint8_t out[sizeof(in)];
     AES_CBC_encrypt_buffer(out, in, sizeof(in), safeButUnsafeVectorPtr(key), iv);
 
-    vector<uchar> outv(out, out+sizeof(out));
+    vector<uint8_t> outv(out, out+sizeof(out));
     string s = bin2hex(outv);
     debug("(aes) encrypted: \"%s\"\n", s.c_str());
 
-    uchar back[sizeof(in)];
+    uint8_t back[sizeof(in)];
     AES_CBC_decrypt_buffer(back, out, sizeof(in), safeButUnsafeVectorPtr(key), iv);
 
     string b = string(back, back+sizeof(back));
@@ -1529,10 +1528,10 @@ void test_translate()
 
 void test_slip()
 {
-    vector<uchar> from = { 1, 0xc0, 3, 4, 5, 0xdb };
-    vector<uchar> expected_to = { 0xc0, 1, 0xdb, 0xdc, 3, 4, 5, 0xdb, 0xdd, 0xc0 };
-    vector<uchar> to;
-    vector<uchar> back;
+    vector<uint8_t> from = { 1, 0xc0, 3, 4, 5, 0xdb };
+    vector<uint8_t> expected_to = { 0xc0, 1, 0xdb, 0xdc, 3, 4, 5, 0xdb, 0xdd, 0xc0 };
+    vector<uint8_t> to;
+    vector<uint8_t> back;
 
     addSlipFraming(from, to);
 
@@ -1554,7 +1553,7 @@ void test_slip()
         printf("ERROR slip 3\n");
     }
 
-    vector<uchar> more = { 0xc0, 0xc0, 0xc0, 1, 2, 3, 4, 5, 6, 7, 8 };
+    vector<uint8_t> more = { 0xc0, 0xc0, 0xc0, 1, 2, 3, 4, 5, 6, 7, 8 };
     addSlipFraming(more, to);
 
     frame_length = 0;
@@ -1573,7 +1572,7 @@ void test_slip()
         printf("ERROR slip 5\n");
     }
 
-    vector<uchar> again = { 0xc0 };
+    vector<uint8_t> again = { 0xc0 };
     removeSlipFraming(again, &frame_length, back);
 
     if (frame_length != 0)
@@ -1581,7 +1580,7 @@ void test_slip()
         printf("ERROR slip 6\n");
     }
 
-    vector<uchar> againn = { 0xc0, 1, 2, 3, 4, 5 };
+    vector<uint8_t> againn = { 0xc0, 1, 2, 3, 4, 5 };
     removeSlipFraming(againn, &frame_length, back);
 
     if (frame_length != 0)
@@ -2401,7 +2400,7 @@ void test_formulas_building_meters()
         assert(fi_flow != NULL);
         assert(fi_ext != NULL);
 
-        vector<uchar> frame;
+        vector<uint8_t> frame;
         hex2bin("2a442d2c785634121B168d2091d37cac217f2d7802ff207100041308190000441308190000615B1f616713", &frame);
 
         Telegram t;
@@ -2452,7 +2451,7 @@ void test_formulas_building_meters()
         assert(fi_p2 != NULL);
         assert(fi_p3 != NULL);
 
-        vector<uchar> frame;
+        vector<uint8_t> frame;
         hex2bin("5B445a149922992202378c20f6900f002c25Bc9e0000BBBBBBBBBBBBBBBB72992299225a140102f6003007102f2f040330f92a0004a9ff01ff24000004a9ff026a29000004a9ff03460600000dfd11063132333435362f2f2f2f2f2f", &frame);
 
         Telegram t;
@@ -2636,7 +2635,7 @@ void test_formulas_parsing_1()
     mi.parse("testur", "ebzwmbe", "22992299", "");
     shared_ptr<Meter> meter = createMeter(&mi);
 
-    vector<uchar> frame;
+    vector<uint8_t> frame;
     hex2bin("5B445a149922992202378c20f6900f002c25Bc9e0000BBBBBBBBBBBBBBBB72992299225a140102f6003007102f2f040330f92a0004a9ff01ff24000004a9ff026a29000004a9ff03460600000dfd11063132333435362f2f2f2f2f2f", &frame);
 
     Telegram t;
@@ -2686,7 +2685,7 @@ void test_formulas_parsing_2()
     mi.parse("testur", "em24", "66666666", "");
     shared_ptr<Meter> meter = createMeter(&mi);
 
-    vector<uchar> frame;
+    vector<uint8_t> frame;
     hex2bin("35442D2C6666666633028D2070806A0520B4D378_0405F208000004FB82753F00000004853C0000000004FB82F53CCA01000001FD1722", &frame);
 
     Telegram t;

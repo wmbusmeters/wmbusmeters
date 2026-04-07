@@ -19,9 +19,8 @@
 #include"wmbus.h"
 #include"util.h"
 
-#include<assert.h>
+#include<cassert>
 #include<cmath>
-#include<math.h>
 #include<memory.h>
 #include<limits>
 
@@ -153,7 +152,7 @@ LIST_OF_VIF_RANGES
 
 map<uint16_t,string> hash_to_format_;
 
-bool loadFormatBytesFromSignature(uint16_t format_signature, vector<uchar> *format_bytes)
+bool loadFormatBytesFromSignature(uint16_t format_signature, vector<uint8_t> *format_bytes)
 {
     if (hash_to_format_.count(format_signature) > 0) {
         debug("(dvparser) found remembered format for hash %x\n", format_signature);
@@ -166,23 +165,23 @@ bool loadFormatBytesFromSignature(uint16_t format_signature, vector<uchar> *form
 }
 
 bool parseDV(Telegram *t,
-             vector<uchar> &databytes,
-             vector<uchar>::iterator data,
+             vector<uint8_t> &databytes,
+             vector<uint8_t>::iterator data,
              size_t data_len,
              map<string,pair<int,DVEntry>> *dv_entries,
-             vector<uchar>::iterator *format,
+             vector<uint8_t>::iterator *format,
              size_t format_len,
              uint16_t *format_hash)
 {
     map<string,int> dv_count;
-    vector<uchar> format_bytes;
-    vector<uchar> id_bytes;
-    vector<uchar> data_bytes;
+    vector<uint8_t> format_bytes;
+    vector<uint8_t> id_bytes;
+    vector<uint8_t> data_bytes;
     string dv, key;
     size_t start_parse_here = t->parsed.size();
-    vector<uchar>::iterator data_start = data;
-    vector<uchar>::iterator data_end = data+data_len;
-    vector<uchar>::iterator format_end;
+    vector<uint8_t>::iterator data_start = data;
+    vector<uint8_t>::iterator data_end = data+data_len;
+    vector<uint8_t>::iterator format_end;
     bool data_has_difvifs = true;
     bool variable_length = false;
     int force_mfct_index = t->force_mfct_index;
@@ -251,7 +250,7 @@ bool parseDV(Telegram *t,
             }
         }
 
-        uchar dif = **format;
+        uint8_t dif = **format;
 
         MeasurementType mt = difMeasurementType(dif);
         int datalen = difLenBytes(dif);
@@ -347,7 +346,7 @@ bool parseDV(Telegram *t,
             if (num_dife > 10) { debug("(dvparser) warning: too many dife found!\n"); break; }
             if (*format == format_end) { debug("(dvparser) warning: unexpected end of data (dife expected)\n"); break; }
 
-            uchar dife = **format;
+            uint8_t dife = **format;
             int subunit_bit = (dife & 0x40) >> 6;
             subunit |= subunit_bit << difenr;
             int tariff_bits = (dife & 0x30) >> 4;
@@ -377,7 +376,7 @@ bool parseDV(Telegram *t,
 
         if (*format == format_end) { debug("(dvparser) warning: unexpected end of data (vif expected)\n"); break; }
 
-        uchar vif = **format;
+        uint8_t vif = **format;
         int full_vif = vif & 0x7f;
         bool extension_vif = false;
         int combinable_full_vif = 0;
@@ -416,15 +415,15 @@ bool parseDV(Telegram *t,
         {
             DEBUG_PARSER("(dvparser debug) variable length vif found\n");
             if (*format == format_end) { debug("(dvparser) warning: unexpected end of data (vif varlen expected)\n"); break; }
-            uchar viflen = **format;
+            uint8_t viflen = **format;
             id_bytes.push_back(viflen);
             t->addExplanationAndIncrementPos(*format, 1, KindOfData::PROTOCOL, Understanding::FULL,
                                              "%02X viflen (%d)", viflen, viflen);
-            for (uchar i = 0; i < viflen; ++i)
+            for (uint8_t i = 0; i < viflen; ++i)
             {
                 if (*format == format_end) { debug("(dvparser) warning: unexpected end of data (vif varlen byte %d/%d expected)\n",
                                                    i+1, viflen); break; }
-                uchar v = **format;
+                uint8_t v = **format;
                 t->addExplanationAndIncrementPos(*format, 1, KindOfData::PROTOCOL, Understanding::FULL,
                                                  "%02X vif (%c)", v, v);
                 id_bytes.push_back(v);
@@ -442,7 +441,7 @@ bool parseDV(Telegram *t,
 
             if (*format == format_end) { debug("(dvparser) warning: unexpected end of data (vife expected)\n"); break; }
 
-            uchar vife = **format;
+            uint8_t vife = **format;
             DEBUG_PARSER("(dvparser debug) vife=%02x (%s)\n", vife, vifeType(dif, vif, vife).c_str());
 
             if (data_has_difvifs)
@@ -520,7 +519,7 @@ bool parseDV(Telegram *t,
         }
 
         dv = "";
-        for (uchar c : id_bytes) {
+        for (uint8_t c : id_bytes) {
             char hex[3];
             hex[2] = 0;
             snprintf(hex, 3, "%02X", c);
@@ -799,7 +798,7 @@ bool findKeyWithNr(MeasurementType mit, VIFRange vif_range, StorageNr storagenr,
     return false;
 }
 
-void extractDV(DifVifKey &dvk, uchar *dif, int *vif, bool *has_difes, bool *has_vifes,
+void extractDV(DifVifKey &dvk, uint8_t *dif, int *vif, bool *has_difes, bool *has_vifes,
                MeasurementType *measurement_type,
                StorageNr *storage_nr,
                TariffNr *tariff_nr,
@@ -809,13 +808,13 @@ void extractDV(DifVifKey &dvk, uchar *dif, int *vif, bool *has_difes, bool *has_
     extractDV(tmp, dif, vif, has_difes, has_vifes, measurement_type, storage_nr, tariff_nr, subunit_nr);
 }
 
-void extractDV(string &s, uchar *dif, int *vif, bool *has_difes, bool *has_vifes,
+void extractDV(string &s, uint8_t *dif, int *vif, bool *has_difes, bool *has_vifes,
                MeasurementType *measurement_type,
                StorageNr *storage_nr,
                TariffNr *tariff_nr,
                SubUnitNr *subunit_nr)
 {
-    vector<uchar> bytes;
+    vector<uint8_t> bytes;
     hex2bin(s, &bytes);
     size_t i = 0;
     *has_difes = false;
@@ -883,7 +882,7 @@ void extractDV(string &s, uchar *dif, int *vif, bool *has_difes, bool *has_vifes
 bool extractDVuint8(map<string,pair<int,DVEntry>> *dv_entries,
                     string key,
                     int *offset,
-                    uchar *value)
+                    uint8_t *value)
 {
     if ((*dv_entries).count(key) == 0) {
         verbose("(dvparser) warning: cannot extract uint8 from non-existant key \"%s\"\n", key.c_str());
@@ -894,7 +893,7 @@ bool extractDVuint8(map<string,pair<int,DVEntry>> *dv_entries,
 
     pair<int,DVEntry>&  p = (*dv_entries)[key];
     *offset = p.first;
-    vector<uchar> v;
+    vector<uint8_t> v;
     hex2bin(p.second.value, &v);
 
     *value = v[0];
@@ -915,7 +914,7 @@ bool extractDVuint16(map<string,pair<int,DVEntry>> *dv_entries,
 
     pair<int,DVEntry>&  p = (*dv_entries)[key];
     *offset = p.first;
-    vector<uchar> v;
+    vector<uint8_t> v;
     hex2bin(p.second.value, &v);
 
     *value = v[1]<<8 | v[0];
@@ -936,7 +935,7 @@ bool extractDVuint24(map<string,pair<int,DVEntry>> *dv_entries,
 
     pair<int,DVEntry>&  p = (*dv_entries)[key];
     *offset = p.first;
-    vector<uchar> v;
+    vector<uint8_t> v;
     hex2bin(p.second.value, &v);
 
     *value = v[2] << 16 | v[1]<<8 | v[0];
@@ -957,7 +956,7 @@ bool extractDVuint32(map<string,pair<int,DVEntry>> *dv_entries,
 
     pair<int,DVEntry>&  p = (*dv_entries)[key];
     *offset = p.first;
-    vector<uchar> v;
+    vector<uint8_t> v;
     hex2bin(p.second.value, &v);
 
     *value = (uint32_t(v[3]) << 24) |  (uint32_t(v[2]) << 16) | (uint32_t(v[1])<<8) | uint32_t(v[0]);
@@ -1028,7 +1027,7 @@ bool DVEntry::extractDouble(double *out, bool auto_scale, bool force_unsigned)
         t == 0x6 || // 48 Bit Integer/Binary
         t == 0x7)   // 64 Bit Integer/Binary
     {
-        vector<uchar> v;
+        vector<uint8_t> v;
         hex2bin(value, &v);
         uint64_t raw = 0;
         bool negate = false;
@@ -1151,7 +1150,7 @@ bool DVEntry::extractDouble(double *out, bool auto_scale, bool force_unsigned)
     else
     if (t == 0x5) // 32 Bit Real
     {
-        vector<uchar> v;
+        vector<uint8_t> v;
         hex2bin(value, &v);
         if (!checkSizeHex(8, dif_vif_key, value)) return false;
         assert(v.size() == 4);
@@ -1211,7 +1210,7 @@ bool DVEntry::extractLong(uint64_t *out)
         t == 0x6 || // 48 Bit Integer/Binary
         t == 0x7)   // 64 Bit Integer/Binary
     {
-        vector<uchar> v;
+        vector<uint8_t> v;
         hex2bin(value, &v);
         uint64_t raw = 0;
         if (t == 0x1) {
@@ -1463,7 +1462,7 @@ string DVEntry::str()
     return s;
 }
 
-bool extractDate(uchar hi, uchar lo, struct tm *date)
+bool extractDate(uint8_t hi, uint8_t lo, struct tm *date)
 {
     // |     hi    |    lo     |
     // | YYYY MMMM | YYY DDDDD |
@@ -1482,7 +1481,7 @@ bool extractDate(uchar hi, uchar lo, struct tm *date)
     return true;
 }
 
-bool extractTime(uchar hi, uchar lo, struct tm *date)
+bool extractTime(uint8_t hi, uint8_t lo, struct tm *date)
 {
     // |    hi    |    lo    |
     // | ...hhhhh | ..mmmmmm |
@@ -1520,7 +1519,7 @@ bool DVEntry::extractDate(struct tm *out)
     memset(out, 0, sizeof(*out));
     out->tm_isdst = -1; // Figure out the dst automatically!
 
-    vector<uchar> v;
+    vector<uint8_t> v;
     hex2bin(value, &v);
 
     bool ok = true;

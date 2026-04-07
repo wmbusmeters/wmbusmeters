@@ -63,15 +63,15 @@ private:
 
     string serialnr_;
     shared_ptr<SerialDevice> serial_;
-    vector<uchar> read_buffer_;
-    vector<uchar> received_payload_;
+    vector<uint8_t> read_buffer_;
+    vector<uint8_t> received_payload_;
     bool warning_dll_len_printed_ {};
 
-    FrameStatus checkRTL433Frame(vector<uchar> &data,
+    FrameStatus checkRTL433Frame(vector<uint8_t> &data,
                                    size_t *hex_frame_length,
                                    int *hex_payload_len_out,
                                    int *hex_payload_offset);
-    void handleMessage(vector<uchar> &frame);
+    void handleMessage(vector<uint8_t> &frame);
 
     string setup_;
 };
@@ -192,7 +192,7 @@ void WMBusRTL433::simulate()
 
 void WMBusRTL433::processSerialData()
 {
-    vector<uchar> data;
+    vector<uint8_t> data;
 
     // Receive and accumulated serial data until a full frame has been received.
     serial()->receive(&data);
@@ -239,10 +239,10 @@ void WMBusRTL433::processSerialData()
         }
         if (status == FullFrame)
         {
-            vector<uchar> payload;
+            vector<uint8_t> payload;
             if (hex_payload_len > 0)
             {
-                vector<uchar> hex;
+                vector<uint8_t> hex;
                 hex.insert(hex.end(), read_buffer_.begin()+hex_payload_offset, read_buffer_.begin()+hex_payload_offset+hex_payload_len);
                 bool ok = hex2bin(hex, &payload);
                 if (!ok)
@@ -281,7 +281,7 @@ void WMBusRTL433::processSerialData()
     }
 }
 
-FrameStatus WMBusRTL433::checkRTL433Frame(vector<uchar> &data,
+FrameStatus WMBusRTL433::checkRTL433Frame(vector<uint8_t> &data,
                                           size_t *hex_frame_length,
                                           int *hex_payload_len_out,
                                           int *hex_payload_offset)

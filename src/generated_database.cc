@@ -19,6 +19,7 @@
 // Run "cd drivers; make install" to regenerate this file.
 
 #include"drivers.h"
+#include"manufacturers.h"
 
 BuiltinDriver builtins_[] =
 {

@@ -123,7 +123,7 @@ namespace
         // Which means that the entire payload is manufacturer specific.
 
         map<string,pair<int,DVEntry>> vendor_values;
-        vector<uchar> content;
+        vector<uint8_t> content;
 
         t->extractPayload(&content);
 
@@ -135,14 +135,14 @@ namespace
         setStringValue("target_date", tostrprintf("%d-%02d-%02dT02:00:00Z", curr_date_year+2000, curr_date_month, curr_date_day));
 
         // Previous consumption
-        // uchar prev_lo = content[8];
-        // uchar prev_hi = content[9];
+        // uint8_t prev_lo = content[8];
+        // uint8_t prev_hi = content[9];
         // double prev = (256.0*prev_hi+prev_lo)/10.0;
 
         // Total consumption
-        uchar total_lo = content[4];
-        uchar total_me = content[5];
-        uchar total_hi = content[6];
+        uint8_t total_lo = content[4];
+        uint8_t total_me = content[5];
+        uint8_t total_hi = content[6];
         double total_water_consumption_m3 = (256.0*256.0*total_hi+256.0*total_me+total_lo)/10.0;
         setNumericValue("total", Unit::M3, total_water_consumption_m3);
 
@@ -152,11 +152,11 @@ namespace
 
         // Current & Prev Month consumption
         if (curr_date_day <= 15) {
-           uchar prev_lo = content[8];
+           uint8_t prev_lo = content[8];
            curr_month_m3 = prev_lo/10.0;
            prev_month[ (curr_date_month + 12) % 12 ] = curr_month_m3;
            prev_lo = content[9];
-           uchar prev_hi = content[11];
+           uint8_t prev_hi = content[11];
            prev_month[ (curr_date_month + 12 - 1) % 12 ] = (prev_hi+prev_lo)/10.0;
            prev_lo = content[12];
            prev_hi = content[14];
@@ -191,8 +191,8 @@ namespace
            //prev_lo = content[42];
            //prev_month[ (curr_date_month + 12 - 11) % 12 ] = 0.0;
         }else{
-           uchar prev_lo = content[8];
-           uchar prev_hi = content[9];
+           uint8_t prev_lo = content[8];
+           uint8_t prev_hi = content[9];
            curr_month_m3 = (prev_hi+prev_lo)/10.0;
            prev_month[ (curr_date_month + 12) % 12 ] = curr_month_m3;
            prev_lo = content[11];

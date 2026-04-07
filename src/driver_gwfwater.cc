@@ -69,14 +69,14 @@ namespace
 
     void Driver::processContent(Telegram *t)
     {
-        vector<uchar> bytes;
+        vector<uint8_t> bytes;
         t->extractMfctData(&bytes); // Extract raw frame data after the DIF 0x0F.
 
         if (bytes.size() < 3) return;
 
-        uchar type = bytes[0];
-        uchar a = bytes[1];
-        uchar b = bytes[2];
+        uint8_t type = bytes[0];
+        uint8_t a = bytes[1];
+        uint8_t b = bytes[2];
 
         if (type != 1)
         {

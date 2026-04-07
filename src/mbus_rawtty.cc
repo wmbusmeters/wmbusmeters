@@ -38,7 +38,7 @@ struct MBusRawTTY : public virtual BusDeviceCommonImplementation
     LinkModeSet supportedLinkModes() { return Any_bit; }
     int numConcurrentLinkModes() { return 0; }
     bool canSetLinkModes(LinkModeSet desired_modes) { return true; }
-    bool sendTelegram(LinkMode lm, TelegramFormat format, vector<uchar> &content);
+    bool sendTelegram(LinkMode lm, TelegramFormat format, vector<uint8_t> &content);
 
     void processSerialData();
     void simulate() { }
@@ -48,9 +48,9 @@ struct MBusRawTTY : public virtual BusDeviceCommonImplementation
 
 private:
 
-    vector<uchar> read_buffer_;
+    vector<uint8_t> read_buffer_;
     LinkModeSet link_modes_;
-    vector<uchar> received_payload_;
+    vector<uint8_t> received_payload_;
 };
 
 shared_ptr<BusDevice> openMBUS(Detected detected, shared_ptr<SerialCommunicationManager> manager, shared_ptr<SerialDevice> serial_override)
@@ -100,12 +100,12 @@ LinkModeSet MBusRawTTY::getLinkModes() {
 void MBusRawTTY::deviceReset()
 {
     // Send an NKE message that resets the communication with all meters connected to the mbus.
-    vector<uchar> buf;
+    vector<uint8_t> buf;
     buf.resize(5);
     buf[0] = 0x10; // Start
     buf[1] = 0x40; // SND_NKE
     buf[2] = 0xff; // broadcast address 255
-    uchar cs = 0;
+    uint8_t cs = 0;
     for (int i=1; i<3; ++i) cs += buf[i];
     buf[3] = cs; // checksum
     buf[4] = 0x16; // Stop
@@ -123,7 +123,7 @@ bool MBusRawTTY::deviceSetLinkModes(LinkModeSet lms)
 
 void MBusRawTTY::processSerialData()
 {
-    vector<uchar> data;
+    vector<uint8_t> data;
 
     // Receive and accumulated serial data until a full frame has been received.
     serial()->receive(&data);
@@ -152,7 +152,7 @@ void MBusRawTTY::processSerialData()
         }
         if (status == FullFrame)
         {
-            vector<uchar> payload;
+            vector<uint8_t> payload;
             if (payload_len > 0)
             {
                 payload.insert(payload.end(), read_buffer_.begin()+payload_offset, read_buffer_.begin()+payload_offset+payload_len);
@@ -164,12 +164,12 @@ void MBusRawTTY::processSerialData()
     }
 }
 
-bool MBusRawTTY::sendTelegram(LinkMode lm, TelegramFormat format, vector<uchar> &content)
+bool MBusRawTTY::sendTelegram(LinkMode lm, TelegramFormat format, vector<uint8_t> &content)
 {
     if (serial()->readonly()) return true;
     if (content.size() > 250) return false;
 
-    vector<uchar> msg;
+    vector<uint8_t> msg;
     if (format == TelegramFormat::MBUS_SHORT_FRAME)
     {
         msg.push_back(0x10);
@@ -177,8 +177,8 @@ bool MBusRawTTY::sendTelegram(LinkMode lm, TelegramFormat format, vector<uchar> 
     else if (format == TelegramFormat::MBUS_LONG_FRAME)
     {
         msg.push_back(0x68);
-        msg.push_back((uchar)content.size());
-        msg.push_back((uchar)content.size());
+        msg.push_back((uint8_t)content.size());
+        msg.push_back((uint8_t)content.size());
         msg.push_back(0x68);
     }
     else
@@ -187,7 +187,7 @@ bool MBusRawTTY::sendTelegram(LinkMode lm, TelegramFormat format, vector<uchar> 
         return false;
     }
 
-    uchar crc = 0;
+    uint8_t crc = 0;
     for (size_t i=0; i<content.size(); ++i)
     {
         msg.push_back(content[i]);

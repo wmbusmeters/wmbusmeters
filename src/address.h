@@ -18,8 +18,9 @@
 #ifndef ADDRESS_H_
 #define ADDRESS_H_
 
-#include "util.h"
+#include <cstdint>
 #include <string>
+#include <vector>
 
 /**
     IdentityMode:
@@ -47,11 +48,11 @@ struct Address
 {
     std::string id; // p1 or 12345678 or non-compliant hex: 1234abcd
     uint16_t mfct {};
-    uchar type {};
-    uchar version {};
+    uint8_t type {};
+    uint8_t version {};
 
-    void decodeMfctFirst(const std::vector<uchar>::iterator &pos);
-    void decodeIdFirst(const std::vector<uchar>::iterator &pos);
+    void decodeMfctFirst(const std::vector<uint8_t>::iterator &pos);
+    void decodeIdFirst(const std::vector<uint8_t>::iterator &pos);
 
     std::string str();
     static std::string concat(std::vector<Address> &addresses);
@@ -76,8 +77,8 @@ struct AddressExpression
     bool mbus_primary {}; // Signals that the id is 0-250
 
     uint16_t mfct { 0xffff }; // If 0xffff then any mfct matches this address.
-    uchar version { 0xff }; // If 0xff then any version matches this address.
-    uchar type { 0xff }; // If 0xff then any type matches this address.
+    uint8_t version { 0xff }; // If 0xff then any version matches this address.
+    uint8_t type { 0xff }; // If 0xff then any type matches this address.
 
     bool filter_out {}; // Telegrams matching this rule should be filtered out!
     bool required {}; // If true, then this address expression must be matched!
@@ -88,7 +89,7 @@ struct AddressExpression
     void clear();
     void trimToIdentity(IdentityMode im, Address &a);
     bool parse(const std::string &s);
-    bool match(const std::string &id, uint16_t mfct, uchar version, uchar type);
+    bool match(const std::string &id, uint16_t mfct, uint8_t version, uint8_t type);
     std::string str();
     static std::string concat(std::vector<AddressExpression> &address_expressions);
     static void appendIdentity(IdentityMode im,
