@@ -25,7 +25,6 @@
 #include<assert.h>
 #include<algorithm>
 #include<fcntl.h>
-#include<grp.h>
 #include<pthread.h>
 #include<semaphore.h>
 #include<string.h>
