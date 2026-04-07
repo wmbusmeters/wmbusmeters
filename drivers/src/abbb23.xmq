@@ -1,0 +1,1120 @@
+// Copyright (C) 2019-2023 Fredrik Öhrström (gpl-3.0-or-later)
+driver {
+    name           = abbb23
+    meter_type     = ElectricityMeter
+    default_fields = name,id,total_energy_consumption_kwh,timestamp
+    detect {
+        mvt = ABB,02,20
+    }
+    fields {
+        field {
+            name       = status
+            quantity   = Text
+            info       = 'Status, error, warning and alarm flags.'
+            attributes = STATUS,INCLUDE_TPL_STATUS
+        }
+        field {
+            name     = total_energy_consumption
+            quantity = Energy
+            info     = 'Total cumulative active imported energy.'
+            match {
+                measurement_type   = Instantaneous
+                vif_range          = AnyEnergyVIF
+                add_combinable_raw = 0
+            }
+        }
+        field {
+            name     = 'total_energy_consumption_tariff_{tariff_counter}'
+            quantity = Energy
+            info     = 'Total cumulative active imported energy per tariff.'
+            match {
+                measurement_type   = Instantaneous
+                vif_range          = AnyEnergyVIF
+                tariff_nr          = 1,4
+                add_combinable_raw = 0
+            }
+        }
+        field {
+            name     = total_energy_production
+            quantity = Energy
+            info     = 'Total cumulative active exported energy.'
+            match {
+                measurement_type   = Instantaneous
+                vif_range          = AnyEnergyVIF
+                tariff_nr          = 0
+                subunit_nr         = 1
+                add_combinable_raw = 0
+            }
+        }
+        field {
+            name     = 'total_energy_production_tariff_{tariff_counter}'
+            quantity = Energy
+            info     = 'Total cumulative active exported energy per tariff.'
+            match {
+                measurement_type   = Instantaneous
+                vif_range          = AnyEnergyVIF
+                tariff_nr          = 1,4
+                subunit_nr         = 1
+                add_combinable_raw = 0
+            }
+        }
+        field {
+            name         = active_tariff
+            quantity     = Dimensionless
+            info         = 'Active tariff.'
+            vif_scaling  = None
+            display_unit = nr
+            match {
+                difvifkey = 01FF9300
+            }
+        }
+        field {
+            name         = ct_numerator
+            quantity     = Dimensionless
+            info         = 'Current transformer ratio (numerator).'
+            vif_scaling  = None
+            display_unit = factor
+            match {
+                difvifkey = 04FFA015
+            }
+        }
+        field {
+            name         = vt_numerator
+            quantity     = Dimensionless
+            info         = 'Voltage transformer ratio (numerator).'
+            vif_scaling  = None
+            display_unit = factor
+            match {
+                difvifkey = 04FFA115
+            }
+        }
+        field {
+            name         = ct_denominator
+            quantity     = Dimensionless
+            info         = 'Current transformer ratio (denominator).'
+            vif_scaling  = None
+            display_unit = factor
+            match {
+                difvifkey = 04FFA215
+            }
+        }
+        field {
+            name         = vt_denominator
+            quantity     = Dimensionless
+            info         = 'Voltage transformer ratio (denominator).'
+            vif_scaling  = None
+            display_unit = factor
+            match {
+                difvifkey = 04FFA315
+            }
+        }
+        field {
+            name       = error_flags
+            quantity   = Text
+            info       = 'Error flags.'
+            attributes = INJECT_INTO_STATUS
+            match {
+                measurement_type = Instantaneous
+                difvifkey        = 07FFA600
+            }
+            lookup {
+                name            = ERROR_FLAGS
+                map_type        = BitToString
+                mask_bits       = 0xffffffffffffffff
+                default_message = OK
+            }
+        }
+        field {
+            name       = warning_flags
+            quantity   = Text
+            info       = 'Warning flags.'
+            attributes = INJECT_INTO_STATUS
+            match {
+                measurement_type = Instantaneous
+                difvifkey        = 07FFA700
+            }
+            lookup {
+                name            = WARNING_FLAGS
+                map_type        = BitToString
+                mask_bits       = 0xffffffffffffffff
+                default_message = OK
+            }
+        }
+        field {
+            name     = information_flags
+            quantity = Text
+            info     = 'Information flags.'
+            match {
+                measurement_type = Instantaneous
+                difvifkey        = 07FFA800
+            }
+            lookup {
+                name            = INFORMATION_FLAGS
+                map_type        = BitToString
+                mask_bits       = 0xffffffffffffffff
+                default_message = ''
+            }
+        }
+        field {
+            name       = alarm_flags
+            quantity   = Text
+            info       = 'Alarm flags.'
+            attributes = INJECT_INTO_STATUS
+            match {
+                measurement_type = Instantaneous
+                difvifkey        = 07FFA900
+            }
+            lookup {
+                name            = ALARM_FLAGS
+                map_type        = BitToString
+                mask_bits       = 0xfffffffffffffff
+                default_message = OK
+            }
+        }
+        field {
+            name     = unknown_vif_FFAD
+            quantity = Text
+            info     = 'Unknown byte.'
+            match {
+                measurement_type = Instantaneous
+                difvifkey        = 01FFAD00
+            }
+            lookup {
+                name            = UNKNOWN
+                map_type        = BitToString
+                mask_bits       = 0xff
+                default_message = OK
+            }
+        }
+        field {
+            name     = firmware_version
+            quantity = Text
+            info     = 'Firmware version.'
+            match {
+                measurement_type   = Instantaneous
+                vif_range          = FirmwareVersion
+                add_combinable_raw = 0
+            }
+        }
+        field {
+            name        = product_no
+            quantity    = Text
+            info        = 'The meter device product number.'
+            vif_scaling = None
+            match {
+                difvifkey = 0DFFAA00
+            }
+        }
+        field {
+            name        = power_fail
+            quantity    = Dimensionless
+            info        = 'Power fail counter.'
+            vif_scaling = None
+            match {
+                difvifkey = 04FF9800
+            }
+        }
+        field {
+            name     = active_consumption
+            quantity = Power
+            info     = 'Instantaneous total active imported power.'
+            match {
+                measurement_type   = Instantaneous
+                vif_range          = AnyPowerVIF
+                add_combinable_raw = 0
+            }
+        }
+        field {
+            name     = active_consumption_l1
+            quantity = Power
+            info     = 'Instantaneous active imported power for L1 phase.'
+            match {
+                measurement_type   = Instantaneous
+                vif_range          = AnyPowerVIF
+                add_combinable_raw = 0x7f01
+            }
+        }
+        field {
+            name     = active_consumption_l2
+            quantity = Power
+            info     = 'Instantaneous active imported power for L2 phase.'
+            match {
+                measurement_type   = Instantaneous
+                vif_range          = AnyPowerVIF
+                add_combinable_raw = 0x7f02
+            }
+        }
+        field {
+            name     = active_consumption_l3
+            quantity = Power
+            info     = 'Instantaneous active imported power for L3 phase.'
+            match {
+                measurement_type   = Instantaneous
+                vif_range          = AnyPowerVIF
+                add_combinable_raw = 0x7f03
+            }
+        }
+        field {
+            name     = reactive_consumption
+            quantity = Power
+            info     = 'Instantaneous total reactive imported power.'
+            match {
+                measurement_type   = Instantaneous
+                vif_range          = AnyPowerVIF
+                subunit_nr         = 2
+                add_combinable_raw = 0
+            }
+        }
+        field {
+            name     = reactive_consumption_l1
+            quantity = Power
+            info     = 'Instantaneous reactive imported power for L1 phase.'
+            match {
+                measurement_type   = Instantaneous
+                vif_range          = AnyPowerVIF
+                subunit_nr         = 2
+                add_combinable_raw = 0x7f01
+            }
+        }
+        field {
+            name     = reactive_consumption_l2
+            quantity = Power
+            info     = 'Instantaneous reactive imported power for L2 phase.'
+            match {
+                measurement_type   = Instantaneous
+                vif_range          = AnyPowerVIF
+                subunit_nr         = 2
+                add_combinable_raw = 0x7f02
+            }
+        }
+        field {
+            name     = reactive_consumption_l3
+            quantity = Power
+            info     = 'Instantaneous reactive imported power for L3 phase.'
+            match {
+                measurement_type   = Instantaneous
+                vif_range          = AnyPowerVIF
+                subunit_nr         = 2
+                add_combinable_raw = 0x7f03
+            }
+        }
+        field {
+            name     = apparent_consumption
+            quantity = Power
+            info     = 'Instantaneous total apparent imported power.'
+            match {
+                measurement_type   = Instantaneous
+                vif_range          = AnyPowerVIF
+                subunit_nr         = 4
+                add_combinable_raw = 0
+            }
+        }
+        field {
+            name     = apparent_consumption_l1
+            quantity = Power
+            info     = 'Instantaneous apparent imported power for L1 phase.'
+            match {
+                measurement_type   = Instantaneous
+                vif_range          = AnyPowerVIF
+                subunit_nr         = 4
+                add_combinable_raw = 0x7f01
+            }
+        }
+        field {
+            name     = apparent_consumption_l2
+            quantity = Power
+            info     = 'Instantaneous apparent imported power for L2 phase.'
+            match {
+                measurement_type   = Instantaneous
+                vif_range          = AnyPowerVIF
+                subunit_nr         = 4
+                add_combinable_raw = 0x7f02
+            }
+        }
+        field {
+            name     = apparent_consumption_l3
+            quantity = Power
+            info     = 'Instantaneous apparent imported power for L3 phase.'
+            match {
+                measurement_type   = Instantaneous
+                vif_range          = AnyPowerVIF
+                subunit_nr         = 4
+                add_combinable_raw = 0x7f03
+            }
+        }
+        field {
+            name     = voltage_l1_n
+            quantity = Voltage
+            info     = 'Instantaneous voltage between L1 and neutral.'
+            match {
+                measurement_type   = Instantaneous
+                vif_range          = Voltage
+                add_combinable_raw = 0x7f01
+            }
+        }
+        field {
+            name     = voltage_l2_n
+            quantity = Voltage
+            info     = 'Instantaneous voltage between L2 and neutral.'
+            match {
+                measurement_type   = Instantaneous
+                vif_range          = Voltage
+                add_combinable_raw = 0x7f02
+            }
+        }
+        field {
+            name     = voltage_l3_n
+            quantity = Voltage
+            info     = 'Instantaneous voltage between L3 and neutral.'
+            match {
+                measurement_type   = Instantaneous
+                vif_range          = Voltage
+                add_combinable_raw = 0x7f03
+            }
+        }
+        field {
+            name     = voltage_l1_l2
+            quantity = Voltage
+            info     = 'Instantaneous voltage between L1 and L2.'
+            match {
+                measurement_type   = Instantaneous
+                vif_range          = Voltage
+                add_combinable_raw = 0x7f05
+            }
+        }
+        field {
+            name     = voltage_l2_l3
+            quantity = Voltage
+            info     = 'Instantaneous voltage between L2 and L3.'
+            match {
+                measurement_type   = Instantaneous
+                vif_range          = Voltage
+                add_combinable_raw = 0x7f06
+            }
+        }
+        field {
+            name     = voltage_l3_l1
+            quantity = Voltage
+            info     = 'Instantaneous voltage between L3 and L1.'
+            match {
+                measurement_type   = Instantaneous
+                vif_range          = Voltage
+                add_combinable_raw = 0x7f07
+            }
+        }
+        field {
+            name     = current_l1
+            quantity = Amperage
+            info     = 'Instantaneous current in the L1 phase.'
+            match {
+                measurement_type   = Instantaneous
+                vif_range          = Amperage
+                add_combinable_raw = 0x7f01
+            }
+        }
+        field {
+            name     = current_l2
+            quantity = Amperage
+            info     = 'Instantaneous current in the L2 phase.'
+            match {
+                measurement_type   = Instantaneous
+                vif_range          = Amperage
+                add_combinable_raw = 0x7f02
+            }
+        }
+        field {
+            name     = current_l3
+            quantity = Amperage
+            info     = 'Instantaneous current in the L3 phase.'
+            match {
+                measurement_type   = Instantaneous
+                vif_range          = Amperage
+                add_combinable_raw = 0x7f03
+            }
+        }
+        field {
+            name         = frequency
+            quantity     = Frequency
+            info         = 'Frequency of AC.'
+            vif_scaling  = None
+            force_scale  = 0.01
+            display_unit = hz
+            match {
+                difvifkey = 0AFFD900
+            }
+        }
+        field {
+            name         = power
+            quantity     = Dimensionless
+            info         = 'Power factor.'
+            vif_scaling  = None
+            force_scale  = 0.001
+            display_unit = factor
+            match {
+                difvifkey = 02FFE000
+            }
+        }
+        field {
+            name         = power_l1
+            quantity     = Dimensionless
+            info         = 'Power factor for phase L1.'
+            vif_scaling  = None
+            force_scale  = 0.001
+            display_unit = factor
+            match {
+                difvifkey = 02FFE0FF8100
+            }
+        }
+        field {
+            name         = power_l2
+            quantity     = Dimensionless
+            info         = 'Power factor for phase L2.'
+            vif_scaling  = None
+            force_scale  = 0.001
+            display_unit = factor
+            match {
+                difvifkey = 02FFE0FF8200
+            }
+        }
+        field {
+            name         = power_l3
+            quantity     = Dimensionless
+            info         = 'Power factor for phase L3.'
+            vif_scaling  = None
+            force_scale  = 0.001
+            display_unit = factor
+            match {
+                difvifkey = 02FFE0FF8300
+            }
+        }
+        field {
+            name         = power_phase_angle
+            quantity     = Angle
+            info         = 'Total power phase angle.'
+            vif_scaling  = None
+            force_scale  = 0.1
+            display_unit = deg
+            match {
+                difvifkey = 02FFD200
+            }
+        }
+        field {
+            name         = phase_angle_power_l1
+            quantity     = Angle
+            info         = 'Power phase angle for phase L1.'
+            vif_scaling  = None
+            force_scale  = 0.1
+            display_unit = deg
+            match {
+                difvifkey = 02FFD2FF8100
+            }
+        }
+        field {
+            name         = phase_angle_power_l2
+            quantity     = Angle
+            info         = 'Power phase angle for phase L2.'
+            vif_scaling  = None
+            force_scale  = 0.1
+            display_unit = deg
+            match {
+                difvifkey = 02FFD2FF8200
+            }
+        }
+        field {
+            name         = phase_angle_power_l3
+            quantity     = Angle
+            info         = 'Power phase angle for phase L3.'
+            vif_scaling  = None
+            force_scale  = 0.1
+            display_unit = deg
+            match {
+                difvifkey = 02FFD2FF8300
+            }
+        }
+        field {
+            name     = total_reactive_energy_consumption
+            quantity = Reactive_Energy
+            info     = 'Total cumulative reactive kvarh imported energy.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = AnyEnergyVIF
+                subunit_nr       = 2
+            }
+        }
+        field {
+            name         = 'total_reactive_energy_consumption_tariff_{tariff_counter}'
+            quantity     = Energy
+            info         = 'Total cumulative reactive kvarh imported energy per tariff.'
+            display_unit = kvarh
+            match {
+                measurement_type = Instantaneous
+                vif_range        = AnyEnergyVIF
+                subunit_nr       = 2
+                tariff_nr        = 1,4
+            }
+        }
+        field {
+            name     = total_reactive_energy_production
+            quantity = Reactive_Energy
+            info     = 'Total cumulative reactive kvarh exported energy.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = AnyEnergyVIF
+                subunit_nr       = 3
+            }
+        }
+        field {
+            name         = 'total_reactive_energy_production_tariff_{tariff_counter}'
+            quantity     = Energy
+            info         = 'Total cumulative reactive kvarh exported energy per tariff.'
+            display_unit = kvarh
+            match {
+                measurement_type = Instantaneous
+                vif_range        = AnyEnergyVIF
+                subunit_nr       = 3
+                tariff_nr        = 1,4
+            }
+        }
+        field {
+            name         = current_quadrant
+            quantity     = Dimensionless
+            info         = 'The quadrant in which the current is measured.'
+            vif_scaling  = None
+            display_unit = nr
+            match {
+                difvifkey = 01FF9700
+            }
+        }
+        field {
+            name         = current_quadrant_l1
+            quantity     = Dimensionless
+            info         = 'The quadrant in which the current is measured for phase L1.'
+            vif_scaling  = None
+            display_unit = nr
+            match {
+                difvifkey = 01FF97FF8100
+            }
+        }
+        field {
+            name         = current_quadrant_l2
+            quantity     = Dimensionless
+            info         = 'The quadrant in which the current is measured for phase L2.'
+            vif_scaling  = None
+            display_unit = nr
+            match {
+                difvifkey = 01FF97FF8200
+            }
+        }
+        field {
+            name         = current_quadrant_l3
+            quantity     = Dimensionless
+            info         = 'The quadrant in which the current is measured for phase L3.'
+            vif_scaling  = None
+            display_unit = nr
+            match {
+                difvifkey = 01FF97FF8300
+            }
+        }
+        field {
+            name     = 'digital_output_{subunit_counter}'
+            quantity = Text
+            info     = 'The state for output register 1-2.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = DigitalOutput
+                storage_nr       = 0
+                tariff_nr        = 0
+                subunit_nr       = 1,2
+            }
+            lookup {
+                name      = OUTPUT
+                map_type  = BitToString
+                mask_bits = 0xff
+            }
+        }
+        field {
+            name     = 'digital_input_{subunit_counter-2counter}'
+            quantity = Text
+            info     = 'The state for input register 1-2.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = DigitalInput
+                subunit_nr       = 3,4
+            }
+            lookup {
+                name      = INPUT
+                map_type  = BitToString
+                mask_bits = 0xff
+            }
+        }
+        field {
+            name     = 'digital_historic_input_{subunit_counter-2counter}'
+            quantity = Text
+            info     = 'The state for input register 3-4.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = DigitalInput
+                storage_nr       = 1
+                subunit_nr       = 3,4
+            }
+            lookup {
+                name      = INPUT
+                map_type  = BitToString
+                mask_bits = 0xff
+            }
+        }
+        field {
+            name     = 'digital_input_{subunit_counter-2counter}'
+            quantity = Dimensionless
+            info     = 'Number of times input 1-2 counted a 1.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = CumulationCounter
+                subunit_nr       = 3,4
+            }
+        }
+        field {
+            name     = resettable_energy_consumption
+            quantity = Energy
+            info     = 'Resettable cumulative active imported energy.'
+            match {
+                measurement_type   = Instantaneous
+                vif_range          = AnyEnergyVIF
+                add_combinable_raw = 0x7f72
+            }
+        }
+        field {
+            name     = resettable_energy_production
+            quantity = Energy
+            info     = 'Resettable cumulative active exported energy.'
+            match {
+                measurement_type   = Instantaneous
+                vif_range          = AnyEnergyVIF
+                subunit_nr         = 1
+                add_combinable_raw = 0x7f72
+            }
+        }
+        field {
+            name     = resettable_reactive_energy_consumption
+            quantity = Energy
+            info     = 'Resettable cumulative reactive imported energy.'
+            match {
+                measurement_type   = Instantaneous
+                vif_range          = AnyEnergyVIF
+                subunit_nr         = 2
+                add_combinable_raw = 0x7f72
+            }
+        }
+        field {
+            name     = resettable_reactive_energy_production
+            quantity = Energy
+            info     = 'Resettable cumulative reactive exported energy.'
+            match {
+                measurement_type   = Instantaneous
+                vif_range          = AnyEnergyVIF
+                subunit_nr         = 3
+                add_combinable_raw = 0x7f72
+            }
+        }
+        field {
+            name         = energy_co2
+            quantity     = Mass
+            info         = 'Energy in co2.'
+            vif_scaling  = None
+            force_scale  = 0.01
+            display_unit = kg
+            match {
+                difvifkey = 0EFFF9C400
+            }
+        }
+        field {
+            name         = co2_conversion
+            quantity     = Dimensionless
+            info         = 'CO2 conversion factor (kg * 10-3 /kWh).'
+            vif_scaling  = None
+            display_unit = factor
+            match {
+                difvifkey = 04FFA400
+            }
+        }
+        field {
+            name        = energy_currency
+            quantity    = Dimensionless
+            info        = 'Energy in currency.'
+            vif_scaling = None
+            match {
+                difvifkey = 0EFFF9C900
+            }
+        }
+        field {
+            name         = currency_conversion
+            quantity     = Dimensionless
+            info         = 'Currency conversion factor (curr * 10-3 /kWh).'
+            vif_scaling  = None
+            display_unit = factor
+            match {
+                difvifkey = 04FFA500
+            }
+        }
+        field {
+            name     = total_apparent_energy_consumption
+            quantity = Apparent_Energy
+            info     = 'Total cumulative apparent kvah imported energy.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = AnyEnergyVIF
+                subunit_nr       = 4
+            }
+        }
+        field {
+            name     = total_apparent_energy_production
+            quantity = Apparent_Energy
+            info     = 'Total cumulative apparent kvah exported energy.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = AnyEnergyVIF
+                subunit_nr       = 5
+            }
+        }
+        field {
+            name     = total_energy_consumption_l1
+            quantity = Energy
+            info     = 'Total imported active energy for L1 phase.'
+            match {
+                measurement_type   = Instantaneous
+                vif_range          = AnyEnergyVIF
+                add_combinable_raw = 0x7f01
+            }
+        }
+        field {
+            name     = total_energy_consumption_l2
+            quantity = Energy
+            info     = 'Total imported active energy for L2 phase.'
+            match {
+                measurement_type   = Instantaneous
+                vif_range          = AnyEnergyVIF
+                add_combinable_raw = 0x7f02
+            }
+        }
+        field {
+            name     = total_energy_consumption_l3
+            quantity = Energy
+            info     = 'Total imported active energy for L3 phase.'
+            match {
+                measurement_type   = Instantaneous
+                vif_range          = AnyEnergyVIF
+                add_combinable_raw = 0x7f03
+            }
+        }
+        field {
+            name     = total_reactive_energy_consumption_l1
+            quantity = Energy
+            info     = 'Total imported reactive energy for L1 phase.'
+            match {
+                measurement_type   = Instantaneous
+                vif_range          = AnyEnergyVIF
+                subunit_nr         = 2
+                add_combinable_raw = 0x7f01
+            }
+        }
+        field {
+            name     = total_reactive_energy_consumption_l2
+            quantity = Energy
+            info     = 'Total imported reactive energy for L2 phase.'
+            match {
+                measurement_type   = Instantaneous
+                vif_range          = AnyEnergyVIF
+                subunit_nr         = 2
+                add_combinable_raw = 0x7f02
+            }
+        }
+        field {
+            name     = total_reactive_energy_consumption_l3
+            quantity = Energy
+            info     = 'Total imported reactive energy for L3 phase.'
+            match {
+                measurement_type   = Instantaneous
+                vif_range          = AnyEnergyVIF
+                subunit_nr         = 2
+                add_combinable_raw = 0x7f03
+            }
+        }
+        field {
+            name     = total_apparent_energy_consumption_l1
+            quantity = Energy
+            info     = 'Total imported apparent energy for L1 phase.'
+            match {
+                measurement_type   = Instantaneous
+                vif_range          = AnyEnergyVIF
+                subunit_nr         = 4
+                add_combinable_raw = 0x7f01
+            }
+        }
+        field {
+            name     = total_apparent_energy_consumption_l2
+            quantity = Energy
+            info     = 'Total imported apparent energy for L2 phase.'
+            match {
+                measurement_type   = Instantaneous
+                vif_range          = AnyEnergyVIF
+                subunit_nr         = 4
+                add_combinable_raw = 0x7f02
+            }
+        }
+        field {
+            name     = total_apparent_energy_consumption_l3
+            quantity = Energy
+            info     = 'Total imported apparent energy for L3 phase.'
+            match {
+                measurement_type   = Instantaneous
+                vif_range          = AnyEnergyVIF
+                subunit_nr         = 4
+                add_combinable_raw = 0x7f03
+            }
+        }
+        field {
+            name     = total_energy_production_l1
+            quantity = Energy
+            info     = 'Total exported active energy for L1 phase.'
+            match {
+                measurement_type   = Instantaneous
+                vif_range          = AnyEnergyVIF
+                subunit_nr         = 1
+                add_combinable_raw = 0x7f01
+            }
+        }
+        field {
+            name     = total_energy_production_l2
+            quantity = Energy
+            info     = 'Total exported active energy for L2 phase.'
+            match {
+                measurement_type   = Instantaneous
+                vif_range          = AnyEnergyVIF
+                subunit_nr         = 1
+                add_combinable_raw = 0x7f02
+            }
+        }
+        field {
+            name     = total_energy_production_l3
+            quantity = Energy
+            info     = 'Total exported active energy for L3 phase.'
+            match {
+                measurement_type   = Instantaneous
+                vif_range          = AnyEnergyVIF
+                subunit_nr         = 1
+                add_combinable_raw = 0x7f03
+            }
+        }
+        field {
+            name     = total_reactive_energy_production_l1
+            quantity = Energy
+            info     = 'Total exported reactive energy for L1 phase.'
+            match {
+                measurement_type   = Instantaneous
+                vif_range          = AnyEnergyVIF
+                subunit_nr         = 3
+                add_combinable_raw = 0x7f01
+            }
+        }
+        field {
+            name     = total_reactive_energy_production_l2
+            quantity = Energy
+            info     = 'Total exported reactive energy for L2 phase.'
+            match {
+                measurement_type   = Instantaneous
+                vif_range          = AnyEnergyVIF
+                subunit_nr         = 3
+                add_combinable_raw = 0x7f02
+            }
+        }
+        field {
+            name     = total_reactive_energy_production_l3
+            quantity = Energy
+            info     = 'Total exported reactive energy for L3 phase.'
+            match {
+                measurement_type   = Instantaneous
+                vif_range          = AnyEnergyVIF
+                subunit_nr         = 3
+                add_combinable_raw = 0x7f03
+            }
+        }
+        field {
+            name     = total_apparent_energy_production_l1
+            quantity = Energy
+            info     = 'Total exported apparent energy for L1 phase.'
+            match {
+                measurement_type   = Instantaneous
+                vif_range          = AnyEnergyVIF
+                subunit_nr         = 5
+                add_combinable_raw = 0x7f01
+            }
+        }
+        field {
+            name     = total_apparent_energy_production_l2
+            quantity = Energy
+            info     = 'Total exported apparent energy for L2 phase.'
+            match {
+                measurement_type   = Instantaneous
+                vif_range          = AnyEnergyVIF
+                subunit_nr         = 5
+                add_combinable_raw = 0x7f02
+            }
+        }
+        field {
+            name     = total_apparent_energy_production_l3
+            quantity = Energy
+            info     = 'Total exported apparent energy for L3 phase.'
+            match {
+                measurement_type   = Instantaneous
+                vif_range          = AnyEnergyVIF
+                subunit_nr         = 5
+                add_combinable_raw = 0x7f03
+            }
+        }
+        field {
+            name     = total_net_energy
+            quantity = Energy
+            info     = 'Active net energy total.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = AnyEnergyVIF
+                subunit_nr       = 6
+            }
+        }
+        field {
+            name     = total_net_energy_l1
+            quantity = Energy
+            info     = 'Active net energy total for phase L1.'
+            match {
+                measurement_type   = Instantaneous
+                vif_range          = AnyEnergyVIF
+                subunit_nr         = 6
+                add_combinable_raw = 0x7f01
+            }
+        }
+        field {
+            name     = total_net_energy_l2
+            quantity = Energy
+            info     = 'Active net energy total for phase L2.'
+            match {
+                measurement_type   = Instantaneous
+                vif_range          = AnyEnergyVIF
+                subunit_nr         = 6
+                add_combinable_raw = 0x7f02
+            }
+        }
+        field {
+            name     = total_net_energy_l3
+            quantity = Energy
+            info     = 'Active net energy total for phase L3.'
+            match {
+                measurement_type   = Instantaneous
+                vif_range          = AnyEnergyVIF
+                subunit_nr         = 6
+                add_combinable_raw = 0x7f03
+            }
+        }
+        field {
+            name         = total_net_reactive_energy
+            quantity     = Energy
+            info         = 'Active net reactive energy total.'
+            display_unit = kvarh
+            match {
+                measurement_type = Instantaneous
+                vif_range        = AnyEnergyVIF
+                subunit_nr       = 7
+            }
+        }
+        field {
+            name         = total_net_reactive_energy_l1
+            quantity     = Energy
+            info         = 'Active net reactive energy total for phase L1.'
+            display_unit = kvarh
+            match {
+                measurement_type   = Instantaneous
+                vif_range          = AnyEnergyVIF
+                subunit_nr         = 7
+                add_combinable_raw = 0x7f01
+            }
+        }
+        field {
+            name         = total_net_reactive_energy_l2
+            quantity     = Energy
+            info         = 'Active net reactive energy total for phase L2.'
+            display_unit = kvarh
+            match {
+                measurement_type   = Instantaneous
+                vif_range          = AnyEnergyVIF
+                subunit_nr         = 7
+                add_combinable_raw = 0x7f02
+            }
+        }
+        field {
+            name         = total_net_reactive_energy_l3
+            quantity     = Energy
+            info         = 'Active net reactive energy total for phase L3.'
+            display_unit = kvarh
+            match {
+                measurement_type   = Instantaneous
+                vif_range          = AnyEnergyVIF
+                subunit_nr         = 7
+                add_combinable_raw = 0x7f03
+            }
+        }
+        field {
+            name         = total_net_apparent_energy
+            quantity     = Energy
+            info         = 'Active net apparent energy total.'
+            display_unit = kvah
+            match {
+                measurement_type = Instantaneous
+                vif_range        = AnyEnergyVIF
+                subunit_nr       = 8
+            }
+        }
+        field {
+            name         = total_net_apparent_energy_l1
+            quantity     = Energy
+            info         = 'Active net apparent energy total for phase L1.'
+            display_unit = kvah
+            match {
+                measurement_type   = Instantaneous
+                vif_range          = AnyEnergyVIF
+                subunit_nr         = 8
+                add_combinable_raw = 0x7f01
+            }
+        }
+        field {
+            name         = total_net_apparent_energy_l2
+            quantity     = Energy
+            info         = 'Active net apparent energy total for phase L2.'
+            display_unit = kvah
+            match {
+                measurement_type   = Instantaneous
+                vif_range          = AnyEnergyVIF
+                subunit_nr         = 8
+                add_combinable_raw = 0x7f02
+            }
+        }
+        field {
+            name         = total_net_apparent_energy_l3
+            quantity     = Energy
+            info         = 'Active net apparent energy total for phase L3.'
+            display_unit = kvah
+            match {
+                measurement_type   = Instantaneous
+                vif_range          = AnyEnergyVIF
+                subunit_nr         = 8
+                add_combinable_raw = 0x7f03
+            }
+        }
+    }
+    tests {
+        test {
+            args     = 'ABBmeter abbb23 33221100 NOKEY'
+            telegram = 844442040011223320027A3E000020_0E840017495200000004FFA0150000000004FFA1150000000004FFA2150000000004FFA3150000000007FFA600000000000000000007FFA700000000000000000007FFA800000000000000000007FFA90000000000000000000DFD8E0007302E38322E31420DFFAA000B3030312D313131203332421F
+            json     = '{"media":"electricity","meter":"abbb23","name":"ABBmeter","id":"33221100","total_energy_consumption_kwh":5249.17,"firmware_version": "B1.28.0","product_no": "B23 111-100","timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'ABBmeter;33221100;5249.17;1111-11-11 11:11.11'
+        }
+    }
+}
