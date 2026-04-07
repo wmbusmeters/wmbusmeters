@@ -467,8 +467,8 @@ FrameStatus WMBusRTLWMBUS::checkRTLWMBUSFrame(vector<uchar> &data,
     return FullFrame;
 }
 
-AccessCheck detectRTLWMBUS(Detected *detected, shared_ptr<SerialCommunicationManager> handler)
+DeviceAccess detectRTLWMBUS(Detected *detected, shared_ptr<SerialCommunicationManager> handler)
 {
     assert(0);
-    return AccessCheck::NoSuchDevice;
+    return DeviceAccess::NoSuchDevice;
 }

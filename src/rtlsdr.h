@@ -24,7 +24,7 @@
 #include<vector>
 
 std::vector<std::string> listRtlSdrDevices();
-AccessCheck detectRTLSDR(std::string serialnr, Detected *detected);
+DeviceAccess detectRTLSDR(std::string serialnr, Detected *detected);
 int indexFromRtlSdrSerial(std::string serialnr);
 
 #endif

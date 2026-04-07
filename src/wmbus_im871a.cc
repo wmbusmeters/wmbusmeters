@@ -250,7 +250,7 @@ private:
 
     bool getConfig();
 
-    friend AccessCheck detectIM871AIM170A(Detected *detected, shared_ptr<SerialCommunicationManager> manager);
+    friend DeviceAccess detectIM871AIM170A(Detected *detected, shared_ptr<SerialCommunicationManager> manager);
     void handleDevMgmt(int msgid, vector<uchar> &payload);
     void handleRadioLink(int msgid, vector<uchar> &payload, int rssi_dbm);
     void handleRadioLinkTest(int msgid, vector<uchar> &payload);
@@ -1184,7 +1184,7 @@ bool WMBusIM871aIM170A::sendTelegram(LinkMode lm, TelegramFormat format, vector<
     return rc;
 }
 
-AccessCheck detectIM871AIM170A(Detected *detected, shared_ptr<SerialCommunicationManager> manager)
+DeviceAccess detectIM871AIM170A(Detected *detected, shared_ptr<SerialCommunicationManager> manager)
 {
     assert(detected->found_file != "");
 
@@ -1195,7 +1195,7 @@ AccessCheck detectIM871AIM170A(Detected *detected, shared_ptr<SerialCommunicatio
     if (!ok)
     {
         verbose("(im871a) could not open tty %s for detection\n", detected->found_file.c_str());
-        return AccessCheck::NoSuchDevice;
+        return DeviceAccess::NoSuchDevice;
     }
 
     vector<uchar> response;
@@ -1226,7 +1226,7 @@ AccessCheck detectIM871AIM170A(Detected *detected, shared_ptr<SerialCommunicatio
     {
         verbose("(im871a/im170a) are you there? no.\n");
         serial->close();
-        return AccessCheck::NoProperResponse;
+        return DeviceAccess::NoProperResponse;
     }
 
     vector<uchar> payload;
@@ -1273,7 +1273,7 @@ AccessCheck detectIM871AIM170A(Detected *detected, shared_ptr<SerialCommunicatio
     {
         verbose("(im871a/im170a) are you there? no.\n");
         serial->close();
-        return AccessCheck::NoProperResponse;
+        return DeviceAccess::NoProperResponse;
     }
 
     serial->close();
@@ -1292,5 +1292,5 @@ AccessCheck detectIM871AIM170A(Detected *detected, shared_ptr<SerialCommunicatio
 
     verbose("(im871a/im170a) are you there? yes %s %s firmware: %02x\n", co.dongleId().c_str(), types.c_str(), di.firmware_version);
 
-    return AccessCheck::AccessOK;
+    return DeviceAccess::OK;
 }

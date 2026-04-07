@@ -101,10 +101,10 @@ struct SerialCommunicationManagerImp : public SerialCommunicationManager
     int startRegularCallback(string name, int seconds, function<void()> callback);
     void stopRegularCallback(int id);
 
-    AccessCheck checkAccess(string device,
+    DeviceAccess checkAccess(string device,
                             shared_ptr<SerialCommunicationManager> manager,
                             string extra_info,
-                            function<AccessCheck(string,shared_ptr<SerialCommunicationManager>)> extra_probe);
+                            function<DeviceAccess(string,shared_ptr<SerialCommunicationManager>)> extra_probe);
 
     vector<string> listSerialTTYs();
     shared_ptr<SerialDevice> lookup(std::string device);
@@ -1872,10 +1872,10 @@ err:
     return "error";
 }
 
-AccessCheck SerialCommunicationManagerImp::checkAccess(string device,
+DeviceAccess SerialCommunicationManagerImp::checkAccess(string device,
                                                        shared_ptr<SerialCommunicationManager> manager,
                                                        string extra_info,
-                                                       function<AccessCheck(string,shared_ptr<SerialCommunicationManager>)> extra_probe)
+                                                       function<DeviceAccess(string,shared_ptr<SerialCommunicationManager>)> extra_probe)
 {
     assert(device != "");
 
@@ -1886,37 +1886,34 @@ AccessCheck SerialCommunicationManagerImp::checkAccess(string device,
 
     debug("(%s) check if %s can be accessed\n", extra_info.c_str(), device.c_str());
 
-    AccessCheck ac = checkIfExistsAndHasAccess(device);
+    DeviceAccess ac = checkIfExistsAndHasAccess(device);
 
-    if (ac == AccessCheck::AccessOK)
+    switch (ac)
     {
-        if (!extra_probe)
-        {
-            verbose("(%s) tty %s can be accessed\n", extra_info.c_str(), device.c_str());
-            return AccessCheck::AccessOK;
-        }
-        verbose("(%s) tty %s can be accessed now probing...\n", extra_info.c_str(), device.c_str());
-        ac = extra_probe(device, manager);
-        verbose("(%s) probe returns %s\n", extra_info.c_str(), toString(ac));
-        return ac;
+        case DeviceAccess::OK:
+            verbose("(%s) tty %s can be accessed", extra_info.c_str(), device.c_str());
+            if (!extra_probe)
+            {
+                verbose("\n");
+            } else {
+                verbose(" now probing...\n");
+                ac = extra_probe(device, manager);
+                verbose("(%s) probe returns DeviceAccess: %s\n", extra_info.c_str(), toString(ac));
+            }
+            break;
+        case DeviceAccess::NoPermission:
+            verbose("(serial) you do not have the correct permissions to open the tty %s, but at least you share the same access group.\n",
+                    device.c_str());
+            break;
+        case DeviceAccess::NotSameGroup:
+            verbose("(serial) you do not have the correct permissions to open the tty %s and you do not share the same access group.\n",
+                    device.c_str());
+            break;
+        default:
+        case DeviceAccess::NoSuchDevice:
+            verbose("(serial) cannot open/find tty %s.\n",
+                    device.c_str());
+            break;
     }
-
-    if (ac == AccessCheck::NoPermission)
-    {
-        verbose("(serial) you do not have the correct permissions to open the tty %s, but at least you share the same access group.\n",
-                device.c_str());
-        return AccessCheck::NoPermission;
-    }
-
-    if (ac == AccessCheck::NotSameGroup)
-    {
-        verbose("(serial) you do not have the correct permissions to open the tty %s and you do not share the same access group.\n",
-                device.c_str());
-        return AccessCheck::NotSameGroup;
-    }
-
-    verbose("(serial) cannot open/find tty %s.\n",
-            device.c_str());
-
-    return AccessCheck::NoSuchDevice;
+    return ac;
 }

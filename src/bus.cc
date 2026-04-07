@@ -689,8 +689,8 @@ void BusManager::perform_auto_scan_of_swradio_devices(Configuration *config)
             debug("(main) rtlsdr device %s not currently used.\n", serialnr.c_str());
             Detected detected;
             detected.specified_device.type = BusDeviceType::DEVICE_RTLWMBUS;
-            AccessCheck ac = detectRTLSDR(serialnr, &detected);
-            if (ac != AccessCheck::AccessOK)
+            DeviceAccess ac = detectRTLSDR(serialnr, &detected);
+            if (ac != DeviceAccess::OK)
             {
                 // We cannot access this swradio device.
                 not_swradio_wmbus_devices_.insert(serialnr);

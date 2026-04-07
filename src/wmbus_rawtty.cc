@@ -247,7 +247,7 @@ void WMBusRawTTY::processSerialData()
     }
 }
 
-AccessCheck detectRAWTTY(Detected *detected, shared_ptr<SerialCommunicationManager> manager)
+DeviceAccess detectRAWTTY(Detected *detected, shared_ptr<SerialCommunicationManager> manager)
 {
     string tty = detected->specified_device.file;
     int bps = atoi(detected->specified_device.bps.c_str());
@@ -256,12 +256,12 @@ AccessCheck detectRAWTTY(Detected *detected, shared_ptr<SerialCommunicationManag
     // even respond. The only thing we can do is to try to open the serial device.
     auto serial = manager->createSerialDeviceTTY(tty.c_str(), bps, PARITY::NONE, "detect rawtty");
     bool ok = serial->open(false);
-    if (!ok) return AccessCheck::NoSuchDevice;
+    if (!ok) return DeviceAccess::NoSuchDevice;
 
     serial->close();
 
     detected->setAsFound("", BusDeviceType::DEVICE_RAWTTY, false, bps,
         detected->specified_device.linkmodes);
 
-    return AccessCheck::AccessOK;
+    return DeviceAccess::OK;
 }

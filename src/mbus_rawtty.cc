@@ -202,7 +202,7 @@ bool MBusRawTTY::sendTelegram(LinkMode lm, TelegramFormat format, vector<uchar> 
     return true;
 }
 
-AccessCheck detectMBUS(Detected *detected, shared_ptr<SerialCommunicationManager> manager)
+DeviceAccess detectMBUS(Detected *detected, shared_ptr<SerialCommunicationManager> manager)
 {
     string tty = detected->specified_device.file;
     int bps = atoi(detected->specified_device.bps.c_str());
@@ -211,12 +211,12 @@ AccessCheck detectMBUS(Detected *detected, shared_ptr<SerialCommunicationManager
     // even respond. The only thing we can do is to try to open the serial device.
     auto serial = manager->createSerialDeviceTTY(tty.c_str(), bps, PARITY::EVEN, "detect mbus");
     bool ok = serial->open(false);
-    if (!ok) return AccessCheck::NoSuchDevice;
+    if (!ok) return DeviceAccess::NoSuchDevice;
 
     serial->close();
 
     detected->setAsFound("", BusDeviceType::DEVICE_MBUS, bps, false,
         detected->specified_device.linkmodes);
 
-    return AccessCheck::AccessOK;
+    return DeviceAccess::OK;
 }

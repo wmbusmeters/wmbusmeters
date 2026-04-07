@@ -101,12 +101,12 @@ int indexFromRtlSdrSerial(std::string serialnr)
     return -1;
 }
 
-AccessCheck detectRTLSDR(string serialnr, Detected *detected)
+DeviceAccess detectRTLSDR(string serialnr, Detected *detected)
 {
     if (detected->specified_device.type != BusDeviceType::DEVICE_RTLWMBUS &&
         detected->specified_device.type != BusDeviceType::DEVICE_RTL433)
     {
-        return AccessCheck::NoSuchDevice;
+        return DeviceAccess::NoSuchDevice;
     }
 
     uint32_t n = rtlsdr_get_device_count();
@@ -124,12 +124,12 @@ AccessCheck detectRTLSDR(string serialnr, Detected *detected)
             lms.addLinkMode(LinkMode::C1);
             lms.addLinkMode(LinkMode::T1);
             detected->setAsFound(serialnr, detected->specified_device.type, 0, false, lms);
-            return AccessCheck::AccessOK;
+            return DeviceAccess::OK;
         }
     }
 
     // Something is wrong.
-    return AccessCheck::NoSuchDevice;
+    return DeviceAccess::NoSuchDevice;
 }
 
 /*

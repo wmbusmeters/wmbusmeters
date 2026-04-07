@@ -420,13 +420,13 @@ FrameStatus WMBusCUL::checkCULFrame(vector<uchar> &data,
     }
 }
 
-AccessCheck detectCUL(Detected *detected, shared_ptr<SerialCommunicationManager> manager)
+DeviceAccess detectCUL(Detected *detected, shared_ptr<SerialCommunicationManager> manager)
 {
     // Talk to the device and expect a very specific answer.
     auto serial = manager->createSerialDeviceTTY(detected->found_file.c_str(), 38400, PARITY::NONE, "detect cul");
     serial->disableCallbacks();
     bool ok = serial->open(false);
-    if (!ok) return AccessCheck::NoSuchDevice;
+    if (!ok) return DeviceAccess::NoSuchDevice;
 
     bool found = false;
     for (int i=0; i<3; ++i)
@@ -444,7 +444,7 @@ AccessCheck detectCUL(Detected *detected, shared_ptr<SerialCommunicationManager>
         if (!ok)
         {
             verbose("(cul) are you there? no\n");
-            return AccessCheck::NoSuchDevice;
+            return DeviceAccess::NoSuchDevice;
         }
 
         // Wait for 200ms so that the USB stick have time to prepare a response.
@@ -465,7 +465,7 @@ AccessCheck detectCUL(Detected *detected, shared_ptr<SerialCommunicationManager>
     if (!found)
     {
         verbose("(cul) are you there? no\n");
-        return AccessCheck::NoProperResponse;
+        return DeviceAccess::NoProperResponse;
     }
 
     detected->setAsFound("", BusDeviceType::DEVICE_CUL, 38400, false, detected->specified_device.linkmodes);
@@ -477,5 +477,5 @@ AccessCheck detectCUL(Detected *detected, shared_ptr<SerialCommunicationManager>
             "no way for wmbusmeters to detect that nanoCUL has truncated\n"
             "the telegram. If you are lucky the nanoCUL generates broken hex\n"
             "which is detected and printed in the log.\n\n");
-    return AccessCheck::AccessOK;
+    return DeviceAccess::OK;
 }

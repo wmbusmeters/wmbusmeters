@@ -1240,34 +1240,34 @@ void addMonths(struct tm *date, int months)
     date->tm_mday = day;
 }
 
-const char* toString(AccessCheck ac)
+const char* toString(DeviceAccess ac)
 {
     switch (ac)
     {
-    case AccessCheck::NoSuchDevice: return "NoSuchDevice";
-    case AccessCheck::NoProperResponse: return "NoProperResponse";
-    case AccessCheck::NoPermission: return "NoPermission";
-    case AccessCheck::NotSameGroup: return "NotSameGroup";
-    case AccessCheck::AccessOK: return "AccessOK";
+    case DeviceAccess::NoSuchDevice: return "NoSuchDevice";
+    case DeviceAccess::NoProperResponse: return "NoProperResponse";
+    case DeviceAccess::NoPermission: return "NoPermission";
+    case DeviceAccess::NotSameGroup: return "NotSameGroup";
+    case DeviceAccess::OK: return "OK";
     }
-    return "?";
+    return "UNKNOWN";
 }
 
-AccessCheck checkIfExistsAndHasAccess(const string& device)
+DeviceAccess checkIfExistsAndHasAccess(const string& device)
 {
     struct stat device_sb;
 
     int ok = stat(device.c_str(), &device_sb);
 
     // The file did not exist.
-    if (ok) return AccessCheck::NoSuchDevice;
+    if (ok) return DeviceAccess::NoSuchDevice;
 
     int r = access(device.c_str(), R_OK);
     int w = access(device.c_str(), W_OK);
     if (r == 0 && w == 0)
     {
         // We have read and write access!
-        return AccessCheck::AccessOK;
+        return DeviceAccess::OK;
     }
 
     // We are not permitted to read and write to this tty. Why?
@@ -1298,13 +1298,13 @@ AccessCheck checkIfExistsAndHasAccess(const string& device)
         {
             // We belong to the same group as the tty. Typically dialout.
             // Then there is some other reason for the lack of access.
-            return AccessCheck::NoPermission;
+            return DeviceAccess::NoPermission;
         }
     }
     // We have examined all the groups that we belong to and yet not
     // found the device's group. We can at least conclude that we
     // being in the device's group would help, ie dialout.
-    return AccessCheck::NotSameGroup;
+    return DeviceAccess::NotSameGroup;
 }
 
 int countSetBits(int v)

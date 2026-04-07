@@ -813,27 +813,27 @@ FrameStatus checkMBusFrame(std::vector<uchar> &data,
                            int *payload_offset,
                            bool only_test);
 
-AccessCheck reDetectDevice(Detected *detected, std::shared_ptr<SerialCommunicationManager> handler);
+DeviceAccess reDetectDevice(Detected *detected, std::shared_ptr<SerialCommunicationManager> handler);
 
-AccessCheck detectAUTO(Detected *detected, std::shared_ptr<SerialCommunicationManager> handler);
-AccessCheck detectAMB8465AMB3665(Detected *detected, std::shared_ptr<SerialCommunicationManager> handler);
-//AccessCheck detectAMB3665(Detected *detected, std::shared_ptr<SerialCommunicationManager> handler);
-AccessCheck detectCUL(Detected *detected, std::shared_ptr<SerialCommunicationManager> handler);
-AccessCheck detectD1TC(Detected *detected, std::shared_ptr<SerialCommunicationManager> manager);
-AccessCheck detectIM871AIM170A(Detected *detected, std::shared_ptr<SerialCommunicationManager> handler);
-AccessCheck detectIU891A(Detected *detected, std::shared_ptr<SerialCommunicationManager> handler);
-AccessCheck detectIU880B(Detected *detected, std::shared_ptr<SerialCommunicationManager> handler);
-AccessCheck detectRAWTTY(Detected *detected, std::shared_ptr<SerialCommunicationManager> handler);
-AccessCheck detectMBUS(Detected *detected, std::shared_ptr<SerialCommunicationManager> handler);
-AccessCheck detectRC1180(Detected *detected, std::shared_ptr<SerialCommunicationManager> handler);
-AccessCheck detectRTL433(Detected *detected, std::shared_ptr<SerialCommunicationManager> handler);
-AccessCheck detectRTLWMBUS(Detected *detected, std::shared_ptr<SerialCommunicationManager> handler);
-AccessCheck detectSKIP(Detected *detected, std::shared_ptr<SerialCommunicationManager> handler);
+DeviceAccess detectAUTO(Detected *detected, std::shared_ptr<SerialCommunicationManager> handler);
+DeviceAccess detectAMB8465AMB3665(Detected *detected, std::shared_ptr<SerialCommunicationManager> handler);
+//DeviceAccess detectAMB3665(Detected *detected, std::shared_ptr<SerialCommunicationManager> handler);
+DeviceAccess detectCUL(Detected *detected, std::shared_ptr<SerialCommunicationManager> handler);
+DeviceAccess detectD1TC(Detected *detected, std::shared_ptr<SerialCommunicationManager> manager);
+DeviceAccess detectIM871AIM170A(Detected *detected, std::shared_ptr<SerialCommunicationManager> handler);
+DeviceAccess detectIU891A(Detected *detected, std::shared_ptr<SerialCommunicationManager> handler);
+DeviceAccess detectIU880B(Detected *detected, std::shared_ptr<SerialCommunicationManager> handler);
+DeviceAccess detectRAWTTY(Detected *detected, std::shared_ptr<SerialCommunicationManager> handler);
+DeviceAccess detectMBUS(Detected *detected, std::shared_ptr<SerialCommunicationManager> handler);
+DeviceAccess detectRC1180(Detected *detected, std::shared_ptr<SerialCommunicationManager> handler);
+DeviceAccess detectRTL433(Detected *detected, std::shared_ptr<SerialCommunicationManager> handler);
+DeviceAccess detectRTLWMBUS(Detected *detected, std::shared_ptr<SerialCommunicationManager> handler);
+DeviceAccess detectSKIP(Detected *detected, std::shared_ptr<SerialCommunicationManager> handler);
 
 // Try to factory reset an AMB8465/AMB3665 by trying all possible serial speeds and
 // restore to factory settings.
-AccessCheck factoryResetAMB8465(std::string tty, std::shared_ptr<SerialCommunicationManager> handler, int *was_baud);
-AccessCheck factoryResetAMB3665(std::string tty, std::shared_ptr<SerialCommunicationManager> handler, int *was_baud);
+DeviceAccess factoryResetAMB8465(std::string tty, std::shared_ptr<SerialCommunicationManager> handler, int *was_baud);
+DeviceAccess factoryResetAMB3665(std::string tty, std::shared_ptr<SerialCommunicationManager> handler, int *was_baud);
 
 Detected detectBusDeviceOnTTY(std::string tty,
                               std::set<BusDeviceType> probe_for,

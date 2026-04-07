@@ -390,7 +390,7 @@ void WMBusRC1180::processSerialData()
     }
 }
 
-AccessCheck detectRC1180(Detected *detected, shared_ptr<SerialCommunicationManager> manager)
+DeviceAccess detectRC1180(Detected *detected, shared_ptr<SerialCommunicationManager> manager)
 try
 {
     // Talk to the device and expect a very specific answer.
@@ -398,7 +398,7 @@ try
     auto serial = manager->createSerialDeviceTTY(detected->found_file.c_str(), baud_rate, PARITY::NONE, "detect rc1180");
     serial->disableCallbacks();
     bool ok = serial->open(false);
-    if (!ok) return AccessCheck::NoSuchDevice;
+    if (!ok) return DeviceAccess::NoSuchDevice;
 
     vector<uchar> data;
     vector<uchar> msg(1);
@@ -416,7 +416,7 @@ try
        // no RC1180 device detected
        serial->close();
        verbose("(rc1180) are you there? no.\n");
-       return AccessCheck::NoProperResponse;
+       return DeviceAccess::NoProperResponse;
     }
 
     data.clear();
@@ -437,7 +437,7 @@ try
         // Decode must be ok and the uart_baud_rate mus match the speed we are using.
         serial->close();
         verbose("(rc1180) are you there? no.\n");
-        return AccessCheck::NoProperResponse;
+        return DeviceAccess::NoProperResponse;
     }
 
     verbose("(rc1180) config: %s\n", co.str().c_str());
@@ -471,10 +471,10 @@ try
 
     verbose("(rc1180) are you there? yes %s\n", co.dongleId().c_str());
 
-    return AccessCheck::AccessOK;
+    return DeviceAccess::OK;
 }
 catch(const std::exception& e)
 {
     warning("(rc1180) are you there? dunno, exception occured: %s\n", e.what());
-    return AccessCheck::NoProperResponse;
+    return DeviceAccess::NoProperResponse;
 }
