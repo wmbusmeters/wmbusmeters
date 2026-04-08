@@ -1,0 +1,69 @@
+// Copyright (C) 2017-2023 Fredrik Öhrström (gpl-3.0-or-later)
+driver {
+    name           = aerius
+    meter_type     = GasMeter
+    default_fields = name,id,total_m3,timestamp
+    detect {
+        mvt = DME,30,03
+    }
+    fields {
+        field {
+            name     = total
+            quantity = Volume
+            info     = 'The total gas consumption recorded by this meter.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = Volume
+                add_combinable   = ValueAtBaseCondC
+            }
+        }
+        field {
+            name     = flow
+            quantity = Flow
+            info     = 'The current gas flow.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = VolumeFlow
+            }
+        }
+        field {
+            name     = temperature
+            quantity = Temperature
+            info     = 'The current temperature.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = FlowTemperature
+            }
+        }
+        field {
+            name         = target
+            quantity     = PointInTime
+            info         = 'Date time when previous billing period ended.'
+            display_unit = datetime
+            match {
+                measurement_type = Instantaneous
+                vif_range        = DateTime
+                storage_nr       = 3
+            }
+        }
+        field {
+            name     = target
+            quantity = Volume
+            info     = 'The total gas consumption recorded when the previous billing period ended.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = Volume
+                storage_nr       = 3
+                add_combinable   = ValueAtBaseCondC
+            }
+        }
+    }
+    tests {
+        test {
+            args     = 'aerius_gas aerius 99657098 NOKEY'
+            telegram = 2E44A5119870659930037A060020052F2F_0C933E842784060A3B00000A5A5901C4016D3B37DF2CCC01933E24032606
+            json     = '{"_":"telegram","media":"gas","meter":"aerius","name":"aerius_gas","id":"99657098","total_m3":6842.784,"flow_m3h":0,"temperature_c":15.9,"target_datetime":"2022-12-31 23:59","target_m3":6260.324,"timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'aerius_gas;99657098;6842.784;1111-11-11 11:11.11'
+        }
+    }
+}
