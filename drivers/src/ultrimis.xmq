@@ -1,0 +1,109 @@
+// Copyright (C) 2017-2026 Fredrik Öhrström (gpl-3.0-or-later)
+driver {
+    name           = ultrimis
+    meter_type     = WaterMeter
+    default_fields = name,id,total_m3,target_m3,current_status,total_backward_flow_m3,timestamp
+    manufacturer   = Apator
+    detect {
+        mvt = APA,01,16
+    }
+    fields {
+        field {
+            name     = total
+            quantity = Volume
+            info     = 'The total water consumption recorded by this meter.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = Volume
+            }
+        }
+        field {
+            name     = target
+            quantity = Volume
+            info     = 'The total water consumption recorded at the beginning of this month.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = Volume
+                storage_nr       = 1
+            }
+        }
+        field {
+            name     = current_status
+            quantity = Text
+            info     = 'Status and error flags.'
+            match {
+                difvifkey = 03FD17
+            }
+            lookup {
+                name            = ERROR_FLAGS
+                map_type        = BitToString
+                mask_bits       = 0xffffff
+                default_message = OK
+                map {
+                    name  = TAMPER
+                    value = 0x01
+                    test  = Set
+                }
+                map {
+                    name  = LOW_BATTERY
+                    value = 0x02
+                    test  = Set
+                }
+                map {
+                    name  = DRY
+                    value = 0x04
+                    test  = Set
+                }
+                map {
+                    name  = NO_FLOW
+                    value = 0x08
+                    test  = Set
+                }
+                map {
+                    name  = HIGH_TEMPERATURE
+                    value = 0x10
+                    test  = Set
+                }
+                map {
+                    name  = BURST
+                    value = 0x20
+                    test  = Set
+                }
+                map {
+                    name  = REVERSE
+                    value = 0x40
+                    test  = Set
+                }
+                map {
+                    name  = LEAK
+                    value = 0x80
+                    test  = Set
+                }
+            }
+        }
+        field {
+            name           = total_backward_flow
+            quantity       = Volume
+            info           = 'The total backward water volume recorded by this meter.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
+            match {
+                difvifkey = 04933C
+            }
+        }
+    }
+    tests {
+        test {
+            args     = 'Water ultrimis 95969798 NOKEY'
+            telegram = 2E4401069897969501167A4B0320052F2F_0413320C000003FD1700000044132109000004933C000000002F2F2F2F2F
+            json     = '{"_":"telegram","media":"cold water","meter":"ultrimis","name":"Water","id":"95969798","total_m3":3.122,"target_m3":2.337,"current_status":"OK","total_backward_flow_m3":0,"timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'Water;95969798;3.122;2.337;OK;0;1111-11-11 11:11.11'
+        }
+        test {
+            args     = 'Water ultrimis 95969798 NOKEY'
+            telegram = 2E4401069897969501167A4B0320052F2F_0413320C000003FD1700000044132109000004933C000000002F2F2F2F2F
+            json     = '{"_":"telegram","media":"cold water","meter":"ultrimis","name":"Water","id":"95969798","total_m3":3.122,"target_m3":2.337,"current_status":"OK","total_backward_flow_m3":0,"timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'Water;95969798;3.122;2.337;OK;0;1111-11-11 11:11.11'
+        }
+    }
+}

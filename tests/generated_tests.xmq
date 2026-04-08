@@ -1,4 +1,4 @@
-// Generated 2026-03-18_19:20
+// Generated 2026-04-08_02:02
 test {
     args     = 'Vatten apator08 004444dd NOKEY'
     telegram = 73441486DD4444000303A0B9E527004C4034B31CED0106FF01D093270065F022009661230054D02300EC49240018B424005F012500936D2500FFD525000E3D26001EAC26000B2027000300000000371D0B2000000000000024000000000000280000000000002C0033150C010D2F000000000000
@@ -715,6 +715,18 @@ test {
     telegram = 4444EE4D198050891B047AFB000000_046D3612E423820A6CE1F1040628010000840A060000000004144A110000840A14000000000259E30F025D2A0C023B1D01032C3A0100
     json     = '{"_":"telegram","flow_temperature_c": 40.67,"id": "89508019","media": "heat","meter": "supercal","meter_datetime": "2023-03-04 18:54","name": "sonsupercal","power_kw": 3.14,"return_temperature_c": 31.14,"target_date": "2127-01-01","target_kwh": 0,"target_m3": 0,"timestamp": "1111-11-11T11:11:11Z","total_kwh": 296,"total_m3": 44.26,"volume_flow_m3h": 0.285}'
     fields   = 'sonsupercal;89508019;296;1111-11-11 11:11.11'
+}
+test {
+    args     = 'Water ultrimis 95969798 NOKEY'
+    telegram = 2E4401069897969501167A4B0320052F2F_0413320C000003FD1700000044132109000004933C000000002F2F2F2F2F
+    json     = '{"_":"telegram","media":"cold water","meter":"ultrimis","name":"Water","id":"95969798","total_m3":3.122,"target_m3":2.337,"current_status":"OK","total_backward_flow_m3":0,"timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'Water;95969798;3.122;2.337;OK;0;1111-11-11 11:11.11'
+}
+test {
+    args     = 'Water ultrimis 95969798 NOKEY'
+    telegram = 2E4401069897969501167A4B0320052F2F_0413320C000003FD1700000044132109000004933C000000002F2F2F2F2F
+    json     = '{"_":"telegram","media":"cold water","meter":"ultrimis","name":"Water","id":"95969798","total_m3":3.122,"target_m3":2.337,"current_status":"OK","total_backward_flow_m3":0,"timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'Water;95969798;3.122;2.337;OK;0;1111-11-11 11:11.11'
 }
 test {
     args     = 'licznik werhlemodwm 16466583 NOKEY'
