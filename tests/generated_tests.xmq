@@ -1,4 +1,4 @@
-// Generated 2026-03-18_19:20
+// Generated 2026-04-08_02:49
 test {
     args     = 'Vatten apator08 004444dd NOKEY'
     telegram = 73441486DD4444000303A0B9E527004C4034B31CED0106FF01D093270065F022009661230054D02300EC49240018B424005F012500936D2500FFD525000E3D26001EAC26000B2027000300000000371D0B2000000000000024000000000000280000000000002C0033150C010D2F000000000000
@@ -449,6 +449,12 @@ test {
     telegram = 2A442D2C998734761B168D2091D37CAC21576C78_02FF207100041308190000441308190000615B7F616713
     json     = '{"_":"telegram","media":"cold water","meter":"kamwater","name":"MyTapWater","id":"76348799","external_temperature_c":19,"flow_temperature_c":127,"target_m3":6.408,"total_m3":6.408,"current_status":"DRY","status":"DRY","time_bursting":"","time_dry":"22-31 days","time_leaking":"","time_reversed":"","timestamp":"1111-11-11T11:11:11Z"}'
     fields   = 'MyTapWater;76348799;DRY;6.408;6.408;1111-11-11 11:11.11'
+}
+test {
+    args     = 'HCA2 lse_08 04998541 NOKEY'
+    telegram = 294465324185990401087a0080000082046c7f018b046e210300046d1a0e6f0202fdac7e012301fd0c01
+    json     = '{"_":"telegram","media":"heat cost allocation","meter":"lse_08","name":"HCA2","id":"04998541","status":"UNKNOWN_80","set_date":"2003-01-31","consumption_at_set_date_hca":321,"device_date_time":"2003-02-15 14:26","duration_since_readout_h":2.489167,"model_version":"01","timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'HCA2;04998541;2003-01-31;321;1111-11-11 11:11.11'
 }
 test {
     args     = 'mywater maddalena 24018699 NOKEY'
