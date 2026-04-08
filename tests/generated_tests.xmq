@@ -1,4 +1,4 @@
-// Generated 2026-03-18_19:20
+// Generated 2026-04-08_02:53
 test {
     args     = 'Vatten apator08 004444dd NOKEY'
     telegram = 73441486DD4444000303A0B9E527004C4034B31CED0106FF01D093270065F022009661230054D02300EC49240018B424005F012500936D2500FFD525000E3D26001EAC26000B2027000300000000371D0B2000000000000024000000000000280000000000002C0033150C010D2F000000000000
@@ -715,6 +715,12 @@ test {
     telegram = 4444EE4D198050891B047AFB000000_046D3612E423820A6CE1F1040628010000840A060000000004144A110000840A14000000000259E30F025D2A0C023B1D01032C3A0100
     json     = '{"_":"telegram","flow_temperature_c": 40.67,"id": "89508019","media": "heat","meter": "supercal","meter_datetime": "2023-03-04 18:54","name": "sonsupercal","power_kw": 3.14,"return_temperature_c": 31.14,"target_date": "2127-01-01","target_kwh": 0,"target_m3": 0,"timestamp": "1111-11-11T11:11:11Z","total_kwh": 296,"total_m3": 44.26,"volume_flow_m3h": 0.285}'
     fields   = 'sonsupercal;89508019;296;1111-11-11 11:11.11'
+}
+test {
+    args     = 'GasMeter unismart 00043094 00000000000000000000000000000000'
+    telegram = 6044B8059430040001037A1D005085E2B670BCF1A5C87E0C1A51DA18924EF984613DA2A9CD39D8F4C7208326C76D42DBEADF80D574192B71BD7C4F56A7F1513151768A9DB804883B28CB085CA2D0F7438C361CB9E2734712ED9BFBB2A14EF55208
+    json     = '{"_":"telegram","media":"gas","meter":"unismart","name":"GasMeter","id":"00043094","fabrication_no":"03162296","status":"STATUS_FLAGS_CF0","other":"OTHER_FLAGS_14","total_date_time":"2021-09-15 13:18","total_m3":917,"target_date_time":"2021-09-01 06:00","target_m3":911.32,"version":"  4GGU","supplier_info":"00","parameter_set":"02","meter_timestamp":"2021-09-15 13:18:30","timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'GasMeter;00043094;917;911.32;1111-11-11 11:11.11'
 }
 test {
     args     = 'licznik werhlemodwm 16466583 NOKEY'
