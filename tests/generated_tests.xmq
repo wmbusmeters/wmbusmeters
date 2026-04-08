@@ -1,4 +1,4 @@
-// Generated 2026-03-18_19:20
+// Generated 2026-04-08_02:34
 test {
     args     = 'Vatten apator08 004444dd NOKEY'
     telegram = 73441486DD4444000303A0B9E527004C4034B31CED0106FF01D093270065F022009661230054D02300EC49240018B424005F012500936D2500FFD525000E3D26001EAC26000B2027000300000000371D0B2000000000000024000000000000280000000000002C0033150C010D2F000000000000
@@ -134,6 +134,12 @@ test {
     telegram = 1844961557890080501B7aea00012002656f0802fd46610e0f
     json     = '{"_": "telegram","battery_v": 3.681,"id": "80008957","media": "room sensor","meter": "elvsense","name": "ES1","status": "OK","temperature_c": 21.59,"timestamp": "1111-11-11T11:11:11Z"}'
     fields   = 'ES1;80008957;21.59;null;null;3.681;OK;1111-11-11 11:11.11'
+}
+test {
+    args     = 'Voda ev200 99993030 NOKEY'
+    telegram = 2E449215303099990D077AB50820452F2F_0C12495849004C12557545000FB10445007022C50BFFFFFFFF0000FFF000
+    json     = '{"_":"telegram","media":"water","meter":"ev200","name":"Voda","id":"99993030","total_m3":49.5849,"target_m3":45.7555,"timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'Voda;99993030;49.5849;45.7555;1111-11-11 11:11.11'
 }
 test {
     args     = 'fio fiowater 25016914 NOKEY'
