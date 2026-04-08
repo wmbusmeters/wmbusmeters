@@ -7,6 +7,13 @@ then
     XMQ=xmq
 fi
 
+if ! command -v $XMQ >/dev/null
+then
+    # If there is no xmq, that is fine.
+    echo "No $XMQ found."
+    exit 0
+fi
+
 min="4.1.0"
 ver="$($XMQ --version | cut -f 2 -d ' ')"
 
