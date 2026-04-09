@@ -5886,20 +5886,27 @@ const char *toString(FrameStatus fs)
     return "?";
 }
 
-int genericifyMedia(int media)
-{
-    if (media == 0x06 || // Warm Water (30°C-90°C) meter
-        media == 0x07 || // Water meter
-        media == 0x15 || // Hot water (>=90°C) meter
-        media == 0x16 || // Cold water meter
-        media == 0x28)   // Waste water
-    {
-        return 0x07; // Return plain water
-    }
-    return media;
-}
-
 bool isCloseEnough(int media1, int media2)
 {
-    return genericifyMedia(media1) == genericifyMedia(media2);
+    return (
+        (media1 == media2)
+        ||
+        (
+            (
+                media1 == 0x06 || // Warm Water (30°C-90°C) meter
+                media1 == 0x07 || // Water meter
+                media1 == 0x15 || // Hot water (>=90°C) meter
+                media1 == 0x16 || // Cold water meter
+                media1 == 0x28    // Waste water
+            )
+            &&
+            (
+                media2 == 0x06 || // Warm Water (30°C-90°C) meter
+                media2 == 0x07 || // Water meter
+                media2 == 0x15 || // Hot water (>=90°C) meter
+                media2 == 0x16 || // Cold water meter
+                media2 == 0x28    // Waste water
+            )
+        )
+    );
 }
