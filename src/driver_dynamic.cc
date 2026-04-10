@@ -597,11 +597,11 @@ string check_driver_name(const char *name, string file)
         throw 1;
     }
 
-    if (!is_lowercase_alnum_text(name))
+    if (!is_lowercase_alpha_num_underscore(name))
     {
         warning("(driver) error in %s, bad driver name: %s\n"
                 "%s\n"
-                "The driver name must consist of lower case ascii a-z and digits 0-9.\n"
+                "The driver name must consist of lower case ascii a-z, digits 0-9 and _ .\n"
                 "%s\n",
                 file.c_str(),
                 name,
