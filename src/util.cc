@@ -2278,23 +2278,6 @@ int toMfctCode(char a, char b, char c)
     return ((a-64)*1024+(b-64)*32+(c-64));
 }
 
-bool is_lowercase_alpha_num_underscore(const char *text)
-{
-    const char *i = text;
-    while (*i)
-    {
-        char c = *i;
-        if (!((c >= '0' && c <= '9') ||
-              (c >= 'a' && c <= 'z') ||
-              c == '_'))
-        {
-            return false;
-        }
-        i++;
-    }
-    return true;
-}
-
 bool endsWith(const std::string& str, const std::string& suffix)
 {
     return str.size() >= suffix.size() && 0 == str.compare(str.size()-suffix.size(), suffix.size(), suffix);

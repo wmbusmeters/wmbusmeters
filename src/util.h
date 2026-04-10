@@ -318,8 +318,6 @@ int strlen_utf8(const char *s);
 
 int toMfctCode(char a, char b, char c);
 
-bool is_lowercase_alpha_num_underscore(const char *text);
-
 // The language that the user expects driver and other messages in.
 const std::string &language();
 

@@ -583,6 +583,25 @@ XMQProceed DriverDynamic::add_mfct_tpl_status(XMQDoc *doc, XMQNodePtr node, Driv
     return XMQ_CONTINUE;
 }
 
+bool is_valid_driver_name(const char *text)
+{
+    const char *i = text;
+    while (*i)
+    {
+        char c = *i;
+        if (!((c >= '0' && c <= '9') ||
+              (c >= 'a' && c <= 'z') ||
+              c == '_' || c == '-'
+            )
+           )
+        {
+            return false;
+        }
+        i++;
+    }
+    return true;
+}
+
 string check_driver_name(const char *name, string file)
 {
     if (!name)
@@ -597,11 +616,11 @@ string check_driver_name(const char *name, string file)
         throw 1;
     }
 
-    if (!is_lowercase_alpha_num_underscore(name))
+    if (!is_valid_driver_name(name))
     {
         warning("(driver) error in %s, bad driver name: %s\n"
                 "%s\n"
-                "The driver name must consist of lower case ascii a-z, digits 0-9 and _ .\n"
+                "The driver name must consist of lower case ascii a-z, digits 0-9 and - or _ .\n"
                 "%s\n",
                 file.c_str(),
                 name,
