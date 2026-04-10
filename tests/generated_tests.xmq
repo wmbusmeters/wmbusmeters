@@ -1,4 +1,4 @@
-// Generated 2026-04-10_11:34
+// Generated 2026-04-08_02:34
 test {
     args     = 'ABBmeter abbb23 33221100 NOKEY'
     telegram = 844442040011223320027A3E000020_0E840017495200000004FFA0150000000004FFA1150000000004FFA2150000000004FFA3150000000007FFA600000000000000000007FFA700000000000000000007FFA800000000000000000007FFA90000000000000000000DFD8E0007302E38322E31420DFFAA000B3030312D313131203332421F
@@ -148,6 +148,10 @@ test {
     fields   = 'ES1;80008957;21.59;null;null;3.681;OK;1111-11-11 11:11.11'
 }
 test {
+    args     = 'Voda ev200 99993030 NOKEY'
+    telegram = 2E449215303099990D077AB50820452F2F_0C12495849004C12557545000FB10445007022C50BFFFFFFFF0000FFF000
+    json     = '{"_":"telegram","media":"water","meter":"ev200","name":"Voda","id":"99993030","total_m3":49.5849,"target_m3":45.7555,"timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'Voda;99993030;49.5849;45.7555;1111-11-11 11:11.11'
     args     = 'HeatMeter2 eurisii 60200770 NOKEY'
     telegram = 76442D4870072060550872700720602D485508280060052F2F_0B6E320100426E550082016E3500C2016E1F0082026E1F00C2026E130082036E1300C2036E130082046E1300C2046E120082056E7D01C2056E440182066E0601C2066EB80082076E7F00C2076E320082086E1C00C2086E1C0002FD170000
     json     = '{"_":"telegram","media":"heat cost allocation","meter":"eurisii","name":"HeatMeter2","id":"60200770","status":"OK","error_flags":"OK","current_consumption_hca":132,"consumption_at_set_date_4_hca":31,"consumption_at_set_date_5_hca":19,"consumption_at_set_date_6_hca":19,"consumption_at_set_date_2_hca":53,"consumption_at_set_date_14_hca":127,"consumption_at_set_date_8_hca":19,"consumption_at_set_date_1_hca":85,"consumption_at_set_date_10_hca":381,"consumption_at_set_date_17_hca":28,"consumption_at_set_date_13_hca":184,"consumption_at_set_date_11_hca":324,"consumption_at_set_date_3_hca":31,"consumption_at_set_date_9_hca":18,"consumption_at_set_date_15_hca":50,"consumption_at_set_date_16_hca":28,"consumption_at_set_date_7_hca":19,"consumption_at_set_date_12_hca":262,"consumption_at_set_date_hca":85,"timestamp":"1111-11-11T11:11:11Z"}'
