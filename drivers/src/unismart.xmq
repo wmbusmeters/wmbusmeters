@@ -1,0 +1,132 @@
+// Copyright (C) 2021-2022 Fredrik Öhrström (gpl-3.0-or-later)
+driver {
+    name           = unismart
+    meter_type     = GasMeter
+    default_fields = name,id,total_m3,target_m3,timestamp
+    detect {
+        mvt = AMX,01,03
+    }
+    library {
+        use = fabrication_no
+    }
+    fields {
+        field {
+            name       = status
+            quantity   = Text
+            info       = 'Status of meter?'
+            attributes = STATUS
+            match {
+                difvifkey = 02FD74
+            }
+            lookup {
+                name            = STATUS_FLAGS
+                map_type        = BitToString
+                mask_bits       = 0xffff
+                default_message = OK
+            }
+        }
+        field {
+            name       = other
+            quantity   = Text
+            info       = 'Other status of meter?'
+            attributes = STATUS
+            match {
+                difvifkey = 017F
+            }
+            lookup {
+                name      = OTHER_FLAGS
+                map_type  = BitToString
+                mask_bits = 0xff
+            }
+        }
+        field {
+            name         = total
+            quantity     = PointInTime
+            info         = 'Timestamp for this total measurement.'
+            display_unit = datetime
+            match {
+                measurement_type = Instantaneous
+                vif_range        = DateTime
+                index_nr         = 1
+            }
+        }
+        field {
+            name     = total
+            quantity = Volume
+            info     = 'The total gas consumption recorded by this meter.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = Volume
+                add_combinable   = UncorrectedMeterUnit
+            }
+        }
+        field {
+            name         = target
+            quantity     = PointInTime
+            info         = 'Timestamp for gas consumption recorded at the beginning of this month.'
+            display_unit = datetime
+            match {
+                measurement_type = Instantaneous
+                vif_range        = DateTime
+                storage_nr       = 1
+            }
+        }
+        field {
+            name     = target
+            quantity = Volume
+            info     = 'The total gas consumption recorded by this meter at the beginning of this month.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = Volume
+                storage_nr       = 1
+                add_combinable   = UncorrectedMeterUnit
+            }
+        }
+        field {
+            name     = version
+            quantity = Text
+            info     = 'Model version.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = ModelVersion
+            }
+        }
+        field {
+            name     = supplier_info
+            quantity = Text
+            info     = 'Supplier info?'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = SpecialSupplierInformation
+            }
+        }
+        field {
+            name     = parameter_set
+            quantity = Text
+            info     = 'Meter configued with this parameter set?'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = ParameterSet
+            }
+        }
+        field {
+            name         = meter
+            quantity     = PointInTime
+            info         = 'Timestamp when this measurement was sent. This field actually contains the seconds as well, currently truncated.'
+            display_unit = datetime
+            match {
+                measurement_type = Instantaneous
+                vif_range        = DateTime
+                index_nr         = 2
+            }
+        }
+    }
+    tests {
+        test {
+            args     = 'GasMeter unismart 00043094 00000000000000000000000000000000'
+            telegram = 6044B8059430040001037A1D005085E2B670BCF1A5C87E0C1A51DA18924EF984613DA2A9CD39D8F4C7208326C76D42DBEADF80D574192B71BD7C4F56A7F1513151768A9DB804883B28CB085CA2D0F7438C361CB9E2734712ED9BFBB2A14EF55208
+            json     = '{"_":"telegram","media":"gas","meter":"unismart","name":"GasMeter","id":"00043094","fabrication_no":"03162296","status":"STATUS_FLAGS_CF0","other":"OTHER_FLAGS_14","total_datetime":"2021-09-15 13:18","total_m3":917,"target_datetime":"2021-09-01 06:00","target_m3":911.32,"version":"  4GGU","supplier_info":"00","parameter_set":"02","meter_datetime":"2021-09-15 13:18","timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'GasMeter;00043094;917;911.32;1111-11-11 11:11.11'
+        }
+    }
+}

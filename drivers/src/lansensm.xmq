@@ -1,0 +1,92 @@
+// Copyright (C) 2020-2022 Fredrik Öhrström (gpl-3.0-or-later)
+driver {
+    name           = lansensm
+    meter_type     = SmokeDetector
+    default_fields = name,id,status,minutes_since_last_manual_test_counter,timestamp
+    detect {
+        mvt = LAS,03,1a
+    }
+    fields {
+        field {
+            name       = status
+            quantity   = Text
+            info       = 'Meter status.'
+            attributes = STATUS,INCLUDE_TPL_STATUS
+            match {
+                measurement_type = Instantaneous
+                vif_range        = ErrorFlags
+                add_combinable   = StandardConformantDataContent
+            }
+            lookup {
+                name            = ERROR_FLAGS
+                map_type        = BitToString
+                mask_bits       = 0xffff
+                default_message = OK
+                map {
+                    name  = LOW_BATTERY
+                    value = 0x0002
+                    test  = Set
+                }
+                map {
+                    name  = SMOKE
+                    value = 0x0004
+                    test  = Set
+                }
+                map {
+                    name  = MANUAL_TEST
+                    value = 0x0008
+                    test  = Set
+                }
+                map {
+                    name  = MALFUNCTION
+                    value = 0x0010
+                    test  = Set
+                }
+                map {
+                    name  = NO_CONNECTION_TO_SMOKE_DETECTOR
+                    value = 0x0020
+                    test  = Set
+                }
+                map {
+                    name  = SMOKE_SENSOR_END_OF_LIFE
+                    value = 0x0100
+                    test  = Set
+                }
+            }
+        }
+        field {
+            name        = async_msg_id
+            quantity    = Dimensionless
+            info        = 'Unique asynchronous message number.'
+            vif_scaling = None
+            match {
+                measurement_type = Instantaneous
+                vif_range        = AccessNumber
+            }
+        }
+        field {
+            name        = minutes_since_last_manual_test
+            quantity    = Dimensionless
+            info        = 'Minutes since last manual test.'
+            vif_scaling = None
+            match {
+                measurement_type = Instantaneous
+                vif_range        = Dimensionless
+            }
+        }
+    }
+    tests {
+        test {
+            args     = 'SMOKEA lansensm 00010204 NOKEY'
+            telegram = 2E44333004020100031A7AC40020052F2F_02FD971D000004FD084C02000004FD3A467500002F2F2F2F2F2F2F2F2F2F
+            json     = '{"_":"telegram","media":"smoke detector","meter":"lansensm","name":"SMOKEA","id":"00010204","status":"OK","async_msg_id_counter":588,"minutes_since_last_manual_test_counter":30022,"timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'SMOKEA;00010204;OK;30022;1111-11-11 11:11.11'
+        }
+        test {
+            args     = 'SMOKEA lansensm 00010204 NOKEY'
+            telegram = 2E44333004020100031A7ADE0020052F2F_02FD971D040004FD086502000004FD3A010000002F2F2F2F2F2F2F2F2F2F
+            json     = '{"_":"telegram","media":"smoke detector","meter":"lansensm","name":"SMOKEA","id":"00010204","status":"SMOKE","async_msg_id_counter":613,"minutes_since_last_manual_test_counter":1,"timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'SMOKEA;00010204;SMOKE;1;1111-11-11 11:11.11'
+        }
+    }
+}

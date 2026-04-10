@@ -1,0 +1,93 @@
+// Copyright (C) 2019-2022 Fredrik Öhrström (gpl-3.0-or-later)
+driver {
+    name           = lse_08
+    meter_type     = HeatCostAllocationMeter
+    default_fields = name,id,set_date,consumption_at_set_date_hca,timestamp
+    detect {
+        mvt = LSE,01,08
+    }
+    fields {
+        field {
+            name       = status
+            quantity   = Text
+            info       = 'Meter status from tpl status field.'
+            attributes = STATUS,INCLUDE_TPL_STATUS
+            match {
+                difvifkey = 01FD73
+            }
+            lookup {
+                name            = ERROR_FLAGS
+                map_type        = BitToString
+                mask_bits       = 0xff
+                default_message = OK
+            }
+        }
+        field {
+            name     = current_consumption
+            quantity = HCA
+            info     = 'The current heat cost allocation.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = HeatCostAllocation
+            }
+        }
+        field {
+            name         = set
+            quantity     = PointInTime
+            info         = 'The most recent billing period date.'
+            display_unit = date
+            match {
+                measurement_type = Instantaneous
+                vif_range        = Date
+                storage_nr       = 8
+            }
+        }
+        field {
+            name     = consumption_at_set_date
+            quantity = HCA
+            info     = 'Heat cost allocation at the most recent billing period date.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = HeatCostAllocation
+                storage_nr       = 8
+            }
+        }
+        field {
+            name         = device
+            quantity     = PointInTime
+            info         = 'Date and time when the meter sent the telegram.'
+            display_unit = datetime
+            match {
+                measurement_type = Instantaneous
+                vif_range        = DateTime
+            }
+        }
+        field {
+            name     = duration_since_readout
+            quantity = Time
+            info     = 'Duration since last measurement.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = DurationSinceReadout
+                add_combinable   = FutureValue
+            }
+        }
+        field {
+            name     = model_version
+            quantity = Text
+            info     = 'model version.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = ModelVersion
+            }
+        }
+    }
+    tests {
+        test {
+            args     = 'HCA2 lse_08 04998541 NOKEY'
+            telegram = 294465324185990401087a0080000082046c7f018b046e210300046d1a0e6f0202fdac7e012301fd0c01
+            json     = '{"_":"telegram","media":"heat cost allocation","meter":"lse_08","name":"HCA2","id":"04998541","status":"UNKNOWN_80","set_date":"2003-01-31","consumption_at_set_date_hca":321,"device_datetime":"2003-02-15 14:26","duration_since_readout_h":2.489167,"model_version":"01","timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'HCA2;04998541;2003-01-31;321;1111-11-11 11:11.11'
+        }
+    }
+}

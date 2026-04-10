@@ -16,10 +16,15 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
-      - name: Update Manufacturers
+      - id: INSTALL_ADDITIONAL_BUILD_DEPENDENCIES
         run: |
-            ./configure
-            make update_manufacturers
+          sudo apt install -y eatmydata
+          sudo eatmydata apt-get install librtlsdr-dev libusb-dev libxml2-dev libxslt1-dev
+      - id: CONFIGURE
+        run: eatmydata ./configure
+
+      - name: Update Manufacturers
+        run: make update_manufacturers
 
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v8
