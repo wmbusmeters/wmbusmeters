@@ -217,19 +217,12 @@ struct Manufacturer {
     }
 };
 
-vector<Manufacturer> manufacturers_;
+const vector<Manufacturer> manufacturers_ = {
+    #define X(key,code,name) Manufacturer(#key, code, name),
+    LIST_OF_MANUFACTURERS
+    #undef X
+};
 
-struct Initializer { Initializer(); };
-
-static Initializer initializser_;
-
-Initializer::Initializer() {
-
-#define X(key,code,name) manufacturers_.push_back(Manufacturer(#key,code,name));
-LIST_OF_MANUFACTURERS
-#undef X
-
-}
 
 void Telegram::addAddressMfctFirst(const vector<uchar>::iterator &pos)
 {

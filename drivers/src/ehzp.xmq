@@ -1,0 +1,56 @@
+// Copyright (C) 2020-2022 Fredrik Öhrström (gpl-3.0-or-later)
+driver {
+    name           = ehzp
+    meter_type     = ElectricityMeter
+    default_fields = name,id,total_energy_consumption_kwh,current_power_consumption_kw,total_energy_production_kwh,timestamp
+    detect {
+        mvt = EMH,02,02
+    }
+    library {
+        use = on_time_h
+    }
+    fields {
+        field {
+            name       = status
+            quantity   = Text
+            info       = 'Meter status. Includes both meter error field and tpl status field.'
+            attributes = STATUS,INCLUDE_TPL_STATUS
+        }
+        field {
+            name     = total_energy_consumption
+            quantity = Energy
+            info     = 'The total energy consumption recorded by this meter.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = AnyEnergyVIF
+            }
+        }
+        field {
+            name     = current_power_consumption
+            quantity = Power
+            info     = 'Current power consumption.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = AnyPowerVIF
+            }
+        }
+        field {
+            name     = total_energy_production
+            quantity = Energy
+            info     = 'The total energy production recorded by this meter.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = AnyEnergyVIF
+                add_combinable   = BackwardFlow
+            }
+        }
+    }
+    tests {
+        test {
+            args     = 'Elen3 ehzp 55995599 NOKEY'
+            telegram = 5344A8159955995502028C201D900F002C250C390000ED176BBBB1591ADB7A1D003007102F2F_0700583B74020000000007803CBCD70200000000000728B070200000000000042092A406002F2F2F2F2F2F2F2F2F
+            json     = '{"_":"telegram","media":"electricity","meter":"ehzp","name":"Elen3","id":"55995599","status":"OK","on_time_h":120.929444,"total_energy_consumption_kwh":41.1718,"current_power_consumption_kw":2.126,"total_energy_production_kwh":0.1863,"timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'Elen3;55995599;41.1718;2.126;0.1863;1111-11-11 11:11.11'
+        }
+    }
+}
