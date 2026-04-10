@@ -1,16 +1,15 @@
-// Generated 2026-04-08_02:02
-// Generated 2026-04-08_02:15
-test {
-    args     = 'aerius_gas aerius 99657098 NOKEY'
-    telegram = 2E44A5119870659930037A060020052F2F_0C933E842784060A3B00000A5A5901C4016D3B37DF2CCC01933E24032606
-    json     = '{"_":"telegram","media":"gas","meter":"aerius","name":"aerius_gas","id":"99657098","total_m3":6842.784,"flow_m3h":0,"temperature_c":15.9,"target_datetime":"2022-12-31 23:59","target_m3":6260.324,"timestamp":"1111-11-11T11:11:11Z"}'
-    fields   = 'aerius_gas;99657098;6842.784;1111-11-11 11:11.11'
-// Generated 2026-04-10_19:22
+// Generated 2026-04-10_19:30
 test {
     args     = 'ABBmeter abbb23 33221100 NOKEY'
     telegram = 844442040011223320027A3E000020_0E840017495200000004FFA0150000000004FFA1150000000004FFA2150000000004FFA3150000000007FFA600000000000000000007FFA700000000000000000007FFA800000000000000000007FFA90000000000000000000DFD8E0007302E38322E31420DFFAA000B3030312D313131203332421F
     json     = '{"_":"telegram","media":"electricity","meter":"abbb23","name":"ABBmeter","id":"33221100","ct_denominator_factor":0,"ct_numerator_factor":0,"total_energy_consumption_kwh":5249.17,"vt_denominator_factor":0,"vt_numerator_factor":0,"alarm_flags":"OK","error_flags":"OK","firmware_version":"B1.28.0","information_flags":"","product_no":"001-111 32B","status":"OK","warning_flags":"OK","timestamp":"1111-11-11T11:11:11Z"}'
     fields   = 'ABBmeter;33221100;5249.17;1111-11-11 11:11.11'
+}
+test {
+    args     = 'aerius_gas aerius 99657098 NOKEY'
+    telegram = 2E44A5119870659930037A060020052F2F_0C933E842784060A3B00000A5A5901C4016D3B37DF2CCC01933E24032606
+    json     = '{"_":"telegram","media":"gas","meter":"aerius","name":"aerius_gas","id":"99657098","total_m3":6842.784,"flow_m3h":0,"temperature_c":15.9,"target_datetime":"2022-12-31 23:59","target_m3":6260.324,"timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'aerius_gas;99657098;6842.784;1111-11-11 11:11.11'
 }
 test {
     args     = 'Vatten apator08 004444dd NOKEY'
@@ -92,6 +91,8 @@ test {
     telegram = 2744961566666666201B7AF9000020_2F2F02651E094265180902FD1B30030DFD0F05302E302E340F
     json     = '{"_":"telegram","media":"room sensor","meter":"cma12w","name":"Tempo","id":"66666666","software_version":"4.0.0","status":"OK","current_temperature_c":23.34,"average_temperature_1h_c":23.28,"battery":"BATTERY_330","timestamp":"1111-11-11T11:11:11Z"}'
     fields   = 'Tempo;66666666;23.34;1111-11-11 11:11.11'
+}
+test {
     args     = 'DigiWasser dme_07 93929190 NOKEY'
     telegram = 1E44A511909192937B077A9F0010052F2F_04130347030002FD1700002F2F2F
     json     = '{"_":"telegram","media":"water","meter":"dme_07","name":"DigiWasser","id":"93929190","status":"OK","total_m3":214.787,"timestamp":"1111-11-11T11:11:11Z"}'
@@ -867,6 +868,8 @@ test {
     telegram = 2E4401069897969501167A4B0320052F2F_0413320C000003FD1700000044132109000004933C000000002F2F2F2F2F
     json     = '{"_":"telegram","media":"cold water","meter":"ultrimis","name":"Water","id":"95969798","total_m3":3.122,"target_m3":2.337,"current_status":"OK","total_backward_flow_m3":0,"timestamp":"1111-11-11T11:11:11Z"}'
     fields   = 'Water;95969798;3.122;2.337;OK;0;1111-11-11 11:11.11'
+}
+test {
     args     = 'GasMeter unismart 00043094 00000000000000000000000000000000'
     telegram = 6044B8059430040001037A1D005085E2B670BCF1A5C87E0C1A51DA18924EF984613DA2A9CD39D8F4C7208326C76D42DBEADF80D574192B71BD7C4F56A7F1513151768A9DB804883B28CB085CA2D0F7438C361CB9E2734712ED9BFBB2A14EF55208
     json     = '{"_":"telegram","media":"gas","meter":"unismart","name":"GasMeter","id":"00043094","fabrication_no":"03162296","status":"STATUS_FLAGS_CF0","other":"OTHER_FLAGS_14","total_datetime":"2021-09-15 13:18","total_m3":917,"target_datetime":"2021-09-01 06:00","target_m3":911.32,"version":"  4GGU","supplier_info":"00","parameter_set":"02","meter_datetime":"2021-09-15 13:18","timestamp":"1111-11-11T11:11:11Z"}'
