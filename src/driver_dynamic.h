@@ -30,6 +30,7 @@ struct DriverDynamic : public virtual MeterCommonImplementation
     static XMQProceed add_field(XMQDoc *doc, XMQNodePtr field, DriverDynamic *dd);
     static XMQProceed add_match(XMQDoc *doc, XMQNodePtr match, DriverDynamic *dd);
     static XMQProceed add_combinable(XMQDoc *doc, XMQNodePtr match, DriverDynamic *dd);
+    static XMQProceed add_combinable_raw(XMQDoc *doc, XMQNodePtr match, DriverDynamic *dd);
 
     static XMQProceed add_lookup(XMQDoc *doc, XMQNodePtr lookup, DriverDynamic *dd);
     static XMQProceed add_map(XMQDoc *doc, XMQNodePtr map, DriverDynamic *dd);
