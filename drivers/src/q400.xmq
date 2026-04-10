@@ -1,0 +1,107 @@
+// Copyright (C) 2020-2022 Fredrik Öhrström (gpl-3.0-or-later)
+driver {
+    name           = q400
+    meter_type     = WaterMeter
+    default_fields = name,id,total_m3,timestamp
+    detect {
+        mvt = AXI,01,07
+        mvt = AXI,10,07
+    }
+    library {
+        use = meter_datetime
+        use = on_time_h
+        use = total_m3
+        use = total_forward_m3
+        use = total_backward_m3
+        use = flow_temperature_c
+        use = volume_flow_m3h
+    }
+    fields {
+        field {
+            name       = status
+            quantity   = Text
+            info       = 'Status and error flags.'
+            attributes = STATUS,INCLUDE_TPL_STATUS
+        }
+        field {
+            name         = set
+            quantity     = PointInTime
+            info         = 'Date and time when the previous billing period ended.'
+            display_unit = datetime
+            match {
+                measurement_type = Instantaneous
+                vif_range        = DateTime
+                storage_nr       = 1
+            }
+        }
+        field {
+            name     = consumption_at_set_date
+            quantity = Volume
+            info     = 'The total water consumption at the end of the previous billing period.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = Volume
+                storage_nr       = 1
+            }
+        }
+        field {
+            name     = forward_at_set_date
+            quantity = Volume
+            info     = 'The total media volume flowing forward at the end of previous billing period.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = Volume
+                storage_nr       = 1
+                add_combinable   = ForwardFlow
+            }
+        }
+        field {
+            name     = backward_at_set_date
+            quantity = Volume
+            info     = 'The total media volume flowing backward at the end of the previous billing period.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = Volume
+                storage_nr       = 1
+                add_combinable   = BackwardFlow
+            }
+        }
+        field {
+            name         = battery
+            quantity     = Dimensionless
+            info         = 'Percentage of battery remaining.'
+            vif_scaling  = None
+            display_unit = pct
+            match {
+                difvifkey = 01FD74
+            }
+        }
+    }
+    tests {
+        test {
+            args     = 'Q400Water q400 72727272 NOKEY'
+            telegram = 2E4409077272727210077AD71020052F2F_046D040D742C041377000000446D0000612C4413000000002F2F2F2F2F2F
+            json     = '{"_":"telegram","media":"water","meter":"q400","name":"Q400Water","id":"72727272","meter_datetime":"2019-12-20 13:04","total_m3":0.119,"status":"TEMPORARY_ERROR","set_datetime":"2019-12-01 00:00","consumption_at_set_date_m3":0,"timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'Q400Water;72727272;0.119;1111-11-11 11:11.11'
+        }
+        test {
+            args     = 'AxiomaWater q400 72727273 NOKEY'
+            comment  = 'Test Axioma W1 telegram with additional fields compared to the older q400 meter.'
+            telegram = 5E4409077372727210077A710050052F2F_046D0110A92704130022000004933B0000000004933C00000000023B000002592A0A446D0000A12744130000000044933B0000000044933C0000000001FD74622F2F2F2F2F2F2F2F2F2F2F2F2F2F
+            json     = '{"_":"telegram","media":"water","meter":"q400","name":"AxiomaWater","id":"72727273","meter_datetime":"2021-07-09 16:01","total_m3":8.704,"total_forward_m3":0,"total_backward_m3":0,"flow_temperature_c":26.02,"volume_flow_m3h":0,"status":"OK","set_datetime":"2021-07-01 00:00","consumption_at_set_date_m3":0,"forward_at_set_date_m3":0,"backward_at_set_date_m3":0,"battery_pct":98,"timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'AxiomaWater;72727273;8.704;1111-11-11 11:11.11'
+        }
+        test {
+            args     = 'Mm q400 05829163 NOKEY'
+            telegram = 544409076391820510077ABF100000046D2A0DC62C0420E80F430104130000000004933B0000000004933C00000000023B00000259F0D8446D0000C12C44130000000044933B0000000044933C0000000001FD7461
+            json     = '{"_":"telegram","backward_at_set_date_m3":0,"battery_pct":97,"consumption_at_set_date_m3":0,"flow_temperature_c":-100,"forward_at_set_date_m3":0,"id":"05829163","media":"water","meter":"q400","meter_datetime":"2022-12-06 13:42","name":"Mm","on_time_h":5881.166667,"set_datetime":"2022-12-01 00:00","status":"TEMPORARY_ERROR","timestamp":"1111-11-11T11:11:11Z","total_backward_m3":0,"total_forward_m3":0,"total_m3":0,"volume_flow_m3h":0}'
+            fields   = 'Mm;05829163;0;1111-11-11 11:11.11'
+        }
+        test {
+            args     = 'MM q400 06289748 NOKEY'
+            telegram = 614409074897280601077AD1000000046D2C173B370420580193040413FB94000004933BFB94000004933C01000000023B02000259E306446D000021374413C08A000044933BC08A000044933C0100000034FD17000000000424BA01930401FD745B
+            json     = '{"_":"telegram","backward_at_set_date_m3":0.001,"battery_pct":91,"consumption_at_set_date_m3":35.52,"flow_temperature_c":17.63,"forward_at_set_date_m3":35.52,"id":"06289748","media":"water","meter":"q400","meter_datetime":"2025-07-27 23:44","name":"MM","on_time_h":21317.5,"set_datetime":"2025-07-01 00:00","status":"OK","timestamp":"1111-11-11T11:11:11Z","total_backward_m3":0.001,"total_forward_m3":38.139,"total_m3":38.139,"volume_flow_m3h":0.002}'
+            fields   = 'MM;06289748;38.139;1111-11-11 11:11.11'
+        }
+    }
+}

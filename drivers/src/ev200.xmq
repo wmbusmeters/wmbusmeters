@@ -1,0 +1,39 @@
+// Copyright (C) 2017-2022 Fredrik Öhrström (gpl-3.0-or-later)
+// Copyright (C) 2018 David Mallon (gpl-3.0-or-later)
+driver {
+    name           = ev200
+    meter_type     = WaterMeter
+    default_fields = name,id,total_m3,target_m3,timestamp
+    detect {
+        mvt = ELR,0d,07
+    }
+    fields {
+        field {
+            name     = total
+            quantity = Volume
+            info     = 'The total water consumption recorded by this meter.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = Volume
+            }
+        }
+        field {
+            name     = target
+            quantity = Volume
+            info     = 'The target water consumption recorded at previous period.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = Volume
+                storage_nr       = 1
+            }
+        }
+    }
+    tests {
+        test {
+            args     = 'Voda ev200 99993030 NOKEY'
+            telegram = 2E449215303099990D077AB50820452F2F_0C12495849004C12557545000FB10445007022C50BFFFFFFFF0000FFF000
+            json     = '{"_":"telegram","media":"water","meter":"ev200","name":"Voda","id":"99993030","total_m3":49.5849,"target_m3":45.7555,"timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'Voda;99993030;49.5849;45.7555;1111-11-11 11:11.11'
+        }
+    }
+}
