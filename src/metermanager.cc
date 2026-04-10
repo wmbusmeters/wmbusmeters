@@ -216,16 +216,11 @@ public:
                         // Now build a meter object with for this exact id.
                         auto meter = createMeter(&meter_info);
                         addMeter(meter);
-                        if (isVerboseEnabled())
-                        {
-                            string idsc = Address::concat(t.addresses);
-                            string mi_idsc = AddressExpression::concat(mi.address_expressions);
-                            verbose("(meter) used meter template %s %s %s to match %s\n",
-                                    mi.name.c_str(),
-                                    mi_idsc.c_str(),
-                                    mi.driverName().str().c_str(),
-                                    idsc.c_str());
-                        }
+                        verbose("(meter) used meter template %s %s %s to match %s\n",
+                                mi.name.c_str(),
+                                AddressExpression::concat(mi.address_expressions).c_str(),
+                                mi.driverName().str().c_str(),
+                                Address::concat(t.addresses).c_str());
 
                         if (is_daemon_)
                         {
@@ -240,11 +235,10 @@ public:
                         }
                         else
                         {
-                            string mi_idsc = AddressExpression::concat(mi.address_expressions);
                             verbose("(meter) started meter %d (%s %s %s) identity mode: %s %s\n",
                                     meter->index(),
                                     mi.name.c_str(),
-                                    mi_idsc.c_str(),
+                                    AddressExpression::concat(mi.address_expressions).c_str(),
                                     mi.driverName().str().c_str(),
                                     toString(mi.identity_mode),
                                     identity_expression.str().c_str());
@@ -282,7 +276,7 @@ public:
         {
             f(about, input_frame);
         }
-        if (isVerboseEnabled() && !handled)
+        if (!handled)
         {
             verbose("(wmbus) telegram from %s ignored by all configured meters!\n", "TODO");
         }
