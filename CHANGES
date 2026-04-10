@@ -1,3 +1,8 @@
+
+ATTENTION! Change in field name for lse_08 driver "device_date_time" fixed to be "device_datetime"
+the _date_time suffix was a remnant from the old days where date and time units where not enforced.
+The correct unit is _datetime.
+
 Fix iu891a problem where a configured dongle that received telegrams
 was not properly detected when wmbusmeters was restarted.
 The buffer with received telegrams interfered with the detection logic.
