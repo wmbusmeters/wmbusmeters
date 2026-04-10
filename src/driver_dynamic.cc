@@ -57,6 +57,7 @@ uint64_t checked_mask_bits(const char *mask_bits_s, DriverDynamic *dd);
 uint64_t checked_value(const char *value_s, DriverDynamic *dd);
 TestBit checked_test_type(const char *test_s, DriverDynamic *dd);
 void checked_add_vif_combinable(const char *vif_range_s, FieldMatcher *fm, DriverDynamic *dd);
+void checked_add_vif_combinable_raw(const char *vif_combinable_raw_s, FieldMatcher *fm, DriverDynamic *dd);
 
 const char *line = "-------------------------------------------------------------------------------";
 
@@ -465,6 +466,7 @@ XMQProceed DriverDynamic::add_match(XMQDoc *doc, XMQNodePtr match, DriverDynamic
     checked_set_subunitnr_range(xmqGetStringRel(doc, "subunit_nr", match), fm, dd);
 
     xmqForeachRel(doc, "add_combinable", (XMQNodeCallback)add_combinable, dd, match);
+    xmqForeachRel(doc, "add_combinable_raw", (XMQNodeCallback)add_combinable_raw, dd, match);
 
     return XMQ_CONTINUE;
 }
@@ -474,6 +476,15 @@ XMQProceed DriverDynamic::add_combinable(XMQDoc *doc, XMQNodePtr match, DriverDy
     FieldMatcher *fm = dd->tmp_matcher_;
 
     checked_add_vif_combinable(xmqGetStringRel(doc, ".", match), fm, dd);
+
+    return XMQ_CONTINUE;
+}
+
+XMQProceed DriverDynamic::add_combinable_raw(XMQDoc *doc, XMQNodePtr match, DriverDynamic *dd)
+{
+    FieldMatcher *fm = dd->tmp_matcher_;
+
+    checked_add_vif_combinable_raw(xmqGetStringRel(doc, ".", match), fm, dd);
 
     return XMQ_CONTINUE;
 }
@@ -1229,6 +1240,14 @@ void checked_add_vif_combinable(const char *vif_combinable_s, FieldMatcher *fm, 
     }
 
     fm->add(vif_combinable);
+}
+
+void checked_add_vif_combinable_raw(const char *vif_combinable_raw_s, FieldMatcher *fm, DriverDynamic *dd)
+{
+    if (!vif_combinable_raw_s) return;
+
+    uint16_t raw_value = (uint16_t)strtoul(vif_combinable_raw_s, NULL, 0);
+    fm->add(VIFCombinableRaw(raw_value));
 }
 
 Translate::MapType checked_map_type(const char *map_type_s, DriverDynamic *dd)
