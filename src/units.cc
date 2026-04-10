@@ -543,22 +543,34 @@ string strWithUnitLowerCase(double v, Unit u)
     return r;
 }
 
-string valueToString(double v, Unit u)
+std::string valueToString(double v, Unit u)
 {
-    if (::isnan(v))
-    {
+    if (std::isnan(v))
         return "null";
+
+    std::string s = std::to_string(v);
+
+    size_t end = s.size();
+    while (end != 0)
+    {
+        --end;
+        if (s[end] == '.')
+        {
+            break;
+        }
+        if (s[end] != '0')
+        {
+            ++end;
+            break;
+        }
     }
-    // This rounds the double value to 6 decimal digits.
-    // TODO this should be changed to track all double digits available.
-    string s = to_string(v);
-    while (s.size() > 0 && s.back() == '0') s.pop_back();
-    if (s.back() == '.') {
-        s.pop_back();
-        if (s.length() == 0) return "0";
-        return s;
+
+    if (end == 0) {
+        return "0";
     }
-    if (s.length() == 0) return "0";
+
+    s.resize(end);
+
     return s;
 }
 
