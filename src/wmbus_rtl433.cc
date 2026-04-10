@@ -290,11 +290,7 @@ FrameStatus WMBusRTL433::checkRTL433Frame(vector<uchar> &data,
 
     if (data.size() == 0) return PartialFrame;
 
-    if (isDebugEnabled())
-    {
-        string msg = safeString(data);
-        debug("(rtl433) checkRTL433Frame \"%s\"\n", msg.c_str());
-    }
+    debug("(rtl433) checkRTL433Frame \"%s\"\n", safeString(data).c_str());
 
     int payload_len = 0;
     size_t eolp = 0;

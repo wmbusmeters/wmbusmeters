@@ -153,12 +153,8 @@ public:
         // then lets check if there is a template that can create a meter for it.
         if (!handled && !exact_id_match)
         {
-            if (isDebugEnabled())
-            {
-                string idsc = Address::concat(addresses);
-                debug("(meter) no meter handled %s checking %d templates.\n",
-                      idsc.c_str(), meter_templates_.size());
-            }
+            debug("(meter) no meter handled %s checking %d templates.\n",
+                    Address::concat(addresses).c_str(), meter_templates_.size());
             // Not handled, maybe we have a template to create a new meter instance for this telegram?
             Telegram t;
             t.about = about;

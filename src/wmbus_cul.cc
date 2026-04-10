@@ -293,11 +293,7 @@ FrameStatus WMBusCUL::checkCULFrame(vector<uchar> &data,
 {
     if (data.size() == 0) return PartialFrame;
 
-    if (isDebugEnabled())
-    {
-        string s  = safeString(data);
-        debug("(cul) checkCULFrame \"%s\"\n", s.c_str());
-    }
+    debug("(cul) checkCULFrame \"%s\"\n", safeString(data).c_str());
 
     size_t eolp = 0;
     // Look for end of line
@@ -339,11 +335,7 @@ FrameStatus WMBusCUL::checkCULFrame(vector<uchar> &data,
     // Calculate dBm according to datasheet of CC1101 SWRS061I page 44
     *rssi_dbm = rssi_raw/2 - 74;
 
-    if (isDebugEnabled())
-    {
-        debug("(cul) checkCULFrame RSSI_RAW=%d\n", rssi_raw);
-        debug("(cul) checkCULFrame LQI=%d\n", lqi);
-    }
+    debug("(cul) checkCULFrame RSSI_RAW=%d\n(cul) checkCULFrame LQI=%d\n", rssi_raw, lqi);
 
     if (data[1] == 'Y')
     {
