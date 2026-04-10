@@ -616,7 +616,7 @@ void xmqSetEscapeTabs(XMQOutputSettings *os, bool escape_tabs);
 void xmqSetOutputFormat(XMQOutputSettings *os, XMQContentType output_format);
 void xmqSetOmitDecl(XMQOutputSettings *os, bool omit_decl);
 void xmqSetRenderFormat(XMQOutputSettings *os, XMQRenderFormat render_to);
-void xmqSetRenderTheme(XMQOutputSettings *os, const char *theme_name);
+void xmqSetRenderTheme(XMQOutputSettings *os, const char *theme_spec);
 void xmqSetRenderRaw(XMQOutputSettings *os, bool render_raw);
 void xmqSetRenderOnlyStyle(XMQOutputSettings *os, bool only_style);
 void xmqSetWriterContent(XMQOutputSettings *os, XMQWriter content);
