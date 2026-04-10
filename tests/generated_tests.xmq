@@ -81,6 +81,10 @@ test {
     fields   = 'Caltos;80081991;MODE_2F;225;99;2026-01-01;1111-11-11 11:11.11'
 }
 test {
+    args     = 'Tempo cma12w 66666666 NOKEY'
+    telegram = 2744961566666666201B7AF9000020_2F2F02651E094265180902FD1B30030DFD0F05302E302E340F
+    json     = '{"_":"telegram","media":"room sensor","meter":"cma12w","name":"Tempo","id":"66666666","software_version":"4.0.0","status":"OK","current_temperature_c":23.34,"average_temperature_1h_c":23.28,"battery":"BATTERY_330","timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'Tempo;66666666;23.34;1111-11-11 11:11.11'
     args     = 'DigiWasser dme_07 93929190 NOKEY'
     telegram = 1E44A511909192937B077A9F0010052F2F_04130347030002FD1700002F2F2F
     json     = '{"_":"telegram","media":"water","meter":"dme_07","name":"DigiWasser","id":"93929190","status":"OK","total_m3":214.787,"timestamp":"1111-11-11T11:11:11Z"}'
