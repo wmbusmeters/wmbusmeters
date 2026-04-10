@@ -1,4 +1,4 @@
-// Generated 2026-04-10_19:30
+// Generated 2026-04-11_00:47
 test {
     args     = 'ABBmeter abbb23 33221100 NOKEY'
     telegram = 844442040011223320027A3E000020_0E840017495200000004FFA0150000000004FFA1150000000004FFA2150000000004FFA3150000000007FFA600000000000000000007FFA700000000000000000007FFA800000000000000000007FFA90000000000000000000DFD8E0007302E38322E31420DFFAA000B3030312D313131203332421F
@@ -698,6 +698,18 @@ test {
     telegram = 3C449344957002372337725880226793442304DC0000200C05043900004C0500000000426C9F2CCC080551070000C2086CBE29326CFFFF046D280DB62A
     json     = '{"_": "telegram","device_error_date": "2128-03-31","id": "67228058","media": "heat","meter": "qheatv2","meter_datetime": "2021-10-22 13:40","name": "QHeato","status": "OK","target_date": "2021-09-30","target_kwh": 75.1,"target_year_date": "2020-12-31","target_year_kwh": 0,"timestamp": "1111-11-11T11:11:11Z","total_kwh": 390.4}'
     fields   = 'QHeato;67228058;OK;390.4;1111-11-11 11:11.11'
+}
+test {
+    args     = 'QSmokep qsmoke 48128850 NOKEY'
+    telegram = 3744934450881248231A7A5C00002081027C034955230082026CFFFF81037C034C41230082036CFFFF02FD170000326CFFFF046D2514BC2B
+    json     = '{"_":"telegram","media":"smoke detector","meter":"qsmoke","name":"QSmokep","id":"48128850","status":"OK","last_alarm_date":"2127-15-31","alarm_counter":0,"message_datetime":"2021-11-28 20:37","test_button_last_date":"2127-15-31","test_button_counter":0,"at_error_date":"2127-15-31","timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'QSmokep;48128850;OK;2127-15-31;0;1111-11-11 11:11.11'
+}
+test {
+    args     = 'QSmokeo qsmoke 45797086 NOKEY'
+    telegram = 3E44934486707945211A7801FD08F081027C034955230082026CFFFF81037C034C41230082036CFFFF03FD17000000326CFFFF046D0F0ABC2B02FDAC7E1100
+    json     = '{"_":"telegram","media":"smoke detector","meter":"qsmoke","name":"QSmokeo","id":"45797086","status":"OK","last_alarm_date":"2127-15-31","alarm_counter":0,"message_datetime":"2021-11-28 10:15","test_button_last_date":"2127-15-31","test_button_counter":0,"transmission_counter":240,"at_error_date":"2127-15-31","some_sort_of_duration_h":0.004722,"timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'QSmokeo;45797086;OK;2127-15-31;0;1111-11-11 11:11.11'
 }
 test {
     args     = 'QQ5 qwater 61193115 NOKEY'

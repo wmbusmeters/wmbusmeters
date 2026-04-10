@@ -1,0 +1,119 @@
+// Copyright (C) 2021 Fredrik Öhrström (gpl-3.0-or-later)
+driver {
+    name           = qsmoke
+    meter_type     = SmokeDetector
+    default_fields = name,id,status,last_alarm_date,alarm_counter,timestamp
+    detect {
+        mvt = QDS,21,1a
+        mvt = QDS,23,1a
+    }
+    fields {
+        field {
+            name       = status
+            quantity   = Text
+            info       = 'Meter error flags. IMPORTANT! Smoke alarm is probably NOT reported here! You MUST check last alarm date and counter!'
+            attributes = STATUS,INCLUDE_TPL_STATUS
+            match {
+                vif_range = ErrorFlags
+            }
+            lookup {
+                name            = ERROR_FLAGS
+                map_type        = BitToString
+                mask_bits       = 0xffff
+                default_message = OK
+            }
+        }
+        field {
+            name         = last_alarm
+            quantity     = PointInTime
+            info         = 'Date when the smoke alarm last triggered.'
+            display_unit = date
+            match {
+                measurement_type = Instantaneous
+                vif_range        = Date
+                storage_nr       = 6
+            }
+        }
+        field {
+            name        = alarm
+            quantity    = Dimensionless
+            info        = 'Number of times the smoke alarm has triggered.'
+            vif_scaling = None
+            match {
+                difvifkey = 81037C034C4123
+            }
+        }
+        field {
+            name         = message
+            quantity     = PointInTime
+            info         = 'Device date time.'
+            display_unit = datetime
+            match {
+                measurement_type = Instantaneous
+                vif_range        = DateTime
+            }
+        }
+        field {
+            name         = test_button_last
+            quantity     = PointInTime
+            info         = 'Date when test button was last pressed.'
+            display_unit = date
+            match {
+                measurement_type = Instantaneous
+                vif_range        = Date
+                storage_nr       = 4
+            }
+        }
+        field {
+            name        = test_button
+            quantity    = Dimensionless
+            info        = 'Number of times the test button has been pressed.'
+            vif_scaling = None
+            match {
+                difvifkey = 81027C03495523
+            }
+        }
+        field {
+            name        = transmission
+            quantity    = Dimensionless
+            info        = 'Transmission counter?'
+            vif_scaling = None
+            match {
+                measurement_type = Instantaneous
+                vif_range        = AccessNumber
+            }
+        }
+        field {
+            name         = at_error
+            quantity     = PointInTime
+            info         = 'Date when the device entered an error state.'
+            display_unit = date
+            match {
+                measurement_type = AtError
+                vif_range        = Date
+            }
+        }
+        field {
+            name     = some_sort_of_duration
+            quantity = Time
+            info     = 'What does this mean?'
+            match {
+                difvifkey = 02FDAC7E
+            }
+        }
+    }
+    tests {
+        test {
+            args     = 'QSmokeo qsmoke 45797086 NOKEY'
+            telegram = 3E44934486707945211A7801FD08F081027C034955230082026CFFFF81037C034C41230082036CFFFF03FD17000000326CFFFF046D0F0ABC2B02FDAC7E1100
+            json     = '{"_":"telegram","media":"smoke detector","meter":"qsmoke","name":"QSmokeo","id":"45797086","status":"OK","last_alarm_date":"2127-15-31","alarm_counter":0,"message_datetime":"2021-11-28 10:15","test_button_last_date":"2127-15-31","test_button_counter":0,"transmission_counter":240,"at_error_date":"2127-15-31","some_sort_of_duration_h":0.004722,"timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'QSmokeo;45797086;OK;2127-15-31;0;1111-11-11 11:11.11'
+        }
+        test {
+            args     = 'QSmokep qsmoke 48128850 NOKEY'
+            telegram = 3744934450881248231A7A5C00002081027C034955230082026CFFFF81037C034C41230082036CFFFF02FD170000326CFFFF046D2514BC2B
+            json     = '{"_":"telegram","media":"smoke detector","meter":"qsmoke","name":"QSmokep","id":"48128850","status":"OK","last_alarm_date":"2127-15-31","alarm_counter":0,"message_datetime":"2021-11-28 20:37","test_button_last_date":"2127-15-31","test_button_counter":0,"at_error_date":"2127-15-31","timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'QSmokep;48128850;OK;2127-15-31;0;1111-11-11 11:11.11'
+        }
+    }
+}
