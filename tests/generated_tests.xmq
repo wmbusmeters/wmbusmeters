@@ -1,3 +1,4 @@
+// Generated 2026-04-08_02:02
 // Generated 2026-04-08_02:15
 test {
     args     = 'aerius_gas aerius 99657098 NOKEY'
@@ -856,6 +857,16 @@ test {
     fields   = 'sonsupercal;89508019;296;1111-11-11 11:11.11'
 }
 test {
+    args     = 'Water ultrimis 95969798 NOKEY'
+    telegram = 2E4401069897969501167A4B0320052F2F_0413320C000003FD1700000044132109000004933C000000002F2F2F2F2F
+    json     = '{"_":"telegram","media":"cold water","meter":"ultrimis","name":"Water","id":"95969798","total_m3":3.122,"target_m3":2.337,"current_status":"OK","total_backward_flow_m3":0,"timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'Water;95969798;3.122;2.337;OK;0;1111-11-11 11:11.11'
+}
+test {
+    args     = 'Water ultrimis 95969798 NOKEY'
+    telegram = 2E4401069897969501167A4B0320052F2F_0413320C000003FD1700000044132109000004933C000000002F2F2F2F2F
+    json     = '{"_":"telegram","media":"cold water","meter":"ultrimis","name":"Water","id":"95969798","total_m3":3.122,"target_m3":2.337,"current_status":"OK","total_backward_flow_m3":0,"timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'Water;95969798;3.122;2.337;OK;0;1111-11-11 11:11.11'
     args     = 'GasMeter unismart 00043094 00000000000000000000000000000000'
     telegram = 6044B8059430040001037A1D005085E2B670BCF1A5C87E0C1A51DA18924EF984613DA2A9CD39D8F4C7208326C76D42DBEADF80D574192B71BD7C4F56A7F1513151768A9DB804883B28CB085CA2D0F7438C361CB9E2734712ED9BFBB2A14EF55208
     json     = '{"_":"telegram","media":"gas","meter":"unismart","name":"GasMeter","id":"00043094","fabrication_no":"03162296","status":"STATUS_FLAGS_CF0","other":"OTHER_FLAGS_14","total_datetime":"2021-09-15 13:18","total_m3":917,"target_datetime":"2021-09-01 06:00","target_m3":911.32,"version":"  4GGU","supplier_info":"00","parameter_set":"02","meter_datetime":"2021-09-15 13:18","timestamp":"1111-11-11T11:11:11Z"}'
