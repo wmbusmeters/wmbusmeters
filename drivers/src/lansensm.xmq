@@ -13,8 +13,9 @@ driver {
             info       = 'Meter status.'
             attributes = STATUS,INCLUDE_TPL_STATUS
             match {
-                vif_range      = ErrorFlags
-                add_combinable = StandardConformantDataContent
+                measurement_type = Instantaneous
+                vif_range        = ErrorFlags
+                add_combinable   = StandardConformantDataContent
             }
             lookup {
                 name            = ERROR_FLAGS
