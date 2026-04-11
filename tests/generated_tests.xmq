@@ -695,6 +695,20 @@ test {
     fields   = 'Mino;15503451;OK;0.059;null;1111-11-11 11:11.11'
 }
 test {
+    args     = 'TempoHygro munia 00220111 NOKEY'
+    comment  = 'Robin version 04.'
+    telegram = 2E44B05C11012200041B7A2B0000002F2F0A6617020AFB1A100602FD971D00002F2F2F2F2F2F2F2F2F2F2F2F2F2F2F
+    json     = '{"_":"telegram","media":"room sensor","meter":"munia","name":"TempoHygro","id":"00220111","status":"OK","current_temperature_c":21.7,"current_relative_humidity_rh":61,"timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'TempoHygro;00220111;21.7;61;1111-11-11 11:11.11'
+}
+test {
+    args     = 'TempoHygro munia 00013482 NOKEY'
+    comment  = 'Munia version 02.'
+    telegram = 2E44B05C82340100021B7A460000002F2F0A6601020AFB1A570602FD971D00002F2F2F2F2F2F2F2F2F2F2F2F2F2F2F
+    json     = '{"_":"telegram","media":"room sensor","meter":"munia","name":"TempoHygro","id":"00013482","status":"OK","current_temperature_c":20.1,"current_relative_humidity_rh":65.7,"timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'TempoHygro;00013482;20.1;65.7;1111-11-11 11:11.11'
+}
+test {
     args     = 'Elen nemo 00067609 NOKEY'
     comment  = 'Telegram 3, this is also decoded by itself in this test, thus the null default field values.'
     telegram = 689E9E6808657209760600A5251D02020000008540ABFF0100360B478540ABFF02002CFA468540ABFF030074ED46858040ABFF0100C0E244858040ABFF0200405A45858040ABFF030060364505FDBAFF0178BE7F3F05FDBAFF0240357E3F05FDBAFF0353B87E3F05FDC8FF0400907A4505FDC8FF0500707B4505FDC8FF0600807B4505FDD9FF0400502A4705FF5A0000FA4302FD3AC80002FD3A0A000F00000000008B16
