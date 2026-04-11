@@ -354,11 +354,7 @@ FrameStatus WMBusRTLWMBUS::checkRTLWMBUSFrame(vector<uchar> &data,
     // There might be a second telegram on the same line ;0x4944.......
     if (data.size() == 0) return PartialFrame;
 
-    if (isDebugEnabled())
-    {
-        string msg = safeString(data);
-        debug("(rtlwmbus) checkRTLWMBusFrame \"%s\"\n", msg.c_str());
-    }
+    debug("(rtlwmbus) checkRTLWMBusFrame \"%s\"\n", safeString(data).c_str());
 
     int payload_len = 0;
     size_t eolp = 0;

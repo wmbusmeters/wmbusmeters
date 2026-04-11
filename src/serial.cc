@@ -273,18 +273,13 @@ int SerialDeviceImp::receive(vector<uchar> *data)
     }
     data->resize(num_read);
 
-    if (isDebugEnabled())
+    if (expecting_ascii_)
     {
-        if (expecting_ascii_)
-        {
-            string msg = safeString(*data);
-            debug("(serial) received ascii \"%s\"\n", msg.c_str());
-        }
-        else
-        {
-            string msg = bin2hex(*data);
-            debug("(serial) received binary \"%s\"\n", msg.c_str());
-        }
+        debug("(serial) received ascii \"%s\"\n", safeString(*data).c_str());
+    }
+    else
+    {
+        debug("(serial) received binary \"%s\"\n", bin2hex(*data).c_str());
     }
 
     if (close_me) close();
@@ -380,19 +375,13 @@ bool SerialDeviceTTY::send(vector<uchar> &data)
         {
             if (errno==EINTR) continue;
             rc = false;
-            if (isDebugEnabled()) {
-                string msg = bin2hex(data);
-                debug("(serial %s) failed to send \"%s\"\n", device_.c_str(), msg.c_str());
-            }
+            debug("(serial %s) failed to send \"%s\"\n", device_.c_str(), bin2hex(data).c_str());
             goto end;
         }
         if (written == n) break;
     }
 
-    if (isDebugEnabled()) {
-        string msg = bin2hex(data);
-        debug("(serial %s) sent \"%s\"\n", device_.c_str(), msg.c_str());
-    }
+    debug("(serial %s) sent \"%s\"\n", device_.c_str(), bin2hex(data).c_str());
 
     if (signalsInstalled())
     {
@@ -537,10 +526,7 @@ bool SerialDeviceCommand::send(vector<uchar> &data)
         if (written == n) break;
     }
 
-    if (isDebugEnabled()) {
-        string msg = bin2hex(data);
-        debug("(serial %s) sent \"%s\"\n", command_.c_str(), msg.c_str());
-    }
+    debug("(serial %s) sent \"%s\"\n", command_.c_str(), bin2hex(data).c_str());
 
     end:
     return rc;
@@ -846,11 +832,7 @@ bool SerialDeviceSocket::send(vector<uchar> &data)
         }
     }
 
-    if (isDebugEnabled())
-    {
-        string msg = safeString(data);
-        debug("(serialsocket) sent \"%s\"\n", msg.c_str());
-    }
+    debug("(serialsocket) sent \"%s\"\n", safeString(data).c_str());
 
     return true;
 }
@@ -887,10 +869,9 @@ int SerialDeviceSocket::receive(vector<uchar> *data)
     }
     data->resize(num_read);
 
-    if (isDebugEnabled() && num_read > 0)
+    if (num_read != 0)
     {
-        string msg = safeString(*data);
-        debug("(serialsocket) received \"%s\"\n", msg.c_str());
+        debug("(serialsocket) received \"%s\"\n", safeString(*data).c_str());
     }
 
     return num_read;

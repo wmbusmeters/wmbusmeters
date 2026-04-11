@@ -87,14 +87,11 @@ double NumericFormulaAddition::calculate(SIUnit to_siunit)
     double result {};
     v_siunit.convertTo(v, to_siunit, &result);
 
-    if (isDebugEnabled())
-    {
-        debug("(formula) ADD %g (%s) %g (%s) --> %g %s --> %g %s\n",
-              l, left_->siunit().info().c_str(),
-              r, right_->siunit().info().c_str(),
-              v, v_siunit.info().c_str(),
-              result, siunit().info().c_str());
-    }
+    debug("(formula) ADD %g (%s) %g (%s) --> %g %s --> %g %s\n",
+            l, left_->siunit().info().c_str(),
+            r, right_->siunit().info().c_str(),
+            v, v_siunit.info().c_str(),
+            result, siunit().info().c_str());
 
     return result;
 }
@@ -111,14 +108,11 @@ double NumericFormulaSubtraction::calculate(SIUnit to_siunit)
     double result {};
     v_siunit.convertTo(v, to_siunit, &result);
 
-    if (isDebugEnabled())
-    {
-        debug("(formula) SUB %g (%s) %g (%s) --> %g %s --> %g %s\n",
-              l, left_->siunit().info().c_str(),
-              r, right_->siunit().info().c_str(),
-              v, v_siunit.info().c_str(),
-              result, siunit().info().c_str());
-    }
+    debug("(formula) SUB %g (%s) %g (%s) --> %g %s --> %g %s\n",
+            l, left_->siunit().info().c_str(),
+            r, right_->siunit().info().c_str(),
+            v, v_siunit.info().c_str(),
+            result, siunit().info().c_str());
 
     return result;
 }
@@ -131,14 +125,12 @@ double NumericFormulaMultiplication::calculate(SIUnit to_siunit)
     double v {};
     siunit().convertTo(m, to_siunit, &v);
 
-    if (isDebugEnabled())
-    {
-        debug("(formula) MUL %g (%s) %g (%s) --> %g --> %g %s\n",
-              l, left_->siunit().info().c_str(),
-              r, right_->siunit().info().c_str(),
-              m,
-              v, to_siunit.info().c_str());
-    }
+    debug("(formula) MUL %g (%s) %g (%s) --> %g --> %g %s\n",
+            l, left_->siunit().info().c_str(),
+            r, right_->siunit().info().c_str(),
+            m,
+            v, to_siunit.info().c_str());
+
     return v;
 }
 
@@ -150,15 +142,12 @@ double NumericFormulaDivision::calculate(SIUnit to_siunit)
     double v {};
     siunit().convertTo(d, to_siunit, &v);
 
-    if (isDebugEnabled())
-    {
-        debug("(formula) DIV %g (%s) %g (%s) --> %g --> %g %s\n",
-              l, left_->siunit().info().c_str(),
-              r, right_->siunit().info().c_str(),
-              d,
-              v,
-              to_siunit.info().c_str());
-    }
+    debug("(formula) DIV %g (%s) %g (%s) --> %g --> %g %s\n",
+            l, left_->siunit().info().c_str(),
+            r, right_->siunit().info().c_str(),
+            d,
+            v,
+            to_siunit.info().c_str());
 
     return v;
 }
@@ -182,14 +171,11 @@ double NumericFormulaSquareRoot::calculate(SIUnit to_siunit)
     double v {};
     siunit().convertTo(s, to_siunit, &v);
 
-    if (isDebugEnabled())
-    {
-        debug("(formula) SQRT %g (%s) --> %g --> %g %s\n",
-              i, inner_->siunit().info().c_str(),
-              s,
-              v,
-              to_siunit.info().c_str());
-    }
+    debug("(formula) SQRT %g (%s) --> %g --> %g %s\n",
+            i, inner_->siunit().info().c_str(),
+            s,
+            v,
+            to_siunit.info().c_str());
     return v;
 }
 
@@ -914,10 +900,8 @@ bool FormulaImplementation::parse(Meter *m, const string &f)
     ok = go();
     if (!ok) return false;
 
-    if (isDebugEnabled())
-    {
-        debug("(formula) %s\n", tree().c_str());
-    }
+    debug("(formula) %s\n", tree().c_str());
+
     return valid_;
 }
 

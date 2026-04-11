@@ -776,20 +776,12 @@ bool checkIfDirExists(const char *dir)
 
 void debugPayload(const string& intro, vector<uchar> &payload)
 {
-    if (isDebugEnabled())
-    {
-        string msg = bin2hex(payload);
-        debug("%s \"%s\"\n", intro.c_str(), msg.c_str());
-    }
+    debug("%s \"%s\"\n", intro.c_str(), bin2hex(payload).c_str());
 }
 
 void debugPayload(const string& intro, vector<uchar> &payload, vector<uchar>::iterator &pos)
 {
-    if (isDebugEnabled())
-    {
-        string msg = bin2hex(pos, payload.end(), 1024);
-        debug("%s \"%s\"\n", intro.c_str(), msg.c_str());
-    }
+    debug("%s \"%s\"\n", intro.c_str(), bin2hex(pos, payload.end(), 1024).c_str());
 }
 
 void logTelegram(vector<uchar> &original, vector<uchar> &parsed, int header_size, int suffix_size)
