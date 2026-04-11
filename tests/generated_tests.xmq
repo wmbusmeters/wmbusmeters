@@ -1,4 +1,4 @@
-// Generated 2026-04-11_01:00
+// Generated
 test {
     args     = 'ABBmeter abbb23 33221100 NOKEY'
     telegram = 844442040011223320027A3E000020_0E840017495200000004FFA0150000000004FFA1150000000004FFA2150000000004FFA3150000000007FFA600000000000000000007FFA700000000000000000007FFA800000000000000000007FFA90000000000000000000DFD8E0007302E38322E31420DFFAA000B3030312D313131203332421F
@@ -23,6 +23,92 @@ test {
     telegram = 1C441486069C14000F0FA042F214000040030000000005FF0472BF1400
     json     = '{"_":"telegram","media":"unknown","meter":"apator08","name":"test_apator082","id":"00149c06","total_m3":457.579333,"timestamp":"1111-11-11T11:11:11Z"}'
     fields   = 'test_apator082;00149c06;457.579333;1111-11-11 11:11.11'
+}
+test {
+    args     = 'has79 apator162 04960212 NOKEY'
+    telegram = 5E4401061202960405077A790050852F2F0F78A599983B0200435000805771165771160103000010653A00007919321E0000620000006200000000000000000000000000000000000000000000000000000000000000A0422C6004FFFF2FBF
+    json     = '{"_":"telegram","media":"water","meter":"apator162","name":"has79","id":"04960212","total_m3":14.949,"timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'has79;04960212;14.949;1111-11-11 11:11.11'
+}
+test {
+    args     = 'has80 apator162 04040404 NOKEY'
+    telegram = 704401060404040405077A0E0060852F2F_0F766DFB96010000430600808F67DB8F67DB01010000102F1F01007B01000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000A05F5C1804FFFFFFFFFFFFFFFFFFFF26BCD649
+    json     = '{"_":"telegram","media":"water","meter":"apator162","name":"has80","id":"04040404","total_m3":73.519,"timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'has80;04040404;73.519;1111-11-11 11:11.11'
+}
+test {
+    args     = 'NewAndOld apator162 00148686 NOKEY'
+    telegram = 4E4401068686140005077A350040852F2F_0F005B599600000010AA66000041545A42850BD800437D037301C5500000564B00009E4600006A410000A01778EC03FFFFFFFFFFFFFFFFFFFFFFFFFFE393
+    json     = '{"_":"telegram","media":"water","meter":"apator162","name":"NewAndOld","id":"00148686","total_m3":26.282,"timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'NewAndOld;00148686;26.282;1111-11-11 11:11.11'
+}
+test {
+    args     = 'NewAndOld apator162 00148686 NOKEY'
+    comment  = 'New apator162 telegram which can be decoded.'
+    telegram = 4E4401068686140005077A350040852F2F_0F005B599600000010AA55000041545A42850BD800437D037301C5500000564B00009E4600006A410000A01778EC03FFFFFFFFFFFFFFFFFFFFFFFFFFE393
+    json     = '{"_":"telegram","media":"water","meter":"apator162","name":"NewAndOld","id":"00148686","total_m3":21.93,"timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'NewAndOld;00148686;21.93;1111-11-11 11:11.11'
+}
+test {
+    args     = 'MyTapWaterg apator162 27202020 NOKEY'
+    telegram = 6E4401062020202705077A3D0060852F2F|0F|151794|94|0A0200|43|0403|81|D87F57D87F5701010000|10|783E0000|7B01223C00009137000098320000392D000010290000F02600004C2400003422000004220000CB21000017200000C51C0000|A0|9AD9A103|FFFFFFFFFFFFFFFFFFFF367E
+    json     = '{"_":"telegram","media":"water","meter":"apator162","name":"MyTapWaterg","id":"27202020","total_m3":15.992,"timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'MyTapWaterg;27202020;15.992;1111-11-11 11:11.11'
+}
+test {
+    args     = 'MyTapWaterf apator162 03410514 NOKEY'
+    telegram = 3E4401061405410305077A190030852F2F|0F|86B4B8|95|290200|40|C6C1|B4|F0F3F3|41|5559|42|FA701000|F0|01010000|10|BC780000|FFFFFFFFFFFFFFFFFFFFFF2483
+    json     = '{"_":"telegram","media":"water","meter":"apator162","name":"MyTapWaterf","id":"03410514","total_m3":30.908,"timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'MyTapWaterf;03410514;30.908;1111-11-11 11:11.11'
+}
+test {
+    args     = 'MyTapWatere apator162 26202020 NOKEY'
+    telegram = 6E4401062020202605077AAE0060852F2F|0F|0F4442|94|1A0000|43|B502|81|D87F57D87F5701010000|10|AB440000|7B|012C440000BE3E00008838000072340000493000009B2C00001D2C0000822B00007428000010250000B7200000261C0000|A0|A4D9A103|FFFFFFFFFFFFFFFFFFFF5F22
+    json     = '{"_":"telegram","media":"water","meter":"apator162","name":"MyTapWatere","id":"26202020","total_m3":17.579,"timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'MyTapWatere;26202020;17.579;1111-11-11 11:11.11'
+}
+test {
+    args     = 'MyTapWatere apator162 26202020 NOKEY'
+    telegram = 6E4401062020202605077AAD0060852F2F|0F|0E4442|94|1A0000|43|B502|84|4265594C655901010000|10|AB440000|7B|012C440000BE3E00008838000072340000493000009B2C00001D2C0000822B00007428000010250000B7200000261C0000|A0|A4D9A103|FFFFFFFFFFFFFFFFFFFF6C1B
+    json     = '{"_":"telegram","media":"water","meter":"apator162","name":"MyTapWatere","id":"26202020","total_m3":17.579,"timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'MyTapWatere;26202020;17.579;1111-11-11 11:11.11'
+}
+test {
+    args     = 'MyTapWatere apator162 26202020 NOKEY'
+    telegram = 6E4401062020202605077AAC0060852F2F|0F|0C4442|94|1A0000|43|B502|83|000A549B4159029C290F|10|AB440000|7B|012C440000BE3E00008838000072340000493000009B2C00001D2C0000822B00007428000010250000B7200000261C0000|A0|A4D9A103|FFFFFFFFFFFFFFFFFFFF7823
+    json     = '{"_":"telegram","media":"water","meter":"apator162","name":"MyTapWatere","id":"26202020","total_m3":17.579,"timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'MyTapWatere;26202020;17.579;1111-11-11 11:11.11'
+}
+test {
+    args     = 'MyTapWatere apator162 25202020 NOKEY'
+    telegram = 4E4401062020202505077AEF0040852F2F|0F|071122|94|100200|43|6103|84|8B745953486C09100000|10|81920200|75|01F1800200E5640200534A02003431020080150200D9000200|A0|DC939703|FFFFA434
+    json     = '{"_":"telegram","media":"water","meter":"apator162","name":"MyTapWatere","id":"25202020","total_m3":168.577,"timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'MyTapWatere;25202020;168.577;1111-11-11 11:11.11'
+}
+test {
+    args     = 'MyTapWaterd apator162 24202020 NOKEY'
+    telegram = 4E4401062020202405077A6C0040852F2F|0F73B3E19410000084E15381E553810101000010|FA41010041555942BF4E8A00433B027301AD380100BC2601005C180100CB0A0100A0F56C2602FFFFD0D7
+    json     = '{"_":"telegram","media":"water","meter":"apator162","name":"MyTapWaterd","id":"24202020","total_m3":82.426,"timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'MyTapWaterd;24202020;82.426;1111-11-11 11:11.11'
+}
+test {
+    args     = 'MyTapWaterc apator162 23202020 NOKEY'
+    telegram = 4E4401062020202305077A9D004085|2F2F0F81902C9300000010|B82F010041555942BD2882004319027301BC2601005C180100CB0A0100DFF60000A0F56C2602FFFFFFFFFFFFFFFFFFFFFFFFFF5B7C
+    json     = '{"_":"telegram","media":"water","meter":"apator162","name":"MyTapWaterc","id":"23202020","total_m3":77.752,"timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'MyTapWaterc;23202020;77.752;1111-11-11 11:11.11'
+}
+test {
+    args     = 'MyTapWaterb apator162 22202020 NOKEY'
+    telegram = 4E4401062020202205077A4B004085|2F2F0FE566B99390000087C0B24B732679FF75350010|FCFB00004155594265086A0043B4017301DFF600006AE70000BFD5000051BC0000A0F56C2602FFFF1B1B
+    json     = '{"_":"telegram","media":"water","meter":"apator162","name":"MyTapWaterb","id":"22202020","total_m3":64.508,"timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'MyTapWaterb;22202020;64.508;1111-11-11 11:11.11'
+}
+test {
+    args     = 'Wasser5 apator162 00533603 NOKEY'
+    comment  = 'Real meter telegram with woot_7C monthly history field (regression test for github issue).'
+    telegram = 6E4401060336530005077A210060852F2F0F141F539A12000243EE0E84E3BDD9B6593A040500001082C800007C01B2C4000064C10000B3BD00000DB900000EB500009FB0000054AB0000EDA30000A39D0000BF980000E394000038900000488B0000A034CB8C04FFFFFFFFFFFFFA8A
+    json     = '{"_":"telegram","media":"water","meter":"apator162","name":"Wasser5","id":"00533603","total_m3":51.33,"timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'Wasser5;00533603;51.33;1111-11-11 11:11.11'
 }
 test {
     args     = 'MyTapWatera apator162 21202020 NOKEY'
@@ -188,6 +274,24 @@ test {
     telegram = 43442F191469012501078C2075900F002C257C690300FDD9AE90F019F1C07A47102007102F2F_0C1322921500046D3A2A3A390F60011907052F2F2F2F2F2F2F2F2F2F2F2F
     json     = '{"_":"telegram","media":"water","status":"TEMPORARY_ERROR","meter":"fiowater","name":"fio","id":"25016914","meter_datetime":"2025-09-26 10:58","total_m3":159.222,"timestamp":"1111-11-11T11:11:11Z"}'
     fields   = 'fio;25016914;TEMPORARY_ERROR;159.222;1111-11-11 11:11.11'
+}
+test {
+    args     = 'HeatMeter2 hcae2 60200770 NOKEY'
+    telegram = 76442D4870072060550872700720602D485508280060052F2F_0B6E320100426E550082016E3500C2016E1F0082026E1F00C2026E130082036E1300C2036E130082046E1300C2046E120082056E7D01C2056E440182066E0601C2066EB80082076E7F00C2076E320082086E1C00C2086E1C0002FD170000
+    json     = '{"_":"telegram","media":"heat cost allocation","meter":"hcae2","name":"HeatMeter2","id":"60200770","status":"OK","current_consumption_hca":132,"consumption_at_set_date_1_hca":85,"consumption_at_set_date_2_hca":53,"consumption_at_set_date_3_hca":31,"consumption_at_set_date_4_hca":31,"consumption_at_set_date_5_hca":19,"consumption_at_set_date_6_hca":19,"consumption_at_set_date_7_hca":19,"consumption_at_set_date_8_hca":19,"consumption_at_set_date_9_hca":18,"consumption_at_set_date_10_hca":381,"consumption_at_set_date_11_hca":324,"consumption_at_set_date_12_hca":262,"consumption_at_set_date_13_hca":184,"consumption_at_set_date_14_hca":127,"consumption_at_set_date_15_hca":50,"consumption_at_set_date_16_hca":28,"consumption_at_set_date_17_hca":28,"consumption_at_set_date_hca":85,"timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'HeatMeter2;60200770;132;OK;1111-11-11 11:11.11'
+}
+test {
+    args     = 'HeatMeter hcae2 88018801 NOKEY'
+    telegram = 7644C52501880188550872_01880188C5255508010000002F2F0B6E332211426E110182016E1102C2016E110382026E1104C2026E110582036E1106C2036E110782046E1108C2046E110982056E1110C2056E111182066E1112C2066E111382076E1114C2076E111582086E1116C2086E111702FD172100
+    json     = '{"_":"telegram","media":"heat cost allocation","meter":"hcae2","name":"HeatMeter","id":"88018801","status":"MEASUREMENT RESET","current_consumption_hca":112233,"consumption_at_set_date_1_hca":273,"consumption_at_set_date_2_hca":529,"consumption_at_set_date_3_hca":785,"consumption_at_set_date_4_hca":1041,"consumption_at_set_date_5_hca":1297,"consumption_at_set_date_6_hca":1553,"consumption_at_set_date_7_hca":1809,"consumption_at_set_date_8_hca":2065,"consumption_at_set_date_9_hca":2321,"consumption_at_set_date_10_hca":4113,"consumption_at_set_date_11_hca":4369,"consumption_at_set_date_12_hca":4625,"consumption_at_set_date_13_hca":4881,"consumption_at_set_date_14_hca":5137,"consumption_at_set_date_15_hca":5393,"consumption_at_set_date_16_hca":5649,"consumption_at_set_date_17_hca":5905,"consumption_at_set_date_hca":273,"timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'HeatMeter;88018801;112233;MEASUREMENT RESET;1111-11-11 11:11.11'
+}
+test {
+    args     = 'HeatCool hydrocalm3 71727374 NOKEY'
+    telegram = 8E44B409747372710B0D7A798080052F2F_0C0E59600100046D1D36B9290C13679947000C0E000000000C13590000000C13000000000C13000000000A5A18020A5E11020F823D06003D06003D06003D0600140600620500480400E402001601000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000002F2F
+    json     = '{"_":"telegram","media":"heat/cooling load","meter":"hydrocalm3","name":"HeatCool","id":"71727374","status":"SABOTAGE_ENCLOSURE","total_heating_kwh":4460.833333,"total_cooling_kwh":0,"device_datetime":"2021-09-25 22:29","total_heating_m3":479.967,"total_cooling_m3":0.059,"c1_volume_m3":0,"c2_volume_m3":0,"supply_temperature_c":21.8,"return_temperature_c":21.1,"timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'HeatCool;71727374;4460.833333;0;1111-11-11 11:11.11'
 }
 test {
     args     = 'testm5 hydrocalm4 05128041 NOKEY'
@@ -895,6 +999,24 @@ test {
     telegram = 6044B8059430040001037A1D005085E2B670BCF1A5C87E0C1A51DA18924EF984613DA2A9CD39D8F4C7208326C76D42DBEADF80D574192B71BD7C4F56A7F1513151768A9DB804883B28CB085CA2D0F7438C361CB9E2734712ED9BFBB2A14EF55208
     json     = '{"_":"telegram","media":"gas","meter":"unismart","name":"GasMeter","id":"00043094","fabrication_no":"03162296","status":"STATUS_FLAGS_CF0","other":"OTHER_FLAGS_14","total_datetime":"2021-09-15 13:18","total_m3":917,"target_datetime":"2021-09-01 06:00","target_m3":911.32,"version":"  4GGU","supplier_info":"00","parameter_set":"02","meter_datetime":"2021-09-15 13:18","timestamp":"1111-11-11T11:11:11Z"}'
     fields   = 'GasMeter;00043094;917;911.32;1111-11-11 11:11.11'
+}
+test {
+    args     = 'Howdy vario411 67627875 NOKEY'
+    telegram = 624468507578626728048C00F3900F002C25FEEB0600BA84134D9202A1327AFF003007102F2F_4406E1190000426CBF2C0F206730E2E7516874F5DB46B5A97816F575A29A1EA2717D6ADE5C2FE64517ED2B0497EE0FF64C2674CD0832572C484DDFED30
+    json     = '{"_":"telegram","media":"heat","meter":"vario411","name":"Howdy","id":"67627875","target_kwh":6625,"target_date":"2021-12-31","timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'Howdy;67627875;6625;2021-12-31;1111-11-11 11:11.11'
+    args     = 'Vattenn weh_07 27604781 NOKEY'
+    comment  = 'A normal water meter.'
+    telegram = 5244A85C8147602703077A5B0840252F2F_0413B39100004413000000004D931E2C73FE0000000000000000000000000000000000000000000000000000000000000000000000009885001A0C002F2F426CBE29
+    json     = '{"_":"telegram","media":"water","meter":"weh_07","name":"Vattenn","id":"27604781","total_m3":37.299,"target_date":"2021-09-30","target_m3":0,"timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'Vattenn;27604781;37.299;1111-11-11 11:11.11'
+}
+test {
+    args     = 'Vatten weh_07 86868686 NOKEY'
+    comment  = 'Techem radio convert + Wehrle water meter combo.'
+    telegram = 494468509494949495377286868686A85CFE07A90030052F2F_0413100000000F52FCF6A52A90A8D83CA8F7FEAE86990502323D0C70EFF49833C7C1696F75BCABC1E52E6305308D0F31FB
+    json     = '{"_":"telegram","media":"water","meter":"weh_07","name":"Vatten","id":"86868686","total_m3":0.016,"timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'Vatten;86868686;0.016;1111-11-11 11:11.11'
 }
 test {
     args     = 'licznik werhlemodwm 16466583 NOKEY'

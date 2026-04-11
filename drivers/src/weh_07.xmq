@@ -1,0 +1,60 @@
+// Copyright (C) 2021-2022 Fredrik Öhrström (gpl-3.0-or-later)
+driver {
+    name           = weh_07
+    meter_type     = WaterMeter
+    default_fields = name,id,total_m3,timestamp
+    detect {
+        mvt = WEH,fe,07
+        mvt = WEH,03,07
+    }
+    fields {
+        field {
+            name           = total
+            quantity       = Volume
+            info           = 'The total water consumption recorded by this meter.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
+            match {
+                measurement_type = Instantaneous
+                vif_range        = Volume
+            }
+        }
+        field {
+            name         = target
+            quantity     = PointInTime
+            info         = 'The most recent billing period date.'
+            display_unit = date
+            match {
+                measurement_type = Instantaneous
+                vif_range        = Date
+                storage_nr       = 1
+            }
+        }
+        field {
+            name     = target
+            quantity = Volume
+            info     = 'The total water consumption at the most recent billing period date.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = Volume
+                storage_nr       = 1
+            }
+        }
+    }
+    tests {
+        test {
+            args     = 'Vatten weh_07 86868686 NOKEY'
+            comment  = 'Techem radio convert + Wehrle water meter combo.'
+            telegram = 494468509494949495377286868686A85CFE07A90030052F2F_0413100000000F52FCF6A52A90A8D83CA8F7FEAE86990502323D0C70EFF49833C7C1696F75BCABC1E52E6305308D0F31FB
+            json     = '{"_":"telegram","media":"water","meter":"weh_07","name":"Vatten","id":"86868686","total_m3":0.016,"timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'Vatten;86868686;0.016;1111-11-11 11:11.11'
+        }
+        test {
+            args     = 'Vattenn weh_07 27604781 NOKEY'
+            comment  = 'A normal water meter.'
+            telegram = 5244A85C8147602703077A5B0840252F2F_0413B39100004413000000004D931E2C73FE0000000000000000000000000000000000000000000000000000000000000000000000009885001A0C002F2F426CBE29
+            json     = '{"_":"telegram","media":"water","meter":"weh_07","name":"Vattenn","id":"27604781","total_m3":37.299,"target_date":"2021-09-30","target_m3":0,"timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'Vattenn;27604781;37.299;1111-11-11 11:11.11'
+        }
+    }
+}

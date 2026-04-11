@@ -1164,14 +1164,14 @@ bool MeterCommonImplementation::isTelegramForMeter(Telegram *t, Meter *meter, Me
         driver_name = mi->driver_name.str();
     }
 
-    if (isDebugEnabled())
-    {
+    debug(
+        "(meter) %s: for me? %s in %s\n",
+        name.c_str(),
         // Telegram addresses
-        string t_idsc = Address::concat(t->addresses);
+        Address::concat(t->addresses).c_str(),
         // Meter/MeterInfo address expressions
-        string m_idsc = AddressExpression::concat(address_expressions);
-        debug("(meter) %s: for me? %s in %s\n", name.c_str(), t_idsc.c_str(), m_idsc.c_str());
-    }
+        AddressExpression::concat(address_expressions).c_str()
+    );
 
     bool used_wildcard = false;
     bool match = doesTelegramMatchExpressions(t->addresses,
@@ -1467,20 +1467,13 @@ bool MeterCommonImplementation::handleTelegram(AboutTelegram &about, vector<ucha
     }
 
     *id_match = true;
-    if (isVerboseEnabled())
-    {
-        verbose("(meter) %s(%d) %s  handling telegram from %s\n",
-                name().c_str(),
-                index(),
-                driverName().str().c_str(),
-                t.addresses.back().str().c_str());
-    }
+    verbose("(meter) %s(%d) %s  handling telegram from %s\n",
+            name().c_str(),
+            index(),
+            driverName().str().c_str(),
+            t.addresses.back().str().c_str());
 
-    if (isDebugEnabled())
-    {
-        string msg = bin2hex(input_frame);
-        debug("(meter) %s %s \"%s\"\n", name().c_str(), t.addresses.back().str().c_str(), msg.c_str());
-    }
+    debug("(meter) %s %s \"%s\"\n", name().c_str(), t.addresses.back().str().c_str(), bin2hex(input_frame).c_str());
 
     // For older meters with manufacturer specific data without a nice 0f dif marker.
     if (force_mfct_index_ != -1)
@@ -2399,15 +2392,11 @@ shared_ptr<Meter> createMeter(MeterInfo *mi)
     {
         newm->setSelectedFields(di->defaultFields());
     }
-    if (isVerboseEnabled())
-    {
-        string aesc = AddressExpression::concat(mi->address_expressions);
-        verbose("(meter) created %s %s %s %s\n",
-                mi->name.c_str(),
-                di->name().str().c_str(),
-                aesc.c_str(),
-                keymsg);
-    }
+    verbose("(meter) created %s %s %s %s\n",
+            mi->name.c_str(),
+            di->name().str().c_str(),
+            AddressExpression::concat(mi->address_expressions).c_str(),
+            keymsg);
     return newm;
 }
 
