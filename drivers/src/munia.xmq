@@ -1,0 +1,61 @@
+// Copyright (C) 2019-2022 Fredrik Öhrström (gpl-3.0-or-later)
+driver {
+    name           = munia
+    meter_type     = TempHygroMeter
+    default_fields = name,id,current_temperature_c,current_relative_humidity_rh,timestamp
+    detect {
+        mvt = WEP,02,1b
+        mvt = WEP,04,1b
+    }
+    fields {
+        field {
+            name       = status
+            quantity   = Text
+            info       = 'Meter status. Reports OK if neither tpl sts nor error flags have bits set.'
+            attributes = STATUS,INCLUDE_TPL_STATUS
+            match {
+                difvifkey = 02FD971D
+            }
+            lookup {
+                name            = ERROR_FLAGS
+                map_type        = BitToString
+                mask_bits       = 0xffff
+                default_message = OK
+            }
+        }
+        field {
+            name     = current_temperature
+            quantity = Temperature
+            info     = 'The current temperature.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = ExternalTemperature
+            }
+        }
+        field {
+            name     = current_relative_humidity
+            quantity = RelativeHumidity
+            info     = 'The current relative humidity.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = RelativeHumidity
+            }
+        }
+    }
+    tests {
+        test {
+            args     = 'TempoHygro munia 00013482 NOKEY'
+            comment  = 'Munia version 02.'
+            telegram = 2E44B05C82340100021B7A460000002F2F0A6601020AFB1A570602FD971D00002F2F2F2F2F2F2F2F2F2F2F2F2F2F2F
+            json     = '{"_":"telegram","media":"room sensor","meter":"munia","name":"TempoHygro","id":"00013482","status":"OK","current_temperature_c":20.1,"current_relative_humidity_rh":65.7,"timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'TempoHygro;00013482;20.1;65.7;1111-11-11 11:11.11'
+        }
+        test {
+            args     = 'TempoHygro munia 00220111 NOKEY'
+            comment  = 'Robin version 04.'
+            telegram = 2E44B05C11012200041B7A2B0000002F2F0A6617020AFB1A100602FD971D00002F2F2F2F2F2F2F2F2F2F2F2F2F2F2F
+            json     = '{"_":"telegram","media":"room sensor","meter":"munia","name":"TempoHygro","id":"00220111","status":"OK","current_temperature_c":21.7,"current_relative_humidity_rh":61,"timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'TempoHygro;00220111;21.7;61;1111-11-11 11:11.11'
+        }
+    }
+}
