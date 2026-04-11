@@ -95,12 +95,6 @@ bool decrypt_ELL_AES_CTR(Telegram *t, vector<uchar> &frame, vector<uchar>::itera
     return true;
 }
 
-string frameTypeKamstrupC1(int ft) {
-    if (ft == 0x78) return "long frame";
-    if (ft == 0x79) return "short frame";
-    return "?";
-}
-
 bool decrypt_TPL_AES_CBC_IV(Telegram *t,
                             vector<uchar> &frame,
                             vector<uchar>::iterator &pos,
