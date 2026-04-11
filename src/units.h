@@ -301,8 +301,8 @@ private:
 
 bool canConvert(Unit from, Unit to);
 double convert(double v, Unit from, Unit to);
-Unit whenMultiplied(Unit left, Unit right);
-double multiply(double l, Unit left, double r, Unit right);
+SIUnit whenMultiplied(SIUnit left, SIUnit right);
+double multiply(double l, SIUnit left, double r, SIUnit right);
 
 // Used to convert protocol KWH to KVARH/KVA, strictly speaking
 // not a valid conversion, but permitted to work around limitations in the mbus protocol usage.

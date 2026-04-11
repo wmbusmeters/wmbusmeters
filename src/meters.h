@@ -267,7 +267,6 @@ enum PrintProperty
     Unknown = 1024
 };
 
-int toBit(PrintProperty p);
 const char* toString(PrintProperty p);
 PrintProperty toPrintProperty(const char *s);
 
@@ -521,7 +520,6 @@ std::shared_ptr<MeterManager> createMeterManager(bool daemon);
 const char *toString(MeterType type);
 MeterType toMeterType(std::string type);
 std::string toString(DriverInfo &driver);
-LinkModeSet toMeterLinkModeSet(const std::string& driver);
 const char *toString(ReadableString rs);
 ReadableString toReadableString(std::string rs);
 
