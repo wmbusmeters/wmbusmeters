@@ -1,0 +1,123 @@
+// Copyright (C) 2018-2022 Fredrik Öhrström (gpl-3.0-or-later)
+driver {
+    name           = hydrocalm3
+    meter_type     = HeatMeter
+    default_fields = name,id,total_heating_kwh,total_cooling_kwh,timestamp
+    detect {
+        mvt = BMT,0b,0d
+    }
+    mfct_tpl_status_bits {
+        mask_bits       = 0xe0
+        default_message = OK
+        map {
+            name  = SABOTAGE_ENCLOSURE
+            value = 0x80
+            test  = Set
+        }
+    }
+    fields {
+        field {
+            name       = status
+            quantity   = Text
+            info       = 'Meter status from tpl status field.'
+            attributes = STATUS,INCLUDE_TPL_STATUS
+        }
+        field {
+            name     = total_heating
+            quantity = Energy
+            info     = 'The total heating energy consumption recorded by this meter.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = AnyEnergyVIF
+                index_nr         = 1
+            }
+        }
+        field {
+            name         = device
+            quantity     = PointInTime
+            info         = 'The date time when the recording was made.'
+            display_unit = datetime
+            match {
+                measurement_type = Instantaneous
+                vif_range        = DateTime
+            }
+        }
+        field {
+            name     = total_cooling
+            quantity = Energy
+            info     = 'The total cooling energy consumption recorded by this meter.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = AnyEnergyVIF
+                index_nr         = 2
+            }
+        }
+        field {
+            name     = total_heating
+            quantity = Volume
+            info     = 'Total heating volume of media.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = Volume
+                index_nr         = 1
+            }
+        }
+        field {
+            name     = total_cooling
+            quantity = Volume
+            info     = 'Total cooling volume of media.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = Volume
+                index_nr         = 2
+            }
+        }
+        field {
+            name     = c1_volume
+            quantity = Volume
+            info     = 'Supply c1 volume.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = Volume
+                index_nr         = 3
+            }
+        }
+        field {
+            name     = c2_volume
+            quantity = Volume
+            info     = 'Return c2 volume.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = Volume
+                index_nr         = 4
+            }
+        }
+        field {
+            name     = supply_temperature
+            quantity = Temperature
+            info     = 'The supply t1 pipe temperature.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = FlowTemperature
+                index_nr         = 1
+            }
+        }
+        field {
+            name     = return_temperature
+            quantity = Temperature
+            info     = 'The return t2 pipe temperature.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = ReturnTemperature
+            }
+        }
+    }
+    tests {
+        test {
+            args     = 'HeatCool hydrocalm3 71727374 NOKEY'
+            telegram = 8E44B409747372710B0D7A798080052F2F_0C0E59600100046D1D36B9290C13679947000C0E000000000C13590000000C13000000000C13000000000A5A18020A5E11020F823D06003D06003D06003D0600140600620500480400E402001601000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000002F2F
+            json     = '{"_":"telegram","media":"heat/cooling load","meter":"hydrocalm3","name":"HeatCool","id":"71727374","status":"SABOTAGE_ENCLOSURE","total_heating_kwh":4460.833333,"total_cooling_kwh":0,"device_datetime":"2021-09-25 22:29","total_heating_m3":479.967,"total_cooling_m3":0.059,"c1_volume_m3":0,"c2_volume_m3":0,"supply_temperature_c":21.8,"return_temperature_c":21.1,"timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'HeatCool;71727374;4460.833333;0;1111-11-11 11:11.11'
+        }
+    }
+}

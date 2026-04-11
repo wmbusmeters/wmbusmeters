@@ -11,8 +11,7 @@ web:
 	@./generate_index.sh
 
 tests:
-	@echo -n "// Generated " > build/generated_tests.xmq
-	@date +%Y-%m-%d_%H:%M >> build/generated_tests.xmq
+	@echo "// Generated" > build/generated_tests.xmq
 	@for i in $(wildcard src/*) ; do xmq $$i select /driver/tests/test to-xmq >> build/generated_tests.xmq; done
 
 install: database tests
