@@ -226,7 +226,7 @@ string loadDriver(const string &file, const char *content)
     DriverInfo *existing = lookupDriver(di.name().str());
     if (existing != NULL)
     {
-        if (existing->getDynamicFileName() == file)
+        if (existing->getDynamicFileName() == di.getDynamicFileName())
         {
             // The driver has already been loaded, typically during analyze.
             return di.name().str();
