@@ -1467,14 +1467,11 @@ bool MeterCommonImplementation::handleTelegram(AboutTelegram &about, vector<ucha
     }
 
     *id_match = true;
-    if (isVerboseEnabled())
-    {
-        verbose("(meter) %s(%d) %s  handling telegram from %s\n",
-                name().c_str(),
-                index(),
-                driverName().str().c_str(),
-                t.addresses.back().str().c_str());
-    }
+    verbose("(meter) %s(%d) %s  handling telegram from %s\n",
+            name().c_str(),
+            index(),
+            driverName().str().c_str(),
+            t.addresses.back().str().c_str());
 
     if (isDebugEnabled())
     {
@@ -2399,15 +2396,11 @@ shared_ptr<Meter> createMeter(MeterInfo *mi)
     {
         newm->setSelectedFields(di->defaultFields());
     }
-    if (isVerboseEnabled())
-    {
-        string aesc = AddressExpression::concat(mi->address_expressions);
-        verbose("(meter) created %s %s %s %s\n",
-                mi->name.c_str(),
-                di->name().str().c_str(),
-                aesc.c_str(),
-                keymsg);
-    }
+    verbose("(meter) created %s %s %s %s\n",
+            mi->name.c_str(),
+            di->name().str().c_str(),
+            AddressExpression::concat(mi->address_expressions).c_str(),
+            keymsg);
     return newm;
 }
 
