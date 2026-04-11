@@ -391,7 +391,6 @@ public:
 
     void analyzeTelegram(AboutTelegram &about, vector<uchar> &input_frame, bool simulated)
     {
-        loadAllBuiltinDrivers();
         Telegram t;
         t.about = about;
 

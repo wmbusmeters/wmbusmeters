@@ -123,7 +123,6 @@ WMBusSocket::WMBusSocket(string bus_alias, shared_ptr<SerialDevice> serial,
     BusDeviceCommonImplementation(bus_alias, DEVICE_SOCKET, manager, serial, true)
 {
     reset();
-    loadAllBuiltinDrivers();
 }
 
 bool WMBusSocket::ping()
@@ -370,6 +369,14 @@ void WMBusSocket::handleDecode(XMQDoc *doc, const string &line)
         mi.identity_mode = IdentityMode::ID;
         mi.driver_name = DriverName(driver_name);
         mi.poll_interval = 1000*1000*1000;
+
+        DriverInfo di;
+        bool ok = lookupDriverInfo(mi.driver_name.str(), &di);
+        if (!ok)
+        {
+            sendError(string("failed to create meter no such driver: ")+mi.driver_name.str(), telegram_hex);
+            return;
+        }
 
         meter = createMeter(&mi);
         if (meter == NULL)

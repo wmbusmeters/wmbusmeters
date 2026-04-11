@@ -304,8 +304,6 @@ void list_fields(Configuration *config, string meter_driver)
 
 void print_driver(Configuration *config, string meter_driver)
 {
-    loadAllBuiltinDrivers();
-
     MeterInfo mi;
     shared_ptr<Meter> meter;
     DriverInfo di;
@@ -330,8 +328,6 @@ void print_driver(Configuration *config, string meter_driver)
 
 void list_meters(Configuration *config, bool cli)
 {
-    loadAllBuiltinDrivers();
-
     for (DriverInfo *di : allDrivers())
     {
         string mname = di->name().str();
@@ -677,7 +673,6 @@ bool start(Configuration *config)
         else if (!config->analyze)
         {
             if (!config->logsummary) notice("No meters configured. Printing id:s of all telegrams heard!\n");
-            loadAllBuiltinDrivers();
             meter_manager_->onTelegram([](AboutTelegram &about, vector<uchar> frame) {
                     Telegram t;
                     t.about = about;

@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2024 Fredrik Öhrström (gpl-3.0-or-later)
+ Copyright (C) 2024-2026 Fredrik Öhrström (gpl-3.0-or-later)
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -138,8 +138,6 @@ WMBusXmqTTY::WMBusXmqTTY(string bus_alias, shared_ptr<SerialDevice> serial,
     BusDeviceCommonImplementation(bus_alias, DEVICE_XMQTTY, manager, serial, true)
 {
     reset();
-    // Load all drivers once at init, not for every telegram
-    loadAllBuiltinDrivers();
 }
 
 bool WMBusXmqTTY::ping()
@@ -345,6 +343,14 @@ void WMBusXmqTTY::processLine(const string &line)
         mi.identity_mode = IdentityMode::ID;
         mi.driver_name = DriverName(driver_name);
         mi.poll_interval = 1000*1000*1000;  // Fake a high value to silence warning
+
+        DriverInfo di;
+        bool ok = lookupDriverInfo(mi.driver_name.str(), &di);
+        if (!ok)
+        {
+            outputError(string("failed to create meter no such driver: ")+mi.driver_name.str(), telegram_hex);
+            return;
+        }
 
         meter = createMeter(&mi);
         if (meter == NULL)

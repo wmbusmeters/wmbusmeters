@@ -69,18 +69,6 @@ bool loadBuiltinDriver(string driver_name)
     return true;
 }
 
-void loadAllBuiltinDrivers()
-{
-    for (auto &p : builtins_name_lookup_)
-    {
-        if (!p.second->loaded)
-        {
-            loadBuiltinDriver(p.first);
-            p.second->loaded = true;
-        }
-    }
-}
-
 const char *findBuiltinDriver(uint16_t mfct, uchar ver, uchar type)
 {
     uint32_t key = mfct << 16  | ver << 8 | type;
