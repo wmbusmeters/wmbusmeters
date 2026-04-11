@@ -1,0 +1,40 @@
+// Copyright (C) 2022 Fredrik Öhrström (gpl-3.0-or-later)
+driver {
+    name           = vario411
+    meter_type     = HeatMeter
+    default_fields = name,id,target_kwh,target_date,timestamp
+    detect {
+        mvt = TCH,28,04
+    }
+    fields {
+        field {
+            name     = target
+            quantity = Energy
+            info     = 'Total energy consumption at the end of the year.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = AnyEnergyVIF
+                storage_nr       = 1
+            }
+        }
+        field {
+            name         = target
+            quantity     = PointInTime
+            info         = 'Date when previous year ended.'
+            display_unit = date
+            match {
+                measurement_type = Instantaneous
+                vif_range        = Date
+                storage_nr       = 1
+            }
+        }
+    }
+    tests {
+        test {
+            args     = 'Howdy vario411 67627875 NOKEY'
+            telegram = 624468507578626728048C00F3900F002C25FEEB0600BA84134D9202A1327AFF003007102F2F_4406E1190000426CBF2C0F206730E2E7516874F5DB46B5A97816F575A29A1EA2717D6ADE5C2FE64517ED2B0497EE0FF64C2674CD0832572C484DDFED30
+            json     = '{"_":"telegram","media":"heat","meter":"vario411","name":"Howdy","id":"67627875","target_kwh":6625,"target_date":"2021-12-31","timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'Howdy;67627875;6625;2021-12-31;1111-11-11 11:11.11'
+        }
+    }
+}
