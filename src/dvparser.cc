@@ -284,10 +284,7 @@ bool parseDV(Telegram *t,
 
                 DVEntry *dve = &(*dv_entries)[key].second;
 
-                if (isTraceEnabled())
-                {
-                    trace("[DVPARSER] entry %s\n", dve->str().c_str());
-                }
+                trace("[DVPARSER] entry %s\n", dve->str().c_str());
 
                 assert(key == dve->dif_vif_key.str());
                 t->addExplanationAndIncrementPos(data, datalen, KindOfData::CONTENT, Understanding::NONE, "%02X manufacturer specific data %s", dif, value.c_str());
@@ -572,10 +569,7 @@ bool parseDV(Telegram *t,
 
         DVEntry *dve = &(*dv_entries)[key].second;
 
-        if (isTraceEnabled())
-        {
-            trace("[DVPARSER] entry %s\n", dve->str().c_str());
-        }
+        trace("[DVPARSER] entry %s\n", dve->str().c_str());
 
         assert(key == dve->dif_vif_key.str());
 
