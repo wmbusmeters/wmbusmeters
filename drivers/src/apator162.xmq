@@ -36,7 +36,7 @@ driver {
 
                     -field = date | faults | total | flow | detectors | voltage | energy | days | woot_44 |
                              woot_71 | woot_72 | woot_73 | woot_74 | woot_75 | woot_76 | woot_77 | woot_78 | woot_79 |
-                             woot_7A |woot_7B | woot_8x | woot_8xx | woot_8A | woot_8B | woot_8C | woot_8E |
+                             woot_7A | woot_7B | woot_7C | woot_8x | woot_8xx | woot_8A | woot_8B | woot_8C | woot_8E |
                              woot_A0 | woot_A1 | woot_A2 | woot_A3 | woot_A4 | woot_A5 | woot_A6 | woot_A9 | woot_AF |
                              woot_Ax | woot_B0 |
                              woot_B1 | woot_B2 | woot_B3 | woot_B4 | woot_B5 | woot_Bx | woot_Cx | woot_Dx | woot_F0.
@@ -62,6 +62,7 @@ driver {
                     woot_79   = -'79', byte, quad, quad, quad, quad, quad, quad, quad, quad, quad, quad.
                     woot_7A   = -'7A', byte, quad, quad, quad, quad, quad, quad, quad, quad, quad, quad, quad.
                     woot_7B   = -'7B', byte, quad, quad, quad, quad, quad, quad, quad, quad, quad, quad, quad, quad.
+                    woot_7C   = -'7C', byte, quad, quad, quad, quad, quad, quad, quad, quad, quad, quad, quad, quad, quad.
 
                     woot_8x   = eights, quad, quad, word.
                     -eights = -'80' | -'81' | -'82' | -'83' | -'84' | -'86' | -'87'.
@@ -133,6 +134,13 @@ driver {
             telegram = 4E4401062020202105077A130040852F2F0F6D4C389300020043840210351F040075012C0B040048D603003E630300CD2C03001EF402000ACE0200A098A39603FFFFFFFFFFFFFFFFFFFFFFFFFF1977
             json     = '{"_":"telegram","media":"water","meter":"apator162","name":"MyTapWatera","id":"21202020","total_m3":270.133,"timestamp":"1111-11-11T11:11:11Z"}'
             fields   = 'MyTapWatera;21202020;270.133;1111-11-11 11:11.11'
+        }
+        test {
+            args     = 'Wasser5 apator162 00533603 NOKEY'
+            comment  = 'Real meter telegram with woot_7C monthly history field (regression test for github issue).'
+            telegram = 6E4401060336530005077A210060852F2F0F141F539A12000243EE0E84E3BDD9B6593A040500001082C800007C01B2C4000064C10000B3BD00000DB900000EB500009FB0000054AB0000EDA30000A39D0000BF980000E394000038900000488B0000A034CB8C04FFFFFFFFFFFFFA8A
+            json     = '{"_":"telegram","media":"water","meter":"apator162","name":"Wasser5","id":"00533603","total_m3":51.33,"timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'Wasser5;00533603;51.33;1111-11-11 11:11.11'
         }
     }
 }
