@@ -30,6 +30,4 @@ bool decrypt_TPL_AES_CBC_NO_IV(Telegram *t,std::vector<uchar> &frame,std::vector
                                int *num_encrypted_bytes,
                                int *num_not_encrypted_at_end);
 
-std::string frameTypeKamstrupC1(int ft);
-
 #endif
