@@ -1,140 +1,54 @@
 // Generated
 test {
-    args     = 'ABBmeter abbb23 33221100 NOKEY'
-    telegram = 844442040011223320027A3E000020_0E840017495200000004FFA0150000000004FFA1150000000004FFA2150000000004FFA3150000000007FFA600000000000000000007FFA700000000000000000007FFA800000000000000000007FFA90000000000000000000DFD8E0007302E38322E31420DFFAA000B3030312D313131203332421F
-    json     = '{"_":"telegram","media":"electricity","meter":"abbb23","name":"ABBmeter","id":"33221100","ct_denominator_factor":0,"ct_numerator_factor":0,"total_energy_consumption_kwh":5249.17,"vt_denominator_factor":0,"vt_numerator_factor":0,"alarm_flags":"OK","error_flags":"OK","firmware_version":"B1.28.0","information_flags":"","product_no":"001-111 32B","status":"OK","warning_flags":"OK","timestamp":"1111-11-11T11:11:11Z"}'
-    fields   = 'ABBmeter;33221100;5249.17;1111-11-11 11:11.11'
-}
-test {
     args     = 'aerius_gas aerius 99657098 NOKEY'
     telegram = 2E44A5119870659930037A060020052F2F_0C933E842784060A3B00000A5A5901C4016D3B37DF2CCC01933E24032606
     json     = '{"_":"telegram","media":"gas","meter":"aerius","name":"aerius_gas","id":"99657098","total_m3":6842.784,"flow_m3h":0,"temperature_c":15.9,"target_datetime":"2022-12-31 23:59","target_m3":6260.324,"timestamp":"1111-11-11T11:11:11Z"}'
     fields   = 'aerius_gas;99657098;6842.784;1111-11-11 11:11.11'
 }
 test {
-    args     = 'Vatten apator08 004444dd NOKEY'
-    telegram = 73441486DD4444000303A0B9E527004C4034B31CED0106FF01D093270065F022009661230054D02300EC49240018B424005F012500936D2500FFD525000E3D26001EAC26000B2027000300000000371D0B2000000000000024000000000000280000000000002C0033150C010D2F000000000000
-    json     = '{"_":"telegram","media":"gas","meter":"apator08","name":"Vatten","id":"004444dd","total_m3":871.571,"timestamp":"1111-11-11T11:11:11Z"}'
-    fields   = 'Vatten;004444dd;871.571;1111-11-11 11:11.11'
+    args     = 'MyElectricity6 amiplus 00086426 NOKEY'
+    telegram = 8E44B3382664080003027A090080052F2F_066D37090E2232050C78266408000AFDC9FC0142020AFDC9FC0240020AFDC9FC0338028E30833C0000000000008E20833C0000000000008E10833C0000000000000BABC8FC100000008E10030750030000008E20035379060000008E30030000000000000B2B1307000BAB3C0000002F2F2F2F2F2F2F2F2F2F2F2F2F2F2F2F
+    json     = '{"_": "telegram","current_power_consumption_kw": 0.713,"current_power_production_kw": 0,"device_datetime": "2025-02-02 14:09:55","id": "00086426","media": "electricity","meter": "amiplus","name": "MyElectricity6","timestamp": "1111-11-11T11:11:11Z","total_energy_consumption_tariff_1_kwh": 35.007,"total_energy_consumption_tariff_2_kwh": 67.953,"total_energy_consumption_tariff_3_kwh": 0,"total_energy_production_tariff_1_kwh": 0,"total_energy_production_tariff_2_kwh": 0,"total_energy_production_tariff_3_kwh": 0,"voltage_at_phase_1_v": 242,"voltage_at_phase_2_v": 240,"voltage_at_phase_3_v": 238}'
+    fields   = 'MyElectricity6;00086426;null;0.713;null;0;242;240;238;35.007;67.953;0;0;0;0;1111-11-11 11:11.11'
 }
 test {
-    args     = 'test_apator082 apator08 00149c06 NOKEY'
-    comment  = 'The apator08 reports a nonstandard medium, thus unknown below.'
-    telegram = 1C441486069C14000F0FA042F214000040030000000005FF0472BF1400
-    json     = '{"_":"telegram","media":"unknown","meter":"apator08","name":"test_apator082","id":"00149c06","total_m3":457.579333,"timestamp":"1111-11-11T11:11:11Z"}'
-    fields   = 'test_apator082;00149c06;457.579333;1111-11-11 11:11.11'
+    args     = 'MyElectricity5 amiplus 56914504 NOKEY'
+    telegram = 9e4401060445915601027a3d0390052f2f066dc076091935800c78044591560e032088300000008e10032088300000008e20030000000000008e30030000000000008e8010030000000000000e833c2702000000008e10833c2702000000008e20833c0000000000008e30833c0000000000008e8010833c0000000000000afdc8fc0136240afdc8fc0262240afdc8fc0389222f2f2f2f2f2f2f2f2f2f2f2f
+    json     = '{"_":"telegram","media":"electricity","meter":"amiplus","name":"MyElectricity5","id":"56914504","total_energy_consumption_kwh":308.82,"total_energy_consumption_tariff_1_kwh":308.82,"total_energy_consumption_tariff_2_kwh":0,"total_energy_consumption_tariff_3_kwh":0,"total_energy_production_kwh":0.227,"total_energy_production_tariff_1_kwh":0.227,"total_energy_production_tariff_2_kwh":0,"total_energy_production_tariff_3_kwh":0,"voltage_at_phase_1_v":243.6,"voltage_at_phase_2_v":246.2,"voltage_at_phase_3_v":228.9,"device_datetime":"2024-05-25 09:54:00","timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'MyElectricity5;56914504;308.82;null;0.227;null;243.6;246.2;228.9;308.82;0;0;0.227;0;0;1111-11-11 11:11.11'
 }
 test {
-    args     = 'has79 apator162 04960212 NOKEY'
-    telegram = 5E4401061202960405077A790050852F2F0F78A599983B0200435000805771165771160103000010653A00007919321E0000620000006200000000000000000000000000000000000000000000000000000000000000A0422C6004FFFF2FBF
-    json     = '{"_":"telegram","media":"water","meter":"apator162","name":"has79","id":"04960212","total_m3":14.949,"timestamp":"1111-11-11T11:11:11Z"}'
-    fields   = 'has79;04960212;14.949;1111-11-11 11:11.11'
+    args     = 'MyElectricity4 amiplus 00320787 NOKEY'
+    telegram = 3e44b6108707320001027a380030052f2f0C7830253390066D6872141239400E031891690000000E833C9265010000000B2B2602000BAB3C0000002F2F2F2F
+    json     = '{"_":"telegram","current_power_consumption_kw": 0.226,"current_power_production_kw": 0,"device_datetime": "2024-09-18 20:50:40","id": "00320787","media": "electricity","meter": "amiplus","name": "MyElectricity4","timestamp": "1111-11-11T11:11:11Z","total_energy_consumption_kwh": 699.118,"total_energy_production_kwh": 16.592}'
+    fields   = 'MyElectricity4;00320787;699.118;0.226;16.592;0;null;null;null;null;null;null;null;null;null;1111-11-11 11:11.11'
 }
 test {
-    args     = 'has80 apator162 04040404 NOKEY'
-    telegram = 704401060404040405077A0E0060852F2F_0F766DFB96010000430600808F67DB8F67DB01010000102F1F01007B01000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000A05F5C1804FFFFFFFFFFFFFFFFFFFF26BCD649
-    json     = '{"_":"telegram","media":"water","meter":"apator162","name":"has80","id":"04040404","total_m3":73.519,"timestamp":"1111-11-11T11:11:11Z"}'
-    fields   = 'has80;04040404;73.519;1111-11-11 11:11.11'
+    args     = 'MyElectricity4 amiplus 55090884 NOKEY'
+    comment  = 'amiplus/apator electricity meter with single phase voltage - Otus 1'
+    telegram = 7E4401068408095501027A7C1070052F2F_066DDE5E150D39800C78840809550AFDC9FC0139028E30833C0000000000008E20833C0000000000008E10833C4301000000000BABC8FC100000008E10035336420200008E20030000000000008E30030000000000000B2B9502000BAB3C0000002F2F2F2F2F2F2F2F2F2F2F2F2F
+    json     = '{"_":"telegram","media":"electricity","meter":"amiplus","name":"MyElectricity4","id":"55090884","current_power_consumption_kw":0.295,"current_power_production_kw":0,"total_energy_consumption_tariff_1_kwh":2423.653,"total_energy_consumption_tariff_2_kwh":0,"total_energy_consumption_tariff_3_kwh":0,"total_energy_production_tariff_1_kwh":0.143,"total_energy_production_tariff_2_kwh":0,"total_energy_production_tariff_3_kwh":0,"voltage_at_phase_1_v":239,"device_datetime":"2024-09-13 21:30:30","timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'MyElectricity4;55090884;null;0.295;null;0;239;null;null;2423.653;0;0;0.143;0;0;1111-11-11 11:11.11'
 }
 test {
-    args     = 'NewAndOld apator162 00148686 NOKEY'
-    telegram = 4E4401068686140005077A350040852F2F_0F005B599600000010AA66000041545A42850BD800437D037301C5500000564B00009E4600006A410000A01778EC03FFFFFFFFFFFFFFFFFFFFFFFFFFE393
-    json     = '{"_":"telegram","media":"water","meter":"apator162","name":"NewAndOld","id":"00148686","total_m3":26.282,"timestamp":"1111-11-11T11:11:11Z"}'
-    fields   = 'NewAndOld;00148686;26.282;1111-11-11 11:11.11'
+    args     = 'MyElectricity3 amiplus 86064864 NOKEY'
+    comment  = 'amiplus/apator electricity meter with three phase voltages and 2 tariffs.'
+    telegram = 804401066448068602027A000070052F2F_066D1E5C11DA21400C78644806868E10036110012500008E20038106531800008E10833C9949000000008E20833C8606000000001B2B5228020B2B3217000BAB3C0000000AFDC9FC0131020AFDC9FC0225020AFDC9FC0331020BABC8FC100000002F2F2F2F2F2F2F2F2F2F2F2F2FDE47
+    json     = '{"_":"telegram","media":"electricity","meter":"amiplus","name":"MyElectricity3","id":"86064864","current_power_consumption_kw":1.732,"current_power_production_kw":0,"voltage_at_phase_1_v":231,"voltage_at_phase_2_v":225,"voltage_at_phase_3_v":231,"device_datetime":"2022-01-26 17:28:30","total_energy_consumption_tariff_1_kwh":25011.061,"total_energy_consumption_tariff_2_kwh":18530.681,"total_energy_production_tariff_1_kwh":4.999,"total_energy_production_tariff_2_kwh":0.686,"max_power_consumption_kw":22.852,"timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'MyElectricity3;86064864;null;1.732;null;0;231;225;231;25011.061;18530.681;null;4.999;0.686;null;1111-11-11 11:11.11'
 }
 test {
-    args     = 'NewAndOld apator162 00148686 NOKEY'
-    comment  = 'New apator162 telegram which can be decoded.'
-    telegram = 4E4401068686140005077A350040852F2F_0F005B599600000010AA55000041545A42850BD800437D037301C5500000564B00009E4600006A410000A01778EC03FFFFFFFFFFFFFFFFFFFFFFFFFFE393
-    json     = '{"_":"telegram","media":"water","meter":"apator162","name":"NewAndOld","id":"00148686","total_m3":21.93,"timestamp":"1111-11-11T11:11:11Z"}'
-    fields   = 'NewAndOld;00148686;21.93;1111-11-11 11:11.11'
+    args     = 'MyElectricity2 amiplus 00254358 NOKEY'
+    comment  = 'amiplus/apator electricity meter with three phase voltages'
+    telegram = 5E44B6105843250000027A2A005005_2F2F0C7835221400066D404708AC2A400E032022650900000E833C0000000000001B2B9647000B2B5510000BAB3C0000000AFDC9FC0135020AFDC9FC0245020AFDC9FC0339020BABC8FC100000002F2F
+    json     = '{"_":"telegram","media":"electricity","meter":"amiplus","name":"MyElectricity2","id":"00254358","total_energy_consumption_kwh":9652.22,"current_power_consumption_kw":1.055,"total_energy_production_kwh":0,"current_power_production_kw":0,"voltage_at_phase_1_v":235,"voltage_at_phase_2_v":245,"voltage_at_phase_3_v":239,"max_power_consumption_kw":4.796,"device_datetime":"2021-10-12 08:07:00","timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'MyElectricity2;00254358;9652.22;1.055;0;0;235;245;239;null;null;null;null;null;null;1111-11-11 11:11.11'
 }
 test {
-    args     = 'MyTapWaterg apator162 27202020 NOKEY'
-    telegram = 6E4401062020202705077A3D0060852F2F|0F|151794|94|0A0200|43|0403|81|D87F57D87F5701010000|10|783E0000|7B01223C00009137000098320000392D000010290000F02600004C2400003422000004220000CB21000017200000C51C0000|A0|9AD9A103|FFFFFFFFFFFFFFFFFFFF367E
-    json     = '{"_":"telegram","media":"water","meter":"apator162","name":"MyTapWaterg","id":"27202020","total_m3":15.992,"timestamp":"1111-11-11T11:11:11Z"}'
-    fields   = 'MyTapWaterg;27202020;15.992;1111-11-11 11:11.11'
-}
-test {
-    args     = 'MyTapWaterf apator162 03410514 NOKEY'
-    telegram = 3E4401061405410305077A190030852F2F|0F|86B4B8|95|290200|40|C6C1|B4|F0F3F3|41|5559|42|FA701000|F0|01010000|10|BC780000|FFFFFFFFFFFFFFFFFFFFFF2483
-    json     = '{"_":"telegram","media":"water","meter":"apator162","name":"MyTapWaterf","id":"03410514","total_m3":30.908,"timestamp":"1111-11-11T11:11:11Z"}'
-    fields   = 'MyTapWaterf;03410514;30.908;1111-11-11 11:11.11'
-}
-test {
-    args     = 'MyTapWatere apator162 26202020 NOKEY'
-    telegram = 6E4401062020202605077AAE0060852F2F|0F|0F4442|94|1A0000|43|B502|81|D87F57D87F5701010000|10|AB440000|7B|012C440000BE3E00008838000072340000493000009B2C00001D2C0000822B00007428000010250000B7200000261C0000|A0|A4D9A103|FFFFFFFFFFFFFFFFFFFF5F22
-    json     = '{"_":"telegram","media":"water","meter":"apator162","name":"MyTapWatere","id":"26202020","total_m3":17.579,"timestamp":"1111-11-11T11:11:11Z"}'
-    fields   = 'MyTapWatere;26202020;17.579;1111-11-11 11:11.11'
-}
-test {
-    args     = 'MyTapWatere apator162 26202020 NOKEY'
-    telegram = 6E4401062020202605077AAD0060852F2F|0F|0E4442|94|1A0000|43|B502|84|4265594C655901010000|10|AB440000|7B|012C440000BE3E00008838000072340000493000009B2C00001D2C0000822B00007428000010250000B7200000261C0000|A0|A4D9A103|FFFFFFFFFFFFFFFFFFFF6C1B
-    json     = '{"_":"telegram","media":"water","meter":"apator162","name":"MyTapWatere","id":"26202020","total_m3":17.579,"timestamp":"1111-11-11T11:11:11Z"}'
-    fields   = 'MyTapWatere;26202020;17.579;1111-11-11 11:11.11'
-}
-test {
-    args     = 'MyTapWatere apator162 26202020 NOKEY'
-    telegram = 6E4401062020202605077AAC0060852F2F|0F|0C4442|94|1A0000|43|B502|83|000A549B4159029C290F|10|AB440000|7B|012C440000BE3E00008838000072340000493000009B2C00001D2C0000822B00007428000010250000B7200000261C0000|A0|A4D9A103|FFFFFFFFFFFFFFFFFFFF7823
-    json     = '{"_":"telegram","media":"water","meter":"apator162","name":"MyTapWatere","id":"26202020","total_m3":17.579,"timestamp":"1111-11-11T11:11:11Z"}'
-    fields   = 'MyTapWatere;26202020;17.579;1111-11-11 11:11.11'
-}
-test {
-    args     = 'MyTapWatere apator162 25202020 NOKEY'
-    telegram = 4E4401062020202505077AEF0040852F2F|0F|071122|94|100200|43|6103|84|8B745953486C09100000|10|81920200|75|01F1800200E5640200534A02003431020080150200D9000200|A0|DC939703|FFFFA434
-    json     = '{"_":"telegram","media":"water","meter":"apator162","name":"MyTapWatere","id":"25202020","total_m3":168.577,"timestamp":"1111-11-11T11:11:11Z"}'
-    fields   = 'MyTapWatere;25202020;168.577;1111-11-11 11:11.11'
-}
-test {
-    args     = 'MyTapWaterd apator162 24202020 NOKEY'
-    telegram = 4E4401062020202405077A6C0040852F2F|0F73B3E19410000084E15381E553810101000010|FA41010041555942BF4E8A00433B027301AD380100BC2601005C180100CB0A0100A0F56C2602FFFFD0D7
-    json     = '{"_":"telegram","media":"water","meter":"apator162","name":"MyTapWaterd","id":"24202020","total_m3":82.426,"timestamp":"1111-11-11T11:11:11Z"}'
-    fields   = 'MyTapWaterd;24202020;82.426;1111-11-11 11:11.11'
-}
-test {
-    args     = 'MyTapWaterc apator162 23202020 NOKEY'
-    telegram = 4E4401062020202305077A9D004085|2F2F0F81902C9300000010|B82F010041555942BD2882004319027301BC2601005C180100CB0A0100DFF60000A0F56C2602FFFFFFFFFFFFFFFFFFFFFFFFFF5B7C
-    json     = '{"_":"telegram","media":"water","meter":"apator162","name":"MyTapWaterc","id":"23202020","total_m3":77.752,"timestamp":"1111-11-11T11:11:11Z"}'
-    fields   = 'MyTapWaterc;23202020;77.752;1111-11-11 11:11.11'
-}
-test {
-    args     = 'MyTapWaterb apator162 22202020 NOKEY'
-    telegram = 4E4401062020202205077A4B004085|2F2F0FE566B99390000087C0B24B732679FF75350010|FCFB00004155594265086A0043B4017301DFF600006AE70000BFD5000051BC0000A0F56C2602FFFF1B1B
-    json     = '{"_":"telegram","media":"water","meter":"apator162","name":"MyTapWaterb","id":"22202020","total_m3":64.508,"timestamp":"1111-11-11T11:11:11Z"}'
-    fields   = 'MyTapWaterb;22202020;64.508;1111-11-11 11:11.11'
-}
-test {
-    args     = 'Wasser5 apator162 00533603 NOKEY'
-    comment  = 'Real meter telegram with woot_7C monthly history field (regression test for github issue).'
-    telegram = 6E4401060336530005077A210060852F2F0F141F539A12000243EE0E84E3BDD9B6593A040500001082C800007C01B2C4000064C10000B3BD00000DB900000EB500009FB0000054AB0000EDA30000A39D0000BF980000E394000038900000488B0000A034CB8C04FFFFFFFFFFFFFA8A
-    json     = '{"_":"telegram","media":"water","meter":"apator162","name":"Wasser5","id":"00533603","total_m3":51.33,"timestamp":"1111-11-11T11:11:11Z"}'
-    fields   = 'Wasser5;00533603;51.33;1111-11-11 11:11.11'
-}
-test {
-    args     = 'MyTapWatera apator162 21202020 NOKEY'
-    telegram = 4E4401062020202105077A130040852F2F0F6D4C389300020043840210351F040075012C0B040048D603003E630300CD2C03001EF402000ACE0200A098A39603FFFFFFFFFFFFFFFFFFFFFFFFFF1977
-    json     = '{"_":"telegram","media":"water","meter":"apator162","name":"MyTapWatera","id":"21202020","total_m3":270.133,"timestamp":"1111-11-11T11:11:11Z"}'
-    fields   = 'MyTapWatera;21202020;270.133;1111-11-11 11:11.11'
-}
-test {
-    args     = 'W3 apator162 02035240 NOKEY'
-    comment  = 'Test telegram with no FF padding, last 2 bytes are checksum.'
-    telegram = 2E4401064052030205077A320020852F2F0F354DA39A00000071011ABF0D00039A0D00A01053850310CECC0D005E6D
-    json     = '{"_": "telegram","id": "02035240","media": "water","meter": "apator162","name": "W3","timestamp": "1111-11-11T11:11:11Z","total_m3": 904.398}'
-    fields   = 'W3;02035240;904.398;1111-11-11 11:11.11'
-}
-test {
-    args     = 'W2 apator162 02035240 NOKEY'
-    comment  = 'Test telegram with no FF padding, last 2 bytes are checksum.'
-    telegram = 2E4401064052030205077A2D0020852F2F0F334DA39A00000071011ABF0D00039A0D00A01053850310CECC0D008943
-    json     = '{"_": "telegram","id": "02035240","media": "water","meter": "apator162","name": "W2","timestamp": "1111-11-11T11:11:11Z","total_m3": 904.398}'
-    fields   = 'W2;02035240;904.398;1111-11-11 11:11.11'
-}
-test {
-    args     = 'Wasser apator162 20202020 NOKEY'
-    telegram = 6E4401062020202005077A9A006085|2F2F0F0A734393CC0000435B0183001A54E06F630291342510|030F00007B013E0B00003E0B00003E0B00003E0B00003E0B00003E0B00003E0B0000650000003D0000003D0000003D00000000000000A0910CB003FFFFFFFFFFFFFFFFFFFFA62B
-    json     = '{"_":"telegram","media":"water","meter":"apator162","name":"Wasser","id":"20202020","total_m3":3.843,"timestamp":"1111-11-11T11:11:11Z"}'
-    fields   = 'Wasser;20202020;3.843;1111-11-11 11:11.11'
+    args     = 'MyElectricity1 amiplus 10101010 NOKEY'
+    telegram = 4E4401061010101002027A00004005_2F2F0E035040691500000B2B300300066D00790C7423400C78371204860BABC8FC100000000E833C8074000000000BAB3C0000000AFDC9FC0136022F2F2F2F2F
+    json     = '{"_":"telegram","media":"electricity","meter":"amiplus","name":"MyElectricity1","id":"10101010","total_energy_consumption_kwh":15694.05,"current_power_consumption_kw":0.33,"total_energy_production_kwh":7.48,"current_power_production_kw":0,"voltage_at_phase_1_v":236,"device_datetime":"2019-03-20 12:57:00","timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'MyElectricity1;10101010;15694.05;0.33;7.48;0;236;null;null;null;null;null;null;null;null;1111-11-11 11:11.11'
 }
 test {
     args     = 'AqWater aquastream 05933237 NOKEY'
@@ -143,22 +57,29 @@ test {
     fields   = 'AqWater;05933237;16.899;1111-11-11 11:11.11'
 }
 test {
+    args     = 'HCA aventieshca 60900126 NOKEY'
+    telegram = 76442104260190605508722601906021045508060060052F2F#0B6E660100426EA60082016EA600C2016E9E0082026E7E00C2026E5B0082036E4200C2036E770182046E5B01C2046E4C0182056E4701C2056E3E0182066E3B01C2066E3B0182076E3B01C2076E3B0182086E1301C2086E9C0002FD170000
+    json     = '{"_":"telegram","media":"heat cost allocation","meter":"aventieshca","name":"HCA","id":"60900126","status":"OK","current_consumption_hca":166,"consumption_at_set_date_hca":166,"consumption_at_set_date_2_hca":166,"consumption_at_set_date_3_hca":158,"consumption_at_set_date_4_hca":126,"consumption_at_set_date_5_hca":91,"consumption_at_set_date_6_hca":66,"consumption_at_set_date_7_hca":375,"consumption_at_set_date_8_hca":347,"consumption_at_set_date_9_hca":332,"consumption_at_set_date_10_hca":327,"consumption_at_set_date_11_hca":318,"consumption_at_set_date_12_hca":315,"consumption_at_set_date_13_hca":315,"consumption_at_set_date_14_hca":315,"consumption_at_set_date_15_hca":315,"consumption_at_set_date_16_hca":275,"consumption_at_set_date_17_hca":156,"error_flags":"","timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'HCA;60900126;166;;1111-11-11 11:11.11'
+}
+test {
     args     = 'HeatCool c5isf 32022703 NOKEY'
     telegram = 8E44496A03270232880D7AED0080052F2F0406050200008410069A1700000413BC6F2E00840406E701000082046C2131841406C20B000082146C2131043B00000000042D0000000002595D09025D240802FD17000084800106050200008280016C213C948001AE2501000000849001069A1700008290016C213C849001AE25000000002F2F2F2F2F2F2F2F2F2F2F2F
-    json     = '{"_":"telegram","media":"heat/cooling load","meter":"c5isf","name":"HeatCool","id":"32022703","due_date":"2025-01-01","due_energy_consumption_kwh":487,"flow_temperature_c":23.97,"max_power_last_month_kw":1,"power_kw":0,"prev_1_month_kwh":517,"prev_1_month_date":"2025-12-01","return_temperature_c":20.84,"total_cooling_consumption_kwh":6042,"total_energy_consumption_kwh":517,"total_energy_consumption_last_month_kwh":517,"total_volume_m3":3043.26,"volume_flow_m3h":0,"status":"OK","timestamp":"1111-11-11T11:11:11Z"}'
+    json     = '{"_": "telegram","due_date": "2025-01-01","due_energy_consumption_kwh": 487,"flow_temperature_c": 23.97,"id": "32022703","max_power_last_month_kw": 1,"media": "heat/cooling load","meter": "c5isf","name": "HeatCool","power_kw": 0,"prev_1_month": "2025-12-01","prev_1_month_kwh": 517,"return_temperature_c": 20.84,"status": "OK","timestamp": "1111-11-11T11:11:11Z","total_cooling_consumption_kwh": 6042,"total_energy_consumption_kwh": 517,"total_energy_consumption_last_month_kwh": 517,"total_volume_m3": 3043.26,"volume_flow_m3h": 0}'
     fields   = 'HeatCool;32022703;517;3043.26;OK;1111-11-11 11:11.11'
 }
 test {
     args     = 'Heat c5isf 32002044 NOKEY'
+    comment  = 'Test telegram with max_power_last_month_kwh which is non-zero'
     telegram = 5E44496A4420003288047AFC0050052F2F_0406D00E00000413B28A05008404060000000082046CC121043B00000000042D000000000259E719025D051402FD17000084800106C00C00008280016CC125948001AE25090000002F2F2F2F2F2F
-    json     = '{"_":"telegram","media":"heat","meter":"c5isf","name":"Heat","id":"32002044","due_date":"2022-01-01","due_energy_consumption_kwh":0,"flow_temperature_c":66.31,"max_power_last_month_kw":9,"power_kw":0,"prev_1_month_kwh":3264,"prev_1_month_date":"2022-05-01","return_temperature_c":51.25,"total_energy_consumption_kwh":3792,"total_energy_consumption_last_month_kwh":3264,"total_volume_m3":363.186,"volume_flow_m3h":0,"status":"OK","timestamp":"1111-11-11T11:11:11Z"}'
+    json     = '{"_":"telegram","media":"heat","meter":"c5isf","name":"Heat","id":"32002044","total_energy_consumption_kwh":3792,"total_volume_m3":363.186,"status":"OK","prev_1_month":"2022-05-01","prev_1_month_kwh":3264,"due_energy_consumption_kwh":0,"due_date":"2022-01-01","volume_flow_m3h":0,"power_kw":0,"total_energy_consumption_last_month_kwh":3264,"max_power_last_month_kw":9,"flow_temperature_c":66.31,"return_temperature_c":51.25,"timestamp":"1111-11-11T11:11:11Z"}'
     fields   = 'Heat;32002044;3792;363.186;OK;1111-11-11 11:11.11'
 }
 test {
     args     = 'Heat c5isf 55445555 NOKEY'
     telegram = E544496A55554455880D7A320200002F2F_04060000000004130000000002FD17240084800106000000008280016C2124C480010600000080C280016CFFFF84810106000000808281016CFFFFC481010600000080C281016CFFFF84820106000000808282016CFFFFC482010600000080C282016CFFFF84830106000000808283016CFFFFC483010600000080C283016CFFFF84840106000000808284016CFFFFC484010600000080C284016CFFFF84850106000000808285016CFFFFC485010600000080C285016CFFFF84860106000000808286016CFFFFC486010600000080C286016CFFFF
-    json     = '{"_":"telegram","media":"heat/cooling load","meter":"c5isf","name":"Heat","id":"55445555","prev_10_month_kwh":-2147483648,"prev_10_month_date":"2128-03-31","prev_11_month_kwh":-2147483648,"prev_11_month_date":"2128-03-31","prev_12_month_kwh":-2147483648,"prev_12_month_date":"2128-03-31","prev_13_month_kwh":-2147483648,"prev_13_month_date":"2128-03-31","prev_14_month_kwh":-2147483648,"prev_14_month_date":"2128-03-31","prev_1_month_kwh":0,"prev_1_month_date":"2017-04-01","prev_2_month_kwh":-2147483648,"prev_2_month_date":"2128-03-31","prev_3_month_kwh":-2147483648,"prev_3_month_date":"2128-03-31","prev_4_month_kwh":-2147483648,"prev_4_month_date":"2128-03-31","prev_5_month_kwh":-2147483648,"prev_5_month_date":"2128-03-31","prev_6_month_kwh":-2147483648,"prev_6_month_date":"2128-03-31","prev_7_month_kwh":-2147483648,"prev_7_month_date":"2128-03-31","prev_8_month_kwh":-2147483648,"prev_8_month_date":"2128-03-31","prev_9_month_kwh":-2147483648,"prev_9_month_date":"2128-03-31","total_energy_consumption_kwh":0,"total_energy_consumption_last_month_kwh":0,"total_volume_m3":0,"status":"DRY ERROR RETURN_SENSOR_INTERRUPTED","timestamp":"1111-11-11T11:11:11Z"}'
-    fields   = 'Heat;55445555;0;0;DRY ERROR RETURN_SENSOR_INTERRUPTED;1111-11-11 11:11.11'
+    json     = '{"_":"telegram","media":"heat/cooling load","meter":"c5isf","name":"Heat","id":"55445555","total_energy_consumption_kwh":0,"total_volume_m3":0,"status":"ERROR REVERSE_FLOW SUPPLY_SENSOR_INTERRUPTED","prev_1_month":"2017-04-01","prev_2_month":"2127-15-31","prev_3_month":"2127-15-31","prev_4_month":"2127-15-31","prev_5_month":"2127-15-31","prev_6_month":"2127-15-31","prev_7_month":"2127-15-31","prev_8_month":"2127-15-31","prev_9_month":"2127-15-31","prev_10_month":"2127-15-31","prev_11_month":"2127-15-31","prev_12_month":"2127-15-31","prev_13_month":"2127-15-31","prev_14_month":"2127-15-31","prev_1_month_kwh":0,"prev_2_month_kwh":-2147483648,"prev_3_month_kwh":-2147483648,"prev_4_month_kwh":-2147483648,"prev_5_month_kwh":-2147483648,"prev_6_month_kwh":-2147483648,"prev_7_month_kwh":-2147483648,"prev_8_month_kwh":-2147483648,"prev_9_month_kwh":-2147483648,"prev_10_month_kwh":-2147483648,"prev_11_month_kwh":-2147483648,"prev_12_month_kwh":-2147483648,"prev_13_month_kwh":-2147483648,"prev_14_month_kwh":-2147483648,"total_energy_consumption_last_month_kwh":0,"timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'Heat;55445555;0;0;ERROR REVERSE_FLOW SUPPLY_SENSOR_INTERRUPTED;1111-11-11 11:11.11'
 }
 test {
     args     = 'Caltos2 caltose 80081809 EB7CA876CAA641DAC39239326F6DD7EA'
@@ -187,20 +108,39 @@ test {
 test {
     args     = 'dwater2 dme173 44334433 NOKEY'
     telegram = 5344A5113344334463078C002A900F002C25B7640000BAD0D4FB907B9BE17AFA003107102F2F_0C131717000004FD17000000000C933C000000004C1300020000426C3F3C84046D3B375F318C0413000200002F2F
-    json     = '{"_": "telegram","id": "44334433","media": "water","meter": "dme173","name": "dwater2","set_date": "2025-12-31","status": "OK","target_datetime": "2026-01-31 23:59","target_m3": 0.2,"timestamp": "1111-11-11T11:11:11Z","total_at_set_date_m3": 0.2,"total_backward_m3": 0,"total_m3": 1.717}'
+    json     = '{"_": "telegram","id": "44334433","media": "water","meter": "dme173","name": "dwater2","set_date": "2025-12-31","status": "OK","target_datetime": "2026-01-31 23:59","target_m3": 0.2,"timestamp": "1111-11-11T11:11:11Z","total_at_set_m3": 0.2,"total_backward_m3": 0,"total_m3": 1.717}'
     fields   = 'dwater2;44334433;OK;1.717;1111-11-11 11:11.11'
 }
 test {
     args     = 'dwater dme173 22332233 NOKEY'
     telegram = 5344A5113322332263078C0085900F002C256C1601004BB24778D6AC091E7ADF003107102F2F_0C138386000004FD17000000000A5A550002FD74EE114C1300020000426C3F3C84046D3B375F318C041374460000
-    json     = '{"_": "telegram","flow_temperature_c": 5.5,"id": "22332233","media": "water","meter": "dme173","name": "dwater","set_date": "2025-12-31","status": "OK","target_datetime": "2026-01-31 23:59","target_m3": 4.674,"timestamp": "1111-11-11T11:11:11Z","total_at_set_date_m3": 0.2,"total_m3": 8.683}'
+    json     = '{"_": "telegram","flow_temperature_c": 5.5,"id": "22332233","media": "water","meter": "dme173","name": "dwater","set_date": "2025-12-31","status": "OK","target_datetime": "2026-01-31 23:59","target_m3": 4.674,"timestamp": "1111-11-11T11:11:11Z","total_at_set_m3": 0.2,"total_m3": 8.683}'
     fields   = 'dwater;22332233;OK;8.683;1111-11-11 11:11.11'
+}
+test {
+    args     = 'MyEl ebzwmbe 01135263 NOKEY'
+    comment  = 'This is eBZ DD3 meter with a wMB-E01 wmbus radio converter module.'
+    telegram = 4B445A146450000002378C20F3900F002C25F38B00006CBB07CEB215901172635213015A140102F3002007102F2F#04039D3E03000429E82201000DFD110E333632353331313031305A424531
+    json     = '{"_":"telegram","media":"electricity","meter":"ebzwmbe","name":"MyEl","id":"01135263","total_energy_consumption_kwh":212.637,"customer":"1EBZ0101135263","current_power_consumption_kw":null,"timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'MyEl;01135263;212.637;null;null;null;null;1111-11-11 11:11.11'
+}
+test {
+    args     = 'Elen1 ebzwmbe 22992299 NOKEY'
+    telegram = 5B445A149922992202378C20F6900F002C25BC9E0000BF48954821BC508D72992299225A140102F6003007102F2F040330F92A0004A9FF01FF24000004A9FF026A29000004A9FF03460600000DFD11063132333435362F2F2F2F2F2F
+    json     = '{"_":"telegram","media":"electricity","meter":"ebzwmbe","name":"Elen1","id":"22992299","total_energy_consumption_kwh":2816.304,"current_power_consumption_phase1_kw":0.09471,"current_power_consumption_phase2_kw":0.10602,"current_power_consumption_phase3_kw":0.01606,"customer":"654321","current_power_consumption_kw":0.21679,"timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'Elen1;22992299;2816.304;0.21679;0.09471;0.10602;0.01606;1111-11-11 11:11.11'
 }
 test {
     args     = 'Elen3 ehzp 55995599 NOKEY'
     telegram = 5344A8159955995502028C201D900F002C250C390000ED176BBBB1591ADB7A1D003007102F2F_0700583B74020000000007803CBCD70200000000000728B070200000000000042092A406002F2F2F2F2F2F2F2F2F
     json     = '{"_":"telegram","media":"electricity","meter":"ehzp","name":"Elen3","id":"55995599","status":"OK","on_time_h":120.929444,"total_energy_consumption_kwh":41.1718,"current_power_consumption_kw":2.126,"total_energy_production_kwh":0.1863,"timestamp":"1111-11-11T11:11:11Z"}'
     fields   = 'Elen3;55995599;41.1718;2.126;0.1863;1111-11-11 11:11.11'
+}
+test {
+    args     = 'Smokey ei6500 01097274 NOKEY'
+    telegram = 58442515747209010C1A7A8B0000000BFD0F070101046D2A06D82502FD17000082206CD825426CD0238440FF2C000F11008250FD61000082506C01018260FD6100008360FD3100000082606C01018270FD61000082706C0101
+    json     = '{"_":"telegram","media":"smoke detector","meter":"ei6500","name":"Smokey","id":"01097274","status":"OK","last_alarm_date":"2000-01-01","alarm_counter":0,"software_version":"010107","message_datetime":"2022-05-24 06:42","duration_removed_h":0,"last_remove_date":"2000-01-01","removed_counter":0,"test_button_last_date":"2000-01-01","test_button_counter":0,"installation_date":"2022-05-24","last_sound_check_date":"2022-03-16","dust_level":"DUST_0","battery_level":"3.00V","obstacle_distance":"","timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'Smokey;01097274;OK;2000-01-01;0;1111-11-11 11:11.11'
 }
 test {
     args     = 'Heato elf2 24271170 ACA5769E7902B8A770A7118C11D5F0F6'
@@ -252,6 +192,43 @@ test {
     fields   = 'ES1;80008957;21.59;null;null;3.681;OK;1111-11-11 11:11.11'
 }
 test {
+    args     = 'Elen2 em24 02020202 NOKEY'
+    telegram = 4144361C0202020200028C209A7A9A0030252F2F_04050100000004FB82750000000004FB82F53C00000000042A0000000001FD17002F2F2F2F2F2F2F2F2F2F2F2F2F
+    json     = '{"_":"telegram","error": "","id": "02020202","media": "electricity","meter": "em24","name": "Elen2","power_kw": 0,"status": "OK","timestamp": "1111-11-11T11:11:11Z","total_apparent_energy_consumption_kvah": 0.1,"total_apparent_energy_production_kvah": null,"total_energy_consumption_kwh": 0.1,"total_reactive_energy_consumption_kvarh": 0,"total_reactive_energy_production_kvarh": 0,"frequency_hz":null}'
+    fields   = 'Elen2;02020202;0.1;null;0;0;0.1;null;1111-11-11 11:11.11'
+}
+test {
+    args     = 'Elen em24 66666666 NOKEY'
+    telegram = 35442D2C6666666633028D2070806A0520B4D378_0405F208000004FB82753F00000004853C0000000004FB82F53CCA01000001FD1722
+    json     = '{"_":"telegram","media":"electricity","meter":"em24","name":"Elen","id":"66666666","status":"I_3_OVERFLOW V_2_OVERFLOW","error":"I_3_OVERFLOW V_2_OVERFLOW","total_energy_consumption_kwh":229,"total_energy_production_kwh":0,"total_reactive_energy_consumption_kvarh":63,"total_reactive_energy_production_kvarh":458,"total_apparent_energy_consumption_kvah":237.507895,"total_apparent_energy_production_kvah":458,"frequency_hz":null,"timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'Elen;66666666;229;0;63;458;237.507895;458;1111-11-11 11:11.11'
+}
+test {
+    args     = 'Vodda emerlin868 95949392 NOKEY'
+    telegram = 2E4492159293949511377ABE0020252F2F_04135515000004FD971D80800000441300000000426C000002FDFD02B300
+    json     = '{"_":"telegram","media":"radio converter (meter side)","meter":"emerlin868","name":"Vodda","id":"95949392","total_m3":5.461,"target_m3":0,"target_date":"2000-00-00","timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'Vodda;95949392;5.461;0;1111-11-11 11:11.11'
+}
+test {
+    args     = 'Heat enercal 00309924 NOKEY'
+    telegram = 688e8e6808017224993000e61e080406000000040681460600041488f2350084401426e02600025B2600025f220002622a00042247880200042647880200043B00000000042c00000000046d2d0ede2784406e000000008480406e00000000c4800006B1450600c48000143Be43500c4c000142fd22600c4c0006e00000000c480406e00000000c280006cc1271f00000000f416
+    json     = '{"_":"telegram","media":"heat","meter":"enercal","name":"Heat","id":"00309924","status":"OK","total_kwh":411265,"target_kwh":411057,"power_kw":0,"flow_m3h":0,"forward_c":38,"return_c":34,"difference_c":4.2,"total_m3":35354.96,"target_m3":35318.35,"subunit1_m3":25477.5,"subunit1_target_m3":25441.75,"subunit1_hca":0,"subunit1_target_hca":0,"subunit2_hca":0,"subunit2_target_hca":0,"target_date":"2022-07-01","operating_time_h":165959,"on_time_h":165959,"meter_datetime":"2022-07-30 14:45","timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'Heat;00309924;OK;411265;411057;35354.96;35318.35;1111-11-11 11:11.11'
+}
+test {
+    args     = 'Wasserzaehler engelmann-faw 43000255 NOKEY'
+    telegram = 8f44c5145502004301077260402520c51400076b0000002f2f426cbf2c441322e9000001fd17008401133c340100c40113ae2d010084021303290100c402137e21010084031313180100c403138a0e010084041337060100c40413b2fc00008405139af30000c4051322e90000840613c1df0000c40613cdd5000084071365ce0000c407136dc500008408138dbf0000
+    json     = '{"_":"telegram","media":"water","meter":"engelmann-faw","name":"Wasserzaehler","id":"20254060","status":"OK","reporting_date":"2021-12-31","consumption_at_reporting_date_m3":59.682,"consumption_1_months_ago_m3":78.908,"consumption_2_months_ago_m3":77.23,"consumption_3_months_ago_m3":76.035,"consumption_4_months_ago_m3":74.11,"consumption_5_months_ago_m3":71.699,"consumption_6_months_ago_m3":69.258,"consumption_7_months_ago_m3":67.127,"consumption_8_months_ago_m3":64.69,"consumption_9_months_ago_m3":62.362,"consumption_10_months_ago_m3":59.682,"consumption_11_months_ago_m3":57.281,"consumption_12_months_ago_m3":54.733,"consumption_13_months_ago_m3":52.837,"consumption_14_months_ago_m3":50.541,"consumption_15_months_ago_m3":49.037,"timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'Wasserzaehler;20254060;OK;2021-12-31;59.682;1111-11-11 11:11.11'
+}
+test {
+    args     = 'Elen2 esyswm 77997799 NOKEY'
+    comment  = 'Static telegram'
+    telegram = 7B4479169977997730378C208B900F002C25E4EF0A002EA98E7D58B3ADC57299779977991611028B005087102F2F#0DFD090F34302e3030562030303030303030300D790E31323334353637383839595345310DFD100AAAAAAAAAAAAAAAAAAAAA0D780E31323334353637383930594553312F2F2F2F2F2F2F2F2F2F2F
+    json     = '{"_":"telegram","media":"electricity","meter":"esyswm","name":"Elen2","id":"77997799","fabrication_no":"1SEY0987654321","enhanced_id":"1ESY9887654321","location":"AAAAAAAAAAAAAAAAAAAA","location_hex":"AAAAAAAAAAAAAAAAAAAA","version":"00000000 V00.04","timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'Elen2;77997799;null;null;null;null;null;null;null;null;1ESY9887654321;1111-11-11 11:11.11'
+}
+test {
     args     = 'HeatMeter2 eurisii 60200770 NOKEY'
     telegram = 76442D4870072060550872700720602D485508280060052F2F_0B6E320100426E550082016E3500C2016E1F0082026E1F00C2026E130082036E1300C2036E130082046E1300C2046E120082056E7D01C2056E440182066E0601C2066EB80082076E7F00C2076E320082086E1C00C2086E1C0002FD170000
     json     = '{"_":"telegram","media":"heat cost allocation","meter":"eurisii","name":"HeatMeter2","id":"60200770","status":"OK","error_flags":"OK","current_consumption_hca":132,"consumption_at_set_date_4_hca":31,"consumption_at_set_date_5_hca":19,"consumption_at_set_date_6_hca":19,"consumption_at_set_date_2_hca":53,"consumption_at_set_date_14_hca":127,"consumption_at_set_date_8_hca":19,"consumption_at_set_date_1_hca":85,"consumption_at_set_date_10_hca":381,"consumption_at_set_date_17_hca":28,"consumption_at_set_date_13_hca":184,"consumption_at_set_date_11_hca":324,"consumption_at_set_date_3_hca":31,"consumption_at_set_date_9_hca":18,"consumption_at_set_date_15_hca":50,"consumption_at_set_date_16_hca":28,"consumption_at_set_date_7_hca":19,"consumption_at_set_date_12_hca":262,"consumption_at_set_date_hca":85,"timestamp":"1111-11-11T11:11:11Z"}'
@@ -270,27 +247,61 @@ test {
     fields   = 'Voda;99993030;49.5849;45.7555;1111-11-11 11:11.11'
 }
 test {
+    args     = 'Wasser evo868 21031894 NOKEY'
+    comment  = 'Test Maddalena EVO 868 wmbus module on water meter'
+    telegram = AC4424349418032150167A39000020_2F2F041356850000046D0A340B3C04FD17000000000E786858000000004413D0620000426CFF2C8401137A83000082016C1E3BD3013BCF0200C4016D09210E338104FD280182046C1E3B8404137A830000C40413BE7E00008405131A7B0000C405136B7600008406132A700000C40613ED6A00008407130F690000C40713536800008408136E670000C40813EE65000084091330640000C40913D0620000
+    json     = '{"_":"telegram","media":"cold water","meter":"evo868","name":"Wasser","id":"21031894","consumption_at_history_1_m3":33.658,"consumption_at_history_10_m3":26.094,"consumption_at_history_11_m3":25.648,"consumption_at_history_12_m3":25.296,"consumption_at_history_2_m3":32.446,"consumption_at_history_3_m3":31.514,"consumption_at_history_4_m3":30.315,"consumption_at_history_5_m3":28.714,"consumption_at_history_6_m3":27.373,"consumption_at_history_7_m3":26.895,"consumption_at_history_8_m3":26.707,"consumption_at_history_9_m3":26.478,"consumption_at_set_date_m3":25.296,"consumption_at_set_date_2_m3":33.658,"history_1_date":"2024-11-30","history_10_date":"2024-02-29","history_11_date":"2024-01-31","history_12_date":"2023-12-31","history_2_date":"2024-10-31","history_3_date":"2024-09-30","history_4_date":"2024-08-31","history_5_date":"2024-07-31","history_6_date":"2024-06-30","history_7_date":"2024-05-31","history_8_date":"2024-04-30","history_9_date":"2024-03-31","history_reference_date":"2024-11-30","max_flow_since_datetime_m3h":0.719,"total_m3":34.134,"current_status":"OK","device_datetime":"2024-12-11 20:10","fabrication_no":"000000005868","max_flow_datetime":"2024-03-14 01:09","set_date":"2023-12-31","set_date_2":"2024-11-30","timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'Wasser;21031894;34.134;OK;25.296;2023-12-31;1111-11-11 11:11.11'
+}
+test {
+    args     = 'Votchka evo868 79787776 NOKEY'
+    comment  = 'Test Maddalena EVO 868 wmbus module on water meter'
+    telegram = aa4424347677787950077ac10000202f2f041306070000046d1e31b12104fd17000000000e787880048120004413c9040000426c9f2c840113c904000082016c9f2cd3013b9a0200c4016d0534a7218104fd280182046c9f2c840413c9040000c404131b00000084051300000000c405130000000084061300000000c406130000000084071300000000c407130000000084081300000000c408130000000084091300000000c4091300000000ffff
+    json     = '{"_":"telegram","media":"water","meter":"evo868","name":"Votchka","id":"79787776","total_m3":1.798,"device_datetime":"2021-01-17 17:30","current_status":"OK","fabrication_no":"002081048078","consumption_at_set_date_m3":1.225,"set_date":"2020-12-31","consumption_at_set_date_2_m3":1.225,"set_date_2":"2020-12-31","max_flow_since_datetime_m3h":0.666,"max_flow_datetime":"2021-01-07 20:05","history_reference_date":"2020-12-31","consumption_at_history_1_m3":1.225,"history_1_date":"2020-12-31","consumption_at_history_2_m3":0.027,"history_2_date":"2020-11-30","consumption_at_history_3_m3":0,"history_3_date":"2020-10-31","consumption_at_history_4_m3":0,"history_4_date":"2020-09-30","consumption_at_history_5_m3":0,"history_5_date":"2020-08-31","consumption_at_history_6_m3":0,"history_6_date":"2020-07-31","consumption_at_history_7_m3":0,"history_7_date":"2020-06-30","consumption_at_history_8_m3":0,"history_8_date":"2020-05-31","consumption_at_history_9_m3":0,"history_9_date":"2020-04-30","consumption_at_history_10_m3":0,"history_10_date":"2020-03-31","consumption_at_history_11_m3":0,"history_11_date":"2020-02-29","consumption_at_history_12_m3":0,"history_12_date":"2020-01-31","timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'Votchka;79787776;1.798;OK;1.225;2020-12-31;1111-11-11 11:11.11'
+}
+test {
+    args     = 'Rooom fhkvdataiv 14542076 FCF41938F63432975B52505F547FCEDF'
+    telegram = 4E4468507620541494087AAD004005089D86B62A329B3439873999738F82461ABDE3C7AC78692B363F3B41EB68607F9C9160F550769B065B6EA00A2E44346E29FF5DC5CB86283C69324AD33D137F6F
+    json     = '{"_":"telegram","media":"heat cost allocation","meter":"fhkvdataiv","name":"Rooom","id":"14542076","status":"OK","current_consumption_hca":2,"set_date":"2020-12-31","consumption_at_set_date_hca":25,"set_date_1":"2020-12-31","consumption_at_set_date_1_hca":25,"set_date_8":"2019-10-31","consumption_at_set_date_8_hca":0,"timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'Rooom;14542076;2;2020-12-31;25;1111-11-11 11:11.11'
+}
+test {
     args     = 'fio fiowater 25016914 NOKEY'
     telegram = 43442F191469012501078C2075900F002C257C690300FDD9AE90F019F1C07A47102007102F2F_0C1322921500046D3A2A3A390F60011907052F2F2F2F2F2F2F2F2F2F2F2F
     json     = '{"_":"telegram","media":"water","status":"TEMPORARY_ERROR","meter":"fiowater","name":"fio","id":"25016914","meter_datetime":"2025-09-26 10:58","total_m3":159.222,"timestamp":"1111-11-11T11:11:11Z"}'
     fields   = 'fio;25016914;TEMPORARY_ERROR;159.222;1111-11-11 11:11.11'
 }
 test {
+    args     = 'Gran301 gransystems 20100117 NOKEY'
+    comment  = 'Gran-System-S electricity meter 301'
+    telegram = 9e44731e17011020010278046d0813bc21040300000000841003000000008420030000000084300300000000848010030000000084016d0000bc218401030000000084110300000000842103000000008431030000000084811003000000008440fd4825090000848040fd480000000084c040fd48000000008440fd5b00000000848040fd5b0000000084c040fd5b0000000002fb2d881304fd1702000101
+    json     = '{"_":"telegram","media":"electricity","meter":"gransystems","name":"Gran301","id":"20100117","status":"RTC_ERROR","info":"THREE_PHASE_METER","total_energy_consumption_kwh":0,"total_energy_consumption_tariff_2_kwh":0,"total_energy_consumption_tariff_3_kwh":0,"total_energy_consumption_tariff_4_kwh":0,"total_energy_consumption_tariff_1_kwh":0,"target_datetime":"2021-01-28 00:00","target_energy_consumption_kwh":0,"target_energy_consumption_tariff_1_kwh":0,"target_energy_consumption_tariff_2_kwh":0,"target_energy_consumption_tariff_4_kwh":0,"target_energy_consumption_tariff_3_kwh":0,"device_datetime":"2021-01-28 19:08","voltage_at_phase_2_v":0,"voltage_at_phase_3_v":0,"voltage_at_phase_1_v":234.1,"current_at_phase_1_a":0,"current_at_phase_2_a":0,"current_at_phase_3_a":0,"frequency_hz":50,"timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'Gran301;20100117;0;1111-11-11 11:11.11'
+}
+test {
+    args     = 'Gran101 gransystems 18046178 NOKEY'
+    comment  = 'Gran-System-S electricity meter 101'
+    telegram = 7844731e78610418010278046d0f13bc21040394030000841003690300008420032b00000084300300000000848010030000000084016d0000bc2184010394030000841103690300008421032b00000084310300000000848110030000000004fd482e09000004fd5b0000000002fb2d861304fd1700000201
+    json     = '{"_":"telegram","media":"electricity","meter":"gransystems","name":"Gran101","id":"18046178","status":"OK","info":"SINGLE_PHASE_METER","total_energy_consumption_kwh":0.916,"total_energy_consumption_tariff_4_kwh":0,"total_energy_consumption_tariff_2_kwh":0.043,"total_energy_consumption_tariff_3_kwh":0,"total_energy_consumption_tariff_1_kwh":0.873,"target_datetime":"2021-01-28 00:00","target_energy_consumption_kwh":0.916,"target_energy_consumption_tariff_2_kwh":0.043,"target_energy_consumption_tariff_4_kwh":0,"target_energy_consumption_tariff_3_kwh":0,"target_energy_consumption_tariff_1_kwh":0.873,"device_datetime":"2021-01-28 19:15","voltage_at_phase_1_v":235,"current_at_phase_1_a":0,"frequency_hz":49.98,"timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'Gran101;18046178;0.916;1111-11-11 11:11.11'
+}
+test {
     args     = 'HeatMeter2 hcae2 60200770 NOKEY'
     telegram = 76442D4870072060550872700720602D485508280060052F2F_0B6E320100426E550082016E3500C2016E1F0082026E1F00C2026E130082036E1300C2036E130082046E1300C2046E120082056E7D01C2056E440182066E0601C2066EB80082076E7F00C2076E320082086E1C00C2086E1C0002FD170000
-    json     = '{"_":"telegram","media":"heat cost allocation","meter":"hcae2","name":"HeatMeter2","id":"60200770","status":"OK","current_consumption_hca":132,"consumption_at_set_date_1_hca":85,"consumption_at_set_date_2_hca":53,"consumption_at_set_date_3_hca":31,"consumption_at_set_date_4_hca":31,"consumption_at_set_date_5_hca":19,"consumption_at_set_date_6_hca":19,"consumption_at_set_date_7_hca":19,"consumption_at_set_date_8_hca":19,"consumption_at_set_date_9_hca":18,"consumption_at_set_date_10_hca":381,"consumption_at_set_date_11_hca":324,"consumption_at_set_date_12_hca":262,"consumption_at_set_date_13_hca":184,"consumption_at_set_date_14_hca":127,"consumption_at_set_date_15_hca":50,"consumption_at_set_date_16_hca":28,"consumption_at_set_date_17_hca":28,"consumption_at_set_date_hca":85,"timestamp":"1111-11-11T11:11:11Z"}'
+    json     = '{"_":"telegram","media":"heat cost allocation","meter":"hcae2","name":"HeatMeter2","id":"60200770","status":"OK","current_consumption_hca":132,"consumption_at_set_date_4_hca":31,"consumption_at_set_date_5_hca":19,"consumption_at_set_date_6_hca":19,"consumption_at_set_date_2_hca":53,"consumption_at_set_date_14_hca":127,"consumption_at_set_date_8_hca":19,"consumption_at_set_date_1_hca":85,"consumption_at_set_date_10_hca":381,"consumption_at_set_date_17_hca":28,"consumption_at_set_date_13_hca":184,"consumption_at_set_date_11_hca":324,"consumption_at_set_date_3_hca":31,"consumption_at_set_date_9_hca":18,"consumption_at_set_date_15_hca":50,"consumption_at_set_date_16_hca":28,"consumption_at_set_date_7_hca":19,"consumption_at_set_date_12_hca":262,"consumption_at_set_date_hca":85,"timestamp":"1111-11-11T11:11:11Z"}'
     fields   = 'HeatMeter2;60200770;132;OK;1111-11-11 11:11.11'
 }
 test {
     args     = 'HeatMeter hcae2 88018801 NOKEY'
     telegram = 7644C52501880188550872_01880188C5255508010000002F2F0B6E332211426E110182016E1102C2016E110382026E1104C2026E110582036E1106C2036E110782046E1108C2046E110982056E1110C2056E111182066E1112C2066E111382076E1114C2076E111582086E1116C2086E111702FD172100
-    json     = '{"_":"telegram","media":"heat cost allocation","meter":"hcae2","name":"HeatMeter","id":"88018801","status":"MEASUREMENT RESET","current_consumption_hca":112233,"consumption_at_set_date_1_hca":273,"consumption_at_set_date_2_hca":529,"consumption_at_set_date_3_hca":785,"consumption_at_set_date_4_hca":1041,"consumption_at_set_date_5_hca":1297,"consumption_at_set_date_6_hca":1553,"consumption_at_set_date_7_hca":1809,"consumption_at_set_date_8_hca":2065,"consumption_at_set_date_9_hca":2321,"consumption_at_set_date_10_hca":4113,"consumption_at_set_date_11_hca":4369,"consumption_at_set_date_12_hca":4625,"consumption_at_set_date_13_hca":4881,"consumption_at_set_date_14_hca":5137,"consumption_at_set_date_15_hca":5393,"consumption_at_set_date_16_hca":5649,"consumption_at_set_date_17_hca":5905,"consumption_at_set_date_hca":273,"timestamp":"1111-11-11T11:11:11Z"}'
+    json     = '{"_":"telegram","media":"heat cost allocation","meter":"hcae2","name":"HeatMeter","id":"88018801","status":"MEASUREMENT RESET","current_consumption_hca":112233,"consumption_at_set_date_hca":273,"consumption_at_set_date_1_hca":273,"consumption_at_set_date_2_hca":529,"consumption_at_set_date_3_hca":785,"consumption_at_set_date_4_hca":1041,"consumption_at_set_date_5_hca":1297,"consumption_at_set_date_6_hca":1553,"consumption_at_set_date_7_hca":1809,"consumption_at_set_date_8_hca":2065,"consumption_at_set_date_9_hca":2321,"consumption_at_set_date_10_hca":4113,"consumption_at_set_date_11_hca":4369,"consumption_at_set_date_12_hca":4625,"consumption_at_set_date_13_hca":4881,"consumption_at_set_date_14_hca":5137,"consumption_at_set_date_15_hca":5393,"consumption_at_set_date_16_hca":5649,"consumption_at_set_date_17_hca":5905,"timestamp":"1111-11-11T11:11:11Z"}'
     fields   = 'HeatMeter;88018801;112233;MEASUREMENT RESET;1111-11-11 11:11.11'
 }
 test {
     args     = 'HeatCool hydrocalm3 71727374 NOKEY'
     telegram = 8E44B409747372710B0D7A798080052F2F_0C0E59600100046D1D36B9290C13679947000C0E000000000C13590000000C13000000000C13000000000A5A18020A5E11020F823D06003D06003D06003D0600140600620500480400E402001601000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000002F2F
-    json     = '{"_":"telegram","media":"heat/cooling load","meter":"hydrocalm3","name":"HeatCool","id":"71727374","status":"SABOTAGE_ENCLOSURE","total_heating_kwh":4460.833333,"total_cooling_kwh":0,"device_datetime":"2021-09-25 22:29","total_heating_m3":479.967,"total_cooling_m3":0.059,"c1_volume_m3":0,"c2_volume_m3":0,"supply_temperature_c":21.8,"return_temperature_c":21.1,"timestamp":"1111-11-11T11:11:11Z"}'
+    json     = '{"_":"telegram","media":"heat/cooling load","meter":"hydrocalm3","name":"HeatCool","id":"71727374","status": "SABOTAGE_ENCLOSURE","total_heating_kwh":4460.833333,"total_cooling_kwh":0,"device_datetime":"2021-09-25 22:29","total_heating_m3":479.967,"total_cooling_m3":0.059,"c1_volume_m3":0,"c2_volume_m3":0,"supply_temperature_c":21.8,"return_temperature_c":21.1,"timestamp":"1111-11-11T11:11:11Z"}'
     fields   = 'HeatCool;71727374;4460.833333;0;1111-11-11 11:11.11'
 }
 test {
@@ -348,6 +359,45 @@ test {
     telegram = 2e44b0099861036853087a000020002F2F036E0000000F100043106A7D2C4A078F12202CB1242A06D3062100210000
     json     = '{"_":"telegram","media":"heat cost allocation","meter":"hydroclimav2","name":"HCA","id":"68036198","average_ambient_temperature_c":18.66,"average_ambient_temperature_last_month_c":15.78,"average_heater_temperature_last_month_c":17.47,"consumption_hca":0,"max_ambient_temperature_c":47.51,"total_consumption_hca":33,"status":"OK","timestamp":"1111-11-11T11:11:11Z"}'
     fields   = 'HCA;68036198;OK;0;18.66;1111-11-11 11:11.11'
+}
+test {
+    args     = 'HydrusFoo hydrus 64641820 NOKEY'
+    comment  = 'Negative power values.'
+    telegram = 6344A5112018646470078C00D7900F002C256AB59B00F0F13032019092DE7A6A004007102F2F0C13896729004C1323462400CC101300000000CC201323462400426CDF2C0B3B0200F002FD742F0D025AC100C4016D3B17FE29CC01132841290001FD089F
+    json     = '{"_":"telegram","at_date": "2022-12-31","target_datetime": "2023-09-30 23:59","flow_m3h": -0.002,"flow_temperature_c": 19.3,"id": "64641820","media": "water","meter": "hydrus","name": "HydrusFoo","remaining_battery_life_y": 9.240436,"status": "OK","timestamp": "1111-11-11T11:11:11Z","total_at_date_m3":244.623,"target_m3": 294.128,"total_m3": 296.789,"total_tariff1_at_date_m3": 0,"total_tariff2_at_date_m3": 244.623}'
+    fields   = 'HydrusFoo;64641820;296.789;244.623;OK;1111-11-11 11:11.11'
+}
+test {
+    args     = 'HydrusIzarRSWarm hydrus 60904720 NOKEY'
+    comment  = 'Hydrus IZAR RS 868 water meter warm'
+    telegram = 1E4424238B06204790607A2A0010D8_0413DDC00000426CBF23441382BB0000
+    json     = '{"_":"telegram","media":"warm water","meter":"hydrus","name":"HydrusIzarRSWarm","id":"60904720","total_m3":49.373,"total_at_date_m3":48.002,"at_date":"2021-03-31","status":"OK","timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'HydrusIzarRSWarm;60904720;49.373;48.002;OK;1111-11-11 11:11.11'
+}
+test {
+    args     = 'HydrusIzarRS hydrus 60897379 NOKEY'
+    comment  = 'Hydrus IZAR RS 868 water meter'
+    telegram = 1E4424238B07797389607A8F00107D_041312170100426CBF23441344100100
+    json     = '{"_":"telegram","media":"water","meter":"hydrus","name":"HydrusIzarRS","id":"60897379","total_m3":71.442,"at_date": "2021-03-31","total_at_date_m3":69.7,"status":"OK","timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'HydrusIzarRS;60897379;71.442;69.7;OK;1111-11-11 11:11.11'
+}
+test {
+    args     = 'HydrusAES hydrus 64745666 NOKEY'
+    telegram = 6644242328001081640E7266567464A51170071F0050052C411A08674048DD6BA82A0DF79FFD401309179A893A1BE3CE8EDC50C2A45CD7AFEC3B4CE765820BE8056C124A17416C3722985FFFF7FCEB7094901AB3A16294B511B9A740C9F9911352B42A72FB3B0C
+    json     = '{"_":"telegram","media":"water","meter":"hydrus","name":"HydrusAES","id":"64745666","total_m3":137.291,"total_tariff1_m3":0,"total_tariff2_m3":137.291,"flow_m3h":0,"flow_temperature_c":24.5,"external_temperature_c":23.9,"total_at_date_m3":128.638,"total_tariff1_at_date_m3":0,"total_tariff2_at_date_m3":128.638,"at_date":"2020-12-31","actuality_duration_s":6673,"operating_time_h":14678,"meter_datetime": "2021-01-23 08:27","status":"OK","timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'HydrusAES;64745666;137.291;128.638;OK;1111-11-11 11:11.11'
+}
+test {
+    args     = 'HydrusVater hydrus 65656565 NOKEY'
+    telegram = 3E44A5116565656570067AFB0030052F2F_0C13503400000DFD110A383731303134423032410B3B00000002FD74DC15C4016D3B178D29CC0113313400002F2F
+    json     = '{"_":"telegram","media":"warm water","meter":"hydrus","name":"HydrusVater","id":"65656565","flow_m3h":0,"customer": "A20B410178","total_m3":3.45,"remaining_battery_life_y":15.321328,"target_datetime":"2020-09-13 23:59","target_m3": 3.431,"status":"OK","timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'HydrusVater;65656565;3.45;null;OK;1111-11-11 11:11.11'
+}
+test {
+    args     = 'HydrusWater hydrus 64646464 NOKEY'
+    telegram = 4E44A5116464646470077AED004005_2F2F01FD08300C13741100007C1300000000FC101300000000FC201300000000726C00000B3B00000002FD748713025A6800C4016D3B177F2ACC011300020000
+    json     = '{"_":"telegram","media":"water","meter":"hydrus","name":"HydrusWater","id":"64646464","total_m3":1.174,"flow_m3h":0,"flow_temperature_c":10.4,"remaining_battery_life_y":13.686797,"status":"OK","target_datetime":"2019-10-31 23:59","target_m3": 0.2,"timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'HydrusWater;64646464;1.174;null;OK;1111-11-11 11:11.11'
 }
 test {
     args     = 'MyMeter ime 12345678 NOKEY'
@@ -421,13 +471,13 @@ test {
     args     = 'ColdWaterMeter itron 23362098 NOKEY'
     comment  = 'Allmess cold water with Itron Module programmed with type 0x16'
     telegram = 3A4497269820362300167AF60020A52F2F_04132E100000066D03260DE12B007413FEFEFEFE426C1F01047F1600060C027F9A2A0E79187103002300
-    json     = '{"_":"telegram","enhanced_id":"002300037118","id":"23362098","media":"cold water","meter":"itron","meter_datetime":"2023-11-01 13:38:03","name":"ColdWaterMeter","status":"OK","target_date":"2000-01-31","timestamp":"1111-11-11T11:11:11Z","total_m3":4.142,"unknowna":"WOOTA_C060016","unknownb":"WOOTB_2A9A"}'
+    json     = '{"_":"telegram","enhanced_id": "002300037118", "id": "23362098", "media": "cold water", "meter": "itron", "meter_datetime": "2023-11-01 13:38:03", "name": "ColdWaterMeter", "status": "OK", "target_date": "2000-01-31", "timestamp": "1111-11-11T11:11:11Z", "total_m3": 4.142,"manufacturer_specific_a": "WOOTA_C060016","manufacturer_specific_b": "WOOTB_2A9A" }'
     fields   = 'ColdWaterMeter;23362098;4.142;null;1111-11-11 11:11.11'
 }
 test {
     args     = 'AnyWater itron 20310959 NOKEY'
     telegram = 384497265909312000077a930000a0041360B50100066d101295f427004413ac570100426cdf2c047f0000060c027f6c2a0e79000000000000
-    json     = '{"_":"telegram","enhanced_id":"000000000000","id":"20310959","media":"water","meter":"itron","meter_datetime":"2023-07-20 21:18:16","name":"AnyWater","status":"OK","target_date":"2022-12-31","target_m3":87.98,"timestamp":"1111-11-11T11:11:11Z","total_m3":111.968,"unknowna":"WOOTA_C060000","unknownb":"WOOTB_2A6C"}'
+    json     = '{"_":"telegram","enhanced_id": "000000000000","id": "20310959","media": "water","meter": "itron","meter_datetime": "2023-07-20 21:18:16","name": "AnyWater","status": "OK","target_date": "2022-12-31","target_m3": 87.98,"timestamp": "1111-11-11T11:11:11Z","total_m3": 111.968,"manufacturer_specific_a": "WOOTA_C060000","manufacturer_specific_b": "WOOTB_2A6C"}'
     fields   = 'AnyWater;20310959;111.968;87.98;1111-11-11 11:11.11'
 }
 test {
@@ -439,9 +489,27 @@ test {
 test {
     args     = 'SomeWater itron 12345698 NOKEY'
     comment  = 'Test ITRON T1 telegram not encrypted, which has no 2f2f markers.'
-    telegram = 384497269856341203077AD90000A0_0413FD110000066D2C1AA1D521004413300F0000426CBF2C047F0000060C027F862A0E79678372082100
-    json     = '{"_":"telegram","media":"water","meter":"itron","name":"SomeWater","id":"12345698","enhanced_id":"002108728367","meter_datetime":"2022-01-21 01:26:44","total_m3":4.605,"status":"OK","target_m3":3.888,"target_date":"2021-12-31","unknowna":"WOOTA_C060000","unknownb":"WOOTB_2A86","timestamp":"1111-11-11T11:11:11Z"}'
+    telegram = 384497269856341203077AD90000A0#0413FD110000066D2C1AA1D521004413300F0000426CBF2C047F0000060C027F862A0E79678372082100
+    json     = '{"_":"telegram","media":"water","meter":"itron","name":"SomeWater","id":"12345698","enhanced_id":"002108728367","meter_datetime":"2022-01-21 01:26:44","total_m3":4.605,"status":"OK","target_m3":3.888,"target_date":"2021-12-31","manufacturer_specific_a":"WOOTA_C060000","manufacturer_specific_b":"WOOTB_2A86","timestamp":"1111-11-11T11:11:11Z"}'
     fields   = 'SomeWater;12345698;4.605;3.888;1111-11-11 11:11.11'
+}
+test {
+    args     = 'WarmWater3 iwmtx5 24360570 NOKEY'
+    telegram = 4A44B4097005362418068C00647A7D400000066D210A673139000C13589402000F0582030000550200660300C004000006005407009B0800030A00C10A00000000000000010000FC000000
+    json     = '{"_": "telegram","id": "24360570","media": "warm water","meter": "iwmtx5","meter_datetime": "2025-09-17 07:10:33","name": "WarmWater3","status": "TAMPER","timestamp": "1111-11-11T11:11:11Z","total_m3": 29.458}'
+    fields   = 'WarmWater3;24360570;TAMPER;29.458;1111-11-11 11:11.11'
+}
+test {
+    args     = 'WarmWater2 iwmtx5 23329344 NOKEY'
+    telegram = 4244B4094493322318068C005B7A1C0000000C13072000000F05170000000000000000000000000000000000000000009D0000C20000C20000C8000000000000000000
+    json     = '{"_":"telegram","id": "23329344","media": "warm water","meter": "iwmtx5","name": "WarmWater2","status": "OK","timestamp": "1111-11-11T11:11:11Z","total_m3": 2.007}'
+    fields   = 'WarmWater2;23329344;OK;2.007;1111-11-11 11:11.11'
+}
+test {
+    args     = 'WaterWater iwmtx5 22917370 00000000000000000000000000000000'
+    telegram = 5144b4097073912218078c00247a0308400571e9615249ede52eaae09f61908f027c3877f3330ae9079528b23173ce124bcc255393e60b173c0a9f274c42dd92e4b23c14e8a41f042903358df01dd9268ad4
+    json     = '{"_":"telegram","id": "22917370","media": "water","meter": "iwmtx5","meter_datetime": "2023-05-11 10:38:24","name": "WaterWater","status": "PERMANENT_ERROR","timestamp": "1111-11-11T11:11:11Z","total_m3": 0.025}'
+    fields   = 'WaterWater;22917370;PERMANENT_ERROR;0.025;1111-11-11 11:11.11'
 }
 test {
     args     = 'KadenC10 kaden 23701267 82B0551191F51D66EFCDAB8967452301'
@@ -629,10 +697,28 @@ test {
     fields   = 'MyTapWater;76348799;DRY;6.408;6.408;1111-11-11 11:11.11'
 }
 test {
-    args     = 'SMOKEA lansensm 00010204 NOKEY'
-    telegram = 2E44333004020100031A7ADE0020052F2F_02FD971D040004FD086502000004FD3A010000002F2F2F2F2F2F2F2F2F2F
-    json     = '{"_":"telegram","media":"smoke detector","meter":"lansensm","name":"SMOKEA","id":"00010204","status":"SMOKE","async_msg_id_counter":613,"minutes_since_last_manual_test_counter":1,"timestamp":"1111-11-11T11:11:11Z"}'
-    fields   = 'SMOKEA;00010204;SMOKE;1;1111-11-11 11:11.11'
+    args     = 'Dooro lansendw 00010205 NOKEY'
+    telegram = 2e44333005020100071d7ab54800002f2f02fd1b110002fd971d01000efd3a2200000000008e40fd3a000000000000
+    json     = '{"_":"telegram","media":"reserved","meter":"lansendw","name":"Dooro","id":"00010205","status":"CLOSED","a_counter":22,"b_counter":0,"error_flags":"ERROR_FLAGS_1 PERMANENT_ERROR UNKNOWN_40","timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'Dooro;00010205;CLOSED;1111-11-11 11:11.11'
+}
+test {
+    args     = 'COUNTB lansenpu 00023750 NOKEY'
+    telegram = 1A443330503702000B027AD7000020_2F2F8E40FD3A700800000000
+    json     = '{"_":"telegram","media":"electricity","meter":"lansenpu","name":"COUNTB","id":"00023750","status":"OK","b_counter":870,"timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'COUNTB;00023750;OK;null;870;1111-11-11 11:11.11'
+}
+test {
+    args     = 'COUNTA lansenpu 00010206 NOKEY'
+    telegram = 234433300602010014007a8e0400002f2f0efd3a1147000000008e40fd3a341200000000
+    json     = '{"_":"telegram","media":"other","meter":"lansenpu","name":"COUNTA","id":"00010206","status":"POWER_LOW","a_counter":4711,"b_counter":1234,"timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'COUNTA;00010206;POWER_LOW;4711;1234;1111-11-11 11:11.11'
+}
+test {
+    args     = 'REPEAT lansenrp 00035946 NOKEY'
+    telegram = 54443330465903000B327A2B0000402F2F04FD3A946709008240FD3A600002FD0F9500818040FD3A0084C040FD3A8838000042FD3A28008201FD3A8C05C101FD3A7F8202FD3A3804066D35122EFB2B0002FD46D00C
+    json     = '{"_":"telegram","media":"reserved","meter":"lansenrp","name":"REPEAT","id":"00035946","battery_v":3.28,"listen_timer_value_counter":40,"pause_timer_value_counter":1420,"seconds_to_mode_change_counter":14472,"start_time_value_counter":1080,"total_routed_messages_counter":616340,"used_router_slots_counter":96,"is_repeater_listening":"NO","meter_datetime":"2023-11-27 14:18:53","repeater_listening_on_weekdays":"FR MO SA SU TH TU WE","software_version":"0095","status":"OK","timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'REPEAT;00035946;OK;616340;96;NO;1111-11-11 11:11.11'
 }
 test {
     args     = 'SMOKEA lansensm 00010204 NOKEY'
@@ -641,27 +727,27 @@ test {
     fields   = 'SMOKEA;00010204;OK;30022;1111-11-11 11:11.11'
 }
 test {
+    args     = 'T2 lansenth 00060041 NOKEY'
+    telegram = 2E44333041000600091B7AA70020252F2F_0265DBF94265FC04820165610901FB1B2C41FB1B238101FB1B290223BB00_+0
+    json     = '{"_":"telegram","media":"room sensor","meter":"lansenth","name":"T2","id":"00060041","status":"OK","current_temperature_c":-15.73,"current_relative_humidity_rh":44,"average_temperature_1h_c":12.76,"average_relative_humidity_1h_rh":35,"average_temperature_24h_c":24.01,"average_relative_humidity_24h_rh":41,"on_time_h":4488,"timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'T2;00060041;-15.73;44;1111-11-11 11:11.11'
+}
+test {
+    args     = 'Tempoo lansenth 00010203 NOKEY'
+    telegram = 2e44333003020100071b7a634820252f2f0265840842658308820165950802fb1aae0142fb1aae018201fb1aa9012f
+    json     = '{"_":"telegram","media":"room sensor","meter":"lansenth","name":"Tempoo","id":"00010203","status":"PERMANENT_ERROR SABOTAGE_ENCLOSURE","current_temperature_c":21.8,"current_relative_humidity_rh":43,"average_temperature_1h_c":21.79,"average_relative_humidity_1h_rh":43,"average_temperature_24h_c":21.97,"average_relative_humidity_24h_rh":42.5,"timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'Tempoo;00010203;21.8;43;1111-11-11 11:11.11'
+}
+test {
     args     = 'Water2 lse_07_17 09993623 NOKEY'
     telegram = 2d44653223369909d8077a80000000046d130aed2B0c13233332004c1351762700426cdf2c326cffff02BB560000
-    json     = '{"_":"telegram","device_datetime":"2023-11-13 10:19","due_date":"2022-12-31","due_m3":277.651,"error_code":"OK","error_date":"2128-03-31","id":"09993623","media":"water","meter":"lse_07_17","name":"Water2","timestamp":"1111-11-11T11:11:11Z","total_m3":323.323}'
-    fields   = 'Water2;09993623;323.323;277.651;2022-12-31;OK;2128-03-31;2023-11-13 10:19;1111-11-11 11:11.11'
-}
-test {
-    args     = 'Water lse_07_17 13963399 NOKEY'
-    telegram = 2D4465329933961318067ADA000000_0C13567100004C1300000000426CFFFF02BB560000326CFFFF046D2307A12C
-    json     = '{"_":"telegram","media":"warm water","meter":"lse_07_17","name":"Water","id":"13963399","total_m3":7.156,"due_m3":0,"due_date":"2128-03-31","error_code":"OK","error_date":"2128-03-31","device_datetime":"2021-12-01 07:35","timestamp":"1111-11-11T11:11:11Z"}'
-    fields   = 'Water;13963399;7.156;0;2128-03-31;OK;2128-03-31;2021-12-01 07:35;1111-11-11 11:11.11'
-}
-test {
-    args     = 'Water lse_07_17 13963399 NOKEY'
-    telegram = 2A4465329933961318067AD8800000_8C04130070000082046CBE2B01FD0C11046D1800A12C02FDAC7E9B2E
-    json     = '{"_":"telegram","media":"warm water","meter":"lse_07_17","name":"Water","id":"13963399","what_m3":7,"what_date":"2021-11-30","device_datetime":"2021-12-01 00:24","model_version":"11","timestamp":"1111-11-11T11:11:11Z"}'
-    fields   = 'Water;13963399;null;null;null;null;null;2021-12-01 00:24;1111-11-11 11:11.11'
+    json     = '{"_":"telegram","device_datetime": "2023-11-13 10:19","due_date": "2022-12-31","due_m3": 277.651,"error_code": "OK","error_date": "2127-15-31","id": "09993623","media": "water","meter": "lse_07_17","name": "Water2","timestamp": "1111-11-11T11:11:11Z","total_m3": 323.323}'
+    fields   = 'Water2;09993623;323.323;277.651;2022-12-31;OK;2127-15-31;2023-11-13 10:19;1111-11-11 11:11.11'
 }
 test {
     args     = 'Water lse_07_17 13963399 NOKEY'
     telegram = 244465329933961318067AE1000000_8C04130070000082046CBE2B01FD0C11046D010CA22C
-    json     = '{"_":"telegram","media":"warm water","meter":"lse_07_17","name":"Water","id":"13963399","what_m3":7,"what_date":"2021-11-30","device_datetime":"2021-12-02 12:01","model_version":"11","timestamp":"1111-11-11T11:11:11Z"}'
+    json     = '{"_":"telegram","media":"warm water","meter":"lse_07_17","name":"Water","id":"13963399","what_m3":7,"what_date":"2021-11-30","device_datetime":"2021-12-02 12:01","meter_version":"11","timestamp":"1111-11-11T11:11:11Z"}'
     fields   = 'Water;13963399;null;null;null;null;null;2021-12-02 12:01;1111-11-11 11:11.11'
 }
 test {
@@ -677,56 +763,72 @@ test {
     fields   = 'mywater;24018699;OK;0.167;1111-11-11 11:11.11'
 }
 test {
+    args     = 'Heat microclima 93573086 NOKEY'
+    telegram = A44424348630579300047ADD0000202F2F046D0721B62C04064708000004135DB0030001FD1700426C9F2C4406C6040000C40106C0070000C4020637070000C4030611070000C404060B070000C405060B070000C406060B070000C407060B070000C40806A5060000C40906F7050000C40A067A050000C40B060F050000C40C06C6040000C40D063F040000C40E06BB030000C40F06A502000003FD0C05000002FD0B1111
+    json     = '{"_":"telegram","consumption_at_set_date_11_kwh":1803,"consumption_at_set_date_13_kwh":1803,"consumption_at_set_date_15_kwh":1803,"consumption_at_set_date_17_kwh":1701,"consumption_at_set_date_19_kwh":1527,"consumption_at_set_date_1_kwh":1222,"consumption_at_set_date_21_kwh":1402,"consumption_at_set_date_23_kwh":1295,"consumption_at_set_date_25_kwh":1222,"consumption_at_set_date_27_kwh":1087,"consumption_at_set_date_29_kwh":955,"consumption_at_set_date_31_kwh":677,"consumption_at_set_date_3_kwh":1984,"consumption_at_set_date_5_kwh":1847,"consumption_at_set_date_7_kwh":1809,"consumption_at_set_date_9_kwh":1803,"id":"93573086","media":"heat","meter":"microclima","meter_datetime":"2021-12-22 01:07","model_version":"000005","name":"Heat","parameter_set":"1111","set_date_11_date":"2020-02-29","set_date_13_date":"2019-12-31","set_date_15_date":"2019-10-31","set_date_17_date":"2019-08-31","set_date_19_date":"2019-06-30","set_date_1_date":"2020-12-31","set_date_21_date":"2019-04-30","set_date_23_date":"2019-02-28","set_date_25_date":"2018-12-31","set_date_27_date":"2018-10-31","set_date_29_date":"2018-08-31","set_date_31_date":"2018-06-30","set_date_3_date":"2020-10-31","set_date_5_date":"2020-08-31","set_date_7_date":"2020-06-30","set_date_9_date":"2020-04-30","status":"OK","timestamp":"1111-11-11T11:11:11Z","total_energy_consumption_kwh":2119,"total_volume_m3":241.757}'
+    fields   = 'Heat;93573086;OK;2119;241.757;1111-11-11 11:11.11'
+}
+test {
+    args     = 'Heat microclima 93572431 NOKEY'
+    telegram = 494424343124579300047a5a0000202f2f046d2720b62c04060d07000001fd170004130a8c0400043b00000000042b00000000025b1500025f15000261d0ff03fd0c05000002fd0b1011
+    json     = '{"_":"telegram","flow_temperature_c":21,"id":"93572431","media":"heat","meter":"microclima","meter_datetime":"2021-12-22 00:39","model_version":"000005","name":"Heat","parameter_set":"1110","power_kw":0,"return_temperature_c":21,"status":"OK","temperature_difference_c":-0.48,"timestamp":"1111-11-11T11:11:11Z","total_energy_consumption_kwh":1805,"total_volume_m3":297.994,"volume_flow_m3h":0}'
+    fields   = 'Heat;93572431;OK;1805;297.994;1111-11-11 11:11.11'
+}
+test {
     args     = 'Zenner_warm minomess 51413121 NOKEY'
     telegram = 6644496A8753155518377221314151496A0106300050052F2F_0C1357000000026CEC2182046CE1218C0413000000808D0493132C33FE00008000008000008000008000008000008000008000008000008000008000008000008000008000008002FD1700002F2F
     json     = '{"_":"telegram","media":"warm water","meter":"minomess","name":"Zenner_warm","id":"51413121","meter_date":"2023-01-12","total_m3":0.057,"target_m3":80000,"target_date":"2023-01-01","status":"OK","timestamp":"1111-11-11T11:11:11Z"}'
-    fields   = 'Zenner_warm;51413121;OK;0.057;80000;1111-11-11 11:11.11'
+    fields   = 'Zenner_warm;51413121;0.057;80000;OK;1111-11-11 11:11.11'
 }
 test {
     args     = 'Zenner_cold minomess 21314151 NOKEY'
     telegram = 6644496A4425155518377251413121496A0116360050052F2F_0C1355000000026CEC2182046CE1218C0413000000808D0493132C33FE00008000008000008000008000008000008000008000008000008000008000008000008000008000008002FD1700002F2F
     json     = '{"_":"telegram","media":"cold water","meter":"minomess","name":"Zenner_cold","id":"21314151","meter_date":"2023-01-12","total_m3":0.055,"target_m3":80000,"target_date":"2023-01-01","status":"OK","timestamp":"1111-11-11T11:11:11Z"}'
-    fields   = 'Zenner_cold;21314151;OK;0.055;80000;1111-11-11 11:11.11'
+    fields   = 'Zenner_cold;21314151;0.055;80000;OK;1111-11-11 11:11.11'
+}
+test {
+    args     = 'Minowired minomess 57575757 NOKEY'
+    telegram = 6874746808007257575757496A000712000000_0C7857575757046D2414DE280413000000000C943C000000004413FFFFFFFF426CFFFF840113FFFFFFFF82016CFFFFC40113FFFFFFFFC2016CFFFF840213FFFFFFFF82026CFFFF043B000000000422E62F000004260000000034220000000002FD1700001F5716
+    json     = '{"_":"telegram","media":"water","meter":"minomess","name":"Minowired","id":"57575757","fabrication_no":"57575757","operating_time_h":0,"on_time_h":12262,"on_time_at_error_h":0,"meter_datetime":"2022-08-30 20:36","total_m3":0,"total_backward_m3":0,"volume_flow_m3h":0,"target_m3":-0.001,"target_date":"2127-15-31","status":"OK","timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'Minowired;57575757;0;-0.001;OK;1111-11-11 11:11.11'
 }
 test {
     args     = 'Mino minomess 15503451 NOKEY'
-    telegram = 6644496A1064035514377251345015496A0007EE0050052F2F_0C1359000000026CBE2B82046CA12B8C0413FFFFFFFF8D0493132CFBFEFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF02FD1700002F2F
+    telegram = 6644496A1064035514377251345015496A0007EE0050052F2F#0C1359000000026CBE2B82046CA12B8C0413FFFFFFFF8D0493132CFBFEFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF02FD1700002F2F
     json     = '{"_":"telegram","media":"water","meter":"minomess","name":"Mino","id":"15503451","meter_date":"2021-11-30","total_m3":0.059,"target_date":"2021-11-01","status":"OK","timestamp":"1111-11-11T11:11:11Z"}'
-    fields   = 'Mino;15503451;OK;0.059;null;1111-11-11 11:11.11'
+    fields   = 'Mino;15503451;0.059;null;OK;1111-11-11 11:11.11'
+}
+test {
+    args     = 'BAR mkradio4a 01770002 NOKEY'
+    comment  = 'Cold water'
+    telegram = 4B4468508644710095377202007701A85CFE078A0030052F2F_4315F00200426CBF2C0FEE456BF6F802216503E25EB73E9377D54F672681B76C469696E4C7BCCC9072CC79F712360FC3F57D85
+    json     = '{"_":"telegram","media":"water","meter":"mkradio4a","name":"BAR","id":"01770002","target_m3":75.2,"target_date":"2021-12-31","timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'BAR;01770002;75.2;2021-12-31;1111-11-11 11:11.11'
+}
+test {
+    args     = 'FOO mkradio4a 66953825 NOKEY'
+    comment  = 'Warm water'
+    telegram = 4B44685036494600953772253895662423FE064E0030052F2F_4315A10000426CBF2C0F542CF2DD8BEC869511B2DB8301C3ABA390FB4FDB6F1144DA1F3897DD55F2AD0D194F68510FF8FADFB9
+    json     = '{"_":"telegram","media":"warm water","meter":"mkradio4a","name":"FOO","id":"66953825","target_m3":16.1,"target_date":"2021-12-31","timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'FOO;66953825;16.1;2021-12-31;1111-11-11 11:11.11'
 }
 test {
     args     = 'TempoHygro munia 00220111 NOKEY'
-    comment  = 'Robin version 04.'
     telegram = 2E44B05C11012200041B7A2B0000002F2F0A6617020AFB1A100602FD971D00002F2F2F2F2F2F2F2F2F2F2F2F2F2F2F
     json     = '{"_":"telegram","media":"room sensor","meter":"munia","name":"TempoHygro","id":"00220111","status":"OK","current_temperature_c":21.7,"current_relative_humidity_rh":61,"timestamp":"1111-11-11T11:11:11Z"}'
     fields   = 'TempoHygro;00220111;21.7;61;1111-11-11 11:11.11'
 }
 test {
     args     = 'TempoHygro munia 00013482 NOKEY'
-    comment  = 'Munia version 02.'
     telegram = 2E44B05C82340100021B7A460000002F2F0A6601020AFB1A570602FD971D00002F2F2F2F2F2F2F2F2F2F2F2F2F2F2F
     json     = '{"_":"telegram","media":"room sensor","meter":"munia","name":"TempoHygro","id":"00013482","status":"OK","current_temperature_c":20.1,"current_relative_humidity_rh":65.7,"timestamp":"1111-11-11T11:11:11Z"}'
     fields   = 'TempoHygro;00013482;20.1;65.7;1111-11-11 11:11.11'
 }
 test {
     args     = 'Elen nemo 00067609 NOKEY'
-    comment  = 'Telegram 3, this is also decoded by itself in this test, thus the null default field values.'
-    telegram = 689E9E6808657209760600A5251D02020000008540ABFF0100360B478540ABFF02002CFA468540ABFF030074ED46858040ABFF0100C0E244858040ABFF0200405A45858040ABFF030060364505FDBAFF0178BE7F3F05FDBAFF0240357E3F05FDBAFF0353B87E3F05FDC8FF0400907A4505FDC8FF0500707B4505FDC8FF0600807B4505FDD9FF0400502A4705FF5A0000FA4302FD3AC80002FD3A0A000F00000000008B16
-    json     = '{"_":"telegram","media":"electricity","meter":"nemo","name":"Elen","id":"00067609","power_factor":200,"status":"OK","active_power_at_phase_1_kw":35.638,"active_power_at_phase_2_kw":32.022,"active_power_at_phase_3_kw":30.394,"reactive_power_at_phase_1_kw":1.814,"reactive_power_at_phase_2_kw":3.492,"reactive_power_at_phase_3_kw":2.918,"at_phase_1_power_factor":0.999,"at_phase_2_power_factor":0.993,"at_phase_3_power_factor":0.995,"voltage_l1_l2_v":400.9,"voltage_l2_l3_v":402.3,"voltage_l3_l1_v":402.4,"current_in_neutral_a":43.6,"frequency_hz":50,"timestamp":"1111-11-11T11:11:11Z"}'
-    fields   = 'Elen;00067609;OK;null;null;1111-11-11 11:11.11'
-}
-test {
-    args     = 'Elen nemo 00067609 NOKEY'
-    comment  = 'Telegram 2, this is decoded by itself in this test so the default fields become null because they are sent in the previous telegram.'
-    telegram = 684B4B6808657209760600A5251D020100000005FDD9FF0100F4174805FDD9FF0200B8084805FDD9FF0300B0014805FDC8FF0100C0104505FDC8FF020040114505FDC8FF03005011451F00000000000716
-    json     = '{"_":"telegram","media":"electricity","meter":"nemo","name":"Elen","id":"00067609","status":"OK","current_at_phase_1_a":155.6,"current_at_phase_2_a":140,"current_at_phase_3_a":132.8,"voltage_at_phase_1_v":231.6,"voltage_at_phase_2_v":232.4,"voltage_at_phase_3_v":232.5,"frequency_hz":null,"timestamp":"1111-11-11T11:11:11Z"}'
-    fields   = 'Elen;00067609;OK;null;null;1111-11-11 11:11.11'
-}
-test {
-    args     = 'Elen nemo 00067609 NOKEY'
-    comment  = 'Telegram 1'
+    comment  = 'comment: Telegram 1'
     telegram = 6864646808657209760600A5251D02000000008E500400355873060085502B0013BF478E9040040029452501008590402B00F800468E600400000000000085602B000000008EA0400400890000000085A0402B0000000005FD3ADCF97E3F01FD17001F00000000009116
-    json     = '{"_":"telegram","media":"electricity","meter":"nemo","name":"Elen","id":"00067609","total_active_positive_3phase_kwh":6735835,"active_positive_3phase_kw":97.83,"total_reactive_positive_3phase_kwh":1254529,"reactive_positive_3phase_kw":8.254,"total_active_partial_3phase_kwh":0,"active_negative_3phase_kw":0,"total_reactive_partial_3phase_kwh":89,"reactive_negative_3phase_kw":0,"power_factor":0.996,"status":"OK","frequency_hz":null,"timestamp":"1111-11-11T11:11:11Z"}'
+    json     = '{"_":"telegram","media":"electricity", "meter":"nemo", "name":"Elen", "id":"00067609", "total_active_positive_3phase_kwh":6735835, "active_positive_3phase_kw":97.83, "total_reactive_positive_3phase_kwh":1254529, "reactive_positive_3phase_kw":8.254, "total_active_partial_3phase_kwh":0, "active_negative_3phase_kw":0, "total_reactive_partial_3phase_kwh":89, "reactive_negative_3phase_kw":0, "power_factor":-0.996, "status":"OK", "frequency_hz":null, "timestamp":"1111-11-11T11:11:11Z"}'
     fields   = 'Elen;00067609;OK;6735835;97.83;1111-11-11 11:11.11'
 }
 test {
@@ -746,6 +848,12 @@ test {
     telegram = 684f4f68080B7259149117523B00029200000084002ccB00000084012962fB0000840229e85f010084032905Bf00008201fd49ed008202fd49e9008203fd49ea008201fd5a21018202fd5a8d018203fd5ad700e216
     json     = '{"_": "telegram","current_at_phase_1_a": 2.89,"current_at_phase_2_a": 3.97,"current_at_phase_3_a": 2.15,"current_power_consumption_1_kw": 0.64354,"current_power_consumption_2_kw": 0.90088,"current_power_consumption_3_kw": 0.48901,"current_power_consumption_kw": 2.03,"id": "17911459","media": "electricity","meter": "nzr","name": "NZR1","status": "OK","timestamp": "1111-11-11T11:11:11Z","voltage_at_phase_1_v": 237,"voltage_at_phase_2_v": 233,"voltage_at_phase_3_v": 234}'
     fields   = 'NZR1;17911459;OK;null;1111-11-11 11:11.11'
+}
+test {
+    args     = 'myomnipower omnipower 32666857 NOKEY'
+    telegram = 2D442D2C5768663230028D20E4E2C81C20878C78_04041A03000004843C00000000042B0300000004AB3C00000000
+    json     = '{"_":"telegram","media":"electricity","meter":"omnipower","name":"myomnipower","id":"32666857","total_energy_consumption_kwh":7.94,"total_energy_production_kwh":0,"current_power_consumption_kw":0.003,"current_power_production_kw":0,"timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'myomnipower;32666857;7.94;0;0.003;0;1111-11-11 11:11.11'
 }
 test {
     args     = 'W op041a 11337834 NOKEY'
@@ -769,29 +877,79 @@ test {
     fields   = 'MyWater;56544919;OK;4.492;1111-11-11 11:11.11'
 }
 test {
+    args     = 'Tempo piigth 10000284 NOKEY'
+    telegram = 68383868080072840200102941011B04000000_0265C0094265A509B20165000002FB1A900142FB1A6901B201FB1A00000C788402001002FD0F21000FC016
+    json     = '{"_":"telegram","media":"room sensor","meter":"piigth","name":"Tempo","id":"10000284","fabrication_no":"10000284","software_version":"0021","status":"OK","temperature_c":24.96,"average_temperature_1h_c":24.69,"relative_humidity_rh":40,"relative_humidity_1h_rh":36.1,"timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'Tempo;10000284;OK;24.96;40;1111-11-11 11:11.11'
+}
+test {
+    args     = 'Heat pollucomf 14175439 NOKEY'
+    telegram = 5e44ae4c395417141d047a9f0050252f2f046d2d32d92c0223B701040600000000041331000000032B000000033B000000025a3201025ef2003222000002fd170000426cBf2c440600000000441301000000525a0000525e0000533B000000
+    json     = '{"_":"telegram","media":"heat","meter":"pollucomf","name":"Heat","id":"14175439","status":"OK","total_kwh":0,"total_m3":0.049,"power_kw":0,"flow_m3h":0,"forward_c":30.6,"return_c":24.2,"target_date":"2021-12-31","target_kwh":0,"target_m3":0.001,"forward_max_c":0,"return_max_c":0,"flow_max_m3h":0,"on_time_h":10536,"on_time_at_error_h":0,"meter_datetime":"2022-12-25 18:45","timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'Heat;14175439;OK;0;0.049;0;0.001;1111-11-11 11:11.11'
+}
+test {
     args     = 'MM q400 06289748 NOKEY'
     telegram = 614409074897280601077AD1000000046D2C173B370420580193040413FB94000004933BFB94000004933C01000000023B02000259E306446D000021374413C08A000044933BC08A000044933C0100000034FD17000000000424BA01930401FD745B
-    json     = '{"_":"telegram","backward_at_set_date_m3":0.001,"battery_pct":91,"consumption_at_set_date_m3":35.52,"flow_temperature_c":17.63,"forward_at_set_date_m3":35.52,"id":"06289748","media":"water","meter":"q400","meter_datetime":"2025-07-27 23:44","name":"MM","on_time_h":21317.5,"set_datetime":"2025-07-01 00:00","status":"OK","timestamp":"1111-11-11T11:11:11Z","total_backward_m3":0.001,"total_forward_m3":38.139,"total_m3":38.139,"volume_flow_m3h":0.002}'
+    json     = '{"_": "telegram","backward_at_set_m3": 0.001,"battery_pct": 91,"consumption_at_set_m3": 35.52,"flow_temperature_c": 17.63,"forward_at_set_m3": 35.52,"id": "06289748","media": "water","meter": "q400","meter_datetime": "2025-07-27 23:44","name": "MM","on_time_h": 21317.5,"set_datetime": "2025-07-01 00:00","status": "OK","timestamp": "1111-11-11T11:11:11Z","total_backward_m3": 0.001,"total_forward_m3": 38.139,"total_m3": 38.139,"volume_flow_m3h": 0.002}'
     fields   = 'MM;06289748;38.139;1111-11-11 11:11.11'
 }
 test {
-    args     = 'Mm q400 05829163 NOKEY'
+    args     = 'M q400 05829163 NOKEY'
     telegram = 544409076391820510077ABF100000046D2A0DC62C0420E80F430104130000000004933B0000000004933C00000000023B00000259F0D8446D0000C12C44130000000044933B0000000044933C0000000001FD7461
-    json     = '{"_":"telegram","backward_at_set_date_m3":0,"battery_pct":97,"consumption_at_set_date_m3":0,"flow_temperature_c":-100,"forward_at_set_date_m3":0,"id":"05829163","media":"water","meter":"q400","meter_datetime":"2022-12-06 13:42","name":"Mm","on_time_h":5881.166667,"set_datetime":"2022-12-01 00:00","status":"TEMPORARY_ERROR","timestamp":"1111-11-11T11:11:11Z","total_backward_m3":0,"total_forward_m3":0,"total_m3":0,"volume_flow_m3h":0}'
-    fields   = 'Mm;05829163;0;1111-11-11 11:11.11'
+    json     = '{"_":"telegram","backward_at_set_m3": 0,"battery_pct": 97,"consumption_at_set_m3": 0,"flow_temperature_c": -100,"forward_at_set_m3": 0,"id": "05829163","media": "water","meter": "q400","meter_datetime": "2022-12-06 13:42","name": "M","on_time_h": 5881.166667,"set_datetime": "2022-12-01 00:00","status": "TEMPORARY_ERROR","timestamp": "1111-11-11T11:11:11Z","total_backward_m3": 0,"total_forward_m3": 0,"total_m3": 0,"volume_flow_m3h": 0}'
+    fields   = 'M;05829163;0;1111-11-11 11:11.11'
 }
 test {
     args     = 'AxiomaWater q400 72727273 NOKEY'
     comment  = 'Test Axioma W1 telegram with additional fields compared to the older q400 meter.'
     telegram = 5E4409077372727210077A710050052F2F_046D0110A92704130022000004933B0000000004933C00000000023B000002592A0A446D0000A12744130000000044933B0000000044933C0000000001FD74622F2F2F2F2F2F2F2F2F2F2F2F2F2F
-    json     = '{"_":"telegram","media":"water","meter":"q400","name":"AxiomaWater","id":"72727273","meter_datetime":"2021-07-09 16:01","total_m3":8.704,"total_forward_m3":0,"total_backward_m3":0,"flow_temperature_c":26.02,"volume_flow_m3h":0,"status":"OK","set_datetime":"2021-07-01 00:00","consumption_at_set_date_m3":0,"forward_at_set_date_m3":0,"backward_at_set_date_m3":0,"battery_pct":98,"timestamp":"1111-11-11T11:11:11Z"}'
+    json     = '{"_":"telegram","media":"water","meter":"q400","name":"AxiomaWater","id":"72727273","meter_datetime":"2021-07-09 16:01","total_m3":8.704,"total_forward_m3":0,"total_backward_m3":0,"flow_temperature_c":26.02,"volume_flow_m3h":0,"status":"OK","set_datetime":"2021-07-01 00:00","consumption_at_set_m3":0,"forward_at_set_m3":0,"backward_at_set_m3":0,"battery_pct":98,"timestamp":"1111-11-11T11:11:11Z"}'
     fields   = 'AxiomaWater;72727273;8.704;1111-11-11 11:11.11'
 }
 test {
     args     = 'Q400Water q400 72727272 NOKEY'
     telegram = 2E4409077272727210077AD71020052F2F_046D040D742C041377000000446D0000612C4413000000002F2F2F2F2F2F
-    json     = '{"_":"telegram","media":"water","meter":"q400","name":"Q400Water","id":"72727272","meter_datetime":"2019-12-20 13:04","total_m3":0.119,"status":"TEMPORARY_ERROR","set_datetime":"2019-12-01 00:00","consumption_at_set_date_m3":0,"timestamp":"1111-11-11T11:11:11Z"}'
+    json     = '{"_":"telegram","media":"water","meter":"q400","name":"Q400Water","id":"72727272","meter_datetime":"2019-12-20 13:04","total_m3":0.119,"status":"TEMPORARY_ERROR","set_datetime":"2019-12-01 00:00","consumption_at_set_m3":0,"timestamp":"1111-11-11T11:11:11Z"}'
     fields   = 'Q400Water;72727272;0.119;1111-11-11 11:11.11'
+}
+test {
+    args     = 'HCA55 qcaloric 30535282 NOKEY'
+    comment  = 'QCaloric 5.5 encrypted but with some not-encrypted bytes at the end. We should print these, but we do not right now....'
+    telegram = 49449344825253303608780DFF5F350082430035E3DFC4EAC97A58B8610713D93549E2601258D617D267E7515C764B002A88CD341A9F9DF3C6034DE5B6D1FAB3619CBA9F046D250DDA2C
+    json     = '{"_":"telegram","device_datetime": "2022-12-26 13:37","id": "30535282","media": "heat cost allocation","meter": "qcaloric","name": "HCA55","status": "OK","timestamp": "1111-11-11T11:11:11Z"}'
+    fields   = 'HCA55;30535282;null;null;null;1111-11-11 11:11.11'
+}
+test {
+    args     = 'HCA2 whe46x 60366655 NOKEY'
+    telegram = 344465325566366018087A90040000046D1311962C01FD0C03326CFFFF01FD7300025AC2000DFF5F0C0008003030810613080BFFFC
+    json     = '{"_":"telegram","media":"heat cost allocation","meter":"qcaloric","name":"HCA2","id":"60366655","status":"POWER_LOW","error_date":"2127-15-31","device_datetime":"2020-12-22 17:19","model_version":"03","flow_temperature_c":19.4,"timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'HCA2;60366655;null;null;null;1111-11-11 11:11.11'
+}
+test {
+    args     = 'HCA whe5x 91835132 NOKEY'
+    telegram = 244465323251839134087a4f0000000b6e0403004b6e660300426c9e29326cffff046d1416b921dd2f
+    json     = '{"_":"telegram","media":"heat cost allocation","meter":"qcaloric","name":"HCA","id":"91835132","status":"OK","current_consumption_hca":304,"set_date":"2020-09-30","consumption_at_set_date_hca":366,"set_date_1":"2020-09-30","consumption_at_set_date_1_hca":366,"error_date":"2127-15-31","device_datetime":"2021-01-25 22:20","timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'HCA;91835132;304;2020-09-30;366;1111-11-11 11:11.11'
+}
+test {
+    args     = 'zenner_heat qcaloric 25932395 NOKEY'
+    telegram = 5E44496A95239325FD087A2CC050052F2F_0B6E030100426CDF2C4B6EFFFFFF82046CE1228B046E6200008D04EE132C3BFEFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF2F2F2F2F
+    json     = '{"_":"telegram","media":"heat cost allocation","meter":"qcaloric","name":"zenner_heat","id":"25932395","status":"UNKNOWN_C0","current_consumption_hca":103,"set_date":"2022-12-31","set_date_1":"2022-12-31","set_date_8":"2023-02-01","consumption_at_set_date_8_hca":62,"timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'zenner_heat;25932395;103;2022-12-31;null;1111-11-11 11:11.11'
+}
+test {
+    args     = 'MyElement2 qcaloric 90919293 NOKEY'
+    comment  = 'Test mostly proprietary telegram without values'
+    telegram = 49449344939291903408780DFF5F350082180000800007B06EFFFF970000009F2C70020000BE26970000000000010018002E001F002E0023FF210008000500020000002F046D220FA227
+    json     = '{"_":"telegram","media":"heat cost allocation","meter":"qcaloric","name":"MyElement2","id":"90919293","status":"OK","device_datetime":"2021-07-02 15:34","timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'MyElement2;90919293;null;null;null;1111-11-11 11:11.11'
+}
+test {
+    args     = 'MyElement qcaloric 78563412 NOKEY'
+    telegram = 314493441234567835087a740000200b6e2701004b6e450100426c5f2ccb086e790000c2086c7f21326cffff046d200b7422
+    json     = '{"_":"telegram","media":"heat cost allocation","meter":"qcaloric","name":"MyElement","id":"78563412","status":"OK","current_consumption_hca":127,"set_date":"2018-12-31","consumption_at_set_date_hca":145,"set_date_1":"2018-12-31","consumption_at_set_date_1_hca":145,"set_date_17":"2019-01-31","consumption_at_set_date_17_hca":79,"error_date":"2127-15-31","device_datetime":"2019-02-20 11:32","timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'MyElement;78563412;127;2018-12-31;145;1111-11-11 11:11.11'
 }
 test {
     args     = 'QH qheat5us 67250945 NOKEY'
@@ -839,64 +997,94 @@ test {
     fields   = 'QHeato;67228058;OK;390.4;1111-11-11 11:11.11'
 }
 test {
+    args     = 'QSmokep qsmoke 48128850 NOKEY'
+    telegram = 3744934450881248231A7A5C00002081027C034955230082026CFFFF81037C034C41230082036CFFFF02FD170000326CFFFF046D2514BC2B
+    json     = '{"_":"telegram","media":"smoke detector","meter":"qsmoke","name":"QSmokep","id":"48128850","status":"OK","last_alarm_date":"2127-15-31","alarm_counter":0,"message_datetime":"2021-11-28 20:37","test_button_last_date":"2127-15-31","test_button_counter":0,"at_error_date":"2127-15-31","timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'QSmokep;48128850;OK;2127-15-31;0;1111-11-11 11:11.11'
+}
+test {
+    args     = 'QSmokeo qsmoke 45797086 NOKEY'
+    telegram = 3E44934486707945211A7801FD08F081027C034955230082026CFFFF81037C034C41230082036CFFFF03FD17000000326CFFFF046D0F0ABC2B02FDAC7E1100
+    json     = '{"_":"telegram","media":"smoke detector","meter":"qsmoke","name":"QSmokeo","id":"45797086","status":"OK","last_alarm_date":"2127-15-31","alarm_counter":0,"message_datetime":"2021-11-28 10:15","test_button_last_date":"2127-15-31","test_button_counter":0,"transmission_counter":240,"at_error_date":"2127-15-31","some_sort_of_duration_h":0.004722,"timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'QSmokeo;45797086;OK;2127-15-31;0;1111-11-11 11:11.11'
+}
+test {
+    args     = 'qualcoe4long qualcosonic 98499485 NOKEY'
+    telegram = 9A440907859449980C0D7A8C000000_046D3201E122346D0000010134FD17000000000420BB776802042490776802048E3BF2190000048E3C00000000041329860100042B6A010000043B0B0000000259F615025D1E0B0261D80A0C788594499884086D3B17FF21820859BC1382085D720B840824915D680284088E3BED19000084088E3C00000000840813028601008408BE5800000000027F00AD
+    json     = '{"_":"telegram","media":"heat/cooling load","meter":"qualcosonic","name":"qualcoe4long","id":"98499485","fabrication_no":"98499485","operating_time_h":11222.44,"on_time_h":11222.451944,"meter_datetime":"2023-02-01 01:50","meter_datetime_at_error":"2000-01-01 00:00","total_m3":99.881,"flow_temperature_c":56.22,"return_temperature_c":28.46,"flow_return_temperature_difference_c":27.76,"volume_flow_m3h":0.011,"status":"OK","total_heat_energy_kwh":1845,"total_cooling_energy_kwh":0,"power_kw":0.362,"target_datetime":"2023-01-31 23:59","target_heat_energy_kwh":1843.611111,"target_cooling_energy_kwh":0,"timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'qualcoe4long;98499485;OK;1845;0;0.362;2023-01-31 23:59;1843.611111;0;1111-11-11 11:11.11'
+}
+test {
+    args     = 'qualcoe4 qualcosonic 29481002 NOKEY'
+    telegram = 76440907021048290C0D7A89000000_046D2301E122346D0000010134FD17000000000420097468020424DE736802048E3BF1190000048E3C00000000041323860100042B6E050000043B2500000002598016025D000A0261800C0C780210482984086D3B17FF2184088E3BED19000084088E3C00000000
+    json     = '{"_":"telegram","media":"heat/cooling load","meter":"qualcosonic","name":"qualcoe4","id":"29481002","fabrication_no":"29481002","operating_time_h":11222.177222,"on_time_h":11222.189167,"meter_datetime":"2023-02-01 01:35","meter_datetime_at_error":"2000-01-01 00:00","total_m3":99.875,"flow_temperature_c":57.6,"return_temperature_c":25.6,"flow_return_temperature_difference_c":32,"volume_flow_m3h":0.037,"status":"OK","total_heat_energy_kwh":1844.722222,"total_cooling_energy_kwh":0,"power_kw":1.39,"target_datetime":"2023-01-31 23:59","target_heat_energy_kwh":1843.611111,"target_cooling_energy_kwh":0,"timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'qualcoe4;29481002;OK;1844.722222;0;1.39;2023-01-31 23:59;1843.611111;0;1111-11-11 11:11.11'
+}
+test {
+    args     = 'qualco qualcosonic 03016408 NOKEY'
+    telegram = 76440907086401030B0d7a78000000046d030fB726346d0000010134fd170000000004200f13cf0104240f13cf0104863B0000000004863cdc0000000413B5150600042B86f1ffff043B030200000259c002025d2c05026194fd0c780864010384086d3B17Bf258408863B000000008408863c0B000000
+    json     = '{"_":"telegram","media":"heat/cooling load","meter":"qualcosonic","name":"qualco","id":"03016408","fabrication_no":"03016408","operating_time_h":8430.013056,"on_time_h":8430.013056,"meter_datetime":"2021-06-23 15:03","meter_datetime_at_error":"2000-01-01 00:00","total_m3":398.773,"flow_temperature_c":7.04,"return_temperature_c":13.24,"flow_return_temperature_difference_c":-6.2,"volume_flow_m3h":0.515,"status":"OK","total_heat_energy_kwh":0,"total_cooling_energy_kwh":220,"power_kw":-3.706,"target_datetime":"2021-05-31 23:59","target_heat_energy_kwh":0,"target_cooling_energy_kwh":11,"timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'qualco;03016408;OK;0;220;-3.706;2021-05-31 23:59;0;11;1111-11-11 11:11.11'
+}
+test {
     args     = 'QQ5 qwater 61193115 NOKEY'
     telegram = 49449344153119611D06780DFF5F350082EC0000F10007C113FFFF69000000FFFF000000005F31680000000080008000800080008000800080008000800080008006002F046D1C0A4132
-    json     = '{"_": "telegram","due_17_date": "2026-01-31","due_17_date_m3": 0.068,"due_date": "2128-03-31","due_date_m3": 0,"id": "61193115","media": "warm water","meter": "qwater","meter_datetime": "2026-02-01 10:28","name": "QQ5","status": "OK","timestamp": "1111-11-11T11:11:11Z","total_m3": 0.069}'
+    json     = '{"_": "telegram","due_17_date": "2026-01-31","due_17_m3": 0.068,"due_date": "2128-03-31","due_m3": 0,"id": "61193115","media": "warm water","meter": "qwater","meter_datetime": "2026-02-01 10:28","name": "QQ5","status": "OK","timestamp": "1111-11-11T11:11:11Z","total_m3": 0.069}'
     fields   = 'QQ5;61193115;0.069;0;2128-03-31;OK;1111-11-11 11:11.11'
 }
 test {
     args     = 'QQ5 qwater 61193115 NOKEY'
     telegram = 49449344153119611D06780DFF5F3500826E0000F00007C113FFFF66000000FFFF00000000FFFF000000000080008000800080008000800080008000800080008000802F046D33125F31
-    json     = '{"_": "telegram","due_17_date": "2128-03-31","due_17_date_m3": 0,"due_date": "2128-03-31","due_date_m3": 0,"id": "61193115","media": "warm water","meter": "qwater","meter_datetime": "2026-01-31 18:51","name": "QQ5","status": "OK","timestamp": "1111-11-11T11:11:11Z","total_m3": 0.066}'
+    json     = '{"_": "telegram","due_17_date": "2128-03-31","due_17_m3": 0,"due_date": "2128-03-31","due_m3": 0,"id": "61193115","media": "warm water","meter": "qwater","meter_datetime": "2026-01-31 18:51","name": "QQ5","status": "OK","timestamp": "1111-11-11T11:11:11Z","total_m3": 0.066}'
     fields   = 'QQ5;61193115;0.066;0;2128-03-31;OK;1111-11-11 11:11.11'
 }
 test {
     args     = 'QQ5 qwater 61193115 NOKEY'
     comment  = 'Qundis Qwater5.5 Model 2026 (warm water)'
     telegram = 39449344153119611D067A870000200C13370000004C1300000000426CFFFFCC081300000000C2086CFFFF02BB560000326CFFFF046D320D5E31
-    json     = '{"_": "telegram","due_17_date": "2128-03-31","due_17_date_m3": 0,"due_date": "2128-03-31","due_date_m3": 0,"error_date": "2128-03-31","id": "61193115","media": "warm water","meter": "qwater","meter_datetime": "2026-01-30 13:50","name": "QQ5","status": "OK","timestamp": "1111-11-11T11:11:11Z","total_m3": 0.037,"volume_flow_m3h": 0}'
+    json     = '{"_": "telegram","due_17_date": "2128-03-31","due_17_m3": 0,"due_date": "2128-03-31","due_m3": 0,"error_date": "2128-03-31","id": "61193115","media": "warm water","meter": "qwater","meter_datetime": "2026-01-30 13:50","name": "QQ5","status": "OK","timestamp": "1111-11-11T11:11:11Z","total_m3": 0.037,"volume_flow_m3h": 0}'
     fields   = 'QQ5;61193115;0.037;0;2128-03-31;OK;1111-11-11 11:11.11'
 }
 test {
     args     = 'QQ4 qwater 60113189 NOKEY'
     telegram = 39449344893111601a077a580000200c13200300004c1300000000426cffffcc081334000000c2086c3f3502BB560000326cffff046d13173136
-    json     = '{"_": "telegram","due_17_date": "2025-05-31","due_17_date_m3": 0.034,"due_date": "2128-03-31","due_date_m3": 0,"error_date": "2128-03-31","id": "60113189","media": "water","meter": "qwater","meter_datetime": "2025-06-17 23:19","name": "QQ4","status": "OK","timestamp": "1111-11-11T11:11:11Z","total_m3": 0.32,"volume_flow_m3h": 0}'
+    json     = '{"_": "telegram","due_17_date": "2025-05-31","due_17_m3": 0.034,"due_date": "2128-03-31","due_m3": 0,"error_date": "2128-03-31","id": "60113189","media": "water","meter": "qwater","meter_datetime": "2025-06-17 23:19","name": "QQ4","status": "OK","timestamp": "1111-11-11T11:11:11Z","total_m3": 0.32,"volume_flow_m3h": 0}'
     fields   = 'QQ4;60113189;0.32;0;2128-03-31;OK;1111-11-11 11:11.11'
 }
 test {
     args     = 'QQ3 qwater 60101441 NOKEY'
     telegram = 39449344411410601A067ADB000020_0C13780000004C1300000000426CFFFFCC081335000000C2086C3F3502BB560000326CFFFF046D14173136
-    json     = '{"_": "telegram","due_17_date": "2025-05-31","due_17_date_m3": 0.035,"due_date": "2128-03-31","due_date_m3": 0,"error_date": "2128-03-31","id": "60101441","media": "warm water","meter": "qwater","meter_datetime": "2025-06-17 23:20","name": "QQ3","status": "OK","timestamp": "1111-11-11T11:11:11Z","total_m3": 0.078,"volume_flow_m3h": 0}'
+    json     = '{"_": "telegram","due_17_date": "2025-05-31","due_17_m3": 0.035,"due_date": "2128-03-31","due_m3": 0,"error_date": "2128-03-31","id": "60101441","media": "warm water","meter": "qwater","meter_datetime": "2025-06-17 23:20","name": "QQ3","status": "OK","timestamp": "1111-11-11T11:11:11Z","total_m3": 0.078,"volume_flow_m3h": 0}'
     fields   = 'QQ3;60101441;0.078;0;2128-03-31;OK;1111-11-11 11:11.11'
 }
 test {
     args     = 'QQ2 qwater 37432649 NOKEY'
     telegram = 5344934449264337353778077949264337934435070DFF5F350082560000110007C113FFFF245300001F3C210400003E348946000000800080008000800080008000002A0066005F00730072002F046D000F3235
-    json     = '{"_": "telegram","due_17_date": "2025-04-30","due_17_date_m3": 4.689,"due_date": "2024-12-31","due_date_m3": 0.421,"id": "37432649","media": "radio converter (meter side)","meter": "qwater","meter_datetime": "2025-05-18 15:00","name": "QQ2","status": "OK","timestamp": "1111-11-11T11:11:11Z","total_m3": 5.324}'
+    json     = '{"_": "telegram","due_17_date": "2025-04-30","due_17_m3": 4.689,"due_date": "2024-12-31","due_m3": 0.421,"id": "37432649","media": "radio converter (meter side)","meter": "qwater","meter_datetime": "2025-05-18 15:00","name": "QQ2","status": "OK","timestamp": "1111-11-11T11:11:11Z","total_m3": 5.324}'
     fields   = 'QQ2;37432649;5.324;0.421;2024-12-31;OK;1111-11-11 11:11.11'
 }
 test {
     args     = 'QQ1 qwater 37439212 NOKEY'
     telegram = 5344934412924337353778077912924337934435070DFF5F3500828A0000100007C113FFFF966600001F3C000000003E3419580000008000800080008000800080008000005A0094009C00BB002F046D010F3235
-    json     = '{"_": "telegram","due_17_date": "2025-04-30","due_17_date_m3": 5.819,"due_date": "2024-12-31","due_date_m3": 0,"id": "37439212","media": "radio converter (meter side)","meter": "qwater","meter_datetime": "2025-05-18 15:01","name": "QQ1","status": "OK","timestamp": "1111-11-11T11:11:11Z","total_m3": 6.696}'
+    json     = '{"_": "telegram","due_17_date": "2025-04-30","due_17_m3": 5.819,"due_date": "2024-12-31","due_m3": 0,"id": "37439212","media": "radio converter (meter side)","meter": "qwater","meter_datetime": "2025-05-18 15:01","name": "QQ1","status": "OK","timestamp": "1111-11-11T11:11:11Z","total_m3": 6.696}'
     fields   = 'QQ1;37439212;6.696;0;2024-12-31;OK;1111-11-11 11:11.11'
 }
 test {
     args     = 'QWddd qwater 13334995 NOKEY'
     telegram = 49449344954933131706780DFF5F3500823A0000600107C113FFFF29970300FF2C580303001E3B269703000A006500750073005B0070007D0061005B004200160000002F046D1E0F113C
-    json     = '{"_": "telegram","due_17_date": "2024-11-30","due_17_date_m3": 39.726,"due_date": "2023-12-31","due_date_m3": 30.358,"id": "13334995","media": "warm water","meter": "qwater","meter_datetime": "2024-12-17 15:30","name": "QWddd","status": "OK","timestamp": "1111-11-11T11:11:11Z","total_m3": 39.729}'
+    json     = '{"_": "telegram","due_17_date": "2024-11-30","due_17_m3": 39.726,"due_date": "2023-12-31","due_m3": 30.358,"id": "13334995","media": "warm water","meter": "qwater","meter_datetime": "2024-12-17 15:30","name": "QWddd","status": "OK","timestamp": "1111-11-11T11:11:11Z","total_m3": 39.729}'
     fields   = 'QWddd;13334995;39.729;30.358;2023-12-31;OK;1111-11-11 11:11.11'
 }
 test {
     args     = 'QWccc qwater 13492674 NOKEY'
     telegram = 394493447426491317077ADD0000200C13975710004C1330970700426CFF2CCC081387471000C2086C1E3B02BB560000326CFFFF046D1E0F113C
-    json     = '{"_": "telegram","due_17_date": "2024-11-30","due_17_date_m3": 104.787,"due_date": "2023-12-31","due_date_m3": 79.73,"error_date": "2128-03-31","id": "13492674","media": "water","meter": "qwater","meter_datetime": "2024-12-17 15:30","name": "QWccc","status": "OK","timestamp": "1111-11-11T11:11:11Z","total_m3": 105.797,"volume_flow_m3h": 0}'
+    json     = '{"_": "telegram","due_17_date": "2024-11-30","due_17_m3": 104.787,"due_date": "2023-12-31","due_m3": 79.73,"error_date": "2128-03-31","id": "13492674","media": "water","meter": "qwater","meter_datetime": "2024-12-17 15:30","name": "QWccc","status": "OK","timestamp": "1111-11-11T11:11:11Z","total_m3": 105.797,"volume_flow_m3h": 0}'
     fields   = 'QWccc;13492674;105.797;79.73;2023-12-31;OK;1111-11-11 11:11.11'
 }
 test {
     args     = 'QWaaa qwater 51220588 NOKEY'
     telegram = 4944934488052251190778_0DFF5F350082930000810007C113FFFF91670400FF2C265402001E34332204000000EE00F201A501DB01C1015401B70178019701B901C9012F046D06091D35
-    json     = '{"_":"telegram","due_17_date": "2024-04-30","due_17_date_m3": 42.233,"due_date": "2023-12-31","due_date_m3": 25.426,"id": "51220588","media": "water","meter": "qwater","meter_datetime": "2024-05-29 09:06","name": "QWaaa","status": "OK","timestamp": "1111-11-11T11:11:11Z","total_m3": 46.791}'
+    json     = '{"_":"telegram","due_17_date": "2024-04-30","due_17_m3": 42.233,"due_date": "2023-12-31","due_m3": 25.426,"id": "51220588","media": "water","meter": "qwater","meter_datetime": "2024-05-29 09:06","name": "QWaaa","status": "OK","timestamp": "1111-11-11T11:11:11Z","total_m3": 46.791}'
     fields   = 'QWaaa;51220588;46.791;25.426;2023-12-31;OK;1111-11-11 11:11.11'
 }
 test {
@@ -959,15 +1147,9 @@ test {
     fields   = 'MyRelHCA;00000104;1846441;1111-11-11 11:11.11'
 }
 test {
-    args     = 'Pokojak rfmamb 23699558 6C649F296476D737CACB75A2D639CE14'
-    telegram = 5e44b40958956923101b7a7f085005816afb5f6f40ec742610b93c109973edd8c098f505d5dfcfd53dfd72708178e4b81436cb753c6dff5094c48c26607c66419628d424ce41f38f9bd927757d82fa43396aa59a77c694acadab776460d472
-    json     = '{"_":"telegram","media":"room sensor","meter":"rfmamb","name":"Pokojak","id":"23699558","status":"MODULE_REMOVED","current_temperature_c":20.91,"average_temperature_1h_c":20.95,"average_temperature_24h_c":19.5,"maximum_temperature_1h_c":20.98,"minimum_temperature_1h_c":20.91,"maximum_temperature_24h_c":19.88,"minimum_temperature_24h_c":19.07,"current_relative_humidity_rh":35.8,"average_relative_humidity_1h_rh":36.1,"average_relative_humidity_24h_rh":36.9,"minimum_relative_humidity_1h_rh":35.8,"maximum_relative_humidity_1h_rh":36.5,"maximum_relative_humidity_24h_rh":37,"minimum_relative_humidity_24h_rh":36.7,"device_datetime":"2026-02-09 08:59","timestamp":"1111-11-11T11:11:11Z"}'
-    fields   = 'Pokojak;23699558;20.91;35.8;1111-11-11 11:11.11'
-}
-test {
     args     = 'Rummet rfmamb 11772288 NOKEY'
     telegram = 5744b40988227711101b7ab20800000265a00842658f088201659f08226589081265a0086265510852652b0902fb1aba0142fb1ab0018201fb1abd0122fb1aa90112fb1aba0162fb1aa60152fb1af501066d3b3bb36b2a00
-    json     = '{"_":"telegram","media":"room sensor","meter":"rfmamb","name":"Rummet","id":"11772288","status":"MODULE_REMOVED","current_temperature_c":22.08,"average_temperature_1h_c":21.91,"average_temperature_24h_c":22.07,"maximum_temperature_1h_c":22.08,"minimum_temperature_1h_c":21.85,"maximum_temperature_24h_c":23.47,"minimum_temperature_24h_c":21.29,"current_relative_humidity_rh":44.2,"average_relative_humidity_1h_rh":43.2,"average_relative_humidity_24h_rh":44.5,"minimum_relative_humidity_1h_rh":42.5,"maximum_relative_humidity_1h_rh":44.2,"maximum_relative_humidity_24h_rh":50.1,"minimum_relative_humidity_24h_rh":42.2,"device_datetime":"2019-10-11 19:59","timestamp":"1111-11-11T11:11:11Z"}'
+    json     = '{"_":"telegram","media":"room sensor","meter":"rfmamb","name":"Rummet","id":"11772288","status":"PERMANENT_ERROR","current_temperature_c":22.08,"average_temperature_1h_c":21.91,"average_temperature_24h_c":22.07,"maximum_temperature_1h_c":22.08,"minimum_temperature_1h_c":21.85,"maximum_temperature_24h_c":23.47,"minimum_temperature_24h_c":21.29,"current_relative_humidity_rh":44.2,"average_relative_humidity_1h_rh":43.2,"average_relative_humidity_24h_rh":44.5,"minimum_relative_humidity_1h_rh":42.5,"maximum_relative_humidity_1h_rh":44.2,"maximum_relative_humidity_24h_rh":50.1,"minimum_relative_humidity_24h_rh":42.2,"device_datetime":"2019-10-11 19:59","timestamp":"1111-11-11T11:11:11Z"}'
     fields   = 'Rummet;11772288;22.08;44.2;1111-11-11 11:11.11'
 }
 test {
@@ -990,6 +1172,42 @@ test {
     fields   = 'Heat;20480057;ERROR_FLOW_MEASUREMENT_SYSTEM_ERROR TEMPORARY_ERROR;0;0;1999-11-30;0;1111-11-11 11:11.11'
 }
 test {
+    args     = 'Heatoo sharky774 72615127 NOKEY'
+    telegram = 5E44A5112751617241047A8B0050052F2F0C0E000000000C13010000000B3B0000000C2B000000000A5A26020A5E18020B260321000AA6180000C2026CBE2BCC020E00000000CC021301000000DB023B000000DC022B000000002F2F2F2F2F
+    json     = '{"_":"telegram","media":"heat","meter":"sharky774","name":"Heatoo","id":"72615127","total_energy_consumption_kwh":0,"total_volume_m3":0.001,"volume_flow_m3h":0,"power_kw":0,"flow_temperature_c":22.6,"return_temperature_c":21.8,"operating_time_h":2103,"operating_time_in_error_h":0,"timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'Heatoo;72615127;0;null;null;1111-11-11 11:11.11'
+}
+test {
+    args     = 'diehl_meter sharky774 52173898 NOKEY'
+    telegram = 3E44A51198381752410C7AA80030052F2F_0C06105104000C13093835020B3B9401000C2B342600000A5A12060A5E91040AA61800004C0641460400426CFF21
+    json     = '{"_":"telegram","media":"heat volume at inlet","meter":"sharky774","name":"diehl_meter","id":"52173898","total_energy_consumption_kwh":45110,"total_volume_m3":2353.809,"volume_flow_m3h":0.194,"power_kw":2.634,"flow_temperature_c":61.2,"return_temperature_c":49.1,"operating_time_in_error_h":0,"energy_at_set_date_kwh":44641,"set_date":"2023-01-31","timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'diehl_meter;52173898;45110;44641;2023-01-31;1111-11-11 11:11.11'
+}
+test {
+    args     = 'Heato sharky 69696969 NOKEY'
+    telegram = 5e44a5116969696940047aBe0050052f2f0c06975100008c1006000000000c13849345000c2B000000000B3B0000000a5a06020a5e08020a6202f00B26110201cc020623500000cc021329554400c2026cdf2c2f2f2f2f2f2f2f2f2f2f2f2f
+    json     = '{"_":"telegram","flow_temperature_c": 20.6,"id": "69696969","media": "heat","meter": "sharky","name": "Heato","operating_time_h": 10211,"power_kw": 0,"return_temperature_c": 20.8,"target_date": "2022-12-31","target_energy_consumption_kwh": 5023,"target_volume_m3": 445.529,"temperature_difference_c": -0.2,"timestamp": "1111-11-11T11:11:11Z","total_energy_consumption_kwh": 5197,"total_energy_consumption_tariff1_kwh": 0,"total_volume_m3": 459.384, "volume_flow_m3h": 0}'
+    fields   = 'Heato;69696969;5197;0;459.384;null;0;0;20.6;20.8;-0.2;1111-11-11 11:11.11'
+}
+test {
+    args     = 'Heat sharky 68926025 NOKEY'
+    telegram = 5e44a5115376916140047a0B0050052f2f0c0e829311008c100e000000000c14014938000c2B751400000B3B2902000a5a52070a5e95060a6256000a279015cc020e92831100cc021478113800c2026cdf2c2f2f2f2f2f2f2f2f2f2f2f2f2f
+    json     = '{"_":"telegram","flow_temperature_c": 42.3,"id": "68926025","media": "heat","meter": "sharky","name": "Heat","power_kw": 0,"return_temperature_c": 28.1,"status": "OK","temperature_difference_c": 14.1,"timestamp": "1111-11-11T11:11:11Z","total_energy_consumption_kwh": 2651,"total_energy_consumption_tariff1_kwh": 0,"total_volume_m3": 150.347,"total_volume_tariff2_m3": 0.018,"volume_flow_m3h": 0}'
+    fields   = 'Heat;68926025;2651;0;150.347;0.018;0;0;42.3;28.1;14.1;1111-11-11 11:11.11'
+}
+test {
+    args     = 'Heat sharky 68926025 NOKEY'
+    telegram = 534424232004256092687A370045752235854DEEEA5939FAD81C25FEEF5A23C38FB9168493C563F08DB10BAF87F660FBA91296BA2397E8F4220B86D3A192FB51E0BFCF24DCE72118E0C75A9E89F43BDFE370824B
+    json     = '{"_":"telegram","media":"heat","meter":"sharky","name":"Heat","id":"68926025","total_energy_consumption_kwh":2651,"total_energy_consumption_tariff1_kwh":0,"total_volume_m3":150.347,"total_volume_tariff2_m3":0.018,"volume_flow_m3h":0,"power_kw":0,"flow_temperature_c":42.3,"return_temperature_c":28.1,"status":"OK","temperature_difference_c":14.1,"timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'Heat;68926025;2651;0;150.347;0.018;0;0;42.3;28.1;14.1;1111-11-11 11:11.11'
+}
+test {
+    args     = 'MyHeatCoster sontex868 27282728 NOKEY'
+    telegram = AF46EE4D2827282716087A80000000_046D040A9F2A036E770000426CE1F7436E660000525900008288016C61258388016E0000008D8801EE1E3533FE00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000005FF2D0000803F8520FF2D0000803F0259AD0A0265D8041259AD0A8310FD3100000082106C01018110FD610082206C9F2A0BFD0F01030102FF2C000002FD66AC08
+    json     = '{"_":"telegram","media":"heat cost allocation","meter":"sontex868","name":"MyHeatCoster","id":"27282728","current_consumption_hca":119,"set_date":"2127-07-01","consumption_at_set_date_hca":102,"current_temp_c":27.33,"current_room_temp_c":12.4,"max_temp_c":27.33,"max_temp_previous_period_c":0,"device_datetime":"2020-10-31 10:04","timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'MyHeatCoster;27282728;119;2127-07-01;102;1111-11-11 11:11.11'
+}
+test {
     args     = 'sonsupercal supercal 89508019 NOKEY'
     comment  = 'Sontex Supercal 739 test case'
     telegram = 4444EE4D198050891B047AFB000000_046D3612E423820A6CE1F1040628010000840A060000000004144A110000840A14000000000259E30F025D2A0C023B1D01032C3A0100
@@ -997,10 +1215,40 @@ test {
     fields   = 'sonsupercal;89508019;296;1111-11-11 11:11.11'
 }
 test {
-    args     = 'Water ultrimis 95969798 NOKEY'
-    telegram = 2E4401069897969501167A4B0320052F2F_0413320C000003FD1700000044132109000004933C000000002F2F2F2F2F
-    json     = '{"_":"telegram","media":"cold water","meter":"ultrimis","name":"Water","id":"95969798","total_m3":3.122,"target_m3":2.337,"current_status":"OK","total_backward_flow_m3":0,"timestamp":"1111-11-11T11:11:11Z"}'
-    fields   = 'Water;95969798;3.122;2.337;OK;0;1111-11-11 11:11.11'
+    args     = 'MyColdWater supercom587 11111111 NOKEY'
+    telegram = A244EE4D111111113C077AAC000000_0C1389490000426CE1F14C130000000082046C21298C0413010000008D04931E3A3CFE0100000001000000010000000100000001000000010000000100000001000000010000000100000001000000010000001600000031130000046D0A0C5C2B03FD6C60150082206C5C290BFD0F0200018C4079629885238310FD3100000082106C01018110FD610002FD66020002FD170000
+    json     = '{"_":"telegram","media":"water","meter":"supercom587","name":"MyColdWater","id":"11111111","total_m3":4.989,"software_version":"010002","status":"OK","timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'MyColdWater;11111111;4.989;1111-11-11 11:11.11'
+}
+test {
+    args     = 'MyWarmWater supercom587 12345678 NOKEY'
+    telegram = A244EE4D785634123C067A8F000000_0C1348550000426CE1F14C130000000082046C21298C0413330000008D04931E3A3CFE3300000033000000330000003300000033000000330000003300000033000000330000003300000033000000330000004300000034180000046D0D0B5C2B03FD6C5E150082206C5C290BFD0F0200018C4079678885238310FD3100000082106C01018110FD610002FD66020002FD170000
+    json     = '{"_":"telegram","media":"warm water","meter":"supercom587","name":"MyWarmWater","id":"12345678","total_m3":5.548,"software_version":"010002","status":"OK","timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'MyWarmWater;12345678;5.548;1111-11-11 11:11.11'
+}
+test {
+    args     = 'Woter topaseskr 69190253 NOKEY'
+    telegram = 4E44B40553021969F1077A0C0040052F2F_01FD08800C13914544004C1393673500CC101300000000CC201393673500426CDF2C0B3B0100F002FD747912025AAE00C4016D3B17FF25CC011325584100
+    json     = '{"_":"telegram","access_counter": 128,"battery_y": 12.947562,"current_flow_m3h": -0.001,"id": "69190253","media": "water","meter": "topaseskr","meter_month_period_end_datetime": "2023-05-31 23:59","meter_year_period_end_date": "2022-12-31","name": "Woter","reverse_volume_year_period_m3": 0,"temperature_c": 17.4,"timestamp": "1111-11-11T11:11:11Z","total_m3": 444.591,"volume_month_period_m3": 415.825,"volume_year_period_m3": 356.793}'
+    fields   = 'Woter;69190253;444.591;17.4;-0.001;356.793;0;2022-12-31;415.825;2023-05-31 23:59;1111-11-11 11:11.11'
+}
+test {
+    args     = 'Witer topaseskr 78563412 NOKEY'
+    telegram = 4E44B40512345678F1077A310040052F2F_01FD08040C13991848004C1359423500CC101300000000CC201359423500426C7F2C0B3B00000002FD74DA10025AD300C4016D3B179F27CC011387124600
+    json     = '{"_":"telegram","media":"water","meter":"topaseskr","name":"Witer","id":"78563412","total_m3":481.899,"access_counter":4,"temperature_c":21.1,"current_flow_m3h":0,"volume_year_period_m3":354.259,"reverse_volume_year_period_m3":0,"meter_year_period_end_date":"2019-12-31","volume_month_period_m3":461.287,"meter_month_period_end_datetime":"2020-07-31 23:59","battery_y":11.811331,"timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'Witer;78563412;481.899;21.1;0;354.259;0;2019-12-31;461.287;2020-07-31 23:59;1111-11-11 11:11.11'
+}
+test {
+    args     = 'MyUltra2 ultraheat 71635605 NOKEY'
+    telegram = 3b44a7320556637104047afa2000202f2f0c06774202000c14399956000b2d0200f00b3b3018000a5a51030a5e520302fd170000066d0c080af42500
+    json     = '{"_":"telegram","flow_c": 35.1,"flow_m3h": 1.83,"heat_kwh": 24277,"id": "71635605","media": "heat","meter": "ultraheat","meter_datetime": "2023-05-20 10:08:12","name": "MyUltra2","power_kw": -0.2,"return_c": 35.2,"status": "UNKNOWN_20","timestamp": "1111-11-11T11:11:11Z","volume_m3": 5699.39}'
+    fields   = 'MyUltra2;71635605;24277;1111-11-11 11:11.11'
+}
+test {
+    args     = 'MyUltra ultraheat 70444600 NOKEY'
+    telegram = 68F8F86808007200464470A7320404270000000974040970040C0E082303000C14079519000B2D0500000B3B0808000A5B52000A5F51000A6206004C14061818004C0E490603000C7800464470891071609B102D020100DB102D0201009B103B6009009A105B78009A105F74000C22726701003C22000000007C2200000000426C01018C2006000000008C3006000000008C80100600000000CC200600000000CC300600000000CC801006000000009A115B64009A115F63009B113B5208009B112D020100BC0122000000008C010E490603008C2106000000008C3106000000008C811006000000008C011406181800046D310ACA210F21040010A0C116
+    json     = '{"_":"telegram","media":"heat","status":"OK","meter":"ultraheat","meter_datetime": "2022-01-10 10:49", "name":"MyUltra","id":"70444600","heat_kwh":8974.444444,"volume_m3":1995.07,"power_kw":0.5,"flow_m3h":0.808,"flow_c":52,"return_c":51,"fabrication_no": "70444600","timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'MyUltra;70444600;8974.444444;1111-11-11 11:11.11'
 }
 test {
     args     = 'Water ultrimis 95969798 NOKEY'
@@ -1011,20 +1259,68 @@ test {
 test {
     args     = 'GasMeter unismart 00043094 00000000000000000000000000000000'
     telegram = 6044B8059430040001037A1D005085E2B670BCF1A5C87E0C1A51DA18924EF984613DA2A9CD39D8F4C7208326C76D42DBEADF80D574192B71BD7C4F56A7F1513151768A9DB804883B28CB085CA2D0F7438C361CB9E2734712ED9BFBB2A14EF55208
-    json     = '{"_":"telegram","media":"gas","meter":"unismart","name":"GasMeter","id":"00043094","fabrication_no":"03162296","status":"STATUS_FLAGS_CF0","other":"OTHER_FLAGS_14","total_datetime":"2021-09-15 13:18","total_m3":917,"target_datetime":"2021-09-01 06:00","target_m3":911.32,"version":"  4GGU","supplier_info":"00","parameter_set":"02","meter_datetime":"2021-09-15 13:18","timestamp":"1111-11-11T11:11:11Z"}'
+    json     = '{"_":"telegram","media":"gas","meter":"unismart","name":"GasMeter","id":"00043094","fabrication_no":"03162296","status":"STATUS_FLAGS_CF0","other":"OTHER_FLAGS_14","total_datetime":"2021-09-15 13:18","total_m3":917,"target_datetime":"2021-09-01 06:00","target_m3":911.32,"version":"  4GGU","supplier_info":"00","parameter_set":"02","meter_timestamp":"2021-09-15 13:18:30","timestamp":"1111-11-11T11:11:11Z"}'
     fields   = 'GasMeter;00043094;917;911.32;1111-11-11 11:11.11'
 }
 test {
     args     = 'Howdy vario411 67627875 NOKEY'
     telegram = 624468507578626728048C00F3900F002C25FEEB0600BA84134D9202A1327AFF003007102F2F_4406E1190000426CBF2C0F206730E2E7516874F5DB46B5A97816F575A29A1EA2717D6ADE5C2FE64517ED2B0497EE0FF64C2674CD0832572C484DDFED30
-    json     = '{"_":"telegram","media":"heat","meter":"vario411","name":"Howdy","id":"67627875","target_kwh":6625,"target_date":"2021-12-31","timestamp":"1111-11-11T11:11:11Z"}'
+    json     = '{"_":"telegram","id": "67627875","media": "heat","meter": "vario411","name": "Howdy","target_date": "2021-12-31","target_kwh": 6625,"timestamp":"1111-11-11T11:11:11Z"}'
     fields   = 'Howdy;67627875;6625;2021-12-31;1111-11-11 11:11.11'
+}
+test {
+    args     = 'water2 waterstarm 51398765 NOKEY'
+    telegram = A144C5146587395170078C20947AD10090252F2F_046D862D4A3104131300000001FD1700426C3F3C44130000000044933C0000000084011300000000C401130100000084021300000000C402130000000084031300000000C4031300000000840413FFFFFFFFC40413FFFFFFFF840513FFFFFFFFC40513FFFFFFFF840613FFFFFFFFC40613FFFFFFFF840713FFFFFFFFC40713FFFFFFFF840813FFFFFFFF2F2F2F2F
+    json     = '{"_": "telegram","consumption_at_history_10_m3": -0.001,"consumption_at_history_11_m3": -0.001,"consumption_at_history_12_m3": -0.001,"consumption_at_history_13_m3": -0.001,"consumption_at_history_14_m3": -0.001,"consumption_at_history_15_m3": -0.001,"consumption_at_history_1_m3": 0,"consumption_at_history_2_m3": 0.001,"consumption_at_history_3_m3": 0,"consumption_at_history_4_m3": 0,"consumption_at_history_5_m3": 0,"consumption_at_history_6_m3": 0,"consumption_at_history_7_m3": -0.001,"consumption_at_history_8_m3": -0.001,"consumption_at_history_9_m3": -0.001,"consumption_at_set_date_m3": 0,"current_status": "OK","history_10_date": "2025-03-10","history_11_date": "2025-02-10","history_12_date": "2025-01-10","history_13_date": "2024-12-10","history_14_date": "2024-11-10","history_15_date": "2024-10-10","history_1_date": "2025-12-10","history_2_date": "2025-11-10","history_3_date": "2025-10-10","history_4_date": "2025-09-10","history_5_date": "2025-08-10","history_6_date": "2025-07-10","history_7_date": "2025-06-10","history_8_date": "2025-05-10","history_9_date": "2025-04-10","id": "51398765","media": "water","meter": "waterstarm","meter_datetime": "2026-01-10 13:06","name": "water2","set_date": "2025-12-31","status": "OK","timestamp": "1111-11-11T11:11:11Z","total_backwards_at_set_date_m3": 0,"total_m3": 0.019}'
+    fields   = 'water2;51398765;0.019;null;OK;1111-11-11 11:11.11'
+}
+test {
+    args     = 'water waterstarm 50496629 FFEEDDCCBBAA00998877665544332211'
+    telegram = a144c5142966495070078c20d07a0d0090257db8bb9938a1ff7c4b9a4492f4ea5f278b725057eee6837c17397e9605f3a448a338bd8407a2a5846632c334dff577f427f054f55e68a00fa5c85ccbc808ccdd2bb537a83234a50392968f00c1d7473455f9fc4c88fb195ca1712325da8c6aa7fdb7c4b77b9b84a4a0ccac4f586775fa66007dbdc2c615b69247401e9b9a863ac5a5873484b1b7d0178198e88f701e53
+    json     = '{"_": "telegram","consumption_at_history_10_m3": -0.001,"consumption_at_history_11_m3": -0.001,"consumption_at_history_12_m3": -0.001,"consumption_at_history_13_m3": -0.001,"consumption_at_history_14_m3": -0.001,"consumption_at_history_15_m3": -0.001,"consumption_at_history_1_m3": 0.003,"consumption_at_history_2_m3": 0.003,"consumption_at_history_3_m3": 0.003,"consumption_at_history_4_m3": 0.002,"consumption_at_history_5_m3": 0.002,"consumption_at_history_6_m3": 0,"consumption_at_history_7_m3": 0,"consumption_at_history_8_m3": -0.001,"consumption_at_history_9_m3": -0.001,"consumption_at_set_date_m3": 0,"current_status": "OK","history_10_date": "2024-10-20","history_11_date": "2024-09-20","history_12_date": "2024-08-20","history_13_date": "2024-07-20","history_14_date": "2024-06-20","history_15_date": "2024-05-20","history_1_date": "2025-07-20","history_2_date": "2025-06-20","history_3_date": "2025-05-20","history_4_date": "2025-04-20","history_5_date": "2025-03-20","history_6_date": "2025-02-20","history_7_date": "2025-01-20","history_8_date": "2024-12-20","history_9_date": "2024-11-20","id": "50496629","media": "water","meter": "waterstarm","meter_datetime": "2025-08-20 14:51","name": "water","set_date": "2128-03-31","status": "OK","timestamp": "1111-11-11T11:11:11Z","total_backwards_at_set_date_m3": 0,"total_m3": 0.003}'
+    fields   = 'water;50496629;0.003;null;OK;1111-11-11 11:11.11'
+}
+test {
+    args     = 'ColdLorenz waterstarm 20065160 NOKEY'
+    telegram = 9644FA126051062000077A78000020_046D392DD7290413901A000002FD17000001FD481D426CBF2C4413D312000084011399190000C40113841800008402130C180000C40213EC16000084031395150000C40313E3140000840413BD130000C404134C130000840513D3120000C4051322120000840613AF110000C4061397100000840713D00F0000C40713890E0000840813980C0000
+    json     = '{"_":"telegram","battery_v":2.9,"consumption_at_history_10_m3":4.642,"consumption_at_history_11_m3":4.527,"consumption_at_history_12_m3":4.247,"consumption_at_history_13_m3":4.048,"consumption_at_history_14_m3":3.721,"consumption_at_history_15_m3":3.224,"consumption_at_history_1_m3":6.553,"consumption_at_history_2_m3":6.276,"consumption_at_history_3_m3":6.156,"consumption_at_history_4_m3":5.868,"consumption_at_history_5_m3":5.525,"consumption_at_history_6_m3":5.347,"consumption_at_history_7_m3":5.053,"consumption_at_history_8_m3":4.94,"consumption_at_history_9_m3":4.819,"consumption_at_set_date_m3":4.819,"current_status":"OK","status":"OK","history_10_date":"2021-11-23","history_11_date":"2021-10-23","history_12_date":"2021-09-23","history_13_date":"2021-08-23","history_14_date":"2021-07-23","history_15_date":"2021-06-23","history_1_date":"2022-08-23","history_2_date":"2022-07-23","history_3_date":"2022-06-23","history_4_date":"2022-05-23","history_5_date":"2022-04-23","history_6_date":"2022-03-23","history_7_date":"2022-02-23","history_8_date":"2022-01-23","history_9_date":"2021-12-23","id":"20065160","media":"water","meter":"waterstarm","meter_datetime":"2022-09-23 13:57","name":"ColdLorenz","set_date":"2021-12-31","timestamp":"1111-11-11T11:11:11Z","total_m3":6.8}'
+    fields   = 'ColdLorenz;20065160;6.8;null;OK;1111-11-11 11:11.11'
+}
+test {
+    args     = 'WarmLorenz waterstarm 20050666 NOKEY'
+    telegram = 9644FA126606052000067A1E000020_046D3B2ED729041340D8000002FD17000001FD481D426CBF2C4413026C000084011348D20000C40113F3CB0000840213DCC40000C40213B8B60000840313849B0000C403138B8C0000840413E3800000C4041337770000840513026C0000C40513D65F00008406134F560000C40613604700008407139D370000C407137F3300008408135B2C0000
+    json     = '{"_":"telegram","battery_v":2.9,"consumption_at_history_10_m3":24.534,"consumption_at_history_11_m3":22.095,"consumption_at_history_12_m3":18.272,"consumption_at_history_13_m3":14.237,"consumption_at_history_14_m3":13.183,"consumption_at_history_15_m3":11.355,"consumption_at_history_1_m3":53.832,"consumption_at_history_2_m3":52.211,"consumption_at_history_3_m3":50.396,"consumption_at_history_4_m3":46.776,"consumption_at_history_5_m3":39.812,"consumption_at_history_6_m3":35.979,"consumption_at_history_7_m3":32.995,"consumption_at_history_8_m3":30.519,"consumption_at_history_9_m3":27.65,"consumption_at_set_date_m3":27.65,"current_status":"OK","status":"OK","history_10_date":"2021-11-23","history_11_date":"2021-10-23","history_12_date":"2021-09-23","history_13_date":"2021-08-23","history_14_date":"2021-07-23","history_15_date":"2021-06-23","history_1_date":"2022-08-23","history_2_date":"2022-07-23","history_3_date":"2022-06-23","history_4_date":"2022-05-23","history_5_date":"2022-04-23","history_6_date":"2022-03-23","history_7_date":"2022-02-23","history_8_date":"2022-01-23","history_9_date":"2021-12-23","id":"20050666","media":"warm water","meter":"waterstarm","meter_datetime":"2022-09-23 14:59","name":"WarmLorenz","set_date":"2021-12-31","timestamp":"1111-11-11T11:11:11Z","total_m3":55.36}'
+    fields   = 'WarmLorenz;20050666;55.36;null;OK;1111-11-11 11:11.11'
+}
+test {
+    args     = 'Water waterstarm 11559999 NOKEY'
+    telegram = 2E44FA129999551100077A070020252F2F_046D0F28C22404139540000002FD17000001FD481D2F2F2F2F2F2F2F2F2F
+    json     = '{"_":"telegram","media":"water","meter":"waterstarm","name":"Water","id":"11559999","meter_datetime":"2022-04-02 08:15","total_m3":16.533,"current_status":"OK","status":"OK","battery_v":2.9,"timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'Water;11559999;16.533;null;OK;1111-11-11 11:11.11'
+}
+test {
+    args     = 'Water waterstarm 22996221 NOKEY'
+    telegram = 3944FA122162992202067A360420252F2F_046D282A9E2704136A00000002FD17400004933C000000002F2F2F2F2F2F03FD0C08000002FD0B0011
+    json     = '{"_":"telegram","media":"warm water","meter":"waterstarm","name":"Water","id":"22996221","meter_datetime":"2020-07-30 10:40","total_m3":0.106,"total_backwards_m3":0,"current_status":"LEAKAGE_OR_NO_USAGE POWER_LOW","status":"LEAKAGE_OR_NO_USAGE POWER_LOW","meter_version":"000008","parameter_set":"1100","timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'Water;22996221;0.106;0;LEAKAGE_OR_NO_USAGE POWER_LOW;1111-11-11 11:11.11'
+}
+test {
+    args     = 'Woter waterstarm 20096221 BEDB81B52C29B5C143388CBB0D15A051'
+    telegram = 3944FA122162092002067A3600202567C94D48D00DC47B11213E23383DB51968A705AAFA60C60E263D50CD259D7C9A03FD0C08000002FD0B0011
+    json     = '{"_":"telegram","media":"warm water","meter":"waterstarm","name":"Woter","id":"20096221","meter_datetime":"2020-07-30 10:40","total_m3":0.106,"total_backwards_m3":0,"current_status":"OK","status":"OK","meter_version":"000008","parameter_set":"1100","timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'Woter;20096221;0.106;0;OK;1111-11-11 11:11.11'
+}
+test {
+    args     = 'wtt watertech 38383838 NOKEY'
+    telegram = 3144945E3838383859078C20007A010020252F2F_066D1C1F0EF021000413B91E000002FD17000002FD0F4C2B2F2F2F2F2F2F
+    json     = '{"_":"telegram","media": "water","meter": "watertech","name": "wtt","id": "38383838","software_version" :"+L","meter_datetime": "2023-01-16 14:31:28","status": "OK","total_m3": 7.865, "timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'wtt;38383838;OK;7.865;1111-11-11 11:11.11'
 }
 test {
     args     = 'Vattenn weh_07 27604781 NOKEY'
     comment  = 'A normal water meter.'
     telegram = 5244A85C8147602703077A5B0840252F2F_0413B39100004413000000004D931E2C73FE0000000000000000000000000000000000000000000000000000000000000000000000009885001A0C002F2F426CBE29
-    json     = '{"_":"telegram","media":"water","meter":"weh_07","name":"Vattenn","id":"27604781","total_m3":37.299,"target_date":"2021-09-30","target_m3":0,"timestamp":"1111-11-11T11:11:11Z"}'
+    json     = '{"_":"telegram","id": "27604781","media": "water","meter": "weh_07","name": "Vattenn","target_date": "2021-09-30","target_m3": 0,"timestamp": "1111-11-11T11:11:11Z","total_m3": 37.299 }'
     fields   = 'Vattenn;27604781;37.299;1111-11-11 11:11.11'
 }
 test {

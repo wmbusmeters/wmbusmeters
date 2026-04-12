@@ -1,0 +1,178 @@
+// Copyright (C) 2021-2022 Vincent Privat, Fredrik Öhrström (gpl-3.0-or-later)
+driver {
+    name           = sharky774
+    meter_type     = HeatMeter
+    default_fields = name,id,total_energy_consumption_kwh,energy_at_set_date_kwh,set_date,timestamp
+    detect {
+        mvt = DME,41,04
+        mvt = DME,41,0d
+        mvt = DME,41,0c
+    }
+    fields {
+        field {
+            name     = total_energy_consumption
+            quantity = Energy
+            info     = 'The total energy consumption recorded by this meter.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
+            match {
+                measurement_type = Instantaneous
+                vif_range        = AnyEnergyVIF
+            }
+        }
+        field {
+            name     = total_cooling_consumption
+            quantity = Energy
+            info     = 'The total cooling energy consumption recorded by this meter.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
+            match {
+                measurement_type = Instantaneous
+                vif_range        = AnyEnergyVIF
+                tariff_nr        = 1
+            }
+        }
+        field {
+            name     = total_volume
+            quantity = Volume
+            info     = 'The total volume recorded by this meter.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
+            match {
+                measurement_type = Instantaneous
+                vif_range        = AnyVolumeVIF
+            }
+        }
+        field {
+            name     = total_cooling_volume
+            quantity = Volume
+            info     = 'The total cooling volume recorded by this meter.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
+            match {
+                measurement_type = Instantaneous
+                vif_range        = AnyVolumeVIF
+                tariff_nr        = 2
+            }
+        }
+        field {
+            name     = volume_flow
+            quantity = Flow
+            info     = 'The current flow.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
+            match {
+                measurement_type = Instantaneous
+                vif_range        = VolumeFlow
+            }
+        }
+        field {
+            name     = power
+            quantity = Power
+            info     = 'The power.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
+            match {
+                measurement_type = Instantaneous
+                vif_range        = AnyPowerVIF
+            }
+        }
+        field {
+            name     = flow_temperature
+            quantity = Temperature
+            info     = 'The flow temperature.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
+            match {
+                measurement_type = Instantaneous
+                vif_range        = FlowTemperature
+            }
+        }
+        field {
+            name     = return_temperature
+            quantity = Temperature
+            info     = 'The return temperature.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
+            match {
+                measurement_type = Instantaneous
+                vif_range        = ReturnTemperature
+            }
+        }
+        field {
+            name     = operating_time
+            quantity = Time
+            info     = 'How long the meter has been collecting data.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
+            match {
+                measurement_type = Instantaneous
+                vif_range        = OperatingTime
+            }
+        }
+        field {
+            name     = operating_time_in_error
+            quantity = Time
+            info     = 'How long the meter has been in an error state and not collected data.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
+            match {
+                measurement_type = Instantaneous
+                vif_range        = OperatingTime
+                add_combinable   = RecordErrorCodeMeterToController
+            }
+        }
+        field {
+            name     = energy_at_set_date
+            quantity = Energy
+            info     = 'The total energy consumption recorded by this meter at the set date.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
+            match {
+                measurement_type = Instantaneous
+                vif_range        = AnyEnergyVIF
+                storage_nr       = 1
+            }
+        }
+        field {
+            name     = cooling_at_set_date
+            quantity = Energy
+            info     = 'The total cooling energy consumption recorded by this meter at the set date.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
+            match {
+                measurement_type = Instantaneous
+                vif_range        = AnyEnergyVIF
+                storage_nr       = 1
+                tariff_nr        = 1
+            }
+        }
+        field {
+            name     = set
+            quantity = PointInTime
+            info     = 'The last billing set date.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
+            display_unit = date
+            match {
+                measurement_type = Instantaneous
+                vif_range        = Date
+                storage_nr       = 1
+            }
+        }
+    }
+    tests {
+        test {
+            args     = 'diehl_meter sharky774 52173898 NOKEY'
+            telegram = 3E44A51198381752410C7AA80030052F2F_0C06105104000C13093835020B3B9401000C2B342600000A5A12060A5E91040AA61800004C0641460400426CFF21
+            json     = '{"_":"telegram","media":"heat volume at inlet","meter":"sharky774","name":"diehl_meter","id":"52173898","total_energy_consumption_kwh":45110,"total_volume_m3":2353.809,"volume_flow_m3h":0.194,"power_kw":2.634,"flow_temperature_c":61.2,"return_temperature_c":49.1,"operating_time_in_error_h":0,"energy_at_set_date_kwh":44641,"set_date":"2023-01-31","timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'diehl_meter;52173898;45110;44641;2023-01-31;1111-11-11 11:11.11'
+        }
+        test {
+            args     = 'Heatoo sharky774 72615127 NOKEY'
+            telegram = 5E44A5112751617241047A8B0050052F2F0C0E000000000C13010000000B3B0000000C2B000000000A5A26020A5E18020B260321000AA6180000C2026CBE2BCC020E00000000CC021301000000DB023B000000DC022B000000002F2F2F2F2F
+            json     = '{"_":"telegram","media":"heat","meter":"sharky774","name":"Heatoo","id":"72615127","total_energy_consumption_kwh":0,"total_volume_m3":0.001,"volume_flow_m3h":0,"power_kw":0,"flow_temperature_c":22.6,"return_temperature_c":21.8,"operating_time_h":2103,"operating_time_in_error_h":0,"timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'Heatoo;72615127;0;null;null;1111-11-11 11:11.11'
+        }
+    }
+}

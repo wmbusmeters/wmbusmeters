@@ -31,10 +31,8 @@ Copyright (C) 2017-2026 Fredrik Öhrström
                    2022 Kajetan Krykwiński
                    2021 Vincent Privat
                    2020 Eric Bus
-                   2020 Avandorp
                    2019 kokke
                    2019 Jacek Tomasiak
-                   2018 David Mallon
                    2013 WaterJuice
                    2013 Tom St Denis
 )AUTHORS";

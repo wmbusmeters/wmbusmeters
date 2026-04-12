@@ -1,0 +1,271 @@
+// Copyright (C) 2017-2022 Fredrik Öhrström (gpl-3.0-or-later)
+driver {
+    name           = em24
+    meter_type     = ElectricityMeter
+    default_fields = name,id,total_energy_consumption_kwh,total_energy_production_kwh,total_reactive_energy_consumption_kvarh,total_reactive_energy_production_kvarh,total_apparent_energy_consumption_kvah,total_apparent_energy_production_kvah,timestamp
+    detect {
+        mvt = KAM,33,02
+        mvt = GAV,00,02
+    }
+    fields {
+        field {
+            name     = status
+            quantity = Text
+            info     = 'Status of meter.'
+            attributes = STATUS
+            match {
+                measurement_type = Instantaneous
+                vif_range        = ErrorFlags
+            }
+            lookup {
+                name            = ERROR_FLAGS
+                map_type        = BitToString
+                mask_bits       = 0xff
+                default_message = OK
+                map {
+                    name  = V_1_OVERFLOW
+                    value = 0x01
+                    test  = Set
+                }
+                map {
+                    name  = V_2_OVERFLOW
+                    value = 0x02
+                    test  = Set
+                }
+                map {
+                    name  = V_2_OVERFLOW
+                    value = 0x04
+                    test  = Set
+                }
+                map {
+                    name  = I_1_OVERFLOW
+                    value = 0x08
+                    test  = Set
+                }
+                map {
+                    name  = I_2_OVERFLOW
+                    value = 0x10
+                    test  = Set
+                }
+                map {
+                    name  = I_3_OVERFLOW
+                    value = 0x20
+                    test  = Set
+                }
+                map {
+                    name  = FREQUENCY
+                    value = 0x40
+                    test  = Set
+                }
+            }
+        }
+        field {
+            name     = error
+            quantity = Text
+            info     = 'Any errors currently being reported, this field is deprecated and replaced by the status field.'
+            attributes = DEPRECATED
+            match {
+                measurement_type = Instantaneous
+                vif_range        = ErrorFlags
+            }
+            lookup {
+                name            = ERROR_FLAGS
+                map_type        = BitToString
+                mask_bits       = 0xff
+                default_message = V_1_OVERFLOW
+                map {
+                    name  = V_1_OVERFLOW
+                    value = 0x01
+                    test  = Set
+                }
+                map {
+                    name  = V_2_OVERFLOW
+                    value = 0x02
+                    test  = Set
+                }
+                map {
+                    name  = V_2_OVERFLOW
+                    value = 0x04
+                    test  = Set
+                }
+                map {
+                    name  = I_1_OVERFLOW
+                    value = 0x08
+                    test  = Set
+                }
+                map {
+                    name  = I_2_OVERFLOW
+                    value = 0x10
+                    test  = Set
+                }
+                map {
+                    name  = I_3_OVERFLOW
+                    value = 0x20
+                    test  = Set
+                }
+                map {
+                    name  = FREQUENCY
+                    value = 0x40
+                    test  = Set
+                }
+            }
+        }
+        field {
+            name     = total_energy_consumption
+            quantity = Energy
+            info     = 'The total energy consumption recorded by this meter.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
+            match {
+                measurement_type = Instantaneous
+                vif_range        = AnyEnergyVIF
+            }
+        }
+        field {
+            name     = power
+            quantity = Power
+            info     = 'Power measured by this meter at the moment.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
+            match {
+                measurement_type = Instantaneous
+                vif_range        = AnyPowerVIF
+            }
+        }
+        field {
+            name     = total_energy_production
+            quantity = Energy
+            info     = 'The total energy backward (production) recorded by this meter.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
+            match {
+                measurement_type = Instantaneous
+                vif_range        = AnyEnergyVIF
+                add_combinable   = BackwardFlow
+            }
+        }
+        field {
+            name     = total_reactive_energy_consumption
+            quantity = Reactive_Energy
+            info     = 'The reactive total energy consumption recorded by this meter.'
+            vif_scaling    = None
+            dif_signedness = Signed
+            match {
+                difvifkey        = 04FB8275
+            }
+        }
+        field {
+            name     = total_reactive_energy_production
+            quantity = Reactive_Energy
+            info     = 'The total reactive energy backward (production) recorded by this meter.'
+            vif_scaling    = None
+            dif_signedness = Signed
+            match {
+                difvifkey        = 04FB82F53C
+            }
+        }
+        field {
+            name     = total_apparent_energy_consumption
+            quantity = Apparent_Energy
+            info     = 'Calculated: the total apparent energy consumption.'
+            formula = 'sqrt( (total_energy_consumption_kwh * total_energy_consumption_kwh) + (total_reactive_energy_consumption_kvarh * total_reactive_energy_consumption_kvarh) )'
+        }
+        field {
+            name     = total_apparent_energy_production
+            quantity = Apparent_Energy
+            info     = 'Calculated: the total apparent energy production.'
+            formula = 'STR( sqrt( (total_energy_production_kwh * total_energy_production_kwh) + (total_reactive_energy_production_kvarh * total_reactive_energy_production_kvarh) ) )STR'
+        }
+        field {
+            name     = amperage_at_phase_1
+            quantity = Amperage
+            info     = 'Amperage at phase L1.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
+            match {
+                difvifkey        = 04FDD9FC01
+            }
+        }
+        field {
+            name     = amperage_at_phase_2
+            quantity = Amperage
+            info     = 'Amperage at phase L2.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
+            match {
+                difvifkey        = 04FDD9FC02
+            }
+        }
+        field {
+            name     = amperage_at_phase_3
+            quantity = Amperage
+            info     = 'Amperage at phase L3.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
+            match {
+                difvifkey        = 04FDD9FC03
+            }
+        }
+        field {
+            name     = voltage_at_phase_1
+            quantity = Voltage
+            info     = 'Voltage at phase L1.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
+            match {
+                difvifkey        = 04FDC8FC01
+            }
+        }
+        field {
+            name     = voltage_at_phase_2
+            quantity = Voltage
+            info     = 'Voltage at phase L2.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
+            match {
+                difvifkey        = 04FDC8FC02
+            }
+        }
+        field {
+            name     = voltage_at_phase_3
+            quantity = Voltage
+            info     = 'Voltage at phase L3.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
+            match {
+                difvifkey        = 04FDC8FC03
+            }
+        }
+        field {
+            name     = raw_frequency
+            quantity = Frequency
+            info     = 'Frequency in 0.1 Hz'
+            vif_scaling    = None
+            dif_signedness = Signed
+            attributes = HIDE
+            match {
+                difvifkey        = 02FB2E
+            }
+        }
+        field {
+            name     = frequency
+            quantity = Frequency
+            info     = 'Frequency of AC.'
+            formula = 'raw_frequency_hz / 10 counter'
+        }
+    }
+    tests {
+        test {
+            args     = 'Elen em24 66666666 NOKEY'
+            telegram = 35442D2C6666666633028D2070806A0520B4D378_0405F208000004FB82753F00000004853C0000000004FB82F53CCA01000001FD1722
+            json     = '{"_":"telegram","media":"electricity","meter":"em24","name":"Elen","id":"66666666","status":"I_3_OVERFLOW V_2_OVERFLOW","error":"I_3_OVERFLOW V_2_OVERFLOW","total_energy_consumption_kwh":229,"total_energy_production_kwh":0,"total_reactive_energy_consumption_kvarh":63,"total_reactive_energy_production_kvarh":458,"total_apparent_energy_consumption_kvah":237.507895,"total_apparent_energy_production_kvah":458,"frequency_hz":null,"timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'Elen;66666666;229;0;63;458;237.507895;458;1111-11-11 11:11.11'
+        }
+        test {
+            args     = 'Elen2 em24 02020202 NOKEY'
+            telegram = 4144361C0202020200028C209A7A9A0030252F2F_04050100000004FB82750000000004FB82F53C00000000042A0000000001FD17002F2F2F2F2F2F2F2F2F2F2F2F2F
+            json     = '{"_":"telegram","error": "","id": "02020202","media": "electricity","meter": "em24","name": "Elen2","power_kw": 0,"status": "OK","timestamp": "1111-11-11T11:11:11Z","total_apparent_energy_consumption_kvah": 0.1,"total_apparent_energy_production_kvah": null,"total_energy_consumption_kwh": 0.1,"total_reactive_energy_consumption_kvarh": 0,"total_reactive_energy_production_kvarh": 0,"frequency_hz":null}'
+            fields   = 'Elen2;02020202;0.1;null;0;0;0.1;null;1111-11-11 11:11.11'
+        }
+    }
+}

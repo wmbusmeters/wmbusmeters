@@ -1,0 +1,116 @@
+// Copyright (C) 2020-2022 Fredrik Öhrström (gpl-3.0-or-later)
+driver {
+    name           = aventieswm
+    meter_type     = WaterMeter
+    default_fields = name,id,total_m3,error_flags,timestamp
+    detect {
+        mvt = AAA,25,07
+    }
+    fields {
+        field {
+            name     = status
+            quantity = Text
+            info     = 'Meter status from error flags and tpl status field.'
+            attributes = STATUS,INCLUDE_TPL_STATUS
+            match {
+                measurement_type = Instantaneous
+                vif_range        = ErrorFlags
+            }
+            lookup {
+                name            = ERROR_FLAGS
+                map_type        = BitToString
+                mask_bits       = 0xffff
+                default_message = OK
+                map {
+                    name  = SABOTAGE
+                    value = 0x02
+                    test  = Set
+                }
+                map {
+                    name  = BATTERY
+                    value = 0x04
+                    test  = Set
+                }
+                map {
+                    name  = CS
+                    value = 0x08
+                    test  = Set
+                }
+                map {
+                    name  = HF
+                    value = 0x10
+                    test  = Set
+                }
+                map {
+                    name  = RESET
+                    value = 0x20
+                    test  = Set
+                }
+            }
+        }
+        field {
+            name     = total
+            quantity = Volume
+            info     = 'The total water consumption recorded by this meter.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
+            match {
+                measurement_type = Instantaneous
+                vif_range        = Volume
+            }
+        }
+        field {
+            name     = 'consumption_at_set_date_{storage_counter}'
+            quantity = Volume
+            info     = 'Water consumption at the # billing period date.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
+            match {
+                measurement_type = Instantaneous
+                vif_range        = Volume
+                storage_nr       = 1,14
+            }
+        }
+        field {
+            name     = error_flags
+            quantity = Text
+            info     = 'Deprecated.'
+            attributes = DEPRECATED
+            match {
+                measurement_type = Instantaneous
+                vif_range        = ErrorFlags
+            }
+            lookup {
+                name            = ERROR_FLAGS
+                map_type        = BitToString
+                mask_bits       = 0xffff
+                default_message = SABOTAGE
+                map {
+                    name  = SABOTAGE
+                    value = 0x02
+                    test  = Set
+                }
+                map {
+                    name  = BATTERY
+                    value = 0x04
+                    test  = Set
+                }
+                map {
+                    name  = CS
+                    value = 0x08
+                    test  = Set
+                }
+                map {
+                    name  = HF
+                    value = 0x10
+                    test  = Set
+                }
+                map {
+                    name  = RESET
+                    value = 0x20
+                    test  = Set
+                }
+            }
+        }
+    }
+}

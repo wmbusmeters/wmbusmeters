@@ -101,18 +101,22 @@ driver {
             }
         }
         field {
-            name     = current_consumption
-            quantity = HCA
-            info     = 'The current heat cost allocation.'
+            name           = current_consumption
+            quantity       = HCA
+            info           = 'The current heat cost allocation.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
             match {
                 measurement_type = Instantaneous
                 vif_range        = HeatCostAllocation
             }
         }
         field {
-            name     = 'consumption_at_set_date_{storage_counter}'
-            quantity = HCA
-            info     = 'The heat cost allocation at set date #.'
+            name           = 'consumption_at_set_date_{storage_counter}'
+            quantity       = HCA
+            info           = 'The heat cost allocation at set date #.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
             match {
                 measurement_type = Instantaneous
                 vif_range        = HeatCostAllocation
@@ -120,9 +124,11 @@ driver {
             }
         }
         field {
-            name     = consumption_at_set_date
-            quantity = HCA
-            info     = 'Deprecated field.'
+            name           = consumption_at_set_date
+            quantity       = HCA
+            info           = 'Deprecated field.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
             match {
                 measurement_type = Instantaneous
                 vif_range        = HeatCostAllocation

@@ -1,0 +1,130 @@
+// Copyright (C) 2020-2022 Fredrik Öhrström (gpl-3.0-or-later)
+driver {
+    name           = esyswm
+    meter_type     = ElectricityMeter
+    default_fields = name,id,total_energy_consumption_kwh,current_power_consumption_kw,total_energy_production_kwh,total_energy_consumption_tariff1_kwh,total_energy_consumption_tariff2_kwh,current_power_consumption_phase1_kw,current_power_consumption_phase2_kw,current_power_consumption_phase3_kw,enhanced_id,timestamp
+    detect {
+        mvt = ESY,30,37
+        mvt = ESY,11,02
+    }
+    library {
+        use = fabrication_no,enhanced_id,location
+    }
+    fields {
+        field {
+            name     = location_hex
+            quantity = Text
+            info     = 'Meter installed at this customer location. Deprecate field.'
+            attributes = DEPRECATED
+            match {
+                measurement_type = Instantaneous
+                vif_range        = Location
+            }
+        }
+        field {
+            name     = total_energy_consumption
+            quantity = Energy
+            info     = 'The total energy consumption recorded by this meter.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
+            match {
+                measurement_type = Instantaneous
+                vif_range        = AnyEnergyVIF
+            }
+        }
+        field {
+            name     = current_power_consumption
+            quantity = Power
+            info     = 'Calculated sum of power consumption of all phases.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
+            match {
+                measurement_type = Instantaneous
+                vif_range        = AnyPowerVIF
+            }
+        }
+        field {
+            name     = total_energy_production
+            quantity = Energy
+            info     = 'The total energy production recorded by this meter.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
+            match {
+                measurement_type = Instantaneous
+                vif_range        = AnyEnergyVIF
+                add_combinable   = BackwardFlow
+            }
+        }
+        field {
+            name     = total_energy_consumption_tariff1
+            quantity = Energy
+            info     = 'The total energy consumption recorded by this meter on tariff 1.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
+            match {
+                measurement_type = Instantaneous
+                vif_range        = AnyEnergyVIF
+                tariff_nr        = 1
+            }
+        }
+        field {
+            name     = total_energy_consumption_tariff2
+            quantity = Energy
+            info     = 'The total energy consumption recorded by this meter on tariff 2.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
+            match {
+                measurement_type = Instantaneous
+                vif_range        = AnyEnergyVIF
+                tariff_nr        = 2
+            }
+        }
+        field {
+            name     = current_power_consumption_phase1
+            quantity = Power
+            info     = 'Current power consumption phase 1.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
+            match {
+                difvifkey        = 04A9FF01
+            }
+        }
+        field {
+            name     = current_power_consumption_phase2
+            quantity = Power
+            info     = 'Current power consumption phase 2.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
+            match {
+                difvifkey        = 04A9FF02
+            }
+        }
+        field {
+            name     = current_power_consumption_phase3
+            quantity = Power
+            info     = 'Current power consumption phase 3.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
+            match {
+                difvifkey        = 04A9FF03
+            }
+        }
+        field {
+            name     = version
+            quantity = Text
+            info     = 'Static version information.'
+            match {
+                difvifkey        = 0DFD09
+            }
+        }
+    }
+    tests {
+        test {
+            args     = 'Elen2 esyswm 77997799 NOKEY'
+            comment  = 'Static telegram'
+            telegram = 7B4479169977997730378C208B900F002C25E4EF0A002EA98E7D58B3ADC57299779977991611028B005087102F2F#0DFD090F34302e3030562030303030303030300D790E31323334353637383839595345310DFD100AAAAAAAAAAAAAAAAAAAAA0D780E31323334353637383930594553312F2F2F2F2F2F2F2F2F2F2F
+            json     = '{"_":"telegram","media":"electricity","meter":"esyswm","name":"Elen2","id":"77997799","fabrication_no":"1SEY0987654321","enhanced_id":"1ESY9887654321","location":"AAAAAAAAAAAAAAAAAAAA","location_hex":"AAAAAAAAAAAAAAAAAAAA","version":"00000000 V00.04","timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'Elen2;77997799;null;null;null;null;null;null;null;null;1ESY9887654321;1111-11-11 11:11.11'
+        }
+    }
+}

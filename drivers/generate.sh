@@ -37,7 +37,8 @@ do
     NAME=$(basename $i)
     NAME="${NAME%.*}"
     ALIASES="$(xmq $i select /driver/aliases to-text)"
-    CONTENT="$(xmq $i delete /driver/tests/test delete /driver/tests delete "//comment()" to-xmq --compact | sed 's/"/\\"/g')"
+    # Generate compact XMQ but ensure spaces between attributes by removing newlines/tabs but keeping spaces
+    CONTENT="$(xmq $i delete /driver/tests/test delete /driver/tests delete "//comment()" to-xmq | tr -d '\n\t' | sed 's/  */ /g; s/"/\\"/g')"
     cat >>$OUT <<EOF
     { "$NAME", "$ALIASES", "$CONTENT", false },
 EOF

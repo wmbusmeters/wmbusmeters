@@ -1,0 +1,72 @@
+// Copyright (C) 2022 Fredrik Öhrström (gpl-3.0-or-later)
+driver {
+    name           = vario451mid
+    meter_type     = HeatMeter
+    default_fields = name,id,total_energy_consumption_kwh,energy_at_old_date_kwh,energy_at_set_date_kwh,timestamp
+    detect {
+        mvt = TCH,17,04
+    }
+    fields {
+        field {
+            name     = total_energy_consumption
+            quantity = Energy
+            info     = 'The total energy consumption recorded by this meter.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
+            match {
+                measurement_type = Instantaneous
+                vif_range        = AnyEnergyVIF
+            }
+        }
+        field {
+            name     = energy_at_old_date
+            quantity = Energy
+            info     = 'The total energy consumption recorded when?'
+            vif_scaling    = Auto
+            dif_signedness = Signed
+            match {
+                measurement_type = Instantaneous
+                vif_range        = AnyEnergyVIF
+                storage_nr       = 1
+            }
+        }
+        field {
+            name     = old
+            quantity = PointInTime
+            info     = 'The last billing old date?'
+            vif_scaling    = Auto
+            dif_signedness = Signed
+            display_unit = date
+            match {
+                measurement_type = Instantaneous
+                vif_range        = Date
+                storage_nr       = 1
+            }
+        }
+        field {
+            name     = energy_at_set_date
+            quantity = Energy
+            info     = 'The total energy consumption recorded by this meter at the due date.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
+            match {
+                measurement_type = Instantaneous
+                vif_range        = AnyEnergyVIF
+                storage_nr       = 8
+            }
+        }
+        field {
+            name     = set
+            quantity = PointInTime
+            info     = 'The last billing set date.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
+            display_unit = date
+            match {
+                measurement_type = Instantaneous
+                vif_range        = Date
+                storage_nr       = 8
+            }
+        }
+    }
+}

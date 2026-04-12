@@ -1,0 +1,174 @@
+// Copyright (C) 2022 Fredrik Öhrström (gpl-3.0-or-later)
+driver {
+    name           = pollucomf
+    meter_type     = HeatMeter
+    default_fields = name,id,status,total_kwh,total_m3,target_kwh,target_m3,timestamp
+    detect {
+        mvt = SEN,1d,04
+    }
+    library {
+        use = operating_time_h,on_time_h,on_time_at_error_h,meter_datetime
+    }
+    fields {
+        field {
+            name     = status
+            quantity = Text
+            info     = 'Meter status.'
+            attributes = STATUS,INCLUDE_TPL_STATUS
+            match {
+                measurement_type = Instantaneous
+                vif_range        = ErrorFlags
+            }
+            lookup {
+                name            = ERROR_FLAGS
+                map_type        = BitToString
+                mask_bits       = 0xffffffff
+                default_message = OK
+            }
+        }
+        field {
+            name     = total
+            quantity = Energy
+            info     = 'The total energy consumption recorded by this meter.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
+            match {
+                measurement_type = Instantaneous
+                vif_range        = AnyEnergyVIF
+            }
+        }
+        field {
+            name     = total
+            quantity = Volume
+            info     = 'The total amount of water that has passed through this meter.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
+            match {
+                measurement_type = Instantaneous
+                vif_range        = Volume
+            }
+        }
+        field {
+            name     = power
+            quantity = Power
+            info     = 'The active power consumption.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
+            match {
+                measurement_type = Instantaneous
+                vif_range        = AnyPowerVIF
+            }
+        }
+        field {
+            name     = flow
+            quantity = Flow
+            info     = 'The flow of water.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
+            match {
+                measurement_type = Instantaneous
+                vif_range        = VolumeFlow
+            }
+        }
+        field {
+            name     = forward
+            quantity = Temperature
+            info     = 'The forward temperature of the water.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
+            match {
+                measurement_type = Instantaneous
+                vif_range        = FlowTemperature
+            }
+        }
+        field {
+            name     = return
+            quantity = Temperature
+            info     = 'The return temperature of the water.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
+            match {
+                measurement_type = Instantaneous
+                vif_range        = ReturnTemperature
+            }
+        }
+        field {
+            name     = target_date
+            quantity = Text
+            info     = 'The most recent billing period date.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = Date
+                storage_nr       = 1
+            }
+        }
+        field {
+            name     = target
+            quantity = Energy
+            info     = 'The energy consumption recorded by this meter at the set date.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
+            match {
+                measurement_type = Instantaneous
+                vif_range        = AnyEnergyVIF
+                storage_nr       = 1
+            }
+        }
+        field {
+            name     = target
+            quantity = Volume
+            info     = 'The amount of water that had passed through this meter at the set date.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
+            match {
+                measurement_type = Instantaneous
+                vif_range        = Volume
+                storage_nr       = 1
+            }
+        }
+        field {
+            name     = forward_max
+            quantity = Temperature
+            info     = 'The maximum forward temperature of the water.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
+            match {
+                measurement_type = Maximum
+                vif_range        = FlowTemperature
+                storage_nr       = 1
+            }
+        }
+        field {
+            name     = return_max
+            quantity = Temperature
+            info     = 'The maximum return temperature of the water.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
+            match {
+                measurement_type = Maximum
+                vif_range        = ReturnTemperature
+                storage_nr       = 1
+            }
+        }
+        field {
+            name     = flow_max
+            quantity = Flow
+            info     = 'The maximum forward flow of water through this meter.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
+            match {
+                measurement_type = Maximum
+                vif_range        = VolumeFlow
+                storage_nr       = 1
+            }
+        }
+    }
+    tests {
+        test {
+            args     = 'Heat pollucomf 14175439 NOKEY'
+            telegram = 5e44ae4c395417141d047a9f0050252f2f046d2d32d92c0223B701040600000000041331000000032B000000033B000000025a3201025ef2003222000002fd170000426cBf2c440600000000441301000000525a0000525e0000533B000000
+            json     = '{"_":"telegram","media":"heat","meter":"pollucomf","name":"Heat","id":"14175439","status":"OK","total_kwh":0,"total_m3":0.049,"power_kw":0,"flow_m3h":0,"forward_c":30.6,"return_c":24.2,"target_date":"2021-12-31","target_kwh":0,"target_m3":0.001,"forward_max_c":0,"return_max_c":0,"flow_max_m3h":0,"on_time_h":10536,"on_time_at_error_h":0,"meter_datetime":"2022-12-25 18:45","timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'Heat;14175439;OK;0;0.049;0;0.001;1111-11-11 11:11.11'
+        }
+    }
+}

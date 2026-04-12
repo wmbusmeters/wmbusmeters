@@ -24,9 +24,11 @@ driver {
             }
         }
         field {
-            name     = total
-            quantity = Volume
-            info     = 'The total water consumption recorded by this meter.'
+            name           = total
+            quantity       = Volume
+            info           = 'The total water consumption recorded by this meter.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
             match {
                 measurement_type = Instantaneous
                 vif_range        = Volume

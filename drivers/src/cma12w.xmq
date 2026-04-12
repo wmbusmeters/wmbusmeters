@@ -17,18 +17,22 @@ driver {
             attributes = STATUS,INCLUDE_TPL_STATUS
         }
         field {
-            name     = current_temperature
-            quantity = Temperature
-            info     = 'The current temperature.'
+            name           = current_temperature
+            quantity       = Temperature
+            info           = 'The current temperature.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
             match {
                 measurement_type = Instantaneous
                 vif_range        = ExternalTemperature
             }
         }
         field {
-            name     = average_temperature_1h
-            quantity = Temperature
-            info     = 'The average temperature over the last hour.'
+            name           = average_temperature_1h
+            quantity       = Temperature
+            info           = 'The average temperature over the last hour.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
             match {
                 measurement_type = Instantaneous
                 vif_range        = ExternalTemperature

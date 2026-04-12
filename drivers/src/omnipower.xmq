@@ -1,0 +1,65 @@
+// Copyright (C) 2018-2022 Fredrik Öhrström (gpl-3.0-or-later)
+driver {
+    name           = omnipower
+    meter_type     = ElectricityMeter
+    default_fields = name,id,total_energy_consumption_kwh,total_energy_production_kwh,current_power_consumption_kw,current_power_production_kw,timestamp
+    detect {
+        mvt = KAM,30,02
+    }
+    fields {
+        field {
+            name     = total_energy_consumption
+            quantity = Energy
+            info     = 'The total energy consumption recorded by this meter.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
+            match {
+                measurement_type = Instantaneous
+                vif_range        = AnyEnergyVIF
+            }
+        }
+        field {
+            name     = total_energy_production
+            quantity = Energy
+            info     = 'The total energy backward (production) recorded by this meter.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
+            match {
+                measurement_type = Instantaneous
+                vif_range        = AnyEnergyVIF
+                add_combinable   = BackwardFlow
+            }
+        }
+        field {
+            name     = current_power_consumption
+            quantity = Power
+            info     = 'The current power consumption.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
+            match {
+                measurement_type = Instantaneous
+                vif_range        = AnyPowerVIF
+            }
+        }
+        field {
+            name     = current_power_production
+            quantity = Power
+            info     = 'The current power production.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
+            match {
+                measurement_type = Instantaneous
+                vif_range        = AnyPowerVIF
+                add_combinable   = BackwardFlow
+            }
+        }
+    }
+    tests {
+        test {
+            args     = 'myomnipower omnipower 32666857 NOKEY'
+            telegram = 2D442D2C5768663230028D20E4E2C81C20878C78_04041A03000004843C00000000042B0300000004AB3C00000000
+            json     = '{"_":"telegram","media":"electricity","meter":"omnipower","name":"myomnipower","id":"32666857","total_energy_consumption_kwh":7.94,"total_energy_production_kwh":0,"current_power_consumption_kw":0.003,"current_power_production_kw":0,"timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'myomnipower;32666857;7.94;0;0.003;0;1111-11-11 11:11.11'
+        }
+    }
+}

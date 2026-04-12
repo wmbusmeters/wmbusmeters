@@ -1,5 +1,4 @@
-// Copyright (C) 2017-2022 Fredrik Öhrström (gpl-3.0-or-later)
-// Copyright (C) 2018 David Mallon (gpl-3.0-or-later)
+// Copyright (C) 2017-2022 Fredrik Öhrström, David Mallon (gpl-3.0-or-later)
 driver {
     name           = ev200
     meter_type     = WaterMeter
@@ -9,18 +8,22 @@ driver {
     }
     fields {
         field {
-            name     = total
-            quantity = Volume
-            info     = 'The total water consumption recorded by this meter.'
+            name           = total
+            quantity       = Volume
+            info           = 'The total water consumption recorded by this meter.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
             match {
                 measurement_type = Instantaneous
                 vif_range        = Volume
             }
         }
         field {
-            name     = target
-            quantity = Volume
-            info     = 'The target water consumption recorded at previous period.'
+            name           = target
+            quantity       = Volume
+            info           = 'The target water consumption recorded at previous period.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
             match {
                 measurement_type = Instantaneous
                 vif_range        = Volume

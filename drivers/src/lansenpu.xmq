@@ -1,0 +1,63 @@
+// Copyright (C) 2020-2022 Fredrik Öhrström (gpl-3.0-or-later)
+driver {
+    name           = lansenpu
+    meter_type     = PulseCounter
+    default_fields = name,id,status,a_counter,b_counter,timestamp
+    detect {
+        mvt = LAS,14,00
+        mvt = LAS,1b,00
+        mvt = LAS,0b,02
+    }
+    fields {
+        field {
+            name     = status
+            quantity = Text
+            info     = 'Meter status from tpl status field.'
+            attributes = STATUS,INCLUDE_TPL_STATUS
+            match {
+                measurement_type = Instantaneous
+                vif_range        = ErrorFlags
+            }
+            lookup {
+                name            = ERROR_FLAGS
+                map_type        = BitToString
+                mask_bits       = 0xffffffff
+                default_message = OK
+            }
+        }
+        field {
+            name     = a
+            quantity = Dimensionless
+            info     = 'The current number of counted pulses from counter a.'
+            vif_scaling    = None
+            dif_signedness = Signed
+            match {
+                difvifkey        = 0EFD3A
+            }
+        }
+        field {
+            name     = b
+            quantity = Dimensionless
+            info     = 'The current number of counted pulses from counter b.'
+            vif_scaling    = None
+            dif_signedness = Signed
+            match {
+                difvifkey        = 8E40FD3A
+            }
+        }
+    }
+    tests {
+        test {
+            args     = 'COUNTA lansenpu 00010206 NOKEY'
+            telegram = 234433300602010014007a8e0400002f2f0efd3a1147000000008e40fd3a341200000000
+            json     = '{"_":"telegram","media":"other","meter":"lansenpu","name":"COUNTA","id":"00010206","status":"POWER_LOW","a_counter":4711,"b_counter":1234,"timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'COUNTA;00010206;POWER_LOW;4711;1234;1111-11-11 11:11.11'
+        }
+        test {
+            args     = 'COUNTB lansenpu 00023750 NOKEY'
+            telegram = 1A443330503702000B027AD7000020_2F2F8E40FD3A700800000000
+            json     = '{"_":"telegram","media":"electricity","meter":"lansenpu","name":"COUNTB","id":"00023750","status":"OK","b_counter":870,"timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'COUNTB;00023750;OK;null;870;1111-11-11 11:11.11'
+        }
+    }
+}

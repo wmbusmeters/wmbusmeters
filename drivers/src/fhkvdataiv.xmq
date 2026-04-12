@@ -1,0 +1,94 @@
+// Copyright (C) 2019-2022 Fredrik Öhrström (gpl-3.0-or-later)
+driver {
+    name           = fhkvdataiv
+    meter_type     = HeatCostAllocationMeter
+    default_fields = name,id,current_consumption_hca,set_date,consumption_at_set_date_hca,timestamp
+    detect {
+        mvt = TCH,69,08
+        mvt = TCH,94,08
+    }
+    fields {
+        field {
+            name     = status
+            quantity = Text
+            info     = 'Meter status from tpl status field.'
+            attributes = STATUS,INCLUDE_TPL_STATUS
+            match {
+                measurement_type = Instantaneous
+                vif_range        = ErrorFlags
+            }
+            lookup {
+                name            = ERROR_FLAGS
+                map_type        = BitToString
+                mask_bits       = 0xffffffff
+                default_message = OK
+            }
+        }
+        field {
+            name     = current_consumption
+            quantity = HCA
+            info     = 'The current heat cost allocation.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
+        }
+        field {
+            name     = set_date
+            quantity = Text
+            info     = 'The most recent billing period date.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = Date
+                storage_nr       = 1
+            }
+        }
+        field {
+            name     = consumption_at_set_date
+            quantity = HCA
+            info     = 'Heat cost allocation at the most recent billing period date.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
+        }
+        field {
+            name     = set_date_1
+            quantity = Text
+            info     = 'The most recent billing period date.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = Date
+                storage_nr       = 1
+            }
+        }
+        field {
+            name     = consumption_at_set_date_1
+            quantity = HCA
+            info     = 'Heat cost allocation at the most recent billing period date.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
+        }
+        field {
+            name     = set_date_8
+            quantity = Text
+            info     = 'The 8 billing period date.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = Date
+                storage_nr       = 8
+            }
+        }
+        field {
+            name     = consumption_at_set_date_8
+            quantity = HCA
+            info     = 'Heat cost allocation at the 8 billing period date.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
+        }
+    }
+    tests {
+        test {
+            args     = 'Rooom fhkvdataiv 14542076 FCF41938F63432975B52505F547FCEDF'
+            telegram = 4E4468507620541494087AAD004005089D86B62A329B3439873999738F82461ABDE3C7AC78692B363F3B41EB68607F9C9160F550769B065B6EA00A2E44346E29FF5DC5CB86283C69324AD33D137F6F
+            json     = '{"_":"telegram","media":"heat cost allocation","meter":"fhkvdataiv","name":"Rooom","id":"14542076","status":"OK","current_consumption_hca":2,"set_date":"2020-12-31","consumption_at_set_date_hca":25,"set_date_1":"2020-12-31","consumption_at_set_date_1_hca":25,"set_date_8":"2019-10-31","consumption_at_set_date_8_hca":0,"timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'Rooom;14542076;2;2020-12-31;25;1111-11-11 11:11.11'
+        }
+    }
+}

@@ -8,9 +8,11 @@ driver {
     }
     fields {
         field {
-            name     = total
-            quantity = Volume
-            info     = 'The total gas consumption recorded by this meter.'
+            name           = total
+            quantity       = Volume
+            info           = 'The total gas consumption recorded by this meter.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
             match {
                 measurement_type = Instantaneous
                 vif_range        = Volume
@@ -18,28 +20,34 @@ driver {
             }
         }
         field {
-            name     = flow
-            quantity = Flow
-            info     = 'The current gas flow.'
+            name           = flow
+            quantity       = Flow
+            info           = 'The current gas flow.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
             match {
                 measurement_type = Instantaneous
                 vif_range        = VolumeFlow
             }
         }
         field {
-            name     = temperature
-            quantity = Temperature
-            info     = 'The current temperature.'
+            name           = temperature
+            quantity       = Temperature
+            info           = 'The current temperature.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
             match {
                 measurement_type = Instantaneous
                 vif_range        = FlowTemperature
             }
         }
         field {
-            name         = target
-            quantity     = PointInTime
-            info         = 'Date time when previous billing period ended.'
-            display_unit = datetime
+            name           = target
+            quantity       = PointInTime
+            info           = 'Date time when previous billing period ended.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
+            display_unit   = datetime
             match {
                 measurement_type = Instantaneous
                 vif_range        = DateTime
@@ -47,9 +55,11 @@ driver {
             }
         }
         field {
-            name     = target
-            quantity = Volume
-            info     = 'The total gas consumption recorded when the previous billing period ended.'
+            name           = target
+            quantity       = Volume
+            info           = 'The total gas consumption recorded when the previous billing period ended.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
             match {
                 measurement_type = Instantaneous
                 vif_range        = Volume

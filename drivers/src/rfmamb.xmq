@@ -1,71 +1,35 @@
-// Copyright (C) 2019-2026 Fredrik Öhrström (gpl-3.0-or-later)
+// Copyright (C) 2019-2022 Fredrik Öhrström (gpl-3.0-or-later)
 driver {
     name           = rfmamb
     meter_type     = TempHygroMeter
     default_fields = name,id,current_temperature_c,current_relative_humidity_rh,timestamp
-    manufacturer   = BMeters
     detect {
         mvt = BMT,10,1b
-    }
-    mfct_tpl_status_bits {
-        mask_bits       = 0x7f
-        default_message = OK
-        map {
-            name  = APP_BUSY
-            value = 0x01
-            test  = set
-        }
-        map {
-            name  = APP_ERROR
-            value = 0x02
-            test  = set
-        }
-        map {
-            name  = LOW_BATTERY
-            value = 0x04
-            test  = set
-        }
-        map {
-            name  = MODULE_REMOVED
-            value = 0x08
-            test  = set
-        }
-        map {
-            name  = SENSOR_READ_ERROR
-            value = 0x10
-            test  = set
-        }
-        map {
-            name  = TEMP_OUT_OF_RANGE
-            value = 0x20
-            test  = set
-        }
-        map {
-            name  = RH_OUT_OF_RANGE
-            value = 0x40
-            test  = set
-        }
     }
     fields {
         field {
             name       = status
             quantity   = Text
-            info       = 'Status and error flags.'
+            info       = 'Meter status from tpl status field.'
             attributes = STATUS,INCLUDE_TPL_STATUS
         }
         field {
-            name     = current_temperature
-            quantity = Temperature
-            info     = 'The current temperature.'
+            name           = current_temperature
+            quantity       = Temperature
+            info           = 'The current temperature.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
             match {
                 measurement_type = Instantaneous
                 vif_range        = ExternalTemperature
             }
         }
         field {
-            name     = average_temperature_1h
-            quantity = Temperature
-            info     = 'The average temperature over the last hour.'
+            name           = average_temperature_1h
+            quantity       = Temperature
+            info           = 'The average temperature over the last hour.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
             match {
                 measurement_type = Instantaneous
                 vif_range        = ExternalTemperature
@@ -73,9 +37,11 @@ driver {
             }
         }
         field {
-            name     = average_temperature_24h
-            quantity = Temperature
-            info     = 'The average temperature over the last 24 hours.'
+            name           = average_temperature_24h
+            quantity       = Temperature
+            info           = 'The average temperature over the last 24 hours.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
             match {
                 measurement_type = Instantaneous
                 vif_range        = ExternalTemperature
@@ -83,18 +49,22 @@ driver {
             }
         }
         field {
-            name     = maximum_temperature_1h
-            quantity = Temperature
-            info     = 'The maximum temperature over the last hour.'
+            name           = maximum_temperature_1h
+            quantity       = Temperature
+            info           = 'The maximum temperature over the last hour.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
             match {
                 measurement_type = Maximum
                 vif_range        = ExternalTemperature
             }
         }
         field {
-            name     = maximum_temperature_24h
-            quantity = Temperature
-            info     = 'The maximum temperature over the last 24 hours.'
+            name           = maximum_temperature_24h
+            quantity       = Temperature
+            info           = 'The maximum temperature over the last 24 hours.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
             match {
                 measurement_type = Maximum
                 vif_range        = ExternalTemperature
@@ -102,18 +72,22 @@ driver {
             }
         }
         field {
-            name     = minimum_temperature_1h
-            quantity = Temperature
-            info     = 'The minimum temperature over the last hour.'
+            name           = minimum_temperature_1h
+            quantity       = Temperature
+            info           = 'The minimum temperature over the last hour.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
             match {
                 measurement_type = Minimum
                 vif_range        = ExternalTemperature
             }
         }
         field {
-            name     = minimum_temperature_24h
-            quantity = Temperature
-            info     = 'The minimum temperature over the last 24 hours.'
+            name           = minimum_temperature_24h
+            quantity       = Temperature
+            info           = 'The minimum temperature over the last 24 hours.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
             match {
                 measurement_type = Minimum
                 vif_range        = ExternalTemperature
@@ -121,18 +95,22 @@ driver {
             }
         }
         field {
-            name     = current_relative_humidity
-            quantity = RelativeHumidity
-            info     = 'The current relative humidity.'
+            name           = current_relative_humidity
+            quantity       = RelativeHumidity
+            info           = 'The current relative humidity.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
             match {
                 measurement_type = Instantaneous
                 vif_range        = RelativeHumidity
             }
         }
         field {
-            name     = average_relative_humidity_1h
-            quantity = RelativeHumidity
-            info     = 'The average relative humidity over the last hour.'
+            name           = average_relative_humidity_1h
+            quantity       = RelativeHumidity
+            info           = 'The average relative humidity over the last hour.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
             match {
                 measurement_type = Instantaneous
                 vif_range        = RelativeHumidity
@@ -140,9 +118,11 @@ driver {
             }
         }
         field {
-            name     = average_relative_humidity_24h
-            quantity = RelativeHumidity
-            info     = 'The average relative humidity over the last 24 hours.'
+            name           = average_relative_humidity_24h
+            quantity       = RelativeHumidity
+            info           = 'The average relative humidity over the last 24 hours.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
             match {
                 measurement_type = Instantaneous
                 vif_range        = RelativeHumidity
@@ -150,18 +130,22 @@ driver {
             }
         }
         field {
-            name     = maximum_relative_humidity_1h
-            quantity = RelativeHumidity
-            info     = 'The maximum relative humidity over the last hour.'
+            name           = maximum_relative_humidity_1h
+            quantity       = RelativeHumidity
+            info           = 'The maximum relative humidity over the last hour.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
             match {
                 measurement_type = Maximum
                 vif_range        = RelativeHumidity
             }
         }
         field {
-            name     = maximum_relative_humidity_24h
-            quantity = RelativeHumidity
-            info     = 'The maximum relative humidity over the last 24 hours.'
+            name           = maximum_relative_humidity_24h
+            quantity       = RelativeHumidity
+            info           = 'The maximum relative humidity over the last 24 hours.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
             match {
                 measurement_type = Maximum
                 vif_range        = RelativeHumidity
@@ -169,18 +153,22 @@ driver {
             }
         }
         field {
-            name     = minimum_relative_humidity_1h
-            quantity = RelativeHumidity
-            info     = 'The minimum relative humidity over the last hour.'
+            name           = minimum_relative_humidity_1h
+            quantity       = RelativeHumidity
+            info           = 'The minimum relative humidity over the last hour.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
             match {
                 measurement_type = Minimum
                 vif_range        = RelativeHumidity
             }
         }
         field {
-            name     = minimum_relative_humidity_24h
-            quantity = RelativeHumidity
-            info     = 'The minimum relative humidity over the last 24 hours.'
+            name           = minimum_relative_humidity_24h
+            quantity       = RelativeHumidity
+            info           = 'The minimum relative humidity over the last 24 hours.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
             match {
                 measurement_type = Minimum
                 vif_range        = RelativeHumidity
@@ -188,9 +176,12 @@ driver {
             }
         }
         field {
-            name     = device
-            quantity = PointInTime
-            info     = 'The meter date time.'
+            name           = device
+            quantity       = PointInTime
+            info           = 'The meters date time.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
+            display_unit   = datetime
             match {
                 measurement_type = Instantaneous
                 vif_range        = DateTime
@@ -201,14 +192,8 @@ driver {
         test {
             args     = 'Rummet rfmamb 11772288 NOKEY'
             telegram = 5744b40988227711101b7ab20800000265a00842658f088201659f08226589081265a0086265510852652b0902fb1aba0142fb1ab0018201fb1abd0122fb1aa90112fb1aba0162fb1aa60152fb1af501066d3b3bb36b2a00
-            json     = '{"_":"telegram","media":"room sensor","meter":"rfmamb","name":"Rummet","id":"11772288","status":"MODULE_REMOVED","current_temperature_c":22.08,"average_temperature_1h_c":21.91,"average_temperature_24h_c":22.07,"maximum_temperature_1h_c":22.08,"minimum_temperature_1h_c":21.85,"maximum_temperature_24h_c":23.47,"minimum_temperature_24h_c":21.29,"current_relative_humidity_rh":44.2,"average_relative_humidity_1h_rh":43.2,"average_relative_humidity_24h_rh":44.5,"minimum_relative_humidity_1h_rh":42.5,"maximum_relative_humidity_1h_rh":44.2,"maximum_relative_humidity_24h_rh":50.1,"minimum_relative_humidity_24h_rh":42.2,"device_datetime":"2019-10-11 19:59","timestamp":"1111-11-11T11:11:11Z"}'
+            json     = '{"_":"telegram","media":"room sensor","meter":"rfmamb","name":"Rummet","id":"11772288","status":"PERMANENT_ERROR","current_temperature_c":22.08,"average_temperature_1h_c":21.91,"average_temperature_24h_c":22.07,"maximum_temperature_1h_c":22.08,"minimum_temperature_1h_c":21.85,"maximum_temperature_24h_c":23.47,"minimum_temperature_24h_c":21.29,"current_relative_humidity_rh":44.2,"average_relative_humidity_1h_rh":43.2,"average_relative_humidity_24h_rh":44.5,"minimum_relative_humidity_1h_rh":42.5,"maximum_relative_humidity_1h_rh":44.2,"maximum_relative_humidity_24h_rh":50.1,"minimum_relative_humidity_24h_rh":42.2,"device_datetime":"2019-10-11 19:59","timestamp":"1111-11-11T11:11:11Z"}'
             fields   = 'Rummet;11772288;22.08;44.2;1111-11-11 11:11.11'
-        }
-        test {
-            args     = 'Pokojak rfmamb 23699558 6C649F296476D737CACB75A2D639CE14'
-            telegram = 5e44b40958956923101b7a7f085005816afb5f6f40ec742610b93c109973edd8c098f505d5dfcfd53dfd72708178e4b81436cb753c6dff5094c48c26607c66419628d424ce41f38f9bd927757d82fa43396aa59a77c694acadab776460d472
-            json     = '{"_":"telegram","media":"room sensor","meter":"rfmamb","name":"Pokojak","id":"23699558","status":"MODULE_REMOVED","current_temperature_c":20.91,"average_temperature_1h_c":20.95,"average_temperature_24h_c":19.5,"maximum_temperature_1h_c":20.98,"minimum_temperature_1h_c":20.91,"maximum_temperature_24h_c":19.88,"minimum_temperature_24h_c":19.07,"current_relative_humidity_rh":35.8,"average_relative_humidity_1h_rh":36.1,"average_relative_humidity_24h_rh":36.9,"minimum_relative_humidity_1h_rh":35.8,"maximum_relative_humidity_1h_rh":36.5,"maximum_relative_humidity_24h_rh":37,"minimum_relative_humidity_24h_rh":36.7,"device_datetime":"2026-02-09 08:59","timestamp":"1111-11-11T11:11:11Z"}'
-            fields   = 'Pokojak;23699558;20.91;35.8;1111-11-11 11:11.11'
         }
     }
 }

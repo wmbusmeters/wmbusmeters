@@ -6,10 +6,6 @@ driver {
     detect {
         mvt = APA,40,04
     }
-    library {
-        use = operating_time_h
-        use = meter_date
-    }
     fields {
         field {
             name       = status
@@ -27,36 +23,53 @@ driver {
             }
         }
         field {
-            name     = total_energy_consumption
-            quantity = Energy
-            info     = 'The total energy consumption recorded by this meter.'
+            name     = meter_date
+            quantity = Text
+            info     = 'The meter date.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = Date
+            }
+        }
+        field {
+            name           = total_energy_consumption
+            quantity       = Energy
+            info           = 'The total energy consumption recorded by this meter.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
             match {
                 measurement_type = Instantaneous
                 vif_range        = AnyEnergyVIF
             }
         }
         field {
-            name     = current_power_consumption
-            quantity = Power
-            info     = 'Current power consumption.'
+            name           = current_power_consumption
+            quantity       = Power
+            info           = 'Current power consumption.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
             match {
                 measurement_type = Instantaneous
                 vif_range        = PowerW
             }
         }
         field {
-            name     = total_volume
-            quantity = Volume
-            info     = 'Total volume of heat media.'
+            name           = total_volume
+            quantity       = Volume
+            info           = 'Total volume of heat media.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
             match {
                 measurement_type = Instantaneous
                 vif_range        = Volume
             }
         }
         field {
-            name     = total_energy_consumption_at_date
-            quantity = Energy
-            info     = 'The total energy consumption recorded at the target date.'
+            name           = total_energy_consumption_at_date
+            quantity       = Energy
+            info           = 'The total energy consumption recorded at the target date.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
             match {
                 measurement_type = Instantaneous
                 vif_range        = AnyEnergyVIF
@@ -64,45 +77,64 @@ driver {
             }
         }
         field {
-            name     = flow_temperature
-            quantity = Temperature
-            info     = 'The flow temperature.'
+            name           = flow_temperature
+            quantity       = Temperature
+            info           = 'The flow temperature.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
             match {
                 measurement_type = Instantaneous
                 vif_range        = FlowTemperature
             }
         }
         field {
-            name     = return_temperature
-            quantity = Temperature
-            info     = 'The return temperature.'
+            name           = return_temperature
+            quantity       = Temperature
+            info           = 'The return temperature.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
             match {
                 measurement_type = Instantaneous
                 vif_range        = ReturnTemperature
             }
         }
         field {
-            name     = external_temperature
-            quantity = Temperature
-            info     = 'The external temperature.'
+            name           = external_temperature
+            quantity       = Temperature
+            info           = 'The external temperature.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
             match {
                 measurement_type = Instantaneous
                 vif_range        = ExternalTemperature
             }
         }
         field {
+            name           = operating_time
+            quantity       = Time
+            info           = 'How long the meter has been collecting data.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
+            match {
+                measurement_type = Instantaneous
+                vif_range        = OperatingTime
+            }
+        }
+        field {
             name     = version
             quantity = Text
-            info     = Version.
+            info     = version.
             match {
                 measurement_type = Instantaneous
                 vif_range        = ModelVersion
             }
         }
         field {
-            name     = battery
-            quantity = Voltage
-            info     = 'Battery voltage.'
+            name           = battery
+            quantity       = Voltage
+            info           = 'Battery voltage.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
             match {
                 measurement_type = Instantaneous
                 vif_range        = Voltage

@@ -15,29 +15,39 @@ driver {
             quantity   = Text
             info       = 'Meter status. Includes both meter error field and tpl status field.'
             attributes = STATUS,INCLUDE_TPL_STATUS
+            match {
+                measurement_type = Instantaneous
+                vif_range        = ErrorFlags
+            }
         }
         field {
-            name     = total_energy_consumption
-            quantity = Energy
-            info     = 'The total energy consumption recorded by this meter.'
+            name           = total_energy_consumption
+            quantity       = Energy
+            info           = 'The total energy consumption recorded by this meter.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
             match {
                 measurement_type = Instantaneous
                 vif_range        = AnyEnergyVIF
             }
         }
         field {
-            name     = current_power_consumption
-            quantity = Power
-            info     = 'Current power consumption.'
+            name           = current_power_consumption
+            quantity       = Power
+            info           = 'Current power consumption.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
             match {
                 measurement_type = Instantaneous
                 vif_range        = AnyPowerVIF
             }
         }
         field {
-            name     = total_energy_production
-            quantity = Energy
-            info     = 'The total energy production recorded by this meter.'
+            name           = total_energy_production
+            quantity       = Energy
+            info           = 'The total energy production recorded by this meter.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
             match {
                 measurement_type = Instantaneous
                 vif_range        = AnyEnergyVIF

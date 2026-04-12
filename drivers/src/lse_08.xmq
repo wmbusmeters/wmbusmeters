@@ -23,19 +23,20 @@ driver {
             }
         }
         field {
-            name     = current_consumption
-            quantity = HCA
-            info     = 'The current heat cost allocation.'
+            name           = current_consumption
+            quantity       = HCA
+            info           = 'The current heat cost allocation.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
             match {
                 measurement_type = Instantaneous
                 vif_range        = HeatCostAllocation
             }
         }
         field {
-            name         = set
-            quantity     = PointInTime
-            info         = 'The most recent billing period date.'
-            display_unit = date
+            name     = set_date
+            quantity = Text
+            info     = 'The most recent billing period date.'
             match {
                 measurement_type = Instantaneous
                 vif_range        = Date
@@ -43,9 +44,11 @@ driver {
             }
         }
         field {
-            name     = consumption_at_set_date
-            quantity = HCA
-            info     = 'Heat cost allocation at the most recent billing period date.'
+            name           = consumption_at_set_date
+            quantity       = HCA
+            info           = 'Heat cost allocation at the most recent billing period date.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
             match {
                 measurement_type = Instantaneous
                 vif_range        = HeatCostAllocation
@@ -53,8 +56,8 @@ driver {
             }
         }
         field {
-            name         = device
-            quantity     = PointInTime
+            name         = device_datetime
+            quantity     = Text
             info         = 'Date and time when the meter sent the telegram.'
             display_unit = datetime
             match {
@@ -63,9 +66,11 @@ driver {
             }
         }
         field {
-            name     = duration_since_readout
-            quantity = Time
-            info     = 'Duration since last measurement.'
+            name           = duration_since_readout
+            quantity       = Time
+            info           = 'Duration since last measurement.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
             match {
                 measurement_type = Instantaneous
                 vif_range        = DurationSinceReadout

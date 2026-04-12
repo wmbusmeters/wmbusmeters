@@ -1,0 +1,94 @@
+// Copyright (C) 2022 Fredrik Öhrström (gpl-3.0-or-later)
+driver {
+    name           = qheat_55_us
+    meter_type     = HeatMeter
+    default_fields = name,id,total_energy_consumption_kwh,key_date_kwh,timestamp
+    detect {
+        mvt = LUG,07,04
+        mvt = LUG,0a,04
+    }
+    fields {
+        field {
+            name     = device_datetime
+            quantity = Text
+            info     = 'Device date time.'
+            display_unit = datetime
+            match {
+                measurement_type = Instantaneous
+                vif_range        = DateTime
+            }
+        }
+        field {
+            name     = total_energy_consumption
+            quantity = Energy
+            info     = 'The total energy consumption recorded by this meter.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
+            match {
+                measurement_type = Instantaneous
+                vif_range        = AnyEnergyVIF
+                storage_nr       = 0
+                tariff_nr        = 0
+            }
+        }
+        field {
+            name     = key_date
+            quantity = Text
+            info     = 'The key (billing) date'
+            display_unit = datetime
+            match {
+                measurement_type = Instantaneous
+                vif_range        = DateTime
+                storage_nr       = 1
+                tariff_nr        = 0
+            }
+        }
+        field {
+            name     = key_date
+            quantity = Energy
+            info     = 'The total energy consumption recorded at key (billing) date'
+            vif_scaling    = Auto
+            dif_signedness = Signed
+            match {
+                measurement_type = Instantaneous
+                vif_range        = AnyEnergyVIF
+                storage_nr       = 1
+                tariff_nr        = 0
+            }
+        }
+        field {
+            name     = prev_month
+            quantity = Text
+            info     = 'The date of end of last month.'
+            display_unit = datetime
+            match {
+                measurement_type = Instantaneous
+                vif_range        = DateTime
+                storage_nr       = 2
+                tariff_nr        = 0
+            }
+        }
+        field {
+            name     = actuality_duration
+            quantity = Time
+            info     = 'The time between the measurement and the sending of this telegram.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
+            match {
+                measurement_type = Instantaneous
+                vif_range        = ActualityDuration
+            }
+        }
+        field {
+            name     = time_without_measurement
+            quantity = Time
+            info     = 'How long the meter has been in an error state and unable to measure values, while powered up.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
+            match {
+                measurement_type = AtError
+                vif_range        = OnTime
+            }
+        }
+    }
+}

@@ -4,17 +4,14 @@ driver {
     meter_type     = WaterMeter
     default_fields = name,id,total_m3,target_m3,timestamp
     detect {
-        mvt = ITW,07,00
-        mvt = ITW,07,03
-        mvt = ITW,07,33
-        mvt = ITW,16,00
+        mvt = ITW,00,07
+        mvt = ITW,03,07
+        mvt = ITW,33,07
+        mvt = ITW,00,16
     }
     library {
-        use = enhanced_id
-        use = meter_datetime
-        use = total_m3
-        use = total_backward_m3
-        use = volume_flow_m3h
+        use = enhanced_id,meter_datetime
+        use = total_m3,total_backward_m3,volume_flow_m3h
     }
     fields {
         field {
@@ -35,9 +32,11 @@ driver {
             }
         }
         field {
-            name     = target
-            quantity = Volume
-            info     = 'The total water consumption recorded at the end of previous billing period.'
+            name           = target
+            quantity       = Volume
+            info           = 'The total water consumption recorded at the end of previous billing period.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
             match {
                 measurement_type = Instantaneous
                 vif_range        = Volume
@@ -45,10 +44,9 @@ driver {
             }
         }
         field {
-            name         = target
-            quantity     = PointInTime
-            info         = 'Date when previous billing period ended.'
-            display_unit = date
+            name     = target_date
+            quantity = Text
+            info     = 'Date when previous billing period ended.'
             match {
                 measurement_type = Instantaneous
                 vif_range        = Date
@@ -56,7 +54,7 @@ driver {
             }
         }
         field {
-            name     = unknowna
+            name     = manufacturer_specific_a
             quantity = Text
             info     = 'Unknown flags.'
             match {
@@ -69,7 +67,7 @@ driver {
             }
         }
         field {
-            name     = unknownb
+            name     = manufacturer_specific_b
             quantity = Text
             info     = 'Unknown flags.'
             match {
@@ -86,8 +84,8 @@ driver {
         test {
             args     = 'SomeWater itron 12345698 NOKEY'
             comment  = 'Test ITRON T1 telegram not encrypted, which has no 2f2f markers.'
-            telegram = 384497269856341203077AD90000A0_0413FD110000066D2C1AA1D521004413300F0000426CBF2C047F0000060C027F862A0E79678372082100
-            json     = '{"_":"telegram","media":"water","meter":"itron","name":"SomeWater","id":"12345698","enhanced_id":"002108728367","meter_datetime":"2022-01-21 01:26:44","total_m3":4.605,"status":"OK","target_m3":3.888,"target_date":"2021-12-31","unknowna":"WOOTA_C060000","unknownb":"WOOTB_2A86","timestamp":"1111-11-11T11:11:11Z"}'
+            telegram = 384497269856341203077AD90000A0#0413FD110000066D2C1AA1D521004413300F0000426CBF2C047F0000060C027F862A0E79678372082100
+            json     = '{"_":"telegram","media":"water","meter":"itron","name":"SomeWater","id":"12345698","enhanced_id":"002108728367","meter_datetime":"2022-01-21 01:26:44","total_m3":4.605,"status":"OK","target_m3":3.888,"target_date":"2021-12-31","manufacturer_specific_a":"WOOTA_C060000","manufacturer_specific_b":"WOOTB_2A86","timestamp":"1111-11-11T11:11:11Z"}'
             fields   = 'SomeWater;12345698;4.605;3.888;1111-11-11 11:11.11'
         }
         test {
@@ -99,14 +97,14 @@ driver {
         test {
             args     = 'AnyWater itron 20310959 NOKEY'
             telegram = 384497265909312000077a930000a0041360B50100066d101295f427004413ac570100426cdf2c047f0000060c027f6c2a0e79000000000000
-            json     = '{"_":"telegram","enhanced_id":"000000000000","id":"20310959","media":"water","meter":"itron","meter_datetime":"2023-07-20 21:18:16","name":"AnyWater","status":"OK","target_date":"2022-12-31","target_m3":87.98,"timestamp":"1111-11-11T11:11:11Z","total_m3":111.968,"unknowna":"WOOTA_C060000","unknownb":"WOOTB_2A6C"}'
+            json     = '{"_":"telegram","enhanced_id": "000000000000","id": "20310959","media": "water","meter": "itron","meter_datetime": "2023-07-20 21:18:16","name": "AnyWater","status": "OK","target_date": "2022-12-31","target_m3": 87.98,"timestamp": "1111-11-11T11:11:11Z","total_m3": 111.968,"manufacturer_specific_a": "WOOTA_C060000","manufacturer_specific_b": "WOOTB_2A6C"}'
             fields   = 'AnyWater;20310959;111.968;87.98;1111-11-11 11:11.11'
         }
         test {
             args     = 'ColdWaterMeter itron 23362098 NOKEY'
             comment  = 'Allmess cold water with Itron Module programmed with type 0x16'
             telegram = 3A4497269820362300167AF60020A52F2F_04132E100000066D03260DE12B007413FEFEFEFE426C1F01047F1600060C027F9A2A0E79187103002300
-            json     = '{"_":"telegram","enhanced_id":"002300037118","id":"23362098","media":"cold water","meter":"itron","meter_datetime":"2023-11-01 13:38:03","name":"ColdWaterMeter","status":"OK","target_date":"2000-01-31","timestamp":"1111-11-11T11:11:11Z","total_m3":4.142,"unknowna":"WOOTA_C060016","unknownb":"WOOTB_2A9A"}'
+            json     = '{"_":"telegram","enhanced_id": "002300037118", "id": "23362098", "media": "cold water", "meter": "itron", "meter_datetime": "2023-11-01 13:38:03", "name": "ColdWaterMeter", "status": "OK", "target_date": "2000-01-31", "timestamp": "1111-11-11T11:11:11Z", "total_m3": 4.142,"manufacturer_specific_a": "WOOTA_C060016","manufacturer_specific_b": "WOOTB_2A9A" }'
             fields   = 'ColdWaterMeter;23362098;4.142;null;1111-11-11 11:11.11'
         }
     }

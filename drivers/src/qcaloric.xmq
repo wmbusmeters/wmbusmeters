@@ -1,0 +1,211 @@
+// Copyright (C) 2019-2023 Fredrik Öhrström (gpl-3.0-or-later)
+driver {
+    name           = qcaloric
+    aliases        = whe5x,whe46x
+    meter_type     = HeatCostAllocationMeter
+    default_fields = name,id,current_consumption_hca,set_date,consumption_at_set_date_hca,timestamp
+    detect {
+        mvt = LSE,34,08
+        mvt = LSE,35,08
+        mvt = QDS,35,08
+        mvt = QDS,34,08
+        mvt = QDS,36,08
+        mvt = LSE,18,08
+        mvt = ZRI,fd,08
+    }
+    fields {
+        field {
+            name     = status
+            quantity = Text
+            info     = 'Meter status from tpl status field.'
+            attributes = STATUS,INCLUDE_TPL_STATUS
+            match {
+                difvifkey        = 01FD73
+            }
+            lookup {
+                name            = ERROR_FLAGS
+                map_type        = BitToString
+                mask_bits       = 0xff
+                default_message = OK
+            }
+        }
+        field {
+            name     = current_consumption
+            quantity = HCA
+            info     = 'The current heat cost allocation.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
+            match {
+                measurement_type = Instantaneous
+                vif_range        = HeatCostAllocation
+            }
+        }
+        field {
+            name     = set_date
+            quantity = Text
+            info     = 'The most recent billing period date.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = Date
+                storage_nr       = 1
+            }
+        }
+        field {
+            name     = consumption_at_set_date
+            quantity = HCA
+            info     = 'Heat cost allocation at the most recent billing period date.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
+            match {
+                measurement_type = Instantaneous
+                vif_range        = HeatCostAllocation
+                storage_nr       = 1
+            }
+        }
+        field {
+            name     = set_date_1
+            quantity = Text
+            info     = 'The most recent billing period date.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = Date
+                storage_nr       = 1
+            }
+        }
+        field {
+            name     = consumption_at_set_date_1
+            quantity = HCA
+            info     = 'Heat cost allocation at the most recent billing period date.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
+            match {
+                measurement_type = Instantaneous
+                vif_range        = HeatCostAllocation
+                storage_nr       = 1
+            }
+        }
+        field {
+            name     = set_date_8
+            quantity = Text
+            info     = 'The 8 billing period date.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = Date
+                storage_nr       = 8
+            }
+        }
+        field {
+            name     = consumption_at_set_date_8
+            quantity = HCA
+            info     = 'Heat cost allocation at the 8 billing period date.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
+            match {
+                measurement_type = Instantaneous
+                vif_range        = HeatCostAllocation
+                storage_nr       = 8
+            }
+        }
+        field {
+            name     = set_date_17
+            quantity = Text
+            info     = 'The 17 billing period date.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = Date
+                storage_nr       = 17
+            }
+        }
+        field {
+            name     = consumption_at_set_date_17
+            quantity = HCA
+            info     = 'Heat cost allocation at the 17 billing period date.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
+            match {
+                measurement_type = Instantaneous
+                vif_range        = HeatCostAllocation
+                storage_nr       = 17
+            }
+        }
+        field {
+            name     = error_date
+            quantity = Text
+            info     = 'Date when the meter entered an error state.'
+            match {
+                measurement_type = AtError
+                vif_range        = Date
+            }
+        }
+        field {
+            name     = device_datetime
+            quantity = Text
+            info     = 'Date and time when the meter sent the telegram.'
+            display_unit = datetime
+            match {
+                measurement_type = Instantaneous
+                vif_range        = DateTime
+            }
+        }
+        field {
+            name     = model_version
+            quantity = Text
+            info     = 'model version.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = ModelVersion
+            }
+        }
+        field {
+            name     = flow_temperature
+            quantity = Temperature
+            info     = 'Forward media temperature.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
+            match {
+                measurement_type = Instantaneous
+                vif_range        = FlowTemperature
+            }
+        }
+    }
+    tests {
+        test {
+            args     = 'MyElement qcaloric 78563412 NOKEY'
+            telegram = 314493441234567835087a740000200b6e2701004b6e450100426c5f2ccb086e790000c2086c7f21326cffff046d200b7422
+            json     = '{"_":"telegram","media":"heat cost allocation","meter":"qcaloric","name":"MyElement","id":"78563412","status":"OK","current_consumption_hca":127,"set_date":"2018-12-31","consumption_at_set_date_hca":145,"set_date_1":"2018-12-31","consumption_at_set_date_1_hca":145,"set_date_17":"2019-01-31","consumption_at_set_date_17_hca":79,"error_date":"2127-15-31","device_datetime":"2019-02-20 11:32","timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'MyElement;78563412;127;2018-12-31;145;1111-11-11 11:11.11'
+        }
+        test {
+            args     = 'MyElement2 qcaloric 90919293 NOKEY'
+            comment  = 'Test mostly proprietary telegram without values'
+            telegram = 49449344939291903408780DFF5F350082180000800007B06EFFFF970000009F2C70020000BE26970000000000010018002E001F002E0023FF210008000500020000002F046D220FA227
+            json     = '{"_":"telegram","media":"heat cost allocation","meter":"qcaloric","name":"MyElement2","id":"90919293","status":"OK","device_datetime":"2021-07-02 15:34","timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'MyElement2;90919293;null;null;null;1111-11-11 11:11.11'
+        }
+        test {
+            args     = 'zenner_heat qcaloric 25932395 NOKEY'
+            telegram = 5E44496A95239325FD087A2CC050052F2F_0B6E030100426CDF2C4B6EFFFFFF82046CE1228B046E6200008D04EE132C3BFEFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF2F2F2F2F
+            json     = '{"_":"telegram","media":"heat cost allocation","meter":"qcaloric","name":"zenner_heat","id":"25932395","status":"UNKNOWN_C0","current_consumption_hca":103,"set_date":"2022-12-31","set_date_1":"2022-12-31","set_date_8":"2023-02-01","consumption_at_set_date_8_hca":62,"timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'zenner_heat;25932395;103;2022-12-31;null;1111-11-11 11:11.11'
+        }
+        test {
+            args     = 'HCA whe5x 91835132 NOKEY'
+            telegram = 244465323251839134087a4f0000000b6e0403004b6e660300426c9e29326cffff046d1416b921dd2f
+            json     = '{"_":"telegram","media":"heat cost allocation","meter":"qcaloric","name":"HCA","id":"91835132","status":"OK","current_consumption_hca":304,"set_date":"2020-09-30","consumption_at_set_date_hca":366,"set_date_1":"2020-09-30","consumption_at_set_date_1_hca":366,"error_date":"2127-15-31","device_datetime":"2021-01-25 22:20","timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'HCA;91835132;304;2020-09-30;366;1111-11-11 11:11.11'
+        }
+        test {
+            args     = 'HCA2 whe46x 60366655 NOKEY'
+            telegram = 344465325566366018087A90040000046D1311962C01FD0C03326CFFFF01FD7300025AC2000DFF5F0C0008003030810613080BFFFC
+            json     = '{"_":"telegram","media":"heat cost allocation","meter":"qcaloric","name":"HCA2","id":"60366655","status":"POWER_LOW","error_date":"2127-15-31","device_datetime":"2020-12-22 17:19","model_version":"03","flow_temperature_c":19.4,"timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'HCA2;60366655;null;null;null;1111-11-11 11:11.11'
+        }
+        test {
+            args     = 'HCA55 qcaloric 30535282 NOKEY'
+            comment  = 'QCaloric 5.5 encrypted but with some not-encrypted bytes at the end. We should print these, but we do not right now....'
+            telegram = 49449344825253303608780DFF5F350082430035E3DFC4EAC97A58B8610713D93549E2601258D617D267E7515C764B002A88CD341A9F9DF3C6034DE5B6D1FAB3619CBA9F046D250DDA2C
+            json     = '{"_":"telegram","device_datetime": "2022-12-26 13:37","id": "30535282","media": "heat cost allocation","meter": "qcaloric","name": "HCA55","status": "OK","timestamp": "1111-11-11T11:11:11Z"}'
+            fields   = 'HCA55;30535282;null;null;null;1111-11-11 11:11.11'
+        }
+    }
+}
