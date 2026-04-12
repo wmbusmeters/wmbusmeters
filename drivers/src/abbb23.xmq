@@ -4,7 +4,7 @@ driver {
     meter_type     = ElectricityMeter
     default_fields = name,id,total_energy_consumption_kwh,timestamp
     detect {
-        mvt = ABB,02,20
+        mvt = ABB,20,02
     }
     fields {
         field {

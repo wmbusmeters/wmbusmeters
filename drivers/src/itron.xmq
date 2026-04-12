@@ -4,10 +4,10 @@ driver {
     meter_type     = WaterMeter
     default_fields = name,id,total_m3,target_m3,timestamp
     detect {
-        mvt = ITW,07,00
-        mvt = ITW,07,03
-        mvt = ITW,07,33
-        mvt = ITW,16,00
+        mvt = ITW,00,07
+        mvt = ITW,03,07
+        mvt = ITW,33,07
+        mvt = ITW,00,16
     }
     library {
         use = enhanced_id
