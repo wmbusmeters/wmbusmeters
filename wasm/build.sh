@@ -4,19 +4,24 @@ set -e
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 SRC="$SCRIPT_DIR/../src"
 OUT="$SCRIPT_DIR/dist"
-OBJ="$SCRIPT_DIR/obj"
+BUILD="$SCRIPT_DIR/build"
 LIBXML2="$SCRIPT_DIR/../3rdparty/libxml2"
 LIBXML2_A="$LIBXML2/.libs/libxml2.a"
 WASM_OPT_FLAGS="-O4 --converge --strip-debug --strip-dwarf --strip-producers"
+VERSION="$(git describe --tags --dirty --always)-wasm"
+COMMIT="$(git rev-parse --short HEAD)"
 
-mkdir -p "$OUT" "$OBJ"
+mkdir -p "$OUT" "$BUILD"
 
-CXX_FLAGS="-std=c++17 -O2 -I$SRC -I$SCRIPT_DIR -I$LIBXML2/include -D__EMSCRIPTEN_BUILD__ -Dexit=wm_exit_trap -include ./usleep_async.h"
+echo "#define VERSION \"$VERSION\"" > $BUILD/version.h
+echo "#define COMMIT \"$COMMIT\"" >> $BUILD/version.h
+
+CXX_FLAGS="-std=c++20 -Wall -Wextra -O2 -flto -I$SRC -I$BUILD -I$SCRIPT_DIR -I$LIBXML2/include -D__EMSCRIPTEN_BUILD__ -Dexit=wm_exit_trap -include ./usleep_async.h -include $BUILD/version.h"
 
 compile_if_needed() {
     local src="$1"
     local extra_flags="${2:-}"
-    local obj="$OBJ/$(basename ${src%.*}).o"
+    local obj="$BUILD/$(basename ${src%.*}).o"
     if [ ! -f "$obj" ] || [ "$src" -nt "$obj" ]; then
         echo "  [compile] $(basename $src)" >&2
         em++ $CXX_FLAGS $extra_flags -c "$src" -o "$obj"
@@ -39,10 +44,10 @@ else
 fi
 
 # ── 2. xmq.c ─────────────────────────────────────────
-XMQ_OBJ="$OBJ/xmq.o"
+XMQ_OBJ="$BUILD/xmq.o"
 if [ ! -f "$XMQ_OBJ" ] || [ "$SRC/xmq.c" -nt "$XMQ_OBJ" ]; then
     echo "  [compile] xmq.c" >&2
-    emcc -O2 -I"$SRC" -I"$LIBXML2/include" -c "$SRC/xmq.c" -o "$XMQ_OBJ"
+    emcc -O2 -flto  -I"$SRC" -I"$LIBXML2/include" -c "$SRC/xmq.c" -o "$XMQ_OBJ"
 fi
 
 # ── 3. Core + Drivers + wmbus devices + bus ───────────
@@ -67,7 +72,7 @@ for src in $CORE_SRCS $DRIVER_SRCS; do
 done
 
 # ── 4. main.cc ────────────────────────────────────────
-MAIN_OBJ="$OBJ/main.o"
+MAIN_OBJ="$BUILD/main.o"
 if [ ! -f "$MAIN_OBJ" ] || [ "$SRC/main.cc" -nt "$MAIN_OBJ" ]; then
     echo "  [compile] main.cc (main→_wm_original_main)" >&2
     em++ $CXX_FLAGS -Dmain=_wm_original_main -c "$SRC/main.cc" -o "$MAIN_OBJ"
@@ -75,7 +80,7 @@ fi
 ALL_OBJS="$ALL_OBJS $MAIN_OBJ"
 
 # ── 5. Stubs ──────────────────────────────────────────
-STUBS_OBJ="$OBJ/wasm_stubs.o"
+STUBS_OBJ="$BUILD/wasm_stubs.o"
 if [ ! -f "$STUBS_OBJ" ] || [ "$SCRIPT_DIR/wasm_stubs.cc" -nt "$STUBS_OBJ" ]; then
     echo "  [compile] wasm_stubs.cc" >&2
     em++ $CXX_FLAGS -c "$SCRIPT_DIR/wasm_stubs.cc" -o "$STUBS_OBJ"
@@ -83,7 +88,7 @@ fi
 ALL_OBJS="$ALL_OBJS $STUBS_OBJ"
 
 # ── 6. serial_web ────────────────────────────────────
-SERIAL_OBJ="$OBJ/serial_web.o"
+SERIAL_OBJ="$BUILD/serial_web.o"
 if [ ! -f "$SERIAL_OBJ" ] || [ "$SCRIPT_DIR/serial_web.cc" -nt "$SERIAL_OBJ" ]; then
     echo "  [compile] serial_web.cc" >&2
     em++ $CXX_FLAGS -c "$SCRIPT_DIR/serial_web.cc" -o "$SERIAL_OBJ"
@@ -91,7 +96,7 @@ fi
 ALL_OBJS="$ALL_OBJS $SERIAL_OBJ"
 
 # ── 7. bindings.cc ──────────────────────
-BINDINGS_OBJ="$OBJ/bindings.o"
+BINDINGS_OBJ="$BUILD/bindings.o"
 echo "  [compile] bindings.cc" >&2
 em++ $CXX_FLAGS -c "$SCRIPT_DIR/bindings.cc" -o "$BINDINGS_OBJ"
 ALL_OBJS="$ALL_OBJS $BINDINGS_OBJ"
@@ -102,6 +107,9 @@ echo "==> Linking wmbusmeters WASM..."
 em++ \
   $ALL_OBJS \
   "$LIBXML2_A" \
+  -flto \
+  -lidbfs.js \
+  -s FORCE_FILESYSTEM=1 \
   -s WASM=1 \
   -s MODULARIZE=1 \
   -s ASSERTIONS=1 \
@@ -113,8 +121,8 @@ em++ \
   -s ALLOW_MEMORY_GROWTH=1 \
   -s NO_EXIT_RUNTIME=1 \
   -s EXPORTED_FUNCTIONS='[
+    "FS",
     "_wm_version",
-    "_wm_free_result",
     "_wm_main",
     "_wm_stop",
     "_wm_serial_open",

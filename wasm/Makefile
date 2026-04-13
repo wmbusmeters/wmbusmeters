@@ -6,7 +6,7 @@ all:
 	@bash $(SCRIPT_DIR)build.sh
 
 clean:
-	rm -rf $(SCRIPT_DIR)dist $(SCRIPT_DIR)obj $(SCRIPT_DIR)obj
+	rm -rf $(SCRIPT_DIR)dist $(SCRIPT_DIR)build $(SCRIPT_DIR)build
 
 clean-all: clean
 	rm -rf $(SCRIPT_DIR)../3rdparty/libxml2/.libs

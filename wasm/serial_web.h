@@ -4,8 +4,10 @@
 #include <vector>
 #include <string>
 #include <map>
+#include <set>
 #include <memory>
 #include <functional>
+#include <ctime>
 #include "serial.h"
 
 using namespace std;
@@ -15,6 +17,7 @@ struct SerialDeviceImp : public SerialDevice
     int index;
     vector<uint8_t> rxBuffer;
     bool isOpen = false;
+    bool disconnected = false; // Set true when JS reports USB disconnect
     int baudrate = 115200;
     int databits = 8;
     int stopbits = 1;
@@ -49,13 +52,33 @@ struct SerialDeviceImp : public SerialDevice
     void setParity(int p) { parity = p; }
 };
 
+// Simple timer for startRegularCallback
+struct WebTimer {
+    int id;
+    int seconds;
+    time_t last_call;
+    function<void()> callback;
+    string name;
+};
+
 struct SerialCommunicationManagerImp : public SerialCommunicationManager
 {
+    // All registered WebSerial devices.
     vector<shared_ptr<SerialDeviceImp>> devices;
     bool running_ = false;
 
-    // Listen callbacks: device → callback
+    // Devices actively managed by the wmbusmeters pipeline.
+    set<string> managed_devices_;
+
+    // Listen callbacks: device → callback (fires processSerialData)
     map<SerialDevice*, function<void()>> listen_callbacks_;
+
+    // Disappear callbacks: device → callback (fires when USB disconnected)
+    map<SerialDevice*, function<void()>> disappear_callbacks_;
+
+    // Regular timers (for detectAndConfigureWmbusDevices, regularCheckup, etc.)
+    vector<WebTimer> timers_;
+    int next_timer_id_ = 0;
 
     // SerialCommunicationManager Interface
     shared_ptr<SerialDevice> createSerialDeviceTTY(string dev, int baud_rate, PARITY parity, string purpose) override;
@@ -71,7 +94,7 @@ struct SerialCommunicationManagerImp : public SerialCommunicationManager
     void expectDevicesToWork() override;
     void stop() override;
     void startEventLoop() override;
-    void waitForStop() override;  // Event loop with emscripten_sleep
+    void waitForStop() override;
     bool isRunning() override;
 
     int startRegularCallback(string name, int seconds, function<void()> callback) override;
@@ -87,16 +110,32 @@ struct SerialCommunicationManagerImp : public SerialCommunicationManager
 
     void tickleEventLoop();
 
-    // Tick listen callbacks once — called from Semaphore::wait() polling
-    // so that processSerialData() can run during command/response exchanges.
+    // Called from waitForStop and Semaphore::wait — does everything:
+    // drain disconnects, fire timers, check pending data
     void tickCallbacks();
+
+    // Drain pending disconnect events from JS
+    void drainDisconnects();
+
+    // Drain pending connect events from JS (auto-reconnect)
+    void drainConnects();
+
+    // Fire any due regular timers
+    void fireTimers();
 
     // Register a device opened by JS
     void registerWebDevice(int index);
+
+    // Mark device as disconnected (called from drainDisconnects)
+    void markDeviceDisconnected(int index);
+
+    // Full cleanup: remove from all data structures + VFS
+    void cleanupDevice(int index);
+
     SerialDeviceImp* findByIndex(int index);
 };
 
-// Global instance — shared between bindings.cc and the pipeline
+// Global instance
 extern SerialCommunicationManagerImp* g_web_serial_manager;
 
 #endif

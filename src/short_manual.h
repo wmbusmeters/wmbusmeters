@@ -81,3 +81,4 @@ As {options} you can use:
     --verbose for more information
     --version print version
 )MANUAL";
+#endif
