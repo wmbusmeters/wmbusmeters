@@ -8,6 +8,35 @@ driver {
         mvt = ZRI,01,16
         mvt = ZRI,01,06
     }
+    mfct_tpl_status_bits {
+        mask_bits       = 0xf8
+        default_message = OK
+        map {
+            name  = PERMANENT_ERROR
+            value = 0x08
+            test  = Set
+        }
+        map {
+            name  = TEMPORARY_ERROR
+            value = 0x10
+            test  = Set
+        }
+        map {
+            name  = WAS_LEAKING
+            value = 0x20
+            test  = Set
+        }
+        map {
+            name  = WAS_TAMPERED
+            value = 0x40
+            test  = Set
+        }
+        map {
+            name  = WAS_REMOVED
+            value = 0x80
+            test  = Set
+        }
+    }
     library {
         use = total_m3
         use = meter_date
@@ -75,79 +104,81 @@ driver {
                 map_type        = BitToString
                 mask_bits       = 0xffff
                 default_message = OK
+                // Status byte B (high byte)
                 map {
-                    name  = WAS_REMOVED
+                    name  = BURSTING
                     value = 0x8000
                     test  = Set
                 }
                 map {
-                    name  = WAS_TAMPERED
+                    name  = REMOVED
                     value = 0x4000
                     test  = Set
                 }
                 map {
-                    name  = WAS_LEAKING
+                    name  = LEAKING
                     value = 0x2000
                     test  = Set
                 }
                 map {
-                    name  = TEMPORARY_ERROR
+                    name  = WAS_BACKFLOWING
                     value = 0x1000
                     test  = Set
                 }
                 map {
-                    name  = PERMANENT_ERROR
+                    name  = BACKFLOWING
                     value = 0x0800
                     test  = Set
                 }
                 map {
-                    name  = BATTERY_EOL
+                    name  = WAS_BLOCKED
                     value = 0x0400
                     test  = Set
                 }
                 map {
-                    name  = ABNORMAL_ERROR
+                    name  = UNDERSIZED
                     value = 0x0200
                     test  = Set
                 }
                 map {
-                    name  = BURSTING
+                    name  = OVERSIZED
+                    value = 0x0100
+                    test  = Set
+                }
+                // Status byte A (low byte)
+                map {
+                    name  = WAS_REMOVED
                     value = 0x0080
                     test  = Set
                 }
                 map {
-                    name  = REMOVED
+                    name  = WAS_TAMPERED
                     value = 0x0040
                     test  = Set
                 }
                 map {
-                    name  = LEAKING
+                    name  = WAS_LEAKING
                     value = 0x0020
                     test  = Set
                 }
                 map {
-                    name  = WAS_BACKFLOWING
+                    name  = TEMPORARY_ERROR
                     value = 0x0010
                     test  = Set
                 }
                 map {
-                    name  = BACKFLOWING
+                    name  = PERMANENT_ERROR
                     value = 0x0008
                     test  = Set
                 }
                 map {
-                    name  = WAS_BLOCKED
+                    name  = BATTERY_EOL
                     value = 0x0004
                     test  = Set
                 }
                 map {
-                    name  = UNDERSIZED
+                    name  = ABNORMAL_CONDITION
                     value = 0x0002
-                    test  = Set
-                }
-                map {
-                    name  = OVERSIZED
-                    value = 0x0001
                     test  = Set
                 }
             }
