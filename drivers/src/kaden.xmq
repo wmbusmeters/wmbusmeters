@@ -41,7 +41,7 @@ driver {
                     test  = Set
                 }
                 map {
-                    name  = SENSOR_T1_OUTSIDE_MEASURING_RANGE
+                    name  = TAMPERING
                     value = 0x0008
                     test  = Set
                 }
@@ -84,8 +84,8 @@ driver {
         test {
             args     = 'KadenD10 kaden 23800604 82B0551191F51D66EFCDAB8967452301'
             telegram = 4e443059040680231e087ac40040050e6aa476257c0c3adae8277edc999b39b38222fcb387a91e94cb6ed47ceec6470f5f686f89a8574415fa262bd43c88f7f153ce3c66e8e44da338a06c62ab21b1
-            json     = '{"_": "telegram","consumption_hca": 0,"external_temperature_c": 19.6,"fabrication_no": "23800604","flow_temperature_c": 19.7,"id": "23800604","media": "heat cost allocation","meter": "kaden","meter_datetime": "2026-02-09 04:01","name": "KadenD10","no_measurement_duration_h": 940.016667,"no_measurement_duration_last_year_h": 5088,"status": "SENSOR_T1_OUTSIDE_MEASURING_RANGE","tampering_duration_h": 0.003611,"target_date": "2127-01-01","target_hca": 3,"timestamp": "1111-11-11T11:11:11Z"}'
-            fields   = 'KadenD10;23800604;SENSOR_T1_OUTSIDE_MEASURING_RANGE;0;1111-11-11 11:11.11'
+            json     = '{"_": "telegram","consumption_hca": 0,"external_temperature_c": 19.6,"fabrication_no": "23800604","flow_temperature_c": 19.7,"id": "23800604","media": "heat cost allocation","meter": "kaden","meter_datetime": "2026-02-09 04:01","name": "KadenD10","no_measurement_duration_h": 940.016667,"no_measurement_duration_last_year_h": 5088,"status": "TAMPERING","tampering_duration_h": 0.003611,"target_date": "2127-01-01","target_hca": 3,"timestamp": "1111-11-11T11:11:11Z"}'
+            fields   = 'KadenD10;23800604;TAMPERING;0;1111-11-11 11:11.11'
         }
         test {
             args     = 'KadenC10 kaden 23701267 82B0551191F51D66EFCDAB8967452301'
