@@ -1,0 +1,50 @@
+// Copyright (C) 2020-2023 Fredrik Öhrström (gpl-3.0-or-later)
+driver {
+    name           = watertech
+    meter_type     = WaterMeter
+    default_fields = name,id,status,total_m3,timestamp
+    detect {
+        mvt = WTT,59,07
+    }
+    library {
+        use = software_version
+        use = meter_datetime
+    }
+    fields {
+        field {
+            name       = status
+            quantity   = Text
+            info       = 'Status and error flags.'
+            attributes = STATUS,INCLUDE_TPL_STATUS
+            match {
+                measurement_type = Instantaneous
+                vif_range        = ErrorFlags
+            }
+            lookup {
+                name            = ERROR_FLAGS
+                map_type        = BitToString
+                mask_bits       = 0xffff
+                default_message = OK
+            }
+        }
+        field {
+            name           = total
+            quantity       = Volume
+            info           = 'The total water consumption recorded by this meter.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
+            match {
+                measurement_type = Instantaneous
+                vif_range        = Volume
+            }
+        }
+    }
+    tests {
+        test {
+            args     = 'wtt watertech 38383838 NOKEY'
+            telegram = 3144945E3838383859078C20007A010020252F2F_066D1C1F0EF021000413B91E000002FD17000002FD0F4C2B2F2F2F2F2F2F
+            json     = '{"_":"telegram","media":"water","meter":"watertech","name":"wtt","id":"38383838","software_version":"+L","meter_datetime":"2023-01-16 14:31:28","status":"OK","total_m3":7.865,"timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'wtt;38383838;OK;7.865;1111-11-11 11:11.11'
+        }
+    }
+}
