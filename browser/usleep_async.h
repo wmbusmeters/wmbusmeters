@@ -3,9 +3,12 @@
 #ifdef __EMSCRIPTEN__
 #include <emscripten.h>
 
-inline void usleep(unsigned int usec)
-{
+extern "C" {
+    inline int usleep(unsigned int usec)
+    {
     emscripten_sleep(usec / 1000);
+    return 0;
+    }
 }
 
 #else
