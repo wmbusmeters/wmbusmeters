@@ -1,6 +1,19 @@
-// wasm_stubs.cc
-// Stubs für Hardware/Threading/OS-Funktionen die im WASM-Build nicht verfügbar sind.
-// BusManager ist NICHT mehr hier — kommt aus bus.cc.
+/*
+ Copyright (C) 2026 Aras Abbasi (gpl-3.0-or-later)
+
+ This program is free software: you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation, either version 3 of the License, or
+ (at your option) any later version.
+
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+
+ You should have received a copy of the GNU General Public License
+ along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
 
 #include "util.h"
 #include "threads.h"
@@ -15,8 +28,7 @@
 
 using namespace std;
 
-// ── Semaphore (polling via usleep → Asyncify-kompatibel) ──────────────────────
-// threads.h bleibt unverändert, Zustand wird extern getrackt.
+// ── Semaphore (polling via usleep) ──────────────────────
 static map<Semaphore*, bool> g_semaphore_notified;
 
 Semaphore::Semaphore(const char *name) : name_(name)
@@ -41,7 +53,7 @@ bool Semaphore::wait()
         // ASYNCIFY saved-stack until the 1 MB buffer overflows ("function
         // signature mismatch" on second start).
         if (g_web_serial_manager) g_web_serial_manager->tickDataOnly();
-        usleep(10000); // 10ms — wird via usleep_async.h zu emscripten_sleep(10)
+        usleep(10000); // 10ms
     }
     bool ok = g_semaphore_notified[this];
     g_semaphore_notified[this] = false;
