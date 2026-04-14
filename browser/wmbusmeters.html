@@ -1,0 +1,1019 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>wmbusmeters</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+    --bg:#0a0a0a; --surface:#141414; --border:#252525;
+    --text:#b0b8c0; --dim:#555e68; --bright:#e0e4e8;
+    --green:#3fb950; --cyan:#58a6ff; --amber:#d29922; --red:#f85149;
+    --mono:'IBM Plex Mono','Menlo',monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:var(--mono);background:var(--bg);color:var(--text);height:100vh;display:flex;flex-direction:column;overflow:hidden}
+
+.topbar{background:var(--surface);border-bottom:1px solid var(--border);padding:0 16px;height:40px;display:flex;align-items:center;gap:12px;font-size:12px;flex-shrink:0}
+.topbar .logo{color:var(--green);font-weight:600;font-size:13px}
+.topbar .ver{color:var(--dim);font-weight:400;font-size:11px;margin-left:6px}
+.topbar .sep{width:1px;height:20px;background:var(--border)}
+.topbar .dot{width:7px;height:7px;border-radius:50%;background:var(--dim)}
+.topbar .dot.on{background:var(--green);box-shadow:0 0 6px var(--green)}
+.topbar .lbl{color:var(--dim)}
+.topbar select,.topbar button{font-family:var(--mono);font-size:11px;padding:3px 8px;background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:4px;cursor:pointer}
+.topbar button:hover{border-color:var(--dim)}
+.topbar button.g{border-color:var(--green);color:var(--green)}
+.topbar button.g:hover{background:#1a2f1a}
+.topbar button:disabled{opacity:.3;cursor:default}
+.topbar .setup-select{font-family:var(--mono);font-size:11px;padding:3px 8px;background:var(--bg);color:var(--cyan);border:1px solid var(--border);border-radius:4px;cursor:pointer;max-width:160px}
+.topbar .setup-select:focus{border-color:var(--cyan);outline:none}
+
+.port-tag{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;background:var(--bg);border:1px solid var(--border);border-radius:4px;font-size:11px;color:var(--cyan)}
+.port-tag .port-dot{width:5px;height:5px;border-radius:50%;background:var(--green)}
+.port-tag .port-remove{color:var(--dim);cursor:pointer;margin-left:2px}
+.port-tag .port-remove:hover{color:var(--red)}
+
+.terminal{flex:1;overflow-y:auto;padding:12px 16px;font-size:12.5px;line-height:1.65;background:var(--bg)}
+.line{padding:1px 0;white-space:pre-wrap;word-break:break-all}
+.line.dim{color:var(--dim)} .line.green{color:var(--green)} .line.cyan{color:var(--cyan)}
+.line.amber{color:var(--amber)} .line.red{color:var(--red)} .line.bright{color:var(--bright)}
+
+.prompt-wrap{display:flex;align-items:center;gap:0;background:var(--surface);border-top:1px solid var(--border);padding:0 12px;height:36px;flex-shrink:0}
+.prompt-wrap .ps{color:var(--green);font-size:12px;white-space:nowrap}
+.prompt-wrap input{flex:1;background:transparent;border:none;outline:none;color:var(--bright);font-family:var(--mono);font-size:12px;padding:0 6px}
+.prompt-wrap input:disabled{color:var(--dim);cursor:not-allowed}
+.prompt-wrap input:disabled::placeholder{color:var(--dim)}
+.prompt-btns{display:flex;gap:6px;margin-left:8px}
+.prompt-btns button{font-family:var(--mono);font-size:10px;padding:3px 10px;border:1px solid var(--border);border-radius:4px;cursor:pointer;background:var(--bg);color:var(--dim)}
+.prompt-btns button:hover{border-color:var(--dim);color:var(--text)}
+.prompt-btns button.start-btn{border-color:var(--green);color:var(--green);font-weight:600}
+.prompt-btns button.start-btn:hover{background:#1a2f1a}
+.prompt-btns button.start-btn:disabled{opacity:.25;cursor:default;background:transparent}
+.prompt-btns button.stop-btn{border-color:var(--red);color:var(--red)}
+.prompt-btns button.stop-btn:hover{background:#2f1a1a}
+.prompt-btns button.stop-btn:disabled{opacity:.25;cursor:default;background:transparent}
+
+.statusbar{background:var(--surface);border-top:1px solid var(--border);padding:0 16px;height:24px;display:flex;align-items:center;gap:16px;font-size:10px;color:var(--dim);flex-shrink:0}
+.statusbar .sb-setup{color:var(--cyan)}
+::-webkit-scrollbar{width:6px} ::-webkit-scrollbar-track{background:transparent} ::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+
+.menu-wrap{position:relative}
+.menu-btn{font-size:14px;letter-spacing:1px;padding:3px 6px}
+.menu{display:none;position:absolute;top:calc(100% + 6px);right:0;background:var(--surface);border:1px solid var(--border);border-radius:6px;min-width:200px;z-index:100;box-shadow:0 8px 24px rgba(0,0,0,.5);overflow:hidden}
+.menu.open{display:block}
+.menu-item{padding:7px 14px;font-size:11px;color:var(--text);cursor:pointer;display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--border)}
+.menu-item:last-child{border-bottom:none}
+.menu-item:hover{background:var(--bg);color:var(--bright)}
+.menu-item .mi-icon{color:var(--dim);font-size:12px;width:16px;text-align:center}
+.menu-item .mi-count{margin-left:auto;color:var(--dim);font-size:10px}
+.menu-sep{border-bottom:1px solid var(--border)}
+
+.dialog-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:200;align-items:center;justify-content:center}
+.dialog-overlay.open{display:flex}
+.dialog{background:var(--surface);border:1px solid var(--border);border-radius:8px;width:620px;max-width:92vw;max-height:85vh;display:flex;flex-direction:column;box-shadow:0 12px 40px rgba(0,0,0,.6)}
+.dialog.wide{width:700px}
+.dialog-header{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--border)}
+.dialog-header h2{font-size:13px;font-weight:600;color:var(--bright);font-family:var(--mono)}
+.dialog-close{background:none;border:none;color:var(--dim);font-size:16px;cursor:pointer;padding:0 4px;font-family:var(--mono)}
+.dialog-close:hover{color:var(--red)}
+.dialog-body{flex:1;overflow-y:auto;padding:12px 16px}
+.dialog-footer{padding:10px 16px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:8px}
+
+.field{margin-bottom:10px}
+.field label{display:block;font-size:10px;color:var(--dim);margin-bottom:3px;text-transform:uppercase;letter-spacing:.5px}
+.field .hint{font-size:9px;color:var(--dim);margin-top:2px;line-height:1.4}
+.field input,.field select,.field textarea{width:100%;font-family:var(--mono);font-size:11px;padding:6px 8px;background:var(--bg);color:var(--bright);border:1px solid var(--border);border-radius:4px;outline:none}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--cyan)}
+.field textarea{resize:vertical;min-height:48px}
+.field-row{display:flex;gap:8px}
+.field-row .field{flex:1}
+.field-inline{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.field-inline label{font-size:10px;color:var(--dim);text-transform:uppercase;letter-spacing:.5px;white-space:nowrap}
+.field-inline input[type="checkbox"]{width:14px;height:14px;accent-color:var(--green)}
+.btn{font-family:var(--mono);font-size:11px;padding:5px 12px;border:1px solid var(--border);border-radius:4px;cursor:pointer;background:var(--bg);color:var(--text)}
+.btn:hover{border-color:var(--dim);color:var(--bright)}
+.btn-green{border-color:var(--green);color:var(--green)}
+.btn-green:hover{background:#1a2f1a}
+.btn-red{border-color:var(--red);color:var(--red)}
+.btn-red:hover{background:#2f1a1a}
+.btn-cyan{border-color:var(--cyan);color:var(--cyan)}
+.btn-cyan:hover{background:#1a2a3f}
+.btn-sm{padding:3px 8px;font-size:10px}
+
+.item-card{border:1px solid var(--border);border-radius:4px;padding:8px 10px;margin-bottom:6px;background:var(--bg);display:flex;align-items:flex-start;gap:10px}
+.item-card:hover{border-color:var(--dim)}
+.item-card.active-setup{border-color:var(--cyan)}
+.item-info{flex:1;min-width:0}
+.item-name{font-size:12px;color:var(--bright);font-weight:500}
+.item-meta{font-size:10px;color:var(--dim);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.item-actions{display:flex;gap:4px;flex-shrink:0}
+.empty-state{text-align:center;padding:24px;color:var(--dim);font-size:11px}
+
+.tabs{display:flex;gap:0;border-bottom:1px solid var(--border);margin-bottom:12px}
+.tab{padding:6px 14px;font-size:11px;color:var(--dim);cursor:pointer;border-bottom:2px solid transparent;font-family:var(--mono);background:none;border-top:none;border-left:none;border-right:none}
+.tab:hover{color:var(--text)}
+.tab.active{color:var(--cyan);border-bottom-color:var(--cyan)}
+.tab-panel{display:none}
+.tab-panel.active{display:block}
+
+.info-box{background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:8px 10px;margin-bottom:10px;font-size:10px;color:var(--dim);line-height:1.5}
+.info-box code{color:var(--cyan)}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+    <span class="logo">wmbusmeters<span class="ver" id="ver"></span></span>
+    <div class="sep"></div>
+    <div class="dot" id="wasmDot"></div>
+    <span class="lbl" id="wasmLbl">loading…</span>
+    <div class="sep"></div>
+    <select class="setup-select" id="setupSelect" onchange="switchSetup(this.value)" title="Active setup"></select>
+    <div class="sep"></div>
+    <button class="g" id="btnAddPort" onclick="addPort()">+ Port</button>
+    <div id="portTags"></div>
+    <div style="margin-left:auto"></div>
+    <div class="menu-wrap">
+        <button class="menu-btn" id="menuBtn" onclick="toggleMenu()">☰</button>
+        <div class="menu" id="menu">
+            <div class="menu-item" onclick="openDialog('config')"><span class="mi-icon">⚙</span>Configuration</div>
+            <div class="menu-item" onclick="openDialog('meters')"><span class="mi-icon">◉</span>Meters<span class="mi-count" id="menuMeterCount">0</span></div>
+            <div class="menu-sep"></div>
+            <div class="menu-item" onclick="openDialog('setups')"><span class="mi-icon">▦</span>Setups</div>
+            <div class="menu-sep"></div>
+            <div class="menu-item" onclick="exportSetup()"><span class="mi-icon">↓</span>Export Setup</div>
+            <div class="menu-item" onclick="importSetup()"><span class="mi-icon">↑</span>Import Setup</div>
+        </div>
+    </div>
+</div>
+
+<div class="dialog-overlay" id="dlgOverlay" onclick="if(event.target===this)closeDialog()">
+    <div class="dialog" id="dlgBox">
+        <div class="dialog-header">
+            <h2 id="dlgTitle">—</h2>
+            <button class="dialog-close" onclick="closeDialog()">×</button>
+        </div>
+        <div class="dialog-body" id="dlgBody"></div>
+        <div class="dialog-footer" id="dlgFooter"></div>
+    </div>
+</div>
+<input type="file" id="importFile" accept=".json" style="display:none" onchange="handleImport(event)" />
+
+<div class="terminal" id="term"></div>
+
+<div class="prompt-wrap">
+    <span class="ps">wmbusmeters$&nbsp;</span>
+    <input type="text" id="input" placeholder="raw CLI args — or click ▶ start to use active setup" autofocus />
+    <div class="prompt-btns">
+        <button class="start-btn" id="btnStart" onclick="doStart()" title="Run with active setup (--useconfig=/etc)">▶ start</button>
+        <button class="stop-btn" id="btnStop" onclick="doStop()" disabled>stop</button>
+        <button onclick="doClear()">clear</button>
+    </div>
+</div>
+
+<div class="statusbar">
+    <span id="sbStatus">ready</span>
+    <span id="sbPorts">no ports</span>
+    <span class="sb-setup" id="sbSetup"></span>
+</div>
+
+<script src="serial-manager.js"></script>
+
+<script>
+// ═══════════════════════════════════════════════════════
+// Architecture
+//
+// Persistent (IDBFS on /var/lib/wmbusmeters):
+//   setups.json
+//   setups/<n>/wmbusmeters.conf
+//   setups/<n>/wmbusmeters.d/<meter>
+//
+// Symlinks (MEMFS, recreated on init + switch):
+//   /etc/wmbusmeters.conf → active setup conf
+//   /etc/wmbusmeters.d    → active setup meters dir
+//
+// ▶ start: --useconfig=/etc [--oneshot] [--exitafter=X]
+// Input:   raw CLI passthrough, no injection
+//
+// IMPORTANT: wmbusmeters.conf only accepts certain keys.
+// CLI-only flags (--ppjson, --identitymode, etc.) must
+// NOT appear in the conf file.
+// ═══════════════════════════════════════════════════════
+
+const PERSIST     = '/var/lib/wmbusmeters';
+const SETUPS_DIR  = PERSIST + '/setups';
+const SETUPS_META = PERSIST + '/setups.json';
+const ETC_CONF    = '/etc/wmbusmeters.conf';
+const ETC_METERS  = '/etc/wmbusmeters.d';
+
+let activeSetup = 'default';
+
+function setupDir(n) { return SETUPS_DIR + '/' + (n || activeSetup); }
+function confPath(n) { return setupDir(n) + '/wmbusmeters.conf'; }
+function meterDir(n) { return setupDir(n) + '/wmbusmeters.d'; }
+
+// ═══════════════════════════════════════════════════════
+// FS
+// ═══════════════════════════════════════════════════════
+async function initFS(FS) {
+    [PERSIST, SETUPS_DIR, '/etc', '/tmp'].forEach(d => { try { FS.mkdirTree(d); } catch {} });
+    try { FS.mount(FS.filesystems.IDBFS, { autoPersist: true }, PERSIST); } catch {}
+    await new Promise(r => FS.syncfs(true, r));
+}
+
+async function syncFS() {
+    if (wasmModule?.FS) await new Promise(r => wasmModule.FS.syncfs(false, r));
+}
+
+function fsRead(p)      { try { return wasmModule.FS.readFile(p, { encoding: 'utf8' }); } catch { return null; } }
+function fsWrite(p, c)  { wasmModule.FS.writeFile(p, c); }
+function fsExists(p)    { try { wasmModule.FS.stat(p); return true; } catch { return false; } }
+function fsList(p)      { try { return wasmModule.FS.readdir(p).filter(f => f !== '.' && f !== '..'); } catch { return []; } }
+function fsUnlink(p)    { try { wasmModule.FS.unlink(p); } catch {} }
+function fsMkdir(p)     { try { wasmModule.FS.mkdirTree(p); } catch {} }
+function fsRmdir(p)     { try { wasmModule.FS.rmdir(p); } catch {} }
+function fsIsSymlink(p) { try { return wasmModule.FS.isLink(wasmModule.FS.lstat(p).mode); } catch { return false; } }
+function fsIsDir(p)     { try { return wasmModule.FS.isDir(wasmModule.FS.lstat(p).mode); } catch { return false; } }
+
+// ═══════════════════════════════════════════════════════
+// Symlinks
+// ═══════════════════════════════════════════════════════
+function activateSymlinks(name) {
+    const FS = wasmModule.FS, target = setupDir(name);
+    if (fsIsSymlink(ETC_CONF) || fsExists(ETC_CONF)) fsUnlink(ETC_CONF);
+    if (fsIsSymlink(ETC_METERS)) fsUnlink(ETC_METERS);
+    else if (fsIsDir(ETC_METERS)) { fsList(ETC_METERS).forEach(f => fsUnlink(ETC_METERS + '/' + f)); fsRmdir(ETC_METERS); }
+    FS.symlink(target + '/wmbusmeters.conf', ETC_CONF);
+    FS.symlink(target + '/wmbusmeters.d', ETC_METERS);
+}
+
+// ═══════════════════════════════════════════════════════
+// Setup meta
+// ═══════════════════════════════════════════════════════
+const DEFAULT_META = { setups: ['default'], active: 'default' };
+
+function loadMeta() {
+    try {
+        const raw = fsRead(SETUPS_META);
+        if (!raw) return { ...DEFAULT_META };
+        const m = JSON.parse(raw);
+        if (!m || typeof m !== 'object') return { ...DEFAULT_META };
+        if (!Array.isArray(m.setups) || !m.setups.length) m.setups = ['default'];
+        if (typeof m.active !== 'string' || !m.setups.includes(m.active)) m.active = m.setups[0];
+        return m;
+    } catch { return { ...DEFAULT_META }; }
+}
+
+function saveMeta(m) { fsWrite(SETUPS_META, JSON.stringify(m)); syncFS(); }
+
+function ensureSetup(name) {
+    fsMkdir(setupDir(name)); fsMkdir(meterDir(name));
+    if (!fsExists(confPath(name))) fsWrite(confPath(name), serializeConf(CONF_DEFAULTS));
+}
+
+function renderSetupSelect() {
+    const meta = loadMeta();
+    document.getElementById('setupSelect').innerHTML = meta.setups.map(s =>
+        `<option value="${esc(s)}"${s === activeSetup ? ' selected' : ''}>${esc(s)}</option>`
+    ).join('');
+    document.getElementById('sbSetup').textContent = 'setup: ' + activeSetup;
+}
+
+function switchSetup(name) {
+    if (mainRunning) { print('Stop first.', 'amber'); document.getElementById('setupSelect').value = activeSetup; return; }
+    activeSetup = name;
+    const meta = loadMeta(); meta.active = name; saveMeta(meta);
+    activateSymlinks(name); renderSetupSelect(); updateMenuCounts();
+    print(`Switched to setup: ${name}`, 'cyan');
+}
+
+// ═══════════════════════════════════════════════════════
+// Config — ONLY keys valid in wmbusmeters.conf
+//
+// From the README example conf. CLI-only flags like
+// --ppjson, --identitymode, --selectfields, --separator,
+// --resetafter are NOT valid in the conf file.
+//
+// --oneshot and --exitafter are CLI flags that CAN be
+// combined with --useconfig, stored separately.
+// ═══════════════════════════════════════════════════════
+const CONF_DEFAULTS = {
+    loglevel: 'normal',
+    device: 'auto:t1',
+    donotprobe: '',
+    logtelegrams: 'false',
+    format: 'json',
+    meterfiles: '',
+    meterfilesaction: 'overwrite',
+    meterfilesnaming: 'name',
+    meterfilestimestamp: 'day',
+    logfile: '',
+    shell: '',
+    alarmshell: '',
+    alarmtimeout: '',
+    alarmexpectedactivity: 'mon-sun(00-23)',
+    ignoreduplicates: 'false',
+};
+
+// These are valid with --useconfig but are CLI args, not conf keys
+const START_DEFAULTS = {
+    oneshot: false,
+    exitafter: '',
+};
+
+function parseConf(text) {
+    const cfg = { ...CONF_DEFAULTS }; if (!text) return cfg;
+    for (const line of text.split('\n')) {
+        const t = line.trim(); if (!t || t[0] === '#') continue;
+        const eq = t.indexOf('='); if (eq < 1) continue;
+        const k = t.substring(0, eq).trim(), v = t.substring(eq + 1).trim();
+        if (k in CONF_DEFAULTS) cfg[k] = v;
+    }
+    return cfg;
+}
+
+function serializeConf(cfg) {
+    const lines = ['# wmbusmeters.conf', ''];
+    const S = {
+        'Logging':     ['loglevel', 'logfile', 'logtelegrams'],
+        'Device':      ['device', 'donotprobe'],
+        'Output':      ['format'],
+        'Meter files': ['meterfiles', 'meterfilesaction', 'meterfilesnaming', 'meterfilestimestamp'],
+        'Shell':       ['shell', 'alarmshell', 'alarmtimeout', 'alarmexpectedactivity'],
+        'Behavior':    ['ignoreduplicates'],
+    };
+    for (const [sec, keys] of Object.entries(S)) {
+        lines.push(`# ${sec}`);
+        for (const k of keys) if (cfg[k] !== undefined && cfg[k] !== '') lines.push(`${k}=${cfg[k]}`);
+        lines.push('');
+    }
+    return lines.join('\n');
+}
+
+// Start options stored alongside conf in a separate file
+function startOptsPath(n) { return setupDir(n) + '/start_opts.json'; }
+
+function loadStartOpts() {
+    try { return { ...START_DEFAULTS, ...JSON.parse(fsRead(startOptsPath())) }; }
+    catch { return { ...START_DEFAULTS }; }
+}
+
+function saveStartOpts(opts) {
+    fsWrite(startOptsPath(), JSON.stringify(opts)); syncFS();
+}
+
+function saveStartOptsForSetup(name, opts) {
+    fsWrite(startOptsPath(name), JSON.stringify(opts)); syncFS();
+}
+
+function sanitizeMeterFilename(fn) {
+    // Keep meter files inside the setup meter directory.
+    // Reject path traversal and separators from imported JSON keys.
+    const name = String(fn || '').trim();
+    if (!name || name === '.' || name === '..') return null;
+    if (name.includes('/') || name.includes('\\')) return null;
+    return name;
+}
+
+// ═══════════════════════════════════════════════════════
+// Meter files
+// ═══════════════════════════════════════════════════════
+function parseMeter(text) {
+    const m = { name: '', id: '', key: '', driver: '', pollinterval: '', shell: '' }; if (!text) return m;
+    for (const line of text.split('\n')) {
+        const t = line.trim(); if (!t || t[0] === '#') continue;
+        const eq = t.indexOf('='); if (eq < 1) continue;
+        const k = t.substring(0, eq).trim(); if (k in m) m[k] = t.substring(eq + 1).trim();
+    }
+    return m;
+}
+
+function serializeMeter(m) {
+    return ['name', 'driver', 'id', 'key', 'pollinterval', 'shell']
+        .filter(k => m[k]).map(k => `${k}=${m[k]}`).join('\n') + '\n';
+}
+
+function loadMeters() {
+    const d = meterDir();
+    return fsList(d).map(f => { const m = parseMeter(fsRead(d + '/' + f)); m._fn = f; return m; });
+}
+
+function saveMeterFile(m, oldFn) {
+    const d = meterDir(), fn = m.name || m.id || 'meter';
+    if (oldFn && oldFn !== fn) fsUnlink(d + '/' + oldFn);
+    fsWrite(d + '/' + fn, serializeMeter(m)); syncFS();
+}
+
+function deleteMeterFile(fn) { fsUnlink(meterDir() + '/' + fn); syncFS(); }
+function updateMenuCounts() { if (wasmReady) document.getElementById('menuMeterCount').textContent = loadMeters().length; }
+
+// ═══════════════════════════════════════════════════════
+// WASM & Serial
+// ═══════════════════════════════════════════════════════
+let wasmModule = null, wasmReady = false, wm = {};
+let mainRunning = false;
+
+const serialMgr = new SerialCommunicationManagerImp();
+serialMgr.registerGlobals();
+let wasRunningOnDisconnect = false, lastCommand = '';
+
+serialMgr.addEventListener('portchange', async e => {
+    const { type, index, dev } = e.detail;
+    if (type === 'connect') {
+        const info = dev.getInfo();
+        const vid = info.usbVendorId ? `VID=0x${info.usbVendorId.toString(16).padStart(4, '0')}` : '';
+        const pid = info.usbProductId ? `PID=0x${info.usbProductId.toString(16).padStart(4, '0')}` : '';
+        const usb = [vid, pid].filter(Boolean).join(' ');
+        print(`Port connected: /dev/ttyWebUSB${index}${usb ? ' (' + usb + ')' : ''}`, 'green');
+        renderPortTags();
+        if (wasRunningOnDisconnect && !mainRunning && lastCommand) {
+            wasRunningOnDisconnect = false; print('Restarting…', 'cyan');
+            runRaw(lastCommand);
+        }
+    } else {
+        print(`Port disconnected: /dev/ttyWebUSB${index}`, 'amber');
+        renderPortTags();
+        if (mainRunning) { wasRunningOnDisconnect = true; }
+    }
+});
+
+const term = document.getElementById('term');
+function print(text, cls) {
+    const el = document.createElement('div');
+    el.className = 'line' + (cls ? ' ' + cls : '');
+    el.textContent = text; term.appendChild(el);
+    if (term.scrollHeight - term.scrollTop - term.clientHeight < 200) term.scrollTop = term.scrollHeight;
+}
+
+function setRunningUI(on) {
+    mainRunning = on;
+    document.getElementById('input').disabled = on;
+    document.getElementById('input').placeholder = on ? 'session running…' : 'raw CLI args — or click ▶ start to use active setup';
+    document.getElementById('btnStart').disabled = on;
+    document.getElementById('btnStop').disabled = !on;
+    document.getElementById('sbStatus').textContent = on ? 'running…' : 'ready';
+}
+
+async function initWasm() {
+    try {
+        const s = document.createElement('script');
+        s.src = 'dist/wmbusmeters.js';
+        document.head.appendChild(s);
+        await new Promise((ok, no) => { s.onload = ok; s.onerror = () => no(new Error('dist/wmbusmeters.js not found')); });
+
+        wasmModule = await WMBusMeters({ print: t => print(t), printErr: t => print(t, 'amber') });
+        serialMgr.setWasmModule(wasmModule);
+        wm.version = wasmModule.cwrap('wm_version', 'string', []);
+        wm.main    = wasmModule.cwrap('wm_main', 'number', ['string'], { async: true });
+        wm.stop    = wasmModule.cwrap('wm_stop', null, [], { async: true });
+
+        await initFS(wasmModule.FS);
+        wasmReady = true;
+
+        const meta = loadMeta();
+        activeSetup = meta.active;
+        for (const name of meta.setups) ensureSetup(name);
+        activateSymlinks(activeSetup);
+        await syncFS();
+        renderSetupSelect(); updateMenuCounts();
+
+        const v = wm.version();
+        document.getElementById('ver').textContent = ' ' + v;
+        document.getElementById('wasmDot').classList.add('on');
+        document.getElementById('wasmLbl').textContent = 'ready';
+
+        const mc = loadMeters().length;
+        const cfg = parseConf(fsRead(confPath()));
+
+        print(v, 'green');
+        print('', 'dim');
+        print('  ▶ start  — run with active setup config', 'dim');
+        print(`             device=${cfg.device}, ${mc} meter(s) in "${activeSetup}"`, 'dim');
+        print('', 'dim');
+        print('  Or type raw CLI commands in the input field:', 'dim');
+        print('     auto:t1 MyMeter multical21 12345678 KEY', 'cyan');
+        print('     --listmeters                              ', 'cyan');
+        print('     --analyze=<hex>                           ', 'cyan');
+        print('', 'dim');
+
+        // --- Auto-detect already granted ports ---
+        const ports = await navigator.serial.getPorts();
+        if (!ports.length) {
+            print('No wmbus device detected, waiting for a device to be plugged in.', 'amber');
+        } else {
+            // Open previously granted ports directly (no chooser prompt).
+            const opened = await serialMgr.autoOpenExisting();
+            const byVidPid = new Map();
+            for (const dev of opened) {
+                const info = dev.getInfo();
+                const key = `${info.usbVendorId || 0}:${info.usbProductId || 0}`;
+                const arr = byVidPid.get(key) || [];
+                arr.push(dev);
+                byVidPid.set(key, arr);
+            }
+
+            for (const port of ports) {
+                try {
+                    const info = port.getInfo();
+                    const key = `${info.usbVendorId || 0}:${info.usbProductId || 0}`;
+                    const bucket = byVidPid.get(key) || [];
+                    const dev = bucket.shift();
+                    if (!dev) continue;
+
+                    const vid = info.usbVendorId ? `VID=0x${info.usbVendorId.toString(16).padStart(4,'0')}` : '';
+                    const pid = info.usbProductId ? `PID=0x${info.usbProductId.toString(16).padStart(4,'0')}` : '';
+
+                    print(`Port auto-detected: /dev/ttyWebUSB${dev.index}${vid || pid ? ' (' + [vid,pid].filter(Boolean).join(' ') + ')' : ''}`, 'green');
+                } catch (e) {
+                    print('Failed to open port: ' + e.message, 'amber');
+                }
+            }
+            renderPortTags()
+        }
+    } catch (e) {
+        document.getElementById('wasmLbl').textContent = 'error';
+        print('WASM load failed: ' + e.message, 'red');
+        console.error(e);
+    }
+}
+
+// ── Ports ─────────────────────────────────────────────
+async function addPort() {
+    if (!wasmReady) { print('WASM not ready.', 'red'); return; }
+    try {
+        const dev = await serialMgr.requestAndOpen(9600);
+        if (!dev) { print('Failed to open port.', 'red'); return; }
+        const info = dev.getInfo();
+        const vid = info.usbVendorId ? `VID=0x${info.usbVendorId.toString(16).padStart(4, '0')}` : '';
+        const pid = info.usbProductId ? `PID=0x${info.usbProductId.toString(16).padStart(4, '0')}` : '';
+        const usb = [vid, pid].filter(Boolean).join(' ');
+        print(`Port added: /dev/ttyWebUSB${dev.index}${usb ? ' (' + usb + ')' : ''}`, 'green');
+        renderPortTags();
+    } catch (e) { if (e.name !== 'NotFoundError') print('Port error: ' + e.message, 'red'); }
+}
+
+async function removePort(i) {
+    if (mainRunning) { print('Stop first.', 'amber'); return; }
+    await serialMgr.closeByIndex(i); print(`Port /dev/ttyWebUSB${i} removed.`, 'dim'); renderPortTags();
+}
+
+function renderPortTags() {
+    const c = document.getElementById('portTags'); c.innerHTML = '';
+    const cnt = serialMgr.getDeviceCount();
+    document.getElementById('sbPorts').textContent = cnt === 0 ? 'no ports' : cnt + ' port(s)';
+    const maxIndex = Math.max(10, cnt + 16);
+    for (let i = 0; i < maxIndex; i++) {
+        const dev = serialMgr.findByIndex(i); if (!dev || !dev.isOpen) continue;
+        const vid = dev.getInfo().usbVendorId ? dev.getInfo().usbVendorId.toString(16).padStart(4, '0') : '';
+        const tag = document.createElement('span'); tag.className = 'port-tag';
+        tag.innerHTML = `<span class="port-dot"></span>/dev/ttyWebUSB${dev.index}${vid ? ' <span style="color:var(--dim)">' + vid + '</span>' : ''}<span class="port-remove" onclick="removePort(${dev.index})">×</span>`;
+        c.appendChild(tag);
+    }
+}
+
+// ── Commands ──────────────────────────────────────────
+
+function doStart() {
+    // Build: --useconfig=/etc [--oneshot] [--exitafter=X]
+    const opts = loadStartOpts();
+    let cmd = '--useconfig=/etc';
+    if (opts.oneshot) cmd += ' --oneshot';
+    if (opts.exitafter) cmd += ' --exitafter=' + opts.exitafter;
+    runRaw(cmd);
+}
+
+async function doStop() {
+    if (mainRunning) { lastCommand = ''; await wm.stop(); print('Stopping…', 'amber'); }
+}
+
+function doClear() { term.innerHTML = ''; }
+
+document.getElementById('input').addEventListener('keydown', e => {
+    if (e.key !== 'Enter') return;
+    const cmd = e.target.value.trim(); e.target.value = '';
+    if (cmd) runRaw(cmd);
+});
+
+async function runRaw(cmd) {
+    print('$ wmbusmeters ' + cmd, 'bright');
+    if (!wasmReady) { print('WASM not loaded.', 'red'); return; }
+    if (mainRunning) { print('Already running — click stop first.', 'amber'); return; }
+
+    lastCommand = cmd;
+    setRunningUI(true);
+    try {
+        const rc = await wm.main(cmd);
+        if (rc !== 0) print(`(exit code: ${rc})`, 'amber');
+    } catch (e) { print('WASM error: ' + e.message, 'red');console.error(e); }
+    setRunningUI(false);
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    if (!('serial' in navigator)) {
+        print('Web Serial API not supported — use Chrome or Edge.', 'red');
+        document.getElementById('btnAddPort').disabled = true;
+    }
+    initWasm();
+});
+
+// ═══════════════════════════════════════════════════════
+// Menu & Dialog
+// ═══════════════════════════════════════════════════════
+function toggleMenu() { document.getElementById('menu').classList.toggle('open'); }
+document.addEventListener('click', e => {
+    if (!document.querySelector('.menu-wrap').contains(e.target)) document.getElementById('menu').classList.remove('open');
+});
+
+let currentDialog = null;
+function openDialog(type) {
+    document.getElementById('menu').classList.remove('open');
+    currentDialog = type;
+    document.getElementById('dlgOverlay').classList.add('open');
+    document.getElementById('dlgBox').classList.toggle('wide', type === 'config');
+    if (type === 'config') renderConfigDialog();
+    else if (type === 'meters') renderMetersList();
+    else if (type === 'setups') renderSetupsDialog();
+}
+function closeDialog() { document.getElementById('dlgOverlay').classList.remove('open'); currentDialog = null; }
+function esc(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+
+// ═══════════════════════════════════════════════════════
+// CONFIG DIALOG
+// ═══════════════════════════════════════════════════════
+function renderConfigDialog() {
+    const cfg = parseConf(fsRead(confPath()));
+    const opts = loadStartOpts();
+    document.getElementById('dlgTitle').textContent = 'Configuration — ' + activeSetup;
+    const body = document.getElementById('dlgBody');
+
+    body.innerHTML = `
+        <div class="info-box">
+            Conf file: <code>${esc(confPath())}</code><br>
+            ▶ start runs: <code>--useconfig=/etc</code> (symlinked to active setup)
+        </div>
+        <div class="tabs" id="cfgTabs">
+            <button class="tab active" onclick="switchCfgTab('general',this)">General</button>
+            <button class="tab" onclick="switchCfgTab('output',this)">Output</button>
+            <button class="tab" onclick="switchCfgTab('meterfiles',this)">Meter Files</button>
+            <button class="tab" onclick="switchCfgTab('shell',this)">Shell / MQTT</button>
+            <button class="tab" onclick="switchCfgTab('startopts',this)">Start Options</button>
+            <button class="tab" onclick="switchCfgTab('raw',this)">Raw</button>
+        </div>
+
+        <div class="tab-panel active" id="cfgTab_general">
+            <div class="field"><label>Device</label>
+                <input id="cfg_device" value="${esc(cfg.device || '')}" placeholder="auto:t1 or /dev/ttyUSB0:im871a:c1,t1" />
+                <div class="hint">auto:t1 for testing. Production: /dev/ttyUSB0:iu891a:c1,t1</div></div>
+            <div class="field"><label>Do Not Probe</label>
+                <input id="cfg_donotprobe" value="${esc(cfg.donotprobe || '')}" placeholder="/dev/ttyAMA0 or all" /></div>
+            <div class="field"><label>Log Level</label>
+                <select id="cfg_loglevel">${['silent', 'normal', 'verbose', 'debug', 'trace'].map(v =>
+                    `<option value="${v}"${cfg.loglevel === v ? ' selected' : ''}>${v}</option>`).join('')}
+                </select></div>
+            <div class="field"><label>Log File</label>
+                <input id="cfg_logfile" value="${esc(cfg.logfile || '')}" placeholder="/var/log/wmbusmeters.log or syslog" /></div>
+            <div class="field-inline"><input type="checkbox" id="cfg_logtelegrams" ${cfg.logtelegrams === 'true' ? 'checked' : ''} />
+                <label for="cfg_logtelegrams">Log Telegrams</label></div>
+            <div class="field-inline"><input type="checkbox" id="cfg_ignoreduplicates" ${cfg.ignoreduplicates === 'true' ? 'checked' : ''} />
+                <label for="cfg_ignoreduplicates">Ignore Duplicate Telegrams</label></div>
+        </div>
+
+        <div class="tab-panel" id="cfgTab_output">
+            <div class="field"><label>Format</label>
+                <select id="cfg_format">
+                    <option value="hr"${cfg.format === 'hr' ? ' selected' : ''}>Human Readable</option>
+                    <option value="json"${cfg.format === 'json' ? ' selected' : ''}>JSON</option>
+                    <option value="fields"${cfg.format === 'fields' ? ' selected' : ''}>Fields</option>
+                </select></div>
+            <div class="hint" style="margin-bottom:10px">
+                CLI-only flags like --ppjson, --selectfields=…, --separator=…, --identitymode=… can be typed directly in the input field.
+            </div>
+        </div>
+
+        <div class="tab-panel" id="cfgTab_meterfiles">
+            <div class="field"><label>Directory</label>
+                <input id="cfg_meterfiles" value="${esc(cfg.meterfiles || '')}" placeholder="/var/lib/wmbusmeters/meter_readings (empty = disabled)" /></div>
+            <div class="field"><label>Action</label>
+                <select id="cfg_meterfilesaction">
+                    <option value="overwrite"${cfg.meterfilesaction === 'overwrite' ? ' selected' : ''}>overwrite</option>
+                    <option value="append"${cfg.meterfilesaction === 'append' ? ' selected' : ''}>append</option>
+                </select></div>
+            <div class="field-row">
+                <div class="field"><label>Naming</label>
+                    <select id="cfg_meterfilesnaming">${['name', 'id', 'name-id'].map(v =>
+                        `<option value="${v}"${cfg.meterfilesnaming === v ? ' selected' : ''}>${v}</option>`).join('')}
+                    </select></div>
+                <div class="field"><label>Timestamp</label>
+                    <select id="cfg_meterfilestimestamp">${['never', 'day', 'hour', 'minute', 'micros'].map(v =>
+                        `<option value="${v}"${cfg.meterfilestimestamp === v ? ' selected' : ''}>${v}</option>`).join('')}
+                    </select></div>
+            </div>
+        </div>
+
+        <div class="tab-panel" id="cfgTab_shell">
+            <div class="field"><label>Shell Command</label>
+                <textarea id="cfg_shell" rows="3" placeholder="mosquitto_pub -h localhost -t wmbusmeters/$METER_ID -m &quot;$METER_JSON&quot;">${esc(cfg.shell || '')}</textarea>
+                <div class="hint">Env: $METER_JSON, $METER_ID, $METER_TOTAL_M3 … (--listenvs=&lt;driver&gt;)</div></div>
+            <div class="field"><label>Alarm Shell</label>
+                <textarea id="cfg_alarmshell" rows="2">${esc(cfg.alarmshell || '')}</textarea></div>
+            <div class="field-row">
+                <div class="field"><label>Alarm Timeout</label>
+                    <input id="cfg_alarmtimeout" value="${esc(cfg.alarmtimeout || '')}" placeholder="e.g. 1h" /></div>
+                <div class="field"><label>Expected Activity</label>
+                    <input id="cfg_alarmexpectedactivity" value="${esc(cfg.alarmexpectedactivity || '')}" placeholder="mon-sun(00-23)" /></div>
+            </div>
+        </div>
+
+        <div class="tab-panel" id="cfgTab_startopts">
+            <div class="info-box">
+                These are CLI flags passed alongside <code>--useconfig=/etc</code> when you click ▶ start.<br>
+                They are <b>not</b> written to the conf file.
+            </div>
+            <div class="field-inline"><input type="checkbox" id="opt_oneshot" ${opts.oneshot ? 'checked' : ''} />
+                <label for="opt_oneshot">One-Shot Mode (--oneshot)</label></div>
+            <div class="field"><label>Exit After (--exitafter)</label>
+                <input id="opt_exitafter" value="${esc(opts.exitafter || '')}" placeholder="e.g. 20h, 10m, 5s (empty = run forever)" /></div>
+        </div>
+
+        <div class="tab-panel" id="cfgTab_raw">
+            <div class="field"><label>Raw wmbusmeters.conf</label>
+                <textarea id="cfg_raw" rows="20" style="font-size:11px;line-height:1.5">${esc(fsRead(confPath()) || serializeConf(CONF_DEFAULTS))}</textarea>
+                <div class="hint">Saving from Raw tab overwrites all other tab values.</div></div>
+        </div>`;
+
+    document.getElementById('dlgFooter').innerHTML = `
+        <button class="btn" onclick="closeDialog()">Cancel</button>
+        <button class="btn btn-green" onclick="saveConfig()">Save</button>`;
+}
+
+function switchCfgTab(name, btn) {
+    document.querySelectorAll('#cfgTabs .tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('[id^="cfgTab_"]').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('cfgTab_' + name).classList.add('active');
+    if (name === 'raw') document.getElementById('cfg_raw').value = serializeConf(collectCfg());
+}
+
+function collectCfg() {
+    return {
+        device:                document.getElementById('cfg_device').value.trim(),
+        donotprobe:            document.getElementById('cfg_donotprobe').value.trim(),
+        loglevel:              document.getElementById('cfg_loglevel').value,
+        logfile:               document.getElementById('cfg_logfile').value.trim(),
+        logtelegrams:          document.getElementById('cfg_logtelegrams').checked ? 'true' : 'false',
+        format:                document.getElementById('cfg_format').value,
+        meterfiles:            document.getElementById('cfg_meterfiles').value.trim(),
+        meterfilesaction:      document.getElementById('cfg_meterfilesaction').value,
+        meterfilesnaming:      document.getElementById('cfg_meterfilesnaming').value,
+        meterfilestimestamp:   document.getElementById('cfg_meterfilestimestamp').value,
+        shell:                 document.getElementById('cfg_shell').value.trim(),
+        alarmshell:            document.getElementById('cfg_alarmshell').value.trim(),
+        alarmtimeout:          document.getElementById('cfg_alarmtimeout').value.trim(),
+        alarmexpectedactivity: document.getElementById('cfg_alarmexpectedactivity').value.trim(),
+        ignoreduplicates:      document.getElementById('cfg_ignoreduplicates').checked ? 'true' : 'false',
+    };
+}
+
+function saveConfig() {
+    // Save conf file
+    const rawPanel = document.getElementById('cfgTab_raw');
+    const content = rawPanel?.classList.contains('active')
+        ? document.getElementById('cfg_raw').value
+        : serializeConf(collectCfg());
+    fsWrite(confPath(), content);
+
+    // Save start options
+    saveStartOpts({
+        oneshot:   document.getElementById('opt_oneshot').checked,
+        exitafter: document.getElementById('opt_exitafter').value.trim(),
+    });
+
+    syncFS();
+    print(`Config saved → ${confPath()}`, 'green');
+    closeDialog();
+}
+
+// ═══════════════════════════════════════════════════════
+// METERS DIALOG
+// ═══════════════════════════════════════════════════════
+function renderMetersList() {
+    document.getElementById('dlgTitle').textContent = 'Meters — ' + activeSetup;
+    const meters = loadMeters();
+    const body = document.getElementById('dlgBody');
+
+    body.innerHTML = `<div class="info-box"><code>${esc(meterDir())}</code> → symlinked as <code>/etc/wmbusmeters.d</code></div>`;
+
+    if (!meters.length) {
+        body.innerHTML += '<div class="empty-state">No meters configured yet.</div>';
+    } else {
+        body.innerHTML += meters.map(m => {
+            const name = esc(m.name || m._fn || '?');
+            const meta = [m.driver, m.id, m.key ? '🔑' : ''].filter(Boolean).join(' · ');
+            const fn = esc(m._fn);
+            return `<div class="item-card">
+                <div class="item-info"><div class="item-name">${name}</div><div class="item-meta">${esc(meta)}</div></div>
+                <div class="item-actions">
+                    <button class="btn btn-sm btn-green" onclick="useMeter('${fn}')" title="Insert into prompt">▸</button>
+                    <button class="btn btn-sm" onclick="editMeter('${fn}')">✎</button>
+                    <button class="btn btn-sm btn-red" onclick="deleteMeter('${fn}')">×</button>
+                </div></div>`;
+        }).join('');
+    }
+    document.getElementById('dlgFooter').innerHTML = '<button class="btn btn-green" onclick="editMeter(null)">+ Add Meter</button>';
+}
+
+function editMeter(fn) {
+    let m = { name: '', id: '', key: '', driver: '', pollinterval: '', shell: '' };
+    if (fn) { const c = fsRead(meterDir() + '/' + fn); if (c) m = parseMeter(c); m._fn = fn; }
+
+    document.getElementById('dlgTitle').textContent = (fn ? 'Edit' : 'Add') + ' Meter';
+    document.getElementById('dlgBody').innerHTML = `
+        <div class="field"><label>Name</label>
+            <input id="mf_name" value="${esc(m.name || '')}" placeholder="e.g. MyTapWater" />
+            <div class="hint">Also the filename in wmbusmeters.d/. No colons.</div></div>
+        <div class="field-row">
+            <div class="field"><label>Driver</label>
+                <input id="mf_driver" value="${esc(m.driver || '')}" placeholder="multical21, auto, piigth:MAIN:mbus" />
+                <div class="hint">auto for detection. :bus_alias:mode for polling.</div></div>
+            <div class="field"><label>ID</label>
+                <input id="mf_id" value="${esc(m.id || '')}" placeholder="12345678, *, 8765*" />
+                <div class="hint">8 digits, *, prefix*, comma-separated.</div></div>
+        </div>
+        <div class="field"><label>Key</label>
+            <input id="mf_key" value="${esc(m.key || '')}" placeholder="hex AES key or NOKEY" /></div>
+        <div class="field"><label>Poll Interval</label>
+            <input id="mf_pollinterval" value="${esc(m.pollinterval || '')}" placeholder="e.g. 60s (polled meters only)" /></div>
+        <div class="field"><label>Shell (meter-specific override)</label>
+            <textarea id="mf_shell" rows="2">${esc(m.shell || '')}</textarea></div>`;
+
+    const old = fn || '';
+    document.getElementById('dlgFooter').innerHTML = `
+        <button class="btn" onclick="renderMetersList()">Cancel</button>
+        <button class="btn btn-green" onclick="saveMeterForm('${esc(old)}')">Save</button>`;
+}
+
+function saveMeterForm(oldFn) {
+    const m = {
+        name: document.getElementById('mf_name').value.trim(),
+        driver: document.getElementById('mf_driver').value.trim(),
+        id: document.getElementById('mf_id').value.trim(),
+        key: document.getElementById('mf_key').value.trim(),
+        pollinterval: document.getElementById('mf_pollinterval').value.trim(),
+        shell: document.getElementById('mf_shell').value.trim(),
+    };
+    if (!m.name && !m.id) { alert('Provide a name or ID.'); return; }
+    saveMeterFile(m, oldFn || null);
+    print(`Meter "${m.name || m.id}" saved.`, 'green');
+    updateMenuCounts(); renderMetersList();
+}
+
+function deleteMeter(fn) {
+    if (!confirm('Delete "' + fn + '"?')) return;
+    deleteMeterFile(fn); updateMenuCounts(); renderMetersList();
+}
+
+function useMeter(fn) {
+    const c = fsRead(meterDir() + '/' + fn); if (!c) return;
+    const m = parseMeter(c);
+    const parts = [m.name || 'MyMeter', m.driver || 'auto', m.id || '00000000'];
+    if (m.key && m.key !== 'NOKEY') parts.push(m.key);
+    closeDialog();
+    const inp = document.getElementById('input');
+    inp.value = (inp.value.trim() ? inp.value.trim() + ' ' : 'auto:t1 ') + parts.join(' ');
+    inp.focus();
+}
+
+// ═══════════════════════════════════════════════════════
+// SETUPS DIALOG
+// ═══════════════════════════════════════════════════════
+function renderSetupsDialog() {
+    document.getElementById('dlgTitle').textContent = 'Setups';
+    const meta = loadMeta();
+    document.getElementById('dlgBody').innerHTML = `<div class="info-box">
+        Each setup: own <code>wmbusmeters.conf</code> + <code>wmbusmeters.d/</code>.<br>
+        Active setup symlinked to <code>/etc/</code>.
+    </div>` + meta.setups.map(name => {
+        const isActive = name === activeSetup, isDef = name === 'default';
+        const mc = fsList(meterDir(name)).length;
+        let act = '';
+        if (!isActive) act += `<button class="btn btn-sm btn-cyan" onclick="switchSetupDlg('${esc(name)}')">activate</button>`;
+        act += `<button class="btn btn-sm" onclick="dupSetup('${esc(name)}')" title="Duplicate">⧉</button>`;
+        if (!isDef) act += `<button class="btn btn-sm" onclick="renSetup('${esc(name)}')">✎</button>`;
+        if (!isDef && !isActive) act += `<button class="btn btn-sm btn-red" onclick="delSetup('${esc(name)}')">×</button>`;
+        return `<div class="item-card${isActive ? ' active-setup' : ''}">
+            <div class="item-info">
+                <div class="item-name">${esc(name)}${isActive ? ' <span style="color:var(--green);font-size:10px">● active</span>' : ''}</div>
+                <div class="item-meta">${mc} meter(s)</div>
+            </div><div class="item-actions">${act}</div></div>`;
+    }).join('');
+    document.getElementById('dlgFooter').innerHTML = '<button class="btn btn-green" onclick="newSetup()">+ New Setup</button>';
+}
+
+function switchSetupDlg(n) { switchSetup(n); renderSetupsDialog(); }
+
+function newSetup() {
+    const raw = prompt('Setup name:'); if (!raw?.trim()) return;
+    const name = raw.trim().replace(/[^a-zA-Z0-9_\-]/g, '_');
+    const meta = loadMeta();
+    if (meta.setups.includes(name)) { alert('Already exists.'); return; }
+    meta.setups.push(name); saveMeta(meta); ensureSetup(name); syncFS();
+    renderSetupsDialog(); renderSetupSelect();
+}
+
+function dupSetup(src) {
+    const raw = prompt('Name for copy:', src + '_copy'); if (!raw?.trim()) return;
+    const name = raw.trim().replace(/[^a-zA-Z0-9_\-]/g, '_');
+    const meta = loadMeta();
+    if (meta.setups.includes(name)) { alert('Already exists.'); return; }
+    meta.setups.push(name); saveMeta(meta); ensureSetup(name);
+    const c = fsRead(confPath(src)); if (c) fsWrite(confPath(name), c);
+    for (const f of fsList(meterDir(src))) { const mc = fsRead(meterDir(src) + '/' + f); if (mc) fsWrite(meterDir(name) + '/' + f, mc); }
+    // Copy start opts too
+    const so = fsRead(startOptsPath(src)); if (so) fsWrite(startOptsPath(name), so);
+    syncFS();
+    renderSetupsDialog(); renderSetupSelect();
+}
+
+function renSetup(old) {
+    const raw = prompt('New name:', old); if (!raw?.trim() || raw.trim() === old) return;
+    const name = raw.trim().replace(/[^a-zA-Z0-9_\-]/g, '_');
+    const meta = loadMeta();
+    if (meta.setups.includes(name)) { alert('Already exists.'); return; }
+    ensureSetup(name);
+    const c = fsRead(confPath(old)); if (c) fsWrite(confPath(name), c);
+    for (const f of fsList(meterDir(old))) { const mc = fsRead(meterDir(old) + '/' + f); if (mc) fsWrite(meterDir(name) + '/' + f, mc); }
+    const so = fsRead(startOptsPath(old)); if (so) fsWrite(startOptsPath(name), so);
+    for (const f of fsList(meterDir(old))) fsUnlink(meterDir(old) + '/' + f);
+    fsRmdir(meterDir(old)); fsUnlink(confPath(old));
+    try { fsUnlink(startOptsPath(old)); } catch {}
+    fsRmdir(setupDir(old));
+    const idx = meta.setups.indexOf(old); if (idx >= 0) meta.setups[idx] = name;
+    if (meta.active === old) { meta.active = name; activeSetup = name; activateSymlinks(name); }
+    saveMeta(meta); syncFS();
+    renderSetupsDialog(); renderSetupSelect(); updateMenuCounts();
+}
+
+function delSetup(name) {
+    if (!confirm(`Delete "${name}"?`)) return;
+    for (const f of fsList(meterDir(name))) fsUnlink(meterDir(name) + '/' + f);
+    fsRmdir(meterDir(name)); fsUnlink(confPath(name));
+    try { fsUnlink(startOptsPath(name)); } catch {}
+    fsRmdir(setupDir(name));
+    const meta = loadMeta();
+    meta.setups = meta.setups.filter(s => s !== name);
+    if (meta.active === name) { meta.active = 'default'; activeSetup = 'default'; activateSymlinks('default'); }
+    saveMeta(meta); syncFS();
+    renderSetupsDialog(); renderSetupSelect(); updateMenuCounts();
+}
+
+// ═══════════════════════════════════════════════════════
+// Export / Import
+// ═══════════════════════════════════════════════════════
+function exportSetup() {
+    document.getElementById('menu').classList.remove('open');
+    const conf = fsRead(confPath()) || '', meters = {};
+    for (const f of fsList(meterDir())) meters[f] = fsRead(meterDir() + '/' + f) || '';
+    const opts = loadStartOpts();
+    const blob = new Blob([JSON.stringify({ setup: activeSetup, config: conf, meters, startOpts: opts }, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a'); a.href = url; a.download = `wmbusmeters-${activeSetup}.json`; a.click();
+    URL.revokeObjectURL(url);
+    print(`Setup "${activeSetup}" exported.`, 'dim');
+}
+
+function importSetup() {
+    document.getElementById('menu').classList.remove('open');
+    document.getElementById('importFile').click();
+}
+
+function handleImport(ev) {
+    const file = ev.target.files[0]; if (!file) return;
+    const reader = new FileReader();
+    reader.onload = e => {
+        try {
+            const data = JSON.parse(e.target.result);
+            const name = data.setup || activeSetup;
+            const meta = loadMeta();
+            if (!meta.setups.includes(name)) { meta.setups.push(name); saveMeta(meta); }
+            ensureSetup(name);
+            if (data.config) fsWrite(confPath(name), data.config);
+            let mc = 0;
+            if (data.meters && typeof data.meters === 'object')
+                for (const [fn, c] of Object.entries(data.meters)) {
+                    const safeFn = sanitizeMeterFilename(fn);
+                    if (!safeFn) continue;
+                    fsWrite(meterDir(name) + '/' + safeFn, c);
+                    mc++;
+                }
+            if (data.startOpts) saveStartOptsForSetup(name, data.startOpts);
+            syncFS(); renderSetupSelect(); updateMenuCounts();
+            print(`Imported "${name}": config + ${mc} meter(s).`, 'green');
+        } catch (err) { print('Import failed: ' + err.message, 'red'); }
+    };
+    reader.readAsText(file); ev.target.value = '';
+}
+</script>
+</body>
+</html>
