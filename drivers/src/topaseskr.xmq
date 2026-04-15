@@ -1,0 +1,123 @@
+// Copyright (C) 2017-2022 Fredrik Öhrström (gpl-3.0-or-later)
+// Copyright (C)      2020 Avandorp (gpl-3.0-or-later)
+driver {
+    name           = topaseskr
+    meter_type     = WaterMeter
+    default_fields = name,id,total_m3,temperature_c,current_flow_m3h,volume_year_period_m3,reverse_volume_year_period_m3,meter_year_period_end_date,volume_month_period_m3,meter_month_period_end_datetime,timestamp
+    detect {
+        mvt = AMT,f1,06
+        mvt = AMT,f1,07
+    }
+    library {
+        use = total_m3
+        use = access_counter
+    }
+    fields {
+        field {
+            name           = temperature
+            quantity       = Temperature
+            info           = 'Current water temperature recorded by this meter.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
+            match {
+                measurement_type = Instantaneous
+                vif_range        = FlowTemperature
+            }
+        }
+        field {
+            name           = current_flow
+            quantity       = Flow
+            info           = 'The current water flow.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
+            match {
+                measurement_type = Instantaneous
+                vif_range        = VolumeFlow
+            }
+        }
+        field {
+            name           = volume_year_period
+            quantity       = Volume
+            info           = 'Volume up to end of last year-period.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
+            match {
+                measurement_type = Instantaneous
+                vif_range        = Volume
+                storage_nr       = 1
+            }
+        }
+        field {
+            name           = reverse_volume_year_period
+            quantity       = Volume
+            info           = 'Reverse volume in this year-period (?)'
+            vif_scaling    = Auto
+            dif_signedness = Signed
+            match {
+                measurement_type = Instantaneous
+                vif_range        = Volume
+                storage_nr       = 1
+                tariff_nr        = 1
+            }
+        }
+        field {
+            name     = meter_year_period_end_date
+            quantity = Text
+            info     = 'Meter date for year-period end.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = Date
+                storage_nr       = 1
+            }
+        }
+        field {
+            name           = volume_month_period
+            quantity       = Volume
+            info           = 'Volume up to end of last month-period.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
+            match {
+                measurement_type = Instantaneous
+                vif_range        = Volume
+                storage_nr       = 3
+            }
+        }
+        field {
+            name         = meter_month_period_end
+            quantity     = PointInTime
+            info         = 'Meter timestamp for month-period end.'
+            display_unit = datetime
+            match {
+                measurement_type = Instantaneous
+                vif_range        = DateTime
+                storage_nr       = 3
+            }
+        }
+        field {
+            name           = battery
+            quantity       = Time
+            info           = 'Remaining battery life in years.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
+            display_unit   = y
+            match {
+                measurement_type = Instantaneous
+                vif_range        = RemainingBattery
+            }
+        }
+    }
+    tests {
+        test {
+            args     = 'Witer topaseskr 78563412 NOKEY'
+            telegram = 4E44B40512345678F1077A310040052F2F_01FD08040C13991848004C1359423500CC101300000000CC201359423500426C7F2C0B3B00000002FD74DA10025AD300C4016D3B179F27CC011387124600
+            json     = '{"_":"telegram","media":"water","meter":"topaseskr","name":"Witer","id":"78563412","total_m3":481.899,"access_counter":4,"temperature_c":21.1,"current_flow_m3h":0,"volume_year_period_m3":354.259,"reverse_volume_year_period_m3":0,"meter_year_period_end_date":"2019-12-31","volume_month_period_m3":461.287,"meter_month_period_end_datetime":"2020-07-31 23:59","battery_y":11.811331,"timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'Witer;78563412;481.899;21.1;0;354.259;0;2019-12-31;461.287;2020-07-31 23:59;1111-11-11 11:11.11'
+        }
+        test {
+            args     = 'Woter topaseskr 69190253 NOKEY'
+            telegram = 4E44B40553021969F1077A0C0040052F2F_01FD08800C13914544004C1393673500CC101300000000CC201393673500426CDF2C0B3B0100F002FD747912025AAE00C4016D3B17FF25CC011325584100
+            json     = '{"_":"telegram","access_counter": 128,"battery_y": 12.947562,"current_flow_m3h": -0.001,"id": "69190253","media": "water","meter": "topaseskr","meter_month_period_end_datetime": "2023-05-31 23:59","meter_year_period_end_date": "2022-12-31","name": "Woter","reverse_volume_year_period_m3": 0,"temperature_c": 17.4,"timestamp": "1111-11-11T11:11:11Z","total_m3": 444.591,"volume_month_period_m3": 415.825,"volume_year_period_m3": 356.793}'
+            fields   = 'Woter;69190253;444.591;17.4;-0.001;356.793;0;2022-12-31;415.825;2023-05-31 23:59;1111-11-11 11:11.11'
+        }
+    }
+}
