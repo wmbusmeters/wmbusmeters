@@ -1,0 +1,46 @@
+// Copyright (C) 2017-2022 Fredrik Öhrström (gpl-3.0-or-later)
+driver {
+    name           = supercom587
+    meter_type     = WaterMeter
+    default_fields = name,id,total_m3,timestamp
+    detect {
+        mvt = SON,3c,06
+        mvt = SON,3c,07
+    }
+    library {
+        use = software_version
+        use = total_m3
+    }
+    fields {
+        field {
+            name       = status
+            quantity   = Text
+            info       = 'Status of meter.'
+            attributes = STATUS,INCLUDE_TPL_STATUS
+            match {
+                measurement_type = Instantaneous
+                vif_range        = ErrorFlags
+            }
+            lookup {
+                name            = ERROR_FLAGS
+                map_type        = BitToString
+                mask_bits       = 0x000f
+                default_message = OK
+            }
+        }
+    }
+    tests {
+        test {
+            args     = 'MyWarmWater supercom587 12345678 NOKEY'
+            telegram = A244EE4D785634123C067A8F000000_0C1348550000426CE1F14C130000000082046C21298C0413330000008D04931E3A3CFE3300000033000000330000003300000033000000330000003300000033000000330000003300000033000000330000004300000034180000046D0D0B5C2B03FD6C5E150082206C5C290BFD0F0200018C4079678885238310FD3100000082106C01018110FD610002FD66020002FD170000
+            json     = '{"_":"telegram","media":"warm water","meter":"supercom587","name":"MyWarmWater","id":"12345678","total_m3":5.548,"software_version":"010002","status":"OK","timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'MyWarmWater;12345678;5.548;1111-11-11 11:11.11'
+        }
+        test {
+            args     = 'MyColdWater supercom587 11111111 NOKEY'
+            telegram = A244EE4D111111113C077AAC000000_0C1389490000426CE1F14C130000000082046C21298C0413010000008D04931E3A3CFE0100000001000000010000000100000001000000010000000100000001000000010000000100000001000000010000001600000031130000046D0A0C5C2B03FD6C60150082206C5C290BFD0F0200018C4079629885238310FD3100000082106C01018110FD610002FD66020002FD170000
+            json     = '{"_":"telegram","media":"water","meter":"supercom587","name":"MyColdWater","id":"11111111","total_m3":4.989,"software_version":"010002","status":"OK","timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'MyColdWater;11111111;4.989;1111-11-11 11:11.11'
+        }
+    }
+}
