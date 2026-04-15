@@ -252,6 +252,12 @@ test {
     fields   = 'ES1;80008957;21.59;null;null;3.681;OK;1111-11-11 11:11.11'
 }
 test {
+    args     = 'Vodda emerlin868 95949392 NOKEY'
+    telegram = 2E4492159293949511377ABE0020252F2F_04135515000004FD971D80800000441300000000426C000002FDFD02B300
+    json     = '{"_":"telegram","media":"radio converter (meter side)","meter":"emerlin868","name":"Vodda","id":"95949392","total_m3":5.461,"target_m3":0,"target_date":"2000-00-00","timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'Vodda;95949392;5.461;0;1111-11-11 11:11.11'
+}
+test {
     args     = 'HeatMeter2 eurisii 60200770 NOKEY'
     telegram = 76442D4870072060550872700720602D485508280060052F2F_0B6E320100426E550082016E3500C2016E1F0082026E1F00C2026E130082036E1300C2036E130082046E1300C2046E120082056E7D01C2056E440182066E0601C2066EB80082076E7F00C2076E320082086E1C00C2086E1C0002FD170000
     json     = '{"_":"telegram","media":"heat cost allocation","meter":"eurisii","name":"HeatMeter2","id":"60200770","status":"OK","error_flags":"OK","current_consumption_hca":132,"consumption_at_set_date_4_hca":31,"consumption_at_set_date_5_hca":19,"consumption_at_set_date_6_hca":19,"consumption_at_set_date_2_hca":53,"consumption_at_set_date_14_hca":127,"consumption_at_set_date_8_hca":19,"consumption_at_set_date_1_hca":85,"consumption_at_set_date_10_hca":381,"consumption_at_set_date_17_hca":28,"consumption_at_set_date_13_hca":184,"consumption_at_set_date_11_hca":324,"consumption_at_set_date_3_hca":31,"consumption_at_set_date_9_hca":18,"consumption_at_set_date_15_hca":50,"consumption_at_set_date_16_hca":28,"consumption_at_set_date_7_hca":19,"consumption_at_set_date_12_hca":262,"consumption_at_set_date_hca":85,"timestamp":"1111-11-11T11:11:11Z"}'

@@ -1,0 +1,53 @@
+// Copyright (C) 2017-2022 Fredrik Öhrström (gpl-3.0-or-later)
+// Copyright (C) 2018 David Mallon (gpl-3.0-or-later)
+driver {
+    name           = emerlin868
+    meter_type     = WaterMeter
+    default_fields = name,id,total_m3,target_m3,timestamp
+    detect {
+        mvt = ELR,11,37
+    }
+    fields {
+        field {
+            name           = total
+            quantity       = Volume
+            info           = 'The total water consumption recorded by this meter.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
+            match {
+                measurement_type = Instantaneous
+                vif_range        = Volume
+            }
+        }
+        field {
+            name           = target
+            quantity       = Volume
+            info           = 'The target water consumption recorded at previous period.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
+            match {
+                measurement_type = Instantaneous
+                vif_range        = Volume
+                storage_nr       = 1
+            }
+        }
+        field {
+            name     = target_date
+            quantity = Text
+            info     = 'Date when previous period ended.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = Date
+                storage_nr       = 1
+            }
+        }
+    }
+    tests {
+        test {
+            args     = 'Vodda emerlin868 95949392 NOKEY'
+            telegram = 2E4492159293949511377ABE0020252F2F_04135515000004FD971D80800000441300000000426C000002FDFD02B300
+            json     = '{"_":"telegram","media":"radio converter (meter side)","meter":"emerlin868","name":"Vodda","id":"95949392","total_m3":5.461,"target_m3":0,"target_date":"2000-00-00","timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'Vodda;95949392;5.461;0;1111-11-11 11:11.11'
+        }
+    }
+}
