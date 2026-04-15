@@ -1,0 +1,188 @@
+// Copyright (C) 2019-2023 Fredrik Öhrström (gpl-3.0-or-later)
+// Copyright (C)      2021 Vincent Privat (gpl-3.0-or-later)
+driver {
+    name           = hydrus
+    meter_type     = WaterMeter
+    default_fields = name,id,total_m3,total_at_date_m3,status,timestamp
+    detect {
+        mvt = DME,70,07
+        mvt = DME,76,07
+        mvt = HYD,24,07
+        mvt = HYD,8b,07
+        mvt = HYD,8b,06
+        mvt = DME,70,06
+        mvt = DME,70,16
+    }
+    library {
+        use = operating_time_h,actuality_duration_s,meter_datetime,customer
+        use = flow_temperature_c,external_temperature_c
+    }
+    fields {
+        field {
+            name       = status
+            quantity   = Text
+            info       = 'Status of meter.'
+            attributes = STATUS,INCLUDE_TPL_STATUS
+            match {
+                measurement_type = Instantaneous
+                vif_range        = ErrorFlags
+            }
+            lookup {
+                name            = ERROR_FLAGS
+                map_type        = BitToString
+                mask_bits       = 0xffff
+                default_message = OK
+            }
+        }
+        field {
+            name           = total
+            quantity       = Volume
+            info           = 'The total water consumption recorded by this meter.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
+            match {
+                measurement_type = Instantaneous
+                vif_range        = Volume
+            }
+        }
+        field {
+            name           = 'total_tariff{tariff_counter}'
+            quantity       = Volume
+            info           = 'The total water consumption recorded on tariff # by this meter.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
+            match {
+                measurement_type = Instantaneous
+                vif_range        = Volume
+                tariff_nr        = 1,2
+            }
+        }
+        field {
+            name           = 'total_tariff{tariff_counter}_at_date'
+            quantity       = Volume
+            info           = 'The total water consumption recorded on tariff # by this meter at billing date.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
+            match {
+                measurement_type = Instantaneous
+                vif_range        = Volume
+                storage_nr       = 1
+                tariff_nr        = 1,2
+            }
+        }
+        field {
+            name           = flow
+            quantity       = Flow
+            info           = 'The current water flow.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
+            match {
+                measurement_type = Instantaneous
+                vif_range        = VolumeFlow
+            }
+        }
+        field {
+            name           = total_at_date
+            quantity       = Volume
+            info           = 'The total water consumption recorded at date.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
+            match {
+                measurement_type = Instantaneous
+                vif_range        = Volume
+                storage_nr       = 1
+            }
+        }
+        field {
+            name           = at
+            quantity       = PointInTime
+            info           = 'The last billing period date.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
+            display_unit   = date
+            match {
+                measurement_type = Instantaneous
+                vif_range        = Date
+                storage_nr       = 1
+            }
+        }
+        field {
+            name           = target
+            quantity       = Volume
+            info           = 'The total water consumption recorded at the end of last month.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
+            match {
+                measurement_type = Instantaneous
+                vif_range        = Volume
+                storage_nr       = 3
+            }
+        }
+        field {
+            name           = target
+            quantity       = PointInTime
+            info           = 'The end of last month.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
+            display_unit   = datetime
+            match {
+                measurement_type = Instantaneous
+                vif_range        = DateTime
+                storage_nr       = 3
+            }
+        }
+        field {
+            name           = remaining_battery_life
+            quantity       = Time
+            info           = 'Remaining battery life in years.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
+            display_unit   = y
+            match {
+                measurement_type = Instantaneous
+                vif_range        = RemainingBattery
+            }
+        }
+    }
+    tests {
+        test {
+            args     = 'HydrusWater hydrus 64646464 NOKEY'
+            telegram = 4E44A5116464646470077AED004005_2F2F01FD08300C13741100007C1300000000FC101300000000FC201300000000726C00000B3B00000002FD748713025A6800C4016D3B177F2ACC011300020000
+            json     = '{"_":"telegram","media":"water","meter":"hydrus","name":"HydrusWater","id":"64646464","total_m3":1.174,"flow_m3h":0,"flow_temperature_c":10.4,"remaining_battery_life_y":13.686797,"status":"OK","target_datetime":"2019-10-31 23:59","target_m3": 0.2,"timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'HydrusWater;64646464;1.174;null;OK;1111-11-11 11:11.11'
+        }
+        test {
+            args     = 'HydrusVater hydrus 65656565 NOKEY'
+            telegram = 3E44A5116565656570067AFB0030052F2F_0C13503400000DFD110A383731303134423032410B3B00000002FD74DC15C4016D3B178D29CC0113313400002F2F
+            json     = '{"_":"telegram","media":"warm water","meter":"hydrus","name":"HydrusVater","id":"65656565","flow_m3h":0,"customer": "A20B410178","total_m3":3.45,"remaining_battery_life_y":15.321328,"target_datetime":"2020-09-13 23:59","target_m3": 3.431,"status":"OK","timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'HydrusVater;65656565;3.45;null;OK;1111-11-11 11:11.11'
+        }
+        test {
+            args     = 'HydrusAES hydrus 64745666 NOKEY'
+            telegram = 6644242328001081640E7266567464A51170071F0050052C411A08674048DD6BA82A0DF79FFD401309179A893A1BE3CE8EDC50C2A45CD7AFEC3B4CE765820BE8056C124A17416C3722985FFFF7FCEB7094901AB3A16294B511B9A740C9F9911352B42A72FB3B0C
+            json     = '{"_":"telegram","media":"water","meter":"hydrus","name":"HydrusAES","id":"64745666","total_m3":137.291,"total_tariff1_m3":0,"total_tariff2_m3":137.291,"flow_m3h":0,"flow_temperature_c":24.5,"external_temperature_c":23.9,"total_at_date_m3":128.638,"total_tariff1_at_date_m3":0,"total_tariff2_at_date_m3":128.638,"at_date":"2020-12-31","actuality_duration_s":6673,"operating_time_h":14678,"meter_datetime": "2021-01-23 08:27","status":"OK","timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'HydrusAES;64745666;137.291;128.638;OK;1111-11-11 11:11.11'
+        }
+        test {
+            args     = 'HydrusIzarRS hydrus 60897379 NOKEY'
+            comment  = 'Hydrus IZAR RS 868 water meter'
+            telegram = 1E4424238B07797389607A8F00107D_041312170100426CBF23441344100100
+            json     = '{"_":"telegram","media":"water","meter":"hydrus","name":"HydrusIzarRS","id":"60897379","total_m3":71.442,"at_date": "2021-03-31","total_at_date_m3":69.7,"status":"OK","timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'HydrusIzarRS;60897379;71.442;69.7;OK;1111-11-11 11:11.11'
+        }
+        test {
+            args     = 'HydrusIzarRSWarm hydrus 60904720 NOKEY'
+            comment  = 'Hydrus IZAR RS 868 water meter warm'
+            telegram = 1E4424238B06204790607A2A0010D8_0413DDC00000426CBF23441382BB0000
+            json     = '{"_":"telegram","media":"warm water","meter":"hydrus","name":"HydrusIzarRSWarm","id":"60904720","total_m3":49.373,"total_at_date_m3":48.002,"at_date":"2021-03-31","status":"OK","timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'HydrusIzarRSWarm;60904720;49.373;48.002;OK;1111-11-11 11:11.11'
+        }
+        test {
+            args     = 'HydrusFoo hydrus 64641820 NOKEY'
+            comment  = 'Negative power values.'
+            telegram = 6344A5112018646470078C00D7900F002C256AB59B00F0F13032019092DE7A6A004007102F2F0C13896729004C1323462400CC101300000000CC201323462400426CDF2C0B3B0200F002FD742F0D025AC100C4016D3B17FE29CC01132841290001FD089F
+            json     = '{"_":"telegram","at_date": "2022-12-31","target_datetime": "2023-09-30 23:59","flow_m3h": -0.002,"flow_temperature_c": 19.3,"id": "64641820","media": "water","meter": "hydrus","name": "HydrusFoo","remaining_battery_life_y": 9.240436,"status": "OK","timestamp": "1111-11-11T11:11:11Z","total_at_date_m3":244.623,"target_m3": 294.128,"total_m3": 296.789,"total_tariff1_at_date_m3": 0,"total_tariff2_at_date_m3": 244.623}'
+            fields   = 'HydrusFoo;64641820;296.789;244.623;OK;1111-11-11 11:11.11'
+        }
+    }
+}
