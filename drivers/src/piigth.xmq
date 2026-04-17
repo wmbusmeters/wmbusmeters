@@ -1,0 +1,120 @@
+// Copyright (C) 2021-2022 Fredrik Öhrström (gpl-3.0-or-later)
+driver {
+    name           = piigth
+    meter_type     = TempHygroMeter
+    default_fields = name,id,status,temperature_c,relative_humidity_rh,timestamp
+    detect {
+        mvt = PII,01,1b
+    }
+    library {
+        use = fabrication_no,software_version
+    }
+    fields {
+        field {
+            name       = status
+            quantity   = Text
+            info       = 'Meter status from tpl status field.'
+            attributes = STATUS,INCLUDE_TPL_STATUS
+            match {
+                measurement_type = Instantaneous
+                vif_range        = ErrorFlags
+            }
+            lookup {
+                name            = ERROR_FLAGS
+                map_type        = BitToString
+                mask_bits       = 0xffffffff
+                default_message = OK
+            }
+        }
+        field {
+            name           = temperature
+            quantity       = Temperature
+            info           = 'The current temperature.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
+            attributes     = REQUIRED
+            match {
+                measurement_type = Instantaneous
+                vif_range        = ExternalTemperature
+            }
+        }
+        field {
+            name           = average_temperature_1h
+            quantity       = Temperature
+            info           = 'The average temperature over the last hour.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
+            attributes     = REQUIRED
+            match {
+                measurement_type = Instantaneous
+                vif_range        = ExternalTemperature
+                storage_nr       = 1
+            }
+        }
+        field {
+            name           = average_temperature_24h
+            quantity       = Temperature
+            info           = 'The average temperature over the last 24 hours.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
+            attributes     = REQUIRED
+            match {
+                measurement_type = Instantaneous
+                vif_range        = ExternalTemperature
+                storage_nr       = 2
+            }
+        }
+        field {
+            name           = relative_humidity
+            quantity       = RelativeHumidity
+            info           = 'The current relative humidity.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
+            attributes     = REQUIRED
+            match {
+                measurement_type = Instantaneous
+                vif_range        = RelativeHumidity
+            }
+        }
+        field {
+            name           = relative_humidity_1h
+            quantity       = RelativeHumidity
+            info           = 'The average relative humidity over the last hour.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
+            attributes     = REQUIRED
+            match {
+                measurement_type = Instantaneous
+                vif_range        = RelativeHumidity
+                storage_nr       = 1
+            }
+        }
+        field {
+            name           = relative_humidity_24h
+            quantity       = RelativeHumidity
+            info           = 'The average relative humidity over the last 24 hours.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
+            attributes     = REQUIRED
+            match {
+                measurement_type = Instantaneous
+                vif_range        = RelativeHumidity
+                storage_nr       = 2
+            }
+        }
+    }
+    tests {
+        test {
+            args     = 'Tempo piigth 10000284 NOKEY'
+            telegram = 68383868080072840200102941011B04000000_0265C0094265A509B20165000002FB1A900142FB1A6901B201FB1A00000C788402001002FD0F21000FC016
+            json     = '{"_":"telegram","media":"room sensor","meter":"piigth","name":"Tempo","id":"10000284","fabrication_no":"10000284","software_version":"0021","status":"OK","temperature_c":24.96,"average_temperature_1h_c":24.69,"relative_humidity_rh":40,"relative_humidity_1h_rh":36.1,"timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'Tempo;10000284;OK;24.96;40;1111-11-11 11:11.11'
+        }
+        test {
+            args     = 'Tempo piigth 10000284 NOKEY'
+            telegram = 68383868080072840200102941011B06000000_02653F0A4265000A820165CA0902FB1A4F0142FB1A53018201FB1A5E010C788402001002FD0F21000F1916
+            json     = '{"_":"telegram","media":"room sensor","meter":"piigth","name":"Tempo","id":"10000284","fabrication_no":"10000284","software_version":"0021","status":"OK","temperature_c":26.23,"average_temperature_1h_c":25.6,"average_temperature_24h_c":25.06,"relative_humidity_rh":33.5,"relative_humidity_1h_rh":33.9,"relative_humidity_24h_rh":35,"timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'Tempo;10000284;OK;26.23;33.5;1111-11-11 11:11.11'
+        }
+    }
+}
