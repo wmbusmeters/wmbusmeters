@@ -22,7 +22,7 @@ METER_TIMESTAMP_UTC
 METER_TIMESTAMP_UT
 METER_TIMESTAMP_LT
 METER_DEVICE
-METER_DEVICE_DATE_TIME
+METER_DEVICE_DateTimeLT
 METER_RSSI_DBM
 METER_TOTAL_ENERGY_CONSUMPTION_KWH
 METER_CURRENT_POWER_CONSUMPTION_KW
@@ -81,7 +81,7 @@ cat <<EOF | sort > $TEST/test_expected.txt
                  voltage_at_phase_1_v  Voltage at phase L1.
                  voltage_at_phase_2_v  Voltage at phase L2.
                  voltage_at_phase_3_v  Voltage at phase L3.
-                     device_date_time  Device date time.
+                      device_datetime  Device date time.
 total_energy_consumption_tariff_1_kwh  The total energy consumption recorded by this meter on tariff 1.
 total_energy_consumption_tariff_2_kwh  The total energy consumption recorded by this meter on tariff 2.
 total_energy_consumption_tariff_3_kwh  The total energy consumption recorded by this meter on tariff 3.
