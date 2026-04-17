@@ -74,7 +74,7 @@ CORE_SRCS="
   $SRC/dvparser.cc  $SRC/wmbus.cc  $SRC/wmbus_utils.cc  $SRC/wmbus_simulator.cc
   $SRC/address.cc  $SRC/units.cc  $SRC/translatebits.cc  $SRC/formula.cc
   $SRC/meters.cc  $SRC/metermanager.cc  $SRC/printer.cc  $SRC/drivers.cc
-  $SRC/manufacturer_specificities.cc  $SRC/util.cc  $SRC/config.cc  $SRC/cmdline.cc
+  $SRC/manufacturer_specificities.cc  $SRC/log.cc $SRC/util.cc  $SRC/config.cc  $SRC/cmdline.cc
   $SRC/aes.cc  $SRC/aescmac.cc  $SRC/sha256.cc
   $SRC/wmbus_amb8465.cc  $SRC/wmbus_im871a.cc  $SRC/wmbus_iu891a.cc
   $SRC/wmbus_cul.cc  $SRC/wmbus_rc1180.cc  $SRC/wmbus_rawtty.cc
@@ -153,5 +153,5 @@ em++ \
 echo ""
 
 # echo "==> Optimizing with wasm-opt..."
-# wasm-opt "$OUT/wmbusmeters.wasm" $WASM_OPT_FLAGS -o "$OUT/wmbusmeters.wasm" 
+# wasm-opt "$OUT/wmbusmeters.wasm" $WASM_OPT_FLAGS -o "$OUT/wmbusmeters.wasm"
 echo "==> Done! Output in wasm/dist/"
