@@ -10,8 +10,8 @@ TESTNAME="Test cmdline formulas with errors --calculate_... "
 TESTRESULT="ERROR"
 
 $PROG --format=json \
-      --calculate_sumtemp_c='external_temperature_c*198' \
-      --calculate_addtemp_c='32+external_temperature_c' \
+      --calculate_sumtemp_c='min_external_temperature_last_month_c*198' \
+      --calculate_addtemp_c='32+min_external_temperature_last_month_c' \
       --calculate_tjo_m3='99m3+12' \
       --calculate_bar_m3='99m3+12m' \
       --calculate_barr_m3='(123kw' \
@@ -22,11 +22,11 @@ $PROG --format=json \
 cat <<EOF  > $TEST/test_expected.txt
 Warning! Ignoring calculated field sumtemp because parse failed:
 Constant number 198 lacks a valid unit!
-external_temperature_c*198
-                       ^~~~~
+min_external_temperature_last_month_c*198
+                                      ^~~~~
 Warning! Ignoring calculated field addtemp because parse failed:
 Constant number 32 lacks a valid unit!
-32+external_temperature_c
+32+min_external_temperature_last_month_c
 ^~~~~
 Warning! Ignoring calculated field tjo because parse failed:
 Constant number 12 lacks a valid unit!

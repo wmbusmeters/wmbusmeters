@@ -9,7 +9,7 @@ TESTNAME="Test ANYID with explicit driver"
 TESTRESULT="ERROR"
 
 cat <<EOF | jq --sort-keys . > $TEST/test_expected.txt
-{"_":"telegram","media":"cold water","meter":"kamwater","name":"Vatten","id":"76348799","external_temperature_c":19,"flow_temperature_c":127,"target_m3":6.408,"total_m3":6.408,"current_status":"DRY","status":"DRY","time_bursting":"","time_dry":"22-31 days","time_leaking":"","time_reversed":"","timestamp":"1111-11-11T11:11:11Z"}
+{"_":"telegram","media":"cold water","meter":"kamwater","name":"Vatten","id":"76348799","min_external_temperature_last_month_c":19,"flow_temperature_c":127,"target_m3":6.408,"total_m3":6.408,"current_status":"DRY","status":"DRY","time_bursting":"","time_dry":"22-31 days","time_leaking":"","time_reversed":"","timestamp":"1111-11-11T11:11:11Z"}
 EOF
 
 $PROG --format=json 2A442D2C998734761B168D2091D37CAC21576C7802FF207100041308190000441308190000615B7F616713 \

@@ -154,11 +154,11 @@ LDFLAGS  += $(LIBXML_LIBS) $(LIBRTLSDR_LIBS) $(LIBUSB_LIBS)
 #endif
 
 $(BUILD)/%.o: src/%.cc $(wildcard src/%.h)
-	$(CXX) $(CXXFLAGS) $< -c -E > $@.src
+#	$(CXX) $(CXXFLAGS) $< -c -E > $@.src
 	$(CXX) $(CXXFLAGS) $< -MMD -c -o $@
 
 $(BUILD)/%.o: src/%.c $(wildcard src/%.h)
-	$(CXX) $(CXXFLAGS) $< -c -E > $@.src
+#	$(CXX) $(CXXFLAGS) $< -c -E > $@.src
 	$(CXX) -fpermissive $(CXXFLAGS)  $< -MMD -c -o $@
 
 PROG_OBJS:=\

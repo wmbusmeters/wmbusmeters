@@ -10,7 +10,7 @@ mkdir -p $TEST
 TESTNAME="Test timestamps from rtlwmbus"
 TESTRESULT="ERROR"
 
-cat simulations/serial_rtlwmbus_with_timestamps.msg | grep '^\#' | tr -d '#' > $TEST/test_expected.txt
+cat simulations/serial_rtlwmbus_with_timestamps.msg | grep '^#' | tr -d '#' > $TEST/test_expected.txt
 cat simulations/serial_rtlwmbus_with_timestamps.msg | grep '^[CT]' > $TEST/test_input.txt
 cat $TEST/test_input.txt | $PROG --format=json "stdin:rtlwmbus" \
       Rummet1 lansenth 00010203 "" \

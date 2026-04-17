@@ -5,6 +5,10 @@ a remnant from the old days where date and time units where not enforced.
 The correct unit is _datetime. This is a similar problem in all these drivers.
 Also due_date_m3 is changed to due_m3 for the lse_07_17 driver.
 
+ATTENTION! Change in field name for kamwater (multical21 flowiq2000)
+external_temperature_c is now min_external_temperature_last_month_c
+or min_external_temperature_last_day_c depending on meter.
+
 Fix iu891a problem where a configured dongle that received telegrams
 was not properly detected when wmbusmeters was restarted.
 The buffer with received telegrams interfered with the detection logic.

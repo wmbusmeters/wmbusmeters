@@ -111,7 +111,45 @@ TESTRESULT="ERROR"
 
 cat > $TEST/test_expected.txt <<EOF
 Auto driver    : kamwater
-Similar driver : kamwater 12/12
+Similar driver : unknown 00/00
+Using driver   : kamwater 00/00
+000   : 2a length (42 bytes)
+001   : 44 dll-c (from meter SND_NR)
+002   : 2d2c dll-mfct (KAM)
+004   : 99873476 dll-id (76348799)
+008   : 1b dll-version
+009   : 16 dll-type (Cold water meter)
+010   : 8d ell-ci-field (ELL: Extended Link Layer II (8 Byte))
+011   : 20 ell-cc (slow_resp sync)
+012   : 91 ell-acc
+013   : d37cac21 sn (AES_CTR)
+017   : e1d6 payload crc (calculated a528 ERROR)
+019 CE: 8CDAFFCD3DC452BD802913FF7B1706CA9E355D6C2701CC24 failed decryption. Wrong key?
+
+{
+    "_":"telegram",
+    "media":"cold water",
+    "meter":"kamwater",
+    "name":"",
+    "id":"76348799",
+    "timestamp":"1111-11-11T11:11:11Z"
+}
+EOF
+
+$PROG --analyze 2A442D2C998734761B168D2091D37CAC21E1D68CDAFFCD3DC452BD802913FF7B1706CA9E355D6C2701CC24 > $TEST/test_output.txt 2>&1
+
+performCheck
+
+########################################################################################################################
+########################################################################################################################
+########################################################################################################################
+
+TESTNAME="Test analyze encrypted (no-key) ctr compact telegram"
+TESTRESULT="ERROR"
+
+cat > $TEST/test_expected.txt <<EOF
+Auto driver    : kamwater
+Similar driver : unknown 00/00
 Using driver   : kamwater 00/00
 000   : 2a length (42 bytes)(OK)
 001   : 44 dll-c (from meter SND_NR)
@@ -140,7 +178,7 @@ Using driver   : kamwater 00/00
 039 C!: 7F ("flow_temperature_c":127)
 040   : 61 dif (8 Bit Integer/Binary Minimum value storagenr=1)
 041   : 67 vif (External temperature °C)
-042 C!: 13 ("external_temperature_c":19) ("min_external_temperature_c":19)
+042 C!: 13 ("min_external_temperature_last_month_c":19)
 
 {
     "_":"telegram",
@@ -148,9 +186,8 @@ Using driver   : kamwater 00/00
     "meter":"kamwater",
     "name":"",
     "id":"76348799",
-    "external_temperature_c":19,
     "flow_temperature_c":127,
-    "min_external_temperature_c":19,
+    "min_external_temperature_last_month_c":19,
     "target_m3":6.408,
     "total_m3":6.408,
     "current_status":"DRY",
@@ -176,7 +213,7 @@ TESTRESULT="ERROR"
 
 cat > $TEST/test_expected.txt <<EOF
 Auto driver    : kamwater
-Similar driver : kamwater 12/12
+Similar driver : unknown 00/00
 Using driver   : kamwater 00/00
 000   : 23 length (35 bytes)(OK)
 001   : 44 dll-c (from meter SND_NR)
@@ -196,7 +233,7 @@ Using driver   : kamwater 00/00
 026 C!: 09190000 ("total_m3":6.409)
 030 C!: 09190000 ("target_m3":6.409)
 034 C!: 7F ("flow_temperature_c":127)
-035 C!: 16 ("external_temperature_c":22) ("min_external_temperature_c":22)
+035 C!: 16 ("min_external_temperature_last_month_c":22)
 
 {
     "_":"telegram",
@@ -204,9 +241,8 @@ Using driver   : kamwater 00/00
     "meter":"kamwater",
     "name":"",
     "id":"76348799",
-    "external_temperature_c":22,
     "flow_temperature_c":127,
-    "min_external_temperature_c":22,
+    "min_external_temperature_last_month_c":22,
     "target_m3":6.409,
     "total_m3":6.409,
     "current_status":"DRY",

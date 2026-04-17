@@ -52,7 +52,7 @@ TESTRESULT="ERROR"
 cat > $LOGFILE_EXPECTED <<EOF
 No meters configured. Printing id:s of all telegrams heard!
 Received telegram from: 21242472
-          manufacturer: (SAP) Sappel (0x4c30)
+          manufacturer: (SAP) Diehl Metering, Germany (0x4c30)
                   type: Water meter (0x07)
                    ver: 0x00
                 driver: izar
@@ -67,26 +67,26 @@ Received telegram from: 20481979
                    ver: 0x78
                 driver: izar
 Received telegram from: 2124589c
-          manufacturer: (SAP) Sappel (0x4c30)
+          manufacturer: (SAP) Diehl Metering, Germany (0x4c30)
                   type: Water meter (0x07)
                    ver: 0x00
                 driver: izar
 Received telegram from: 20e4ffde
-          manufacturer: (SAP) Sappel (0x4c30)
+          manufacturer: (SAP) Diehl Metering, Germany (0x4c30)
                   type: Water meter (0x07)
                    ver: 0x00
                 driver: izar
 Received telegram from: 48500375
-          manufacturer: (HYD) Hydrometer (0x2324)
+          manufacturer: (HYD) Diehl Metering, Germany (0x2324)
                   type: Water meter (0x07)
                    ver: 0x86
                 driver: izar
 Received telegram from: 208962f3
-          manufacturer: (SAP) Sappel (0x4c30)
+          manufacturer: (SAP) Diehl Metering, Germany (0x4c30)
                   type: Water meter (0x07)
                    ver: 0x00
                 driver: izar
------------------EOF
+EOF
 
 RES=$($PROG --logfile=$LOGFILE --t1 simulations/simulation_izars.txt 2>&1)
 
