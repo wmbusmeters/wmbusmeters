@@ -18,6 +18,8 @@
 #ifndef METERS_COMMON_IMPLEMENTATION_H_
 #define METERS_COMMON_IMPLEMENTATION_H_
 
+#include"always.h"
+#include"log.h"
 #include"dvparser.h"
 #include"meters.h"
 #include"threads.h"

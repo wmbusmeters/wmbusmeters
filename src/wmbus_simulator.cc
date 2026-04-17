@@ -15,6 +15,8 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include"always.h"
+#include"log.h"
 #include"serial.h"
 #include"util.h"
 #include"wmbus.h"

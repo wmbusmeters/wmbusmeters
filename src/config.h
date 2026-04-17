@@ -18,6 +18,8 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 
+#include"always.h"
+#include"log.h"
 #include"units.h"
 #include"util.h"
 #include"wmbus.h"

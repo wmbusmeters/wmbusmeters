@@ -15,9 +15,11 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include"always.h"
+#include"log.h"
+#include"util.h"
 #include"dvparser.h"
 #include"wmbus.h"
-#include"util.h"
 
 #include<assert.h>
 #include<cmath>

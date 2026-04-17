@@ -18,6 +18,8 @@
 
 #include<set>
 
+#include"always.h"
+#include"log.h"
 #include"manufacturers.h"
 #include"manufacturer_specificities.h"
 #include"meters.h"

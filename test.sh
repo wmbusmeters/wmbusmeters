@@ -3,6 +3,8 @@
 PROG="$1"
 TESTINTERNAL=$(dirname $PROG)/testinternals
 
+$PROG --version
+
 if [ ! -x $PROG ]
 then
     echo No such executable \"$PROG\"

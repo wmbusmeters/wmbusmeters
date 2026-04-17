@@ -15,6 +15,8 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include"always.h"
+#include"log.h"
 #include"wmbus.h"
 #include"wmbus_common_implementation.h"
 #include"wmbus_utils.h"
@@ -753,14 +755,14 @@ void WMBusAmber::processSerialData()
         {
             verbose("(amb8465) rx long delay (%lds), drop incomplete telegram\n", chunk_time.tv_sec);
 
-            // Only trigger a protocol error if we were receiving a specific command response 
+            // Only trigger a protocol error if we were receiving a specific command response
             // from the stick (starts with AMBER_SERIAL_SOF).
             if (read_buffer_.size() > 0 && read_buffer_[0] == AMBER_SERIAL_SOF)
             {
                 protocolErrorDetected();
             }
 
-            read_buffer_.clear(); 
+            read_buffer_.clear();
         }
         else
         {

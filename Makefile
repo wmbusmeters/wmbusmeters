@@ -171,6 +171,7 @@ PROG_OBJS:=\
 	$(BUILD)/drivers.o \
 	$(BUILD)/dvparser.o \
 	$(BUILD)/formula.o \
+	$(BUILD)/log.o \
 	$(BUILD)/mbus_rawtty.o \
 	$(BUILD)/metermanager.o \
 	$(BUILD)/meters.o \

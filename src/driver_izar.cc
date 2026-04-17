@@ -17,6 +17,8 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include"always.h"
+#include"log.h"
 #include"meters_common_implementation.h"
 #include"manufacturer_specificities.h"
 
@@ -246,7 +248,7 @@ namespace
             double last_month_total_water_consumption_l_ = uint32FromBytes(decoded_content, 5, true);
             setNumericValue("last_month_total", Unit::L, last_month_total_water_consumption_l_);
         }
-        
+
         // get the date when the second measurement was taken
         if (decoded_content.size() > 10) {
             uint16_t h0_year = ((decoded_content[10] & 0xF0) >> 1) + ((decoded_content[9] & 0xE0) >> 5);

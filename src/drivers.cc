@@ -19,6 +19,8 @@
 #include<string>
 #include<map>
 
+#include"always.h"
+#include"log.h"
 #include"util.h"
 #include"drivers.h"
 
