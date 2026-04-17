@@ -3011,6 +3011,22 @@ bool MeterCommonImplementation::addOptionalLibraryFields(string field_names)
         markLastFieldAsLibrary();
     }
 
+    if (checkIf(fields, "battery_v"))
+    {
+        addNumericFieldWithExtractor(
+            "battery",
+            "Battery voltage."+help,
+            DEFAULT_PRINT_PROPERTIES,
+            Quantity::Voltage,
+            VifScaling::Auto,
+            DifSignedness::Signed,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(VIFRange::Voltage)
+            );
+        markLastFieldAsLibrary();
+    }
+
     if (checkIf(fields, "fabrication_no"))
     {
         addStringFieldWithExtractor(
