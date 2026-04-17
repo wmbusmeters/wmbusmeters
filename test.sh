@@ -3,7 +3,10 @@
 PROG="$1"
 TESTINTERNAL=$(dirname $PROG)/testinternals
 
+echo
+echo "Testing wmbusmeters version:"
 $PROG --version
+echo
 
 if [ ! -x $PROG ]
 then

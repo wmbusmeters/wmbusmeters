@@ -20,6 +20,7 @@
 #include"aescmac.h"
 #include"cmdline.h"
 #include"config.h"
+#include"drivers.h"
 #include"formula_implementation.h"
 #include"meters.h"
 #include"printer.h"
@@ -98,6 +99,8 @@ bool test(const char *test_name, const char *pattern)
 
 int main(int argc, char **argv)
 {
+    prepareBuiltinDrivers();
+
     const char *pattern = NULL;
 
     int i = 1;
@@ -1233,7 +1236,7 @@ void test_meters()
     */
 
     testm("multical21:c1", true,
-          "multical21", // driver
+          "kamwater", // driver
           "", // extras
           "", // bus
           "0", // bps
@@ -1244,7 +1247,7 @@ void test_meters()
         "driver=multical21:c1\n"
         "id=01234567\n";
     testc("meter/multical21:c1", config_content,
-          "multical21", // driver
+          "kamwater", // driver
           "", // extras
           "", // bus
           "0", // bps
