@@ -1,0 +1,69 @@
+// Copyright (C) 2020-2022 Fredrik Öhrström (gpl-3.0-or-later)
+driver {
+    name           = lansenpu
+    meter_type     = PulseCounter
+    default_fields = name,id,status,a_counter,b_counter,timestamp
+    detect {
+        mvt = LAS,14,00
+        mvt = LAS,1b,00
+        mvt = LAS,0b,02
+    }
+    mfct_tpl_status_bits {
+        mask_bits       = 0xe0
+        default_message = OK
+        map {
+            name  = SABOTAGE_ENCLOSURE
+            value = 0x40
+            test  = set
+        }
+    }
+    fields {
+        field {
+            name       = status
+            quantity   = Text
+            info       = 'Status and error flags.'
+            attributes = STATUS,INCLUDE_TPL_STATUS
+        }
+        /* Doubles have a 52 bit significand 11 bit exp and 1 bit sign,
+           so double is good for incremental pulses up to 2^52 counts
+           which is approx 4.5*10^15
+           The values sent by this meter are 12 digit bcd, ie at most 10^13-1 counts.
+           so they fit inside a double. */
+        field {
+            name     = a
+            info     = 'The current number of counted pulses from counter a.'
+            quantity = Dimensionless
+            match {
+                difvifkey = 0EFD3A
+            }
+        }
+        field {
+            name     = b
+            info     = 'The current number of counted pulses from counter b.'
+            quantity = Dimensionless
+            match {
+                difvifkey = 8E40FD3A
+            }
+        }
+    }
+    tests {
+        test {
+            args     = 'COUNTA lansenpu 00010206 NOKEY'
+            telegram = 234433300602010014007a8e0400002f2f0efd3a1147000000008e40fd3a341200000000
+            json     = '{"_":"telegram","media":"other","meter":"lansenpu","name":"COUNTA","id":"00010206","status":"POWER_LOW","a_counter":4711,"b_counter":1234,"timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'COUNTA;00010206;POWER_LOW;4711;1234;1111-11-11 11:11.11'
+        }
+        test {
+            args     = 'COUNTB lansenpu 00023750 NOKEY'
+            telegram = 1A443330503702000B027AD7000020|2F2F8E40FD3A700800000000
+            json     = '{"_":"telegram","media":"electricity","meter":"lansenpu","name":"COUNTB","id":"00023750","status":"OK","b_counter":870,"timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'COUNTB;00023750;OK;null;870;1111-11-11 11:11.11'
+        }
+        test {
+            args     = 'COUNTB lansenpu 00023750 NOKEY'
+            telegram = 1A443330503702000B027AD74c0020|2F2F8E40FD3A700800000000
+            json     = '{"_":"telegram","media":"electricity","meter":"lansenpu","name":"COUNTB","id":"00023750","status":"PERMANENT_ERROR POWER_LOW SABOTAGE_ENCLOSURE","b_counter":870,"timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'COUNTB;00023750;PERMANENT_ERROR POWER_LOW SABOTAGE_ENCLOSURE;null;870;1111-11-11 11:11.11'
+        }
+    }
+}
