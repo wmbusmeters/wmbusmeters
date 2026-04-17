@@ -10,12 +10,9 @@ else
     OUT="$1"
 fi
 
-# Retrieve the current year to update the copyright notice
-CURRENT_YEAR=$(date +%Y)
-
 {
     echo "/*"
-    echo " Copyright (C) 2017-$CURRENT_YEAR Fredrik Öhrström (gpl-3.0-or-later)"
+    echo " Copyright (C) 2017-2026 Fredrik Öhrström (gpl-3.0-or-later)"
     echo ""
     echo " This program is free software: you can redistribute it and/or modify"
     echo " it under the terms of the GNU General Public License as published by"

@@ -2,10 +2,11 @@
 # Copyright (C) 2026 Fredrik Öhrström (gpl-3.0-or-later)
 
 TMP=$(mktemp)
+NEWOUT=$(mktemp)
 
-# Use stdout if no argument is given, otherwise write to the specified file
 if [ -z "$1" ]; then
-    OUT="/dev/stdout"
+    echo "Usage: generate_authors.sh [outfile]"
+    exit 0
 else
     OUT="$1"
 fi
@@ -61,7 +62,22 @@ fi
 
     echo ')AUTHORS";'
     echo "#endif"
-} > "$OUT"
+} > "$NEWOUT"
 
-# Cleanup the temporary file
+if [ ! -f $OUT ]
+then
+    # The new author files does not exist, write it.
+    cp $NEWOUT $OUT
+    echo "Wrote $OUT"
+else
+    if ! diff $OUT $NEWOUT > /dev/null 2>&1
+    then
+        # The author file exists and the new is different, write it.
+        cp $NEWOUT $OUT
+        echo "Wrote $OUT"
+    fi
+fi
+
+# Cleanup the temporary files.
+rm -f "$NEWOUT"
 rm -f "$TMP"

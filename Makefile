@@ -272,7 +272,7 @@ snapcraft:
 $(BUILD)/main.o: $(BUILD)/short_manual.h $(BUILD)/version.h $(BUILD)/authors.h
 
 $(BUILD)/authors.h:
-	./scripts/generate_authors.sh ./src/authors.h
+	@./scripts/generate_authors.sh $(BUILD)/authors.h
 
 # Build binary with debug information. ~15M size binary.
 $(BUILD)/wmbusmeters.g: $(PROG_OBJS) $(DRIVER_OBJS) $(BUILD)/main.o $(BUILD)/short_manual.h
@@ -287,8 +287,8 @@ $(BUILD)/wmbusmeters: $(BUILD)/wmbusmeters.g
 $(BUILD)/wmbusmetersd: $(BUILD)/wmbusmeters
 	cp $(BUILD)/wmbusmeters $(BUILD)/wmbusmetersd
 
-$(BUILD)/short_manual.h:
-	./scripts/generate_short_manual.sh ./src/short_manual.h
+$(BUILD)/short_manual.h: README.md
+	@./scripts/generate_short_manual.sh $(BUILD)/short_manual.h
 
 testinternals: $(BUILD)/testinternals
 
