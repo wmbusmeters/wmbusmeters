@@ -112,7 +112,7 @@ namespace Translate
         bool hasLookups() { return rules.size() > 0; }
         // Returns true if the lookup covers more than just the vendor-specific bits 5-7 (0xe0),
         // i.e. the mask also includes standard bits 0-4.
-        bool coversFullByte() { for (auto &r : rules) { if (r.mask.intValue() & 0x1f) return true; } return false; }
+        bool touches1F() { for (auto &r : rules) { if (r.mask.intValue() & 0x1f) return true; } return false; }
 
         Lookup &add(Rule r) { rules.push_back(r); return *this; }
 

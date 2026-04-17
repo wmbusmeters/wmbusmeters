@@ -1,0 +1,102 @@
+// Copyright (C) 2019-2023 Fredrik Öhrström (gpl-3.0-or-later)
+driver {
+    name           = lansenth
+    meter_type     = TempHygroMeter
+    default_fields = name,id,current_temperature_c,current_relative_humidity_rh,timestamp
+    detect {
+        mvt = LAS,07,1b
+        mvt = LAS,09,1b
+    }
+    library {
+        use = on_time_h
+    }
+    mfct_tpl_status_bits {
+        mask_bits       = 0xe0
+        default_message = OK
+        map {
+            name  = SABOTAGE_ENCLOSURE
+            value = 0x40
+            test  = set
+        }
+    }
+    fields {
+        field {
+            name       = status
+            quantity   = Text
+            info       = 'Status and error flags.'
+            attributes = STATUS,INCLUDE_TPL_STATUS
+        }
+        field {
+            name     = current_temperature
+            quantity = Temperature
+            info     = 'The current temperature.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = ExternalTemperature
+            }
+        }
+        field {
+            name     = current_relative_humidity
+            quantity = RelativeHumidity
+            info     = 'The current relative humidity.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = RelativeHumidity
+            }
+        }
+        field {
+            name     = average_temperature_1h
+            quantity = Temperature
+            info     = 'The average temperature over the last hour.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = ExternalTemperature
+                storage_nr       = 1
+            }
+        }
+        field {
+            name     = average_relative_humidity_1h
+            quantity = RelativeHumidity
+            info     = 'The average relative humidity over the last hour.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = RelativeHumidity
+                storage_nr       = 1
+            }
+        }
+        field {
+            name     = average_temperature_24h
+            quantity = Temperature
+            info     = 'The average temperature over the last day.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = ExternalTemperature
+                storage_nr       = 2
+            }
+        }
+        field {
+            name     = average_relative_humidity_24h
+            quantity = RelativeHumidity
+            info     = 'The average relative humidity over the last day.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = RelativeHumidity
+                storage_nr       = 2
+            }
+        }
+    }
+    tests {
+        test {
+            args     = 'Tempoo lansenth 00010203 NOKEY'
+            telegram = 2e44333003020100071b7a634820252f2f0265840842658308820165950802fb1aae0142fb1aae018201fb1aa9012f
+            json     = '{"_":"telegram","media":"room sensor","meter":"lansenth","name":"Tempoo","id":"00010203","status":"PERMANENT_ERROR SABOTAGE_ENCLOSURE","current_temperature_c":21.8,"current_relative_humidity_rh":43,"average_temperature_1h_c":21.79,"average_relative_humidity_1h_rh":43,"average_temperature_24h_c":21.97,"average_relative_humidity_24h_rh":42.5,"timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'Tempoo;00010203;21.8;43;1111-11-11 11:11.11'
+        }
+        test {
+            args     = 'T2 lansenth 00060041 NOKEY'
+            telegram = 2E44333041000600091B7AA70020252F2F_0265DBF94265FC04820165610901FB1B2C41FB1B238101FB1B290223BB00
+            json     = '{"_":"telegram","media":"room sensor","meter":"lansenth","name":"T2","id":"00060041","status":"OK","current_temperature_c":-15.73,"current_relative_humidity_rh":44,"average_temperature_1h_c":12.76,"average_relative_humidity_1h_rh":35,"average_temperature_24h_c":24.01,"average_relative_humidity_24h_rh":41,"on_time_h":4488,"timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'T2;00060041;-15.73;44;1111-11-11 11:11.11'
+        }
+    }
+}
