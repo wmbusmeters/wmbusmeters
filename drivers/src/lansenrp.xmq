@@ -1,0 +1,172 @@
+/* Copyright (C) 2020-2022 Fredrik Öhrström (gpl-3.0-or-later)
+
+   @see https://www.lansensystems.com/media/1282/mbus_data_format_lan-wmbus-r4_v11_rev_3.pdf */
+driver {
+    name           = lansenrp
+    meter_type     = Repeater
+    default_fields = name,id,status,total_routed_messages_counter,used_router_slots_counter,is_repeater_listening,timestamp
+    detect {
+        mvt = LAS,0b,32
+    }
+    library {
+        use = software_version
+        use = meter_datetime
+        use = battery_v
+    }
+    fields {
+        field {
+            name       = status
+            quantity   = Text
+            info       = 'Meter status from tpl status field.'
+            attributes = STATUS,INCLUDE_TPL_STATUS
+        }
+        field {
+            name     = total_routed_messages
+            quantity = Dimensionless
+            info     = 'Number of total routed messages since power up'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = Dimensionless
+            }
+        }
+        field {
+            name     = used_router_slots
+            quantity = Dimensionless
+            info     = 'Used router slots (maximum 936)'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = Dimensionless
+                subunit_nr       = 1
+            }
+        }
+        field {
+            name     = is_repeater_listening
+            quantity = Text
+            info     = 'Is the repeater listening (YES/NO)'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = Dimensionless
+                subunit_nr       = 2
+            }
+            lookup {
+                name      = INPUT_BITS
+                map_type  = IndexToString
+                mask_bits = 0x01
+                map {
+                    name  = NO
+                    value = 0x00
+                    test  = Set
+                }
+                map {
+                    name  = YES
+                    value = 0x01
+                    test  = Set
+                }
+            }
+        }
+        field {
+            name     = seconds_to_mode_change
+            quantity = Dimensionless
+            info     = 'Seconds to mode change (Listen -> Sleep or Sleep -> Listen). Maximum 32767 seconds'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = Dimensionless
+                subunit_nr       = 3
+            }
+        }
+        field {
+            name     = listen_timer_value
+            quantity = Dimensionless
+            info     = 'Value on parameter "Listen timer"'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = Dimensionless
+                storage_nr       = 1
+            }
+        }
+        field {
+            name     = pause_timer_value
+            quantity = Dimensionless
+            info     = 'Value on parameter "Pause timer"'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = Dimensionless
+                storage_nr       = 2
+            }
+        }
+        field {
+            name     = start_time_value
+            quantity = Dimensionless
+            info     = 'Value on parameter "Start time", shown as minutes after midnight (-1=Not used)'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = Dimensionless
+                storage_nr       = 4
+            }
+        }
+        field {
+            name     = repeater_listening_on_weekdays
+            quantity = Text
+            info     = 'Shows which weekday(s) repeater is listening (MO/TU/WE/TH/FR/SA/SU)'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = Dimensionless
+                storage_nr       = 3
+            }
+            lookup {
+                name      = INPUT_BITS
+                map_type  = BitToString
+                mask_bits = 0xffff
+                map {
+                    name  = SU
+                    value = 0x01
+                    test  = Set
+                }
+                map {
+                    name  = MO
+                    value = 0x02
+                    test  = Set
+                }
+                map {
+                    name  = TU
+                    value = 0x04
+                    test  = Set
+                }
+                map {
+                    name  = WE
+                    value = 0x08
+                    test  = Set
+                }
+                map {
+                    name  = TH
+                    value = 0x10
+                    test  = Set
+                }
+                map {
+                    name  = FR
+                    value = 0x20
+                    test  = Set
+                }
+                map {
+                    name  = SA
+                    value = 0x40
+                    test  = Set
+                }
+            }
+        }
+    }
+    tests {
+        test {
+            args     = 'REPEAT lansenrp 00035946 NOKEY'
+            telegram = 54443330465903000B327A2B0000402F2F04FD3A946709008240FD3A600002FD0F9500818040FD3A0084C040FD3A8838000042FD3A28008201FD3A8C05C101FD3A7F8202FD3A3804066D35122EFB2B0002FD46D00C
+            json     = '{"_":"telegram","media":"reserved","meter":"lansenrp","name":"REPEAT","id":"00035946","battery_v":3.28,"listen_timer_value_counter":40,"pause_timer_value_counter":1420,"seconds_to_mode_change_counter":14472,"start_time_value_counter":1080,"total_routed_messages_counter":616340,"used_router_slots_counter":96,"is_repeater_listening":"NO","meter_datetime":"2023-11-27 14:18:53","repeater_listening_on_weekdays":"FR MO SA SU TH TU WE","software_version":"0095","status":"OK","timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'REPEAT;00035946;OK;616340;96;NO;1111-11-11 11:11.11'
+        }
+        test {
+            args     = 'REPEAT lansenrp 00035946 NOKEY'
+            telegram = 54443330465903000B327A2B0400402F2F04FD3A946709008240FD3A600002FD0F9500818040FD3A0184C040FD3A8838000042FD3A28008201FD3A8C05C101FD3A088202FD3A3804066D35122EFB2B0002FD46D00C
+            json     = '{"_":"telegram","media":"reserved","meter":"lansenrp","name":"REPEAT","id":"00035946","battery_v":3.28,"listen_timer_value_counter":40,"pause_timer_value_counter":1420,"seconds_to_mode_change_counter":14472,"start_time_value_counter":1080,"total_routed_messages_counter":616340,"used_router_slots_counter":96,"is_repeater_listening":"YES","meter_datetime":"2023-11-27 14:18:53","repeater_listening_on_weekdays":"WE","software_version":"0095","status":"POWER_LOW","timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'REPEAT;00035946;POWER_LOW;616340;96;YES;1111-11-11 11:11.11'
+        }
+    }
+}
