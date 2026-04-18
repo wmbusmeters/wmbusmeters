@@ -739,6 +739,18 @@ test {
     fields   = 'MyTapWater;76348799;DRY;6.408;6.408;1111-11-11 11:11.11'
 }
 test {
+    args     = 'Dooro lansendw 00010205 NOKEY'
+    telegram = 2e44333005020100071d7ab66800002f2f02fd1b550002fd971d01000efd3a2300000000008e40fd3a000000000000
+    json     = '{"_":"telegram","media":"reserved","meter":"lansendw","name":"Dooro","id":"00010205","status":"OPEN","a_counter":23,"b_counter":0,"error_flags":"ERROR_FLAGS_1 PERMANENT_ERROR UNKNOWN_60","timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'Dooro;00010205;OPEN;1111-11-11 11:11.11'
+}
+test {
+    args     = 'Dooro lansendw 00010205 NOKEY'
+    telegram = 2e44333005020100071d7ab54800002f2f02fd1b110002fd971d01000efd3a2200000000008e40fd3a000000000000
+    json     = '{"_":"telegram","media":"reserved","meter":"lansendw","name":"Dooro","id":"00010205","status":"CLOSED","a_counter":22,"b_counter":0,"error_flags":"ERROR_FLAGS_1 PERMANENT_ERROR UNKNOWN_40","timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'Dooro;00010205;CLOSED;1111-11-11 11:11.11'
+}
+test {
     args     = 'COUNTB lansenpu 00023750 NOKEY'
     telegram = 1A443330503702000B027AD74c0020|2F2F8E40FD3A700800000000
     json     = '{"_":"telegram","media":"electricity","meter":"lansenpu","name":"COUNTB","id":"00023750","status":"PERMANENT_ERROR POWER_LOW SABOTAGE_ENCLOSURE","b_counter":870,"timestamp":"1111-11-11T11:11:11Z"}'
