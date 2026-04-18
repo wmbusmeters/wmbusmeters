@@ -2879,6 +2879,18 @@ double vifScale(int vif)
     case 0x76: return 1.0; // Actuality duration hours
     case 0x77: return (1.0/24.0); // Actuality duration days
 
+    case 0x7c: return 1.0; // Variable length VIF descriptions defaults to scale 1.0.
+        /* Such fields are used in qsmoke for counters
+        028   : 81 dif (8 Bit Integer/Binary Instantaneous value)
+        029   : 03 dife (subunit=0 tariff=0 storagenr=6)
+        030   : 7C vif (VIF in following string (length in first byte))
+        031   : 03 viflen (3)
+        032   : 4C vif (L)
+        033   : 41 vif (A)
+        034   : 23 vif (#)
+        035 C!: 00 ("alarm_counter":0)
+        */
+
         // Active energy 0.1 or 1 MWh normalize to 100 KWh or 1000 KWh
         // 7b00 33632 -> 3363.2 MWh -> 3363200 KWh
         // 7b01 33632 -> 33632 MWh -> 33632000 KWh
@@ -2894,6 +2906,8 @@ double vifScale(int vif)
         // relative humidity is a dimensionless value.
     case 0x7b1a: return 10.0; // Relative humidity 0.1 %
     case 0x7b1b: return 1.0;  // Relative humidity 1 %
+
+    case 0x7d08: return 1.0; // Access Number
 
         // wmbusmeters always returns time in hours
         // 0x7d30 is not supposed to be used according to spec.
