@@ -560,6 +560,24 @@ test {
     fields   = 'SomeWater;12345698;4.605;3.888;1111-11-11 11:11.11'
 }
 test {
+    args     = 'WarmWater3 iwmtx5 24360570 NOKEY'
+    telegram = 4A44B4097005362418068C00647A7D400000066D210A673139000C13589402000F0582030000550200660300C004000006005407009B0800030A00C10A00000000000000010000FC000000
+    json     = '{"_": "telegram","id": "24360570","media": "warm water","meter": "iwmtx5","meter_datetime": "2025-09-17 07:10:33","name": "WarmWater3","status": "TAMPER","timestamp": "1111-11-11T11:11:11Z","total_m3": 29.458}'
+    fields   = 'WarmWater3;24360570;TAMPER;29.458;1111-11-11 11:11.11'
+}
+test {
+    args     = 'WarmWater2 iwmtx5 23329344 NOKEY'
+    telegram = 4244B4094493322318068C005B7A1C0000000C13072000000F05170000000000000000000000000000000000000000009D0000C20000C20000C8000000000000000000
+    json     = '{"_":"telegram","id": "23329344","media": "warm water","meter": "iwmtx5","name": "WarmWater2","status": "OK","timestamp": "1111-11-11T11:11:11Z","total_m3": 2.007}'
+    fields   = 'WarmWater2;23329344;OK;2.007;1111-11-11 11:11.11'
+}
+test {
+    args     = 'WaterWater iwmtx5 22917370 00000000000000000000000000000000'
+    telegram = 5144b4097073912218078c00247a0308400571e9615249ede52eaae09f61908f027c3877f3330ae9079528b23173ce124bcc255393e60b173c0a9f274c42dd92e4b23c14e8a41f042903358df01dd9268ad4
+    json     = '{"_":"telegram","id": "22917370","media": "water","meter": "iwmtx5","meter_datetime": "2023-05-11 10:38:24","name": "WaterWater","status": "PERMANENT_ERROR","timestamp": "1111-11-11T11:11:11Z","total_m3": 0.025}'
+    fields   = 'WaterWater;22917370;PERMANENT_ERROR;0.025;1111-11-11 11:11.11'
+}
+test {
     args     = 'KadenC10 kaden 23701267 82B0551191F51D66EFCDAB8967452301'
     telegram = 4e443059671270231e087a6f0040051183e178afb952391c01f78104bc3fd33a5232ba7e70f514a062dac99059a7c74a55227dfae9d9590145f685f4ae6a62288bbba6eaf92d86797254644a2cdf46
     json     = '{"_": "telegram","consumption_hca": 859,"external_temperature_c": 32,"fabrication_no": "23701267","flow_temperature_c": 39.3,"id": "23701267","media": "heat cost allocation","meter": "kaden","meter_datetime": "2026-02-09 09:41","name": "KadenC10","no_measurement_duration_h": 2.266667,"no_measurement_duration_last_year_h": 1234.483333,"status": "OK","tampering_duration_h": 0,"target_date": "2127-01-01","target_hca": 2264,"timestamp": "1111-11-11T11:11:11Z"}'

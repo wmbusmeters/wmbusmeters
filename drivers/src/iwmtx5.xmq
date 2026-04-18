@@ -1,0 +1,51 @@
+// Copyright (C) 2023 Fredrik Öhrström (gpl-3.0-or-later)
+driver {
+    name           = iwmtx5
+    meter_type     = WaterMeter
+    default_fields = name,id,status,total_m3,timestamp
+    detect {
+        mvt = BMT,18,07
+        mvt = BMT,18,06
+    }
+    library {
+        use = meter_datetime
+        use = total_m3
+    }
+    mfct_tpl_status_bits {
+        mask_bits       = 0xe0
+        default_message = OK
+        map {
+            name  = TAMPER
+            value = 0x40
+            test  = set
+        }
+    }
+    fields {
+        field {
+            name       = status
+            quantity   = Text
+            info       = 'Status and error flags.'
+            attributes = STATUS,INCLUDE_TPL_STATUS
+        }
+    }
+    tests {
+        test {
+            args     = 'WaterWater iwmtx5 22917370 00000000000000000000000000000000'
+            telegram = 5144b4097073912218078c00247a0308400571e9615249ede52eaae09f61908f027c3877f3330ae9079528b23173ce124bcc255393e60b173c0a9f274c42dd92e4b23c14e8a41f042903358df01dd9268ad4
+            json     = '{"_":"telegram","id": "22917370","media": "water","meter": "iwmtx5","meter_datetime": "2023-05-11 10:38:24","name": "WaterWater","status": "PERMANENT_ERROR","timestamp": "1111-11-11T11:11:11Z","total_m3": 0.025}'
+            fields   = 'WaterWater;22917370;PERMANENT_ERROR;0.025;1111-11-11 11:11.11'
+        }
+        test {
+            args     = 'WarmWater2 iwmtx5 23329344 NOKEY'
+            telegram = 4244B4094493322318068C005B7A1C0000000C13072000000F05170000000000000000000000000000000000000000009D0000C20000C20000C8000000000000000000
+            json     = '{"_":"telegram","id": "23329344","media": "warm water","meter": "iwmtx5","name": "WarmWater2","status": "OK","timestamp": "1111-11-11T11:11:11Z","total_m3": 2.007}'
+            fields   = 'WarmWater2;23329344;OK;2.007;1111-11-11 11:11.11'
+        }
+        test {
+            args     = 'WarmWater3 iwmtx5 24360570 NOKEY'
+            telegram = 4A44B4097005362418068C00647A7D400000066D210A673139000C13589402000F0582030000550200660300C004000006005407009B0800030A00C10A00000000000000010000FC000000
+            json     = '{"_": "telegram","id": "24360570","media": "warm water","meter": "iwmtx5","meter_datetime": "2025-09-17 07:10:33","name": "WarmWater3","status": "TAMPER","timestamp": "1111-11-11T11:11:11Z","total_m3": 29.458}'
+            fields   = 'WarmWater3;24360570;TAMPER;29.458;1111-11-11 11:11.11'
+        }
+    }
+}
