@@ -303,6 +303,12 @@ test {
     fields   = 'Vodda;95949392;5.461;0;1111-11-11 11:11.11'
 }
 test {
+    args     = 'Wasserzaehler engelmann-faw 20254060 NOKEY'
+    telegram = 8f44c5145502004301077260402520c51400076b0000002f2f426cbf2c441322e9000001fd17008401133c340100c40113ae2d010084021303290100c402137e21010084031313180100c403138a0e010084041337060100c40413b2fc00008405139af30000c4051322e90000840613c1df0000c40613cdd5000084071365ce0000c407136dc500008408138dbf0000
+    json     = '{"_":"telegram","media":"water","meter":"engelmann_faw","name":"Wasserzaehler","id":"20254060","status":"OK","reporting_date":"2021-12-31","consumption_at_reporting_date_m3":59.682,"consumption_1_months_ago_m3":78.908,"consumption_2_months_ago_m3":77.23,"consumption_3_months_ago_m3":76.035,"consumption_4_months_ago_m3":74.11,"consumption_5_months_ago_m3":71.699,"consumption_6_months_ago_m3":69.258,"consumption_7_months_ago_m3":67.127,"consumption_8_months_ago_m3":64.69,"consumption_9_months_ago_m3":62.362,"consumption_10_months_ago_m3":59.682,"consumption_11_months_ago_m3":57.281,"consumption_12_months_ago_m3":54.733,"consumption_13_months_ago_m3":52.837,"consumption_14_months_ago_m3":50.541,"consumption_15_months_ago_m3":49.037,"timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'Wasserzaehler;20254060;OK;2021-12-31;59.682;1111-11-11 11:11.11'
+}
+test {
     args     = 'HeatMeter2 eurisii 60200770 NOKEY'
     telegram = 76442D4870072060550872700720602D485508280060052F2F_0B6E320100426E550082016E3500C2016E1F0082026E1F00C2026E130082036E1300C2036E130082046E1300C2046E120082056E7D01C2056E440182066E0601C2066EB80082076E7F00C2076E320082086E1C00C2086E1C0002FD170000
     json     = '{"_":"telegram","media":"heat cost allocation","meter":"eurisii","name":"HeatMeter2","id":"60200770","status":"OK","error_flags":"OK","current_consumption_hca":132,"consumption_at_set_date_4_hca":31,"consumption_at_set_date_5_hca":19,"consumption_at_set_date_6_hca":19,"consumption_at_set_date_2_hca":53,"consumption_at_set_date_14_hca":127,"consumption_at_set_date_8_hca":19,"consumption_at_set_date_1_hca":85,"consumption_at_set_date_10_hca":381,"consumption_at_set_date_17_hca":28,"consumption_at_set_date_13_hca":184,"consumption_at_set_date_11_hca":324,"consumption_at_set_date_3_hca":31,"consumption_at_set_date_9_hca":18,"consumption_at_set_date_15_hca":50,"consumption_at_set_date_16_hca":28,"consumption_at_set_date_7_hca":19,"consumption_at_set_date_12_hca":262,"consumption_at_set_date_hca":85,"timestamp":"1111-11-11T11:11:11Z"}'
