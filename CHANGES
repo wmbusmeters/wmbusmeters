@@ -12,6 +12,8 @@ or min_external_temperature_last_day_c depending on meter.
 ATTENTION! The field current_status has been removed from waterstarm. It has been
 deprecated since 2022. Use the standardized field status instead.
 
+ATTENTION! Removed wme5 driver that is handled by qwater2 instead.
+
 Fix iu891a problem where a configured dongle that received telegrams
 was not properly detected when wmbusmeters was restarted.
 The buffer with received telegrams interfered with the detection logic.
