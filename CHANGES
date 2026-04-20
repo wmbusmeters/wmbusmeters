@@ -1,4 +1,8 @@
 
+New amazing feature contributed by Aras Abbasi, you can run
+wmbusmeters inside your browser that supports serial ports
+(currently tested in Chrome/Chromium and Edge.)
+
 ATTENTION! Change in field name for lse_08 driver,lse_07_17,unismart drivers where
 "device_date_time" is fixed to be "device_datetime" the _date_time suffix was
 a remnant from the old days where date and time units where not enforced.

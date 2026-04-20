@@ -12,7 +12,7 @@ cp src/*.xmq ../build/web
 echo -n "Generating html for xmq files"
 for i in src/*
 do
-    xmq $i render-html --theme=lightbg > ../build/web/$(basename $i).html
+    XMQ_BG=light XMQ_THEME="BG=#ffffff" xmq $i render-html > ../build/web/$(basename $i).html
     echo -n "."
 done
 echo "done."
