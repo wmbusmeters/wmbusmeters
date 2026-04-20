@@ -299,9 +299,6 @@ XMQProceed DriverDynamic::add_field(XMQDoc *doc, XMQNodePtr field, DriverDynamic
     // The field name must be supplied without a unit ie total (not total_m3) since units are managed by wmbusmeters.
     string name = check_field_name(xmqGetStringRel(doc, "name", field), dd);
 
-    // A driver can be deprecated a warning will be printed in the json.
-    string warning = check_field_warning(xmqGetStringRel(doc, "warning", field), dd);
-
     // The quantity ie Volume, gives the default unit (m3) for the field. The unit can be overriden with display_unit.
     Quantity quantity = check_field_quantity(xmqGetStringRel(doc, "quantity", field), dd);
 
