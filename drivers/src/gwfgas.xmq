@@ -4,7 +4,7 @@ driver {
     meter_type     = GasMeter
     default_fields = name,id,total_m3,target_m3,timestamp
     detect {
-        mvt = GWF,1b,03
+        mvt = GWF,3c,03
     }
     library {
         use = total_m3
