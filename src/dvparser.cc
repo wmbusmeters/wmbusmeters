@@ -21,9 +21,8 @@
 #include"dvparser.h"
 #include"wmbus.h"
 
-#include<assert.h>
+#include<cassert>
 #include<cmath>
-#include<math.h>
 #include<memory.h>
 #include<limits>
 
