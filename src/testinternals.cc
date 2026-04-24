@@ -22,6 +22,7 @@
 #include"config.h"
 #include"drivers.h"
 #include"formula_implementation.h"
+#include"manufacturers.h"
 #include"meters.h"
 #include"printer.h"
 #include"serial.h"
