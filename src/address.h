@@ -18,8 +18,11 @@
 #ifndef ADDRESS_H_
 #define ADDRESS_H_
 
-#include "util.h"
+#include "always.h"
+
+#include <cstdint>
 #include <string>
+#include <vector>
 
 /**
     IdentityMode:

@@ -17,6 +17,7 @@
 
 #include"address.h"
 #include"manufacturers.h"
+#include"util.h"
 
 #include<assert.h>
 #include<algorithm>
