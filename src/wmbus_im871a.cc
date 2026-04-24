@@ -162,7 +162,7 @@ LIST_OF_IM871A_LINK_MODES
     return "unknown";
 }
 
-struct WMBusIM871aIM170A : public virtual BusDeviceCommonImplementation
+struct WMBusIM871aIM170A : public BusDeviceCommonImplementation
 {
     bool ping();
     string getDeviceId();

@@ -22,7 +22,7 @@
 #include "threads.h"
 #include "wmbus.h"
 
-struct BusDeviceCommonImplementation : public virtual BusDevice
+struct BusDeviceCommonImplementation : public BusDevice
 {
     BusDeviceCommonImplementation(std::string bus_alias,
                                   BusDeviceType t,

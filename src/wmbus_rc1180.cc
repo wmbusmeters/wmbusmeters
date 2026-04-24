@@ -160,7 +160,7 @@ struct ConfigRC1180
     }
 };
 
-struct WMBusRC1180 : public virtual BusDeviceCommonImplementation
+struct WMBusRC1180 : public BusDeviceCommonImplementation
 {
     bool ping();
     string getDeviceId();

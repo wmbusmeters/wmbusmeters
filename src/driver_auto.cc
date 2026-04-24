@@ -19,7 +19,7 @@
 
 using namespace std;
 
-struct MeterAuto : public virtual MeterCommonImplementation
+struct MeterAuto : public MeterCommonImplementation
 {
     MeterAuto(MeterInfo &mi, DriverInfo &di);
 };

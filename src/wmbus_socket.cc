@@ -65,7 +65,7 @@ static string escapeJsonString(const string &input)
     return ss.str();
 }
 
-struct WMBusSocket : public virtual BusDeviceCommonImplementation
+struct WMBusSocket : public BusDeviceCommonImplementation
 {
     bool ping();
     string getDeviceId();

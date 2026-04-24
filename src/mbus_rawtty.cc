@@ -29,7 +29,7 @@
 
 using namespace std;
 
-struct MBusRawTTY : public virtual BusDeviceCommonImplementation
+struct MBusRawTTY : public BusDeviceCommonImplementation
 {
     bool ping();
     string getDeviceId();

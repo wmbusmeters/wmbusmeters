@@ -38,7 +38,7 @@ using namespace std;
 #define SET_LINK_MODE 1
 #define SET_X01_MODE 2
 
-struct WMBusCUL : public virtual BusDeviceCommonImplementation
+struct WMBusCUL : public BusDeviceCommonImplementation
 {
     bool ping();
     string getDeviceId();

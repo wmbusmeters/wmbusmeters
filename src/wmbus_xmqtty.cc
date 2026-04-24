@@ -63,7 +63,7 @@ static string escapeJsonString(const string &input)
     return ss.str();
 }
 
-struct WMBusXmqTTY : public virtual BusDeviceCommonImplementation
+struct WMBusXmqTTY : public BusDeviceCommonImplementation
 {
     bool ping();
     string getDeviceId();

@@ -23,7 +23,7 @@ using namespace std;
 #include<string.h>
 
 namespace {
-    struct Driver: public virtual MeterCommonImplementation {
+    struct Driver: public MeterCommonImplementation {
             Driver(MeterInfo &mi, DriverInfo &di);
             void processContent(Telegram *t);
     };

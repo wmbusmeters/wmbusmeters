@@ -22,7 +22,7 @@ using namespace std;
 
 namespace
 {
-    struct Driver : public virtual MeterCommonImplementation
+    struct Driver : public MeterCommonImplementation
     {
         Driver(MeterInfo &mi, DriverInfo &di);
 
