@@ -304,10 +304,10 @@ struct FieldInfo
               FieldMatcher matcher,
               std::string help,
               PrintProperties print_properties,
-              std::function<double(Unit)> get_numeric_value_override,
-              std::function<std::string()> get_string_value_override,
-              std::function<void(Unit,double)> set_numeric_value_override,
-              std::function<void(std::string)> set_string_value_override,
+              double(*get_numeric_value_override)(Unit),
+              std::string(*get_string_value_override)(),
+              void(*set_numeric_value_override)(Unit, double),
+              void(*set_string_value_override)(std::string),
               Translate::Lookup lookup,
               Formula *formula,
               Meter *m
@@ -379,10 +379,10 @@ private:
 
     // Normally the values are stored inside the meter object using its setNumeric/setString/getNumeric/getString
     // But for special fields we can override this default location with these setters/getters.
-    std::function<double(Unit)> get_numeric_value_override_; // Callback to fetch the value from the meter.
-    std::function<std::string()> get_string_value_override_; // Callback to fetch the value from the meter.
-    std::function<void(Unit,double)> set_numeric_value_override_; // Call back to set the value in the c++ object
-    std::function<void(std::string)> set_string_value_override_; // Call back to set the value string in the c++ object
+    double(*get_numeric_value_override_)(Unit) = nullptr;
+    std::string(*get_string_value_override_)() = nullptr;
+    void(*set_numeric_value_override_)(Unit, double) = nullptr;
+    void(*set_string_value_override_)(std::string) = nullptr;
 
     // Lookup bits to strings.
     Translate::Lookup lookup_;
