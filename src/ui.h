@@ -26,7 +26,6 @@
 #include<stdio.h>
 #include<stdlib.h>
 
-#include<functional>
 #include<string>
 #include<vector>
 
