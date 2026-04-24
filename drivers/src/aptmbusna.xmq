@@ -1,0 +1,328 @@
+driver {
+    name           = aptmbusna
+    meter_type     = WaterMeter
+    default_fields = name,id,status,total_kwh,target_kwh,timestamp
+    detect {
+        mvt = APA,03,07   //APT-MBUS-NA-1 (-C)
+           }
+library {
+    use = fabrication_no
+//    use = on_time_h
+//   use = on_time_at_error_h
+     }
+
+
+
+fields {
+    field {
+        name     = optical_diagnostic
+        quantity =  Text //Dimensionless
+        info     = 'Optical diagnostic raw data'
+        //display_unit = datetime
+        match {
+            difvifkey = 04FF0A
+            //measurement_type = Instantaneous
+            //vif_range       = EnhancedIdentification //  SpecialSupplierInformation
+            //add_combinable = Mfct00
+              }
+           }
+
+    field {
+        name     = oscilator_diagnostic
+        quantity = Text //Dimensionless
+        info     = 'Oscilator raw diagnostic data'
+        //display_unit = datetime
+        match {
+            difvifkey = 02FF0B
+              }
+           }
+
+
+    field {
+        name     = power_supply_diagnostic
+        quantity = Text // Voltage //Text //Dimensionless
+        info     = 'Power supply raw diagnostic data'
+        //display_unit = lh //datetime
+        match {
+            difvifkey = 03FF0C
+              }
+           }
+
+
+    field {
+        name     = meter
+        quantity = Time
+        info     = 'Overlay time'
+        display_unit = datetime
+        match {
+            measurement_type = Instantaneous
+            vif_range        = DateTime
+              }
+           }
+
+
+    field {
+        name     = current_volume_flow
+        quantity = Flow
+        info     = 'Current volume flow'
+        display_unit = lh
+        match {
+            measurement_type = Instantaneous
+            vif_range        = VolumeFlow
+              }
+
+           }
+    field {
+        name     = total_volume
+        quantity = Volume
+        info     = 'Total volume'
+        match {
+            measurement_type = Instantaneous
+            vif_range        = Volume
+              }
+           }
+
+    field {
+        name     = historical_total
+        quantity = Volume
+        info     = 'Historical total volume'
+        //storage_nr = 1
+        match {
+            measurement_type = Instantaneous
+            vif_range        = Volume
+            storage_nr = 1
+              }
+           }
+
+
+    field {
+        name     = historical_meter
+        quantity = Time
+        info     = 'Historical date'
+        display_unit = date
+        //storage_nr =1
+        match {
+            measurement_type = Instantaneous
+            vif_range        = Date
+            storage_nr = 1
+              }
+           }
+
+
+    field {
+        name     = operating_battery
+        quantity = Time
+        info     = 'Duration working device on battery'
+        display_unit = d
+        match {
+            measurement_type = Instantaneous
+            vif_range        = OperatingTime
+              }
+           }
+////////
+
+
+
+////
+
+    field {
+        name     = events_permanent_type
+        quantity = Text
+        info     = 'Pernamemnt events type statuses'
+        match {
+            measurement_type = Instantaneous
+            vif_range        = ErrorFlags
+        }
+
+
+        lookup {
+            name            = ERROR_FLAGS_PERMANENT
+            map_type        = BitToString
+            mask_bits       = 0x00ffff
+            default_message = OK
+           
+           //1st byte 
+           map {
+                name  = P_MAGNETIC_FIELD_DETECED
+                info  = 'Average minute flow is below the minimum flow and higher than the starting flow.'
+                value = 0x01 //0b000000000000000000000001 //0x01
+                test  = Set
+            }           
+            map {
+                name  = P_STRONG_LIGHT_DETECTED
+                info  = 'Average minute flow is below the minimum flow and higher than the starting flow.'
+                value = 0x02 // 0b000000000000000000000010  //0x02
+                test  = Set
+            }
+            map {
+                name  = P_M-BUS_DISCONNECTED
+                info  = 'No flow detected and temperature diff is higher than threshold.'
+                value = 0x04 //0b000000000000000000000100 //0x04
+                test  = Set
+            }
+            map {
+                name  = P_DETECTION_WITHOUT_CHANGES
+                info  = 'Temperature is out of measurement range or the sensor is broken.'
+                value = 0x08 //0b000000000000000000001000 //0x08
+                test  = Set
+            }
+            map {
+                name  = P_MINIMUM_FLOW_DETECTED
+                info  = 'Temperature is out of measurement range or the sensor is broken.'
+                value = 0x10 //0b000000000000000000010000  //0x10
+                test  = Set
+            }
+            map {
+                name  = P_MAXIMUM_FLOW_DETECTED
+                info  = 'The temperature differences (eg supply-return) exceeds a threshold.'
+                value = 0x20 //0b000000000000000000100000 //0x20
+                test  = Set
+            }
+            map {
+                name  = P_REVERSE_FLOW_DETECTED
+                info  = 'Average minute flow Qs is higher than Qp and equal to or lower than 2Qp (Qp < Qs ≤ 2 * Qp).'
+                value = 0x40 //0b000000000000000001000000 //0x40
+                test  = Set
+            }
+            map {
+                name  = P_LEAK_DETECTED
+                info  = 'Average minute flow Qs is higher than Qp and equal to or lower than 2Qp (Qp < >'
+                value = 0x80 //0b000000000000000010000000 //0x80
+                test  = Set
+            }
+
+            //2nd byte
+            map {
+                name  = P_PROCESSOR_RESET_DETECTED
+                info  = 'Critical internal error.'
+                value = 0100 //0b000000000000000100000000 //0x100
+                test  = Set
+            }
+            map {
+                name  = P_CLOCK_HAND_ERROR
+                info  = 'Low battery voltage.'
+                value = 0x200 //0b000000000000001000000000  //0x200
+                test  = Set
+            }
+            map {
+                name  = P_BATTERY_LOW_DETECTED
+                info  = 'Nominal flow is detected at Q > Qp for 1 h per day (24 h)
+                         where one day is measured from the moment the overrun is detected.'
+                value = 0x400 //0b000000000000010000000000 //0x400
+                test  = Set
+            }
+            map {
+                name  = P_DETECTOR_ERROR
+                info  = 'Nominal flow is detected at Q > Qp for 200 h in 1 year
+                         where one year is calculated from the start of billing period n to
+                         the start of billing period n+1 (which is when the annual data is saved to the archive).'
+                value = 0x800 //0b000000000000100000000000 //0x800
+                test  = Set
+            }
+            map {
+                name  = P____0x1000_RESERVED_____
+                info  = 'The volume count is incremented in 3 consecutive integration cycles while
+                         the differential temperature is below the configured differential temperature
+                         insensitivity threshold.'
+                value = 0x1000 //0b000000000001000000000000 //0x1000
+                test  = Set
+            }
+            map {
+                name  = P____0x2000_RESERVED_____
+                info  = 'Critical internal error in firmware vs saved model.'
+                value = 0x2000 //0b000000000010000000000000 //0x2000
+                test  = Set
+            }
+            map {
+                name  = P____0x4000_RESERVED_____
+                info  = 'Critical internal error when reading non-volatile flash memory.'
+                value = 0x4000 //0b000000000100000000000000 //0x4000
+                test  = Set
+            }
+            map {
+                name  = P____0x8000_RESERVED_____
+                info  = 'Critical low battery voltage.'
+                value = 08000 //0b000000001000000000000000 // 0x8000
+                test  = Set
+            }
+
+}}
+
+    field {
+        name     = events_active_type
+        quantity = Text
+        info     = 'Active events type statuses'
+        match {
+            measurement_type = Instantaneous
+            vif_range        = ErrorFlags
+        }
+
+
+        lookup {
+            name            = ERROR_FLAGS_ACTIVE
+            map_type        = BitToString
+            mask_bits       = 0xff0000
+            default_message = OK
+
+
+            //3rd byte
+            map {
+                name  = A_MAGNETIC_FIELD_DETECED
+                info  = 'Average minute flow is below the minimum flow and higher than the starting flow.'
+                value = 0x10000 //0b000000010000000000000000 //0x10 000
+                test  = Set
+            }
+            map {
+                name  = A_STRONG_LIGHT_DETECTED
+                info  = 'Average minute flow is below the minimum flow and higher than the starting flow.'
+                value = 0x20000 //0b000000100000000000000000 // 0x20 000
+                test  = Set
+            }
+            map {
+                name  = A_M-BUS_DISCONNECTED
+                info  = 'No flow detected and temperature diff is higher than threshold.'
+                value = 0x40000 //0b000001000000000000000000 // 0x40 000
+                test  = Set
+            }
+            map {
+                name  = A_DETECTION_WITHOUT_CHANGES
+                info  = 'Temperature is out of measurement range or the sensor is broken.'
+                value = 0x80000 //0b000010000000000000000000 // 0x80 000
+                test  = Set
+            }
+            map {
+                name  = A_MINIMUM_FLOW_DETECTED
+                info  = 'Temperature is out of measurement range or the sensor is broken.'
+                value = 0x100000 //0b000100000000000000000000 //0x100 000
+                test  = Set
+            }
+            map {
+                name  = A_MAXIMUM_FLOW_DETECTED
+                info  = 'The temperature differences (eg supply-return) exceeds a threshold.'
+                value = 0x200000 //0b001000000000000000000000 //0x200 000
+                test  = Set
+            }
+            map {
+                name  = A_REVERSE_FLOW_DETECTED
+                info  = 'Average minute flow Qs is higher than Qp and equal to or lower than 2Qp (Qp < Qs ≤ 2 * Qp).'
+                value = 0x400000 //0b010000000000000000000000 //0x400 000
+                test  = Set
+            }
+            map {
+                name  = A_PROCESSOR_RESET_DETECTED
+                info  = 'Critical internal error.'
+                value = 0x800000 //0b100000000000000000000000 //0x800 000
+                test  = Set
+            }
+          }
+
+
+
+
+
+////
+        }
+    }
+}
+
+
