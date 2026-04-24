@@ -18,7 +18,6 @@
 #ifndef METER_H_
 #define METER_H_
 
-#include"address.h"
 #include"dvparser.h"
 #include"formula.h"
 #include"util.h"
