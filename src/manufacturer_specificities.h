@@ -19,8 +19,12 @@
 #ifndef MANUFACTURER_SPECIFICITIES_H
 #define MANUFACTURER_SPECIFICITIES_H
 
-#include"util.h"
-#include"wmbus.h"
+#include "always.h"
+#include "dvparser.h"
+#include "wmbus.h"
+
+#include <cstdint>
+#include <vector>
 
 // Common: add default manufacturers key if none specified and we know one for the given frame
 void addDefaultManufacturerKeyIfAny(const std::vector<uchar> &frame, TPLSecurityMode tpl_sec_mode, MeterKeys *meter_keys);
