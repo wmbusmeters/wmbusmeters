@@ -16,7 +16,6 @@
 */
 
 #include"bus.h"
-#include"cmdline.h"
 #include"config.h"
 #include"meters.h"
 #include"printer.h"

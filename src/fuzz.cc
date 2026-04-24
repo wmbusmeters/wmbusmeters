@@ -15,7 +15,6 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include"cmdline.h"
 #include"meters.h"
 #include"printer.h"
 #include"serial.h"
