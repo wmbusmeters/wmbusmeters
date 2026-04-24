@@ -410,7 +410,7 @@ struct WMBusAmber : public virtual BusDeviceCommonImplementation
 
     WMBusAmber(string alias, shared_ptr<SerialDevice> serial, shared_ptr<SerialCommunicationManager> manager, BusDeviceType dt);
     ~WMBusAmber() {
-        manager_->onDisappear(this->serial(), NULL);
+        manager_->onDisappear(this->serial(), VoidCallback{});
     }
 
 private:

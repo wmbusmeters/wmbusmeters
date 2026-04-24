@@ -66,6 +66,9 @@ private:
     std::shared_ptr<SerialCommunicationManager> serial_manager_;
     std::shared_ptr<MeterManager> meter_manager_;
 
+    struct BusTelegramContext { MeterManager* mm; bool simulated; };
+    std::vector<BusTelegramContext> telegram_contexts_;
+
     // Current active set of wmbus devices that can receive telegrams.
     // This can change during runtime, plugging/unplugging wmbus dongles.
     std::vector<std::shared_ptr<BusDevice>> bus_devices_;

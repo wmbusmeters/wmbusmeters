@@ -53,7 +53,6 @@ struct WMBusSimulator : public BusDeviceCommonImplementation
 
 private:
     vector<uchar> received_payload_;
-    vector<function<void(Telegram*)>> telegram_listeners_;
 
     string file_;
     LinkModeSet link_modes_;

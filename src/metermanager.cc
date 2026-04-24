@@ -48,8 +48,8 @@ private:
     bool analyze_verbose_;
     vector<MeterInfo> meter_templates_;
     vector<shared_ptr<Meter>> meters_;
-    vector<function<bool(AboutTelegram&,vector<uchar>)>> telegram_listeners_;
-    function<void(Telegram*t,Meter*)> on_meter_updated_;
+    vector<BoolAboutTelegramCallback> telegram_listeners_;
+    VoidTelegramMeterCallback on_meter_updated_;
 
 public:
     void addMeterTemplate(MeterInfo &mi)
@@ -75,7 +75,7 @@ public:
         meters_.clear();
     }
 
-    void forEachMeter(std::function<void(Meter*)> cb)
+    void forEachMeter(VoidMeterCallback cb)
     {
         for (auto &meter : meters_)
         {
@@ -279,12 +279,12 @@ public:
         return handled;
     }
 
-    void onTelegram(function<bool(AboutTelegram &about, vector<uchar>)> cb)
+    void onTelegram(BoolAboutTelegramCallback cb)
     {
         telegram_listeners_.push_back(cb);
     }
 
-    void whenMeterUpdated(std::function<void(Telegram*t,Meter*)> cb)
+    void whenMeterUpdated(VoidTelegramMeterCallback cb)
     {
         on_meter_updated_ = cb;
     }

@@ -627,6 +627,14 @@ private:
     bool findFormatBytesFromKnownMeterSignatures(std::vector<uchar> *format_bytes);
 };
 
+struct BoolAboutTelegramCallback
+{
+    void* obj = nullptr;
+    bool(*fn)(void*, AboutTelegram&, std::vector<uchar>) = nullptr;
+    bool operator()(AboutTelegram &about, std::vector<uchar> frame) const { return fn ? fn(obj, about, frame) : false; }
+    explicit operator bool() const { return fn != nullptr; }
+};
+
 struct SendBusContent
 {
     LinkMode link_mode;
@@ -672,7 +680,7 @@ struct BusDevice
     virtual bool canSetLinkModes(LinkModeSet lms) = 0;
     virtual void setLinkModes(LinkModeSet lms) = 0;
     virtual void setDeviceMode(DeviceMode mode) = 0;
-    virtual void onTelegram(std::function<bool(AboutTelegram&,std::vector<uchar>)> cb) = 0;
+    virtual void onTelegram(BoolAboutTelegramCallback cb) = 0;
     virtual bool sendTelegram(LinkMode link_mode, TelegramFormat format, std::vector<uchar> &content) = 0;
     virtual SerialDevice *serial() = 0;
     // Return true of the serial has been overridden, usually with stdin or a file.

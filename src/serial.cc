@@ -28,7 +28,6 @@
 #include <assert.h>
 #include <dirent.h>
 #include <fcntl.h>
-#include <functional>
 #include <libgen.h>
 #include <memory.h>
 #include <pthread.h>
@@ -65,7 +64,7 @@ struct Timer
     int id;
     int seconds;
     time_t last_call;
-    function<void()> callback;
+    VoidCallback callback;
     string name;
 
     bool isTime(time_t now)
@@ -86,8 +85,8 @@ struct SerialCommunicationManagerImp : public SerialCommunicationManager
     shared_ptr<SerialDevice> createSerialDeviceSimulator();
     shared_ptr<SerialDevice> createSerialDeviceSocket(string path, string purpose);
 
-    void listenTo(SerialDevice *sd, function<void()> cb);
-    void onDisappear(SerialDevice *sd, function<void()> cb);
+    void listenTo(SerialDevice *sd, VoidCallback cb);
+    void onDisappear(SerialDevice *sd, VoidCallback cb);
 
     void expectDevicesToWork();
     void stop();
@@ -100,13 +99,13 @@ struct SerialCommunicationManagerImp : public SerialCommunicationManager
     void removeNonWorkingSerialDevices();
     void closeAllDoNotRemove();
 
-    int startRegularCallback(string name, int seconds, function<void()> callback);
+    int startRegularCallback(string name, int seconds, VoidCallback callback);
     void stopRegularCallback(int id);
 
     AccessCheck checkAccess(string device,
                             shared_ptr<SerialCommunicationManager> manager,
                             string extra_info,
-                            function<AccessCheck(string,shared_ptr<SerialCommunicationManager>)> extra_probe);
+                            AccessCheck(*extra_probe)(string, shared_ptr<SerialCommunicationManager>));
 
     vector<string> listSerialTTYs();
     shared_ptr<SerialDevice> lookup(std::string device);
@@ -197,8 +196,8 @@ protected:
     RecursiveMutex write_mutex_ = { "write_mutex" };
 #define LOCK_WRITE_SERIAL(where) WITH(write_mutex_, write_mutex, where)
 
-    function<void()> on_data_;
-    function<void()> on_disappear_;
+    VoidCallback on_data_;
+    VoidCallback on_disappear_;
     int fd_ = -2; // -2 not yet opened, -1 not working
     bool expecting_ascii_ {}; // If true, print using safeString instead if bin2hex
     bool is_file_ = false;
@@ -353,7 +352,7 @@ void SerialDeviceTTY::close()
     if (on_disappear_ && !resetting_)
     {
         on_disappear_();
-        on_disappear_ = NULL;
+        on_disappear_ = VoidCallback{};
     }
     manager_->tickleEventLoop();
 
@@ -478,7 +477,7 @@ void SerialDeviceCommand::close()
     if (on_disappear_ && !resetting_)
     {
         on_disappear_();
-        on_disappear_ = NULL;
+        on_disappear_ = VoidCallback{};
     }
     ::flock(fd_, LOCK_UN);
     ::close(fd_);
@@ -927,7 +926,7 @@ shared_ptr<SerialDevice> SerialCommunicationManagerImp::createSerialDeviceSocket
     return addSerialDeviceForManagement(new SerialDeviceSocket(path, this, purpose));
 }
 
-void SerialCommunicationManagerImp::listenTo(SerialDevice *sd, function<void()> cb)
+void SerialCommunicationManagerImp::listenTo(SerialDevice *sd, VoidCallback cb)
 {
     if (sd == NULL) return;
     SerialDeviceImp *si = dynamic_cast<SerialDeviceImp*>(sd);
@@ -938,7 +937,7 @@ void SerialCommunicationManagerImp::listenTo(SerialDevice *sd, function<void()> 
     si->on_data_ = cb;
 }
 
-void SerialCommunicationManagerImp::onDisappear(SerialDevice *sd, function<void()> cb)
+void SerialCommunicationManagerImp::onDisappear(SerialDevice *sd, VoidCallback cb)
 {
     if (sd == NULL) return;
     SerialDeviceImp *si = dynamic_cast<SerialDeviceImp*>(sd);
@@ -1390,7 +1389,7 @@ SerialCommunicationManager::~SerialCommunicationManager()
 {
 }
 
-int SerialCommunicationManagerImp::startRegularCallback(string name, int seconds, function<void()> callback)
+int SerialCommunicationManagerImp::startRegularCallback(string name, int seconds, VoidCallback callback)
 {
     LOCK_TIMERS(start_regular_callback);
 
@@ -1858,7 +1857,7 @@ err:
 AccessCheck SerialCommunicationManagerImp::checkAccess(string device,
                                                        shared_ptr<SerialCommunicationManager> manager,
                                                        string extra_info,
-                                                       function<AccessCheck(string,shared_ptr<SerialCommunicationManager>)> extra_probe)
+                                                       AccessCheck(*extra_probe)(string, shared_ptr<SerialCommunicationManager>))
 {
     assert(device != "");
 

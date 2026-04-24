@@ -83,7 +83,7 @@ struct MeterCommonImplementation : public virtual Meter
     bool usesPolling();
     void addExtraCalculatedField(std::string ef);
 
-    void onUpdate(std::function<void(Telegram*,Meter*)> cb);
+    void onUpdate(VoidTelegramMeterCallback cb);
     int numUpdates();
 
     static bool isTelegramForMeter(Telegram *t, Meter *meter, MeterInfo *mi);
@@ -238,7 +238,7 @@ private:
     std::string name_;
     std::vector<AddressExpression> address_expressions_;
     IdentityMode identity_mode_;
-    std::vector<std::function<void(Telegram*,Meter*)>> on_update_;
+    std::vector<VoidTelegramMeterCallback> on_update_;
     int num_updates_ {};
     time_t datetime_of_update_ {};
     time_t datetime_of_poll_ {};

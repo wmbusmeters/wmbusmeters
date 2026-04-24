@@ -26,7 +26,6 @@
 #include"xmq.h"
 #include"wmbus.h"
 
-#include<functional>
 #include<numeric>
 #include<string>
 #include<vector>
@@ -415,6 +414,23 @@ private:
 
 struct BusManager;
 struct MeterManager;
+struct Meter;
+
+struct VoidMeterCallback
+{
+    void* obj = nullptr;
+    void(*fn)(void*, Meter*) = nullptr;
+    void operator()(Meter *m) const { if (fn) fn(obj, m); }
+    explicit operator bool() const { return fn != nullptr; }
+};
+
+struct VoidTelegramMeterCallback
+{
+    void* obj = nullptr;
+    void(*fn)(void*, Telegram*, Meter*) = nullptr;
+    void operator()(Telegram *t, Meter *m) const { if (fn) fn(obj, t, m); }
+    explicit operator bool() const { return fn != nullptr; }
+};
 
 struct Meter
 {
@@ -456,7 +472,7 @@ struct Meter
     virtual std::string getStringValue(FieldInfo *fi) = 0;
     virtual std::string decodeTPLStatusByte(uchar sts) = 0;
 
-    virtual void onUpdate(std::function<void(Telegram*t,Meter*)> cb) = 0;
+    virtual void onUpdate(VoidTelegramMeterCallback cb) = 0;
     virtual int numUpdates() = 0;
 
     virtual void createMeterEnv(std::string id,
@@ -502,12 +518,12 @@ struct MeterManager
     virtual void addMeter(std::shared_ptr<Meter> meter) = 0;
     virtual Meter*lastAddedMeter() = 0;
     virtual void removeAllMeters() = 0;
-    virtual void forEachMeter(std::function<void(Meter*)> cb) = 0;
+    virtual void forEachMeter(VoidMeterCallback cb) = 0;
     virtual bool handleTelegram(AboutTelegram &about, std::vector<uchar> data, bool simulated) = 0;
     virtual bool hasAllMetersReceivedATelegram() = 0;
     virtual bool hasMeters() = 0;
-    virtual void onTelegram(std::function<bool(AboutTelegram&, std::vector<uchar>)> cb) = 0;
-    virtual void whenMeterUpdated(std::function<void(Telegram*t,Meter*)> cb) = 0;
+    virtual void onTelegram(BoolAboutTelegramCallback cb) = 0;
+    virtual void whenMeterUpdated(VoidTelegramMeterCallback cb) = 0;
     virtual void pollMeters(std::shared_ptr<BusManager> bus) = 0;
     virtual void analyzeEnabled(bool b, OutputFormat f, std::string force_driver, std::string key, bool verbose, int profile) = 0;
     virtual void analyzeTelegram(AboutTelegram &about, std::vector<uchar> &input_frame, bool simulated) = 0;

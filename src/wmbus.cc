@@ -4151,8 +4151,8 @@ bool Telegram::findFormatBytesFromKnownMeterSignatures(vector<uchar> *format_byt
 
 BusDeviceCommonImplementation::~BusDeviceCommonImplementation()
 {
-    manager_->listenTo(this->serial(), NULL);
-    manager_->onDisappear(this->serial(), NULL);
+    manager_->listenTo(this->serial(), VoidCallback{});
+    manager_->onDisappear(this->serial(), VoidCallback{});
     debug("(wmbus) deleted %s\n", toString(type()));
 }
 
@@ -4212,7 +4212,7 @@ string BusDeviceCommonImplementation::busAlias()
     return bus_alias_;
 }
 
-void BusDeviceCommonImplementation::onTelegram(function<bool(AboutTelegram&,vector<uchar>)> cb)
+void BusDeviceCommonImplementation::onTelegram(BoolAboutTelegramCallback cb)
 {
     telegram_listeners_.push_back(cb);
 }

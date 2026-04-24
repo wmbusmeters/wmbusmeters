@@ -614,13 +614,14 @@ bool start(Configuration *config)
 
     // When a meter is updated, print it, shell it, log it, etc.
     // The first update will trigger the add callback (metershell)
-    meter_manager_->whenMeterUpdated(
-        [&](Telegram *t,Meter *meter)
+    meter_manager_->whenMeterUpdated(VoidTelegramMeterCallback{config,
+        [](void *_p, Telegram *t, Meter *meter)
         {
-            printer_->print(t, meter, &config->extra_constant_fields, &config->selected_fields);
-            oneshot_check(config, t, meter);
+            auto *c = static_cast<Configuration*>(_p);
+            printer_->print(t, meter, &c->extra_constant_fields, &c->selected_fields);
+            oneshot_check(c, t, meter);
         }
-    );
+    });
 
     setup_meters(config, meter_manager_.get());
 
@@ -654,9 +655,7 @@ bool start(Configuration *config)
     // Every 2 seconds detect any plugged in or removed wmbus devices.
     serial_manager_->startRegularCallback("HOT_PLUG_DETECTOR",
                                   2,
-                                  [&](){
-                                      regular_checkup(config);
-                                  });
+                                  VoidCallback{config, [](void *_p){ regular_checkup(static_cast<Configuration*>(_p)); }});
 
     if (config->daemon)
     {
@@ -673,7 +672,8 @@ bool start(Configuration *config)
         else if (!config->analyze)
         {
             if (!config->logsummary) notice("No meters configured. Printing id:s of all telegrams heard!\n");
-            meter_manager_->onTelegram([](AboutTelegram &about, vector<uchar> frame) {
+            meter_manager_->onTelegram(BoolAboutTelegramCallback{nullptr,
+                [](void*, AboutTelegram &about, vector<uchar> frame) -> bool {
                     Telegram t;
                     t.about = about;
                     MeterKeys mk;
@@ -683,7 +683,7 @@ bool start(Configuration *config)
                     t.explainParse(info.c_str(), 0);
                     logTelegram(t.original, t.frame, 0, 0);
                     return true;
-                });
+                }});
         }
     }
 

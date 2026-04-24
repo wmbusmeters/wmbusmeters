@@ -1024,7 +1024,7 @@ string MeterCommonImplementation::name()
     return name_;
 }
 
-void MeterCommonImplementation::onUpdate(function<void(Telegram*,Meter*)> cb)
+void MeterCommonImplementation::onUpdate(VoidTelegramMeterCallback cb)
 {
     on_update_.push_back(cb);
 }
