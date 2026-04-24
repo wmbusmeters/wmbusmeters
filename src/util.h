@@ -23,12 +23,11 @@
 #include<signal.h>
 #include<cstdint>
 #include<string>
-#include<functional>
 #include<map>
 #include<set>
 #include<vector>
 
-void onExit(std::function<void()> cb);
+void onExit(VoidCallback cb);
 void restoreSignalHandlers();
 bool gotHupped();
 void wakeMeUpOnSigChld(pthread_t t);

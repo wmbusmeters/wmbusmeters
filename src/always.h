@@ -22,7 +22,15 @@
 
 typedef unsigned char uchar;
 
-#define call(A,B) ([&](){A->B();})
+struct VoidCallback
+{
+    void* obj = nullptr;
+    void(*fn)(void*) = nullptr;
+    void operator()() const { if (fn) fn(obj); }
+    explicit operator bool() const { return fn != nullptr; }
+};
+
+#define call(A,B) VoidCallback{(void*)(A), [](void* _p){ static_cast<decltype(A)>(_p)->B(); }}
 #define calll(A,B,T) ([&](T t){A->B(t);})
 
 #endif // ALWAYS_H

@@ -50,7 +50,7 @@
 using namespace std;
 
 // Sigint, sigterm will call the exit handler.
-function<void()> exit_handler_;
+VoidCallback exit_handler_;
 
 bool got_hupped_ {};
 
@@ -91,7 +91,7 @@ void signalMyself(int signum)
 
 struct sigaction old_int, old_hup, old_term, old_chld, old_usr1, old_usr2;
 
-void onExit(function<void()> cb)
+void onExit(VoidCallback cb)
 {
     exit_handler_ = cb;
     struct sigaction new_action;
@@ -122,12 +122,12 @@ void onExit(function<void()> cb)
 
 bool signalsInstalled()
 {
-    return exit_handler_ != NULL;
+    return (bool)exit_handler_;
 }
 
 void restoreSignalHandlers()
 {
-    exit_handler_ = NULL;
+    exit_handler_ = VoidCallback{};
 
     sigaction(SIGINT, &old_int, NULL);
     sigaction(SIGHUP, &old_hup, NULL);

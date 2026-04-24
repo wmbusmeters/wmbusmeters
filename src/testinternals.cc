@@ -130,7 +130,7 @@ int main(int argc, char **argv)
         }
         i++;
     }
-    onExit([](){});
+    onExit(VoidCallback{});
 
 #define X(x) if (test(#x, pattern)) test_##x();
 LIST_OF_TESTS

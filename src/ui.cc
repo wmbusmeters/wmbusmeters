@@ -15,6 +15,7 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include"log.h"
 #include"ui.h"
 #include"util.h"
 
@@ -25,7 +26,7 @@ using namespace std;
 int screen_width_;
 int screen_height_;
 
-function<void()> update_cb_;
+VoidCallback update_cb_;
 
 void initUI()
 {
@@ -49,7 +50,7 @@ void exitUI()
     endwin();
 }
 
-void registerUpdateCB(std::function<void()> cb)
+void registerUpdateCB(VoidCallback cb)
 {
     update_cb_ = cb;
 }

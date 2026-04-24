@@ -18,9 +18,9 @@
 #ifndef THREADS_H
 #define THREADS_H
 
+#include "always.h"
 #include "util.h"
 
-#include <functional>
 #include <pthread.h>
 #include <sys/types.h>
 #include <unistd.h>
@@ -42,13 +42,13 @@ void recordMyselfAsMainThread();
 // wmbus-devices or serial-devices, if it does, then wmbusmeters will deadlock,
 // since the callbacks are needed to execute the commands.
 pthread_t getEventLoopThread();
-void startEventLoopThread(std::function<void()> cb);
+void startEventLoopThread(VoidCallback cb);
 
 // The timer callback thread runs whenever a timer timeout has happened.
 // This thread is used to probe for lost/found dongles, send commands to dongles,
 // reset dongles due to alarms, and generally monitor the system.
 pthread_t getTimerLoopThread();
-void startTimerLoopThread(std::function<void()> cb);
+void startTimerLoopThread(VoidCallback cb);
 
 
 size_t getPeakRSS();

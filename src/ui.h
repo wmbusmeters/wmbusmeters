@@ -38,7 +38,7 @@
 void initUI();
 void exitUI();
 
-void registerUpdateCB(std::function<void()> cb);
+void registerUpdateCB(VoidCallback cb);
 
 void printAt(WINDOW *win, int y, int x, const char *str, chtype color);
 void printMiddle(WINDOW *win, int y, int width, const char *str, chtype color);

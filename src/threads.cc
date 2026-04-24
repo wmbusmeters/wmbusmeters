@@ -32,10 +32,10 @@ using namespace std;
 pthread_t main_thread_ {};
 
 pthread_t event_loop_thread_ {};
-function<void()> event_loop_entry_point_;
+VoidCallback event_loop_entry_point_;
 
 pthread_t timer_loop_thread_ {};
-function<void()> timer_loop_entry_point_;
+VoidCallback timer_loop_entry_point_;
 
 pthread_t getMainThread()
 {
@@ -54,12 +54,12 @@ pthread_t getEventLoopThread()
 
 void *dispatch(void *ptr)
 {
-    function<void()> *cb = static_cast<function<void()>*>(ptr);
+    VoidCallback *cb = static_cast<VoidCallback*>(ptr);
     (*cb)();
     return NULL;
 }
 
-void startEventLoopThread(function<void()> cb)
+void startEventLoopThread(VoidCallback cb)
 {
     event_loop_entry_point_ = cb;
     pthread_create(&event_loop_thread_, NULL, dispatch, &event_loop_entry_point_);
@@ -70,7 +70,7 @@ pthread_t getTimerLoopThread()
     return timer_loop_thread_;
 }
 
-void startTimerLoopThread(function<void()> cb)
+void startTimerLoopThread(VoidCallback cb)
 {
     timer_loop_entry_point_ = cb;
     pthread_create(&timer_loop_thread_, NULL, dispatch, &timer_loop_entry_point_);
