@@ -20,6 +20,7 @@
 #include"meters.h"
 #include"util.h"
 
+#include<cstring>
 #include<string>
 #include<unistd.h>
 

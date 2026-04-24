@@ -19,10 +19,7 @@
 #define CMDLINE_H
 
 #include"config.h"
-#include"meters.h"
 #include<memory>
-#include<string.h>
-#include<vector>
 
 std::shared_ptr<Configuration> parseCommandLine(int argc, char **argv);
 void enableEarlyLoggingFromCommandLine(int argc, char **argv);
