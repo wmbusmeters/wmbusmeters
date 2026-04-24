@@ -169,7 +169,7 @@ bool DriverInfo::isCloseEnoughMedia(uchar type)
     return false;
 }
 
-bool staticRegisterDriver(function<void(DriverInfo&)> setup)
+bool staticRegisterDriver(void(*setup)(DriverInfo&))
 {
     DriverInfo di;
     setup(di);

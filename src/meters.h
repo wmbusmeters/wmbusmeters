@@ -165,7 +165,7 @@ private:
     LinkModeSet linkmodes_; // C1, T1, S1 or combinations thereof.
     Translate::Lookup mfct_tpl_status_bits_; // Translate any mfct specific bits in tpl status.
     MeterType type_; // Water, Electricity etc.
-    std::function<std::shared_ptr<Meter>(MeterInfo&,DriverInfo&di)> constructor_; // Invoke this to create an instance of the driver.
+    std::shared_ptr<Meter>(*constructor_)(MeterInfo&, DriverInfo&) = nullptr; // Invoke this to create an instance of the driver.
     std::vector<MVT> mvts_;
     std::vector<std::string> default_fields_;
     int force_mfct_index_ = -1; // Used for meters not declaring mfct specific data using the dif 0f.
@@ -184,7 +184,7 @@ public:
     void setDefaultFields(std::string f) { default_fields_ = splitString(f, ','); }
     void addLinkMode(LinkMode lm) { linkmodes_.addLinkMode(lm); }
     void forceMfctIndex(int i) { force_mfct_index_ = i; }
-    void setConstructor(std::function<std::shared_ptr<Meter>(MeterInfo&,DriverInfo&)> c) { constructor_ = c; }
+    void setConstructor(std::shared_ptr<Meter>(*c)(MeterInfo&, DriverInfo&)) { constructor_ = c; }
     void addMVT(uint16_t mfct, uchar type, uchar ver) { mvts_.push_back({ mfct, ver, type }); }
     void usesProcessContent() { has_process_content_ = true; }
     void setDynamic(const std::string &file_name, XMQDoc *driver) {
@@ -219,7 +219,7 @@ public:
     bool hasProcessContent() { return has_process_content_; }
 };
 
-bool staticRegisterDriver(std::function<void(DriverInfo&di)> setup);
+bool staticRegisterDriver(void(*setup)(DriverInfo&));
 // Lookup (and load if necessary) driver from memory or disk.
 DriverInfo *lookupDriver(std::string name);
 bool lookupDriverInfo(const std::string& driver, DriverInfo *di = NULL);
