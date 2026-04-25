@@ -77,6 +77,15 @@
     X(AnyEnergyVIF,0x00,0x00, Quantity::Energy, Unit::Unknown)  \
     X(AnyPowerVIF,0x00,0x00, Quantity::Power, Unit::Unknown)
 
+struct Vif
+{
+    Vif(int n) : nr_(n) {}
+    int intValue() { return nr_; }
+    bool operator==(Vif s) { return nr_ == s.nr_; }
+
+private:
+    int nr_;
+};
 
 enum class VIFRange
 {
@@ -96,7 +105,7 @@ const char *toString(VIFRange v);
 VIFRange toVIFRange(const char *s);
 Unit toDefaultUnit(VIFRange v);
 VIFRange toVIFRange(int i);
-bool isInsideVIFRange(int i, VIFRange range);
+bool isInsideVIFRange(Vif vif, VIFRange range);
 
 #define LIST_OF_VIF_COMBINABLES \
     X(Reserved,0x00,0x11) \
@@ -310,19 +319,13 @@ private:
     SubUnitNr subunit_nr_ { 0 };
 };
 
-void extractDV(DifVifKey &s, uchar *dif, int *vif, bool *has_difes, bool *has_vifes);
+void extractDV(DifVifKey &dvk, uchar *dif, int *vif, bool *has_difes, bool *has_vifes,
+               MeasurementType *measurement_type,
+               StorageNr *storage_nr,
+               TariffNr *tariff_nr,
+               SubUnitNr *subunit_nr);
 
 static DifVifKey NoDifVifKey = DifVifKey("");
-
-struct Vif
-{
-    Vif(int n) : nr_(n) {}
-    int intValue() { return nr_; }
-    bool operator==(Vif s) { return nr_ == s.nr_; }
-
-private:
-    int nr_;
-};
 
 Unit toDefaultUnit(Vif v);
 

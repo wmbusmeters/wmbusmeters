@@ -154,7 +154,6 @@ std::shared_ptr<Configuration> loadConfiguration(std::string root, ConfigOverrid
 
 void parseMeterConfig(Configuration *c, std::vector<char> &buf, std::string file);
 void handleSelectedFields(Configuration *c, std::string s);
-void handleAddedFields(Configuration *c, std::string s);
 bool handleDeviceOrHex(Configuration *c, std::string devicefilehex);
 
 enum class LinkModeCalculationResultType
