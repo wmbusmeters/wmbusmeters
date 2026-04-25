@@ -21,9 +21,10 @@ driver {
         // difvifkey = 02FF0B = oscillator_diagnostic, bits unknown.
         // difvifkey = 03FF0C = power_supply_diagnostic, bits unknown.
         field {
-            name     = status
-            quantity = Text
-            info     = 'Status and error flags.'
+            name       = status
+            quantity   = Text
+            info       = 'Status and error flags.'
+            attributes = STATUS,INCLUDE_TPL_STATUS
             match {
                 measurement_type = Instantaneous
                 vif_range        = ErrorFlags
@@ -163,14 +164,14 @@ driver {
         test {
             args     = 'W aptmbusna 00683775 NOKEY'
             telegram = 685656680800727537680001061507CCE800000C7875376800046D1DB458340413F73E0000023B0D00441385010000426C41340227090203FD171C030004FF0A0404000002FF0B000003FF0C1300B20F00042C1B1B00010200003716
-            json     = '{"_": "telegram","fabrication_no": "00683775","id": "00683775","media": "water","meter": "aptmbusna","meter_datetime": "2026-04-24 20:29","name": "W","operating_time_h": 12504,"status": "P_CLOCK_HAND_ERROR P_DETECTION_WITHOUT_CHANGES P_MBUS_DISCONNECTED P_MINIMUM_FLOW P_PROCESSOR_RESET","target_date": "2026-04-01","target_m3": 0.389,"timestamp": "1111-11-11T11:11:11Z","total_m3": 16.119,"volume_flow_m3h": 0.013}'
-            fields   = 'W;00683775;P_CLOCK_HAND_ERROR P_DETECTION_WITHOUT_CHANGES P_MBUS_DISCONNECTED P_MINIMUM_FLOW P_PROCESSOR_RESET;16.119;0.389;1111-11-11 11:11.11'
+            json     = '{"_": "telegram","fabrication_no": "00683775","id": "00683775","media": "water","meter": "aptmbusna","meter_datetime": "2026-04-24 20:29","name": "W","operating_time_h": 12504,"status": "PERMANENT_ERROR P_CLOCK_HAND_ERROR P_DETECTION_WITHOUT_CHANGES P_MBUS_DISCONNECTED P_MINIMUM_FLOW P_PROCESSOR_RESET UNKNOWN_E0","target_date": "2026-04-01","target_m3": 0.389,"timestamp": "1111-11-11T11:11:11Z","total_m3": 16.119,"volume_flow_m3h": 0.013}'
+            fields   = 'W;00683775;PERMANENT_ERROR P_CLOCK_HAND_ERROR P_DETECTION_WITHOUT_CHANGES P_MBUS_DISCONNECTED P_MINIMUM_FLOW P_PROCESSOR_RESET UNKNOWN_E0;16.119;0.389;1111-11-11 11:11.11'
         }
         test {
             args     = 'W aptmbusna 00345157 NOKEY'
             telegram = 68565668086C7257513400010615072EF80000_0C7857513400046D0BAB5934041307590000023B00004413A2560000426C41340227CB0803FD175E0B0004FF0A0404010002FF0B000003FF0C9700B90F0004351BFF0001020100_A716
-            json     = '{"_": "telegram","fabrication_no": "00345157","id": "00345157","media": "water","meter": "aptmbusna","meter_datetime": "2026-04-25 11:11","name": "W","operating_time_h": 54024,"status": "P_CLOCK_HAND_ERROR P_DETECTION_WITHOUT_CHANGES P_LEAK P_MBUS_DISCONNECTED P_MINIMUM_FLOW P_PROCESSOR_RESET P_REVERSE_FLOW P_STRONG_LIGHT","target_date": "2026-04-01","target_m3": 22.178,"timestamp": "1111-11-11T11:11:11Z","total_m3": 22.791,"volume_flow_m3h": 0}'
-            fields   = 'W;00345157;P_CLOCK_HAND_ERROR P_DETECTION_WITHOUT_CHANGES P_LEAK P_MBUS_DISCONNECTED P_MINIMUM_FLOW P_PROCESSOR_RESET P_REVERSE_FLOW P_STRONG_LIGHT;22.791;22.178;1111-11-11 11:11.11'
+            json     = '{"_": "telegram","fabrication_no": "00345157","id": "00345157","media": "water","meter": "aptmbusna","meter_datetime": "2026-04-25 11:11","name": "W","operating_time_h": 54024,"status": "PERMANENT_ERROR P_CLOCK_HAND_ERROR P_DETECTION_WITHOUT_CHANGES P_LEAK P_MBUS_DISCONNECTED P_MINIMUM_FLOW P_PROCESSOR_RESET P_REVERSE_FLOW P_STRONG_LIGHT TEMPORARY_ERROR UNKNOWN_E0","target_date": "2026-04-01","target_m3": 22.178,"timestamp": "1111-11-11T11:11:11Z","total_m3": 22.791,"volume_flow_m3h": 0}'
+            fields   = 'W;00345157;PERMANENT_ERROR P_CLOCK_HAND_ERROR P_DETECTION_WITHOUT_CHANGES P_LEAK P_MBUS_DISCONNECTED P_MINIMUM_FLOW P_PROCESSOR_RESET P_REVERSE_FLOW P_STRONG_LIGHT TEMPORARY_ERROR UNKNOWN_E0;22.791;22.178;1111-11-11 11:11.11'
         }
     }
 }
