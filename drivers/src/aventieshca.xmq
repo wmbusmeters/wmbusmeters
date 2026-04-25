@@ -1,0 +1,146 @@
+// Copyright (C) 2019-2022 Fredrik Öhrström (gpl-3.0-or-later)
+driver {
+    name           = aventieshca
+    meter_type     = HeatCostAllocationMeter
+    default_fields = name,id,current_consumption_hca,error_flags,timestamp
+    detect {
+        mvt = AAA,55,08
+    }
+    fields {
+        field {
+            name       = status
+            quantity   = Text
+            info       = 'Meter status from error flags and tpl status field.'
+            attributes = STATUS,INCLUDE_TPL_STATUS
+            match {
+                measurement_type = Instantaneous
+                vif_range        = ErrorFlags
+            }
+            lookup {
+                name            = ERROR_FLAGS
+                map_type        = BitToString
+                mask_bits       = 0xffff
+                default_message = OK
+                map {
+                    name  = MEASUREMENT
+                    value = 0x0001
+                    test  = Set
+                }
+                map {
+                    name  = SABOTAGE
+                    value = 0x0002
+                    test  = Set
+                }
+                map {
+                    name  = BATTERY
+                    value = 0x0004
+                    test  = Set
+                }
+                map {
+                    name  = CS
+                    value = 0x0008
+                    test  = Set
+                }
+                map {
+                    name  = HF
+                    value = 0x0010
+                    test  = Set
+                }
+                map {
+                    name  = RESET
+                    value = 0x0020
+                    test  = Set
+                }
+            }
+        }
+        field {
+            name       = error_flags
+            quantity   = Text
+            info       = Deprecated.
+            attributes = DEPRECATED
+            match {
+                measurement_type = Instantaneous
+                vif_range        = ErrorFlags
+            }
+            lookup {
+                name            = ERROR_FLAGS
+                map_type        = BitToString
+                mask_bits       = 0xffff
+                default_message = ''
+                map {
+                    name  = MEASUREMENT
+                    value = 0x0001
+                    test  = Set
+                }
+                map {
+                    name  = SABOTAGE
+                    value = 0x0002
+                    test  = Set
+                }
+                map {
+                    name  = BATTERY
+                    value = 0x0004
+                    test  = Set
+                }
+                map {
+                    name  = CS
+                    value = 0x0008
+                    test  = Set
+                }
+                map {
+                    name  = HF
+                    value = 0x0010
+                    test  = Set
+                }
+                map {
+                    name  = RESET
+                    value = 0x0020
+                    test  = Set
+                }
+            }
+        }
+        field {
+            name           = current_consumption
+            quantity       = HCA
+            info           = 'The current heat cost allocation.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
+            match {
+                measurement_type = Instantaneous
+                vif_range        = HeatCostAllocation
+            }
+        }
+        field {
+            name           = consumption_at_set_date
+            quantity       = HCA
+            info           = 'Heat cost allocation at the most recent billing period date.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
+            match {
+                measurement_type = Instantaneous
+                vif_range        = HeatCostAllocation
+                storage_nr       = 1
+            }
+        }
+        field {
+            name           = 'consumption_at_set_date_{storage_counter}'
+            quantity       = HCA
+            info           = 'The heat cost allocation at set date #.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
+            match {
+                measurement_type = Instantaneous
+                vif_range        = HeatCostAllocation
+                storage_nr       = 2,17
+            }
+        }
+    }
+    tests {
+        test {
+            args     = 'HCA aventieshca 60900126 NOKEY'
+            telegram = 76442104260190605508722601906021045508060060052F2F_0B6E660100426EA60082016EA600C2016E9E0082026E7E00C2026E5B0082036E4200C2036E770182046E5B01C2046E4C0182056E4701C2056E3E0182066E3B01C2066E3B0182076E3B01C2076E3B0182086E1301C2086E9C0002FD170000
+            json     = '{"_":"telegram","media":"heat cost allocation","meter":"aventieshca","name":"HCA","id":"60900126","status":"OK","current_consumption_hca":166,"consumption_at_set_date_hca":166,"consumption_at_set_date_2_hca":166,"consumption_at_set_date_3_hca":158,"consumption_at_set_date_4_hca":126,"consumption_at_set_date_5_hca":91,"consumption_at_set_date_6_hca":66,"consumption_at_set_date_7_hca":375,"consumption_at_set_date_8_hca":347,"consumption_at_set_date_9_hca":332,"consumption_at_set_date_10_hca":327,"consumption_at_set_date_11_hca":318,"consumption_at_set_date_12_hca":315,"consumption_at_set_date_13_hca":315,"consumption_at_set_date_14_hca":315,"consumption_at_set_date_15_hca":315,"consumption_at_set_date_16_hca":275,"consumption_at_set_date_17_hca":156,"error_flags":"","timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'HCA;60900126;166;;1111-11-11 11:11.11'
+        }
+    }
+}
