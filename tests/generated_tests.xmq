@@ -192,6 +192,16 @@ test {
     telegram = 76442104260190605508722601906021045508060060052F2F_0B6E660100426EA60082016EA600C2016E9E0082026E7E00C2026E5B0082036E4200C2036E770182046E5B01C2046E4C0182056E4701C2056E3E0182066E3B01C2066E3B0182076E3B01C2076E3B0182086E1301C2086E9C0002FD170000
     json     = '{"_":"telegram","media":"heat cost allocation","meter":"aventieshca","name":"HCA","id":"60900126","status":"OK","current_consumption_hca":166,"consumption_at_set_date_hca":166,"consumption_at_set_date_2_hca":166,"consumption_at_set_date_3_hca":158,"consumption_at_set_date_4_hca":126,"consumption_at_set_date_5_hca":91,"consumption_at_set_date_6_hca":66,"consumption_at_set_date_7_hca":375,"consumption_at_set_date_8_hca":347,"consumption_at_set_date_9_hca":332,"consumption_at_set_date_10_hca":327,"consumption_at_set_date_11_hca":318,"consumption_at_set_date_12_hca":315,"consumption_at_set_date_13_hca":315,"consumption_at_set_date_14_hca":315,"consumption_at_set_date_15_hca":315,"consumption_at_set_date_16_hca":275,"consumption_at_set_date_17_hca":156,"error_flags":"","timestamp":"1111-11-11T11:11:11Z"}'
     fields   = 'HCA;60900126;166;;1111-11-11 11:11.11'
+    args     = 'Vatten aventieswm 61070072 NOKEY'
+    telegram = 76442104720007612507727200076121042507B50060052F2F0413281E0700431404B60083011440B300C30114A5AF00830214CBAC00C3021463A8008303149EA500C3031433A200830414C79F00C304148F9C00830514989900C30514CF9700830614269400C30614069100830714C88B0002FD171111
+    json     = '{"_":"telegram","media":"water","meter":"aventieswm","name":"Vatten","id":"61070072","total_m3":466.472,"consumption_at_set_date_1_m3":465.96,"consumption_at_set_date_2_m3":458.88,"consumption_at_set_date_3_m3":449.65,"consumption_at_set_date_4_m3":442.35,"consumption_at_set_date_5_m3":431.07,"consumption_at_set_date_6_m3":423.98,"consumption_at_set_date_7_m3":415.23,"consumption_at_set_date_8_m3":409.03,"consumption_at_set_date_9_m3":400.79,"consumption_at_set_date_10_m3":393.2,"consumption_at_set_date_11_m3":388.63,"consumption_at_set_date_12_m3":379.26,"consumption_at_set_date_13_m3":371.26,"consumption_at_set_date_14_m3":357.84,"status":"ERROR_FLAGS_1100 HF MEASUREMENT","error_flags":"ERROR_FLAGS_1100 HF MEASUREMENT","timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'Vatten;61070072;466.472;ERROR_FLAGS_1100 HF MEASUREMENT;1111-11-11 11:11.11'
+}
+test {
+    args     = 'Votten aventieswm 61070071 A004EB23329A477F1DD2D7820B56EB3D'
+    telegram = 76442104710007612507727100076121042507B5006005E2E95A3C2A1279A5415E6732679B43369FD5FDDDD783EEEBB48236D34E7C94AF0A18A5FDA5F7D64111EB42D4D891622139F2952F9D12A20088DFA4CF8123871123EE1F6C1DCEA414879DDB4E05E508F1826D7EFBA6964DF804C9261EA23BBF03
+    json     = '{"_":"telegram","media":"water","meter":"aventieswm","name":"Votten","id":"61070071","total_m3":466.472,"consumption_at_set_date_1_m3":465.96,"consumption_at_set_date_2_m3":458.88,"consumption_at_set_date_3_m3":449.65,"consumption_at_set_date_4_m3":442.35,"consumption_at_set_date_5_m3":431.07,"consumption_at_set_date_6_m3":423.98,"consumption_at_set_date_7_m3":415.23,"consumption_at_set_date_8_m3":409.03,"consumption_at_set_date_9_m3":400.79,"consumption_at_set_date_10_m3":393.2,"consumption_at_set_date_11_m3":388.63,"consumption_at_set_date_12_m3":379.26,"consumption_at_set_date_13_m3":371.26,"consumption_at_set_date_14_m3":357.84,"status":"OK","error_flags":"","timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'Votten;61070071;466.472;;1111-11-11 11:11.11'
 }
 test {
     args     = 'HeatCool c5isf 32022703 NOKEY'
@@ -246,6 +256,19 @@ test {
     telegram = 5344A5113322332263078C0085900F002C256C1601004BB24778D6AC091E7ADF003107102F2F_0C138386000004FD17000000000A5A550002FD74EE114C1300020000426C3F3C84046D3B375F318C041374460000
     json     = '{"_": "telegram","flow_temperature_c": 5.5,"id": "22332233","media": "water","meter": "dme173","name": "dwater","set_date": "2025-12-31","status": "OK","target_datetime": "2026-01-31 23:59","target_m3": 4.674,"timestamp": "1111-11-11T11:11:11Z","total_at_set_date_m3": 0.2,"total_m3": 8.683}'
     fields   = 'dwater;22332233;OK;8.683;1111-11-11 11:11.11'
+}
+test {
+    args     = 'MyEl ebzwmbe 01135263 NOKEY'
+    comment  = 'This is eBZ DD3 meter with a wMB-E01 wmbus radio converter module.'
+    telegram = 4B445A146450000002378C20F3900F002C25F38B00006CBB07CEB215901172635213015A140102F3002007102F2F_04039D3E03000429E82201000DFD110E333632353331313031305A424531
+    json     = '{"_":"telegram","media":"electricity","meter":"ebzwmbe","name":"MyEl","id":"01135263","total_energy_consumption_kwh":212.637,"customer":"1EBZ0101135263","current_power_consumption_kw":null,"timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'MyEl;01135263;212.637;null;null;null;null;1111-11-11 11:11.11'
+}
+test {
+    args     = 'Elen1 ebzwmbe 22992299 NOKEY'
+    telegram = 5B445A149922992202378C20F6900F002C25BC9E0000BF48954821BC508D72992299225A140102F6003007102F2F040330F92A0004A9FF01FF24000004A9FF026A29000004A9FF03460600000DFD11063132333435362F2F2F2F2F2F
+    json     = '{"_":"telegram","media":"electricity","meter":"ebzwmbe","name":"Elen1","id":"22992299","total_energy_consumption_kwh":2816.304,"current_power_consumption_phase1_kw":0.09471,"current_power_consumption_phase2_kw":0.10602,"current_power_consumption_phase3_kw":0.01606,"customer":"654321","current_power_consumption_kw":0.21679,"timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'Elen1;22992299;2816.304;0.21679;0.09471;0.10602;0.01606;1111-11-11 11:11.11'
 }
 test {
     args     = 'Elen3 ehzp 55995599 NOKEY'
@@ -321,6 +344,20 @@ test {
     fields   = 'Wasserzaehler;20254060;OK;2021-12-31;59.682;1111-11-11 11:11.11'
 }
 test {
+    args     = 'Elen2 esyswm 77997799 NOKEY'
+    comment  = 'Dynamic telegram (combined with static to accumulate library fields)'
+    telegram = 7B4479169977997730378C208B900F002C25E4EF0A002EA98E7D58B3ADC57299779977991611028B005087102F2F#0DFD090F34302e3030562030303030303030300D790E31323334353637383839595345310DFD100AAAAAAAAAAAAAAAAAAAAA0D780E31323334353637383930594553312F2F2F2F2F2F2F2F2F2F2F,7B4479169977997730378C20F0900F002C2549EE0A0077C19D3D1A08ABCD729977997779161102F0005007102F2F#0702F5C3FA000000000007823C5407000000000000841004E081020084200415000000042938AB000004A9FF01FA0A000004A9FF02050A000004A9FF03389600002F2F2F2F2F2F2F2F2F2F2F2F2F
+    json     = '{"_":"telegram","media":"electricity","meter":"esyswm","name":"Elen2","id":"77997799","fabrication_no":"1SEY0987654321","enhanced_id":"1ESY9887654321","location":"AAAAAAAAAAAAAAAAAAAA","location_hex":"AAAAAAAAAAAAAAAAAAAA","total_energy_consumption_kwh":1643.4165,"current_power_consumption_kw":0.43832,"total_energy_production_kwh":0.1876,"total_energy_consumption_tariff1_kwh":1643.2,"total_energy_consumption_tariff2_kwh":0.21,"current_power_consumption_phase1_kw":0.0281,"current_power_consumption_phase2_kw":0.02565,"current_power_consumption_phase3_kw":0.38456,"version":"00000000 V00.04","timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'Elen2;77997799;1643.4165;0.43832;0.1876;1643.2;0.21;0.0281;0.02565;0.38456;1ESY9887654321;1111-11-11 11:11.11'
+}
+test {
+    args     = 'Elen2 esyswm 77997799 NOKEY'
+    comment  = 'Static telegram'
+    telegram = 7B4479169977997730378C208B900F002C25E4EF0A002EA98E7D58B3ADC57299779977991611028B005087102F2F#0DFD090F34302e3030562030303030303030300D790E31323334353637383839595345310DFD100AAAAAAAAAAAAAAAAAAAAA0D780E31323334353637383930594553312F2F2F2F2F2F2F2F2F2F2F
+    json     = '{"_":"telegram","media":"electricity","meter":"esyswm","name":"Elen2","id":"77997799","fabrication_no":"1SEY0987654321","enhanced_id":"1ESY9887654321","location":"AAAAAAAAAAAAAAAAAAAA","location_hex":"AAAAAAAAAAAAAAAAAAAA","version":"00000000 V00.04","timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'Elen2;77997799;null;null;null;null;null;null;null;null;1ESY9887654321;1111-11-11 11:11.11'
+}
+test {
     args     = 'HeatMeter2 eurisii 60200770 NOKEY'
     telegram = 76442D4870072060550872700720602D485508280060052F2F_0B6E320100426E550082016E3500C2016E1F0082026E1F00C2026E130082036E1300C2036E130082046E1300C2046E120082056E7D01C2056E440182066E0601C2066EB80082076E7F00C2076E320082086E1C00C2086E1C0002FD170000
     json     = '{"_":"telegram","media":"heat cost allocation","meter":"eurisii","name":"HeatMeter2","id":"60200770","status":"OK","error_flags":"OK","current_consumption_hca":132,"consumption_at_set_date_4_hca":31,"consumption_at_set_date_5_hca":19,"consumption_at_set_date_6_hca":19,"consumption_at_set_date_2_hca":53,"consumption_at_set_date_14_hca":127,"consumption_at_set_date_8_hca":19,"consumption_at_set_date_1_hca":85,"consumption_at_set_date_10_hca":381,"consumption_at_set_date_17_hca":28,"consumption_at_set_date_13_hca":184,"consumption_at_set_date_11_hca":324,"consumption_at_set_date_3_hca":31,"consumption_at_set_date_9_hca":18,"consumption_at_set_date_15_hca":50,"consumption_at_set_date_16_hca":28,"consumption_at_set_date_7_hca":19,"consumption_at_set_date_12_hca":262,"consumption_at_set_date_hca":85,"timestamp":"1111-11-11T11:11:11Z"}'
@@ -363,6 +400,20 @@ test {
     telegram = 43442F191469012501078C2075900F002C257C690300FDD9AE90F019F1C07A47102007102F2F_0C1322921500046D3A2A3A390F60011907052F2F2F2F2F2F2F2F2F2F2F2F
     json     = '{"_":"telegram","media":"water","status":"TEMPORARY_ERROR","meter":"fiowater","name":"fio","id":"25016914","meter_datetime":"2025-09-26 10:58","total_m3":159.222,"timestamp":"1111-11-11T11:11:11Z"}'
     fields   = 'fio;25016914;TEMPORARY_ERROR;159.222;1111-11-11 11:11.11'
+}
+test {
+    args     = 'Gran301 gransystems 20100117 NOKEY'
+    comment  = 'Gran-System-S electricity meter 301'
+    telegram = 9e44731e17011020010278046d0813bc21040300000000841003000000008420030000000084300300000000848010030000000084016d0000bc218401030000000084110300000000842103000000008431030000000084811003000000008440fd4825090000848040fd480000000084c040fd48000000008440fd5b00000000848040fd5b0000000084c040fd5b0000000002fb2d881304fd1702000101
+    json     = '{"_":"telegram","media":"electricity","meter":"gransystems","name":"Gran301","id":"20100117","status":"RTC_ERROR","info":"THREE_PHASE_METER","total_energy_consumption_kwh":0,"total_energy_consumption_tariff_2_kwh":0,"total_energy_consumption_tariff_3_kwh":0,"total_energy_consumption_tariff_4_kwh":0,"total_energy_consumption_tariff_1_kwh":0,"target_datetime":"2021-01-28 00:00","target_energy_consumption_kwh":0,"target_energy_consumption_tariff_1_kwh":0,"target_energy_consumption_tariff_2_kwh":0,"target_energy_consumption_tariff_4_kwh":0,"target_energy_consumption_tariff_3_kwh":0,"device_datetime":"2021-01-28 19:08","voltage_at_phase_2_v":0,"voltage_at_phase_3_v":0,"voltage_at_phase_1_v":234.1,"current_at_phase_1_a":0,"current_at_phase_2_a":0,"current_at_phase_3_a":0,"frequency_hz":50,"timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'Gran301;20100117;0;1111-11-11 11:11.11'
+}
+test {
+    args     = 'Gran101 gransystems 18046178 NOKEY'
+    comment  = 'Gran-System-S electricity meter 101'
+    telegram = 7844731e78610418010278046d0f13bc21040394030000841003690300008420032b00000084300300000000848010030000000084016d0000bc2184010394030000841103690300008421032b00000084310300000000848110030000000004fd482e09000004fd5b0000000002fb2d861304fd1700000201
+    json     = '{"_":"telegram","media":"electricity","meter":"gransystems","name":"Gran101","id":"18046178","status":"OK","info":"SINGLE_PHASE_METER","total_energy_consumption_kwh":0.916,"total_energy_consumption_tariff_4_kwh":0,"total_energy_consumption_tariff_2_kwh":0.043,"total_energy_consumption_tariff_3_kwh":0,"total_energy_consumption_tariff_1_kwh":0.873,"target_datetime":"2021-01-28 00:00","target_energy_consumption_kwh":0.916,"target_energy_consumption_tariff_2_kwh":0.043,"target_energy_consumption_tariff_4_kwh":0,"target_energy_consumption_tariff_3_kwh":0,"target_energy_consumption_tariff_1_kwh":0.873,"device_datetime":"2021-01-28 19:15","voltage_at_phase_1_v":235,"current_at_phase_1_a":0,"frequency_hz":49.98,"timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'Gran101;18046178;0.916;1111-11-11 11:11.11'
 }
 test {
     args     = 'mygas1 gwfgas 23115250 NOKEY'
@@ -913,6 +964,20 @@ test {
     fields   = 'Mino;15503451;OK;0.059;null;1111-11-11 11:11.11'
 }
 test {
+    args     = 'BAR mkradio4a 01770002 NOKEY'
+    comment  = 'Cold water'
+    telegram = 4B4468508644710095377202007701A85CFE078A0030052F2F_4315F00200426CBF2C0FEE456BF6F802216503E25EB73E9377D54F672681B76C469696E4C7BCCC9072CC79F712360FC3F57D85
+    json     = '{"_":"telegram","media":"water","meter":"mkradio4a","name":"BAR","id":"01770002","target_m3":75.2,"target_date":"2021-12-31","timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'BAR;01770002;75.2;2021-12-31;1111-11-11 11:11.11'
+}
+test {
+    args     = 'FOO mkradio4a 66953825 NOKEY'
+    comment  = 'Warm water'
+    telegram = 4B44685036494600953772253895662423FE064E0030052F2F_4315A10000426CBF2C0F542CF2DD8BEC869511B2DB8301C3ABA390FB4FDB6F1144DA1F3897DD55F2AD0D194F68510FF8FADFB9
+    json     = '{"_":"telegram","media":"warm water","meter":"mkradio4a","name":"FOO","id":"66953825","target_m3":16.1,"target_date":"2021-12-31","timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'FOO;66953825;16.1;2021-12-31;1111-11-11 11:11.11'
+}
+test {
     args     = 'TempoHygro munia 00220111 NOKEY'
     comment  = 'Robin version 04.'
     telegram = 2E44B05C11012200041B7A2B0000002F2F0A6617020AFB1A100602FD971D00002F2F2F2F2F2F2F2F2F2F2F2F2F2F2F
@@ -1011,6 +1076,12 @@ test {
     fields   = 'Tempo;10000284;OK;24.96;40;1111-11-11 11:11.11'
 }
 test {
+    args     = 'Heat pollucomf 14175439 NOKEY'
+    telegram = 5e44ae4c395417141d047a9f0050252f2f046d2d32d92c0223B701040600000000041331000000032B000000033B000000025a3201025ef2003222000002fd170000426cBf2c440600000000441301000000525a0000525e0000533B000000
+    json     = '{"_":"telegram","media":"heat","meter":"pollucomf","name":"Heat","id":"14175439","status":"OK","total_kwh":0,"total_m3":0.049,"power_kw":0,"flow_m3h":0,"forward_c":30.6,"return_c":24.2,"target_date":"2021-12-31","target_kwh":0,"target_m3":0.001,"forward_max_c":0,"return_max_c":0,"flow_max_m3h":0,"on_time_h":10536,"on_time_at_error_h":0,"meter_datetime":"2022-12-25 18:45","timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'Heat;14175439;OK;0;0.049;0;0.001;1111-11-11 11:11.11'
+}
+test {
     args     = 'MM q400 06289748 NOKEY'
     telegram = 614409074897280601077AD1000000046D2C173B370420580193040413FB94000004933BFB94000004933C01000000023B02000259E306446D000021374413C08A000044933BC08A000044933C0100000034FD17000000000424BA01930401FD745B
     json     = '{"_":"telegram","backward_at_set_date_m3":0.001,"battery_pct":91,"consumption_at_set_date_m3":35.52,"flow_temperature_c":17.63,"forward_at_set_date_m3":35.52,"id":"06289748","media":"water","meter":"q400","meter_datetime":"2025-07-27 23:44","name":"MM","on_time_h":21317.5,"set_datetime":"2025-07-01 00:00","status":"OK","timestamp":"1111-11-11T11:11:11Z","total_backward_m3":0.001,"total_forward_m3":38.139,"total_m3":38.139,"volume_flow_m3h":0.002}'
@@ -1034,6 +1105,18 @@ test {
     telegram = 2E4409077272727210077AD71020052F2F_046D040D742C041377000000446D0000612C4413000000002F2F2F2F2F2F
     json     = '{"_":"telegram","media":"water","meter":"q400","name":"Q400Water","id":"72727272","meter_datetime":"2019-12-20 13:04","total_m3":0.119,"status":"TEMPORARY_ERROR","set_datetime":"2019-12-01 00:00","consumption_at_set_date_m3":0,"timestamp":"1111-11-11T11:11:11Z"}'
     fields   = 'Q400Water;72727272;0.119;1111-11-11 11:11.11'
+}
+test {
+    args     = 'Heat qheat_55_us 70639638 NOKEY'
+    telegram = 9644a7323896637007047a5B00002002740400046d2a0fe2210c0600080600446d3B17df2c4c069106060084016d3B17df2c8c010691060600cc0106227005008c020667430500cc0206122505008c030612180500cc0306821305008c040636090500cc0406080505008c050660960400cc0506597304008c060600410400cc0606790504008c0706936303003c22000000000f001000
+    json     = '{"_":"telegram","media":"heat","meter":"qheat_55_us","name":"Heat","id":"70639638","device_datetime":"2023-01-02 15:42","total_energy_consumption_kwh":60800,"key_datetime":"2022-12-31 23:59","key_datetime_kwh":60691,"prev_month_datetime":"2022-12-31 23:59","prev_1_month_kwh":60691,"prev_2_month_kwh":57022,"prev_3_month_kwh":54367,"prev_4_month_kwh":52512,"prev_5_month_kwh":51812,"prev_6_month_kwh":51382,"prev_7_month_kwh":50936,"prev_8_month_kwh":50508,"prev_9_month_kwh":49660,"prev_10_month_kwh":47359,"prev_11_month_kwh":44100,"prev_12_month_kwh":40579,"prev_13_month_kwh":36393,"actuality_duration_h":0.001111,"time_without_measurement_h":0,"timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'Heat;70639638;60800;60691;1111-11-11 11:11.11'
+}
+test {
+    args     = 'Heat qheat_55_us 70835484 NOKEY'
+    telegram = 9644a732845483700a047ae70000200274fc00046d230Bd3250c0605920000446d3B17Bf2c4c068251000084016d3B17de248c010605900000cc0106988500008c020629770000cc0206226600008c030682510000cc0306933600008c040602260000cc0406691800008c050633140000cc0506900900008c060618020000cc0606000000008c0706000000003c22000000000f001000
+    json     = '{"_":"telegram","media":"heat","meter":"qheat_55_us","name":"Heat","id":"70835484","device_datetime":"2022-05-19 11:35","total_energy_consumption_kwh":9205,"key_datetime":"2021-12-31 23:59","key_datetime_kwh":5182,"prev_month_datetime":"2022-04-30 23:59","prev_1_month_kwh":9005,"prev_2_month_kwh":8598,"prev_3_month_kwh":7729,"prev_4_month_kwh":6622,"prev_5_month_kwh":5182,"prev_6_month_kwh":3693,"prev_7_month_kwh":2602,"prev_8_month_kwh":1869,"prev_9_month_kwh":1433,"prev_10_month_kwh":990,"prev_11_month_kwh":218,"prev_12_month_kwh":0,"prev_13_month_kwh":0,"actuality_duration_h":0.07,"time_without_measurement_h":0,"timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'Heat;70835484;9205;5182;1111-11-11 11:11.11'
 }
 test {
     args     = 'QH qheat5us 67250945 NOKEY'
@@ -1262,6 +1345,55 @@ test {
     fields   = 'Heat;20480057;ERROR_FLOW_MEASUREMENT_SYSTEM_ERROR TEMPORARY_ERROR;0;0;1999-11-30;0;1111-11-11 11:11.11'
 }
 test {
+    args     = 'Coolo sharky774 71942539 NOKEY'
+    comment  = 'This telegram contains cooling data as well.'
+    telegram = 5E44A51139259471410D7A720050052F2F_0C06742400008C1006000000000C13823522008C2013494400000B3B0000000C2B000000000A5A22030A5E91020AA61800004C0619130000CC100600000000426CDF252F2F2F2F2F2F2F2F2F2F2F
+    json     = '{"_":"telegram","media":"heat/cooling load","meter":"sharky774","name":"Coolo","id":"71942539","total_energy_consumption_kwh":2474,"total_cooling_consumption_kwh":0,"total_volume_m3":223.582,"total_cooling_volume_m3":4.449,"volume_flow_m3h":0,"power_kw":0,"flow_temperature_c":32.2,"return_temperature_c":29.1,"operating_time_in_error_h":0,"energy_at_set_date_kwh":1319,"cooling_at_set_date_kwh":0,"set_date":"2022-05-31","timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'Coolo;71942539;2474;1319;2022-05-31;1111-11-11 11:11.11'
+}
+test {
+    args     = 'Heatooo sharky774 61243590 NOKEY'
+    comment  = 'This telegram contains a negative power value encoded in bcd.'
+    telegram = 3E44A5119035246141047A1A0030052F2F_0C06026301000C13688609040B3B0802000C2B220000F00A5A71020A5E72020AA61800004C0636370100426CBF25
+    json     = '{"_":"telegram","media":"heat","meter":"sharky774","name":"Heatooo","id":"61243590","total_energy_consumption_kwh":16302,"total_volume_m3":4098.668,"volume_flow_m3h":0.208,"power_kw":-0.022,"flow_temperature_c":27.1,"return_temperature_c":27.2,"operating_time_in_error_h":0,"energy_at_set_date_kwh":13736,"set_date":"2021-05-31","timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'Heatooo;61243590;16302;13736;2021-05-31;1111-11-11 11:11.11'
+}
+test {
+    args     = 'Heatoo sharky774 72615127 NOKEY'
+    comment  = 'This test telegram has more historical data!'
+    telegram = 5E44A5112751617241047A8B0050052F2F0C0E000000000C13010000000B3B0000000C2B000000000A5A26020A5E18020B260321000AA6180000C2026CBE2BCC020E00000000CC021301000000DB023B000000DC022B000000002F2F2F2F2F
+    json     = '{"_":"telegram","media":"heat","meter":"sharky774","name":"Heatoo","id":"72615127","total_energy_consumption_kwh":0,"total_volume_m3":0.001,"volume_flow_m3h":0,"power_kw":0,"flow_temperature_c":22.6,"return_temperature_c":21.8,"operating_time_h":2103,"operating_time_in_error_h":0,"timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'Heatoo;72615127;0;null;null;1111-11-11 11:11.11'
+}
+test {
+    args     = 'diehl_meter sharky774 52173898 NOKEY'
+    telegram = 3E44A51198381752410C7AA80030052F2F_0C06105104000C13093835020B3B9401000C2B342600000A5A12060A5E91040AA61800004C0641460400426CFF21
+    json     = '{"_":"telegram","media":"heat volume at inlet","meter":"sharky774","name":"diehl_meter","id":"52173898","total_energy_consumption_kwh":45110,"total_volume_m3":2353.809,"volume_flow_m3h":0.194,"power_kw":2.634,"flow_temperature_c":61.2,"return_temperature_c":49.1,"operating_time_in_error_h":0,"energy_at_set_date_kwh":44641,"set_date":"2023-01-31","timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'diehl_meter;52173898;45110;44641;2023-01-31;1111-11-11 11:11.11'
+}
+test {
+    args     = 'Heato sharky774 58496405 NOKEY'
+    telegram = 3E44A5110564495841047A700030052F2F_0C06846800000C13195364000B3B0400000C2B110100000A5A17050A5E76020AA61800004C0647630000426CBF25
+    json     = '{"_":"telegram","media":"heat","meter":"sharky774","name":"Heato","id":"58496405","total_energy_consumption_kwh":6884,"total_volume_m3":645.319,"volume_flow_m3h":0.004,"power_kw":0.111,"flow_temperature_c":51.7,"return_temperature_c":27.6,"operating_time_in_error_h":0,"energy_at_set_date_kwh":6347,"set_date":"2021-05-31","timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'Heato;58496405;6884;6347;2021-05-31;1111-11-11 11:11.11'
+    args     = 'Heato sharky 69696969 NOKEY'
+    telegram = 5e44a5116969696940047aBe0050052f2f0c06975100008c1006000000000c13849345000c2B000000000B3B0000000a5a06020a5e08020a6202f00B26110201cc020623500000cc021329554400c2026cdf2c2f2f2f2f2f2f2f2f2f2f2f2f
+    json     = '{"_":"telegram","flow_temperature_c": 20.6,"id": "69696969","media": "heat","meter": "sharky","name": "Heato","operating_time_h": 10211,"power_kw": 0,"return_temperature_c": 20.8,"target_date": "2022-12-31","target_energy_consumption_kwh": 5023,"target_volume_m3": 445.529,"temperature_difference_c": -0.2,"timestamp": "1111-11-11T11:11:11Z","total_energy_consumption_kwh": 5197,"total_energy_consumption_tariff1_kwh": 0,"total_volume_m3": 459.384, "volume_flow_m3h": 0}'
+    fields   = 'Heato;69696969;5197;0;459.384;null;0;0;20.6;20.8;-0.2;1111-11-11 11:11.11'
+}
+test {
+    args     = 'Heat sharky 61917653 NOKEY'
+    telegram = 5e44a5115376916140047a0B0050052f2f0c0e829311008c100e000000000c14014938000c2B751400000B3B2902000a5a52070a5e95060a6256000a279015cc020e92831100cc021478113800c2026cdf2c2f2f2f2f2f2f2f2f2f2f2f2f2f
+    json     = '{"_":"telegram","media":"heat","meter":"sharky","name":"Heat","id":"61917653","flow_temperature_c":75.2,"operating_time_h":38160,"power_kw":1.475,"return_temperature_c":69.5,"target_date":"2022-12-31","target_energy_consumption_kwh":32886.666667,"target_volume_m3":3811.78,"temperature_difference_c":5.6,"total_energy_consumption_kwh":33161.666667,"total_energy_consumption_tariff1_kwh":0,"total_volume_m3":3849.01,"volume_flow_m3h":0.229,"timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'Heat;61917653;33161.666667;0;3849.01;null;0.229;1.475;75.2;69.5;5.6;1111-11-11 11:11.11'
+}
+test {
+    args     = 'Heat sharky 68926025 NOKEY'
+    telegram = 534424232004256092687A370045752235854DEEEA5939FAD81C25FEEF5A23C38FB9168493C563F08DB10BAF87F660FBA91296BA2397E8F4220B86D3A192FB51E0BFCF24DCE72118E0C75A9E89F43BDFE370824B
+    json     = '{"_":"telegram","media":"heat","meter":"sharky","name":"Heat","id":"68926025","total_energy_consumption_kwh":2651,"total_energy_consumption_tariff1_kwh":0,"total_volume_m3":150.347,"total_volume_tariff2_m3":0.018,"volume_flow_m3h":0,"power_kw":0,"flow_temperature_c":42.3,"return_temperature_c":28.1,"status":"OK","temperature_difference_c":14.1,"timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'Heat;68926025;2651;0;150.347;0.018;0;0;42.3;28.1;14.1;1111-11-11 11:11.11'
+}
+test {
     args     = 'MyHeatCoster sontex868 27282728 NOKEY'
     telegram = AF46EE4D2827282716087A80000000_046D040A9F2A036E770000426CE1F7436E660000525900008288016C61258388016E0000008D8801EE1E3533FE00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000005FF2D0000803F8520FF2D0000803F0259AD0A0265D8041259AD0A8310FD3100000082106C01018110FD610082206C9F2A0BFD0F01030102FF2C000002FD66AC08
     json     = '{"_":"telegram","media":"heat cost allocation","meter":"sontex868","name":"MyHeatCoster","id":"27282728","current_consumption_hca":119,"set_date":"2127-07-01","consumption_at_set_date_hca":102,"current_temp_c":27.33,"current_room_temp_c":12.4,"max_temp_c":27.33,"max_temp_previous_period_c":0,"device_datetime":"2020-10-31 10:04","timestamp":"1111-11-11T11:11:11Z"}'
@@ -1297,6 +1429,18 @@ test {
     telegram = 4E44B40512345678F1077A310040052F2F_01FD08040C13991848004C1359423500CC101300000000CC201359423500426C7F2C0B3B00000002FD74DA10025AD300C4016D3B179F27CC011387124600
     json     = '{"_":"telegram","media":"water","meter":"topaseskr","name":"Witer","id":"78563412","total_m3":481.899,"access_counter":4,"temperature_c":21.1,"current_flow_m3h":0,"volume_year_period_m3":354.259,"reverse_volume_year_period_m3":0,"meter_year_period_end_date":"2019-12-31","volume_month_period_m3":461.287,"meter_month_period_end_datetime":"2020-07-31 23:59","battery_y":11.811331,"timestamp":"1111-11-11T11:11:11Z"}'
     fields   = 'Witer;78563412;481.899;21.1;0;354.259;0;2019-12-31;461.287;2020-07-31 23:59;1111-11-11 11:11.11'
+}
+test {
+    args     = 'MyUltra2 ultraheat 71635605 NOKEY'
+    telegram = 3b44a7320556637104047afa2000202f2f0c06774202000c14399956000b2d0200f00b3b3018000a5a51030a5e520302fd170000066d0c080af42500
+    json     = '{"_":"telegram","flow_c": 35.1,"flow_m3h": 1.83,"heat_kwh": 24277,"id": "71635605","media": "heat","meter": "ultraheat","meter_datetime": "2023-05-20 10:08:12","name": "MyUltra2","power_kw": -0.2,"return_c": 35.2,"status": "UNKNOWN_20","timestamp": "1111-11-11T11:11:11Z","volume_m3": 5699.39}'
+    fields   = 'MyUltra2;71635605;24277;1111-11-11 11:11.11'
+}
+test {
+    args     = 'MyUltra ultraheat 70444600 NOKEY'
+    telegram = 68F8F86808007200464470A7320404270000000974040970040C0E082303000C14079519000B2D0500000B3B0808000A5B52000A5F51000A6206004C14061818004C0E490603000C7800464470891071609B102D020100DB102D0201009B103B6009009A105B78009A105F74000C22726701003C22000000007C2200000000426C01018C2006000000008C3006000000008C80100600000000CC200600000000CC300600000000CC801006000000009A115B64009A115F63009B113B5208009B112D020100BC0122000000008C010E490603008C2106000000008C3106000000008C811006000000008C011406181800046D310ACA210F21040010A0C116
+    json     = '{"_":"telegram","media":"heat","status":"OK","meter":"ultraheat","meter_datetime": "2022-01-10 10:49", "name":"MyUltra","id":"70444600","heat_kwh":8974.444444,"volume_m3":1995.07,"power_kw":0.5,"flow_m3h":0.808,"flow_c":52,"return_c":51,"fabrication_no": "70444600","timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'MyUltra;70444600;8974.444444;1111-11-11 11:11.11'
 }
 test {
     args     = 'Water ultrimis 95969798 NOKEY'
