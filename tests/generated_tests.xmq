@@ -291,6 +291,30 @@ test {
     fields   = 'Elen3;55995599;41.1718;2.126;0.1863;1111-11-11 11:11.11'
 }
 test {
+    args     = 'Smokey ei6500 01097274 NOKEY'
+    telegram = 58442515747209010C1A7A940000000BFD0F070101046D0007D82502FD17000082206CD825426CD0238440FF2C420F11008250FD61010082506CD8258260FD6101008360FD3101000082606CD8258270FD61020082706CD825
+    json     = '{"_":"telegram","media":"smoke detector","meter":"ei6500","name":"Smokey","id":"01097274","status":"TAMPER_WHILE_REMOVED","last_alarm_date":"2022-05-24","alarm_counter":1,"software_version":"010107","message_datetime":"2022-05-24 07:00","duration_removed_h":0.016667,"last_remove_date":"2022-05-24","removed_counter":1,"test_button_last_date":"2022-05-24","test_button_counter":2,"installation_date":"2022-05-24","last_sound_check_date":"2022-03-16","dust_level":"DUST_2","battery_level":"3.00V","obstacle_distance":"","timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'Smokey;01097274;TAMPER_WHILE_REMOVED;2022-05-24;1;1111-11-11 11:11.11'
+}
+test {
+    args     = 'Smokey ei6500 01097274 NOKEY'
+    telegram = 58442515747209010C1A7A900000000BFD0F070101046D3406D82502FD17000082206CD825426CD0238440FF2C020F11008250FD61010082506CD8258260FD6100008360FD3100000082606C01018270FD61020082706CD825
+    json     = '{"_":"telegram","media":"smoke detector","meter":"ei6500","name":"Smokey","id":"01097274","status":"OK","last_alarm_date":"2022-05-24","alarm_counter":1,"software_version":"010107","message_datetime":"2022-05-24 06:52","duration_removed_h":0,"last_remove_date":"2000-01-01","removed_counter":0,"test_button_last_date":"2022-05-24","test_button_counter":2,"installation_date":"2022-05-24","last_sound_check_date":"2022-03-16","dust_level":"DUST_2","battery_level":"3.00V","obstacle_distance":"","timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'Smokey;01097274;OK;2022-05-24;1;1111-11-11 11:11.11'
+}
+test {
+    args     = 'Smokey ei6500 01097274 NOKEY'
+    telegram = 58442515747209010C1A7A8D0000000BFD0F070101046D2E06D82502FD17000082206CD825426CD0238440FF2C000F11008250FD61000082506C01018260FD6100008360FD3100000082606C01018270FD61020082706CD825
+    json     = '{"_":"telegram","media":"smoke detector","meter":"ei6500","name":"Smokey","id":"01097274","status":"OK","last_alarm_date":"2000-01-01","alarm_counter":0,"software_version":"010107","message_datetime":"2022-05-24 06:46","duration_removed_h":0,"last_remove_date":"2000-01-01","removed_counter":0,"test_button_last_date":"2022-05-24","test_button_counter":2,"installation_date":"2022-05-24","last_sound_check_date":"2022-03-16","dust_level":"DUST_0","battery_level":"3.00V","obstacle_distance":"","timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'Smokey;01097274;OK;2000-01-01;0;1111-11-11 11:11.11'
+}
+test {
+    args     = 'Smokey ei6500 01097274 NOKEY'
+    telegram = 58442515747209010C1A7A8B0000000BFD0F070101046D2A06D82502FD17000082206CD825426CD0238440FF2C000F11008250FD61000082506C01018260FD6100008360FD3100000082606C01018270FD61000082706C0101
+    json     = '{"_":"telegram","media":"smoke detector","meter":"ei6500","name":"Smokey","id":"01097274","status":"OK","last_alarm_date":"2000-01-01","alarm_counter":0,"software_version":"010107","message_datetime":"2022-05-24 06:42","duration_removed_h":0,"last_remove_date":"2000-01-01","removed_counter":0,"test_button_last_date":"2000-01-01","test_button_counter":0,"installation_date":"2022-05-24","last_sound_check_date":"2022-03-16","dust_level":"DUST_0","battery_level":"3.00V","obstacle_distance":"","timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'Smokey;01097274;OK;2000-01-01;0;1111-11-11 11:11.11'
+}
+test {
     args     = 'Heato elf2 24271170 ACA5769E7902B8A770A7118C11D5F0F6'
     telegram = 6E44010670112724420D7A35006025B2F96D0306197B34C7E4E6F45F434FCB78BCBBE8837A2C253BEC3E958B3BBBFBE6AE465214941AF544237DB8A69E6C4CE8DFB7A1F64860200BB2E995F1A4F501E7702E0A581576F60B58CBDA39E1F150F29E04D689C38FD6C430ABD05DD789E0
     json     = '{"_":"telegram","media":"heat/cooling load","meter":"elf2","name":"Heato","id":"24271170","current_power_kw":0,"current_volume_flow_m3h":0,"input1_volume_m3":0.002,"input2_volume_m3":0.002,"meter_datetime":"2025-10-15 14:39","t1_temperature_c":22.5,"t2_temperature_c":22.6,"total_energy_kwh":144,"total_energy_cooling_kwh":1,"total_energy_cooling_period_kwh":1,"total_energy_period_kwh":72,"total_volume_m3":17.856,"total_volume_cooling_m3":1.576,"status":"OK","timestamp":"1111-11-11T11:11:11Z"}'

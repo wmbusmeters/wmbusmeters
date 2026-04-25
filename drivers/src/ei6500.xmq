@@ -1,0 +1,422 @@
+// Copyright (C) 2020-2022 Fredrik Öhrström (gpl-3.0-or-later)
+driver {
+    name           = ei6500
+    meter_type     = SmokeDetector
+    default_fields = name,id,status,last_alarm_date,alarm_counter,timestamp
+    detect {
+        mvt = EIE,0c,1a
+    }
+    fields {
+        field {
+            name            = status
+            quantity        = Text
+            info            = 'Meter error flags. IMPORTANT! Smoke alarm is NOT reported here! You MUST check last alarm date and counter!'
+            attributes      = STATUS,INCLUDE_TPL_STATUS
+            default_message = OK
+            match {
+                measurement_type = Instantaneous
+                vif_range        = ErrorFlags
+            }
+            lookup {
+                name      = ERROR_FLAGS
+                map_type  = BitToString
+                mask_bits = 0xffff
+            }
+        }
+        field {
+            name     = last_alarm_date
+            quantity = Text
+            info     = 'Date when the smoke alarm last triggered.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = Date
+                tariff_nr        = 1
+                subunit_nr       = 1
+            }
+        }
+        field {
+            name           = alarm
+            quantity       = Dimensionless
+            info           = 'Number of times the smoke alarm has triggered.'
+            vif_scaling    = None
+            dif_signedness = Signed
+            match {
+                measurement_type = Instantaneous
+                vif_range        = CumulationCounter
+                tariff_nr        = 1
+                subunit_nr       = 1
+            }
+        }
+        field {
+            name     = software_version
+            quantity = Text
+            info     = 'Meter software version number.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = SoftwareVersion
+            }
+        }
+        field {
+            name         = message_datetime
+            quantity     = Text
+            info         = 'Device date time.'
+            display_unit = datetime
+            match {
+                measurement_type = Instantaneous
+                vif_range        = DateTime
+            }
+        }
+        field {
+            name           = duration_removed
+            quantity       = Time
+            info           = 'Time the smoke alarm has been removed.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
+            match {
+                measurement_type = Instantaneous
+                vif_range        = DurationOfTariff
+                tariff_nr        = 2
+                subunit_nr       = 1
+            }
+        }
+        field {
+            name     = last_remove_date
+            quantity = Text
+            info     = 'Date when the smoke alarm was last removed.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = Date
+                tariff_nr        = 2
+                subunit_nr       = 1
+            }
+        }
+        field {
+            name           = removed
+            quantity       = Dimensionless
+            info           = 'Number of times the smoke alarm has been removed.'
+            vif_scaling    = None
+            dif_signedness = Signed
+            match {
+                measurement_type = Instantaneous
+                vif_range        = CumulationCounter
+                tariff_nr        = 2
+                subunit_nr       = 1
+            }
+        }
+        field {
+            name     = test_button_last_date
+            quantity = Text
+            info     = 'Date when test button was last pressed.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = Date
+                tariff_nr        = 3
+                subunit_nr       = 1
+            }
+        }
+        field {
+            name           = test_button
+            quantity       = Dimensionless
+            info           = 'Number of times the test button has been pressed.'
+            vif_scaling    = None
+            dif_signedness = Signed
+            match {
+                measurement_type = Instantaneous
+                vif_range        = CumulationCounter
+                tariff_nr        = 3
+                subunit_nr       = 1
+            }
+        }
+        field {
+            name     = installation_date
+            quantity = Text
+            info     = 'Date when the smoke alarm was installed.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = Date
+                tariff_nr        = 2
+            }
+        }
+        field {
+            name     = last_sound_check_date
+            quantity = Text
+            info     = 'Date when the smoke alarm last checked the piezo speaker.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = Date
+                storage_nr       = 1
+            }
+        }
+        field {
+            name     = dust_level
+            quantity = Text
+            info     = 'Dust level 0 (best) to 15 (worst).'
+            match {
+                difvifkey = 8440FF2C
+            }
+            lookup {
+                name      = DUST
+                map_type  = IndexToString
+                mask_bits = 0x1f
+            }
+        }
+        field {
+            name     = battery_level
+            quantity = Text
+            info     = 'Battery voltage level.'
+            match {
+                difvifkey = 8440FF2C
+            }
+            lookup {
+                name            = BATTERY_VOLTAGE
+                map_type        = IndexToString
+                mask_bits       = 0x0f00
+                default_message = 2.25V
+                map {
+                    name  = 2.25V
+                    value = 0x0000
+                    test  = Set
+                }
+                map {
+                    name  = 2.30V
+                    value = 0x0100
+                    test  = Set
+                }
+                map {
+                    name  = 2.35V
+                    value = 0x0200
+                    test  = Set
+                }
+                map {
+                    name  = 2.40V
+                    value = 0x0300
+                    test  = Set
+                }
+                map {
+                    name  = 2.45V
+                    value = 0x0400
+                    test  = Set
+                }
+                map {
+                    name  = 2.50V
+                    value = 0x0500
+                    test  = Set
+                }
+                map {
+                    name  = 2.55V
+                    value = 0x0600
+                    test  = Set
+                }
+                map {
+                    name  = 2.60V
+                    value = 0x0700
+                    test  = Set
+                }
+                map {
+                    name  = 2.65V
+                    value = 0x0800
+                    test  = Set
+                }
+                map {
+                    name  = 2.70V
+                    value = 0x0900
+                    test  = Set
+                }
+                map {
+                    name  = 2.75V
+                    value = 0x0a00
+                    test  = Set
+                }
+                map {
+                    name  = 2.80V
+                    value = 0x0b00
+                    test  = Set
+                }
+                map {
+                    name  = 2.85V
+                    value = 0x0c00
+                    test  = Set
+                }
+                map {
+                    name  = 2.90V
+                    value = 0x0d00
+                    test  = Set
+                }
+                map {
+                    name  = 2.95V
+                    value = 0x0e00
+                    test  = Set
+                }
+                map {
+                    name  = 3.00V
+                    value = 0x0f00
+                    test  = Set
+                }
+            }
+        }
+        field {
+            name     = obstacle_distance
+            quantity = Text
+            info     = 'The distance to a detected obstacle.'
+            match {
+                difvifkey = 8440FF2C
+            }
+            lookup {
+                name            = OBSTACLE_DISTANCE
+                map_type        = IndexToString
+                mask_bits       = 0x700000
+                default_message = ''
+                map {
+                    name  = SEODS_NOT_COMPLETED
+                    value = 0x000000
+                    test  = Set
+                }
+                map {
+                    name  = ''
+                    value = 0x100000
+                    test  = Set
+                }
+                map {
+                    name  = 45_TO_60_CM
+                    value = 0x200000
+                    test  = Set
+                }
+                map {
+                    name  = 38_TO_53_CM
+                    value = 0x300000
+                    test  = Set
+                }
+                map {
+                    name  = 33_TO_48_CM
+                    value = 0x400000
+                    test  = Set
+                }
+                map {
+                    name  = 28_TO_40_CM
+                    value = 0x500000
+                    test  = Set
+                }
+                map {
+                    name  = 20_TO_33_CM
+                    value = 0x600000
+                    test  = Set
+                }
+                map {
+                    name  = 0_TO_25_CM
+                    value = 0x700000
+                    test  = Set
+                }
+            }
+        }
+        field {
+            name       = head_status
+            quantity   = Text
+            info       = 'Status of smoke detector sensors, merged into the status field.'
+            attributes = INJECT_INTO_STATUS,HIDE
+            match {
+                difvifkey = 8440FF2C
+            }
+            lookup {
+                name      = HEAD_STATUS
+                map_type  = BitToString
+                mask_bits = 0xff8ff0e0
+                map {
+                    name  = ''
+                    value = 0x10000
+                    test  = Set
+                }
+                map {
+                    name  = SOUNDER_FAULT
+                    value = 0x00000020
+                    test  = Set
+                }
+                map {
+                    name  = TAMPER_WHILE_REMOVED
+                    value = 0x00000040
+                    test  = Set
+                }
+                map {
+                    name  = EOL_REACHED
+                    value = 0x00000080
+                    test  = Set
+                }
+                map {
+                    name  = LOW_BATTERY_FAULT
+                    value = 0x00001000
+                    test  = Set
+                }
+                map {
+                    name  = ALARM_SENSOR_FAULT
+                    value = 0x00002000
+                    test  = Set
+                }
+                map {
+                    name  = OBSTACLE_DETECTOR_FAULT
+                    value = 0x00004000
+                    test  = Set
+                }
+                map {
+                    name  = EOL_WITHIN_12_MONTH
+                    value = 0x00008000
+                    test  = Set
+                }
+                // map {
+                //    name  = SEODS_NOT_YET_COMPLETED
+                //    value = 0x00010000
+                //    test  = NotSet
+                // }
+                map {
+                    name  = ENV_CHANGED_SINCE_INSTALLATION
+                    value = 0x00020000
+                    test  = Set
+                }
+                map {
+                    name  = COMM_TO_HEAD_FAULT
+                    value = 0x00040000
+                    test  = Set
+                }
+                map {
+                    name  = INTERFERENCE_PREVENTING_OBSTACLE_DETECTION
+                    value = 0x00080000
+                    test  = Set
+                }
+                map {
+                    name  = OBSTACLE_DETECTED
+                    value = 0x01000000
+                    test  = Set
+                }
+                map {
+                    name  = SMOKE_DETECTOR_FULLY_COVERED
+                    value = 0x02000000
+                    test  = Set
+                }
+            }
+        }
+    }
+    tests {
+        test {
+            args     = 'Smokey ei6500 01097274 NOKEY'
+            telegram = 58442515747209010C1A7A8B0000000BFD0F070101046D2A06D82502FD17000082206CD825426CD0238440FF2C000F11008250FD61000082506C01018260FD6100008360FD3100000082606C01018270FD61000082706C0101
+            json     = '{"_":"telegram","media":"smoke detector","meter":"ei6500","name":"Smokey","id":"01097274","status":"OK","last_alarm_date":"2000-01-01","alarm_counter":0,"software_version":"010107","message_datetime":"2022-05-24 06:42","duration_removed_h":0,"last_remove_date":"2000-01-01","removed_counter":0,"test_button_last_date":"2000-01-01","test_button_counter":0,"installation_date":"2022-05-24","last_sound_check_date":"2022-03-16","dust_level":"DUST_0","battery_level":"3.00V","obstacle_distance":"","timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'Smokey;01097274;OK;2000-01-01;0;1111-11-11 11:11.11'
+        }
+        test {
+            args     = 'Smokey ei6500 01097274 NOKEY'
+            telegram = 58442515747209010C1A7A8D0000000BFD0F070101046D2E06D82502FD17000082206CD825426CD0238440FF2C000F11008250FD61000082506C01018260FD6100008360FD3100000082606C01018270FD61020082706CD825
+            json     = '{"_":"telegram","media":"smoke detector","meter":"ei6500","name":"Smokey","id":"01097274","status":"OK","last_alarm_date":"2000-01-01","alarm_counter":0,"software_version":"010107","message_datetime":"2022-05-24 06:46","duration_removed_h":0,"last_remove_date":"2000-01-01","removed_counter":0,"test_button_last_date":"2022-05-24","test_button_counter":2,"installation_date":"2022-05-24","last_sound_check_date":"2022-03-16","dust_level":"DUST_0","battery_level":"3.00V","obstacle_distance":"","timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'Smokey;01097274;OK;2000-01-01;0;1111-11-11 11:11.11'
+        }
+        test {
+            args     = 'Smokey ei6500 01097274 NOKEY'
+            telegram = 58442515747209010C1A7A900000000BFD0F070101046D3406D82502FD17000082206CD825426CD0238440FF2C020F11008250FD61010082506CD8258260FD6100008360FD3100000082606C01018270FD61020082706CD825
+            json     = '{"_":"telegram","media":"smoke detector","meter":"ei6500","name":"Smokey","id":"01097274","status":"OK","last_alarm_date":"2022-05-24","alarm_counter":1,"software_version":"010107","message_datetime":"2022-05-24 06:52","duration_removed_h":0,"last_remove_date":"2000-01-01","removed_counter":0,"test_button_last_date":"2022-05-24","test_button_counter":2,"installation_date":"2022-05-24","last_sound_check_date":"2022-03-16","dust_level":"DUST_2","battery_level":"3.00V","obstacle_distance":"","timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'Smokey;01097274;OK;2022-05-24;1;1111-11-11 11:11.11'
+        }
+        test {
+            args     = 'Smokey ei6500 01097274 NOKEY'
+            telegram = 58442515747209010C1A7A940000000BFD0F070101046D0007D82502FD17000082206CD825426CD0238440FF2C420F11008250FD61010082506CD8258260FD6101008360FD3101000082606CD8258270FD61020082706CD825
+            json     = '{"_":"telegram","media":"smoke detector","meter":"ei6500","name":"Smokey","id":"01097274","status":"TAMPER_WHILE_REMOVED","last_alarm_date":"2022-05-24","alarm_counter":1,"software_version":"010107","message_datetime":"2022-05-24 07:00","duration_removed_h":0.016667,"last_remove_date":"2022-05-24","removed_counter":1,"test_button_last_date":"2022-05-24","test_button_counter":2,"installation_date":"2022-05-24","last_sound_check_date":"2022-03-16","dust_level":"DUST_2","battery_level":"3.00V","obstacle_distance":"","timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'Smokey;01097274;TAMPER_WHILE_REMOVED;2022-05-24;1;1111-11-11 11:11.11'
+        }
+    }
+}
