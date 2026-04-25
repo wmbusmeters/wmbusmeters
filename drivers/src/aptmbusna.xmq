@@ -1,0 +1,170 @@
+// Copyright (C) 2026 Fredrik Öhrström (gpl-3.0-or-later)
+driver {
+    name           = aptmbusna
+    meter_type     = WaterMeter
+    default_fields = name,id,status,total_m3,target_m3,timestamp
+    detect {
+        mvt = APA,15,07
+        // APT-MBUS-NA-1 (-C)
+    }
+    library {
+        use = meter_datetime
+        use = fabrication_no
+        use = total_m3
+        use = target_m3
+        use = target_date
+        use = volume_flow_m3h
+        use = operating_time_h
+    }
+    fields {
+        // difvifkey = 04FF0A = optical_diagnostic, bits unknown.
+        // difvifkey = 02FF0B = oscillator_diagnostic, bits unknown.
+        // difvifkey = 03FF0C = power_supply_diagnostic, bits unknown.
+        field {
+            name     = status
+            quantity = Text
+            info     = 'Status and error flags.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = ErrorFlags
+            }
+            lookup {
+                name            = ERROR_FLAGS
+                map_type        = BitToString
+                mask_bits       = 0xffffff
+                default_message = OK
+                // First byte
+                map {
+                    name  = P_MAGNETIC_FIELD
+                    info  = 'Magnetic field has been detected.'
+                    value = 0x000001
+                    test  = Set
+                }
+                map {
+                    name  = P_STRONG_LIGHT
+                    info  = 'Strong light has been detected.'
+                    value = 0x000002
+                    test  = Set
+                }
+                map {
+                    name  = P_MBUS_DISCONNECTED
+                    info  = 'The mbus has been disconnected.'
+                    value = 0x000004
+                    test  = Set
+                }
+                map {
+                    name  = P_DETECTION_WITHOUT_CHANGES
+                    info  = Woot?
+                    value = 0x000008
+                    test  = Set
+                }
+                map {
+                    name  = P_MINIMUM_FLOW
+                    info  = 'Minimum flow has been detected.'
+                    value = 0x000010
+                    test  = Set
+                }
+                map {
+                    name  = P_MAXIMUM_FLOW
+                    info  = 'Maximum flow has been detected.'
+                    value = 0x000020
+                    test  = Set
+                }
+                map {
+                    name  = P_REVERSE_FLOW
+                    info  = 'Reverse flow has been detected.'
+                    value = 0x000040
+                    test  = Set
+                }
+                map {
+                    name  = P_LEAK
+                    info  = 'Leak has been detected.'
+                    value = 0x0000800
+                    test  = Set
+                }
+                // 2nd byte
+                map {
+                    name  = P_PROCESSOR_RESET
+                    info  = 'Critical internal error has triggered a processor reset.'
+                    value = 0x000100
+                    test  = Set
+                }
+                map {
+                    name  = P_CLOCK_HAND_ERROR
+                    info  = Woot?
+                    value = 0x000200
+                    test  = Set
+                }
+                map {
+                    name  = BATTERY_LOW
+                    info  = 'Low battery warning.'
+                    value = 0x000400
+                    test  = Set
+                }
+                map {
+                    name  = P_DETECTOR_ERROR
+                    info  = Woot?
+                    value = 0x000800
+                    test  = Set
+                }
+                // 3rd byte
+                map {
+                    name  = MAGNETIC_FIELD
+                    info  = 'Magnetic field is being detected.'
+                    value = 0x010000
+                    test  = Set
+                }
+                map {
+                    name  = STRONG_LIGHT
+                    info  = 'Strong light is being detected.'
+                    value = 0x020000
+                    test  = Set
+                }
+                map {
+                    name  = MBUS_DISCONNECTED
+                    info  = 'The mbus is disconnected.'
+                    value = 0x040000
+                    test  = Set
+                }
+                map {
+                    name  = DETECTION_WITHOUT_CHANGES
+                    info  = Woot?
+                    value = 0x080000
+                    test  = Set
+                }
+                map {
+                    name  = MINIMUM_FLOW
+                    info  = 'Minimum flow is being detected.'
+                    value = 0x100000
+                    test  = Set
+                }
+                map {
+                    name  = MAXIMUM_FLOW
+                    info  = 'Maximum flow is being detected.'
+                    value = 0x200000
+                    test  = Set
+                }
+                map {
+                    name  = REVERSE_FLOW
+                    info  = 'Reverse flow is being detected.'
+                    value = 0x400000
+                    test  = Set
+                }
+                map {
+                    name  = PROCESSOR_RESET
+                    info  = 'Critical internal error has triggered a processor reset.'
+                    value = 0x800000
+                    test  = Set
+                }
+            }
+        }
+    }
+    tests {
+        test {
+            args     = 'W aptmbusna 00683775 NOKEY'
+            telegram = 685656680800727537680001061507CCE800000C7875376800046D1DB458340413F73E0000023B0D00441385010000426C41340227090203FD171C030004FF0A0404000002FF0B000003FF0C1300B20F00042C1B1B00010200003716
+            json     = '{"_": "telegram","fabrication_no": "00683775","id": "00683775","media": "water","meter": "aptmbusna","meter_datetime": "2026-04-24 20:29","name": "W","operating_time_h": 12504,"status": "P_CLOCK_HAND_ERROR P_DETECTION_WITHOUT_CHANGES P_MBUS_DISCONNECTED P_MINIMUM_FLOW P_PROCESSOR_RESET","target_date": "2026-04-01","target_m3": 0.389,"timestamp": "1111-11-11T11:11:11Z","total_m3": 16.119,"volume_flow_m3h": 0.013}'
+            fields   = 'W;00683775;P_CLOCK_HAND_ERROR P_DETECTION_WITHOUT_CHANGES P_MBUS_DISCONNECTED P_MINIMUM_FLOW P_PROCESSOR_RESET;16.119;0.389;1111-11-11 11:11.11'
+        }
+    }
+}
