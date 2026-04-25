@@ -20,7 +20,7 @@
 
 #include "meters_common_implementation.h"
 
-struct DriverDynamic : public virtual MeterCommonImplementation
+struct DriverDynamic : public MeterCommonImplementation
 {
     DriverDynamic(MeterInfo &mi, DriverInfo &di);
     ~DriverDynamic();

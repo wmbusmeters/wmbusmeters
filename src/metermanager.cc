@@ -36,7 +36,7 @@
 
 using namespace std;
 
-struct MeterManagerImplementation : public virtual MeterManager
+struct MeterManagerImplementation : public MeterManager
 {
 private:
     bool is_daemon_ {};

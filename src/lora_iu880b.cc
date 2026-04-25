@@ -113,7 +113,7 @@ struct RadioConfig_IU880B
     }
 };
 
-struct LoRaIU880B : public virtual BusDeviceCommonImplementation
+struct LoRaIU880B : public BusDeviceCommonImplementation
 {
     bool ping();
     string getDeviceId();

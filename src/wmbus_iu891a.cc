@@ -233,7 +233,7 @@ LIST_OF_IU891A_WMBUSGW_ERROR_CODES
     }
 }
 
-struct WMBusIU891A : public virtual BusDeviceCommonImplementation
+struct WMBusIU891A : public BusDeviceCommonImplementation
 {
     bool ping();
     string getDeviceId();

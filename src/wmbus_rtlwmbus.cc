@@ -38,7 +38,7 @@
 
 using namespace std;
 
-struct WMBusRTLWMBUS : public virtual BusDeviceCommonImplementation
+struct WMBusRTLWMBUS : public BusDeviceCommonImplementation
 {
     bool ping();
     string getDeviceId();

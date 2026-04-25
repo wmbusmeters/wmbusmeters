@@ -57,7 +57,7 @@ struct StringField
     StringField(std::string v, FieldInfo *f) : value(v), field_info(f) {}
 };
 
-struct MeterCommonImplementation : public virtual Meter
+struct MeterCommonImplementation : public Meter
 {
     int index();
     void setIndex(int i);

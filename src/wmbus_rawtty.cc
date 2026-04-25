@@ -30,7 +30,7 @@
 
 using namespace std;
 
-struct WMBusRawTTY : public virtual BusDeviceCommonImplementation
+struct WMBusRawTTY : public BusDeviceCommonImplementation
 {
     bool ping();
     string getDeviceId();

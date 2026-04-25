@@ -354,7 +354,7 @@ uchar setupAmberBusDeviceToSendTelegram(LinkMode lm)
     return 0xff;
 }
 
-struct WMBusAmber : public virtual BusDeviceCommonImplementation
+struct WMBusAmber : public BusDeviceCommonImplementation
 {
     bool ping();
     string getDeviceId();
