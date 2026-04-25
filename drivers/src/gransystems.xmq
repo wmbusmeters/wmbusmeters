@@ -1,0 +1,272 @@
+// Copyright (C) 2018-2022 Fredrik Öhrström (gpl-3.0-or-later)
+// Implements GSS CC101 (single-phase) and CC301 (three-phase) electricity meters.
+driver {
+    name           = gransystems
+    meter_type     = ElectricityMeter
+    default_fields = name,id,total_energy_consumption_kwh,timestamp
+    detect {
+        mvt = GSS,01,02
+    }
+    fields {
+        field {
+            name       = status
+            quantity   = Text
+            info       = 'Status of meter.'
+            attributes = STATUS,INCLUDE_TPL_STATUS
+            match {
+                measurement_type = Instantaneous
+                vif_range        = ErrorFlags
+            }
+            lookup {
+                name            = ERROR_FLAGS
+                map_type        = BitToString
+                mask_bits       = 0xffff
+                default_message = OK
+                map {
+                    name  = METER_HARDWARE_ERROR
+                    value = 0x0001
+                    test  = Set
+                }
+                map {
+                    name  = RTC_ERROR
+                    value = 0x0002
+                    test  = Set
+                }
+                map {
+                    name  = DSP_COMMUNICATION_ERROR
+                    value = 0x0100
+                    test  = Set
+                }
+                map {
+                    name  = DSP_HARDWARE_ERROR
+                    value = 0x0200
+                    test  = Set
+                }
+                map {
+                    name  = RAM_ERROR
+                    value = 0x4000
+                    test  = Set
+                }
+                map {
+                    name  = ROM_ERROR
+                    value = 0x8000
+                    test  = Set
+                }
+                map {
+                    name  = DEVICE_NOT_CONFIGURED
+                    value = 0x0008
+                    test  = Set
+                }
+                map {
+                    name  = INTERNAL_ERROR
+                    value = 0x0010
+                    test  = Set
+                }
+                map {
+                    name  = BATTERY_LOW
+                    value = 0x0020
+                    test  = Set
+                }
+                map {
+                    name  = MAGNETIC_FRAUD_PRESENT
+                    value = 0x0040
+                    test  = Set
+                }
+                map {
+                    name  = MAGNETIC_FRAUD_PAST
+                    value = 0x0080
+                    test  = Set
+                }
+                map {
+                    name  = CALIBRATION_EEPROM_ERROR
+                    value = 0x0800
+                    test  = Set
+                }
+                map {
+                    name  = EEPROM1_ERROR
+                    value = 0x1000
+                    test  = Set
+                }
+            }
+        }
+        field {
+            name     = info
+            quantity = Text
+            info     = 'Is it a three phase or single phase meter.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = ErrorFlags
+            }
+            lookup {
+                name            = INFO_FLAGS
+                map_type        = IndexToString
+                mask_bits       = 0x01030000
+                default_message = SINGLE_PHASE_METER
+                map {
+                    name  = SINGLE_PHASE_METER
+                    value = 0x01020000
+                    test  = Set
+                }
+                map {
+                    name  = THREE_PHASE_METER
+                    value = 0x01010000
+                    test  = Set
+                }
+            }
+        }
+        field {
+            name           = total_energy_consumption
+            quantity       = Energy
+            info           = 'The total energy consumption recorded by this meter.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
+            match {
+                measurement_type = Instantaneous
+                vif_range        = AnyEnergyVIF
+            }
+        }
+        field {
+            name           = 'total_energy_consumption_tariff_{tariff_counter}'
+            quantity       = Energy
+            info           = 'The total energy consumption recorded by this meter.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
+            match {
+                measurement_type = Instantaneous
+                vif_range        = AnyEnergyVIF
+                tariff_nr        = 1,4
+            }
+        }
+        field {
+            name           = target
+            quantity       = PointInTime
+            info           = 'Last day?'
+            vif_scaling    = Auto
+            dif_signedness = Signed
+            display_unit   = datetime
+            match {
+                measurement_type = Instantaneous
+                vif_range        = DateTime
+                storage_nr       = 2
+            }
+        }
+        field {
+            name           = target_energy_consumption
+            quantity       = Energy
+            info           = 'Last day energy consumption?'
+            vif_scaling    = Auto
+            dif_signedness = Signed
+            match {
+                measurement_type = Instantaneous
+                vif_range        = AnyEnergyVIF
+                storage_nr       = 2
+            }
+        }
+        field {
+            name           = 'target_energy_consumption_tariff_{tariff_counter}'
+            quantity       = Energy
+            info           = 'Last day energy consumption for tariff?'
+            vif_scaling    = Auto
+            dif_signedness = Signed
+            match {
+                measurement_type = Instantaneous
+                vif_range        = AnyEnergyVIF
+                tariff_nr        = 1,4
+                storage_nr       = 2
+            }
+        }
+        field {
+            name           = device
+            quantity       = PointInTime
+            info           = 'Device date time when telegram was sent.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
+            display_unit   = datetime
+            match {
+                measurement_type = Instantaneous
+                vif_range        = DateTime
+            }
+        }
+        field {
+            name           = voltage_at_phase_1
+            quantity       = Voltage
+            info           = 'Voltage for single phase meter.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
+            match {
+                measurement_type = Instantaneous
+                vif_range        = Voltage
+                subunit_nr       = 0
+            }
+        }
+        field {
+            name           = 'voltage_at_phase_{subunit_counter}'
+            quantity       = Voltage
+            info           = 'Voltage at phase L#.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
+            match {
+                measurement_type = Instantaneous
+                vif_range        = Voltage
+                subunit_nr       = 1,3
+            }
+        }
+        field {
+            name           = current_at_phase_1
+            quantity       = Amperage
+            info           = 'Amperage for single phase meter.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
+            match {
+                measurement_type = Instantaneous
+                vif_range        = Amperage
+                subunit_nr       = 0
+            }
+        }
+        field {
+            name           = 'current_at_phase_{subunit_counter}'
+            quantity       = Amperage
+            info           = 'Amperage at phase L#.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
+            match {
+                measurement_type = Instantaneous
+                vif_range        = Amperage
+                subunit_nr       = 1,3
+            }
+        }
+        field {
+            name           = raw_frequency
+            quantity       = Frequency
+            info           = 'Raw input to frequency.'
+            vif_scaling    = None
+            dif_signedness = Signed
+            attributes     = HIDE
+            match {
+                difvifkey = 02FB2D
+            }
+        }
+        field {
+            name      = frequency
+            quantity  = Frequency
+            info      = 'Frequency of AC.'
+            calculate = 'raw_frequency_hz / 100 counter'
+        }
+    }
+    tests {
+        test {
+            args     = 'Gran101 gransystems 18046178 NOKEY'
+            comment  = 'Gran-System-S electricity meter 101'
+            telegram = 7844731e78610418010278046d0f13bc21040394030000841003690300008420032b00000084300300000000848010030000000084016d0000bc2184010394030000841103690300008421032b00000084310300000000848110030000000004fd482e09000004fd5b0000000002fb2d861304fd1700000201
+            json     = '{"_":"telegram","media":"electricity","meter":"gransystems","name":"Gran101","id":"18046178","status":"OK","info":"SINGLE_PHASE_METER","total_energy_consumption_kwh":0.916,"total_energy_consumption_tariff_4_kwh":0,"total_energy_consumption_tariff_2_kwh":0.043,"total_energy_consumption_tariff_3_kwh":0,"total_energy_consumption_tariff_1_kwh":0.873,"target_datetime":"2021-01-28 00:00","target_energy_consumption_kwh":0.916,"target_energy_consumption_tariff_2_kwh":0.043,"target_energy_consumption_tariff_4_kwh":0,"target_energy_consumption_tariff_3_kwh":0,"target_energy_consumption_tariff_1_kwh":0.873,"device_datetime":"2021-01-28 19:15","voltage_at_phase_1_v":235,"current_at_phase_1_a":0,"frequency_hz":49.98,"timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'Gran101;18046178;0.916;1111-11-11 11:11.11'
+        }
+        test {
+            args     = 'Gran301 gransystems 20100117 NOKEY'
+            comment  = 'Gran-System-S electricity meter 301'
+            telegram = 9e44731e17011020010278046d0813bc21040300000000841003000000008420030000000084300300000000848010030000000084016d0000bc218401030000000084110300000000842103000000008431030000000084811003000000008440fd4825090000848040fd480000000084c040fd48000000008440fd5b00000000848040fd5b0000000084c040fd5b0000000002fb2d881304fd1702000101
+            json     = '{"_":"telegram","media":"electricity","meter":"gransystems","name":"Gran301","id":"20100117","status":"RTC_ERROR","info":"THREE_PHASE_METER","total_energy_consumption_kwh":0,"total_energy_consumption_tariff_2_kwh":0,"total_energy_consumption_tariff_3_kwh":0,"total_energy_consumption_tariff_4_kwh":0,"total_energy_consumption_tariff_1_kwh":0,"target_datetime":"2021-01-28 00:00","target_energy_consumption_kwh":0,"target_energy_consumption_tariff_1_kwh":0,"target_energy_consumption_tariff_2_kwh":0,"target_energy_consumption_tariff_4_kwh":0,"target_energy_consumption_tariff_3_kwh":0,"device_datetime":"2021-01-28 19:08","voltage_at_phase_2_v":0,"voltage_at_phase_3_v":0,"voltage_at_phase_1_v":234.1,"current_at_phase_1_a":0,"current_at_phase_2_a":0,"current_at_phase_3_a":0,"frequency_hz":50,"timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'Gran301;20100117;0;1111-11-11 11:11.11'
+        }
+    }
+}
