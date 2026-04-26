@@ -93,6 +93,7 @@ driver {
             info           = 'Total cumulative active imported energy.'
             vif_scaling    = Auto
             dif_signedness = Signed
+            display_unit   = kwh
             match {
                 measurement_type = Instantaneous
                 vif_range        = AnyEnergyVIF
@@ -1689,8 +1690,8 @@ driver {
         test {
             args     = 'Schneider4 iem3000 03313062 NOKEY'
             telegram = 68c6c66808027262303103a34c15025200000002ff34000005ff350000803f02ff36000002ff37000002ff38000004edff390000010105ff3a0000c0ff06ff200167a700000003ff2103000003ff2204000003ff230B000003ff2432000005037f6902470583ff0996438B3c854003aBB50347854083ff09000000000583ff0d7f690247854083ff0daBB503470583ff0134222d460583ff02a42f31460583ff0336542B4605fd610000000085100300000000852003000000008530030000000085801003000000000fBa16
-            json     = '{"_":"telegram","media":"electricity","meter":"iem3000","name":"Schneider4","id":"03313062","input_metering_cumulation_counter":0,"last_alarm_datetime":"2000-01-01 00:00","last_alarm_nr":null,"nominal_frequency_hz":50,"operating_time_y":10970881,"partial_energy_consumption_kwh":33.385496,"partial_reactive_energy_consumption_kvarh":33.717668,"phases_counter":3,"pickup_setpoint_counter":1,"total_energy_consumption_kwh":33.385496,"total_energy_consumption_l1_kwh":11.080551,"total_energy_consumption_l2_kwh":11.33991,"total_energy_consumption_l3_kwh":10.965053,"total_energy_consumption_tariff_1_kwh":0,"total_energy_consumption_tariff_2_kwh":0,"total_energy_consumption_tariff_3_kwh":0,"total_energy_consumption_tariff_4_kwh":0,"total_energy_production_kwh":0.000017,"total_reactive_energy_consumption_kvarh":33.717668,"total_reactive_energy_production_kvarh":0,"wires_nr":4,"activated_status":"","digital_output_association_2":"","overload_alarm_setup":"","power_system_configuration":"POWER_SYS_CONFIG_B","status":"OK","unack_status":"","timestamp":"1111-11-11T11:11:11Z"}'
-            fields   = 'Schneider4;03313062;33385.482;1111-11-11 11:11.11'
+            json     = '{"_":"telegram","media":"electricity","meter":"iem3000","name":"Schneider4","id":"03313062","input_metering_cumulation_counter":0,"last_alarm_datetime":"2000-01-01 00:00","last_alarm_nr":null,"nominal_frequency_hz":50,"operating_time_y":10970881,"partial_energy_consumption_kwh":33.385496,"partial_reactive_energy_consumption_kvarh":33.717668,"phases_counter":3,"pickup_setpoint_counter":1,"total_energy_consumption_kwh":33385.496,"total_energy_consumption_l1_kwh":11.080551,"total_energy_consumption_l2_kwh":11.33991,"total_energy_consumption_l3_kwh":10.965053,"total_energy_consumption_tariff_1_kwh":0,"total_energy_consumption_tariff_2_kwh":0,"total_energy_consumption_tariff_3_kwh":0,"total_energy_consumption_tariff_4_kwh":0,"total_energy_production_kwh":0.000017,"total_reactive_energy_consumption_kvarh":33.717668,"total_reactive_energy_production_kvarh":0,"wires_nr":4,"activated_status":"","digital_output_association_2":"","overload_alarm_setup":"","power_system_configuration":"POWER_SYS_CONFIG_B","status":"OK","unack_status":"","timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'Schneider4;03313062;33385.496;1111-11-11 11:11.11'
         }
     }
 }
