@@ -236,8 +236,6 @@ if [ "$?" != "0" ]; then RC="1"; fi
 ./tests/test_analyze.sh $PROG
 if [ "$?" != "0" ]; then RC="1"; fi
 
-exit 0
-
 ./tests/test_loadable_drivers.sh $PROG
 if [ "$?" != "0" ]; then RC="1"; fi
 
@@ -258,11 +256,6 @@ if [ "$?" != "0" ]; then RC="1"; fi
 
 ./tests/test_metershell2.sh $PROG
 if [ "$?" != "0" ]; then RC="1"; fi
-
-if [ -x ../additional_tests.sh ]
-then
-    (cd ..; ./additional_tests.sh $PROG)
-fi
 
 # Only run the python3 tests if python3 is installed.
 if command -v python3 > /dev/null 2> /dev/null
@@ -287,6 +280,11 @@ then
         ./tests/test_nc3.sh $PROG
         if [ "$?" != "0" ]; then RC="1"; fi
     fi
+fi
+
+if [ -x ../additional_tests.sh ]
+then
+    (cd ..; ./additional_tests.sh $PROG)
 fi
 
 echo Slower tests...
