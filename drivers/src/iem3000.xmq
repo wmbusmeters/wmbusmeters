@@ -20,16 +20,6 @@ driver {
             quantity   = Text
             info       = 'Status and error flags.'
             attributes = STATUS,INCLUDE_TPL_STATUS
-            match {
-                measurement_type = Instantaneous
-                vif_range        = ErrorFlags
-            }
-            lookup {
-                name            = ERROR_FLAGS
-                map_type        = BitToString
-                mask_bits       = 0xffffffff
-                default_message = OK
-            }
         }
         field {
             name       = error_flags
@@ -122,10 +112,11 @@ driver {
         }
         field {
             name           = partial_reactive_energy_consumption
-            quantity       = Energy
+            quantity       = Reactive_Energy
             info           = 'Partial cumulative reactive imported energy.'
             vif_scaling    = Auto
             dif_signedness = Signed
+            display_unit   = kvarh
             match {
                 measurement_type   = Instantaneous
                 vif_range          = AnyEnergyVIF
@@ -284,7 +275,7 @@ driver {
             lookup {
                 name            = ALARM_FLAGS
                 map_type        = BitToString
-                mask_bits       = 0xfffffffffffffff
+                mask_bits       = 0xffffffffffffffff
                 default_message = OK
             }
         }
@@ -735,10 +726,11 @@ driver {
         }
         field {
             name           = 'total_reactive_energy_consumption_tariff_{tariff_counter}'
-            quantity       = Energy
+            quantity       = Reactive_Energy
             info           = 'Total cumulative reactive kvarh imported energy per tariff.'
             vif_scaling    = Auto
             dif_signedness = Signed
+            display_unit   = kvarh
             match {
                 measurement_type = Instantaneous
                 vif_range        = AnyEnergyVIF
@@ -762,10 +754,11 @@ driver {
         }
         field {
             name           = 'total_reactive_energy_production_tariff_{tariff_counter}'
-            quantity       = Energy
+            quantity       = Reactive_Energy
             info           = 'Total cumulative reactive kvarh exported energy per tariff.'
             vif_scaling    = Auto
             dif_signedness = Signed
+            display_unit   = kvarh
             match {
                 measurement_type = Instantaneous
                 vif_range        = AnyEnergyVIF
@@ -913,34 +906,6 @@ driver {
             }
         }
         field {
-            name           = reset_energy_consumption
-            quantity       = Dimensionless
-            info           = 'Number of times the resettable energy imported value has been reset.'
-            vif_scaling    = None
-            dif_signedness = Signed
-        }
-        field {
-            name           = reset_energy_production
-            quantity       = Dimensionless
-            info           = 'Number of times the resettable active energy exported value has been reset.'
-            vif_scaling    = None
-            dif_signedness = Signed
-        }
-        field {
-            name           = reset_reactive_energy_consumption
-            quantity       = Dimensionless
-            info           = 'Number of times the resettable reactive energy imported value has been reset.'
-            vif_scaling    = None
-            dif_signedness = Signed
-        }
-        field {
-            name           = reset_reactive_energy_production
-            quantity       = Dimensionless
-            info           = 'Number of times the resettable reactive energy exported value has been reset.'
-            vif_scaling    = None
-            dif_signedness = Signed
-        }
-        field {
             name           = energy_co2
             quantity       = Mass
             info           = 'Energy in co2.'
@@ -1048,10 +1013,11 @@ driver {
         }
         field {
             name           = total_reactive_energy_consumption_l1
-            quantity       = Energy
+            quantity       = Reactive_Energy
             info           = 'Total imported reactive energy for L1 phase.'
             vif_scaling    = Auto
             dif_signedness = Signed
+            display_unit   = kvarh
             match {
                 measurement_type   = Instantaneous
                 vif_range          = AnyEnergyVIF
@@ -1061,10 +1027,11 @@ driver {
         }
         field {
             name           = total_reactive_energy_consumption_l2
-            quantity       = Energy
+            quantity       = Reactive_Energy
             info           = 'Total imported reactive energy for L2 phase.'
             vif_scaling    = Auto
             dif_signedness = Signed
+            display_unit   = kvarh
             match {
                 measurement_type   = Instantaneous
                 vif_range          = AnyEnergyVIF
@@ -1074,10 +1041,11 @@ driver {
         }
         field {
             name           = total_reactive_energy_consumption_l3
-            quantity       = Energy
+            quantity       = Reactive_Energy
             info           = 'Total imported reactive energy for L3 phase.'
             vif_scaling    = Auto
             dif_signedness = Signed
+            display_unit   = kvarh
             match {
                 measurement_type   = Instantaneous
                 vif_range          = AnyEnergyVIF
@@ -1087,10 +1055,11 @@ driver {
         }
         field {
             name           = total_apparent_energy_consumption_l1
-            quantity       = Energy
+            quantity       = Apparent_Energy
             info           = 'Total imported apparent energy for L1 phase.'
             vif_scaling    = Auto
             dif_signedness = Signed
+            display_unit   = kvah
             match {
                 measurement_type   = Instantaneous
                 vif_range          = AnyEnergyVIF
@@ -1100,10 +1069,11 @@ driver {
         }
         field {
             name           = total_apparent_energy_consumption_l2
-            quantity       = Energy
+            quantity       = Apparent_Energy
             info           = 'Total imported apparent energy for L2 phase.'
             vif_scaling    = Auto
             dif_signedness = Signed
+            display_unit   = kvah
             match {
                 measurement_type   = Instantaneous
                 vif_range          = AnyEnergyVIF
@@ -1113,10 +1083,11 @@ driver {
         }
         field {
             name           = total_apparent_energy_consumption_l3
-            quantity       = Energy
+            quantity       = Apparent_Energy
             info           = 'Total imported apparent energy for L3 phase.'
             vif_scaling    = Auto
             dif_signedness = Signed
+            display_unit   = kvah
             match {
                 measurement_type   = Instantaneous
                 vif_range          = AnyEnergyVIF
@@ -1165,10 +1136,11 @@ driver {
         }
         field {
             name           = total_reactive_energy_production_l1
-            quantity       = Energy
+            quantity       = Reactive_Energy
             info           = 'Total exported reactive energy for L1 phase.'
             vif_scaling    = Auto
             dif_signedness = Signed
+            display_unit   = kvarh
             match {
                 measurement_type   = Instantaneous
                 vif_range          = AnyEnergyVIF
@@ -1178,10 +1150,11 @@ driver {
         }
         field {
             name           = total_reactive_energy_production_l2
-            quantity       = Energy
+            quantity       = Reactive_Energy
             info           = 'Total exported reactive energy for L2 phase.'
             vif_scaling    = Auto
             dif_signedness = Signed
+            display_unit   = kvarh
             match {
                 measurement_type   = Instantaneous
                 vif_range          = AnyEnergyVIF
@@ -1191,10 +1164,11 @@ driver {
         }
         field {
             name           = total_reactive_energy_production_l3
-            quantity       = Energy
+            quantity       = Reactive_Energy
             info           = 'Total exported reactive energy for L3 phase.'
             vif_scaling    = Auto
             dif_signedness = Signed
+            display_unit   = kvarh
             match {
                 measurement_type   = Instantaneous
                 vif_range          = AnyEnergyVIF
@@ -1204,10 +1178,11 @@ driver {
         }
         field {
             name           = total_apparent_energy_production_l1
-            quantity       = Energy
+            quantity       = Apparent_Energy
             info           = 'Total exported apparent energy for L1 phase.'
             vif_scaling    = Auto
             dif_signedness = Signed
+            display_unit   = kvah
             match {
                 measurement_type   = Instantaneous
                 vif_range          = AnyEnergyVIF
@@ -1217,10 +1192,11 @@ driver {
         }
         field {
             name           = total_apparent_energy_production_l2
-            quantity       = Energy
+            quantity       = Apparent_Energy
             info           = 'Total exported apparent energy for L2 phase.'
             vif_scaling    = Auto
             dif_signedness = Signed
+            display_unit   = kvah
             match {
                 measurement_type   = Instantaneous
                 vif_range          = AnyEnergyVIF
@@ -1230,10 +1206,11 @@ driver {
         }
         field {
             name           = total_apparent_energy_production_l3
-            quantity       = Energy
+            quantity       = Apparent_Energy
             info           = 'Total exported apparent energy for L3 phase.'
             vif_scaling    = Auto
             dif_signedness = Signed
+            display_unit   = kvah
             match {
                 measurement_type   = Instantaneous
                 vif_range          = AnyEnergyVIF
@@ -1294,8 +1271,8 @@ driver {
         }
         field {
             name           = total_net_reactive_energy
-            quantity       = Energy
-            info           = 'Active net energy total.'
+            quantity       = Reactive_Energy
+            info           = 'Reactive net energy total.'
             vif_scaling    = Auto
             dif_signedness = Signed
             display_unit   = kvarh
@@ -1307,7 +1284,7 @@ driver {
         }
         field {
             name           = total_net_reactive_energy_l1
-            quantity       = Energy
+            quantity       = Reactive_Energy
             info           = 'Active net reactive energy total for phase L1.'
             vif_scaling    = Auto
             dif_signedness = Signed
@@ -1321,7 +1298,7 @@ driver {
         }
         field {
             name           = total_net_reactive_energy_l2
-            quantity       = Energy
+            quantity       = Reactive_Energy
             info           = 'Active net reactive energy total for phase L2.'
             vif_scaling    = Auto
             dif_signedness = Signed
@@ -1335,7 +1312,7 @@ driver {
         }
         field {
             name           = total_net_reactive_energy_l3
-            quantity       = Energy
+            quantity       = Reactive_Energy
             info           = 'Active net reactive energy total for phase L3.'
             vif_scaling    = Auto
             dif_signedness = Signed
@@ -1349,8 +1326,8 @@ driver {
         }
         field {
             name           = total_net_apparent_energy
-            quantity       = Energy
-            info           = 'Active net energy total.'
+            quantity       = Apparent_Energy
+            info           = 'Apparent net energy total.'
             vif_scaling    = Auto
             dif_signedness = Signed
             display_unit   = kvah
@@ -1362,7 +1339,7 @@ driver {
         }
         field {
             name           = total_net_apparent_energy_l1
-            quantity       = Energy
+            quantity       = Apparent_Energy
             info           = 'Active net apparent energy total for phase L1.'
             vif_scaling    = Auto
             dif_signedness = Signed
@@ -1376,7 +1353,7 @@ driver {
         }
         field {
             name           = total_net_apparent_energy_l2
-            quantity       = Energy
+            quantity       = Apparent_Energy
             info           = 'Active net apparent energy total for phase L2.'
             vif_scaling    = Auto
             dif_signedness = Signed
@@ -1390,7 +1367,7 @@ driver {
         }
         field {
             name           = total_net_apparent_energy_l3
-            quantity       = Energy
+            quantity       = Apparent_Energy
             info           = 'Active net apparent energy total for phase L3.'
             vif_scaling    = Auto
             dif_signedness = Signed
@@ -1504,15 +1481,15 @@ driver {
             }
         }
         field {
-            name     = digital_output_association
+            name     = digital_output_association_2
             quantity = Text
-            info     = 'Digital output association.'
+            info     = 'Digital output association (secondary register).'
             match {
                 measurement_type = Instantaneous
                 difvifkey        = 02FF36
             }
             lookup {
-                name            = OUTPUT_ASSOCIATION
+                name            = OUTPUT_ASSOCIATION_2
                 map_type        = BitToString
                 mask_bits       = 0xffff
                 default_message = ''
@@ -1600,7 +1577,7 @@ driver {
         field {
             name           = operating_time
             quantity       = Time
-            info           = 'Operating time. Unit is unknown, please fix!'
+            info           = 'Operating time.'
             vif_scaling    = None
             dif_signedness = Signed
             display_unit   = y
@@ -1614,6 +1591,7 @@ driver {
             info           = 'Number of phases.'
             vif_scaling    = None
             dif_signedness = Signed
+            display_unit   = nr
             match {
                 difvifkey = 03FF21
             }
@@ -1632,9 +1610,10 @@ driver {
         field {
             name           = vts
             quantity       = Dimensionless
-            info           = 'Number of voltaget transformers VT:s.'
+            info           = 'Number of voltage transformers VT:s.'
             vif_scaling    = None
             dif_signedness = Signed
+            display_unit   = nr
             match {
                 difvifkey = 03FF25
             }
@@ -1667,6 +1646,7 @@ driver {
             info           = 'Number of current transformers CT:s.'
             vif_scaling    = None
             dif_signedness = Signed
+            display_unit   = nr
             match {
                 difvifkey = 03FF28
             }
