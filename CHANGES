@@ -3,6 +3,11 @@ New amazing feature contributed by Aras Abbasi, you can run
 wmbusmeters inside your browser that supports serial ports
 (currently tested in Chrome/Chromium and Edge.)
 
+ATTENTION! Change in iem3000 driver the field partial_reactive_energy_consumption_kwh
+has been corrected to be the unit partial_reactive_energy_consumption_kvarh
+To fix a field overlap a new field digital_output_association_2 handles the 16 bit register
+and digital_output_association handles the 24 bit register.
+
 ATTENTION! Change in field name for lse_08 driver,lse_07_17,unismart drivers where
 "device_date_time" is fixed to be "device_datetime" the _date_time suffix was
 a remnant from the old days where date and time units where not enforced.
