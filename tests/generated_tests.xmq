@@ -1275,7 +1275,7 @@ test {
 test {
     args     = 'HCA1 whe5x 91835132 NOKEY'
     comment  = 'Another version of the heat cost allocator. Was known as whe5x, so a name alias exist that maps to qcaloric.'
-    telegram = 244465323251839134087a4f0000000b6e0403004b6e660300426c9e29326cffff046d1416b921dd2f
+    telegram = 284465323251839134087a4f0000000b6e0403004b6e660300426c9e29326cffff046d1416b921dd2f
     json     = '{"_":"telegram","media":"heat cost allocation","meter":"qcaloric","name":"HCA1","id":"91835132","consumption_at_set_date_hca":366,"consumption_at_set_date_1_hca":366,"current_consumption_hca":304,"device_datetime":"2021-01-25 22:20","error_date":"2127-15-31","set_date":"2020-09-30","set_date_1":"2020-09-30","status":"OK","timestamp":"1111-11-11T11:11:11Z"}'
     fields   = 'HCA1;91835132;304;2020-09-30;366;1111-11-11 11:11.11'
 }
