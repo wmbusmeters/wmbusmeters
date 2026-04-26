@@ -1547,7 +1547,7 @@ driver {
             info           = 'Number of phases.'
             vif_scaling    = None
             dif_signedness = Signed
-            display_unit   = nr
+            display_unit   = counter
             match {
                 difvifkey = 03FF21
             }
@@ -1665,6 +1665,32 @@ driver {
             match {
                 difvifkey = 03FF24
             }
+        }
+    }
+    tests {
+        test {
+            args     = 'Schneider1 iem3000 03313062 NOKEY'
+            telegram = 68f4f46808027262303103a34c1502160000000dfd0a126369727463656c452072656469656e6863530dfd0c0820353331334d45690dfd0e073730302e332e3103fd1700000005fddcff01Bec6084205fddcff0251f30B4205fddcff03113d094205fddcff000Bfd094205fdc9ff05aa6ac74305fdc9ff06acfac74305fdc9ff078e3cc74305fdc9ff08c0B2c74305fdc9ff01c7dd674305fdc9ff023e0e654305fdc9ff03c9e1664305fdc9ff04ef99664305aeff01a0edc14005aeff022e8dc34005aeff0303BBc040052e748d914185402ecB3676418580402e02a2Be4105ff0a3e76433f05ff0B64f8474207033230fd01000000001fc116
+            json     = '{"_":"telegram","media":"electricity","meter":"iem3000","name":"Schneider1","id":"03313062","active_consumption_kw":18.194069,"active_consumption_l1_kw":6.060257,"active_consumption_l2_kw":6.110984,"active_consumption_l3_kw":6.022829,"apparent_consumption_kw":23.829105,"current_average_a":34.497112,"current_l1_a":34.194084,"current_l2_a":34.987614,"current_l3_a":34.309635,"frequency_hz":49.992569,"power_factor":0.763523,"reactive_consumption_kw":15.388377,"total_energy_consumption_kwh":33370.162,"voltage_average_ll_v":399.396484,"voltage_average_ln_v":230.601303,"voltage_l1_l2_v":398.833313,"voltage_l1_n_v":231.866318,"voltage_l2_l3_v":399.958374,"voltage_l2_n_v":229.055634,"voltage_l3_l1_v":398.473083,"voltage_l3_n_v":230.881973,"error_flags":"CODE_101_EEPROM_ERROR","firmware_version":"1.3.007","manufacturer":"Schneider Electric","model_version":"iEM3135 ","status":"CODE_101_EEPROM_ERROR","timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'Schneider1;03313062;33370.162;1111-11-11 11:11.11'
+        }
+        test {
+            args     = 'Schneider2 iem3000 03313062 NOKEY'
+            telegram = 68F4F46808027262303103A34C150250000000_0DFD0A126369727463656C452072656469656E6863530DFD0C0820353331334D45690DFD0E073730302E332E3103FD1700000005FDDCFF01CDFC074205FDDCFF025D670B4205FDDCFF039E9D084205FDDCFF00ED55094205FDC9FF050329C84305FDC9FF0664CEC84305FDC9FF07AADFC74305FDC9FF08B047C84305FDC9FF01AF64684305FDC9FF0260E9654305FDC9FF03B383674305FDC9FF04EC45674305AEFF01ACB6C04005AEFF02E3B4C24005AEFF03BEA7BF40052ED4C4904185402ECF2478418580402E82FBBE4105FF0AA19E423F05FF0B3FCA474207030A6CFD01000000001F_7716
+            json     = '{"_":"telegram","media":"electricity","meter":"iem3000","name":"Schneider2","id":"03313062","active_consumption_kw":18.096107,"active_consumption_l1_kw":6.022299,"active_consumption_l2_kw":6.084581,"active_consumption_l3_kw":5.989226,"apparent_consumption_kw":23.872807,"current_average_a":34.333912,"current_l1_a":33.996876,"current_l2_a":34.850941,"current_l3_a":34.153923,"frequency_hz":49.947506,"power_factor":0.760233,"reactive_consumption_kw":15.508986,"total_energy_consumption_kwh":33385.482,"voltage_average_ll_v":400.560059,"voltage_average_ln_v":231.273132,"voltage_l1_l2_v":400.320404,"voltage_l1_n_v":232.393295,"voltage_l2_l3_v":401.612427,"voltage_l2_n_v":229.911621,"voltage_l3_l1_v":399.747375,"voltage_l3_n_v":231.51445,"error_flags":"CODE_101_EEPROM_ERROR","firmware_version":"1.3.007","manufacturer":"Schneider Electric","model_version":"iEM3135 ","status":"CODE_101_EEPROM_ERROR","timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'Schneider2;03313062;33385.482;1111-11-11 11:11.11'
+        }
+        test {
+            args     = 'Schneider3 iem3000 03313062 NOKEY'
+            telegram = 68F6F66808027262303103A34C150251000000_0783FF091100000000000000874003987D020200000000874083FF09000000000000000004EDFF0C000001010783FF0D0A6CFD0100000000874083FF0D987D0202000000000783FF016213A900000000000783FF028008AD00000000000783FF033850A7000000000004EDFF0E0000010107FD61000000000000000003FF10000000871003000000000000000087200300000000000000008730030000000000000000878010030000000000000000046D2109292603FF2C64000003FF2D00000005FF2E0000C84205FF2F0000FA4303FF3000000003FD1B00000002FF32000003FD1AFFFF001F_A816
+            json     = '{"_":"telegram","media":"electricity","meter":"iem3000","name":"Schneider3","id":"03313062","active_tariff_nr":0,"input_metering_cumulation_counter":0,"last_input_metering_reset_datetime":"2000-01-01 00:00","last_partial_energy_reset_datetime":"2000-01-01 00:00","partial_energy_consumption_kwh":33385.482,"partial_reactive_energy_consumption_kvarh":33717.656,"pulse_constant_counter":500,"pulse_duration_counter":100,"pulse_weight_counter":100,"total_energy_consumption_l1_kwh":11080.546,"total_energy_consumption_l2_kwh":11339.904,"total_energy_consumption_l3_kwh":10965.048,"total_energy_consumption_tariff_1_kwh":0,"total_energy_consumption_tariff_2_kwh":0,"total_energy_consumption_tariff_3_kwh":0,"total_energy_consumption_tariff_4_kwh":0,"total_energy_production_kwh":0.017,"total_reactive_energy_consumption_kvarh":33717.656,"total_reactive_energy_production_kvarh":0,"digital_input":"","digital_input_association":"","digital_input_status":"","digital_output":"OUTPUT_FFFF","digital_output_association":"","meter_datetime":"2017-06-09 09:33","status":"OK","timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'Schneider3;03313062;null;1111-11-11 11:11.11'
+        }
+        test {
+            args     = 'Schneider4 iem3000 03313062 NOKEY'
+            telegram = 68c6c66808027262303103a34c15025200000002ff34000005ff350000803f02ff36000002ff37000002ff38000004edff390000010105ff3a0000c0ff06ff200167a700000003ff2103000003ff2204000003ff230B000003ff2432000005037f6902470583ff0996438B3c854003aBB50347854083ff09000000000583ff0d7f690247854083ff0daBB503470583ff0134222d460583ff02a42f31460583ff0336542B4605fd610000000085100300000000852003000000008530030000000085801003000000000fBa16
+            json     = '{"_":"telegram","media":"electricity","meter":"iem3000","name":"Schneider4","id":"03313062","input_metering_cumulation_counter":0,"last_alarm_datetime":"2000-01-01 00:00","last_alarm_nr":null,"nominal_frequency_hz":50,"operating_time_y":10970881,"partial_energy_consumption_kwh":33.385496,"partial_reactive_energy_consumption_kvarh":33.717668,"phases_counter":3,"pickup_setpoint_counter":1,"total_energy_consumption_kwh":33.385496,"total_energy_consumption_l1_kwh":11.080551,"total_energy_consumption_l2_kwh":11.33991,"total_energy_consumption_l3_kwh":10.965053,"total_energy_consumption_tariff_1_kwh":0,"total_energy_consumption_tariff_2_kwh":0,"total_energy_consumption_tariff_3_kwh":0,"total_energy_consumption_tariff_4_kwh":0,"total_energy_production_kwh":0.000017,"total_reactive_energy_consumption_kvarh":33.717668,"total_reactive_energy_production_kvarh":0,"wires_nr":4,"activated_status":"","digital_output_association_2":"","overload_alarm_setup":"","power_system_configuration":"POWER_SYS_CONFIG_B","status":"OK","unack_status":"","timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'Schneider4;03313062;33385.482;1111-11-11 11:11.11'
         }
     }
 }
