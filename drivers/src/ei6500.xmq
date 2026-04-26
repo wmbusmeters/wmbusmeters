@@ -112,8 +112,8 @@ driver {
             }
         }
         field {
-            name         = test_button_last_date
-            quantity     = Text
+            name         = test_button_last
+            quantity     = PointInTime
             info         = 'Date when test button was last pressed.'
             display_unit = DateLT
             match {
