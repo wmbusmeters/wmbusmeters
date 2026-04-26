@@ -188,6 +188,23 @@ private:
     std::unique_ptr<NumericFormula> inner_;
 };
 
+struct NumericFormulaRound : public NumericFormula
+{
+    NumericFormulaRound(FormulaImplementation *f, SIUnit siu,
+                        std::unique_ptr<NumericFormula> &inner)
+        : NumericFormula(f, siu), inner_(std::move(inner)) {}
+
+    double calculate(SIUnit to);
+    std::string str();
+    std::string tree();
+
+    ~NumericFormulaRound();
+
+private:
+
+    std::unique_ptr<NumericFormula> inner_;
+};
+
 enum class TokenType
 {
     SPACE,
@@ -202,6 +219,7 @@ enum class TokenType
     DIV,
     EXP,
     SQRT,
+    ROUND,
     UNIT,
     FIELD
 };
@@ -261,6 +279,7 @@ struct FormulaImplementation : public Formula
     // Pops the single top node of the formula builder stack and pushes an squareroot on the formula builder stack.
     // The target unit will be SIUnit square rooted.
     void doSquareRoot();
+    void doRound();
 
     ~FormulaImplementation();
 
@@ -277,6 +296,7 @@ struct FormulaImplementation : public Formula
     size_t findDiv(size_t i);
     size_t findExp(size_t i);
     size_t findSqrt(size_t i);
+    size_t findRound(size_t i);
     size_t findLPar(size_t i);
     size_t findRPar(size_t i);
     size_t findField(size_t i);
@@ -294,6 +314,7 @@ struct FormulaImplementation : public Formula
     void handleDivision(Token *add);
     void handleExponentiation(Token *add);
     void handleSquareRoot(Token *add);
+    void handleRound(Token *add);
     void handleField(Token *field);
 
     void pushOp(NumericFormula *nf);
