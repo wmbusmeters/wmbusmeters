@@ -173,50 +173,6 @@ driver {
             }
         }
         field {
-            name           = ct_numerator
-            quantity       = Dimensionless
-            info           = 'Current transformer ratio (numerator).'
-            vif_scaling    = None
-            dif_signedness = Signed
-            display_unit   = nr
-            match {
-                difvifkey = 04FFA015
-            }
-        }
-        field {
-            name           = vt_numerator
-            quantity       = Dimensionless
-            info           = 'Voltage transformer ratio (numerator).'
-            vif_scaling    = None
-            dif_signedness = Signed
-            display_unit   = nr
-            match {
-                difvifkey = 04FFA115
-            }
-        }
-        field {
-            name           = ct_denominator
-            quantity       = Dimensionless
-            info           = 'Current transformer ratio (denominator).'
-            vif_scaling    = None
-            dif_signedness = Signed
-            display_unit   = nr
-            match {
-                difvifkey = 04FFA215
-            }
-        }
-        field {
-            name           = vt_denominator
-            quantity       = Dimensionless
-            info           = 'Voltage transformer ratio (denominator).'
-            vif_scaling    = None
-            dif_signedness = Signed
-            display_unit   = nr
-            match {
-                difvifkey = 04FFA315
-            }
-        }
-        field {
             name       = error_flags
             quantity   = Text
             info       = 'Error flags.'
