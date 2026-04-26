@@ -2951,6 +2951,8 @@ double vifScale(int vif)
     case 0x7d5e:
     case 0x7d5f: { double exp = (vif & 0xf)-12; return pow(10.0, -exp); }
 
+    case 0x7d61: return 1.0; // CumulationCounter
+
         // for remaining battery wmbusmeters returns number of days.
     case 0x7d74: { return 1.0; }
 

@@ -1,10 +1,22 @@
-// Copyright (C) 2020-2022 Fredrik Öhrström (gpl-3.0-or-later)
+// Copyright (C) 2020-2026 Fredrik Öhrström (gpl-3.0-or-later)
 driver {
     name           = ei6500
     meter_type     = SmokeDetector
     default_fields = name,id,status,last_alarm_date,alarm_counter,timestamp
     detect {
         mvt = EIE,0c,1a
+    }
+    library {
+        use = software_version
+    }
+    mfct_tpl_status_bits {
+        mask_bits       = 0xe0
+        default_message = OK
+        map {
+            name  = RTC_INVALID
+            value = 0x40
+            test  = set
+        }
     }
     fields {
         field {
@@ -21,12 +33,23 @@ driver {
                 name      = ERROR_FLAGS
                 map_type  = BitToString
                 mask_bits = 0xffff
+                /* When used for m-bus?
+                   bit  7-7 Not used, zero by default
+                   bit  8 Application error, unknown field C
+                   bit  9 Application error, unknown field CI
+                   bit 10 Application error, unknown record
+                   bit 11 Application error, access right
+                   bit 12 Application error, record size
+                   bit 13 Application error, record value
+                   bit 14 Application error, bad password
+                   bit 15 Not used, zero by defaul */
             }
         }
         field {
-            name     = last_alarm_date
-            quantity = Text
-            info     = 'Date when the smoke alarm last triggered.'
+            name         = last_alarm
+            quantity     = PointInTime
+            info         = 'Date when the smoke alarm last triggered.'
+            display_unit = DateLT
             match {
                 measurement_type = Instantaneous
                 vif_range        = Date
@@ -35,11 +58,9 @@ driver {
             }
         }
         field {
-            name           = alarm
-            quantity       = Dimensionless
-            info           = 'Number of times the smoke alarm has triggered.'
-            vif_scaling    = None
-            dif_signedness = Signed
+            name     = alarm
+            quantity = Dimensionless
+            info     = 'Number of times the smoke alarm has triggered.'
             match {
                 measurement_type = Instantaneous
                 vif_range        = CumulationCounter
@@ -48,30 +69,18 @@ driver {
             }
         }
         field {
-            name     = software_version
-            quantity = Text
-            info     = 'Meter software version number.'
-            match {
-                measurement_type = Instantaneous
-                vif_range        = SoftwareVersion
-            }
-        }
-        field {
-            name         = message_datetime
-            quantity     = Text
-            info         = 'Device date time.'
-            display_unit = datetime
+            name     = message
+            quantity = PointInTime
+            info     = 'Device date time.'
             match {
                 measurement_type = Instantaneous
                 vif_range        = DateTime
             }
         }
         field {
-            name           = duration_removed
-            quantity       = Time
-            info           = 'Time the smoke alarm has been removed.'
-            vif_scaling    = Auto
-            dif_signedness = Signed
+            name     = duration_removed
+            quantity = Time
+            info     = 'Time the smoke alarm has been removed.'
             match {
                 measurement_type = Instantaneous
                 vif_range        = DurationOfTariff
@@ -80,9 +89,10 @@ driver {
             }
         }
         field {
-            name     = last_remove_date
-            quantity = Text
-            info     = 'Date when the smoke alarm was last removed.'
+            name         = last_remove
+            quantity     = PointInTime
+            info         = 'Date when the smoke alarm was last removed.'
+            display_unit = DateLT
             match {
                 measurement_type = Instantaneous
                 vif_range        = Date
@@ -91,46 +101,44 @@ driver {
             }
         }
         field {
-            name           = removed
-            quantity       = Dimensionless
-            info           = 'Number of times the smoke alarm has been removed.'
-            vif_scaling    = None
-            dif_signedness = Signed
+            name     = removed
+            quantity = Dimensionless
+            info     = 'Number of times the smoke alarm has been removed.'
             match {
                 measurement_type = Instantaneous
                 vif_range        = CumulationCounter
-                tariff_nr        = 2
                 subunit_nr       = 1
+                tariff_nr        = 2
             }
         }
         field {
-            name     = test_button_last_date
-            quantity = Text
-            info     = 'Date when test button was last pressed.'
+            name         = test_button_last_date
+            quantity     = Text
+            info         = 'Date when test button was last pressed.'
+            display_unit = DateLT
             match {
                 measurement_type = Instantaneous
                 vif_range        = Date
-                tariff_nr        = 3
                 subunit_nr       = 1
+                tariff_nr        = 3
             }
         }
         field {
-            name           = test_button
-            quantity       = Dimensionless
-            info           = 'Number of times the test button has been pressed.'
-            vif_scaling    = None
-            dif_signedness = Signed
+            name     = test_button
+            quantity = Dimensionless
+            info     = 'Number of times the test button has been pressed.'
             match {
                 measurement_type = Instantaneous
                 vif_range        = CumulationCounter
-                tariff_nr        = 3
                 subunit_nr       = 1
+                tariff_nr        = 3
             }
         }
         field {
-            name     = installation_date
-            quantity = Text
-            info     = 'Date when the smoke alarm was installed.'
+            name         = installation
+            quantity     = PointInTime
+            info         = 'Date when the smoke alarm was installed.'
+            display_unit = DateLT
             match {
                 measurement_type = Instantaneous
                 vif_range        = Date
@@ -138,9 +146,10 @@ driver {
             }
         }
         field {
-            name     = last_sound_check_date
-            quantity = Text
-            info     = 'Date when the smoke alarm last checked the piezo speaker.'
+            name         = last_sound_check
+            quantity     = PointInTime
+            info         = 'Date when the smoke alarm last checked the piezo speaker.'
+            display_unit = DateLT
             match {
                 measurement_type = Instantaneous
                 vif_range        = Date
@@ -158,6 +167,7 @@ driver {
                 name      = DUST
                 map_type  = IndexToString
                 mask_bits = 0x1f
+                // We use the default mapping of bits to DUST_1 DUST_2 DUST_3 etc, which happens since there are no map rules here.
             }
         }
         field {
@@ -320,11 +330,7 @@ driver {
                 name      = HEAD_STATUS
                 map_type  = BitToString
                 mask_bits = 0xff8ff0e0
-                map {
-                    name  = ''
-                    value = 0x10000
-                    test  = Set
-                }
+                // 0x00000000-0x000000f dust level
                 map {
                     name  = SOUNDER_FAULT
                     value = 0x00000020
@@ -340,6 +346,7 @@ driver {
                     value = 0x00000080
                     test  = Set
                 }
+                // 0x00000100-0x000f00 battery level
                 map {
                     name  = LOW_BATTERY_FAULT
                     value = 0x00001000
@@ -360,11 +367,11 @@ driver {
                     value = 0x00008000
                     test  = Set
                 }
-                // map {
-                //    name  = SEODS_NOT_YET_COMPLETED
-                //    value = 0x00010000
-                //    test  = NotSet
-                // }
+                map {
+                    name  = SEODS_NOT_YET_COMPLETED
+                    value = 0x00010000
+                    test  = NotSet
+                }
                 map {
                     name  = ENV_CHANGED_SINCE_INSTALLATION
                     value = 0x00020000
@@ -380,6 +387,8 @@ driver {
                     value = 0x00080000
                     test  = Set
                 }
+                // 0x00100000-0x0700000 distance
+                // 0x00800000 reserved
                 map {
                     name  = OBSTACLE_DETECTED
                     value = 0x01000000
