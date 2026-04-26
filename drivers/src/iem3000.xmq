@@ -1570,7 +1570,7 @@ driver {
             info           = 'Number of voltage transformers VT:s.'
             vif_scaling    = None
             dif_signedness = Signed
-            display_unit   = nr
+            display_unit   = counter
             match {
                 difvifkey = 03FF25
             }
@@ -1603,7 +1603,7 @@ driver {
             info           = 'Number of current transformers CT:s.'
             vif_scaling    = None
             dif_signedness = Signed
-            display_unit   = nr
+            display_unit   = counter
             match {
                 difvifkey = 03FF28
             }
@@ -1710,6 +1710,42 @@ driver {
             telegram = 685B5B6808467212345678a34c13028600000002ff34000005ff350000803f02ff36000002ff37000002ff38000004edff390000010105ff3a0000c0ff06ff2004f81f0f000003ff2103000003ff2204000003ff230B000003ff243200000f8f16
             json     = '{"_": "telegram","activated_status": "","digital_output_association_2": "","id": "78563412","last_alarm_datetime": "2000-01-01 00:00","last_alarm_nr": null,"media": "electricity","meter": "iem3000","name": "S2_2","nominal_frequency_hz": 50,"operating_time_y": 253753348,"overload_alarm_setup": "","phases_counter": 3,"pickup_setpoint_counter": 1,"power_system_configuration": "POWER_SYS_CONFIG_B","status": "OK","timestamp": "1111-11-11T11:11:11Z","unack_status": "","wires_nr": 4}'
             fields   = 'S2_2;78563412;null;1111-11-11 11:11.11'
+        }
+        test {
+            args     = 'S3_1 iem3000 11111111 NOKEY'
+            telegram = 68F4F46808177211111111A34C18020D000000_0DFD0A126369727463656C452072656469656E6863530DFD0C0820353332334D45690DFD0E073230302E342E3103FD1740000005FDDCFF011CC9B94105FDDCFF026B8E0B4205FDDCFF0301478B4105FDDCFF005164C94105FDC9FF05A48DC84305FDC9FF06A397C84305FDC9FF07DB26C94305FDC9FF080CC4C84305FDC9FF0190D1674305FDC9FF0290E7664305FDC9FF03F5C5684305FDC9FF0407D5674305AEFF01C08AA54005AEFF025CCBFC4005AEFF037F1F7840052E7799874185402E3BF887C08580402E93CB8B4105FF0A78D7833F05FF0BB6BC4742070304726A16000000001F_8616
+            json     = '{"_":"telegram","media":"electricity","meter":"iem3000","name":"S3_1","id":"11111111","active_consumption_kw":16.949934,"active_consumption_l1_kw":5.173187,"active_consumption_l2_kw":7.899824,"active_consumption_l3_kw":3.876922,"apparent_consumption_kw":17.474401,"current_average_a":25.173983,"current_l1_a":23.223198,"current_l2_a":34.88908,"current_l3_a":17.40967,"frequency_hz":49.934288,"power_factor":1.030013,"reactive_consumption_kw":-4.249052,"total_energy_consumption_kwh":376074.756,"voltage_average_ll_v":401.531616,"voltage_average_ln_v":231.832138,"voltage_l1_l2_v":401.106567,"voltage_l1_n_v":231.818604,"voltage_l2_l3_v":401.184662,"voltage_l2_n_v":230.904541,"voltage_l3_l1_v":402.303558,"voltage_l3_n_v":232.77327,"error_flags":"CODE_203_PHASE_SEQUENCE_REVERSED","firmware_version":"1.4.002","manufacturer":"Schneider Electric","model_version":"iEM3235 ","status":"CODE_203_PHASE_SEQUENCE_REVERSED","timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'S3_1;11111111;376074.756;1111-11-11 11:11.11'
+        }
+        test {
+            args     = 'S3_2 iem3000 11111111 NOKEY'
+            telegram = 68F6F66808177211111111A34C18020E000000_0783FF0900000000000000008740039BE87D0200000000874083FF09638D87020000000004EDFF0C802001010783FF0D09726A1600000000874083FF0D9BE87D02000000000783FF0102EB3007000000000783FF024A14AD09000000000783FF03B9728C050000000004EDFF0E8020010107FD61000000000000000003FF10000000871003000000000000000087200300000000000000008730030000000000000000878010030000000000000000046DB82E4D0803FF2C64000003FF2D00000005FF2E0000C84205FF2F0000FA4303FF3000000003FD1B00000002FF32000003FD1AFFFF001F_3016
+            json     = '{"_": "telegram","active_tariff_nr": 0,"digital_input": "","digital_input_association": "","digital_input_status": "","digital_output": "OUTPUT_FFFF","digital_output_association": "","id": "11111111","input_metering_cumulation_counter": 0,"last_input_metering_reset_datetime": "2000-01-01 00:00","last_partial_energy_reset_datetime": "2000-01-01 00:00","media": "electricity","meter": "iem3000","meter_datetime": "2002-08-13 14:56","name": "S3_2","partial_energy_consumption_kwh": 376074.761,"partial_reactive_energy_consumption_kvarh": 41805.979,"pulse_constant_counter": 500,"pulse_duration_counter": 100,"pulse_weight_counter": 100,"status": "OK","timestamp": "1111-11-11T11:11:11Z","total_energy_consumption_l1_kwh": 120646.402,"total_energy_consumption_l2_kwh": 162337.866,"total_energy_consumption_l3_kwh": 93090.489,"total_energy_consumption_tariff_1_kwh": 0,"total_energy_consumption_tariff_2_kwh": 0,"total_energy_consumption_tariff_3_kwh": 0,"total_energy_consumption_tariff_4_kwh": 0,"total_energy_production_kwh": 0,"total_reactive_energy_consumption_kvarh": 41805.979,"total_reactive_energy_production_kvarh": 42437.987}'
+            fields   = 'S3_2;11111111;null;1111-11-11 11:11.11'
+        }
+        test {
+            args     = 'S3_3 iem3000 11111111 NOKEY'
+            telegram = 68F1F16808177211111111A34C18020F000000_02FF34000005FF350000803F02FF36000002FF37000002FF38000004EDFF398020010105FF3A0000C0FF06FF20D9292605000003FF2103000003FF2204000003FF230B000003FF24320000050359A1B7480583FF0900000000854003FB4D2347854083FF09FDC525470583FF0D58A1B748854083FF0DFB4D23470583FF0133A3EB470583FF0278881E480583FF033ED1B54705FD6100000000851003000000008520030000000085300300000000858010030000000003FF2500000005FF260000C84203FF2764000003FF2803000003FF292C010003FF2A05000003FF2B0000000F_2e16
+            json     = '{"_": "telegram","activated_status": "","ct_primary_nr": 300,"ct_secondary_nr": 5,"cts_counter": 3,"digital_output_association_2": "","id": "11111111","input_metering_cumulation_counter": 0,"last_alarm_datetime": "2000-01-01 00:00","last_alarm_nr": null,"media": "electricity","meter": "iem3000","name": "S3_3","nominal_frequency_hz": 50,"operating_time_y": 86387161,"overload_alarm_setup": "","partial_energy_consumption_kwh": 376.07475,"partial_reactive_energy_consumption_kvarh": 41.80598,"phases_counter": 3,"pickup_setpoint_counter": 1,"power_system_configuration": "POWER_SYS_CONFIG_B","status": "OK","timestamp": "1111-11-11T11:11:11Z","total_energy_consumption_kwh": 376.074781,"total_energy_consumption_l1_kwh": 120.646398,"total_energy_consumption_l2_kwh": 162.337875,"total_energy_consumption_l3_kwh": 93.090484,"total_energy_consumption_tariff_1_kwh": 0,"total_energy_consumption_tariff_2_kwh": 0,"total_energy_consumption_tariff_3_kwh": 0,"total_energy_consumption_tariff_4_kwh": 0,"total_energy_production_kwh": 0,"total_reactive_energy_consumption_kvarh": 41.80598,"total_reactive_energy_production_kvarh": 42.437988,"unack_status": "","vt_connection_type_nr": 0,"vt_primary_nr": 100,"vt_secondary_nr": 100,"vts_counter": 0,"wires_nr": 4}'
+            fields   = 'S3_3;11111111;376.074781;1111-11-11 11:11.11'
+        }
+        test {
+            args     = 'S4_1 iem3000 77777777 NOKEY'
+            telegram = 68F4F468080C7277777777A34C150274000000_0DFD0A126369727463656C452072656469656E6863530DFD0C0820353333334D45690DFD0E073330302E312E3103FD1750000005FDDCFF010000000005FDDCFF020000000005FDDCFF030000000005FDDCFF000000000005FDC9FF0531B5C64305FDC9FF062BB7C64305FDC9FF074F3DC74305FDC9FF0839E3C64305FDC9FF012D05664305FDC9FF020E40654305FDC9FF03BFB5654305FDC9FF04FFA8654305AEFF010000000005AEFF020000000005AEFF0300000000052E0000000085402E000000008580402E0000000005FF0A0000C0FF05FF0B4531484207035679DA1F000000001F_0116
+            json     = '{"_": "telegram","active_consumption_kw": 0,"active_consumption_l1_kw": 0,"active_consumption_l2_kw": 0,"active_consumption_l3_kw": 0,"apparent_consumption_kw": 0,"current_average_a": 0,"current_l1_a": 0,"current_l2_a": 0,"current_l3_a": 0,"error_flags": "CODE_204_TOTAL_ACTIVE_ENERGY_NEGATIVE_DUE_TO_INCORRECT_V_OR_A_CONNECTIONS","firmware_version": "1.1.003","frequency_hz": 50.048115,"id": "77777777","manufacturer": "Schneider Electric","media": "electricity","meter": "iem3000","model_version": "iEM3335 ","name": "S4_1","power_factor": null,"reactive_consumption_kw": 0,"status": "CODE_204_TOTAL_ACTIVE_ENERGY_NEGATIVE_DUE_TO_INCORRECT_V_OR_A_CONNECTIONS","timestamp": "1111-11-11T11:11:11Z","total_energy_consumption_kwh": 534411.606,"voltage_average_ll_v": 397.775177,"voltage_average_ln_v": 229.660141,"voltage_l1_l2_v": 397.415558,"voltage_l1_n_v": 230.020218,"voltage_l2_l3_v": 397.431,"voltage_l2_n_v": 229.250214,"voltage_l3_l1_v": 398.478973,"voltage_l3_n_v": 229.709946}'
+            fields   = 'S4_1;77777777;534411.606;1111-11-11 11:11.11'
+        }
+        test {
+            args     = 'S4_2 iem3000 77777777 NOKEY'
+            telegram = 68F6F668080C7277777777A34C150275000000_0783FF090700000000000000874003BEF65B0000000000874083FF09027614000000000004EDFF0C000001010783FF0D5679DA1F00000000874083FF0DBEF65B00000000000783FF01C9157E0A000000000783FF028484A70A000000000783FF0364E0B40A0000000004EDFF0E0000010107FD61000000000000000003FF10000000871003000000000000000087200300000000000000008730030000000000000000878010030000000000000000046D0C16050203FF2C64000003FF2D00000005FF2E0000C84205FF2F0000FA4303FF3000000003FD1B00000002FF32000003FD1AFFFF001F_fd16
+            json     = '{"_": "telegram","active_tariff_nr": 0,"digital_input": "","digital_input_association": "","digital_input_status": "","digital_output": "OUTPUT_FFFF","digital_output_association": "","id": "77777777","input_metering_cumulation_counter": 0,"last_input_metering_reset_datetime": "2000-01-01 00:00","last_partial_energy_reset_datetime": "2000-01-01 00:00","media": "electricity","meter": "iem3000","meter_datetime": "2000-02-05 22:12","name": "S4_2","partial_energy_consumption_kwh": 534411.606,"partial_reactive_energy_consumption_kvarh": 6026.942,"pulse_constant_counter": 500,"pulse_duration_counter": 100,"pulse_weight_counter": 100,"status": "OK","timestamp": "1111-11-11T11:11:11Z","total_energy_consumption_l1_kwh": 176035.273,"total_energy_consumption_l2_kwh": 178750.596,"total_energy_consumption_l3_kwh": 179626.084,"total_energy_consumption_tariff_1_kwh": 0,"total_energy_consumption_tariff_2_kwh": 0,"total_energy_consumption_tariff_3_kwh": 0,"total_energy_consumption_tariff_4_kwh": 0,"total_energy_production_kwh": 0.007,"total_reactive_energy_consumption_kvarh": 6026.942,"total_reactive_energy_production_kvarh": 1340.93}'
+            fields   = 'S4_2;77777777;null;1111-11-11 11:11.11'
+        }
+        test {
+            args     = 'S4_3 iem3000 77777777 NOKEY'
+            telegram = 68C6C668080C7277777777A34C150276000000_02FF34000005FF350000803F02FF36000002FF37000002FF38000004EDFF390000010105FF3A0000C0FF06FF2076B3090C000003FF2103000003FF2204000003FF230B000003FF243200000503BA7802490583FF094260E53B8540038957BC45854083FF09C39DA7440583FF0DBA780249854083FF0D8957BC450583FF01D2E82B480583FF02A68F2E480583FF03856A2F4805FD610000000085100300000000852003000000008530030000000085801003000000000F_d016
+            json     = '{"_": "telegram","activated_status": "","digital_output_association_2": "","id": "77777777","input_metering_cumulation_counter": 0,"last_alarm_datetime": "2000-01-01 00:00","last_alarm_nr": null,"media": "electricity","meter": "iem3000","name": "S4_3","nominal_frequency_hz": 50,"operating_time_y": 201962358,"overload_alarm_setup": "","partial_energy_consumption_kwh": 534.411625,"partial_reactive_energy_consumption_kvarh": 6.026942,"phases_counter": 3,"pickup_setpoint_counter": 1,"power_system_configuration": "POWER_SYS_CONFIG_B","status": "OK","timestamp": "1111-11-11T11:11:11Z","total_energy_consumption_kwh": 534.411625,"total_energy_consumption_l1_kwh": 176.035281,"total_energy_consumption_l2_kwh": 178.750594,"total_energy_consumption_l3_kwh": 179.626078,"total_energy_consumption_tariff_1_kwh": 0,"total_energy_consumption_tariff_2_kwh": 0,"total_energy_consumption_tariff_3_kwh": 0,"total_energy_consumption_tariff_4_kwh": 0,"total_energy_production_kwh": 0.000007,"total_reactive_energy_consumption_kvarh": 6.026942,"total_reactive_energy_production_kvarh": 1.34093,"unack_status": "","wires_nr": 4}'
+            fields   = 'S4_3;77777777;534.411625;1111-11-11 11:11.11'
         }
     }
 }
