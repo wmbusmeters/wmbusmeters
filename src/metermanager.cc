@@ -133,7 +133,7 @@ public:
                 name.c_str(),
                 id_b[3], id_b[2], id_b[1], id_b[0],
                 manufacturerFlag(mfct).c_str(),
-                manufacturer(mfct).c_str(),
+                manufacturer(mfct),
                 mfct,
                 mediaType(media, mfct).c_str(), media,
                 version);

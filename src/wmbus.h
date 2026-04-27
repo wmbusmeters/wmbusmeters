@@ -765,7 +765,7 @@ std::shared_ptr<BusDevice> openSimulator(Detected detected,
                                 std::shared_ptr<SerialCommunicationManager> manager,
                                 std::shared_ptr<SerialDevice> serial_override);
 
-std::string manufacturer(int m_field);
+const char *manufacturer(int m_field);
 std::string mediaType(int a_field_device_type, int m_field);
 std::string mediaTypeJSON(int a_field_device_type, int m_field);
 bool isCiFieldOfType(int ci_field, CI_TYPE type);

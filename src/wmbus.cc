@@ -37,6 +37,7 @@
 #include<deque>
 #include<algorithm>
 #include<unordered_set>
+#include<unordered_map>
 
 using namespace std;
 
@@ -274,7 +275,7 @@ void Telegram::print()
     notice("Received telegram from: %02x%02x%02x%02x\n", a,b,c,d);
     notice("          manufacturer: (%s) %s (0x%02x)\n",
            manufacturerFlag(dll_mfct).c_str(),
-           manufacturer(dll_mfct).c_str(),
+           manufacturer(dll_mfct),
            dll_mfct);
     notice("                  type: %s (0x%02x)%s\n", mediaType(dll_type, dll_mfct).c_str(), dll_type, enc);
 
@@ -285,7 +286,7 @@ void Telegram::print()
         notice("      Concerning meter: %02x%02x%02x%02x\n", tpl_id_b[3],tpl_id_b[2],tpl_id_b[1],tpl_id_b[0]);
         notice("          manufacturer: (%s) %s (0x%02x)\n",
            manufacturerFlag(tpl_mfct).c_str(),
-           manufacturer(tpl_mfct).c_str(),
+           manufacturer(tpl_mfct),
            tpl_mfct);
         notice("                  type: %s (0x%02x)%s\n", mediaType(tpl_type, dll_mfct).c_str(), tpl_type, enc);
 
@@ -499,15 +500,24 @@ bool warned_for_telegram_before(Telegram *t, vector<uchar> &dll_a)
     return false;
 }
 
-string manufacturer(int m_field) {
-    for (auto &m : manufacturers_) {
-	if (m.m_field == m_field) return m.name;
-    }
+const char *manufacturer(int m_field) {
+    static const unordered_map<int, const char*> by_mfct = []() {
+        unordered_map<int, const char*> map;
+        map.reserve(manufacturers_.size());
+        for (const auto &m : manufacturers_)
+        {
+            map[m.m_field] = m.name;
+        }
+        return map;
+    }();
+
+    auto it = by_mfct.find(m_field);
+    if (it != by_mfct.end()) return it->second;
+
     // Some weird meters send the first char in lower case aPT iTW. Fix and try again.
-    m_field &= 0x7fff;
-    for (auto &m : manufacturers_) {
-	if (m.m_field == m_field) return m.name;
-    }
+    it = by_mfct.find(m_field & 0x7fff);
+    if (it != by_mfct.end()) return it->second;
+
     return "Unknown";
 }
 
@@ -1201,7 +1211,7 @@ bool Telegram::parseELL(vector<uchar>::iterator &pos)
                             check  & 0xff, check >> 8,
                             dll_id_b[3], dll_id_b[2], dll_id_b[1], dll_id_b[0],
                             manufacturerFlag(dll_mfct).c_str(),
-                            manufacturer(dll_mfct).c_str(),
+                            manufacturer(dll_mfct),
                             dll_mfct,
                             mediaType(dll_type, dll_mfct).c_str(), dll_type,
                             dll_version);
@@ -1628,7 +1638,7 @@ bool Telegram::potentiallyDecrypt(vector<uchar>::iterator &pos)
                         "id: %02x%02x%02x%02x mfct: (%s) %s (0x%02x) type: %s (0x%02x) ver: 0x%02x\n",
                             dll_id_b[3], dll_id_b[2], dll_id_b[1], dll_id_b[0],
                             manufacturerFlag(dll_mfct).c_str(),
-                            manufacturer(dll_mfct).c_str(),
+                            manufacturer(dll_mfct),
                             dll_mfct,
                             mediaType(dll_type, dll_mfct).c_str(), dll_type,
                             dll_version);
@@ -1661,7 +1671,7 @@ bool Telegram::potentiallyDecrypt(vector<uchar>::iterator &pos)
                             "Permanently ignoring telegrams from id: %02x%02x%02x%02x mfct: (%s) %s (0x%02x) type: %s (0x%02x) ver: 0x%02x\n",
                             dll_id_b[3], dll_id_b[2], dll_id_b[1], dll_id_b[0],
                             manufacturerFlag(dll_mfct).c_str(),
-                            manufacturer(dll_mfct).c_str(),
+                            manufacturer(dll_mfct),
                             dll_mfct,
                             mediaType(dll_type, dll_mfct).c_str(), dll_type,
                             dll_version);
@@ -1696,7 +1706,7 @@ bool Telegram::potentiallyDecrypt(vector<uchar>::iterator &pos)
                             "Permanently ignoring telegrams from id: %02x%02x%02x%02x mfct: (%s) %s (0x%02x) type: %s (0x%02x) ver: 0x%02x\n",
                             dll_id_b[3], dll_id_b[2], dll_id_b[1], dll_id_b[0],
                             manufacturerFlag(dll_mfct).c_str(),
-                            manufacturer(dll_mfct).c_str(),
+                            manufacturer(dll_mfct),
                             dll_mfct,
                             mediaType(dll_type, dll_mfct).c_str(), dll_type,
                             dll_version);
@@ -1718,7 +1728,7 @@ bool Telegram::potentiallyDecrypt(vector<uchar>::iterator &pos)
                         "id: %02x%02x%02x%02x mfct: (%s) %s (0x%02x) type: %s (0x%02x) ver: 0x%02x\n",
                             dll_id_b[3], dll_id_b[2], dll_id_b[1], dll_id_b[0],
                             manufacturerFlag(dll_mfct).c_str(),
-                            manufacturer(dll_mfct).c_str(),
+                            manufacturer(dll_mfct),
                             dll_mfct,
                             mediaType(dll_type, dll_mfct).c_str(), dll_type,
                             dll_version);
@@ -1741,7 +1751,7 @@ bool Telegram::potentiallyDecrypt(vector<uchar>::iterator &pos)
                             "Permanently ignoring telegrams from id: %02x%02x%02x%02x mfct: (%s) %s (0x%02x) type: %s (0x%02x) ver: 0x%02x\n",
                             dll_id_b[3], dll_id_b[2], dll_id_b[1], dll_id_b[0],
                             manufacturerFlag(dll_mfct).c_str(),
-                            manufacturer(dll_mfct).c_str(),
+                            manufacturer(dll_mfct),
                             dll_mfct,
                             mediaType(dll_type, dll_mfct).c_str(), dll_type,
                             dll_version);
@@ -1797,7 +1807,7 @@ bool Telegram::potentiallyDecrypt(vector<uchar>::iterator &pos)
                             "Permanently ignoring telegrams from id: %02x%02x%02x%02x mfct: (%s) %s (0x%02x) type: %s (0x%02x) ver: 0x%02x\n",
                             dll_id_b[3], dll_id_b[2], dll_id_b[1], dll_id_b[0],
                             manufacturerFlag(dll_mfct).c_str(),
-                            manufacturer(dll_mfct).c_str(),
+                            manufacturer(dll_mfct),
                             dll_mfct,
                             mediaType(dll_type, dll_mfct).c_str(), dll_type,
                             dll_version);
@@ -1831,7 +1841,7 @@ bool Telegram::potentiallyDecrypt(vector<uchar>::iterator &pos)
                 "id: %02x%02x%02x%02x mfct: (%s) %s (0x%02x) type: %s (0x%02x) ver: 0x%02x\n",
                 dll_id_b[3], dll_id_b[2], dll_id_b[1], dll_id_b[0],
                 manufacturerFlag(dll_mfct).c_str(),
-                manufacturer(dll_mfct).c_str(),
+                manufacturer(dll_mfct),
                 dll_mfct,
                 mediaType(dll_type, dll_mfct).c_str(), dll_type,
                 dll_version);
