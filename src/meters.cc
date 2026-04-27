@@ -36,6 +36,74 @@
 
 using namespace std;
 
+// Parse one component of a decode_date spec, e.g. "month=bits(8,5)" or "year=bits(14,9)+2000".
+// Returns true and fills comp if found; does not modify pos (order-independent search).
+static bool parseDateComponent(const string& s, const char *name, DateDecodeSpec::Component &comp)
+{
+    string prefix = string(name) + "=bits(";
+    size_t p = s.find(prefix);
+    if (p == string::npos) return false;
+    p += prefix.size();
+    char *end;
+    int hi = strtol(s.c_str() + p, &end, 10);
+    if (*end != ',') return false;
+    p = end - s.c_str() + 1;
+    int lo = strtol(s.c_str() + p, &end, 10);
+    if (*end != ')') return false;
+    p = end - s.c_str() + 1;
+    int offset = 0;
+    if (s[p] == '+') {
+        p++;
+        offset = strtol(s.c_str() + p, &end, 10);
+    }
+    comp.hi = hi;
+    comp.lo = lo;
+    comp.offset = offset;
+    comp.valid = true;
+    return true;
+}
+
+DateDecodeSpec parseDateDecodeSpec(const string& spec_str)
+{
+    DateDecodeSpec spec;
+    parseDateComponent(spec_str, "day",   spec.day);
+    parseDateComponent(spec_str, "month", spec.month);
+    parseDateComponent(spec_str, "year",  spec.year);
+    size_t sp = spec_str.find("suffix=");
+    if (sp != string::npos)
+    {
+        sp += 7;
+        size_t ep = spec_str.find_first_of(" \t", sp);
+        spec.suffix = spec_str.substr(sp, ep == string::npos ? string::npos : ep - sp);
+    }
+    spec.valid = spec.day.valid && spec.month.valid;
+    return spec;
+}
+
+// Apply a DateDecodeSpec to a little-endian 16-bit word (lo byte first).
+// When year is not encoded (spec.year.valid == false) the caller must supply inferred_year > 0.
+static void applyDateDecodeSpec(const DateDecodeSpec& spec, uchar lo_byte, uchar hi_byte, struct tm *date, int inferred_year = -1)
+{
+    int word = (int)lo_byte | ((int)hi_byte << 8);
+    date->tm_mday = spec.day.extract(word);
+    if (date->tm_mday < 1) date->tm_mday = 1;
+    date->tm_mon  = spec.month.extract(word) - 1;
+    if (date->tm_mon < 0) date->tm_mon = 0;
+    if (spec.year.valid)
+        date->tm_year = spec.year.extract(word) - 1900;
+    else if (inferred_year > 0)
+        date->tm_year = inferred_year - 1900;
+}
+
+// Infer the current year from a reference (previous) date.
+// If current month/day is chronologically "at or before" the reference, we are in the next year.
+static int inferYearFromRef(int curr_month, int curr_day, int ref_year, int ref_month, int ref_day)
+{
+    if (curr_month < ref_month || (curr_month == ref_month && curr_day <= ref_day))
+        return ref_year + 1;
+    return ref_year;
+}
+
 map<string, DriverInfo> *registered_drivers_ = NULL;
 vector<DriverInfo*> *registered_drivers_list_ = NULL;
 map<string, string> removed_driver_explanation_;
@@ -2885,6 +2953,44 @@ bool FieldInfo::extractString(Meter *m, Telegram *t, DVEntry *dve)
         struct tm date;
         dve->extractDate(&date);
         string extracted_device_date = strdate(&date);
+        m->setStringValue(this, extracted_device_date, dve);
+        t->addMoreExplanation(dve->offset, renderJsonText(m, dve));
+        found = true;
+    }
+    else if (date_decode_spec_.valid)
+    {
+        struct tm date;
+        memset(&date, 0, sizeof(date));
+        vector<uchar> v;
+        hex2bin(dve->value, &v);
+        if (v.size() >= 2)
+        {
+            int inferred_year = -1;
+            if (!date_decode_spec_.year.valid && !date_decode_spec_.year_from_dvk.empty())
+            {
+                // Year not encoded in word — infer it from a reference DVK entry.
+                DateDecodeSpec ref_spec = parseDateDecodeSpec(date_decode_spec_.year_from_spec_str);
+                struct tm ref_date;
+                memset(&ref_date, 0, sizeof(ref_date));
+                if (t->dv_entries.count(date_decode_spec_.year_from_dvk) > 0)
+                {
+                    vector<uchar> rv;
+                    hex2bin(t->dv_entries[date_decode_spec_.year_from_dvk].second.value, &rv);
+                    if (rv.size() >= 2) applyDateDecodeSpec(ref_spec, rv[0], rv[1], &ref_date);
+                }
+                applyDateDecodeSpec(date_decode_spec_, v[0], v[1], &date);
+                inferred_year = inferYearFromRef(date.tm_mon + 1, date.tm_mday,
+                                                ref_date.tm_year + 1900,
+                                                ref_date.tm_mon + 1,
+                                                ref_date.tm_mday);
+                date.tm_year = inferred_year - 1900;
+            }
+            else
+            {
+                applyDateDecodeSpec(date_decode_spec_, v[0], v[1], &date);
+            }
+        }
+        string extracted_device_date = strdate(&date) + date_decode_spec_.suffix;
         m->setStringValue(this, extracted_device_date, dve);
         t->addMoreExplanation(dve->offset, renderJsonText(m, dve));
         found = true;

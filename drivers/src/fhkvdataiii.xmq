@@ -1,0 +1,114 @@
+// Copyright (C) 2019-2022 Fredrik Öhrström (gpl-3.0-or-later)
+driver {
+    name           = fhkvdataiii
+    meter_type     = HeatCostAllocationMeter
+    default_fields = name,id,current_hca,current_date,previous_hca,previous_date,temp_room_c,temp_radiator_c,timestamp
+    detect {
+        mvt = TCH,69,80
+        mvt = TCH,94,80
+    }
+    fields {
+        field {
+            name                 = mfct_specific
+            quantity             = Text
+            attributes           = HIDE
+            match_entire_payload = true
+            // Techem FHKV data ii/iii proprietary protocol wrapped in wmbus (CI-field 0xa0/0xa2).
+            // extractPayload starts at mfct-specific content, not at the CI byte.
+            // Discriminate by the first content byte: 0x11 (v69 layout) or 0x0F (v94 layout).
+            // v94 has one extra byte before temperatures.
+            ixml = "decode = version_69 | version_94.
+                    version_69 = '11', prev_date, prev_hca, curr_date, curr_hca, temp_room, temp_rad, byte*.
+                    version_94 = '0F', prev_date, prev_hca, curr_date, curr_hca, extra, temp_room, temp_rad, byte*.
+
+                        prev_date = word, @DV_prev_date.
+                        prev_hca  = word, @DV_prev_hca.
+                        curr_date = word, @DV_curr_date.
+                        curr_hca  = word, @DV_curr_hca.
+                        -extra = byte.
+                        temp_room = word, @DV_temp_room.
+                        temp_rad  = word, @DV_temp_rad.
+
+                        -hex  = ['A'-'F';'0'-'9'].
+                        -byte = hex, hex.
+                        -word = byte, byte.
+
+                        DV_prev_date>dvk = +'02FF01'.
+                        DV_prev_hca>dvk  = +'426E'.
+                        DV_curr_date>dvk = +'02FF02'.
+                        DV_curr_hca>dvk  = +'026E'.
+                        DV_temp_room>dvk = +'0265'.
+                        DV_temp_rad>dvk  = +'025D'."
+        }
+        field {
+            name     = current
+            quantity = HCA
+            info     = 'Energy consumption so far in this billing period.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = HeatCostAllocation
+            }
+        }
+        field {
+            name          = current_date
+            quantity      = Text
+            info          = 'Date of current billing period.'
+            decode_date   = 'day=bits(8,4) month=bits(12,9) suffix=T02:00:00Z'
+            year_from_dvk = '02FF01 day=bits(4,0) month=bits(8,5) year=bits(14,9)+2000'
+            match {
+                difvifkey = 02FF02
+            }
+        }
+        field {
+            name     = previous
+            quantity = HCA
+            info     = 'Energy consumption in previous billing period.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = HeatCostAllocation
+                storage_nr       = 1
+            }
+        }
+        field {
+            name        = previous_date
+            quantity    = Text
+            info        = 'Date of last billing period.'
+            decode_date = 'day=bits(4,0) month=bits(8,5) year=bits(14,9)+2000 suffix=T02:00:00Z'
+            match {
+                difvifkey = 02FF01
+            }
+        }
+        field {
+            name     = temp_room
+            quantity = Temperature
+            info     = 'Current room temperature.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = ExternalTemperature
+            }
+        }
+        field {
+            name     = temp_radiator
+            quantity = Temperature
+            info     = 'Current radiator temperature.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = ReturnTemperature
+            }
+        }
+    }
+    tests {
+        test {
+            args     = 'Room fhkvdataiii 11776622 NOKEY'
+            telegram = 31446850226677116980A0119F27020480048300C408F709143C003D341A2B0B2A0707000000000000062D114457563D71A1850000
+            json     = '{"_":"telegram","media":"heat cost allocator","meter":"fhkvdataiii","name":"Room","id":"11776622","current_hca":131,"current_date":"2020-02-08T02:00:00Z","previous_hca":1026,"previous_date":"2019-12-31T02:00:00Z","temp_room_c":22.44,"temp_radiator_c":25.51,"timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'Room;11776622;131;2020-02-08T02:00:00Z;1026;2019-12-31T02:00:00Z;22.44;25.51;1111-11-11 11:11.11'
+        }
+        test {
+            args     = 'Rooom fhkvdataiii 11111234 NOKEY'
+            telegram = 33446850341211119480A2_0F9F292D005024040011BD08380904000000070000000000000000000000000001000000000003140E
+            json     = '{"_":"telegram","media":"heat cost allocator","meter":"fhkvdataiii","name":"Rooom","id":"11111234","current_hca":4,"current_date":"2021-02-05T02:00:00Z","previous_hca":45,"previous_date":"2020-12-31T02:00:00Z","temp_room_c":22.37,"temp_radiator_c":23.6,"timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'Rooom;11111234;4;2021-02-05T02:00:00Z;45;2020-12-31T02:00:00Z;22.37;23.6;1111-11-11 11:11.11'
+        }
+    }
+}
