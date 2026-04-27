@@ -408,7 +408,7 @@ bool parseDV(Telegram *t,
             format_bytes.push_back(vif);
             id_bytes.push_back(vif);
             t->addExplanationAndIncrementPos(*format, 1, KindOfData::PROTOCOL, Understanding::FULL,
-                                             "%02X vif (%s)", vif, vifType(vif).c_str());
+                                             "%02X vif (%s)", vif, vifType(vif));
         } else
         {
             id_bytes.push_back(**format);

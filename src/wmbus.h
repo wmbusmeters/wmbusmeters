@@ -771,16 +771,16 @@ const char *mediaTypeJSON(int a_field_device_type, int m_field);
 bool isCiFieldOfType(int ci_field, CI_TYPE type);
 int ciFieldLength(int ci_field);
 bool isCiFieldManufacturerSpecific(int ci_field);
-std::string ciType(int ci_field);
+const char* ciType(int ci_field);
 std::string cType(int c_field);
 bool isValidWMBusCField(int c_field);
 bool isValidMBusCField(int c_field);
 std::string ccType(int cc_field);
 std::string difType(int dif);
 double vifScale(int vif);
-std::string vifKey(int vif); // E.g. temperature energy power mass_flow volume_flow
-std::string vifUnit(int vif); // E.g. m3 c kwh kw MJ MJh
-std::string vifType(int vif); // Long description
+const char* vifKey(int vif); // E.g. temperature energy power mass_flow volume_flow
+const char* vifUnit(int vif); // E.g. m3 c kwh kw MJ MJh
+const char* vifType(int vif); // Long description
 std::string vifeType(int dif, int vif, int vife); // Long description
 
 // Decode only the standard defined bits in the tpl status byte. Ignore the top 3 bits.

@@ -745,7 +745,7 @@ bool isCiFieldManufacturerSpecific(int ci_field)
     return ci_field >= 0xA0 && ci_field <= 0xB7;
 }
 
-string ciType(int ci_field)
+const char* ciType(int ci_field)
 {
     if (ci_field >= 0xA0 && ci_field <= 0xB7) {
         return "Mfct specific";
@@ -1095,7 +1095,7 @@ bool Telegram::parseELL(vector<uchar>::iterator &pos)
     int ci_field = *pos;
     if (!isCiFieldOfType(ci_field, CI_TYPE::ELL)) return true;
     addExplanationAndIncrementPos(pos, 1, KindOfData::PROTOCOL, Understanding::FULL, "%02x ell-ci-field (%s)",
-                                  ci_field, ciType(ci_field).c_str());
+                                  ci_field, ciType(ci_field));
     ell_ci = ci_field;
     int len = ciFieldLength(ell_ci);
 
@@ -1250,7 +1250,7 @@ bool Telegram::parseNWL(vector<uchar>::iterator &pos)
     int ci_field = *pos;
     if (!isCiFieldOfType(ci_field, CI_TYPE::NWL)) return true;
     addExplanationAndIncrementPos(pos, 1, KindOfData::PROTOCOL, Understanding::FULL, "%02x nwl-ci-field (%s)",
-                                  ci_field, ciType(ci_field).c_str());
+                                  ci_field, ciType(ci_field));
     nwl_ci = ci_field;
     // We have only seen 0x81 0x1d so far.
     int len = 1; // ciFieldLength(nwl_ci);
@@ -1276,7 +1276,7 @@ bool Telegram::parseAFL(vector<uchar>::iterator &pos)
     int ci_field = *pos;
     if (!isCiFieldOfType(ci_field, CI_TYPE::AFL)) return true;
     addExplanationAndIncrementPos(pos, 1, KindOfData::PROTOCOL, Understanding::FULL, "%02x afl-ci-field (%s)",
-                                  ci_field, ciType(ci_field).c_str());
+                                  ci_field, ciType(ci_field));
     afl_ci = ci_field;
 
     afl_len = *pos;
@@ -1997,7 +1997,7 @@ bool Telegram::parseTPL(vector<uchar>::iterator &pos)
 
     addExplanationAndIncrementPos(pos, 1, KindOfData::PROTOCOL, Understanding::FULL,
                                   "%02x tpl-ci-field (%s)",
-                                  tpl_ci, ciType(tpl_ci).c_str());
+                                  tpl_ci, ciType(tpl_ci));
     int len = ciFieldLength(tpl_ci);
 
     if (remaining < len+1 && ! mfct_specific) return expectedMore(__LINE__);
@@ -2608,7 +2608,7 @@ MeasurementType difMeasurementType(int dif)
     assert(0);
 }
 
-string vifType(int vif)
+const char* vifType(int vif)
 {
     // Remove any remaining 0x80 top bits.
     vif &= 0x7f7f;
@@ -3043,7 +3043,7 @@ double vifScale(int vif)
     }
 }
 
-string vifKey(int vif)
+const char* vifKey(int vif)
 {
     int t = vif & 0x7f;
 
@@ -3200,7 +3200,7 @@ string vifKey(int vif)
     }
 }
 
-string vifUnit(int vif)
+const char* vifUnit(int vif)
 {
     int t = vif & 0x7f;
 
