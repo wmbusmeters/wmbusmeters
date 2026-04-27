@@ -16,6 +16,7 @@
 */
 
 #include"always.h"
+#include"crc16.h"
 #include"log.h"
 #include"util.h"
 #include"dvparser.h"

@@ -154,12 +154,6 @@ int parseTime(const std::string& time);
 bool isInsideTimePeriod(time_t now, std::string periods);
 bool isValidTimePeriod(const std::string& periods);
 
-uint16_t crc16_EN13757(uchar *data, size_t len);
-
-// This crc is used by im871a for its serial communication.
-uint16_t crc16_CCITT(uchar *data, uint16_t length);
-bool     crc16_CCITT_check(uchar *data, uint16_t length);
-
 // Check if buffer is all SLIP END = 0xc0.
 bool slipAllEND(std::vector<uchar>& msg);
 // Scan the buffer after the byte SLIP END = 0xc0

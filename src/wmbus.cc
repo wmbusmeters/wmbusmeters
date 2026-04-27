@@ -15,6 +15,7 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include"crc16.h"
 #include"always.h"
 #include"log.h"
 #include"aescmac.h"
@@ -1516,12 +1517,11 @@ bool Telegram::checkMAC(std::vector<uchar> &frame,
                         std::vector<uchar> &inmac,
                         std::vector<uchar> &mackey)
 {
-    vector<uchar> input;
-    vector<uchar> mac;
-    mac.resize(16);
-
     if (mackey.size() != 16) return false;
     if (inmac.size() == 0) return false;
+
+    vector<uchar> input;
+    vector<uchar> mac(16);
 
     // AFL.MAC = CMAC (Kmac/Lmac,
     //                 AFL.MCL || AFL.MCR || {AFL.ML || } NextCI || ... || Last Byte of message)
