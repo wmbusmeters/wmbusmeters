@@ -5652,7 +5652,7 @@ bool SendBusContent::parse(const string &s)
 }
 
 Detected detectBusDeviceOnTTY(string tty,
-                              set<BusDeviceType> probe_for,
+                              const set<BusDeviceType> &probe_for,
                               LinkModeSet desired_linkmodes,
                               shared_ptr<SerialCommunicationManager> handler,
                               string bps)
@@ -5665,6 +5665,11 @@ Detected detectBusDeviceOnTTY(string tty,
     detected.specified_device.bps = std::move(bps);
 
     bool has_auto = probe_for.count(BusDeviceType::DEVICE_AUTO);
+    bool probe_amb = probe_for.count(BusDeviceType::DEVICE_AMB8465) || probe_for.count(BusDeviceType::DEVICE_AMB3665);
+    bool probe_im = probe_for.count(BusDeviceType::DEVICE_IM871A) || probe_for.count(BusDeviceType::DEVICE_IM170A);
+    bool probe_rc1180 = probe_for.count(BusDeviceType::DEVICE_RC1180);
+    bool probe_cul = probe_for.count(BusDeviceType::DEVICE_CUL);
+    bool probe_iu891a = probe_for.count(BusDeviceType::DEVICE_IU891A);
 
     AccessCheck ac = handler->checkAccess(tty, handler);
     if (ac != AccessCheck::AccessOK)
@@ -5683,7 +5688,7 @@ Detected detectBusDeviceOnTTY(string tty,
 
     // Talk amb8465 with it...
     // assumes this device is configured for 9600 bps, which seems to be the default.
-    if (has_auto || probe_for.count(BusDeviceType::DEVICE_AMB8465) || probe_for.count(BusDeviceType::DEVICE_AMB3665))
+    if (has_auto || probe_amb)
     {
         if (detectAMB8465AMB3665(&detected, handler) == AccessCheck::AccessOK)
         {
@@ -5693,7 +5698,7 @@ Detected detectBusDeviceOnTTY(string tty,
 
     // Talk im871a with it...
     // assumes this device is configured for 57600 bps, which seems to be the default.
-    if (has_auto || probe_for.count(BusDeviceType::DEVICE_IM871A) || probe_for.count(BusDeviceType::DEVICE_IM170A))
+    if (has_auto || probe_im)
     {
         if (detectIM871AIM170A(&detected, handler) == AccessCheck::AccessOK)
         {
@@ -5703,7 +5708,7 @@ Detected detectBusDeviceOnTTY(string tty,
 
     // Talk RC1180 with it...
     // assumes this device is configured for 19200 bps, which seems to be the default.
-    if (has_auto || probe_for.count(BusDeviceType::DEVICE_RC1180))
+    if (has_auto || probe_rc1180)
     {
         if (detectRC1180(&detected, handler) == AccessCheck::AccessOK)
         {
@@ -5713,7 +5718,7 @@ Detected detectBusDeviceOnTTY(string tty,
 
     // Talk CUL with it...
     // assumes this device is configured for 38400 bps, which seems to be the default.
-    if (has_auto || probe_for.count(BusDeviceType::DEVICE_CUL))
+    if (has_auto || probe_cul)
     {
         if (detectCUL(&detected, handler) == AccessCheck::AccessOK)
         {
@@ -5723,7 +5728,7 @@ Detected detectBusDeviceOnTTY(string tty,
 
     // Talk iu891a with it...
     // assumes this device is configured for 115200 bps, which seems to be the default.
-    if (has_auto || probe_for.count(BusDeviceType::DEVICE_IU891A))
+    if (has_auto || probe_iu891a)
     {
         if (detectIU891A(&detected, handler) == AccessCheck::AccessOK)
         {

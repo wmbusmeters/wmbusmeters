@@ -836,7 +836,7 @@ AccessCheck factoryResetAMB8465(std::string tty, std::shared_ptr<SerialCommunica
 AccessCheck factoryResetAMB3665(std::string tty, std::shared_ptr<SerialCommunicationManager> handler, int *was_baud);
 
 Detected detectBusDeviceOnTTY(std::string tty,
-                              std::set<BusDeviceType> probe_for,
+                              const std::set<BusDeviceType> &probe_for,
                               LinkModeSet desired_linkmodes,
                               std::shared_ptr<SerialCommunicationManager> handler,
                               std::string bps = std::string());
