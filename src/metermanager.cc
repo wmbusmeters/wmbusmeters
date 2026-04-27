@@ -48,8 +48,22 @@ private:
     bool analyze_verbose_;
     vector<MeterInfo> meter_templates_;
     vector<shared_ptr<Meter>> meters_;
+    size_t meters_with_updates_ {};
     vector<function<bool(AboutTelegram&,vector<uchar>)>> telegram_listeners_;
     function<void(Telegram*t,Meter*)> on_meter_updated_;
+
+    void meterUpdated(Telegram *t, Meter *meter)
+    {
+        if (meter->numUpdates() == 1)
+        {
+            meters_with_updates_++;
+        }
+
+        if (on_meter_updated_)
+        {
+            on_meter_updated_(t, meter);
+        }
+    }
 
 public:
     void addMeterTemplate(MeterInfo &mi)
@@ -60,8 +74,12 @@ public:
     void addMeter(shared_ptr<Meter> meter)
     {
         meters_.push_back(meter);
+        if (meter->numUpdates() > 0)
+        {
+            meters_with_updates_++;
+        }
         meter->setIndex(meters_.size());
-        meter->onUpdate(on_meter_updated_);
+        meter->onUpdate([this](Telegram *t, Meter *m) { meterUpdated(t, m); });
         meter->setMeterManager(this);
     }
 
@@ -73,6 +91,7 @@ public:
     void removeAllMeters()
     {
         meters_.clear();
+        meters_with_updates_ = 0;
     }
 
     void forEachMeter(std::function<void(Meter*)> cb)
@@ -85,14 +104,8 @@ public:
 
     bool hasAllMetersReceivedATelegram()
     {
-        if (meters_.size() < meter_templates_.size()) return false;
-
-        for (auto &meter : meters_)
-        {
-            if (meter->numUpdates() == 0) return false;
-        }
-
-        return true;
+        return meters_.size() >= meter_templates_.size() &&
+               meters_with_updates_ == meters_.size();
     }
 
     bool hasMeters()

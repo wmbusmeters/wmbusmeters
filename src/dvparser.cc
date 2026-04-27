@@ -25,6 +25,7 @@
 #include<cmath>
 #include<memory.h>
 #include<limits>
+#include<utility>
 #include<unordered_map>
 
 // The parser should not crash on invalid data, but yeah, when I
@@ -566,12 +567,12 @@ bool parseDV(Telegram *t,
                       key,
                       mt,
                       Vif(full_vif),
-                      found_combinable_vifs,
-                      found_combinable_vifs_raw,
+                      std::move(found_combinable_vifs),
+                      std::move(found_combinable_vifs_raw),
                       StorageNr(storage_nr),
                       TariffNr(tariff),
                       SubUnitNr(subunit),
-                      value) };
+                      std::move(value)) };
 
         DVEntry *dve = &entry.second;
 
@@ -579,10 +580,10 @@ bool parseDV(Telegram *t,
 
         assert(key == dve->dif_vif_key.str());
 
-        if (value.length() > 0) {
+        if (dve->value.length() > 0) {
             // This call increments data with datalen.
-            t->addExplanationAndIncrementPos(data, datalen, KindOfData::CONTENT, Understanding::NONE, "%s", value.c_str());
-            DEBUG_PARSER("(dvparser debug) data \"%s\"\n\n", value.c_str());
+            t->addExplanationAndIncrementPos(data, datalen, KindOfData::CONTENT, Understanding::NONE, "%s", dve->value.c_str());
+            DEBUG_PARSER("(dvparser debug) data \"%s\"\n\n", dve->value.c_str());
         }
         if (remaining == datalen || data == databytes.end()) {
             // We are done here!

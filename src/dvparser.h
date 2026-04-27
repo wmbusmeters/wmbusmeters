@@ -26,6 +26,7 @@
 #include<map>
 #include<set>
 #include<string>
+#include<utility>
 #include<vector>
 
 #define LIST_OF_VIF_RANGES \
@@ -382,17 +383,17 @@ struct DVEntry
             StorageNr st,
             TariffNr ta,
             SubUnitNr su,
-            std::string &val) :
+            std::string val) :
         offset(off),
-        dif_vif_key(dvk),
+        dif_vif_key(std::move(dvk)),
         measurement_type(mt),
         vif(vi),
-        combinable_vifs(vc),
-        combinable_vifs_raw(vc_raw),
+        combinable_vifs(std::move(vc)),
+        combinable_vifs_raw(std::move(vc_raw)),
         storage_nr(st),
         tariff_nr(ta),
         subunit_nr(su),
-        value(val)
+        value(std::move(val))
     {
     }
 
