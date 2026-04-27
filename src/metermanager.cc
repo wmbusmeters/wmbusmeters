@@ -49,7 +49,7 @@ private:
     vector<MeterInfo> meter_templates_;
     vector<shared_ptr<Meter>> meters_;
     size_t meters_with_updates_ {};
-    vector<function<bool(AboutTelegram&,vector<uchar>)>> telegram_listeners_;
+    vector<function<bool(AboutTelegram&,const vector<uchar>&)>> telegram_listeners_;
     function<void(Telegram*t,Meter*)> on_meter_updated_;
 
     void meterUpdated(Telegram *t, Meter *meter)
@@ -281,7 +281,7 @@ public:
                 }
             }
         }
-        for (auto f : telegram_listeners_)
+        for (auto &f : telegram_listeners_)
         {
             f(about, input_frame);
         }
@@ -292,7 +292,7 @@ public:
         return handled;
     }
 
-    void onTelegram(function<bool(AboutTelegram &about, vector<uchar>)> cb)
+    void onTelegram(function<bool(AboutTelegram &about, const vector<uchar> &)> cb)
     {
         telegram_listeners_.push_back(cb);
     }

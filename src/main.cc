@@ -673,11 +673,12 @@ bool start(Configuration *config)
         else if (!config->analyze)
         {
             if (!config->logsummary) notice("No meters configured. Printing id:s of all telegrams heard!\n");
-            meter_manager_->onTelegram([](AboutTelegram &about, vector<uchar> frame) {
+                meter_manager_->onTelegram([](AboutTelegram &about, const vector<uchar> &frame) {
                     Telegram t;
                     t.about = about;
                     MeterKeys mk;
-                    t.parse(frame, &mk, false); // Try a best effort parse, do not print any warnings.
+                    vector<uchar> parse_frame = frame;
+                    t.parse(parse_frame, &mk, false); // Try a best effort parse, do not print any warnings.
                     t.print();
                     string info = string("(")+toString(about.type)+")";
                     t.explainParse(info.c_str(), 0);

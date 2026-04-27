@@ -547,22 +547,30 @@ bool warned_for_telegram_before(Telegram *t, vector<uchar> &dll_a)
 }
 
 const char *manufacturer(int m_field) {
-    static const unordered_map<int, const char*> by_mfct = []() {
-        unordered_map<int, const char*> map;
-        map.reserve(manufacturers_.size());
+    static const int max_mfct = 0x8000;
+    static const vector<const char*> by_mfct = []() {
+        vector<const char*> lut(max_mfct, "Unknown");
         for (const auto &m : manufacturers_)
         {
-            map[m.m_field] = m.name;
+            if (m.m_field >= 0 && m.m_field < max_mfct)
+            {
+                lut[m.m_field] = m.name;
+            }
         }
-        return map;
+        return lut;
     }();
 
-    auto it = by_mfct.find(m_field);
-    if (it != by_mfct.end()) return it->second;
+    if (m_field >= 0 && m_field < max_mfct)
+    {
+        return by_mfct[m_field];
+    }
 
     // Some weird meters send the first char in lower case aPT iTW. Fix and try again.
-    it = by_mfct.find(m_field & 0x7fff);
-    if (it != by_mfct.end()) return it->second;
+    int fixed = m_field & 0x7fff;
+    if (fixed >= 0 && fixed < max_mfct)
+    {
+        return by_mfct[fixed];
+    }
 
     return "Unknown";
 }
@@ -671,6 +679,11 @@ static const MediaTypeInfo *lookupMediaTypeInfo(int a_field_device_type, int m_f
     }
 
     return NULL;
+}
+
+static inline uint32_t busDeviceTypeBit(BusDeviceType t)
+{
+    return 1u << static_cast<unsigned>(t);
 }
 
 const char *mediaType(int a_field_device_type, int m_field)
@@ -5698,12 +5711,20 @@ Detected detectBusDeviceOnTTY(string tty,
     detected.specified_device.linkmodes = desired_linkmodes;
     detected.specified_device.bps = std::move(bps);
 
-    bool has_auto = probe_for.count(BusDeviceType::DEVICE_AUTO);
-    bool probe_amb = probe_for.count(BusDeviceType::DEVICE_AMB8465) || probe_for.count(BusDeviceType::DEVICE_AMB3665);
-    bool probe_im = probe_for.count(BusDeviceType::DEVICE_IM871A) || probe_for.count(BusDeviceType::DEVICE_IM170A);
-    bool probe_rc1180 = probe_for.count(BusDeviceType::DEVICE_RC1180);
-    bool probe_cul = probe_for.count(BusDeviceType::DEVICE_CUL);
-    bool probe_iu891a = probe_for.count(BusDeviceType::DEVICE_IU891A);
+    uint32_t probe_mask = 0;
+    for (BusDeviceType t : probe_for)
+    {
+        probe_mask |= busDeviceTypeBit(t);
+    }
+
+    bool has_auto = (probe_mask & busDeviceTypeBit(BusDeviceType::DEVICE_AUTO)) != 0;
+    bool probe_amb = (probe_mask & (busDeviceTypeBit(BusDeviceType::DEVICE_AMB8465) |
+                                    busDeviceTypeBit(BusDeviceType::DEVICE_AMB3665))) != 0;
+    bool probe_im = (probe_mask & (busDeviceTypeBit(BusDeviceType::DEVICE_IM871A) |
+                                   busDeviceTypeBit(BusDeviceType::DEVICE_IM170A))) != 0;
+    bool probe_rc1180 = (probe_mask & busDeviceTypeBit(BusDeviceType::DEVICE_RC1180)) != 0;
+    bool probe_cul = (probe_mask & busDeviceTypeBit(BusDeviceType::DEVICE_CUL)) != 0;
+    bool probe_iu891a = (probe_mask & busDeviceTypeBit(BusDeviceType::DEVICE_IU891A)) != 0;
 
     AccessCheck ac = handler->checkAccess(tty, handler);
     if (ac != AccessCheck::AccessOK)
