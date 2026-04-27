@@ -18,7 +18,6 @@
 #include"always.h"
 #include"log.h"
 #include"aescmac.h"
-#include"sha256.h"
 #include"timings.h"
 #include"wmbus.h"
 #include"wmbus_common_implementation.h"
@@ -418,36 +417,69 @@ void Telegram::printTPL()
     verbose("\n");
 }
 
-// Store the hashes of the last 10 telegrams here.
-deque<SHA256_HASH> seen_telegrams;
-
-struct SHA256HashHasher
+struct TelegramFingerprint
 {
-    size_t operator()(const SHA256_HASH &h) const noexcept
+    uint64_t hash;
+    uint32_t len;
+    uint32_t edge;
+};
+
+// Store fingerprints of the last 10 telegrams here.
+deque<TelegramFingerprint> seen_telegrams;
+
+struct TelegramFingerprintHasher
+{
+    size_t operator()(const TelegramFingerprint &f) const noexcept
     {
-        size_t v = 0;
-        constexpr size_t n = sizeof(size_t) < SHA256_HASH_SIZE ? sizeof(size_t) : SHA256_HASH_SIZE;
-        memcpy(&v, h.bytes, n);
-        return v;
+        size_t h = static_cast<size_t>(f.hash);
+        h ^= static_cast<size_t>(f.len) + 0x9e3779b9 + (h << 6) + (h >> 2);
+        h ^= static_cast<size_t>(f.edge) + 0x9e3779b9 + (h << 6) + (h >> 2);
+        return h;
     }
 };
 
-struct SHA256HashEq
+struct TelegramFingerprintEq
 {
-    bool operator()(const SHA256_HASH &a, const SHA256_HASH &b) const noexcept
+    bool operator()(const TelegramFingerprint &a, const TelegramFingerprint &b) const noexcept
     {
-        return memcmp(a.bytes, b.bytes, SHA256_HASH_SIZE) == 0;
+        return a.hash == b.hash && a.len == b.len && a.edge == b.edge;
     }
 };
 
-unordered_set<SHA256_HASH, SHA256HashHasher, SHA256HashEq> seen_telegrams_set;
+unordered_set<TelegramFingerprint, TelegramFingerprintHasher, TelegramFingerprintEq> seen_telegrams_set;
+
+static inline uint64_t fastTelegramHash64(const vector<uchar> &frame)
+{
+    // 64-bit FNV-1a for fast duplicate filtering.
+    uint64_t h = 1469598103934665603ULL;
+    for (uchar b : frame)
+    {
+        h ^= static_cast<uint64_t>(b);
+        h *= 1099511628211ULL;
+    }
+    return h;
+}
+
+static inline uint32_t telegramEdgeKey(const vector<uchar> &frame)
+{
+    size_t n = frame.size();
+    uint32_t edge = 0;
+    if (n > 0) edge |= static_cast<uint32_t>(frame[0]);
+    if (n > 1) edge |= static_cast<uint32_t>(frame[1]) << 8;
+    if (n > 2) edge |= static_cast<uint32_t>(frame[n-2]) << 16;
+    if (n > 3) edge |= static_cast<uint32_t>(frame[n-1]) << 24;
+    return edge;
+}
 
 bool seen_this_telegram_before(const vector<uchar> &frame)
 {
-    SHA256_HASH hash;
-    Sha256Calculate(frame.data(), frame.size(), &hash);
+    TelegramFingerprint fingerprint {
+        fastTelegramHash64(frame),
+        static_cast<uint32_t>(frame.size()),
+        telegramEdgeKey(frame)
+    };
 
-    if (seen_telegrams_set.count(hash) != 0)
+    if (seen_telegrams_set.count(fingerprint) != 0)
     {
         // Found it!
         return true;
@@ -455,12 +487,12 @@ bool seen_this_telegram_before(const vector<uchar> &frame)
 
     if (seen_telegrams.size() >= 10)
     {
-        SHA256_HASH oldest = seen_telegrams.front();
+        TelegramFingerprint oldest = seen_telegrams.front();
         seen_telegrams.pop_front();
         seen_telegrams_set.erase(oldest);
     }
-    seen_telegrams.push_back(hash);
-    seen_telegrams_set.insert(hash);
+    seen_telegrams.push_back(fingerprint);
+    seen_telegrams_set.insert(fingerprint);
 
     return false;
 }
