@@ -34,6 +34,8 @@
 
 using namespace std;
 
+static const char hex_upper[] = "0123456789ABCDEF";
+
 union RealConversion
 {
     uint32_t i;
@@ -273,18 +275,19 @@ bool parseDV(Telegram *t,
                 set<uint16_t> no_combinable_vifs_raw;
                 key = "0F";
                 int offset = start_parse_here+t->mfct_0f_index-1;
-                (*dv_entries)[key] = { offset, DVEntry(offset,
-                                                       DifVifKey(key),
-                                                       MeasurementType::Instantaneous,
-                                                       Vif(0x7f),
-                                                       no_combinable_vifs,
-                                                       no_combinable_vifs_raw,
-                                                       StorageNr(0),
-                                                       TariffNr(0),
-                                                       SubUnitNr(0),
-                                                       value) };
+                auto &entry = (*dv_entries)[key];
+                entry = { offset, DVEntry(offset,
+                                          DifVifKey(key),
+                                          MeasurementType::Instantaneous,
+                                          Vif(0x7f),
+                                          no_combinable_vifs,
+                                          no_combinable_vifs_raw,
+                                          StorageNr(0),
+                                          TariffNr(0),
+                                          SubUnitNr(0),
+                                          value) };
 
-                DVEntry *dve = &(*dv_entries)[key].second;
+                DVEntry *dve = &entry.second;
 
                 trace("[DVPARSER] entry %s\n", dve->str().c_str());
 
@@ -519,11 +522,10 @@ bool parseDV(Telegram *t,
         }
 
         dv = "";
+        dv.reserve(id_bytes.size()*2);
         for (uchar c : id_bytes) {
-            char hex[3];
-            hex[2] = 0;
-            snprintf(hex, 3, "%02X", c);
-            dv.append(hex);
+            dv.push_back(hex_upper[c >> 4]);
+            dv.push_back(hex_upper[c & 0x0f]);
         }
         DEBUG_PARSER("(dvparser debug) key \"%s\"\n", dv.c_str());
 
@@ -558,18 +560,19 @@ bool parseDV(Telegram *t,
         string value = bin2hex(data, data_end, datalen);
         int offset = start_parse_here+data-data_start;
 
-        (*dv_entries)[key] = { offset, DVEntry(offset,
-                                               key,
-                                               mt,
-                                               Vif(full_vif),
-                                               found_combinable_vifs,
-                                               found_combinable_vifs_raw,
-                                               StorageNr(storage_nr),
-                                               TariffNr(tariff),
-                                               SubUnitNr(subunit),
-                                               value) };
+        auto &entry = (*dv_entries)[key];
+        entry = { offset, DVEntry(offset,
+                      key,
+                      mt,
+                      Vif(full_vif),
+                      found_combinable_vifs,
+                      found_combinable_vifs_raw,
+                      StorageNr(storage_nr),
+                      TariffNr(tariff),
+                      SubUnitNr(subunit),
+                      value) };
 
-        DVEntry *dve = &(*dv_entries)[key].second;
+        DVEntry *dve = &entry.second;
 
         trace("[DVPARSER] entry %s\n", dve->str().c_str());
 
@@ -590,8 +593,8 @@ bool parseDV(Telegram *t,
     uint16_t hash = crc16_EN13757(safeButUnsafeVectorPtr(format_bytes), format_bytes.size());
 
     if (data_has_difvifs) {
-        if (hash_to_format_.find(hash) == hash_to_format_.end()) {
-            hash_to_format_[hash] = format_string;
+        auto insert_res = hash_to_format_.emplace(hash, format_string);
+        if (insert_res.second) {
             debug("(dvparser) found new format \"%s\" with hash %x, remembering!\n", format_string.c_str(), hash);
         }
     }
