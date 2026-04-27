@@ -26,11 +26,11 @@
 
 using namespace std;
 
-string check_driver_name(const char *name, string file);
-string check_aliases(const char *aliases, string file);
-MeterType check_meter_type(const char *meter_type_s, string file);
-string check_default_fields(const char *fields, string file);
-void check_detection_triplets(DriverInfo *di, string file);
+string check_driver_name(const char *name, const string &file);
+string check_aliases(const char *aliases, const string &file);
+MeterType check_meter_type(const char *meter_type_s, const string &file);
+string check_default_fields(const char *fields, const string &file);
+void check_detection_triplets(DriverInfo *di, const string &file);
 
 string check_field_name(const char *name, DriverDynamic *dd);
 string check_field_ixml(const char *ixml, DriverDynamic *dd);
@@ -587,7 +587,7 @@ XMQProceed DriverDynamic::add_mfct_tpl_status(XMQDoc *doc, XMQNodePtr node, Driv
     return XMQ_CONTINUE;
 }
 
-string check_driver_name(const char *name, string file)
+string check_driver_name(const char *name, const string &file)
 {
     if (!name)
     {
@@ -617,7 +617,7 @@ string check_driver_name(const char *name, string file)
     return name;
 }
 
-MeterType check_meter_type(const char *meter_type_s, string file)
+MeterType check_meter_type(const char *meter_type_s, const string &file)
 {
     if (!meter_type_s)
     {
@@ -652,7 +652,7 @@ MeterType check_meter_type(const char *meter_type_s, string file)
     return meter_type;
 }
 
-string check_aliases(const char *aliases, string file)
+string check_aliases(const char *aliases, const string &file)
 {
     if (!aliases)
     {
@@ -662,7 +662,7 @@ string check_aliases(const char *aliases, string file)
     return aliases;
 }
 
-string check_default_fields(const char *default_fields, string file)
+string check_default_fields(const char *default_fields, const string &file)
 {
     if (!default_fields)
     {
@@ -680,7 +680,7 @@ string check_default_fields(const char *default_fields, string file)
     return default_fields;
 }
 
-void check_detection_triplets(DriverInfo *di, string file)
+void check_detection_triplets(DriverInfo *di, const string &file)
 {
     if (di->mvts().size() == 0)
     {
