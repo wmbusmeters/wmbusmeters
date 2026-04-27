@@ -25,6 +25,7 @@
 #include<cmath>
 #include<memory.h>
 #include<limits>
+#include<unordered_map>
 
 // The parser should not crash on invalid data, but yeah, when I
 // need to debug it because it crashes on invalid data, then
@@ -154,7 +155,7 @@ LIST_OF_VIF_RANGES
     return false;
 }
 
-map<uint16_t,string> hash_to_format_;
+unordered_map<uint16_t,string> hash_to_format_;
 
 bool loadFormatBytesFromSignature(uint16_t format_signature, vector<uchar> *format_bytes)
 {
@@ -178,7 +179,7 @@ bool parseDV(Telegram *t,
              size_t format_len,
              uint16_t *format_hash)
 {
-    map<string,int> dv_count;
+    unordered_map<string,int> dv_count;
     vector<uchar> format_bytes;
     vector<uchar> id_bytes;
     vector<uchar> data_bytes;
