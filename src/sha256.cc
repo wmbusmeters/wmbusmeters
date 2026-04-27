@@ -188,6 +188,7 @@ void
         uint32_t            BufferSize      // [in]
     )
 {
+    const uint8_t* data = (const uint8_t*)Buffer;
     uint32_t n;
 
     if( Context->curlen > sizeof(Context->buf) )
@@ -199,17 +200,17 @@ void
     {
         if( Context->curlen == 0 && BufferSize >= BLOCK_SIZE )
         {
-           TransformFunction( Context, (uint8_t*)Buffer );
+              TransformFunction( Context, data );
            Context->length += BLOCK_SIZE * 8;
-           Buffer = (uint8_t*)Buffer + BLOCK_SIZE;
+              data += BLOCK_SIZE;
            BufferSize -= BLOCK_SIZE;
         }
         else
         {
            n = MIN( BufferSize, (BLOCK_SIZE - Context->curlen) );
-           memcpy( Context->buf + Context->curlen, Buffer, (size_t)n );
+              memcpy( Context->buf + Context->curlen, data, (size_t)n );
            Context->curlen += n;
-           Buffer = (uint8_t*)Buffer + n;
+              data += n;
            BufferSize -= n;
            if( Context->curlen == BLOCK_SIZE )
            {
@@ -252,19 +253,14 @@ void
     // encoding like normal.
     if( Context->curlen > 56 )
     {
-        while( Context->curlen < 64 )
-        {
-            Context->buf[Context->curlen++] = (uint8_t)0;
-        }
+        memset(Context->buf + Context->curlen, 0, 64 - Context->curlen);
         TransformFunction(Context, Context->buf);
         Context->curlen = 0;
     }
 
     // Pad up to 56 bytes of zeroes
-    while( Context->curlen < 56 )
-    {
-        Context->buf[Context->curlen++] = (uint8_t)0;
-    }
+    memset(Context->buf + Context->curlen, 0, 56 - Context->curlen);
+    Context->curlen = 56;
 
     // Store length
     STORE64H( Context->length, Context->buf+56 );
