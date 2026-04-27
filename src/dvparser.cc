@@ -277,17 +277,31 @@ bool parseDV(Telegram *t,
                 set<uint16_t> no_combinable_vifs_raw;
                 key = "0F";
                 int offset = start_parse_here+t->mfct_0f_index-1;
-                auto &entry = (*dv_entries)[key];
-                entry = { offset, DVEntry(offset,
-                                          DifVifKey(key),
-                                          MeasurementType::Instantaneous,
-                                          Vif(0x7f),
-                                          no_combinable_vifs,
-                                          no_combinable_vifs_raw,
-                                          StorageNr(0),
-                                          TariffNr(0),
-                                          SubUnitNr(0),
-                                          value) };
+                auto insert_res = dv_entries->emplace(key,
+                                                      std::make_pair(offset,
+                                                                     DVEntry(offset,
+                                                                             DifVifKey(key),
+                                                                             MeasurementType::Instantaneous,
+                                                                             Vif(0x7f),
+                                                                             no_combinable_vifs,
+                                                                             no_combinable_vifs_raw,
+                                                                             StorageNr(0),
+                                                                             TariffNr(0),
+                                                                             SubUnitNr(0),
+                                                                             value)));
+                auto &entry = insert_res.first->second;
+                if (!insert_res.second) {
+                    entry = { offset, DVEntry(offset,
+                                              DifVifKey(key),
+                                              MeasurementType::Instantaneous,
+                                              Vif(0x7f),
+                                              no_combinable_vifs,
+                                              no_combinable_vifs_raw,
+                                              StorageNr(0),
+                                              TariffNr(0),
+                                              SubUnitNr(0),
+                                              value) };
+                }
 
                 DVEntry *dve = &entry.second;
 
@@ -533,9 +547,11 @@ bool parseDV(Telegram *t,
 
         int count = ++dv_count[dv];
         if (count > 1) {
-            strprintf(&key, "%s_%d", dv.c_str(), count);
+            key = dv;
+            key.push_back('_');
+            key += to_string(count);
         } else {
-            strprintf(&key, "%s", dv.c_str());
+            key = dv;
         }
         DEBUG_PARSER("(dvparser debug) DifVif key is %s\n", key.c_str());
 
@@ -562,17 +578,20 @@ bool parseDV(Telegram *t,
         string value = bin2hex(data, data_end, datalen);
         int offset = start_parse_here+data-data_start;
 
-        auto &entry = (*dv_entries)[key];
-        entry = { offset, DVEntry(offset,
-                      key,
-                      mt,
-                      Vif(full_vif),
-                      std::move(found_combinable_vifs),
-                      std::move(found_combinable_vifs_raw),
-                      StorageNr(storage_nr),
-                      TariffNr(tariff),
-                      SubUnitNr(subunit),
-                      std::move(value)) };
+        auto insert_res = dv_entries->emplace(key,
+                              std::make_pair(offset,
+                                     DVEntry(offset,
+                                         key,
+                                         mt,
+                                         Vif(full_vif),
+                                         std::move(found_combinable_vifs),
+                                         std::move(found_combinable_vifs_raw),
+                                         StorageNr(storage_nr),
+                                         TariffNr(tariff),
+                                         SubUnitNr(subunit),
+                                         std::move(value))));
+        assert(insert_res.second);
+        auto &entry = insert_res.first->second;
 
         DVEntry *dve = &entry.second;
 
@@ -685,20 +704,35 @@ XMQProceed add_value(XMQDoc *doc, XMQNodePtr node, void *user_data)
     DifVifKey dvk(difvifkey);
     const char *hex = xmqGetStringRel(doc, ".", node);
     string value = hex;
+    string key = difvifkey;
 
     int o = xmqGetIntRel(doc, "@off", node);
     o = o/2;
 
-    (*dv_entries)[difvifkey] = { offset+o, DVEntry(offset+o,
-                                               dvk.str(),
-                                               dvk.measurementType(),
-                                               Vif(dvk.vif()),
-                                               {},
-                                               {},
-                                               dvk.storageNr(),
-                                               dvk.tariffNr(),
-                                               dvk.subUnitNr(),
-                                               value) };
+    auto insert_res = dv_entries->emplace(key,
+                                          std::make_pair(offset+o,
+                                                         DVEntry(offset+o,
+                                                                 dvk.str(),
+                                                                 dvk.measurementType(),
+                                                                 Vif(dvk.vif()),
+                                                                 {},
+                                                                 {},
+                                                                 dvk.storageNr(),
+                                                                 dvk.tariffNr(),
+                                                                 dvk.subUnitNr(),
+                                                                 value)));
+    if (!insert_res.second) {
+        insert_res.first->second = { offset+o, DVEntry(offset+o,
+                                                       dvk.str(),
+                                                       dvk.measurementType(),
+                                                       Vif(dvk.vif()),
+                                                       {},
+                                                       {},
+                                                       dvk.storageNr(),
+                                                       dvk.tariffNr(),
+                                                       dvk.subUnitNr(),
+                                                       value) };
+    }
 
     t->addSpecialExplanation(offset+o, value.length()/2, KindOfData::CONTENT, Understanding::FULL, "*** %s", value.c_str());
 
