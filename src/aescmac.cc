@@ -112,11 +112,11 @@ void AES_CMAC(uchar *key, uchar *input, int len, uchar *mac)
     for (int i=0; i<num_blocks-1; i++)
     {
         xorit(X, input+(16*i), Y, 16);
-        AES_ECB_encrypt(Y, key, X, 16);
+        AES_ECB_encrypt(Y, NULL, X, 16);
     }
 
     xorit(X,M_last,Y, 16);
-    AES_ECB_encrypt(Y, key, X, 16);
+    AES_ECB_encrypt(Y, NULL, X, 16);
 
     memcpy(mac, X, 16);
 }

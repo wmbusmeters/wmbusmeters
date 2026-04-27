@@ -23,14 +23,15 @@
 
 #include<assert.h>
 #include<string.h>
+#include<utility>
 
 using namespace std;
 
-string check_driver_name(const char *name, string file);
-string check_aliases(const char *aliases, string file);
-MeterType check_meter_type(const char *meter_type_s, string file);
-string check_default_fields(const char *fields, string file);
-void check_detection_triplets(DriverInfo *di, string file);
+string check_driver_name(const char *name, const string &file);
+string check_aliases(const char *aliases, const string &file);
+MeterType check_meter_type(const char *meter_type_s, const string &file);
+string check_default_fields(const char *fields, const string &file);
+void check_detection_triplets(DriverInfo *di, const string &file);
 
 string check_field_name(const char *name, DriverDynamic *dd);
 string check_field_ixml(const char *ixml, DriverDynamic *dd);
@@ -187,8 +188,10 @@ XMQProceed DriverDynamic::add_detect(XMQDoc *doc, XMQNodePtr detect, DriverInfo 
 {
     string mvt = xmqGetStringRel(doc, ".", detect);
 
-    auto fields = splitString(mvt, ',');
-    if (fields.size() != 3)
+    const char *start = mvt.c_str();
+    const char *comma1 = strchr(start, ',');
+    const char *comma2 = comma1 ? strchr(comma1 + 1, ',') : NULL;
+    if (!comma1 || !comma2 || strchr(comma2 + 1, ',') != NULL)
     {
         warning("(driver) error in %s, wrong number of fields in mvt triple: mvt = %s\n"
                 "%s\n"
@@ -201,10 +204,10 @@ XMQProceed DriverDynamic::add_detect(XMQDoc *doc, XMQNodePtr detect, DriverInfo 
         return XMQ_CONTINUE;
     }
 
-    string mfct = fields[0];
+    string mfct(start, comma1 - start);
     int mfct_code = 0;
-    long version = strtol(fields[1].c_str(), NULL, 16);
-    long type = strtol(fields[2].c_str(), NULL, 16);
+    long version = strtol(comma1 + 1, NULL, 16);
+    long type = strtol(comma2 + 1, NULL, 16);
 
     if (mfct.length() == 3)
     {
@@ -381,13 +384,13 @@ XMQProceed DriverDynamic::add_field(XMQDoc *doc, XMQNodePtr field, DriverDynamic
         if (calculate == "")
         {
             dd->addNumericFieldWithExtractor(
-                name,
-                info,
+                std::move(name),
+                std::move(info),
                 properties,
                 quantity,
                 vif_scaling,
                 dif_signedness,
-                match,
+                std::move(match),
                 display_unit,
                 force_scale
                 );
@@ -401,23 +404,23 @@ XMQProceed DriverDynamic::add_field(XMQDoc *doc, XMQNodePtr field, DriverDynamic
             if (!match.active)
             {
                 dd->addNumericFieldWithCalculator(
-                    name,
-                    info,
+                    std::move(name),
+                    std::move(info),
                     properties,
                     quantity,
-                    calculate,
+                    std::move(calculate),
                     display_unit
                     );
             }
             else
             {
                 dd->addNumericFieldWithCalculatorAndMatcher(
-                    name,
-                    info,
+                    std::move(name),
+                    std::move(info),
                     properties,
                     quantity,
-                    calculate,
-                    match,
+                    std::move(calculate),
+                    std::move(match),
                     display_unit
                     );
             }
@@ -428,21 +431,21 @@ XMQProceed DriverDynamic::add_field(XMQDoc *doc, XMQNodePtr field, DriverDynamic
         if (num_lookups > 0)
         {
             dd->addStringFieldWithExtractorAndLookup(
-                name,
-                info,
+                std::move(name),
+                std::move(info),
                 properties,
-                match,
-                lookup
+                std::move(match),
+                std::move(lookup)
                 );
         }
         else
         {
             dd->addStringFieldWithExtractor(
-                name,
-                info,
+                std::move(name),
+                std::move(info),
                 properties,
-                match,
-                ixml,
+                std::move(match),
+                std::move(ixml),
                 match_entire_payload
                 );
             if (rs != ReadableString::Unknown)
@@ -587,7 +590,7 @@ XMQProceed DriverDynamic::add_mfct_tpl_status(XMQDoc *doc, XMQNodePtr node, Driv
     return XMQ_CONTINUE;
 }
 
-string check_driver_name(const char *name, string file)
+string check_driver_name(const char *name, const string &file)
 {
     if (!name)
     {
@@ -617,7 +620,7 @@ string check_driver_name(const char *name, string file)
     return name;
 }
 
-MeterType check_meter_type(const char *meter_type_s, string file)
+MeterType check_meter_type(const char *meter_type_s, const string &file)
 {
     if (!meter_type_s)
     {
@@ -652,7 +655,7 @@ MeterType check_meter_type(const char *meter_type_s, string file)
     return meter_type;
 }
 
-string check_aliases(const char *aliases, string file)
+string check_aliases(const char *aliases, const string &file)
 {
     if (!aliases)
     {
@@ -662,7 +665,7 @@ string check_aliases(const char *aliases, string file)
     return aliases;
 }
 
-string check_default_fields(const char *default_fields, string file)
+string check_default_fields(const char *default_fields, const string &file)
 {
     if (!default_fields)
     {
@@ -680,7 +683,7 @@ string check_default_fields(const char *default_fields, string file)
     return default_fields;
 }
 
-void check_detection_triplets(DriverInfo *di, string file)
+void check_detection_triplets(DriverInfo *di, const string &file)
 {
     if (di->mvts().size() == 0)
     {
@@ -1128,17 +1131,39 @@ void checked_set_indexnr(const char *indexnr_s, FieldMatcher *fm, DriverDynamic 
     fm->set(IndexNr(atoi(indexnr_s)));
 }
 
+static bool parse_number_or_range(const char *range_s, int *start, int *stop, bool *has_stop)
+{
+    const char *comma = strchr(range_s, ',');
+    if (!comma)
+    {
+        if (!isNumber(range_s)) return false;
+        *start = atoi(range_s);
+        *has_stop = false;
+        return true;
+    }
+
+    if (strchr(comma + 1, ',') != NULL) return false;
+
+    const char *stop_s = comma + 1;
+    if (comma == range_s || *stop_s == '\0') return false;
+
+    string start_s(range_s, comma - range_s);
+    if (!isNumber(start_s) || !isNumber(stop_s)) return false;
+
+    *start = atoi(start_s.c_str());
+    *stop = atoi(stop_s);
+    *has_stop = true;
+    return true;
+}
+
 void checked_set_storagenr_range(const char *storagenr_range_s, FieldMatcher *fm, DriverDynamic *dd)
 {
     if (!storagenr_range_s) return;
 
-    auto fields = splitString(storagenr_range_s, ',');
-    bool ok = isNumber(fields[0]);
-    if (fields.size() > 1)
-    {
-        ok &= isNumber(fields[1]);
-    }
-    if (!ok || fields.size() > 2)
+    int start = 0;
+    int stop = 0;
+    bool has_stop = false;
+    if (!parse_number_or_range(storagenr_range_s, &start, &stop, &has_stop))
     {
         warning("(driver) error in %s, bad storagenr_range: %s\n"
                 "%s\n",
@@ -1148,14 +1173,13 @@ void checked_set_storagenr_range(const char *storagenr_range_s, FieldMatcher *fm
         throw 1;
     }
 
-    if (fields.size() == 1)
+    if (!has_stop)
     {
-        fm->set(StorageNr(atoi(fields[0].c_str())));
+        fm->set(StorageNr(start));
     }
     else
     {
-        fm->set(StorageNr(atoi(fields[0].c_str())),
-                StorageNr(atoi(fields[1].c_str())));
+        fm->set(StorageNr(start), StorageNr(stop));
     }
 }
 
@@ -1163,13 +1187,10 @@ void checked_set_tariffnr_range(const char *tariffnr_range_s, FieldMatcher *fm, 
 {
     if (!tariffnr_range_s) return;
 
-    auto fields = splitString(tariffnr_range_s, ',');
-    bool ok = isNumber(fields[0]);
-    if (fields.size() > 1)
-    {
-        ok &= isNumber(fields[1]);
-    }
-    if (!ok || fields.size() > 2)
+    int start = 0;
+    int stop = 0;
+    bool has_stop = false;
+    if (!parse_number_or_range(tariffnr_range_s, &start, &stop, &has_stop))
     {
         warning("(driver) error in %s, bad tariffnr_range: %s\n"
                 "%s\n",
@@ -1179,14 +1200,13 @@ void checked_set_tariffnr_range(const char *tariffnr_range_s, FieldMatcher *fm, 
         throw 1;
     }
 
-    if (fields.size() == 1)
+    if (!has_stop)
     {
-        fm->set(TariffNr(atoi(fields[0].c_str())));
+        fm->set(TariffNr(start));
     }
     else
     {
-        fm->set(TariffNr(atoi(fields[0].c_str())),
-                TariffNr(atoi(fields[1].c_str())));
+        fm->set(TariffNr(start), TariffNr(stop));
     }
 }
 
@@ -1194,13 +1214,10 @@ void checked_set_subunitnr_range(const char *subunitnr_range_s, FieldMatcher *fm
 {
     if (!subunitnr_range_s) return;
 
-    auto fields = splitString(subunitnr_range_s, ',');
-    bool ok = isNumber(fields[0]);
-    if (fields.size() > 1)
-    {
-        ok &= isNumber(fields[1]);
-    }
-    if (!ok || fields.size() > 2)
+    int start = 0;
+    int stop = 0;
+    bool has_stop = false;
+    if (!parse_number_or_range(subunitnr_range_s, &start, &stop, &has_stop))
     {
         warning("(driver) error in %s, bad subunitnr_range: %s\n"
                 "%s\n",
@@ -1210,14 +1227,13 @@ void checked_set_subunitnr_range(const char *subunitnr_range_s, FieldMatcher *fm
         throw 1;
     }
 
-    if (fields.size() == 1)
+    if (!has_stop)
     {
-        fm->set(SubUnitNr(atoi(fields[0].c_str())));
+        fm->set(SubUnitNr(start));
     }
     else
     {
-        fm->set(SubUnitNr(atoi(fields[0].c_str())),
-                SubUnitNr(atoi(fields[1].c_str())));
+        fm->set(SubUnitNr(start), SubUnitNr(stop));
     }
 }
 

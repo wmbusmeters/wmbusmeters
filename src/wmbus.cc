@@ -18,7 +18,6 @@
 #include"always.h"
 #include"log.h"
 #include"aescmac.h"
-#include"sha256.h"
 #include"timings.h"
 #include"wmbus.h"
 #include"wmbus_common_implementation.h"
@@ -36,6 +35,9 @@
 
 #include<deque>
 #include<algorithm>
+#include<unordered_set>
+#include<unordered_map>
+#include<string_view>
 
 using namespace std;
 
@@ -53,6 +55,17 @@ LinkModeInfo link_modes_[] = {
 LIST_OF_LINK_MODES
 #undef X
 };
+
+static inline uint64_t linkModeBit(LinkMode lm)
+{
+    switch (lm)
+    {
+#define X(name,lcname,option,val) case LinkMode::name: return val;
+LIST_OF_LINK_MODES
+#undef X
+        default: return 0;
+    }
+}
 
 const char *toString(LinkMode lm)
 {
@@ -112,53 +125,67 @@ LinkMode toLinkMode(const char *arg)
     return LinkMode::UNKNOWN;
 }
 
-LinkModeSet parseLinkModes(string m)
+static LinkMode toLinkMode(string_view arg)
 {
-    LinkModeSet lms;
-    char buf[m.length()+1];
-    strcpy(buf, m.c_str());
-    char *saveptr {};
-    const char *tok = strtok_r(buf, ",", &saveptr);
-    while (tok != NULL)
+    for (auto &s : link_modes_)
     {
-        LinkMode lm = toLinkMode(tok);
-        if (lm == LinkMode::UNKNOWN)
+        size_t n = strlen(s.lcname);
+        if (arg.size() == n && memcmp(arg.data(), s.lcname, n) == 0)
         {
-            error("(wmbus) not a valid link mode: %s\n", tok);
+            return s.mode;
         }
-        lms.addLinkMode(lm);
-        tok = strtok_r(NULL, ",", &saveptr);
     }
-    return lms;
+    return LinkMode::UNKNOWN;
 }
 
-bool isValidLinkModes(string m)
+static bool parseLinkModesInternal(const string &m, LinkModeSet *out)
 {
-    LinkModeSet lms;
-    char buf[m.length()+1];
-    strcpy(buf, m.c_str());
-    char *saveptr {};
-    const char *tok = strtok_r(buf, ",", &saveptr);
-    while (tok != NULL)
+    size_t start = 0;
+    while (start <= m.size())
     {
-        LinkMode lm = toLinkMode(tok);
+        size_t stop = m.find(',', start);
+        if (stop == string::npos) stop = m.size();
+        string tok = m.substr(start, stop - start);
+
+        if (tok.empty())
+        {
+            if (stop == m.size()) break;
+            start = stop + 1;
+            continue;
+        }
+
+        LinkMode lm = toLinkMode(tok.c_str());
         if (lm == LinkMode::UNKNOWN)
         {
             return false;
         }
-        lms.addLinkMode(lm);
-        tok = strtok_r(NULL, ",", &saveptr);
+        if (out) out->addLinkMode(lm);
+
+        if (stop == m.size()) break;
+        start = stop + 1;
     }
     return true;
 }
 
+LinkModeSet parseLinkModes(const string &m)
+{
+    LinkModeSet lms;
+    bool ok = parseLinkModesInternal(m, &lms);
+    if (!ok)
+    {
+        error("(wmbus) not a valid link mode: %s\n", m.c_str());
+    }
+    return lms;
+}
+
+bool isValidLinkModes(const string &m)
+{
+    return parseLinkModesInternal(m, NULL);
+}
+
 LinkModeSet &LinkModeSet::addLinkMode(LinkMode lm)
 {
-    for (auto& s : link_modes_) {
-        if (s.mode == lm) {
-            set_ |= s.val;
-        }
-    }
+    set_ |= linkModeBit(lm);
     return *this;
 }
 
@@ -180,8 +207,7 @@ bool LinkModeSet::supports(LinkModeSet lms)
 
 bool LinkModeSet::has(LinkMode lm)
 {
-    LinkModeInfo *lmi = getLinkModeInfo(lm);
-    return (set_ & lmi->val) != 0;
+    return (set_ & linkModeBit(lm)) != 0;
 }
 
 bool LinkModeSet::hasAll(LinkModeSet lms)
@@ -194,6 +220,7 @@ string LinkModeSet::hr()
     string r;
     if (set_ == Any_bit) return "any";
     if (set_ == 0) return "none";
+    r.reserve(64);
     for (auto& s : link_modes_)
     {
         if (s.mode == LinkMode::Any) continue;
@@ -261,9 +288,9 @@ void Telegram::print()
     notice("Received telegram from: %02x%02x%02x%02x\n", a,b,c,d);
     notice("          manufacturer: (%s) %s (0x%02x)\n",
            manufacturerFlag(dll_mfct).c_str(),
-           manufacturer(dll_mfct).c_str(),
+           manufacturer(dll_mfct),
            dll_mfct);
-    notice("                  type: %s (0x%02x)%s\n", mediaType(dll_type, dll_mfct).c_str(), dll_type, enc);
+    notice("                  type: %s (0x%02x)%s\n", mediaType(dll_type, dll_mfct), dll_type, enc);
 
     notice("                   ver: 0x%02x\n", dll_version);
 
@@ -272,9 +299,9 @@ void Telegram::print()
         notice("      Concerning meter: %02x%02x%02x%02x\n", tpl_id_b[3],tpl_id_b[2],tpl_id_b[1],tpl_id_b[0]);
         notice("          manufacturer: (%s) %s (0x%02x)\n",
            manufacturerFlag(tpl_mfct).c_str(),
-           manufacturer(tpl_mfct).c_str(),
+           manufacturer(tpl_mfct),
            tpl_mfct);
-        notice("                  type: %s (0x%02x)%s\n", mediaType(tpl_type, dll_mfct).c_str(), tpl_type, enc);
+        notice("                  type: %s (0x%02x)%s\n", mediaType(tpl_type, dll_mfct), tpl_type, enc);
 
         notice("                   ver: 0x%02x\n", tpl_version);
     }
@@ -306,7 +333,7 @@ void Telegram::printDLL()
             dll_id[0], dll_id[1], dll_id[2], dll_id[3],
             dll_version,
             dll_type,
-            mediaType(dll_type, dll_mfct).c_str(),
+            mediaType(dll_type, dll_mfct),
             possible_drivers.c_str(),
             about.device.c_str(),
             about.rssi_dbm);
@@ -390,17 +417,69 @@ void Telegram::printTPL()
     verbose("\n");
 }
 
-// Store the hashes of the last 10 telegrams here.
-deque<SHA256_HASH> seen_telegrams;
-
-bool seen_this_telegram_before(vector<uchar> &frame)
+struct TelegramFingerprint
 {
-    SHA256_HASH hash;
-    Sha256Calculate(safeButUnsafeVectorPtr(frame), frame.size(), &hash);
+    uint64_t hash;
+    uint32_t len;
+    uint32_t edge;
+};
 
-    auto i = std::find(seen_telegrams.begin(), seen_telegrams.end(), hash);
+// Store fingerprints of the last 10 telegrams here.
+deque<TelegramFingerprint> seen_telegrams;
 
-    if (i != seen_telegrams.end())
+struct TelegramFingerprintHasher
+{
+    size_t operator()(const TelegramFingerprint &f) const noexcept
+    {
+        size_t h = static_cast<size_t>(f.hash);
+        h ^= static_cast<size_t>(f.len) + 0x9e3779b9 + (h << 6) + (h >> 2);
+        h ^= static_cast<size_t>(f.edge) + 0x9e3779b9 + (h << 6) + (h >> 2);
+        return h;
+    }
+};
+
+struct TelegramFingerprintEq
+{
+    bool operator()(const TelegramFingerprint &a, const TelegramFingerprint &b) const noexcept
+    {
+        return a.hash == b.hash && a.len == b.len && a.edge == b.edge;
+    }
+};
+
+unordered_set<TelegramFingerprint, TelegramFingerprintHasher, TelegramFingerprintEq> seen_telegrams_set;
+
+static inline uint64_t fastTelegramHash64(const vector<uchar> &frame)
+{
+    // 64-bit FNV-1a for fast duplicate filtering.
+    uint64_t h = 1469598103934665603ULL;
+    for (uchar b : frame)
+    {
+        h ^= static_cast<uint64_t>(b);
+        h *= 1099511628211ULL;
+    }
+    return h;
+}
+
+static inline uint32_t telegramEdgeKey(const vector<uchar> &frame)
+{
+    size_t n = frame.size();
+    uint32_t edge = 0;
+    if (n > 0) edge |= static_cast<uint32_t>(frame[0]);
+    if (n > 1) edge |= static_cast<uint32_t>(frame[1]) << 8;
+    if (n > 2) edge |= static_cast<uint32_t>(frame[n-2]) << 16;
+    if (n > 3) edge |= static_cast<uint32_t>(frame[n-1]) << 24;
+    return edge;
+}
+
+bool seen_this_telegram_before(const vector<uchar> &frame)
+{
+    TelegramFingerprint fingerprint {
+        fastTelegramHash64(frame),
+        static_cast<uint32_t>(frame.size()),
+        telegramEdgeKey(frame)
+    };
+
+    if (seen_telegrams_set.count(fingerprint) != 0)
     {
         // Found it!
         return true;
@@ -408,22 +487,38 @@ bool seen_this_telegram_before(vector<uchar> &frame)
 
     if (seen_telegrams.size() >= 10)
     {
+        TelegramFingerprint oldest = seen_telegrams.front();
         seen_telegrams.pop_front();
+        seen_telegrams_set.erase(oldest);
     }
-    seen_telegrams.push_back(hash);
+    seen_telegrams.push_back(fingerprint);
+    seen_telegrams_set.insert(fingerprint);
 
     return false;
 }
 
 // Store the dll_a (6 bytes composed of 4 id + 1 ver + 1 media )
 // for telegrams that has been warned about!
-deque<vector<uchar>> warning_printed_for_telegrams;
+deque<uint64_t> warning_printed_for_telegrams;
+unordered_set<uint64_t> warning_printed_for_telegrams_set;
+
+static inline uint64_t dllAKey(const vector<uchar> &dll_a)
+{
+    if (dll_a.size() < 6) return 0;
+    uint64_t key = 0;
+    key |= static_cast<uint64_t>(dll_a[0]);
+    key |= static_cast<uint64_t>(dll_a[1]) << 8;
+    key |= static_cast<uint64_t>(dll_a[2]) << 16;
+    key |= static_cast<uint64_t>(dll_a[3]) << 24;
+    key |= static_cast<uint64_t>(dll_a[4]) << 32;
+    key |= static_cast<uint64_t>(dll_a[5]) << 40;
+    return key;
+}
 
 bool warned_for_telegram_before(Telegram *t, vector<uchar> &dll_a)
 {
-    auto i = std::find(warning_printed_for_telegrams.begin(), warning_printed_for_telegrams.end(), dll_a);
-
-    if (i != warning_printed_for_telegrams.end())
+    uint64_t key = dllAKey(dll_a);
+    if (warning_printed_for_telegrams_set.count(key) != 0)
     {
         // Found it!
         if (t->triggered_warning)
@@ -440,184 +535,168 @@ bool warned_for_telegram_before(Telegram *t, vector<uchar> &dll_a)
     // Limit size of memory to 100 odd meters...
     if (warning_printed_for_telegrams.size() >= 100)
     {
+        uint64_t oldest = warning_printed_for_telegrams.front();
         warning_printed_for_telegrams.pop_front();
+        warning_printed_for_telegrams_set.erase(oldest);
     }
-    warning_printed_for_telegrams.push_back(dll_a);
+    warning_printed_for_telegrams.push_back(key);
+    warning_printed_for_telegrams_set.insert(key);
     // Print all warnings for this telegram.
     t->triggered_warning = true;
     return false;
 }
 
-string manufacturer(int m_field) {
-    for (auto &m : manufacturers_) {
-	if (m.m_field == m_field) return m.name;
+const char *manufacturer(int m_field) {
+    static const int max_mfct = 0x8000;
+    static const vector<const char*> by_mfct = []() {
+        vector<const char*> lut(max_mfct, "Unknown");
+        for (const auto &m : manufacturers_)
+        {
+            if (m.m_field >= 0 && m.m_field < max_mfct)
+            {
+                lut[m.m_field] = m.name;
+            }
+        }
+        return lut;
+    }();
+
+    if (m_field >= 0 && m_field < max_mfct)
+    {
+        return by_mfct[m_field];
     }
+
     // Some weird meters send the first char in lower case aPT iTW. Fix and try again.
-    m_field &= 0x7fff;
-    for (auto &m : manufacturers_) {
-	if (m.m_field == m_field) return m.name;
-    }
-    return "Unknown";
-}
-
-string mediaType(int a_field_device_type, int m_field) {
-    switch (a_field_device_type) {
-    case 0: return "Other";
-    case 1: return "Oil meter";
-    case 2: return "Electricity meter";
-    case 3: return "Gas meter";
-    case 4: return "Heat meter";
-    case 5: return "Steam meter";
-    case 6: return "Warm Water (30°C-90°C) meter";
-    case 7: return "Water meter";
-    case 8: return "Heat Cost Allocator";
-    case 9: return "Compressed air meter";
-    case 0x0a: return "Cooling load volume at outlet meter";
-    case 0x0b: return "Cooling load volume at inlet meter";
-    case 0x0c: return "Heat volume at inlet meter";
-    case 0x0d: return "Heat/Cooling load meter";
-    case 0x0e: return "Bus/System component";
-    case 0x0f: return "Unknown";
-    case 0x15: return "Hot water (>=90°C) meter";
-    case 0x16: return "Cold water meter";
-    case 0x17: return "Hot/Cold water meter";
-    case 0x18: return "Pressure meter";
-    case 0x19: return "A/D converter";
-    case 0x1A: return "Smoke detector";
-    case 0x1B: return "Room sensor (eg temperature or humidity)";
-    case 0x1C: return "Gas detector";
-    case 0x1D: return "Reserved for sensors";
-    case 0x1F: return "Reserved for sensors";
-    case 0x20: return "Breaker (electricity)";
-    case 0x21: return "Valve (gas or water)";
-    case 0x22: return "Reserved for switching devices";
-    case 0x23: return "Reserved for switching devices";
-    case 0x24: return "Reserved for switching devices";
-    case 0x25: return "Customer unit (display device)";
-    case 0x26: return "Reserved for customer units";
-    case 0x27: return "Reserved for customer units";
-    case 0x28: return "Waste water";
-    case 0x29: return "Garbage";
-    case 0x2A: return "Reserved for Carbon dioxide";
-    case 0x2B: return "Reserved for environmental meter";
-    case 0x2C: return "Reserved for environmental meter";
-    case 0x2D: return "Reserved for environmental meter";
-    case 0x2E: return "Reserved for environmental meter";
-    case 0x2F: return "Reserved for environmental meter";
-    case 0x30: return "Reserved for system devices";
-    case 0x31: return "Reserved for communication controller";
-    case 0x32: return "Reserved for unidirectional repeater";
-    case 0x33: return "Reserved for bidirectional repeater";
-    case 0x34: return "Reserved for system devices";
-    case 0x35: return "Reserved for system devices";
-    case 0x36: return "Radio converter (system side)";
-    case 0x37: return "Radio converter (meter side)";
-    case 0x38: return "Reserved for system devices";
-    case 0x39: return "Reserved for system devices";
-    case 0x3A: return "Reserved for system devices";
-    case 0x3B: return "Reserved for system devices";
-    case 0x3C: return "Reserved for system devices";
-    case 0x3D: return "Reserved for system devices";
-    case 0x3E: return "Reserved for system devices";
-    case 0x3F: return "Reserved for system devices";
-    }
-
-    if (m_field == MANUFACTURER_TCH)
+    int fixed = m_field & 0x7fff;
+    if (fixed >= 0 && fixed < max_mfct)
     {
-        switch (a_field_device_type) {
-        // Techem MK Radio 3/4 manufacturer specific.
-        case 0x62: return "Warm water"; // MKRadio3/MKRadio4
-        case 0x72: return "Cold water"; // MKRadio3/MKRadio4
-        // Techem FHKV.
-        case 0x80: return "Heat Cost Allocator"; // FHKV data ii/iii
-        // Techem Vario 4 Typ 4.5.1 manufacturer specific.
-        case 0xC3: return "Heat meter";
-        // Techem V manufacturer specific.
-        case 0x43: return "Heat meter";
-        case 0xf0: return "Smoke detector";
-        }
+        return by_mfct[fixed];
     }
+
     return "Unknown";
 }
 
-string mediaTypeJSON(int a_field_device_type, int m_field)
+struct MediaTypeInfo
 {
-    switch (a_field_device_type) {
-    case 0: return "other";
-    case 1: return "oil";
-    case 2: return "electricity";
-    case 3: return "gas";
-    case 4: return "heat";
-    case 5: return "steam";
-    case 6: return "warm water";
-    case 7: return "water";
-    case 8: return "heat cost allocation";
-    case 9: return "compressed air";
-    case 0x0a: return "cooling load volume at outlet";
-    case 0x0b: return "cooling load volume at inlet";
-    case 0x0c: return "heat volume at inlet";
-    case 0x0d: return "heat/cooling load";
-    case 0x0e: return "bus/system component";
-    case 0x0f: return "unknown";
-    case 0x15: return "hot water";
-    case 0x16: return "cold water";
-    case 0x17: return "hot/cold water";
-    case 0x18: return "pressure";
-    case 0x19: return "a/d converter";
-    case 0x1A: return "smoke detector";
-    case 0x1B: return "room sensor";
-    case 0x1C: return "gas detector";
-    case 0x1D: return "reserved";
-    case 0x1F: return "reserved";
-    case 0x20: return "breaker";
-    case 0x21: return "valve";
-    case 0x22: return "reserved";
-    case 0x23: return "reserved";
-    case 0x24: return "reserved";
-    case 0x25: return "customer unit (display device)";
-    case 0x26: return "reserved";
-    case 0x27: return "reserved";
-    case 0x28: return "waste water";
-    case 0x29: return "garbage";
-    case 0x2A: return "reserved";
-    case 0x2B: return "reserved";
-    case 0x2C: return "reserved";
-    case 0x2D: return "reserved";
-    case 0x2E: return "reserved";
-    case 0x2F: return "reserved";
-    case 0x30: return "reserved";
-    case 0x31: return "reserved";
-    case 0x32: return "reserved";
-    case 0x33: return "reserved";
-    case 0x34: return "reserved";
-    case 0x35: return "reserved";
-    case 0x36: return "radio converter (system side)";
-    case 0x37: return "radio converter (meter side)";
-    case 0x38: return "reserved";
-    case 0x39: return "reserved";
-    case 0x3A: return "reserved";
-    case 0x3B: return "reserved";
-    case 0x3C: return "reserved";
-    case 0x3D: return "reserved";
-    case 0x3E: return "reserved";
-    case 0x3F: return "reserved";
+    const char *hr;
+    const char *json;
+};
+
+static const MediaTypeInfo media_types_[0x40] = {
+    { "Other", "other" },
+    { "Oil meter", "oil" },
+    { "Electricity meter", "electricity" },
+    { "Gas meter", "gas" },
+    { "Heat meter", "heat" },
+    { "Steam meter", "steam" },
+    { "Warm Water (30°C-90°C) meter", "warm water" },
+    { "Water meter", "water" },
+    { "Heat Cost Allocator", "heat cost allocation" },
+    { "Compressed air meter", "compressed air" },
+    { "Cooling load volume at outlet meter", "cooling load volume at outlet" },
+    { "Cooling load volume at inlet meter", "cooling load volume at inlet" },
+    { "Heat volume at inlet meter", "heat volume at inlet" },
+    { "Heat/Cooling load meter", "heat/cooling load" },
+    { "Bus/System component", "bus/system component" },
+    { "Unknown", "unknown" },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { "Hot water (>=90°C) meter", "hot water" },
+    { "Cold water meter", "cold water" },
+    { "Hot/Cold water meter", "hot/cold water" },
+    { "Pressure meter", "pressure" },
+    { "A/D converter", "a/d converter" },
+    { "Smoke detector", "smoke detector" },
+    { "Room sensor (eg temperature or humidity)", "room sensor" },
+    { "Gas detector", "gas detector" },
+    { "Reserved for sensors", "reserved" },
+    { NULL, NULL },
+    { "Reserved for sensors", "reserved" },
+    { "Breaker (electricity)", "breaker" },
+    { "Valve (gas or water)", "valve" },
+    { "Reserved for switching devices", "reserved" },
+    { "Reserved for switching devices", "reserved" },
+    { "Reserved for switching devices", "reserved" },
+    { "Customer unit (display device)", "customer unit (display device)" },
+    { "Reserved for customer units", "reserved" },
+    { "Reserved for customer units", "reserved" },
+    { "Waste water", "waste water" },
+    { "Garbage", "garbage" },
+    { "Reserved for Carbon dioxide", "reserved" },
+    { "Reserved for environmental meter", "reserved" },
+    { "Reserved for environmental meter", "reserved" },
+    { "Reserved for environmental meter", "reserved" },
+    { "Reserved for environmental meter", "reserved" },
+    { "Reserved for environmental meter", "reserved" },
+    { "Reserved for system devices", "reserved" },
+    { "Reserved for communication controller", "reserved" },
+    { "Reserved for unidirectional repeater", "reserved" },
+    { "Reserved for bidirectional repeater", "reserved" },
+    { "Reserved for system devices", "reserved" },
+    { "Reserved for system devices", "reserved" },
+    { "Radio converter (system side)", "radio converter (system side)" },
+    { "Radio converter (meter side)", "radio converter (meter side)" },
+    { "Reserved for system devices", "reserved" },
+    { "Reserved for system devices", "reserved" },
+    { "Reserved for system devices", "reserved" },
+    { "Reserved for system devices", "reserved" },
+    { "Reserved for system devices", "reserved" },
+    { "Reserved for system devices", "reserved" },
+    { "Reserved for system devices", "reserved" },
+    { "Reserved for system devices", "reserved" }
+};
+
+static const MediaTypeInfo techem_warm_water_ = { "Warm water", "warm water" };
+static const MediaTypeInfo techem_cold_water_ = { "Cold water", "cold water" };
+static const MediaTypeInfo techem_hca_ = { "Heat Cost Allocator", "heat cost allocator" };
+static const MediaTypeInfo techem_heat_ = { "Heat meter", "heat" };
+static const MediaTypeInfo techem_smoke_ = { "Smoke detector", "smoke detector" };
+
+static const MediaTypeInfo *lookupMediaTypeInfo(int a_field_device_type, int m_field)
+{
+    if (a_field_device_type >= 0 && a_field_device_type < 0x40)
+    {
+        const MediaTypeInfo &candidate = media_types_[a_field_device_type];
+        if (candidate.hr != NULL)
+        {
+            return &candidate;
+        }
     }
 
     if (m_field == MANUFACTURER_TCH)
     {
-        switch (a_field_device_type) {
-        // Techem MK Radio 3/4 manufacturer specific.
-        case 0x62: return "warm water"; // MKRadio3/MKRadio4
-        case 0x72: return "cold water"; // MKRadio3/MKRadio4
-        // Techem FHKV.
-        case 0x80: return "heat cost allocator"; // FHKV data ii/iii
-        // Techem Vario 4 Typ 4.5.1 manufacturer specific.
-        case 0xC3: return "heat";
-        // Techem V manufacturer specific.
-        case 0x43: return "heat";
-        case 0xf0: return "smoke detector";
+        switch (a_field_device_type)
+        {
+        case 0x62: return &techem_warm_water_;
+        case 0x72: return &techem_cold_water_;
+        case 0x80: return &techem_hca_;
+        case 0xC3: return &techem_heat_;
+        case 0x43: return &techem_heat_;
+        case 0xf0: return &techem_smoke_;
         }
     }
+
+    return NULL;
+}
+
+static inline uint32_t busDeviceTypeBit(BusDeviceType t)
+{
+    return 1u << static_cast<unsigned>(t);
+}
+
+const char *mediaType(int a_field_device_type, int m_field)
+{
+    const MediaTypeInfo *info = lookupMediaTypeInfo(a_field_device_type, m_field);
+    if (info) return info->hr;
+    return "Unknown";
+}
+
+const char *mediaTypeJSON(int a_field_device_type, int m_field)
+{
+    const MediaTypeInfo *info = lookupMediaTypeInfo(a_field_device_type, m_field);
+    if (info) return info->json;
     return "Unknown";
 }
 
@@ -666,7 +745,7 @@ bool isCiFieldManufacturerSpecific(int ci_field)
     return ci_field >= 0xA0 && ci_field <= 0xB7;
 }
 
-string ciType(int ci_field)
+const char* ciType(int ci_field)
 {
     if (ci_field >= 0xA0 && ci_field <= 0xB7) {
         return "Mfct specific";
@@ -987,7 +1066,7 @@ bool Telegram::parseDLL(vector<uchar>::iterator &pos)
     dll_type = *(pos+1);
     addExplanationAndIncrementPos(pos, 1, KindOfData::PROTOCOL, Understanding::FULL, "%02x dll-version", dll_version);
     addExplanationAndIncrementPos(pos, 1, KindOfData::PROTOCOL, Understanding::FULL, "%02x dll-type (%s)", dll_type,
-                                  mediaType(dll_type, dll_mfct).c_str());
+                                  mediaType(dll_type, dll_mfct));
 
     return true;
 }
@@ -1016,7 +1095,7 @@ bool Telegram::parseELL(vector<uchar>::iterator &pos)
     int ci_field = *pos;
     if (!isCiFieldOfType(ci_field, CI_TYPE::ELL)) return true;
     addExplanationAndIncrementPos(pos, 1, KindOfData::PROTOCOL, Understanding::FULL, "%02x ell-ci-field (%s)",
-                                  ci_field, ciType(ci_field).c_str());
+                                  ci_field, ciType(ci_field));
     ell_ci = ci_field;
     int len = ciFieldLength(ell_ci);
 
@@ -1150,9 +1229,9 @@ bool Telegram::parseELL(vector<uchar>::iterator &pos)
                             check  & 0xff, check >> 8,
                             dll_id_b[3], dll_id_b[2], dll_id_b[1], dll_id_b[0],
                             manufacturerFlag(dll_mfct).c_str(),
-                            manufacturer(dll_mfct).c_str(),
+                            manufacturer(dll_mfct),
                             dll_mfct,
-                            mediaType(dll_type, dll_mfct).c_str(), dll_type,
+                            mediaType(dll_type, dll_mfct), dll_type,
                             dll_version);
                 }
             }
@@ -1171,7 +1250,7 @@ bool Telegram::parseNWL(vector<uchar>::iterator &pos)
     int ci_field = *pos;
     if (!isCiFieldOfType(ci_field, CI_TYPE::NWL)) return true;
     addExplanationAndIncrementPos(pos, 1, KindOfData::PROTOCOL, Understanding::FULL, "%02x nwl-ci-field (%s)",
-                                  ci_field, ciType(ci_field).c_str());
+                                  ci_field, ciType(ci_field));
     nwl_ci = ci_field;
     // We have only seen 0x81 0x1d so far.
     int len = 1; // ciFieldLength(nwl_ci);
@@ -1197,7 +1276,7 @@ bool Telegram::parseAFL(vector<uchar>::iterator &pos)
     int ci_field = *pos;
     if (!isCiFieldOfType(ci_field, CI_TYPE::AFL)) return true;
     addExplanationAndIncrementPos(pos, 1, KindOfData::PROTOCOL, Understanding::FULL, "%02x afl-ci-field (%s)",
-                                  ci_field, ciType(ci_field).c_str());
+                                  ci_field, ciType(ci_field));
     afl_ci = ci_field;
 
     afl_len = *pos;
@@ -1577,9 +1656,9 @@ bool Telegram::potentiallyDecrypt(vector<uchar>::iterator &pos)
                         "id: %02x%02x%02x%02x mfct: (%s) %s (0x%02x) type: %s (0x%02x) ver: 0x%02x\n",
                             dll_id_b[3], dll_id_b[2], dll_id_b[1], dll_id_b[0],
                             manufacturerFlag(dll_mfct).c_str(),
-                            manufacturer(dll_mfct).c_str(),
+                            manufacturer(dll_mfct),
                             dll_mfct,
-                            mediaType(dll_type, dll_mfct).c_str(), dll_type,
+                            mediaType(dll_type, dll_mfct), dll_type,
                             dll_version);
                 return false;
             }
@@ -1610,9 +1689,9 @@ bool Telegram::potentiallyDecrypt(vector<uchar>::iterator &pos)
                             "Permanently ignoring telegrams from id: %02x%02x%02x%02x mfct: (%s) %s (0x%02x) type: %s (0x%02x) ver: 0x%02x\n",
                             dll_id_b[3], dll_id_b[2], dll_id_b[1], dll_id_b[0],
                             manufacturerFlag(dll_mfct).c_str(),
-                            manufacturer(dll_mfct).c_str(),
+                            manufacturer(dll_mfct),
                             dll_mfct,
-                            mediaType(dll_type, dll_mfct).c_str(), dll_type,
+                            mediaType(dll_type, dll_mfct), dll_type,
                             dll_version);
                 }
             }
@@ -1645,9 +1724,9 @@ bool Telegram::potentiallyDecrypt(vector<uchar>::iterator &pos)
                             "Permanently ignoring telegrams from id: %02x%02x%02x%02x mfct: (%s) %s (0x%02x) type: %s (0x%02x) ver: 0x%02x\n",
                             dll_id_b[3], dll_id_b[2], dll_id_b[1], dll_id_b[0],
                             manufacturerFlag(dll_mfct).c_str(),
-                            manufacturer(dll_mfct).c_str(),
+                            manufacturer(dll_mfct),
                             dll_mfct,
-                            mediaType(dll_type, dll_mfct).c_str(), dll_type,
+                            mediaType(dll_type, dll_mfct), dll_type,
                             dll_version);
                 }
             }
@@ -1667,9 +1746,9 @@ bool Telegram::potentiallyDecrypt(vector<uchar>::iterator &pos)
                         "id: %02x%02x%02x%02x mfct: (%s) %s (0x%02x) type: %s (0x%02x) ver: 0x%02x\n",
                             dll_id_b[3], dll_id_b[2], dll_id_b[1], dll_id_b[0],
                             manufacturerFlag(dll_mfct).c_str(),
-                            manufacturer(dll_mfct).c_str(),
+                            manufacturer(dll_mfct),
                             dll_mfct,
-                            mediaType(dll_type, dll_mfct).c_str(), dll_type,
+                            mediaType(dll_type, dll_mfct), dll_type,
                             dll_version);
                 return false;
             }
@@ -1690,9 +1769,9 @@ bool Telegram::potentiallyDecrypt(vector<uchar>::iterator &pos)
                             "Permanently ignoring telegrams from id: %02x%02x%02x%02x mfct: (%s) %s (0x%02x) type: %s (0x%02x) ver: 0x%02x\n",
                             dll_id_b[3], dll_id_b[2], dll_id_b[1], dll_id_b[0],
                             manufacturerFlag(dll_mfct).c_str(),
-                            manufacturer(dll_mfct).c_str(),
+                            manufacturer(dll_mfct),
                             dll_mfct,
-                            mediaType(dll_type, dll_mfct).c_str(), dll_type,
+                            mediaType(dll_type, dll_mfct), dll_type,
                             dll_version);
                     return false;
                 }
@@ -1746,9 +1825,9 @@ bool Telegram::potentiallyDecrypt(vector<uchar>::iterator &pos)
                             "Permanently ignoring telegrams from id: %02x%02x%02x%02x mfct: (%s) %s (0x%02x) type: %s (0x%02x) ver: 0x%02x\n",
                             dll_id_b[3], dll_id_b[2], dll_id_b[1], dll_id_b[0],
                             manufacturerFlag(dll_mfct).c_str(),
-                            manufacturer(dll_mfct).c_str(),
+                            manufacturer(dll_mfct),
                             dll_mfct,
-                            mediaType(dll_type, dll_mfct).c_str(), dll_type,
+                            mediaType(dll_type, dll_mfct), dll_type,
                             dll_version);
                 }
             }
@@ -1780,9 +1859,9 @@ bool Telegram::potentiallyDecrypt(vector<uchar>::iterator &pos)
                 "id: %02x%02x%02x%02x mfct: (%s) %s (0x%02x) type: %s (0x%02x) ver: 0x%02x\n",
                 dll_id_b[3], dll_id_b[2], dll_id_b[1], dll_id_b[0],
                 manufacturerFlag(dll_mfct).c_str(),
-                manufacturer(dll_mfct).c_str(),
+                manufacturer(dll_mfct),
                 dll_mfct,
-                mediaType(dll_type, dll_mfct).c_str(), dll_type,
+                mediaType(dll_type, dll_mfct), dll_type,
                 dll_version);
         return false;
     }
@@ -1918,7 +1997,7 @@ bool Telegram::parseTPL(vector<uchar>::iterator &pos)
 
     addExplanationAndIncrementPos(pos, 1, KindOfData::PROTOCOL, Understanding::FULL,
                                   "%02x tpl-ci-field (%s)",
-                                  tpl_ci, ciType(tpl_ci).c_str());
+                                  tpl_ci, ciType(tpl_ci));
     int len = ciFieldLength(tpl_ci);
 
     if (remaining < len+1 && ! mfct_specific) return expectedMore(__LINE__);
@@ -1961,6 +2040,17 @@ void Telegram::preProcess()
     }
 }
 
+void Telegram::resetParseState(vector<uchar> &input_frame, bool warn, MeterKeys *mk)
+{
+    parser_warns_ = warn;
+    decryption_failed = false;
+    explanations.clear();
+    suffix_size = 0;
+    meter_keys = mk;
+    frame = input_frame;
+    parsed.clear();
+}
+
 bool Telegram::parse(vector<uchar> &input_frame, MeterKeys *mk, bool warn)
 {
     switch (about.type)
@@ -1993,14 +2083,8 @@ bool Telegram::parseWMBUSHeader(vector<uchar> &input_frame)
     // Parsing the header is used to extract the ids, so that we can
     // match the telegram towards any known ids and thus keys.
     // No need to warn.
-    parser_warns_ = false;
-    decryption_failed = false;
-    explanations.clear();
-    suffix_size = 0;
-    frame = input_frame;
+    resetParseState(input_frame, false, NULL);
     vector<uchar>::iterator pos = frame.begin();
-    // Parsed accumulates parsed bytes.
-    parsed.clear();
     // Fixes quirks from non-compliant meters to make telegram compatible with the standard
     preProcess();
 
@@ -2029,17 +2113,10 @@ bool Telegram::parseWMBUS(vector<uchar> &input_frame, MeterKeys *mk, bool warn)
 {
     assert(about.type == FrameType::WMBUS);
 
-    parser_warns_ = warn;
-    decryption_failed = false;
-    explanations.clear();
-    suffix_size = 0;
-    meter_keys = mk;
+    resetParseState(input_frame, warn, mk);
     assert(meter_keys != NULL);
     bool ok;
-    frame = input_frame;
     vector<uchar>::iterator pos = frame.begin();
-    // Parsed accumulates parsed bytes.
-    parsed.clear();
     // Fixes quirks from non-compliant meters to make telegram compatible with the standard
     preProcess();
     //     ┌──────────────────────────────────────────────┐
@@ -2110,14 +2187,8 @@ bool Telegram::parseMBUSHeader(vector<uchar> &input_frame)
     // Parsing the header is used to extract the ids, so that we can
     // match the telegram towards any known ids and thus keys.
     // No need to warn.
-    parser_warns_ = false;
-    decryption_failed = false;
-    explanations.clear();
-    suffix_size = 0;
-    frame = input_frame;
+    resetParseState(input_frame, false, NULL);
     vector<uchar>::iterator pos = frame.begin();
-    // Parsed accumulates parsed bytes.
-    parsed.clear();
 
     ok = parseMBusDLLandTPL(pos);
     if (!ok) return false;
@@ -2129,17 +2200,10 @@ bool Telegram::parseMBUS(vector<uchar> &input_frame, MeterKeys *mk, bool warn)
 {
     assert(about.type == FrameType::MBUS);
 
-    parser_warns_ = warn;
-    decryption_failed = false;
-    explanations.clear();
-    suffix_size = 0;
-    meter_keys = mk;
+    resetParseState(input_frame, warn, mk);
     assert(meter_keys != NULL);
     bool ok;
-    frame = input_frame;
     vector<uchar>::iterator pos = frame.begin();
-    // Parsed accumulates parsed bytes.
-    parsed.clear();
 
     //     ┌──────────────────────────────────────────────┐
     //     │                                              │
@@ -2544,7 +2608,7 @@ MeasurementType difMeasurementType(int dif)
     assert(0);
 }
 
-string vifType(int vif)
+const char* vifType(int vif)
 {
     // Remove any remaining 0x80 top bits.
     vif &= 0x7f7f;
@@ -2979,7 +3043,7 @@ double vifScale(int vif)
     }
 }
 
-string vifKey(int vif)
+const char* vifKey(int vif)
 {
     int t = vif & 0x7f;
 
@@ -3136,7 +3200,7 @@ string vifKey(int vif)
     }
 }
 
-string vifUnit(int vif)
+const char* vifUnit(int vif)
 {
     int t = vif & 0x7f;
 
@@ -4214,7 +4278,7 @@ string BusDeviceCommonImplementation::busAlias()
     return bus_alias_;
 }
 
-void BusDeviceCommonImplementation::onTelegram(function<bool(AboutTelegram&,vector<uchar>)> cb)
+void BusDeviceCommonImplementation::onTelegram(function<bool(AboutTelegram&,const vector<uchar>&)> cb)
 {
     telegram_listeners_.push_back(cb);
 }
@@ -4244,7 +4308,7 @@ bool getDetailedFirst()
     return detailed_first_;
 }
 
-bool BusDeviceCommonImplementation::handleTelegram(AboutTelegram &about, vector<uchar> frame)
+bool BusDeviceCommonImplementation::handleTelegram(AboutTelegram &about, const vector<uchar> &frame)
 {
     bool handled = false;
     last_received_ = time(NULL);
@@ -4278,7 +4342,7 @@ bool BusDeviceCommonImplementation::handleTelegram(AboutTelegram &about, vector<
         }
     }
 
-    for (auto f : telegram_listeners_)
+    for (auto &f : telegram_listeners_)
     {
         if (f)
         {
@@ -5560,6 +5624,16 @@ TelegramFormat toTelegramFormat(const char *s)
     return TelegramFormat::UNKNOWN;
 }
 
+static TelegramFormat toTelegramFormat(string_view s)
+{
+    if (s == "wmbus_c_field") return TelegramFormat::WMBUS_C_FIELD;
+    if (s == "wmbus_ci_field") return TelegramFormat::WMBUS_CI_FIELD;
+    if (s == "mbus_short_frame") return TelegramFormat::MBUS_SHORT_FRAME;
+    if (s == "mbus_long_frame") return TelegramFormat::MBUS_LONG_FRAME;
+
+    return TelegramFormat::UNKNOWN;
+}
+
 const char *toString(DeviceMode mode)
 {
     if (mode == DeviceMode::METER) return "meter";
@@ -5594,28 +5668,30 @@ bool SendBusContent::parse(const string &s)
     // send:mbus:long:OUTMBUS:001122
     //     c1   c2   c3      c4
 
-    size_t c1 = s.find(":");
+    string_view sv(s);
+
+    size_t c1 = sv.find(':');
     if (c1 == string::npos) return false;
-    size_t c2 = s.find(":", c1+1);
+    size_t c2 = sv.find(':', c1+1);
     if (c2 == string::npos) return false;
-    size_t c3 = s.find(":", c2+1);
+    size_t c3 = sv.find(':', c2+1);
     if (c3 == string::npos) return false;
-    size_t c4 = s.find(":", c3+1);
+    size_t c4 = sv.find(':', c3+1);
     if (c4 == string::npos) return false;
 
-    string cmd = s.substr(0, c1);
+    string_view cmd = sv.substr(0, c1);
     if (cmd != "send") return false;
 
-    link_mode = toLinkMode(s.substr(c1+1, c2-c1-1).c_str());
+    link_mode = toLinkMode(sv.substr(c1+1, c2-c1-1));
     if (link_mode == LinkMode::UNKNOWN) return false;
 
-    format = toTelegramFormat(s.substr(c2+1, c3-c2-1).c_str());
+    format = toTelegramFormat(sv.substr(c2+1, c3-c2-1));
     if (format == TelegramFormat::UNKNOWN) return false;
 
-    bus = s.substr(c3+1, c4-c3-1);
+    bus.assign(sv.substr(c3+1, c4-c3-1));
     if (bus.size() == 0) return false;
 
-    content = s.substr(c4+1);
+    content.assign(sv.substr(c4+1));
     if (content.size() == 0) return false;
     if (content.size() % 2 == 1) return false;
 
@@ -5623,7 +5699,7 @@ bool SendBusContent::parse(const string &s)
 }
 
 Detected detectBusDeviceOnTTY(string tty,
-                              set<BusDeviceType> probe_for,
+                              const set<BusDeviceType> &probe_for,
                               LinkModeSet desired_linkmodes,
                               shared_ptr<SerialCommunicationManager> handler,
                               string bps)
@@ -5635,7 +5711,20 @@ Detected detectBusDeviceOnTTY(string tty,
     detected.specified_device.linkmodes = desired_linkmodes;
     detected.specified_device.bps = std::move(bps);
 
-    bool has_auto = probe_for.count(BusDeviceType::DEVICE_AUTO);
+    uint32_t probe_mask = 0;
+    for (BusDeviceType t : probe_for)
+    {
+        probe_mask |= busDeviceTypeBit(t);
+    }
+
+    bool has_auto = (probe_mask & busDeviceTypeBit(BusDeviceType::DEVICE_AUTO)) != 0;
+    bool probe_amb = (probe_mask & (busDeviceTypeBit(BusDeviceType::DEVICE_AMB8465) |
+                                    busDeviceTypeBit(BusDeviceType::DEVICE_AMB3665))) != 0;
+    bool probe_im = (probe_mask & (busDeviceTypeBit(BusDeviceType::DEVICE_IM871A) |
+                                   busDeviceTypeBit(BusDeviceType::DEVICE_IM170A))) != 0;
+    bool probe_rc1180 = (probe_mask & busDeviceTypeBit(BusDeviceType::DEVICE_RC1180)) != 0;
+    bool probe_cul = (probe_mask & busDeviceTypeBit(BusDeviceType::DEVICE_CUL)) != 0;
+    bool probe_iu891a = (probe_mask & busDeviceTypeBit(BusDeviceType::DEVICE_IU891A)) != 0;
 
     AccessCheck ac = handler->checkAccess(tty, handler);
     if (ac != AccessCheck::AccessOK)
@@ -5654,7 +5743,7 @@ Detected detectBusDeviceOnTTY(string tty,
 
     // Talk amb8465 with it...
     // assumes this device is configured for 9600 bps, which seems to be the default.
-    if (has_auto || probe_for.count(BusDeviceType::DEVICE_AMB8465) || probe_for.count(BusDeviceType::DEVICE_AMB3665))
+    if (has_auto || probe_amb)
     {
         if (detectAMB8465AMB3665(&detected, handler) == AccessCheck::AccessOK)
         {
@@ -5664,7 +5753,7 @@ Detected detectBusDeviceOnTTY(string tty,
 
     // Talk im871a with it...
     // assumes this device is configured for 57600 bps, which seems to be the default.
-    if (has_auto || probe_for.count(BusDeviceType::DEVICE_IM871A) || probe_for.count(BusDeviceType::DEVICE_IM170A))
+    if (has_auto || probe_im)
     {
         if (detectIM871AIM170A(&detected, handler) == AccessCheck::AccessOK)
         {
@@ -5674,7 +5763,7 @@ Detected detectBusDeviceOnTTY(string tty,
 
     // Talk RC1180 with it...
     // assumes this device is configured for 19200 bps, which seems to be the default.
-    if (has_auto || probe_for.count(BusDeviceType::DEVICE_RC1180))
+    if (has_auto || probe_rc1180)
     {
         if (detectRC1180(&detected, handler) == AccessCheck::AccessOK)
         {
@@ -5684,7 +5773,7 @@ Detected detectBusDeviceOnTTY(string tty,
 
     // Talk CUL with it...
     // assumes this device is configured for 38400 bps, which seems to be the default.
-    if (has_auto || probe_for.count(BusDeviceType::DEVICE_CUL))
+    if (has_auto || probe_cul)
     {
         if (detectCUL(&detected, handler) == AccessCheck::AccessOK)
         {
@@ -5694,7 +5783,7 @@ Detected detectBusDeviceOnTTY(string tty,
 
     // Talk iu891a with it...
     // assumes this device is configured for 115200 bps, which seems to be the default.
-    if (has_auto || probe_for.count(BusDeviceType::DEVICE_IU891A))
+    if (has_auto || probe_iu891a)
     {
         if (detectIU891A(&detected, handler) == AccessCheck::AccessOK)
         {

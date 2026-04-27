@@ -196,8 +196,8 @@ private:
     uint64_t set_ {};
 };
 
-LinkModeSet parseLinkModes(std::string modes);
-bool isValidLinkModes(std::string modes);
+LinkModeSet parseLinkModes(const std::string &modes);
+bool isValidLinkModes(const std::string &modes);
 
 // A specified bus device is supplied on the command line or in the config file.
 // It has this format "alias=file:type[id](extras):fq:bps:linkmods:CMD(command)"
@@ -583,6 +583,8 @@ public:
 
 private:
 
+    void resetParseState(std::vector<uchar> &input_frame, bool warn, MeterKeys *mk);
+
     bool is_simulated_ {};
     bool being_analyzed_ {};
     bool parser_warns_ = true;
@@ -672,7 +674,7 @@ struct BusDevice
     virtual bool canSetLinkModes(LinkModeSet lms) = 0;
     virtual void setLinkModes(LinkModeSet lms) = 0;
     virtual void setDeviceMode(DeviceMode mode) = 0;
-    virtual void onTelegram(std::function<bool(AboutTelegram&,std::vector<uchar>)> cb) = 0;
+    virtual void onTelegram(std::function<bool(AboutTelegram&,const std::vector<uchar>&)> cb) = 0;
     virtual bool sendTelegram(LinkMode link_mode, TelegramFormat format, std::vector<uchar> &content) = 0;
     virtual SerialDevice *serial() = 0;
     // Return true of the serial has been overridden, usually with stdin or a file.
@@ -763,22 +765,22 @@ std::shared_ptr<BusDevice> openSimulator(Detected detected,
                                 std::shared_ptr<SerialCommunicationManager> manager,
                                 std::shared_ptr<SerialDevice> serial_override);
 
-std::string manufacturer(int m_field);
-std::string mediaType(int a_field_device_type, int m_field);
-std::string mediaTypeJSON(int a_field_device_type, int m_field);
+const char *manufacturer(int m_field);
+const char *mediaType(int a_field_device_type, int m_field);
+const char *mediaTypeJSON(int a_field_device_type, int m_field);
 bool isCiFieldOfType(int ci_field, CI_TYPE type);
 int ciFieldLength(int ci_field);
 bool isCiFieldManufacturerSpecific(int ci_field);
-std::string ciType(int ci_field);
+const char* ciType(int ci_field);
 std::string cType(int c_field);
 bool isValidWMBusCField(int c_field);
 bool isValidMBusCField(int c_field);
 std::string ccType(int cc_field);
 std::string difType(int dif);
 double vifScale(int vif);
-std::string vifKey(int vif); // E.g. temperature energy power mass_flow volume_flow
-std::string vifUnit(int vif); // E.g. m3 c kwh kw MJ MJh
-std::string vifType(int vif); // Long description
+const char* vifKey(int vif); // E.g. temperature energy power mass_flow volume_flow
+const char* vifUnit(int vif); // E.g. m3 c kwh kw MJ MJh
+const char* vifType(int vif); // Long description
 std::string vifeType(int dif, int vif, int vife); // Long description
 
 // Decode only the standard defined bits in the tpl status byte. Ignore the top 3 bits.
@@ -836,7 +838,7 @@ AccessCheck factoryResetAMB8465(std::string tty, std::shared_ptr<SerialCommunica
 AccessCheck factoryResetAMB3665(std::string tty, std::shared_ptr<SerialCommunicationManager> handler, int *was_baud);
 
 Detected detectBusDeviceOnTTY(std::string tty,
-                              std::set<BusDeviceType> probe_for,
+                              const std::set<BusDeviceType> &probe_for,
                               LinkModeSet desired_linkmodes,
                               std::shared_ptr<SerialCommunicationManager> handler,
                               std::string bps = std::string());

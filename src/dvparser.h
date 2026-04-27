@@ -26,6 +26,7 @@
 #include<map>
 #include<set>
 #include<string>
+#include<utility>
 #include<vector>
 
 #define LIST_OF_VIF_RANGES \
@@ -291,8 +292,8 @@ void extractDV(std::string &s, uchar *dif, int *vif, bool *has_difes, bool *has_
 
 struct DifVifKey
 {
-    DifVifKey(std::string key) : key_(key) {
-        extractDV(key, &dif_, &vif_, &has_difes_, &has_vifes_, &measurement_type_, &storage_nr_, &tariff_nr_, &subunit_nr_);
+    DifVifKey(std::string key) : key_(std::move(key)) {
+        extractDV(key_, &dif_, &vif_, &has_difes_, &has_vifes_, &measurement_type_, &storage_nr_, &tariff_nr_, &subunit_nr_);
     }
     std::string str() { return key_; }
     bool operator==(DifVifKey &dvk) { return key_ == dvk.key_; }
@@ -382,17 +383,17 @@ struct DVEntry
             StorageNr st,
             TariffNr ta,
             SubUnitNr su,
-            std::string &val) :
+            std::string val) :
         offset(off),
-        dif_vif_key(dvk),
+        dif_vif_key(std::move(dvk)),
         measurement_type(mt),
         vif(vi),
-        combinable_vifs(vc),
-        combinable_vifs_raw(vc_raw),
+        combinable_vifs(std::move(vc)),
+        combinable_vifs_raw(std::move(vc_raw)),
         storage_nr(st),
         tariff_nr(ta),
         subunit_nr(su),
-        value(val)
+        value(std::move(val))
     {
     }
 

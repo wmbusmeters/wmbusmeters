@@ -164,7 +164,7 @@ void BusManager::openBusDeviceAndPotentiallySetLinkmodes(Configuration *config, 
         debug("(main) added %s to files\n", detected->found_file.c_str());
         simulation_files_.insert(detected->specified_device.file);
     }
-    wmbus->onTelegram([&, simulated](AboutTelegram &about,vector<uchar> data){return meter_manager_->handleTelegram(about, data, simulated);});
+    wmbus->onTelegram([&, simulated](AboutTelegram &about, const vector<uchar> &data){return meter_manager_->handleTelegram(about, data, simulated);});
     wmbus->setTimeout(config->alarm_timeout, config->alarm_expected_activity);
 }
 

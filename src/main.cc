@@ -56,7 +56,7 @@ void list_fields(Configuration *config, string meter_type);
 void print_driver(Configuration *config, string meter_type);
 void list_shell_envs(Configuration *config, string meter_type);
 void list_meters(Configuration *config, bool cli);
-void list_units();
+__attribute__((cold,noinline)) void list_units();
 void log_start_information(Configuration *config);
 void oneshot_check(Configuration *config, Telegram *t, Meter *meter);
 void regular_checkup(Configuration *config);
@@ -378,7 +378,7 @@ struct TmpUnit
     string suff, expl, name, quantity, si;
 };
 
-void list_units()
+__attribute__((cold,noinline)) void list_units()
 {
     vector<TmpUnit> units;
     set<string> quantities;
@@ -673,11 +673,12 @@ bool start(Configuration *config)
         else if (!config->analyze)
         {
             if (!config->logsummary) notice("No meters configured. Printing id:s of all telegrams heard!\n");
-            meter_manager_->onTelegram([](AboutTelegram &about, vector<uchar> frame) {
+                meter_manager_->onTelegram([](AboutTelegram &about, const vector<uchar> &frame) {
                     Telegram t;
                     t.about = about;
                     MeterKeys mk;
-                    t.parse(frame, &mk, false); // Try a best effort parse, do not print any warnings.
+                    vector<uchar> parse_frame = frame;
+                    t.parse(parse_frame, &mk, false); // Try a best effort parse, do not print any warnings.
                     t.print();
                     string info = string("(")+toString(about.type)+")";
                     t.explainParse(info.c_str(), 0);

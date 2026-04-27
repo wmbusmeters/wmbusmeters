@@ -48,8 +48,22 @@ private:
     bool analyze_verbose_;
     vector<MeterInfo> meter_templates_;
     vector<shared_ptr<Meter>> meters_;
-    vector<function<bool(AboutTelegram&,vector<uchar>)>> telegram_listeners_;
+    size_t meters_with_updates_ {};
+    vector<function<bool(AboutTelegram&,const vector<uchar>&)>> telegram_listeners_;
     function<void(Telegram*t,Meter*)> on_meter_updated_;
+
+    void meterUpdated(Telegram *t, Meter *meter)
+    {
+        if (meter->numUpdates() == 1)
+        {
+            meters_with_updates_++;
+        }
+
+        if (on_meter_updated_)
+        {
+            on_meter_updated_(t, meter);
+        }
+    }
 
 public:
     void addMeterTemplate(MeterInfo &mi)
@@ -60,8 +74,12 @@ public:
     void addMeter(shared_ptr<Meter> meter)
     {
         meters_.push_back(meter);
+        if (meter->numUpdates() > 0)
+        {
+            meters_with_updates_++;
+        }
         meter->setIndex(meters_.size());
-        meter->onUpdate(on_meter_updated_);
+        meter->onUpdate([this](Telegram *t, Meter *m) { meterUpdated(t, m); });
         meter->setMeterManager(this);
     }
 
@@ -73,6 +91,7 @@ public:
     void removeAllMeters()
     {
         meters_.clear();
+        meters_with_updates_ = 0;
     }
 
     void forEachMeter(std::function<void(Meter*)> cb)
@@ -85,14 +104,8 @@ public:
 
     bool hasAllMetersReceivedATelegram()
     {
-        if (meters_.size() < meter_templates_.size()) return false;
-
-        for (auto &meter : meters_)
-        {
-            if (meter->numUpdates() == 0) return false;
-        }
-
-        return true;
+        return meters_.size() >= meter_templates_.size() &&
+               meters_with_updates_ == meters_.size();
     }
 
     bool hasMeters()
@@ -120,9 +133,9 @@ public:
                 name.c_str(),
                 id_b[3], id_b[2], id_b[1], id_b[0],
                 manufacturerFlag(mfct).c_str(),
-                manufacturer(mfct).c_str(),
+                manufacturer(mfct),
                 mfct,
-                mediaType(media, mfct).c_str(), media,
+                mediaType(media, mfct), media,
                 version);
 
 
@@ -268,7 +281,7 @@ public:
                 }
             }
         }
-        for (auto f : telegram_listeners_)
+        for (auto &f : telegram_listeners_)
         {
             f(about, input_frame);
         }
@@ -279,7 +292,7 @@ public:
         return handled;
     }
 
-    void onTelegram(function<bool(AboutTelegram &about, vector<uchar>)> cb)
+    void onTelegram(function<bool(AboutTelegram &about, const vector<uchar> &)> cb)
     {
         telegram_listeners_.push_back(cb);
     }

@@ -35,9 +35,9 @@ struct BusDeviceCommonImplementation : public BusDevice
     std::string hr();
     bool isSerial();
     BusDeviceType type();
-    void onTelegram(std::function<bool(AboutTelegram&,std::vector<uchar>)> cb);
+    void onTelegram(std::function<bool(AboutTelegram&,const std::vector<uchar>&)> cb);
     bool sendTelegram(LinkMode link_mode, TelegramFormat format,std::vector<uchar> &content);
-    bool handleTelegram(AboutTelegram &about,std::vector<uchar> frame);
+    bool handleTelegram(AboutTelegram &about,const std::vector<uchar> &frame);
     void checkStatus();
     bool isWorking();
     std::string dongleId();
@@ -87,7 +87,7 @@ struct BusDeviceCommonImplementation : public BusDevice
     // Uses a serial tty?
     bool is_serial_ {};
     bool is_working_ {};
-    std::vector<std::function<bool(AboutTelegram&,std::vector<uchar>)>> telegram_listeners_;
+    std::vector<std::function<bool(AboutTelegram&,const std::vector<uchar>&)>> telegram_listeners_;
     BusDeviceType type_ {};
     int protocol_error_count_ {};
     time_t timeout_ {}; // If longer silence than timeout, then reset dongle! It might have hanged!

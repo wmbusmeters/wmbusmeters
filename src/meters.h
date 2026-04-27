@@ -224,7 +224,7 @@ public:
 
 bool staticRegisterDriver(std::function<void(DriverInfo&di)> setup);
 // Lookup (and load if necessary) driver from memory or disk.
-DriverInfo *lookupDriver(std::string name);
+DriverInfo *lookupDriver(const std::string &name);
 bool lookupDriverInfo(const std::string& driver, DriverInfo *di = NULL);
 // Return the best driver match for a telegram.
 DriverInfo pickMeterDriver(Telegram *t);
@@ -508,7 +508,7 @@ struct MeterManager
     virtual bool handleTelegram(AboutTelegram &about, std::vector<uchar> data, bool simulated) = 0;
     virtual bool hasAllMetersReceivedATelegram() = 0;
     virtual bool hasMeters() = 0;
-    virtual void onTelegram(std::function<bool(AboutTelegram&, std::vector<uchar>)> cb) = 0;
+    virtual void onTelegram(std::function<bool(AboutTelegram&, const std::vector<uchar>&)> cb) = 0;
     virtual void whenMeterUpdated(std::function<void(Telegram*t,Meter*)> cb) = 0;
     virtual void pollMeters(std::shared_ptr<BusManager> bus) = 0;
     virtual void analyzeEnabled(bool b, OutputFormat f, std::string force_driver, std::string key, bool verbose, int profile) = 0;
