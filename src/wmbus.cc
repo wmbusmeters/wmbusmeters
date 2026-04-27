@@ -124,44 +124,49 @@ LinkMode toLinkMode(const char *arg)
     return LinkMode::UNKNOWN;
 }
 
-LinkModeSet parseLinkModes(string m)
+static bool parseLinkModesInternal(const string &m, LinkModeSet *out)
 {
-    LinkModeSet lms;
-    char buf[m.length()+1];
-    strcpy(buf, m.c_str());
-    char *saveptr {};
-    const char *tok = strtok_r(buf, ",", &saveptr);
-    while (tok != NULL)
+    size_t start = 0;
+    while (start <= m.size())
     {
-        LinkMode lm = toLinkMode(tok);
-        if (lm == LinkMode::UNKNOWN)
-        {
-            error("(wmbus) not a valid link mode: %s\n", tok);
-        }
-        lms.addLinkMode(lm);
-        tok = strtok_r(NULL, ",", &saveptr);
-    }
-    return lms;
-}
+        size_t stop = m.find(',', start);
+        if (stop == string::npos) stop = m.size();
+        string tok = m.substr(start, stop - start);
 
-bool isValidLinkModes(string m)
-{
-    LinkModeSet lms;
-    char buf[m.length()+1];
-    strcpy(buf, m.c_str());
-    char *saveptr {};
-    const char *tok = strtok_r(buf, ",", &saveptr);
-    while (tok != NULL)
-    {
-        LinkMode lm = toLinkMode(tok);
+        if (tok.empty())
+        {
+            if (stop == m.size()) break;
+            start = stop + 1;
+            continue;
+        }
+
+        LinkMode lm = toLinkMode(tok.c_str());
         if (lm == LinkMode::UNKNOWN)
         {
             return false;
         }
-        lms.addLinkMode(lm);
-        tok = strtok_r(NULL, ",", &saveptr);
+        if (out) out->addLinkMode(lm);
+
+        if (stop == m.size()) break;
+        start = stop + 1;
     }
     return true;
+}
+
+LinkModeSet parseLinkModes(const string &m)
+{
+    LinkModeSet lms;
+    bool ok = parseLinkModesInternal(m, &lms);
+    if (!ok)
+    {
+        error("(wmbus) not a valid link mode: %s\n", m.c_str());
+    }
+    return lms;
+}
+
+bool isValidLinkModes(const string &m)
+{
+    return parseLinkModesInternal(m, NULL);
 }
 
 LinkModeSet &LinkModeSet::addLinkMode(LinkMode lm)

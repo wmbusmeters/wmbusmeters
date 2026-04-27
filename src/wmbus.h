@@ -196,8 +196,8 @@ private:
     uint64_t set_ {};
 };
 
-LinkModeSet parseLinkModes(std::string modes);
-bool isValidLinkModes(std::string modes);
+LinkModeSet parseLinkModes(const std::string &modes);
+bool isValidLinkModes(const std::string &modes);
 
 // A specified bus device is supplied on the command line or in the config file.
 // It has this format "alias=file:type[id](extras):fq:bps:linkmods:CMD(command)"
