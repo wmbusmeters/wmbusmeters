@@ -170,6 +170,7 @@ private:
     std::vector<std::string> default_fields_;
     int force_mfct_index_ = -1; // Used for meters not declaring mfct specific data using the dif 0f.
     bool has_process_content_ = false; // Mark this driver as having mfct specific decoding.
+    std::string media_type_; // Override the media string derived from dll_type (for non-standard type bytes).
     std::shared_ptr<XMQDoc> dynamic_driver_ {}; // Configuration loaded from driver file.
     std::string dynamic_file_name_; // Name of actual loaded driver file.
     std::string dynamic_source_xmq_ {}; // A copy of the xmq used to create a dynamic driver.
@@ -187,6 +188,8 @@ public:
     void setConstructor(std::function<std::shared_ptr<Meter>(MeterInfo&,DriverInfo&)> c) { constructor_ = c; }
     void addMVT(uint16_t mfct, uchar type, uchar ver) { mvts_.push_back({ mfct, ver, type }); }
     void usesProcessContent() { has_process_content_ = true; }
+    void setMediaType(std::string m) { media_type_ = m; }
+    const std::string &mediaType() { return media_type_; }
     void setDynamic(const std::string &file_name, XMQDoc *driver) {
         dynamic_file_name_ = file_name;
         dynamic_driver_ = std::shared_ptr<XMQDoc>(driver, [](XMQDoc* d) { if (d) xmqFreeDoc(d); } );

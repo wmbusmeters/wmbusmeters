@@ -2125,7 +2125,11 @@ void MeterCommonImplementation::printMeter(Telegram *t,
     *fields = concatFields(this, t, separator, field_infos_, false, selected_fields, extra_constant_fields);
 
     string media;
-    if (t->tpl_id_found)
+    if (driverInfo()->mediaType() != "")
+    {
+        media = driverInfo()->mediaType();
+    }
+    else if (t->tpl_id_found)
     {
         media = mediaTypeJSON(t->tpl_type, t->tpl_mfct);
     }
