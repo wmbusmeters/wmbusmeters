@@ -337,6 +337,12 @@ XMQProceed DriverDynamic::add_field(XMQDoc *doc, XMQNodePtr field, DriverDynamic
     // The ixml field can be used to decode mfct specific fields.
     string ixml = check_field_ixml(xmqGetStringRel(doc, "ixml", field), dd);
 
+    // Generic bit-field date decoder, e.g.: decode_date = "day=bits(4,0) month=bits(8,5) year=bits(14,9)+2000"
+    const char *decode_date_s = xmqGetStringRel(doc, "decode_date", field);
+    // When year is absent from the word, infer it from a reference DVK:
+    //   year_from_dvk = "02FF01 day=bits(4,0) month=bits(8,5) year=bits(14,9)+2000"
+    const char *year_from_dvk_s = xmqGetStringRel(doc, "year_from_dvk", field);
+
     // The calculate formula is optional.
     string calculate = check_calculate(xmqGetStringRel(doc, "calculate", field), dd);
 
@@ -448,6 +454,18 @@ XMQProceed DriverDynamic::add_field(XMQDoc *doc, XMQNodePtr field, DriverDynamic
             if (rs != ReadableString::Unknown)
             {
                 dd->lastAddedField()->setReadableString(rs);
+            }
+            if (decode_date_s)
+            {
+                DateDecodeSpec spec = parseDateDecodeSpec(decode_date_s);
+                if (year_from_dvk_s)
+                {
+                    string yfds(year_from_dvk_s);
+                    size_t sp = yfds.find(' ');
+                    spec.year_from_dvk = yfds.substr(0, sp);
+                    spec.year_from_spec_str = (sp != string::npos) ? yfds.substr(sp + 1) : "";
+                }
+                dd->lastAddedField()->setDateDecodeSpec(spec);
             }
         }
     }

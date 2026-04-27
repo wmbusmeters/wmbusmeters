@@ -293,6 +293,33 @@ PrintProperties toPrintProperties(std::string s);
 
 #define DEFAULT_PRINT_PROPERTIES 0
 
+// Generic bit-field date decode spec, expressed in xmq as:
+//   decode_date = "day=bits(4,0) month=bits(8,5) year=bits(14,9)+2000"
+// and optionally (when year is absent from the word):
+//   year_from_dvk = "02FF01 day=bits(4,0) month=bits(8,5) year=bits(14,9)+2000"
+struct DateDecodeSpec
+{
+    struct Component
+    {
+        int hi = 0, lo = 0, offset = 0;
+        bool valid = false;
+        int extract(int word) const
+        {
+            int mask = (1 << (hi - lo + 1)) - 1;
+            return ((word >> lo) & mask) + offset;
+        }
+    };
+    bool valid = false;
+    Component day, month, year;
+    // When year is not encoded in the word, infer it from a reference DVK entry.
+    std::string year_from_dvk;      // e.g. "02FF01"
+    std::string year_from_spec_str; // decode_date spec for that DVK
+    // Optional literal suffix appended to the formatted date, e.g. "T02:00:00Z".
+    std::string suffix;
+};
+
+DateDecodeSpec parseDateDecodeSpec(const std::string& spec_str);
+
 struct FieldInfo
 {
     ~FieldInfo();
@@ -366,6 +393,10 @@ struct FieldInfo
     bool hasNullValue() { return has_null_value_; }
     double nullValue() { return null_value_; }
 
+    void setDateDecodeSpec(const DateDecodeSpec& s) { date_decode_spec_ = s; }
+    bool hasDateDecodeSpec() const { return date_decode_spec_.valid; }
+    const DateDecodeSpec& dateDecodeSpec() const { return date_decode_spec_; }
+
 private:
 
     int index_; // The field infos for a meter are ordered.
@@ -413,6 +444,9 @@ private:
     // If set, this extracted value is treated as null (no data).
     bool has_null_value_ {};
     double null_value_ {};
+
+    // Generic bit-field date decoder, set via decode_date xmq attribute.
+    DateDecodeSpec date_decode_spec_;
 };
 
 struct BusManager;
@@ -444,7 +478,6 @@ struct Meter
     virtual std::string datetimeOfUpdateHumanReadable() = 0;
     virtual std::string datetimeOfUpdateRobot() = 0;
     virtual std::string unixTimestampOfUpdate() = 0;
-    virtual time_t timestampLastUpdate() = 0;
     virtual void setPollInterval(time_t interval) = 0;
     virtual time_t pollInterval() = 0;
     virtual bool usesPolling() = 0;
