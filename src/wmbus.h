@@ -583,6 +583,8 @@ public:
 
 private:
 
+    void resetParseState(std::vector<uchar> &input_frame, bool warn, MeterKeys *mk);
+
     bool is_simulated_ {};
     bool being_analyzed_ {};
     bool parser_warns_ = true;

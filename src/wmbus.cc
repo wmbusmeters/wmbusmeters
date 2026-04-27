@@ -1990,6 +1990,17 @@ void Telegram::preProcess()
     }
 }
 
+void Telegram::resetParseState(vector<uchar> &input_frame, bool warn, MeterKeys *mk)
+{
+    parser_warns_ = warn;
+    decryption_failed = false;
+    explanations.clear();
+    suffix_size = 0;
+    meter_keys = mk;
+    frame = input_frame;
+    parsed.clear();
+}
+
 bool Telegram::parse(vector<uchar> &input_frame, MeterKeys *mk, bool warn)
 {
     switch (about.type)
@@ -2022,14 +2033,8 @@ bool Telegram::parseWMBUSHeader(vector<uchar> &input_frame)
     // Parsing the header is used to extract the ids, so that we can
     // match the telegram towards any known ids and thus keys.
     // No need to warn.
-    parser_warns_ = false;
-    decryption_failed = false;
-    explanations.clear();
-    suffix_size = 0;
-    frame = input_frame;
+    resetParseState(input_frame, false, NULL);
     vector<uchar>::iterator pos = frame.begin();
-    // Parsed accumulates parsed bytes.
-    parsed.clear();
     // Fixes quirks from non-compliant meters to make telegram compatible with the standard
     preProcess();
 
@@ -2058,17 +2063,10 @@ bool Telegram::parseWMBUS(vector<uchar> &input_frame, MeterKeys *mk, bool warn)
 {
     assert(about.type == FrameType::WMBUS);
 
-    parser_warns_ = warn;
-    decryption_failed = false;
-    explanations.clear();
-    suffix_size = 0;
-    meter_keys = mk;
+    resetParseState(input_frame, warn, mk);
     assert(meter_keys != NULL);
     bool ok;
-    frame = input_frame;
     vector<uchar>::iterator pos = frame.begin();
-    // Parsed accumulates parsed bytes.
-    parsed.clear();
     // Fixes quirks from non-compliant meters to make telegram compatible with the standard
     preProcess();
     //     ┌──────────────────────────────────────────────┐
@@ -2139,14 +2137,8 @@ bool Telegram::parseMBUSHeader(vector<uchar> &input_frame)
     // Parsing the header is used to extract the ids, so that we can
     // match the telegram towards any known ids and thus keys.
     // No need to warn.
-    parser_warns_ = false;
-    decryption_failed = false;
-    explanations.clear();
-    suffix_size = 0;
-    frame = input_frame;
+    resetParseState(input_frame, false, NULL);
     vector<uchar>::iterator pos = frame.begin();
-    // Parsed accumulates parsed bytes.
-    parsed.clear();
 
     ok = parseMBusDLLandTPL(pos);
     if (!ok) return false;
@@ -2158,17 +2150,10 @@ bool Telegram::parseMBUS(vector<uchar> &input_frame, MeterKeys *mk, bool warn)
 {
     assert(about.type == FrameType::MBUS);
 
-    parser_warns_ = warn;
-    decryption_failed = false;
-    explanations.clear();
-    suffix_size = 0;
-    meter_keys = mk;
+    resetParseState(input_frame, warn, mk);
     assert(meter_keys != NULL);
     bool ok;
-    frame = input_frame;
     vector<uchar>::iterator pos = frame.begin();
-    // Parsed accumulates parsed bytes.
-    parsed.clear();
 
     //     ┌──────────────────────────────────────────────┐
     //     │                                              │
