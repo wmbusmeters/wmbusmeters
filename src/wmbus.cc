@@ -54,6 +54,17 @@ LIST_OF_LINK_MODES
 #undef X
 };
 
+static inline uint64_t linkModeBit(LinkMode lm)
+{
+    switch (lm)
+    {
+#define X(name,lcname,option,val) case LinkMode::name: return val;
+LIST_OF_LINK_MODES
+#undef X
+        default: return 0;
+    }
+}
+
 const char *toString(LinkMode lm)
 {
 #define X(name,lcname,option,val) if (lm == LinkMode::name) return #lcname;
@@ -154,11 +165,7 @@ bool isValidLinkModes(string m)
 
 LinkModeSet &LinkModeSet::addLinkMode(LinkMode lm)
 {
-    for (auto& s : link_modes_) {
-        if (s.mode == lm) {
-            set_ |= s.val;
-        }
-    }
+    set_ |= linkModeBit(lm);
     return *this;
 }
 
@@ -180,8 +187,7 @@ bool LinkModeSet::supports(LinkModeSet lms)
 
 bool LinkModeSet::has(LinkMode lm)
 {
-    LinkModeInfo *lmi = getLinkModeInfo(lm);
-    return (set_ & lmi->val) != 0;
+    return (set_ & linkModeBit(lm)) != 0;
 }
 
 bool LinkModeSet::hasAll(LinkModeSet lms)
@@ -194,6 +200,7 @@ string LinkModeSet::hr()
     string r;
     if (set_ == Any_bit) return "any";
     if (set_ == 0) return "none";
+    r.reserve(64);
     for (auto& s : link_modes_)
     {
         if (s.mode == LinkMode::Any) continue;
