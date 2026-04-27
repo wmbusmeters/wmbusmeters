@@ -2144,11 +2144,11 @@ void MeterCommonImplementation::createMeterEnv(string id,
 
     // If the configuration has supplied json_address=Roodroad 123
     // then the env variable METER_address will available and have the content "Roodroad 123"
-    for (string add_json : meterExtraConstantFields())
+    for (const string &add_json : meterExtraConstantFields())
     {
         envs->push_back(string("METER_")+add_json);
     }
-    for (string extra_field : *extra_constant_fields)
+    for (const string &extra_field : *extra_constant_fields)
     {
         envs->push_back(string("METER_")+extra_field);
     }
@@ -2167,6 +2167,7 @@ void MeterCommonImplementation::printMeter(Telegram *t,
 
     *human_readable = concatFields(this, t, '\t', field_infos_, true, selected_fields, extra_constant_fields);
     *fields = concatFields(this, t, separator, field_infos_, false, selected_fields, extra_constant_fields);
+    bool detailed_first = first && getDetailedFirst();
 
     string media;
     if (driverInfo()->mediaType() != "")
@@ -2187,7 +2188,7 @@ void MeterCommonImplementation::printMeter(Telegram *t,
     }
 
     string id = "";
-    if (t->addresses.size() > 0)
+    if (!t->addresses.empty())
     {
         id = build_id(t->addresses.back(), identityMode());
     }
@@ -2202,16 +2203,13 @@ void MeterCommonImplementation::printMeter(Telegram *t,
     }
 
     string s;
+    s.reserve(256 + (numeric_values_.size() + string_values_.size()) * 96);
     s += "{"+newline;
     s += indent+"\"_\":\"telegram\","+newline;
     s += indent+"\"media\":\""+media+"\","+newline;
     s += indent+"\"meter\":\""+driverName().str()+"\","+newline;
     s += indent+"\"name\":\""+name()+"\","+newline;
     s += indent+"\"id\":\""+id+"\","+newline;
-
-    // Iterate over the meter field infos...
-    map<FieldInfo*,set<DVEntry*>> founds; // Multiple dventries can match to a single field info.
-    set<string> found_vnames;
 
     for (auto &p : numeric_values_)
     {
@@ -2222,7 +2220,7 @@ void MeterCommonImplementation::printMeter(Telegram *t,
         string out = nf.field_info->renderJson(this, &nf.dv_entry);
         s += indent+out+","+newline;
 
-        if (first && getDetailedFirst())
+        if (detailed_first)
         {
             size_t pos = out.find("\":");
             if (pos != string::npos)
@@ -2260,7 +2258,7 @@ void MeterCommonImplementation::printMeter(Telegram *t,
                 s += indent+out+","+newline;
             }
         }
-        if (first && getDetailedFirst())
+        if (detailed_first)
         {
             size_t pos = out.find("\":");
             if (pos != string::npos)
@@ -2278,12 +2276,12 @@ void MeterCommonImplementation::printMeter(Telegram *t,
         s += indent+"\"device\":\""+t->about.device+"\","+newline;
         s += indent+"\"rssi_dbm\":"+to_string(t->about.rssi_dbm);
     }
-    for (string extra_field : meterExtraConstantFields())
+    for (const string &extra_field : meterExtraConstantFields())
     {
         s += ","+newline;
         s += indent+makeQuotedJson(extra_field);
     }
-    for (string extra_field : *extra_constant_fields)
+    for (const string &extra_field : *extra_constant_fields)
     {
         s += ","+newline;
         s += indent+makeQuotedJson(extra_field);
@@ -2294,10 +2292,11 @@ void MeterCommonImplementation::printMeter(Telegram *t,
 
     createMeterEnv(id, envs, extra_constant_fields);
 
+    string timestamp_robot = datetimeOfUpdateRobot();
     envs->push_back(string("METER_JSON=")+*json);
     envs->push_back(string("METER_MEDIA=")+media);
-    envs->push_back(string("METER_TIMESTAMP=")+datetimeOfUpdateRobot());
-    envs->push_back(string("METER_TIMESTAMP_UTC=")+datetimeOfUpdateRobot());
+    envs->push_back(string("METER_TIMESTAMP=")+timestamp_robot);
+    envs->push_back(string("METER_TIMESTAMP_UTC=")+timestamp_robot);
     envs->push_back(string("METER_TIMESTAMP_UT=")+unixTimestampOfUpdate());
     envs->push_back(string("METER_TIMESTAMP_LT=")+datetimeOfUpdateHumanReadable());
 
