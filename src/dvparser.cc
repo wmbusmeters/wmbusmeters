@@ -156,10 +156,11 @@ map<uint16_t,string> hash_to_format_;
 
 bool loadFormatBytesFromSignature(uint16_t format_signature, vector<uchar> *format_bytes)
 {
-    if (hash_to_format_.count(format_signature) > 0) {
+    auto it = hash_to_format_.find(format_signature);
+    if (it != hash_to_format_.end()) {
         debug("(dvparser) found remembered format for hash %x\n", format_signature);
         // Return the proper hash!
-        hex2bin(hash_to_format_[format_signature], format_bytes);
+        hex2bin(it->second, format_bytes);
         return true;
     }
     // Unknown format signature.
@@ -589,7 +590,7 @@ bool parseDV(Telegram *t,
     uint16_t hash = crc16_EN13757(safeButUnsafeVectorPtr(format_bytes), format_bytes.size());
 
     if (data_has_difvifs) {
-        if (hash_to_format_.count(hash) == 0) {
+        if (hash_to_format_.find(hash) == hash_to_format_.end()) {
             hash_to_format_[hash] = format_string;
             debug("(dvparser) found new format \"%s\" with hash %x, remembering!\n", format_string.c_str(), hash);
         }
@@ -752,7 +753,7 @@ bool parseWithIXML(Telegram *t,
 
 bool hasKey(std::map<std::string,std::pair<int,DVEntry>> *dv_entries, std::string key)
 {
-    return dv_entries->count(key) > 0;
+    return dv_entries->find(key) != dv_entries->end();
 }
 
 bool findKey(MeasurementType mit, VIFRange vif_range, StorageNr storagenr, TariffNr tariffnr,
@@ -880,14 +881,15 @@ bool extractDVuint8(map<string,pair<int,DVEntry>> *dv_entries,
                     int *offset,
                     uchar *value)
 {
-    if ((*dv_entries).count(key) == 0) {
+    auto it = dv_entries->find(key);
+    if (it == dv_entries->end()) {
         verbose("(dvparser) warning: cannot extract uint8 from non-existant key \"%s\"\n", key.c_str());
         *offset = -1;
         *value = 0;
         return false;
     }
 
-    pair<int,DVEntry>&  p = (*dv_entries)[key];
+    pair<int,DVEntry>& p = it->second;
     *offset = p.first;
     vector<uchar> v;
     hex2bin(p.second.value, &v);
@@ -901,14 +903,15 @@ bool extractDVuint16(map<string,pair<int,DVEntry>> *dv_entries,
                      int *offset,
                      uint16_t *value)
 {
-    if ((*dv_entries).count(key) == 0) {
+    auto it = dv_entries->find(key);
+    if (it == dv_entries->end()) {
         verbose("(dvparser) warning: cannot extract uint16 from non-existant key \"%s\"\n", key.c_str());
         *offset = -1;
         *value = 0;
         return false;
     }
 
-    pair<int,DVEntry>&  p = (*dv_entries)[key];
+    pair<int,DVEntry>& p = it->second;
     *offset = p.first;
     vector<uchar> v;
     hex2bin(p.second.value, &v);
@@ -922,14 +925,15 @@ bool extractDVuint24(map<string,pair<int,DVEntry>> *dv_entries,
                      int *offset,
                      uint32_t *value)
 {
-    if ((*dv_entries).count(key) == 0) {
+    auto it = dv_entries->find(key);
+    if (it == dv_entries->end()) {
         verbose("(dvparser) warning: cannot extract uint24 from non-existant key \"%s\"\n", key.c_str());
         *offset = -1;
         *value = 0;
         return false;
     }
 
-    pair<int,DVEntry>&  p = (*dv_entries)[key];
+    pair<int,DVEntry>& p = it->second;
     *offset = p.first;
     vector<uchar> v;
     hex2bin(p.second.value, &v);
@@ -943,14 +947,15 @@ bool extractDVuint32(map<string,pair<int,DVEntry>> *dv_entries,
                      int *offset,
                      uint32_t *value)
 {
-    if ((*dv_entries).count(key) == 0) {
+    auto it = dv_entries->find(key);
+    if (it == dv_entries->end()) {
         verbose("(dvparser) warning: cannot extract uint32 from non-existant key \"%s\"\n", key.c_str());
         *offset = -1;
         *value = 0;
         return false;
     }
 
-    pair<int,DVEntry>&  p = (*dv_entries)[key];
+    pair<int,DVEntry>& p = it->second;
     *offset = p.first;
     vector<uchar> v;
     hex2bin(p.second.value, &v);
@@ -966,13 +971,14 @@ bool extractDVdouble(map<string,pair<int,DVEntry>> *dv_entries,
                      bool auto_scale,
                      bool force_unsigned)
 {
-    if ((*dv_entries).count(key) == 0) {
+    auto it = dv_entries->find(key);
+    if (it == dv_entries->end()) {
         verbose("(dvparser) warning: cannot extract double from non-existant key \"%s\"\n", key.c_str());
         *offset = 0;
         *value = 0;
         return false;
     }
-    pair<int,DVEntry>&  p = (*dv_entries)[key];
+    pair<int,DVEntry>& p = it->second;
     *offset = p.first;
 
     if (p.second.value.length() == 0) {
@@ -1176,14 +1182,15 @@ bool extractDVlong(map<string,pair<int,DVEntry>> *dv_entries,
                    int *offset,
                    uint64_t *out)
 {
-    if ((*dv_entries).count(key) == 0) {
+    auto it = dv_entries->find(key);
+    if (it == dv_entries->end()) {
         verbose("(dvparser) warning: cannot extract long from non-existant key \"%s\"\n", key.c_str());
         *offset = 0;
         *out = 0;
         return false;
     }
 
-    pair<int,DVEntry>&  p = (*dv_entries)[key];
+    pair<int,DVEntry>& p = it->second;
     *offset = p.first;
 
     if (p.second.value.length() == 0) {
@@ -1324,12 +1331,13 @@ bool extractDVHexString(map<string,pair<int,DVEntry>> *dv_entries,
                         int *offset,
                         string *value)
 {
-    if ((*dv_entries).count(key) == 0) {
+    auto it = dv_entries->find(key);
+    if (it == dv_entries->end()) {
         verbose("(dvparser) warning: cannot extract string from non-existant key \"%s\"\n", key.c_str());
         *offset = -1;
         return false;
     }
-    pair<int,DVEntry>&  p = (*dv_entries)[key];
+    pair<int,DVEntry>& p = it->second;
     *offset = p.first;
     *value = p.second.value;
 
@@ -1342,12 +1350,13 @@ bool extractDVReadableString(map<string,pair<int,DVEntry>> *dv_entries,
                              int *offset,
                              string *out)
 {
-    if ((*dv_entries).count(key) == 0) {
+    auto it = dv_entries->find(key);
+    if (it == dv_entries->end()) {
         verbose("(dvparser) warning: cannot extract string from non-existant key \"%s\"\n", key.c_str());
         *offset = -1;
         return false;
     }
-    pair<int,DVEntry>&  p = (*dv_entries)[key];
+    pair<int,DVEntry>& p = it->second;
     *offset = p.first;
 
     return p.second.extractReadableString(out);
@@ -1497,14 +1506,15 @@ bool extractDVdate(map<string,pair<int,DVEntry>> *dv_entries,
                    int *offset,
                    struct tm *out)
 {
-    if ((*dv_entries).count(key) == 0)
+    auto it = dv_entries->find(key);
+    if (it == dv_entries->end())
     {
         verbose("(dvparser) warning: cannot extract date from non-existant key \"%s\"\n", key.c_str());
         *offset = -1;
         memset(out, 0, sizeof(struct tm));
         return false;
     }
-    pair<int,DVEntry>&  p = (*dv_entries)[key];
+    pair<int,DVEntry>& p = it->second;
     *offset = p.first;
 
     return p.second.extractDate(out);
