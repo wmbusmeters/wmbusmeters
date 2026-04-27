@@ -406,14 +406,33 @@ void Telegram::printTPL()
 // Store the hashes of the last 10 telegrams here.
 deque<SHA256_HASH> seen_telegrams;
 
+struct SHA256HashHasher
+{
+    size_t operator()(const SHA256_HASH &h) const noexcept
+    {
+        size_t v = 0;
+        constexpr size_t n = sizeof(size_t) < SHA256_HASH_SIZE ? sizeof(size_t) : SHA256_HASH_SIZE;
+        memcpy(&v, h.bytes, n);
+        return v;
+    }
+};
+
+struct SHA256HashEq
+{
+    bool operator()(const SHA256_HASH &a, const SHA256_HASH &b) const noexcept
+    {
+        return memcmp(a.bytes, b.bytes, SHA256_HASH_SIZE) == 0;
+    }
+};
+
+unordered_set<SHA256_HASH, SHA256HashHasher, SHA256HashEq> seen_telegrams_set;
+
 bool seen_this_telegram_before(vector<uchar> &frame)
 {
     SHA256_HASH hash;
     Sha256Calculate(safeButUnsafeVectorPtr(frame), frame.size(), &hash);
 
-    auto i = std::find(seen_telegrams.begin(), seen_telegrams.end(), hash);
-
-    if (i != seen_telegrams.end())
+    if (seen_telegrams_set.count(hash) != 0)
     {
         // Found it!
         return true;
@@ -421,9 +440,12 @@ bool seen_this_telegram_before(vector<uchar> &frame)
 
     if (seen_telegrams.size() >= 10)
     {
+        SHA256_HASH oldest = seen_telegrams.front();
         seen_telegrams.pop_front();
+        seen_telegrams_set.erase(oldest);
     }
     seen_telegrams.push_back(hash);
+    seen_telegrams_set.insert(hash);
 
     return false;
 }
