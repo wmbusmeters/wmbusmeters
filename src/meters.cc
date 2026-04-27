@@ -1655,8 +1655,20 @@ void MeterCommonImplementation::processFieldExtractors(Telegram *t)
     {
         sorted_entries.push_back(&p.second.second);
     }
-    sort(sorted_entries.begin(), sorted_entries.end(),
-         [](const DVEntry* a, const DVEntry *b) -> bool { return a->offset < b->offset; });
+    bool already_sorted = true;
+    for (size_t i = 1; i < sorted_entries.size(); ++i)
+    {
+        if (sorted_entries[i-1]->offset > sorted_entries[i]->offset)
+        {
+            already_sorted = false;
+            break;
+        }
+    }
+    if (!already_sorted)
+    {
+        sort(sorted_entries.begin(), sorted_entries.end(),
+             [](const DVEntry* a, const DVEntry *b) -> bool { return a->offset < b->offset; });
+    }
 
     // Now go through each field_info defined by the driver.
     for (FieldInfo &fi : field_infos_)
