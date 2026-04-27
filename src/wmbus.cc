@@ -442,10 +442,10 @@ struct SHA256HashEq
 
 unordered_set<SHA256_HASH, SHA256HashHasher, SHA256HashEq> seen_telegrams_set;
 
-bool seen_this_telegram_before(vector<uchar> &frame)
+bool seen_this_telegram_before(const vector<uchar> &frame)
 {
     SHA256_HASH hash;
-    Sha256Calculate(safeButUnsafeVectorPtr(frame), frame.size(), &hash);
+    Sha256Calculate(frame.data(), frame.size(), &hash);
 
     if (seen_telegrams_set.count(hash) != 0)
     {
@@ -4233,7 +4233,7 @@ string BusDeviceCommonImplementation::busAlias()
     return bus_alias_;
 }
 
-void BusDeviceCommonImplementation::onTelegram(function<bool(AboutTelegram&,vector<uchar>)> cb)
+void BusDeviceCommonImplementation::onTelegram(function<bool(AboutTelegram&,const vector<uchar>&)> cb)
 {
     telegram_listeners_.push_back(cb);
 }
@@ -4263,7 +4263,7 @@ bool getDetailedFirst()
     return detailed_first_;
 }
 
-bool BusDeviceCommonImplementation::handleTelegram(AboutTelegram &about, vector<uchar> frame)
+bool BusDeviceCommonImplementation::handleTelegram(AboutTelegram &about, const vector<uchar> &frame)
 {
     bool handled = false;
     last_received_ = time(NULL);
@@ -4297,7 +4297,7 @@ bool BusDeviceCommonImplementation::handleTelegram(AboutTelegram &about, vector<
         }
     }
 
-    for (auto f : telegram_listeners_)
+    for (auto &f : telegram_listeners_)
     {
         if (f)
         {
