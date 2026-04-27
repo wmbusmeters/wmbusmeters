@@ -135,7 +135,7 @@ public:
                 manufacturerFlag(mfct).c_str(),
                 manufacturer(mfct),
                 mfct,
-                mediaType(media, mfct).c_str(), media,
+                mediaType(media, mfct), media,
                 version);
 
 

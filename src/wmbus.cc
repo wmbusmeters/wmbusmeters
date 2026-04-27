@@ -290,7 +290,7 @@ void Telegram::print()
            manufacturerFlag(dll_mfct).c_str(),
            manufacturer(dll_mfct),
            dll_mfct);
-    notice("                  type: %s (0x%02x)%s\n", mediaType(dll_type, dll_mfct).c_str(), dll_type, enc);
+    notice("                  type: %s (0x%02x)%s\n", mediaType(dll_type, dll_mfct), dll_type, enc);
 
     notice("                   ver: 0x%02x\n", dll_version);
 
@@ -301,7 +301,7 @@ void Telegram::print()
            manufacturerFlag(tpl_mfct).c_str(),
            manufacturer(tpl_mfct),
            tpl_mfct);
-        notice("                  type: %s (0x%02x)%s\n", mediaType(tpl_type, dll_mfct).c_str(), tpl_type, enc);
+        notice("                  type: %s (0x%02x)%s\n", mediaType(tpl_type, dll_mfct), tpl_type, enc);
 
         notice("                   ver: 0x%02x\n", tpl_version);
     }
@@ -333,7 +333,7 @@ void Telegram::printDLL()
             dll_id[0], dll_id[1], dll_id[2], dll_id[3],
             dll_version,
             dll_type,
-            mediaType(dll_type, dll_mfct).c_str(),
+            mediaType(dll_type, dll_mfct),
             possible_drivers.c_str(),
             about.device.c_str(),
             about.rssi_dbm);
@@ -673,14 +673,14 @@ static const MediaTypeInfo *lookupMediaTypeInfo(int a_field_device_type, int m_f
     return NULL;
 }
 
-string mediaType(int a_field_device_type, int m_field)
+const char *mediaType(int a_field_device_type, int m_field)
 {
     const MediaTypeInfo *info = lookupMediaTypeInfo(a_field_device_type, m_field);
     if (info) return info->hr;
     return "Unknown";
 }
 
-string mediaTypeJSON(int a_field_device_type, int m_field)
+const char *mediaTypeJSON(int a_field_device_type, int m_field)
 {
     const MediaTypeInfo *info = lookupMediaTypeInfo(a_field_device_type, m_field);
     if (info) return info->json;
@@ -1053,7 +1053,7 @@ bool Telegram::parseDLL(vector<uchar>::iterator &pos)
     dll_type = *(pos+1);
     addExplanationAndIncrementPos(pos, 1, KindOfData::PROTOCOL, Understanding::FULL, "%02x dll-version", dll_version);
     addExplanationAndIncrementPos(pos, 1, KindOfData::PROTOCOL, Understanding::FULL, "%02x dll-type (%s)", dll_type,
-                                  mediaType(dll_type, dll_mfct).c_str());
+                                  mediaType(dll_type, dll_mfct));
 
     return true;
 }
@@ -1218,7 +1218,7 @@ bool Telegram::parseELL(vector<uchar>::iterator &pos)
                             manufacturerFlag(dll_mfct).c_str(),
                             manufacturer(dll_mfct),
                             dll_mfct,
-                            mediaType(dll_type, dll_mfct).c_str(), dll_type,
+                            mediaType(dll_type, dll_mfct), dll_type,
                             dll_version);
                 }
             }
@@ -1645,7 +1645,7 @@ bool Telegram::potentiallyDecrypt(vector<uchar>::iterator &pos)
                             manufacturerFlag(dll_mfct).c_str(),
                             manufacturer(dll_mfct),
                             dll_mfct,
-                            mediaType(dll_type, dll_mfct).c_str(), dll_type,
+                            mediaType(dll_type, dll_mfct), dll_type,
                             dll_version);
                 return false;
             }
@@ -1678,7 +1678,7 @@ bool Telegram::potentiallyDecrypt(vector<uchar>::iterator &pos)
                             manufacturerFlag(dll_mfct).c_str(),
                             manufacturer(dll_mfct),
                             dll_mfct,
-                            mediaType(dll_type, dll_mfct).c_str(), dll_type,
+                            mediaType(dll_type, dll_mfct), dll_type,
                             dll_version);
                 }
             }
@@ -1713,7 +1713,7 @@ bool Telegram::potentiallyDecrypt(vector<uchar>::iterator &pos)
                             manufacturerFlag(dll_mfct).c_str(),
                             manufacturer(dll_mfct),
                             dll_mfct,
-                            mediaType(dll_type, dll_mfct).c_str(), dll_type,
+                            mediaType(dll_type, dll_mfct), dll_type,
                             dll_version);
                 }
             }
@@ -1735,7 +1735,7 @@ bool Telegram::potentiallyDecrypt(vector<uchar>::iterator &pos)
                             manufacturerFlag(dll_mfct).c_str(),
                             manufacturer(dll_mfct),
                             dll_mfct,
-                            mediaType(dll_type, dll_mfct).c_str(), dll_type,
+                            mediaType(dll_type, dll_mfct), dll_type,
                             dll_version);
                 return false;
             }
@@ -1758,7 +1758,7 @@ bool Telegram::potentiallyDecrypt(vector<uchar>::iterator &pos)
                             manufacturerFlag(dll_mfct).c_str(),
                             manufacturer(dll_mfct),
                             dll_mfct,
-                            mediaType(dll_type, dll_mfct).c_str(), dll_type,
+                            mediaType(dll_type, dll_mfct), dll_type,
                             dll_version);
                     return false;
                 }
@@ -1814,7 +1814,7 @@ bool Telegram::potentiallyDecrypt(vector<uchar>::iterator &pos)
                             manufacturerFlag(dll_mfct).c_str(),
                             manufacturer(dll_mfct),
                             dll_mfct,
-                            mediaType(dll_type, dll_mfct).c_str(), dll_type,
+                            mediaType(dll_type, dll_mfct), dll_type,
                             dll_version);
                 }
             }
@@ -1848,7 +1848,7 @@ bool Telegram::potentiallyDecrypt(vector<uchar>::iterator &pos)
                 manufacturerFlag(dll_mfct).c_str(),
                 manufacturer(dll_mfct),
                 dll_mfct,
-                mediaType(dll_type, dll_mfct).c_str(), dll_type,
+                mediaType(dll_type, dll_mfct), dll_type,
                 dll_version);
         return false;
     }
