@@ -1924,31 +1924,8 @@ string MeterCommonImplementation::getStringValue(FieldInfo *fi)
         return "null"; // This is translated to a real(non-string) null in the json.
     }
     StringField &sf = it->second;
-    string value = sf.value;
-
-    if (fi->printProperties().hasSTATUS())
-    {
-        // This is >THE< status field, only one is allowed.
-        // Look for other fields with the JOIN_INTO_STATUS marker.
-        // These other fields will not be printed, instead
-        // joined into this status field.
-        for (FieldInfo &f : field_infos_)
-        {
-            if (f.printProperties().hasINJECTINTOSTATUS())
-            {
-                string more = getStringValue(&f);
-                string joined = joinStatusOKStrings(value, more);
-                value = joined;
-            }
-        }
-        // Sort all found flags and remove any duplicates. A well designed meter decoder
-        // should not be able to generate duplicates.
-        value = sortStatusString(value);
-        // If it is empty, then translate to OK!
-        if (value == "") value = "OK";
-    }
-
-    return value;
+    if (fi->printProperties().hasSTATUS()) return getStatusField(fi);
+    return sf.value;
 }
 
 string MeterCommonImplementation::decodeTPLStatusByte(uchar sts)
