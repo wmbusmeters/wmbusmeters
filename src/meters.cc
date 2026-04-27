@@ -1763,11 +1763,12 @@ void MeterCommonImplementation::processFieldCalculators()
 string MeterCommonImplementation::getStatusField(FieldInfo *fi)
 {
     string field_name_no_unit = fi->vname();
-    if (string_values_.count(field_name_no_unit) == 0)
+    auto it = string_values_.find(field_name_no_unit);
+    if (it == string_values_.end())
     {
         return "null"; // This is translated to a real(non-string) null in the json.
     }
-    StringField &sf = string_values_[field_name_no_unit];
+    StringField &sf = it->second;
     string value = sf.value;
 
     // This is >THE< status field, only one is allowed.
@@ -1853,22 +1854,24 @@ double MeterCommonImplementation::getNumericValue(FieldInfo *fi, Unit to)
 {
     string field_name_no_unit = fi->vname();
     pair<string,Unit> key(field_name_no_unit,fi->displayUnit());
-    if (numeric_values_.count(key) == 0)
+    auto it = numeric_values_.find(key);
+    if (it == numeric_values_.end())
     {
         return std::numeric_limits<double>::quiet_NaN(); // This is translated into a null in the json.
     }
-    NumericField &nf = numeric_values_[key];
+    NumericField &nf = it->second;
     return convert(nf.value, nf.unit, to);
 }
 
 double MeterCommonImplementation::getNumericValue(string vname, Unit to)
 {
     pair<string,Unit> key(vname,to);
-    if (numeric_values_.count(key) == 0)
+    auto it = numeric_values_.find(key);
+    if (it == numeric_values_.end())
     {
         return std::numeric_limits<double>::quiet_NaN(); // This is translated into a null in the json.
     }
-    NumericField &nf = numeric_values_[key];
+    NumericField &nf = it->second;
     return convert(nf.value, nf.unit, to);
 }
 
@@ -1903,11 +1906,12 @@ void MeterCommonImplementation::setStringValue(string vname, string v, DVEntry *
 string MeterCommonImplementation::getStringValue(FieldInfo *fi)
 {
     string field_name_no_unit = fi->vname();
-    if (string_values_.count(field_name_no_unit) == 0)
+    auto it = string_values_.find(field_name_no_unit);
+    if (it == string_values_.end())
     {
         return "null"; // This is translated to a real(non-string) null in the json.
     }
-    StringField &sf = string_values_[field_name_no_unit];
+    StringField &sf = it->second;
     string value = sf.value;
 
     if (fi->printProperties().hasSTATUS())
@@ -2696,8 +2700,9 @@ bool FieldInfo::extractNumeric(Meter *m, Telegram *t, DVEntry *dve)
             if (!ok) return false;
         }
         // No entry with this key was found.
-        if (t->dv_entries.count(key) == 0) return false;
-        dve = &t->dv_entries[key].second;
+        auto dv_it = t->dv_entries.find(key);
+        if (dv_it == t->dv_entries.end()) return false;
+        dve = &dv_it->second.second;
     }
     assert(dve != NULL);
     assert(key == "" || dve->dif_vif_key.str() == key);
@@ -2847,7 +2852,8 @@ bool FieldInfo::extractString(Meter *m, Telegram *t, DVEntry *dve)
             }
         }
         // No entry with this key was found.
-        if (t->dv_entries.count(key) == 0)
+        auto dv_it = t->dv_entries.find(key);
+        if (dv_it == t->dv_entries.end())
         {
             // Nothing found, however check if capturing JOIN_TPL_STATUS.
             if (print_properties_.hasINCLUDETPLSTATUS())
@@ -2858,7 +2864,7 @@ bool FieldInfo::extractString(Meter *m, Telegram *t, DVEntry *dve)
             }
             return false;
         }
-        dve = &t->dv_entries[key].second;
+        dve = &dv_it->second.second;
     }
     assert(dve != NULL);
     assert(key == "" || dve->dif_vif_key.str() == key);
