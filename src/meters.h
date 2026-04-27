@@ -224,7 +224,7 @@ public:
 
 bool staticRegisterDriver(std::function<void(DriverInfo&di)> setup);
 // Lookup (and load if necessary) driver from memory or disk.
-DriverInfo *lookupDriver(std::string name);
+DriverInfo *lookupDriver(const std::string &name);
 bool lookupDriverInfo(const std::string& driver, DriverInfo *di = NULL);
 // Return the best driver match for a telegram.
 DriverInfo pickMeterDriver(Telegram *t);

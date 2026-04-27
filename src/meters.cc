@@ -33,11 +33,13 @@
 #include<numeric>
 #include<stdexcept>
 #include<time.h>
+#include<unordered_map>
 
 using namespace std;
 
 map<string, DriverInfo> *registered_drivers_ = NULL;
 vector<DriverInfo*> *registered_drivers_list_ = NULL;
+unordered_map<string, DriverInfo*> *registered_driver_aliases_ = NULL;
 map<string, string> removed_driver_explanation_;
 
 void verifyDriverLookupCreated()
@@ -50,29 +52,29 @@ void verifyDriverLookupCreated()
     {
         registered_drivers_list_ = new vector<DriverInfo*>;
     }
+    if (registered_driver_aliases_ == NULL)
+    {
+        registered_driver_aliases_ = new unordered_map<string, DriverInfo*>;
+    }
 }
 
 // This function should return NULL if the name is not found.
-DriverInfo *lookupDriver(string name)
+DriverInfo *lookupDriver(const string &name)
 {
     verifyDriverLookupCreated();
 
     // Check if we have a compiled/loaded driver available.
-    if (registered_drivers_->count(name) == 1)
+    auto it = registered_drivers_->find(name);
+    if (it != registered_drivers_->end())
     {
-        return &(*registered_drivers_)[name];
+        return &it->second;
     }
 
     // No, ok lets look for driver aliases.
-    for (DriverInfo *di : *registered_drivers_list_)
+    auto alias = registered_driver_aliases_->find(name);
+    if (alias != registered_driver_aliases_->end())
     {
-        for (DriverName &dn : di->nameAliases())
-        {
-            if (dn.str() == name)
-            {
-                return di;
-            }
-        }
+        return alias->second;
     }
 
     return NULL;
@@ -85,12 +87,29 @@ vector<DriverInfo*> &allDrivers()
 
 void removeDriver(const string &name, string explanation)
 {
-    for (auto i = registered_drivers_list_->begin(); i != registered_drivers_list_->end(); i++)
+    auto removed = registered_drivers_->find(name);
+    if (removed != registered_drivers_->end())
     {
-        if ((*i)->name().str() == name)
+        DriverInfo *removed_ptr = &removed->second;
+        for (auto i = registered_drivers_list_->begin(); i != registered_drivers_list_->end(); i++)
         {
-            registered_drivers_list_->erase(i);
-            break;
+            if (*i == removed_ptr)
+            {
+                registered_drivers_list_->erase(i);
+                break;
+            }
+        }
+
+        for (auto i = registered_driver_aliases_->begin(); i != registered_driver_aliases_->end();)
+        {
+            if (i->second == removed_ptr)
+            {
+                i = registered_driver_aliases_->erase(i);
+            }
+            else
+            {
+                ++i;
+            }
         }
     }
 
@@ -102,9 +121,10 @@ void removeDriver(const string &name, string explanation)
 
 string removedDriverExplanation(const string& name)
 {
-    if (removed_driver_explanation_.count(name) > 0)
+    auto it = removed_driver_explanation_.find(name);
+    if (it != removed_driver_explanation_.end())
     {
-        return removed_driver_explanation_[name];
+        return it->second;
     }
     return "";
 }
@@ -112,15 +132,23 @@ string removedDriverExplanation(const string& name)
 void addRegisteredDriver(DriverInfo di)
 {
     verifyDriverLookupCreated();
-    if (registered_drivers_->count(di.name().str()) != 0)
+    string driver_name = di.name().str();
+    if (registered_drivers_->count(driver_name) != 0)
     {
-        error("Two drivers trying to register the name \"%s\"\n", di.name().str().c_str());
+        error("Two drivers trying to register the name \"%s\"\n", driver_name.c_str());
         exit(1);
     }
 
-    (*registered_drivers_)[di.name().str()] = di;
+    auto inserted = registered_drivers_->emplace(driver_name, di);
+    DriverInfo *registered = &inserted.first->second;
+
     // The list elements points into the map.
-    (*registered_drivers_list_).push_back(lookupDriver(di.name().str()));
+    registered_drivers_list_->push_back(registered);
+
+    for (DriverName &dn : registered->nameAliases())
+    {
+        (*registered_driver_aliases_)[dn.str()] = registered;
+    }
 }
 
 bool DriverInfo::detect(uint16_t mfct, uchar version, uchar type)
