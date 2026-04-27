@@ -34,6 +34,7 @@
 #include<stdexcept>
 #include<time.h>
 #include<unordered_map>
+#include<unordered_set>
 
 using namespace std;
 
@@ -1643,11 +1644,12 @@ void MeterCommonImplementation::processFieldIXMLs(Telegram *t)
 void MeterCommonImplementation::processFieldExtractors(Telegram *t)
 {
     // Multiple dventries can be matched against a single wildcard FieldInfo.
-    map<FieldInfo*,set<DVEntry*>> founds;
+    unordered_map<FieldInfo*, unordered_set<DVEntry*>> founds;
 
     // Sort the dv_entries based on their offset in the telegram.
     // I.e. restore the ordering that was implicit in the telegram.
     vector<DVEntry*> sorted_entries;
+    sorted_entries.reserve(t->dv_entries.size());
 
     for (auto &p : t->dv_entries)
     {
@@ -1662,6 +1664,7 @@ void MeterCommonImplementation::processFieldExtractors(Telegram *t)
         if (fi.hasIXML()) continue; // The IXML fields have already been handled.
 
         int current_match_nr = 0;
+        bool match_multiple = fi.matcher().expectedToMatchAgainstMultipleEntries();
 
         if (!fi.hasMatcher())
         {
@@ -1684,35 +1687,44 @@ void MeterCommonImplementation::processFieldExtractors(Telegram *t)
             {
                 current_match_nr++;
                 if (fi.matcher().index_nr != IndexNr(current_match_nr) &&
-                    !fi.matcher().expectedToMatchAgainstMultipleEntries())
+                    !match_multiple)
                 {
                     // This field info did match, but requires another index nr!
                     // Increment the current index nr and look for the next match.
                 }
-                else if (founds[&fi].count(dve) == 0 || fi.matcher().expectedToMatchAgainstMultipleEntries())
-                {
-                    debug("(meters) using field info %s(%s)[%d] to extract %s at offset %d\n",
-                          fi.vname().c_str(),
-                          toString(fi.xuantity()),
-                          fi.index(),
-                          dve->dif_vif_key.str().c_str(),
-                          dve->offset);
-
-                    dve->addFieldInfo(&fi);
-                    fi.performExtraction(this, t, dve);
-                    founds[&fi].insert(dve);
-                }
                 else
                 {
-                    if (isVerboseEnabled())
+                    auto found_it = founds.find(&fi);
+                    bool already_found = false;
+                    if (found_it != founds.end())
                     {
-                        set<DVEntry*> old = founds[&fi];
+                        already_found = found_it->second.count(dve) != 0;
+                    }
+
+                    if (!already_found || match_multiple)
+                    {
+                        debug("(meters) using field info %s(%s)[%d] to extract %s at offset %d\n",
+                              fi.vname().c_str(),
+                              toString(fi.xuantity()),
+                              fi.index(),
+                              dve->dif_vif_key.str().c_str(),
+                              dve->offset);
+
+                        dve->addFieldInfo(&fi);
+                        fi.performExtraction(this, t, dve);
+                        founds[&fi].insert(dve);
+                    }
+                    else if (isVerboseEnabled())
+                    {
+                        const auto &old = found_it->second;
                         string olds;
-                        for (DVEntry *dve : old)
+                        bool first_offset = true;
+                        for (DVEntry *old_dve : old)
                         {
-                            olds += to_string(dve->offset)+",";
+                            if (!first_offset) olds += ",";
+                            olds += to_string(old_dve->offset);
+                            first_offset = false;
                         }
-                        olds.pop_back();
 
                         verbose("(meter) while processing field extractors ignoring dventry %s at offset %d matching since "
                                 "field %s was already matched against offsets %s !\n",
