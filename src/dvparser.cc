@@ -183,7 +183,6 @@ bool parseDV(Telegram *t,
     unordered_map<string,int> dv_count;
     vector<uchar> format_bytes;
     vector<uchar> id_bytes;
-    vector<uchar> data_bytes;
     string dv, key;
     size_t start_parse_here = t->parsed.size();
     vector<uchar>::iterator data_start = data;
@@ -234,7 +233,6 @@ bool parseDV(Telegram *t,
     // A proper meter would use storagenr etc to differentiate between different measurements of
     // the same value.
 
-    format_bytes.clear();
     id_bytes.clear();
     for (;;)
     {
@@ -537,7 +535,7 @@ bool parseDV(Telegram *t,
             }
         }
 
-        dv = "";
+        dv.clear();
         dv.reserve(id_bytes.size()*2);
         for (uchar c : id_bytes) {
             dv.push_back(hex_upper[c >> 4]);
