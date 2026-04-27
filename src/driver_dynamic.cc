@@ -117,7 +117,7 @@ bool DriverDynamic::load(DriverInfo *di, const string &file_name, const char *co
         string default_fields = check_default_fields(xmqGetString(doc, "/driver/default_fields"), file);
         di->setDefaultFields(default_fields);
 
-        const char *media_type_s = xmqGetString(doc, "/driver/media_type");
+        const char *media_type_s = xmqGetString(doc, "/driver/force_media_type");
         if (media_type_s) di->setMediaType(media_type_s);
 
         if (!content)

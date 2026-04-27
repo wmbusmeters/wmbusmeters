@@ -3,7 +3,8 @@ driver {
     name           = apator172
     meter_type     = WaterMeter
     default_fields = name,id,total_m3,timestamp
-    media_type     = water
+    // The meter sends 0x11 as media type, replace with water which makes more sense.
+    force_media_type = water
     detect {
         mvt = APT,04,11
     }
