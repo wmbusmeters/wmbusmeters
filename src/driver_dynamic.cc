@@ -187,8 +187,10 @@ XMQProceed DriverDynamic::add_detect(XMQDoc *doc, XMQNodePtr detect, DriverInfo 
 {
     string mvt = xmqGetStringRel(doc, ".", detect);
 
-    auto fields = splitString(mvt, ',');
-    if (fields.size() != 3)
+    const char *start = mvt.c_str();
+    const char *comma1 = strchr(start, ',');
+    const char *comma2 = comma1 ? strchr(comma1 + 1, ',') : NULL;
+    if (!comma1 || !comma2 || strchr(comma2 + 1, ',') != NULL)
     {
         warning("(driver) error in %s, wrong number of fields in mvt triple: mvt = %s\n"
                 "%s\n"
@@ -201,10 +203,10 @@ XMQProceed DriverDynamic::add_detect(XMQDoc *doc, XMQNodePtr detect, DriverInfo 
         return XMQ_CONTINUE;
     }
 
-    string mfct = fields[0];
+    string mfct(start, comma1 - start);
     int mfct_code = 0;
-    long version = strtol(fields[1].c_str(), NULL, 16);
-    long type = strtol(fields[2].c_str(), NULL, 16);
+    long version = strtol(comma1 + 1, NULL, 16);
+    long type = strtol(comma2 + 1, NULL, 16);
 
     if (mfct.length() == 3)
     {
