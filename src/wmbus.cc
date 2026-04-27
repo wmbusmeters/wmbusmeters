@@ -38,6 +38,7 @@
 #include<algorithm>
 #include<unordered_set>
 #include<unordered_map>
+#include<string_view>
 
 using namespace std;
 
@@ -119,6 +120,19 @@ LinkMode toLinkMode(const char *arg)
 {
     for (auto& s : link_modes_) {
         if (!strcmp(arg, s.lcname)) {
+            return s.mode;
+        }
+    }
+    return LinkMode::UNKNOWN;
+}
+
+static LinkMode toLinkMode(string_view arg)
+{
+    for (auto &s : link_modes_)
+    {
+        size_t n = strlen(s.lcname);
+        if (arg.size() == n && memcmp(arg.data(), s.lcname, n) == 0)
+        {
             return s.mode;
         }
     }
@@ -5565,6 +5579,16 @@ TelegramFormat toTelegramFormat(const char *s)
     return TelegramFormat::UNKNOWN;
 }
 
+static TelegramFormat toTelegramFormat(string_view s)
+{
+    if (s == "wmbus_c_field") return TelegramFormat::WMBUS_C_FIELD;
+    if (s == "wmbus_ci_field") return TelegramFormat::WMBUS_CI_FIELD;
+    if (s == "mbus_short_frame") return TelegramFormat::MBUS_SHORT_FRAME;
+    if (s == "mbus_long_frame") return TelegramFormat::MBUS_LONG_FRAME;
+
+    return TelegramFormat::UNKNOWN;
+}
+
 const char *toString(DeviceMode mode)
 {
     if (mode == DeviceMode::METER) return "meter";
@@ -5599,28 +5623,30 @@ bool SendBusContent::parse(const string &s)
     // send:mbus:long:OUTMBUS:001122
     //     c1   c2   c3      c4
 
-    size_t c1 = s.find(":");
+    string_view sv(s);
+
+    size_t c1 = sv.find(':');
     if (c1 == string::npos) return false;
-    size_t c2 = s.find(":", c1+1);
+    size_t c2 = sv.find(':', c1+1);
     if (c2 == string::npos) return false;
-    size_t c3 = s.find(":", c2+1);
+    size_t c3 = sv.find(':', c2+1);
     if (c3 == string::npos) return false;
-    size_t c4 = s.find(":", c3+1);
+    size_t c4 = sv.find(':', c3+1);
     if (c4 == string::npos) return false;
 
-    string cmd = s.substr(0, c1);
+    string_view cmd = sv.substr(0, c1);
     if (cmd != "send") return false;
 
-    link_mode = toLinkMode(s.substr(c1+1, c2-c1-1).c_str());
+    link_mode = toLinkMode(sv.substr(c1+1, c2-c1-1));
     if (link_mode == LinkMode::UNKNOWN) return false;
 
-    format = toTelegramFormat(s.substr(c2+1, c3-c2-1).c_str());
+    format = toTelegramFormat(sv.substr(c2+1, c3-c2-1));
     if (format == TelegramFormat::UNKNOWN) return false;
 
-    bus = s.substr(c3+1, c4-c3-1);
+    bus.assign(sv.substr(c3+1, c4-c3-1));
     if (bus.size() == 0) return false;
 
-    content = s.substr(c4+1);
+    content.assign(sv.substr(c4+1));
     if (content.size() == 0) return false;
     if (content.size() % 2 == 1) return false;
 
