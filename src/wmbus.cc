@@ -36,6 +36,7 @@
 
 #include<deque>
 #include<algorithm>
+#include<unordered_set>
 
 using namespace std;
 
@@ -424,13 +425,26 @@ bool seen_this_telegram_before(vector<uchar> &frame)
 
 // Store the dll_a (6 bytes composed of 4 id + 1 ver + 1 media )
 // for telegrams that has been warned about!
-deque<vector<uchar>> warning_printed_for_telegrams;
+deque<uint64_t> warning_printed_for_telegrams;
+unordered_set<uint64_t> warning_printed_for_telegrams_set;
+
+static inline uint64_t dllAKey(const vector<uchar> &dll_a)
+{
+    if (dll_a.size() < 6) return 0;
+    uint64_t key = 0;
+    key |= static_cast<uint64_t>(dll_a[0]);
+    key |= static_cast<uint64_t>(dll_a[1]) << 8;
+    key |= static_cast<uint64_t>(dll_a[2]) << 16;
+    key |= static_cast<uint64_t>(dll_a[3]) << 24;
+    key |= static_cast<uint64_t>(dll_a[4]) << 32;
+    key |= static_cast<uint64_t>(dll_a[5]) << 40;
+    return key;
+}
 
 bool warned_for_telegram_before(Telegram *t, vector<uchar> &dll_a)
 {
-    auto i = std::find(warning_printed_for_telegrams.begin(), warning_printed_for_telegrams.end(), dll_a);
-
-    if (i != warning_printed_for_telegrams.end())
+    uint64_t key = dllAKey(dll_a);
+    if (warning_printed_for_telegrams_set.count(key) != 0)
     {
         // Found it!
         if (t->triggered_warning)
@@ -447,9 +461,12 @@ bool warned_for_telegram_before(Telegram *t, vector<uchar> &dll_a)
     // Limit size of memory to 100 odd meters...
     if (warning_printed_for_telegrams.size() >= 100)
     {
+        uint64_t oldest = warning_printed_for_telegrams.front();
         warning_printed_for_telegrams.pop_front();
+        warning_printed_for_telegrams_set.erase(oldest);
     }
-    warning_printed_for_telegrams.push_back(dll_a);
+    warning_printed_for_telegrams.push_back(key);
+    warning_printed_for_telegrams_set.insert(key);
     // Print all warnings for this telegram.
     t->triggered_warning = true;
     return false;
