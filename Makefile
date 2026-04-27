@@ -167,6 +167,7 @@ PROG_OBJS:=\
 	$(BUILD)/aescmac.o \
 	$(BUILD)/bus.o \
 	$(BUILD)/cmdline.o \
+	$(BUILD)/crc16.o \
 	$(BUILD)/config.o \
 	$(BUILD)/drivers.o \
 	$(BUILD)/dvparser.o \

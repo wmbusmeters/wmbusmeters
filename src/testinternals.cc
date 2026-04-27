@@ -18,6 +18,7 @@
 #include"address.h"
 #include"aes.h"
 #include"aescmac.h"
+#include"crc16.h"
 #include"cmdline.h"
 #include"config.h"
 #include"drivers.h"
