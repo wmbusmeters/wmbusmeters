@@ -56,7 +56,7 @@ void list_fields(Configuration *config, string meter_type);
 void print_driver(Configuration *config, string meter_type);
 void list_shell_envs(Configuration *config, string meter_type);
 void list_meters(Configuration *config, bool cli);
-void list_units();
+__attribute__((cold,noinline)) void list_units();
 void log_start_information(Configuration *config);
 void oneshot_check(Configuration *config, Telegram *t, Meter *meter);
 void regular_checkup(Configuration *config);
@@ -378,7 +378,7 @@ struct TmpUnit
     string suff, expl, name, quantity, si;
 };
 
-void list_units()
+__attribute__((cold,noinline)) void list_units()
 {
     vector<TmpUnit> units;
     set<string> quantities;
