@@ -521,164 +521,123 @@ const char *manufacturer(int m_field) {
     return "Unknown";
 }
 
-string mediaType(int a_field_device_type, int m_field) {
-    switch (a_field_device_type) {
-    case 0: return "Other";
-    case 1: return "Oil meter";
-    case 2: return "Electricity meter";
-    case 3: return "Gas meter";
-    case 4: return "Heat meter";
-    case 5: return "Steam meter";
-    case 6: return "Warm Water (30°C-90°C) meter";
-    case 7: return "Water meter";
-    case 8: return "Heat Cost Allocator";
-    case 9: return "Compressed air meter";
-    case 0x0a: return "Cooling load volume at outlet meter";
-    case 0x0b: return "Cooling load volume at inlet meter";
-    case 0x0c: return "Heat volume at inlet meter";
-    case 0x0d: return "Heat/Cooling load meter";
-    case 0x0e: return "Bus/System component";
-    case 0x0f: return "Unknown";
-    case 0x15: return "Hot water (>=90°C) meter";
-    case 0x16: return "Cold water meter";
-    case 0x17: return "Hot/Cold water meter";
-    case 0x18: return "Pressure meter";
-    case 0x19: return "A/D converter";
-    case 0x1A: return "Smoke detector";
-    case 0x1B: return "Room sensor (eg temperature or humidity)";
-    case 0x1C: return "Gas detector";
-    case 0x1D: return "Reserved for sensors";
-    case 0x1F: return "Reserved for sensors";
-    case 0x20: return "Breaker (electricity)";
-    case 0x21: return "Valve (gas or water)";
-    case 0x22: return "Reserved for switching devices";
-    case 0x23: return "Reserved for switching devices";
-    case 0x24: return "Reserved for switching devices";
-    case 0x25: return "Customer unit (display device)";
-    case 0x26: return "Reserved for customer units";
-    case 0x27: return "Reserved for customer units";
-    case 0x28: return "Waste water";
-    case 0x29: return "Garbage";
-    case 0x2A: return "Reserved for Carbon dioxide";
-    case 0x2B: return "Reserved for environmental meter";
-    case 0x2C: return "Reserved for environmental meter";
-    case 0x2D: return "Reserved for environmental meter";
-    case 0x2E: return "Reserved for environmental meter";
-    case 0x2F: return "Reserved for environmental meter";
-    case 0x30: return "Reserved for system devices";
-    case 0x31: return "Reserved for communication controller";
-    case 0x32: return "Reserved for unidirectional repeater";
-    case 0x33: return "Reserved for bidirectional repeater";
-    case 0x34: return "Reserved for system devices";
-    case 0x35: return "Reserved for system devices";
-    case 0x36: return "Radio converter (system side)";
-    case 0x37: return "Radio converter (meter side)";
-    case 0x38: return "Reserved for system devices";
-    case 0x39: return "Reserved for system devices";
-    case 0x3A: return "Reserved for system devices";
-    case 0x3B: return "Reserved for system devices";
-    case 0x3C: return "Reserved for system devices";
-    case 0x3D: return "Reserved for system devices";
-    case 0x3E: return "Reserved for system devices";
-    case 0x3F: return "Reserved for system devices";
+struct MediaTypeInfo
+{
+    const char *hr;
+    const char *json;
+};
+
+static const MediaTypeInfo media_types_[0x40] = {
+    { "Other", "other" },
+    { "Oil meter", "oil" },
+    { "Electricity meter", "electricity" },
+    { "Gas meter", "gas" },
+    { "Heat meter", "heat" },
+    { "Steam meter", "steam" },
+    { "Warm Water (30°C-90°C) meter", "warm water" },
+    { "Water meter", "water" },
+    { "Heat Cost Allocator", "heat cost allocation" },
+    { "Compressed air meter", "compressed air" },
+    { "Cooling load volume at outlet meter", "cooling load volume at outlet" },
+    { "Cooling load volume at inlet meter", "cooling load volume at inlet" },
+    { "Heat volume at inlet meter", "heat volume at inlet" },
+    { "Heat/Cooling load meter", "heat/cooling load" },
+    { "Bus/System component", "bus/system component" },
+    { "Unknown", "unknown" },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { "Hot water (>=90°C) meter", "hot water" },
+    { "Cold water meter", "cold water" },
+    { "Hot/Cold water meter", "hot/cold water" },
+    { "Pressure meter", "pressure" },
+    { "A/D converter", "a/d converter" },
+    { "Smoke detector", "smoke detector" },
+    { "Room sensor (eg temperature or humidity)", "room sensor" },
+    { "Gas detector", "gas detector" },
+    { "Reserved for sensors", "reserved" },
+    { NULL, NULL },
+    { "Reserved for sensors", "reserved" },
+    { "Breaker (electricity)", "breaker" },
+    { "Valve (gas or water)", "valve" },
+    { "Reserved for switching devices", "reserved" },
+    { "Reserved for switching devices", "reserved" },
+    { "Reserved for switching devices", "reserved" },
+    { "Customer unit (display device)", "customer unit (display device)" },
+    { "Reserved for customer units", "reserved" },
+    { "Reserved for customer units", "reserved" },
+    { "Waste water", "waste water" },
+    { "Garbage", "garbage" },
+    { "Reserved for Carbon dioxide", "reserved" },
+    { "Reserved for environmental meter", "reserved" },
+    { "Reserved for environmental meter", "reserved" },
+    { "Reserved for environmental meter", "reserved" },
+    { "Reserved for environmental meter", "reserved" },
+    { "Reserved for environmental meter", "reserved" },
+    { "Reserved for system devices", "reserved" },
+    { "Reserved for communication controller", "reserved" },
+    { "Reserved for unidirectional repeater", "reserved" },
+    { "Reserved for bidirectional repeater", "reserved" },
+    { "Reserved for system devices", "reserved" },
+    { "Reserved for system devices", "reserved" },
+    { "Radio converter (system side)", "radio converter (system side)" },
+    { "Radio converter (meter side)", "radio converter (meter side)" },
+    { "Reserved for system devices", "reserved" },
+    { "Reserved for system devices", "reserved" },
+    { "Reserved for system devices", "reserved" },
+    { "Reserved for system devices", "reserved" },
+    { "Reserved for system devices", "reserved" },
+    { "Reserved for system devices", "reserved" },
+    { "Reserved for system devices", "reserved" },
+    { "Reserved for system devices", "reserved" }
+};
+
+static const MediaTypeInfo techem_warm_water_ = { "Warm water", "warm water" };
+static const MediaTypeInfo techem_cold_water_ = { "Cold water", "cold water" };
+static const MediaTypeInfo techem_hca_ = { "Heat Cost Allocator", "heat cost allocator" };
+static const MediaTypeInfo techem_heat_ = { "Heat meter", "heat" };
+static const MediaTypeInfo techem_smoke_ = { "Smoke detector", "smoke detector" };
+
+static const MediaTypeInfo *lookupMediaTypeInfo(int a_field_device_type, int m_field)
+{
+    if (a_field_device_type >= 0 && a_field_device_type < 0x40)
+    {
+        const MediaTypeInfo &candidate = media_types_[a_field_device_type];
+        if (candidate.hr != NULL)
+        {
+            return &candidate;
+        }
     }
 
     if (m_field == MANUFACTURER_TCH)
     {
-        switch (a_field_device_type) {
-        // Techem MK Radio 3/4 manufacturer specific.
-        case 0x62: return "Warm water"; // MKRadio3/MKRadio4
-        case 0x72: return "Cold water"; // MKRadio3/MKRadio4
-        // Techem FHKV.
-        case 0x80: return "Heat Cost Allocator"; // FHKV data ii/iii
-        // Techem Vario 4 Typ 4.5.1 manufacturer specific.
-        case 0xC3: return "Heat meter";
-        // Techem V manufacturer specific.
-        case 0x43: return "Heat meter";
-        case 0xf0: return "Smoke detector";
+        switch (a_field_device_type)
+        {
+        case 0x62: return &techem_warm_water_;
+        case 0x72: return &techem_cold_water_;
+        case 0x80: return &techem_hca_;
+        case 0xC3: return &techem_heat_;
+        case 0x43: return &techem_heat_;
+        case 0xf0: return &techem_smoke_;
         }
     }
+
+    return NULL;
+}
+
+string mediaType(int a_field_device_type, int m_field)
+{
+    const MediaTypeInfo *info = lookupMediaTypeInfo(a_field_device_type, m_field);
+    if (info) return info->hr;
     return "Unknown";
 }
 
 string mediaTypeJSON(int a_field_device_type, int m_field)
 {
-    switch (a_field_device_type) {
-    case 0: return "other";
-    case 1: return "oil";
-    case 2: return "electricity";
-    case 3: return "gas";
-    case 4: return "heat";
-    case 5: return "steam";
-    case 6: return "warm water";
-    case 7: return "water";
-    case 8: return "heat cost allocation";
-    case 9: return "compressed air";
-    case 0x0a: return "cooling load volume at outlet";
-    case 0x0b: return "cooling load volume at inlet";
-    case 0x0c: return "heat volume at inlet";
-    case 0x0d: return "heat/cooling load";
-    case 0x0e: return "bus/system component";
-    case 0x0f: return "unknown";
-    case 0x15: return "hot water";
-    case 0x16: return "cold water";
-    case 0x17: return "hot/cold water";
-    case 0x18: return "pressure";
-    case 0x19: return "a/d converter";
-    case 0x1A: return "smoke detector";
-    case 0x1B: return "room sensor";
-    case 0x1C: return "gas detector";
-    case 0x1D: return "reserved";
-    case 0x1F: return "reserved";
-    case 0x20: return "breaker";
-    case 0x21: return "valve";
-    case 0x22: return "reserved";
-    case 0x23: return "reserved";
-    case 0x24: return "reserved";
-    case 0x25: return "customer unit (display device)";
-    case 0x26: return "reserved";
-    case 0x27: return "reserved";
-    case 0x28: return "waste water";
-    case 0x29: return "garbage";
-    case 0x2A: return "reserved";
-    case 0x2B: return "reserved";
-    case 0x2C: return "reserved";
-    case 0x2D: return "reserved";
-    case 0x2E: return "reserved";
-    case 0x2F: return "reserved";
-    case 0x30: return "reserved";
-    case 0x31: return "reserved";
-    case 0x32: return "reserved";
-    case 0x33: return "reserved";
-    case 0x34: return "reserved";
-    case 0x35: return "reserved";
-    case 0x36: return "radio converter (system side)";
-    case 0x37: return "radio converter (meter side)";
-    case 0x38: return "reserved";
-    case 0x39: return "reserved";
-    case 0x3A: return "reserved";
-    case 0x3B: return "reserved";
-    case 0x3C: return "reserved";
-    case 0x3D: return "reserved";
-    case 0x3E: return "reserved";
-    case 0x3F: return "reserved";
-    }
-
-    if (m_field == MANUFACTURER_TCH)
-    {
-        switch (a_field_device_type) {
-        // Techem MK Radio 3/4 manufacturer specific.
-        case 0x62: return "warm water"; // MKRadio3/MKRadio4
-        case 0x72: return "cold water"; // MKRadio3/MKRadio4
-        // Techem FHKV.
-        case 0x80: return "heat cost allocator"; // FHKV data ii/iii
-        // Techem Vario 4 Typ 4.5.1 manufacturer specific.
-        case 0xC3: return "heat";
-        // Techem V manufacturer specific.
-        case 0x43: return "heat";
-        case 0xf0: return "smoke detector";
-        }
-    }
+    const MediaTypeInfo *info = lookupMediaTypeInfo(a_field_device_type, m_field);
+    if (info) return info->json;
     return "Unknown";
 }
 
