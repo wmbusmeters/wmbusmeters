@@ -23,6 +23,7 @@
 
 #include<assert.h>
 #include<string.h>
+#include<utility>
 
 using namespace std;
 
@@ -383,13 +384,13 @@ XMQProceed DriverDynamic::add_field(XMQDoc *doc, XMQNodePtr field, DriverDynamic
         if (calculate == "")
         {
             dd->addNumericFieldWithExtractor(
-                name,
-                info,
+                std::move(name),
+                std::move(info),
                 properties,
                 quantity,
                 vif_scaling,
                 dif_signedness,
-                match,
+                std::move(match),
                 display_unit,
                 force_scale
                 );
@@ -403,23 +404,23 @@ XMQProceed DriverDynamic::add_field(XMQDoc *doc, XMQNodePtr field, DriverDynamic
             if (!match.active)
             {
                 dd->addNumericFieldWithCalculator(
-                    name,
-                    info,
+                    std::move(name),
+                    std::move(info),
                     properties,
                     quantity,
-                    calculate,
+                    std::move(calculate),
                     display_unit
                     );
             }
             else
             {
                 dd->addNumericFieldWithCalculatorAndMatcher(
-                    name,
-                    info,
+                    std::move(name),
+                    std::move(info),
                     properties,
                     quantity,
-                    calculate,
-                    match,
+                    std::move(calculate),
+                    std::move(match),
                     display_unit
                     );
             }
@@ -430,21 +431,21 @@ XMQProceed DriverDynamic::add_field(XMQDoc *doc, XMQNodePtr field, DriverDynamic
         if (num_lookups > 0)
         {
             dd->addStringFieldWithExtractorAndLookup(
-                name,
-                info,
+                std::move(name),
+                std::move(info),
                 properties,
-                match,
-                lookup
+                std::move(match),
+                std::move(lookup)
                 );
         }
         else
         {
             dd->addStringFieldWithExtractor(
-                name,
-                info,
+                std::move(name),
+                std::move(info),
                 properties,
-                match,
-                ixml,
+                std::move(match),
+                std::move(ixml),
                 match_entire_payload
                 );
             if (rs != ReadableString::Unknown)
