@@ -1,4 +1,4 @@
-// Copyright (C) 2022 Fredrik Öhrström (gpl-3.0-or-later)
+// Copyright (C) 2022-2026 Fredrik Öhrström (gpl-3.0-or-later)
 driver {
     name           = apator172
     meter_type     = WaterMeter
@@ -11,40 +11,32 @@ driver {
         field {
             name                 = payload_decoder
             quantity             = Text
-            info                 = 'Decode proprietary 4-byte counter from raw payload.'
+            info                 = 'Decode 4-byte counter from mfct specific payload. The counter stores 1/3 of a m3.'
             attributes           = HIDE
             match_entire_payload = true
             ixml                 = "decode = total, byte*.
-                                    total = quad, @DV_0413.
+                                    total = quad, @DV_0416.
                                     -hex  = ['A'-'F';'0'-'9'].
                                     -byte = hex, hex.
                                     -quad = byte, byte, byte, byte.
-                                    DV_0413>dvk = +'0413'."
+                                    DV_0416>dvk = +'0416'."
         }
         field {
-            name           = raw_total
-            quantity       = Volume
-            info           = 'Raw counter value from meter before tick-to-m3 scaling.'
-            attributes     = HIDE
-            vif_scaling    = Auto
-            dif_signedness = Signed
+            name        = total
+            quantity    = Volume
+            info        = 'The total water consumption recorded by this meter.'
+            force_scale = 1/3
             match {
-                difvifkey = 0413
+                difvifkey = 0416
             }
-        }
-        field {
-            name      = total
-            quantity  = Volume
-            info      = 'The total water consumption recorded by this meter.'
-            calculate = '0.1 counter * round(10000 counter * raw_total_m3 / 3 counter)'
         }
     }
     tests {
         test {
             args     = 'Vattur apator172 0014a807 NOKEY'
             telegram = 1C44148607A814000411A0_1D5400000840030000000005FF05D83D0000
-            json     = '{"_":"telegram","media":"water","meter":"apator172","name":"Vattur","id":"0014a807","total_m3":7177.7,"timestamp":"1111-11-11T11:11:11Z"}'
-            fields   = 'Vattur;0014a807;7177.7;1111-11-11 11:11.11'
+            json     = '{"_":"telegram","media":"water","meter":"apator172","name":"Vattur","id":"0014a807","total_m3":7177.666667,"timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'Vattur;0014a807;7177.666667;1111-11-11 11:11.11'
         }
         test {
             args     = 'Vattur apator172 0014a807 NOKEY'

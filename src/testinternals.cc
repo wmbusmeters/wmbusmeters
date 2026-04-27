@@ -80,6 +80,7 @@ bool verbose_ = false;
     X(formulas_errors)                          \
     X(formulas_dventries)                       \
     X(formulas_stringinterpolation)             \
+    X(formulas_rounding)                        \
 
 #define X(t) void test_##t();
 LIST_OF_TESTS
@@ -2838,6 +2839,14 @@ void test_formulas_stringinterpolation()
                s.c_str());
     }
 
+}
+
+void test_formulas_rounding()
+{
+    FormulaImplementation fi;
+
+    test_formula_value(&fi, NULL, "round(100.542 kwh)", 101, Unit::KWH);
+    test_formula_value(&fi, NULL, "round(100.492 kwh)", 100, Unit::KWH);
 }
 
 void test_dynamic_loading()
