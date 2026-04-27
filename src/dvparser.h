@@ -292,8 +292,8 @@ void extractDV(std::string &s, uchar *dif, int *vif, bool *has_difes, bool *has_
 
 struct DifVifKey
 {
-    DifVifKey(std::string key) : key_(key) {
-        extractDV(key, &dif_, &vif_, &has_difes_, &has_vifes_, &measurement_type_, &storage_nr_, &tariff_nr_, &subunit_nr_);
+    DifVifKey(std::string key) : key_(std::move(key)) {
+        extractDV(key_, &dif_, &vif_, &has_difes_, &has_vifes_, &measurement_type_, &storage_nr_, &tariff_nr_, &subunit_nr_);
     }
     std::string str() { return key_; }
     bool operator==(DifVifKey &dvk) { return key_ == dvk.key_; }

@@ -3,7 +3,7 @@
    1.0%   227Ki  12.3%   227Ki    vifKey()
    0.4%   104Ki   5.6%   104Ki    __static_initialization_and_destruction_0()
    0.4%  84.1Ki   4.5%  84.1Ki    unicode_Lo
-   0.2%  45.1Ki   2.4%  45.1Ki    [section .gcc_except_table]
+   0.2%  44.9Ki   2.4%  44.9Ki    [section .gcc_except_table]
    0.1%  32.3Ki   1.7%  31.8Ki    (anonymous namespace)::Driver::processContent()
    0.1%  31.9Ki   1.6%  30.5Ki    (anonymous namespace)::Driver
    0.1%  28.8Ki   1.6%  28.8Ki    unicode_So
@@ -96,7 +96,7 @@
    0.0%  4.21Ki   0.1%  2.27Ki    std::_Hashtable<>::_M_rehash()
    0.0%  2.29Ki   0.1%  2.23Ki    WMBusIM871aIM170A::getLinkModes()
    0.0%  2.41Ki   0.1%  2.22Ki    MeterManagerImplementation::findBestNewStyleDriver()
-   0.0%  2.26Ki   0.1%  2.21Ki    FieldMatcher::str[abi:cxx11]()
+   0.0%  2.27Ki   0.1%  2.21Ki    FieldMatcher::str[abi:cxx11]()
    0.0%  2.27Ki   0.1%  2.20Ki    BusDeviceCommonImplementation::checkStatus()
    0.0%  2.19Ki   0.1%  2.19Ki    [section .got]
    0.0%  2.29Ki   0.1%  2.16Ki    detectBusDeviceWithFileOrHex()
@@ -323,6 +323,7 @@
    0.0%     942   0.0%     886    _GLOBAL__sub_I_translatebits.cc
    0.0%     960   0.0%     885    json_print_node()
    0.0%     957   0.0%     882    WMBusIU891A::deviceSetLinkModes()
+   0.0%  1.11Ki   0.0%     882    extractDV()
    0.0%     937   0.0%     882    unitToStringHR[abi:cxx11]()
    0.0%     944   0.0%     882    unitToStringLowerCase[abi:cxx11]()
    0.0%     944   0.0%     882    unitToStringUpperCase[abi:cxx11]()
@@ -349,7 +350,6 @@
    0.0%     927   0.0%     842    WMBusIM871aIM170A::handleRadioLink()
    0.0%     946   0.0%     838    start()::{lambda()#1}::operator()()
    0.0%     886   0.0%     837    stopBackgroundShell()
-   0.0%  1.07Ki   0.0%     835    extractDV()
    0.0%     962   0.0%     834    helper()
    0.0%     899   0.0%     833    log_start_information()
    0.0%     913   0.0%     833    prune_to_minimal()
@@ -630,7 +630,6 @@
    0.0%     563   0.0%     473    decodeDiehlLfsr()
    0.0%     548   0.0%     473    json_print_attribute()
    0.0%     577   0.0%     472    DriverInfo::setAliases()
-   0.0%     556   0.0%     472    _GLOBAL__sub_I_main.cc
    0.0%     579   0.0%     472    createBusManager()
    0.0%     572   0.0%     470    print_dotted_rule_blocked()
    0.0%     535   0.0%     468    FormulaImplementation::doSquareRoot()
@@ -640,6 +639,7 @@
    0.0%     585   0.0%     465    check_detection_triplets()
    0.0%     624   0.0%     465    std::__do_uninit_copy<>()
    0.0%     525   0.0%     464    NumericFormulaPair::str[abi:cxx11]()
+   0.0%     548   0.0%     464    _GLOBAL__sub_I_main.cc
    0.0%     778   0.0%     464    std::__shared_ptr<>::operator=()
    0.0%     548   0.0%     464    xmq_quote_with_entity_newlines()
    0.0%     534   0.0%     463    FormulaImplementation::doExponentiation()
@@ -655,7 +655,6 @@
    0.0%     540   0.0%     456    std::function<>::operator=()
    0.0%     719   0.0%     454    debugPayload()
    0.0%     518   0.0%     452    build_id[abi:cxx11]()
-   0.0%     501   0.0%     451    _GLOBAL__sub_I_drivers.cc
    0.0%     557   0.0%     451    splitAddressExpressions()
    0.0%     551   0.0%     451    splitDeviceString()
    0.0%     510   0.0%     450    rule_new_stop()
@@ -672,10 +671,10 @@
    0.0%     440   0.0%     440    [section .init_array]
    0.0%     508   0.0%     440    print_pi_node()
    0.0%     511   0.0%     440    xmq_print_json()
-   0.0%     493   0.0%     439    _GLOBAL__sub_I_driver_auto.cc
    0.0%     523   0.0%     439    json_print_object_nodes()
    0.0%     531   0.0%     439    toMeterType()
    0.0%     551   0.0%     438    handleResetAfter()
+   0.0%     487   0.0%     437    _GLOBAL__sub_I_drivers.cc
    0.0%     494   0.0%     436    xmqSetupParseCallbacksDebugTokens
    0.0%     501   0.0%     434    NumericFormulaMeterField::str[abi:cxx11]()
    0.0%     555   0.0%     434    detectMeterDrivers()
@@ -685,9 +684,6 @@
    0.0%     526   0.0%     432    strprintf()
    0.0%     496   0.0%     431    checked_test_type()
    0.0%     497   0.0%     430    NumericFormulaRound::calculate()
-   0.0%     489   0.0%     430    _GLOBAL__sub_I_driver_apatorna1.cc
-   0.0%     488   0.0%     430    _GLOBAL__sub_I_driver_mkradio4.cc
-   0.0%     484   0.0%     430    _GLOBAL__sub_I_driver_tsd2.cc
    0.0%     502   0.0%     430    print_value()
    0.0%     505   0.0%     430    xmq_tokenize_buffer_json()
    0.0%     525   0.0%     429    dataAsUint64()
@@ -695,13 +691,6 @@
    0.0%     549   0.0%     427    AddressExpression::appendIdentity()
    0.0%     501   0.0%     427    SerialCommunicationManagerImp::waitForStop()
    0.0%     598   0.0%     427    parseWithIXML()
-   0.0%     486   0.0%     426    _GLOBAL__sub_I_driver_apatoreitn.cc
-   0.0%     487   0.0%     426    _GLOBAL__sub_I_driver_bfw240radio.cc
-   0.0%     480   0.0%     426    _GLOBAL__sub_I_driver_izar.cc
-   0.0%     484   0.0%     426    _GLOBAL__sub_I_driver_mkradio3.cc
-   0.0%     485   0.0%     426    _GLOBAL__sub_I_driver_mkradio3a.cc
-   0.0%     483   0.0%     426    _GLOBAL__sub_I_driver_unknown.cc
-   0.0%     484   0.0%     426    _GLOBAL__sub_I_driver_zenner0b.cc
    0.0%     514   0.0%     426    json_print_array_with_children()
    0.0%     506   0.0%     426    print_terminal_bitset()
    0.0%     467   0.0%     424    AES_CMAC()
@@ -709,8 +698,6 @@
    0.0%     516   0.0%     423    Token::val()
    0.0%     568   0.0%     423    __gnu_cxx::__to_xstring<>()
    0.0%     464   0.0%     423    cType[abi:cxx11]()
-   0.0%     483   0.0%     422    _GLOBAL__sub_I_driver_fhkvdataiii.cc
-   0.0%     480   0.0%     422    _GLOBAL__sub_I_driver_gwfwater.cc
    0.0%     485   0.0%     422    parse_xmq_comment()
    0.0%     483   0.0%     422    xmqSetupParseCallbacksColorizeTokens
    0.0%     496   0.0%     422    xmq_setup_parse_callbacks()
@@ -718,7 +705,6 @@
    0.0%     466   0.0%     419    _GLOBAL__sub_I_util.cc
    0.0%     478   0.0%     419    eat_xmq_entity()
    0.0%     479   0.0%     418    FormulaImplementation::doRound()
-   0.0%     468   0.0%     417    _GLOBAL__sub_I_dvparser.cc
    0.0%     526   0.0%     417    get_translation()
    0.0%     483   0.0%     417    print_utf8()
    0.0%     452   0.0%     416    color_names
@@ -729,6 +715,7 @@
    0.0%     482   0.0%     415    FormulaImplementation::findDateTime()
    0.0%     560   0.0%     415    collect_text()
    0.0%     677   0.0%     413    SerialDeviceImp::SerialDeviceImp()
+   0.0%     464   0.0%     413    _GLOBAL__sub_I_dvparser.cc
    0.0%     480   0.0%     413    eat_xmq_doctype()
    0.0%     509   0.0%     412    DriverDynamic::add_mfct_tpl_status_map()
    0.0%     448   0.0%     412    vifUnit()
@@ -750,6 +737,7 @@
    0.0%     478   0.0%     405    core_symb_to_predcomps_init()
    0.0%     474   0.0%     405    parse_xmq_compound()
    0.0%     514   0.0%     404    BusManager::find_specified_device_and_update_detected()
+   0.0%     458   0.0%     404    _GLOBAL__sub_I_driver_auto.cc
    0.0%     498   0.0%     404    debug_token_attr_value_compound_entity()
    0.0%     485   0.0%     404    print_safe_leaf_quote()
    0.0%     473   0.0%     404    std::__detail::__to_chars_10_impl<>()
@@ -764,6 +752,10 @@
    0.0%     507   0.0%     400    isValidMatchExpression()
    0.0%     518   0.0%     400    isValidSequenceOfAddressExpressions()
    0.0%     464   0.0%     399    DriverDynamic::add_map()
+   0.0%     460   0.0%     399    _GLOBAL__sub_I_driver_bfw240radio.cc
+   0.0%     457   0.0%     399    _GLOBAL__sub_I_driver_mkradio3.cc
+   0.0%     456   0.0%     399    _GLOBAL__sub_I_driver_unknown.cc
+   0.0%     457   0.0%     399    _GLOBAL__sub_I_driver_zenner0b.cc
    0.0%     460   0.0%     399    showSpecialChars[abi:cxx11]()
    0.0%     544   0.0%     398    SerialCommunicationManagerImp::createSerialDeviceTTY()
    0.0%     486   0.0%     398    debug_token_comment_continuation()
@@ -777,11 +769,19 @@
    0.0%     482   0.0%     396    debug_token_element_value_text()
    0.0%     556   0.0%     396    extractDVdouble()
    0.0%     477   0.0%     396    print_namespace_declaration()
+   0.0%     454   0.0%     395    _GLOBAL__sub_I_driver_apatorna1.cc
+   0.0%     456   0.0%     395    _GLOBAL__sub_I_driver_fhkvdataiii.cc
+   0.0%     453   0.0%     395    _GLOBAL__sub_I_driver_gwfwater.cc
+   0.0%     453   0.0%     395    _GLOBAL__sub_I_driver_mkradio4.cc
+   0.0%     449   0.0%     395    _GLOBAL__sub_I_driver_tsd2.cc
    0.0%     480   0.0%     395    debug_token_attr_value_entity()
    0.0%     478   0.0%     394    debug_token_attr_value_quote()
    0.0%     469   0.0%     394    free_core_symb_to_vect_lookup()
    0.0%     445   0.0%     392    LinkModeSet::hr[abi:cxx11]()
    0.0%     465   0.0%     391    Telegram::parse()
+   0.0%     451   0.0%     391    _GLOBAL__sub_I_driver_apatoreitn.cc
+   0.0%     445   0.0%     391    _GLOBAL__sub_I_driver_izar.cc
+   0.0%     450   0.0%     391    _GLOBAL__sub_I_driver_mkradio3a.cc
    0.0%     488   0.0%     391    transformDiehlAddress()
    0.0%     470   0.0%     390    debug_token_element_name()
    0.0%     487   0.0%     390    enableLogfile()
@@ -920,10 +920,6 @@
    0.0%     442   0.0%     343    strdatetime[abi:cxx11]()
    0.0%     395   0.0%     342    load_stdin()
    0.0%     384   0.0%     342    stillRunning()
-   0.0%     390   0.0%     341    _GLOBAL__sub_I_config.cc
-   0.0%     391   0.0%     341    _GLOBAL__sub_I_printer.cc
-   0.0%     396   0.0%     341    _GLOBAL__sub_I_wmbus_rawtty.cc
-   0.0%     396   0.0%     341    _GLOBAL__sub_I_wmbus_rtl433.cc
    0.0%     421   0.0%     340    json_print_comment_node()
    0.0%     602   0.0%     340    std::vector<>::_M_check_len()
    0.0%     406   0.0%     340    std::vector<>::_M_default_append()
@@ -931,17 +927,6 @@
    0.0%     394   0.0%     339    valueToString[abi:cxx11]()
    0.0%     406   0.0%     339    xmq_parse_buffer_json()
    0.0%     388   0.0%     338    decode_utf8()
-   0.0%     387   0.0%     337    _GLOBAL__sub_I_cmdline.cc
-   0.0%     387   0.0%     337    _GLOBAL__sub_I_formula.cc
-   0.0%     391   0.0%     337    _GLOBAL__sub_I_lora_iu880b.cc
-   0.0%     391   0.0%     337    _GLOBAL__sub_I_mbus_rawtty.cc
-   0.0%     392   0.0%     337    _GLOBAL__sub_I_metermanager.cc
-   0.0%     386   0.0%     337    _GLOBAL__sub_I_rtlsdr.cc
-   0.0%     392   0.0%     337    _GLOBAL__sub_I_wmbus_iu891a.cc
-   0.0%     392   0.0%     337    _GLOBAL__sub_I_wmbus_rc1180.cc
-   0.0%     395   0.0%     337    _GLOBAL__sub_I_wmbus_simulator.cc
-   0.0%     391   0.0%     337    _GLOBAL__sub_I_wmbus_utils.cc
-   0.0%     392   0.0%     337    _GLOBAL__sub_I_wmbus_xmqtty.cc
    0.0%     450   0.0%     337    listFiles()
    0.0%     424   0.0%     337    print_rule_with_dot()
    0.0%     401   0.0%     336    FormulaImplementation::tree[abi:cxx11]()
@@ -954,13 +939,10 @@
    0.0%     438   0.0%     334    BusManager::find_specified_device_from_detected()
    0.0%     376   0.0%     334    cflags[abi:cxx11]()
    0.0%     424   0.0%     334    padLeft()
-   0.0%     379   0.0%     333    _GLOBAL__sub_I_bus.cc
-   0.0%     382   0.0%     333    _GLOBAL__sub_I_serial.cc
-   0.0%     389   0.0%     333    _GLOBAL__sub_I_wmbus_amb8465.cc
-   0.0%     385   0.0%     333    _GLOBAL__sub_I_wmbus_cul.cc
-   0.0%     388   0.0%     333    _GLOBAL__sub_I_wmbus_im871a.cc
-   0.0%     390   0.0%     333    _GLOBAL__sub_I_wmbus_rtlwmbus.cc
-   0.0%     388   0.0%     333    _GLOBAL__sub_I_wmbus_socket.cc
+   0.0%     381   0.0%     332    _GLOBAL__sub_I_config.cc
+   0.0%     382   0.0%     332    _GLOBAL__sub_I_printer.cc
+   0.0%     387   0.0%     332    _GLOBAL__sub_I_wmbus_rawtty.cc
+   0.0%     387   0.0%     332    _GLOBAL__sub_I_wmbus_rtl433.cc
    0.0%     452   0.0%     332    parseLinkModesInternal()
    0.0%     442   0.0%     331    findField()
    0.0%     445   0.0%     330    DriverInfo::setDynamic()
@@ -981,12 +963,30 @@
    0.0%     478   0.0%     328    NumericFormulaRound
    0.0%     493   0.0%     328    NumericFormulaSquareRoot
    0.0%     496   0.0%     328    NumericFormulaSubtraction
+   0.0%     378   0.0%     328    _GLOBAL__sub_I_cmdline.cc
+   0.0%     378   0.0%     328    _GLOBAL__sub_I_formula.cc
+   0.0%     382   0.0%     328    _GLOBAL__sub_I_lora_iu880b.cc
+   0.0%     382   0.0%     328    _GLOBAL__sub_I_mbus_rawtty.cc
+   0.0%     383   0.0%     328    _GLOBAL__sub_I_metermanager.cc
+   0.0%     377   0.0%     328    _GLOBAL__sub_I_rtlsdr.cc
+   0.0%     383   0.0%     328    _GLOBAL__sub_I_wmbus_iu891a.cc
+   0.0%     383   0.0%     328    _GLOBAL__sub_I_wmbus_rc1180.cc
+   0.0%     386   0.0%     328    _GLOBAL__sub_I_wmbus_simulator.cc
+   0.0%     382   0.0%     328    _GLOBAL__sub_I_wmbus_utils.cc
+   0.0%     383   0.0%     328    _GLOBAL__sub_I_wmbus_xmqtty.cc
    0.0%     390   0.0%     327    vlo_array_expand()
    0.0%     431   0.0%     326    strdatetimesec[abi:cxx11]()
    0.0%     401   0.0%     325    NumericFormulaExponentiation::calculate()
    0.0%     403   0.0%     325    Telegram::parseMBUS()
    0.0%     393   0.0%     325    print_doctype()
    0.0%     596   0.0%     324    SerialDeviceFile::SerialDeviceFile()
+   0.0%     370   0.0%     324    _GLOBAL__sub_I_bus.cc
+   0.0%     373   0.0%     324    _GLOBAL__sub_I_serial.cc
+   0.0%     380   0.0%     324    _GLOBAL__sub_I_wmbus_amb8465.cc
+   0.0%     376   0.0%     324    _GLOBAL__sub_I_wmbus_cul.cc
+   0.0%     379   0.0%     324    _GLOBAL__sub_I_wmbus_im871a.cc
+   0.0%     381   0.0%     324    _GLOBAL__sub_I_wmbus_rtlwmbus.cc
+   0.0%     379   0.0%     324    _GLOBAL__sub_I_wmbus_socket.cc
    0.0%     405   0.0%     323    SerialCommunicationManagerImp::closeAllDoNotRemove()
    0.0%     376   0.0%     323    _OS_expand_memory()
    0.0%     373   0.0%     323    escape_xml_comment()
@@ -1039,7 +1039,6 @@
    0.0%     382   0.0%     299    json_print_array_nodes()
    0.0%     360   0.0%     299    parse_json()
    0.0%     353   0.0%     299    warning__()
-   0.0%     572   0.0%     298    DifVifKey::DifVifKey()
    0.0%     368   0.0%     298    FormulaImplementation::doConstant()
    0.0%     368   0.0%     298    NumericFormulaDVEntryField::tree[abi:cxx11]()
    0.0%     369   0.0%     298    potentially_add_leading_ending_space()
@@ -1079,6 +1078,7 @@
    0.0%     374   0.0%     295    tokenize_ns_declaration()
    0.0%     365   0.0%     295    tokenize_quote()
    0.0%     370   0.0%     295    tokenize_whitespace()
+   0.0%     568   0.0%     294    DifVifKey::DifVifKey()
    0.0%     336   0.0%     294    SIExp::sqrt()
    0.0%     406   0.0%     294    WMBusXmqTTY::outputError()
    0.0%     349   0.0%     294    _GLOBAL__sub_I_driver_qheat.cc
@@ -1695,7 +1695,7 @@
    0.0%     173   0.0%     113    annotate_offsets()
    0.0%     155   0.0%     113    expectedMore()
    0.0%     170   0.0%     113    linkModeName[abi:cxx11]()
-   0.0%     146   0.0%     112    CSWTCH.84
+   0.0%     146   0.0%     112    CSWTCH.85
    0.0%     174   0.0%     112    DriverInfo::isCloseEnoughMedia()
    0.0%     238   0.0%     112    DriverInfo::setDynamic()::{lambda()#1}
    0.0%     260   0.0%     112    SerialCommunicationManagerImp::SerialCommunicationManagerImp()::{lambda()#2}
@@ -2763,7 +2763,7 @@
    0.0%      28   0.0%       1    xmq_trace_enabled_
    0.0%      28   0.0%       1    xmq_verbose_enabled_
    0.0%  2.56Ki   0.0%       0    [ELF Section Headers]
-   0.0%  7.17Ki   0.0%       0    [Unmapped]
+   0.0%  7.96Ki   0.0%       0    [Unmapped]
    0.0%      45   0.0%       0    [section .comment]
    1.3%   311Ki   0.0%       0    [section .debug_abbrev]
    0.1%  30.8Ki   0.0%       0    [section .debug_aranges]

@@ -848,12 +848,21 @@ void extractDV(string &s, uchar *dif, int *vif, bool *has_difes, bool *has_vifes
                TariffNr *tariff_nr,
                SubUnitNr *subunit_nr)
 {
-    vector<uchar> bytes;
-    hex2bin(s, &bytes);
+    uchar bytes[24];
+    size_t num_bytes = 0;
+    const char *p = s.c_str();
+    while (*p && p[1] && num_bytes < sizeof(bytes)) {
+        if (*p == ' ' || *p == '#' || *p == '|' || *p == '_') { p++; continue; }
+        int hi = char2int(p[0]);
+        int lo = char2int(p[1]);
+        if (hi < 0 || lo < 0) { p += 2; continue; }
+        bytes[num_bytes++] = (uchar)(hi * 16 + lo);
+        p += 2;
+    }
     size_t i = 0;
     *has_difes = false;
     *has_vifes = false;
-    if (bytes.size() == 0)
+    if (num_bytes == 0)
     {
         *dif = 0;
         *vif = 0;
@@ -867,7 +876,7 @@ void extractDV(string &s, uchar *dif, int *vif, bool *has_difes, bool *has_vifes
     int subunit = 0;
     int tariff = 0;
     *measurement_type = difMeasurementType(*dif);
-    while (i < bytes.size() && (bytes[i] & 0x80))
+    while (i < num_bytes && (bytes[i] & 0x80))
     {
         i++;
         int dife = bytes[i];
@@ -886,7 +895,7 @@ void extractDV(string &s, uchar *dif, int *vif, bool *has_difes, bool *has_vifes
     *tariff_nr = TariffNr(tariff);
     *subunit_nr = SubUnitNr(subunit);
 
-    if (i >= bytes.size())
+    if (i >= num_bytes)
     {
         *vif = 0;
         return;
@@ -898,7 +907,7 @@ void extractDV(string &s, uchar *dif, int *vif, bool *has_difes, bool *has_vifes
         *vif == 0xef || // third extension
         *vif == 0xff)   // vendor extension
     {
-        if (i+1 < bytes.size())
+        if (i+1 < num_bytes)
         {
             // Create an extended vif, like 0xfd31 for example.
             *vif = bytes[i] << 8 | bytes[i+1];
@@ -906,7 +915,7 @@ void extractDV(string &s, uchar *dif, int *vif, bool *has_difes, bool *has_vifes
         }
     }
 
-    while (i < bytes.size() && (bytes[i] & 0x80))
+    while (i < num_bytes && (bytes[i] & 0x80))
     {
         i++;
         *has_vifes = true;
