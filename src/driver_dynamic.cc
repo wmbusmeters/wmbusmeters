@@ -1130,17 +1130,39 @@ void checked_set_indexnr(const char *indexnr_s, FieldMatcher *fm, DriverDynamic 
     fm->set(IndexNr(atoi(indexnr_s)));
 }
 
+static bool parse_number_or_range(const char *range_s, int *start, int *stop, bool *has_stop)
+{
+    const char *comma = strchr(range_s, ',');
+    if (!comma)
+    {
+        if (!isNumber(range_s)) return false;
+        *start = atoi(range_s);
+        *has_stop = false;
+        return true;
+    }
+
+    if (strchr(comma + 1, ',') != NULL) return false;
+
+    const char *stop_s = comma + 1;
+    if (comma == range_s || *stop_s == '\0') return false;
+
+    string start_s(range_s, comma - range_s);
+    if (!isNumber(start_s) || !isNumber(stop_s)) return false;
+
+    *start = atoi(start_s.c_str());
+    *stop = atoi(stop_s);
+    *has_stop = true;
+    return true;
+}
+
 void checked_set_storagenr_range(const char *storagenr_range_s, FieldMatcher *fm, DriverDynamic *dd)
 {
     if (!storagenr_range_s) return;
 
-    auto fields = splitString(storagenr_range_s, ',');
-    bool ok = isNumber(fields[0]);
-    if (fields.size() > 1)
-    {
-        ok &= isNumber(fields[1]);
-    }
-    if (!ok || fields.size() > 2)
+    int start = 0;
+    int stop = 0;
+    bool has_stop = false;
+    if (!parse_number_or_range(storagenr_range_s, &start, &stop, &has_stop))
     {
         warning("(driver) error in %s, bad storagenr_range: %s\n"
                 "%s\n",
@@ -1150,14 +1172,13 @@ void checked_set_storagenr_range(const char *storagenr_range_s, FieldMatcher *fm
         throw 1;
     }
 
-    if (fields.size() == 1)
+    if (!has_stop)
     {
-        fm->set(StorageNr(atoi(fields[0].c_str())));
+        fm->set(StorageNr(start));
     }
     else
     {
-        fm->set(StorageNr(atoi(fields[0].c_str())),
-                StorageNr(atoi(fields[1].c_str())));
+        fm->set(StorageNr(start), StorageNr(stop));
     }
 }
 
@@ -1165,13 +1186,10 @@ void checked_set_tariffnr_range(const char *tariffnr_range_s, FieldMatcher *fm, 
 {
     if (!tariffnr_range_s) return;
 
-    auto fields = splitString(tariffnr_range_s, ',');
-    bool ok = isNumber(fields[0]);
-    if (fields.size() > 1)
-    {
-        ok &= isNumber(fields[1]);
-    }
-    if (!ok || fields.size() > 2)
+    int start = 0;
+    int stop = 0;
+    bool has_stop = false;
+    if (!parse_number_or_range(tariffnr_range_s, &start, &stop, &has_stop))
     {
         warning("(driver) error in %s, bad tariffnr_range: %s\n"
                 "%s\n",
@@ -1181,14 +1199,13 @@ void checked_set_tariffnr_range(const char *tariffnr_range_s, FieldMatcher *fm, 
         throw 1;
     }
 
-    if (fields.size() == 1)
+    if (!has_stop)
     {
-        fm->set(TariffNr(atoi(fields[0].c_str())));
+        fm->set(TariffNr(start));
     }
     else
     {
-        fm->set(TariffNr(atoi(fields[0].c_str())),
-                TariffNr(atoi(fields[1].c_str())));
+        fm->set(TariffNr(start), TariffNr(stop));
     }
 }
 
@@ -1196,13 +1213,10 @@ void checked_set_subunitnr_range(const char *subunitnr_range_s, FieldMatcher *fm
 {
     if (!subunitnr_range_s) return;
 
-    auto fields = splitString(subunitnr_range_s, ',');
-    bool ok = isNumber(fields[0]);
-    if (fields.size() > 1)
-    {
-        ok &= isNumber(fields[1]);
-    }
-    if (!ok || fields.size() > 2)
+    int start = 0;
+    int stop = 0;
+    bool has_stop = false;
+    if (!parse_number_or_range(subunitnr_range_s, &start, &stop, &has_stop))
     {
         warning("(driver) error in %s, bad subunitnr_range: %s\n"
                 "%s\n",
@@ -1212,14 +1226,13 @@ void checked_set_subunitnr_range(const char *subunitnr_range_s, FieldMatcher *fm
         throw 1;
     }
 
-    if (fields.size() == 1)
+    if (!has_stop)
     {
-        fm->set(SubUnitNr(atoi(fields[0].c_str())));
+        fm->set(SubUnitNr(start));
     }
     else
     {
-        fm->set(SubUnitNr(atoi(fields[0].c_str())),
-                SubUnitNr(atoi(fields[1].c_str())));
+        fm->set(SubUnitNr(start), SubUnitNr(stop));
     }
 }
 
