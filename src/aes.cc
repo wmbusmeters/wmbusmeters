@@ -482,8 +482,12 @@ void AES_ECB_encrypt(const uint8_t* input, const uint8_t* key, uint8_t* output, 
   memcpy(output, input, length);
   state = (state_t*)output;
 
-  Key = key;
-  KeyExpansion();
+  // Skip key expansion if key is null; caller reuses an already expanded key.
+  if (0 != key)
+  {
+    Key = key;
+    KeyExpansion();
+  }
 
   // The next function call encrypts the PlainText with the Key using AES algorithm.
   Cipher();
