@@ -18,72 +18,75 @@
 #include "always.h"
 #include "crc16.h"
 
+#include <array>
 #include <cassert>
 #include <cstddef>
 #include <cstdint>
 
 #define CRC16_EN_13757 0x3D65
 
-uint16_t crc16_EN13757_per_byte(uint16_t crc, uchar b)
+constexpr std::array<uint16_t, 256> generate_crc16_en_13757_table()
 {
-    unsigned char i;
-
-    for (i = 0; i < 8; i++) {
-
-        if (((crc & 0x8000) >> 8) ^ (b & 0x80)){
-            crc = (crc << 1)  ^ CRC16_EN_13757;
-        }else{
-            crc = (crc << 1);
+    std::array<uint16_t, 256> table{};
+    for (unsigned i = 0; i < 256; ++i) {
+        uint16_t crc = static_cast<uint16_t>(i << 8);
+        for (unsigned bit = 0; bit < 8; ++bit) {
+            if (crc & 0x8000)
+                crc = (crc << 1) ^ CRC16_EN_13757;
+            else
+                crc = (crc << 1);
         }
-
-        b <<= 1;
+        table[i] = crc;
     }
-
-    return crc;
+    return table;
 }
 
-uint16_t crc16_EN13757(uchar *data, size_t len)
+inline constexpr std::array<uint16_t, 256> crc16_en_13757_table = generate_crc16_en_13757_table();
+
+uint16_t crc16_EN13757(const uchar *__restrict data, const size_t len)
 {
-    assert(len == 0 || data != NULL);
+    assert(len == 0 || data != nullptr);
 
     uint16_t crc = 0x0000;
-
-    for (size_t i=0; i<len; ++i)
-    {
-        crc = crc16_EN13757_per_byte(crc, data[i]);
+    for (size_t i = 0; i < len; ++i) {
+        crc = (crc << 8) ^ crc16_en_13757_table[((crc >> 8) ^ data[i]) & 0xFF];
     }
-
-    return (~crc);
+    return ~crc;
 }
 
 #define CRC16_INIT_VALUE 0xFFFF
 #define CRC16_GOOD_VALUE 0x0F47
+#define CRC16_GOOD_VALUE_EXPECTED (~CRC16_GOOD_VALUE)
 #define CRC16_POLYNOM    0x8408
 
-uint16_t crc16_CCITT(uchar *data, uint16_t length)
+constexpr std::array<uint16_t, 256> generate_crc16_ccitt_table()
 {
-    uint16_t initVal = CRC16_INIT_VALUE;
-    uint16_t crc = initVal;
-    while(length--)
-    {
-        int bits = 8;
-        uchar byte = *data++;
-        while(bits--)
-        {
-            if((byte & 1) ^ (crc & 1))
-            {
+    std::array<uint16_t, 256> table{};
+    for (unsigned i = 0; i < 256; ++i) {
+        uint16_t crc = static_cast<uint16_t>(i);
+        for (unsigned bit = 0; bit < 8; ++bit) {
+            if (crc & 1)
                 crc = (crc >> 1) ^ CRC16_POLYNOM;
-            }
             else
                 crc >>= 1;
-            byte >>= 1;
         }
+        table[i] = crc;
+    }
+    return table;
+}
+
+inline constexpr std::array<uint16_t, 256> crc16_ccitt_table = generate_crc16_ccitt_table();
+
+uint16_t crc16_CCITT(const uchar *__restrict data, const size_t length)
+{
+    uint16_t crc = CRC16_INIT_VALUE;
+    for (size_t i = 0; i < length; ++i) {
+        crc = (crc >> 8) ^ crc16_ccitt_table[(crc & 0xFF) ^ data[i]];
     }
     return crc;
 }
 
-bool crc16_CCITT_check(uchar *data, uint16_t length)
+bool crc16_CCITT_check(const uchar *__restrict data, const size_t length)
 {
-    uint16_t crc = ~crc16_CCITT(data, length);
-    return crc == CRC16_GOOD_VALUE;
+    return crc16_CCITT(data, length) == CRC16_GOOD_VALUE_EXPECTED;
 }

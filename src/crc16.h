@@ -22,10 +22,10 @@
 #include <cstddef>
 #include <cstdint>
 
-uint16_t crc16_EN13757(uchar *data, size_t len);
+uint16_t crc16_EN13757(const uchar * __restrict data, const size_t len);
 
 // This crc is used by im871a for its serial communication.
-uint16_t crc16_CCITT(uchar *data, uint16_t length);
-bool     crc16_CCITT_check(uchar *data, uint16_t length);
+uint16_t crc16_CCITT(const uchar * __restrict data, const size_t length);
+bool     crc16_CCITT_check(const uchar * __restrict data, const size_t length);
 
 #endif
