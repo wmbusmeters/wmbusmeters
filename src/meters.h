@@ -366,6 +366,10 @@ struct FieldInfo
     bool hasNullValue() { return has_null_value_; }
     double nullValue() { return null_value_; }
 
+    void setFormat(const std::string &fmt) { format_ = fmt; }
+    bool hasFormat() const { return !format_.empty(); }
+    std::string applyFormat(const std::string &raw, Meter *m);
+
 private:
 
     int index_; // The field infos for a meter are ordered.
@@ -413,6 +417,9 @@ private:
     // If set, this extracted value is treated as null (no data).
     bool has_null_value_ {};
     double null_value_ {};
+
+    // Optional output format string, e.g. 'PREFIX_{value}' or 'PREFIX_{other_field}'.
+    std::string format_;
 };
 
 struct BusManager;
@@ -456,6 +463,7 @@ struct Meter
     virtual void setStringValue(FieldInfo *fi, std::string v, DVEntry *dve) = 0;
     virtual void setStringValue(std::string vname, std::string v, DVEntry *dve = NULL) = 0;
     virtual std::string getStringValue(FieldInfo *fi) = 0;
+    virtual std::string getStringValue(std::string vname) = 0;
     virtual std::string decodeTPLStatusByte(uchar sts) = 0;
 
     virtual void onUpdate(std::function<void(Telegram*t,Meter*)> cb) = 0;

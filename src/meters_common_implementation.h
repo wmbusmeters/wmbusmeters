@@ -208,6 +208,7 @@ protected:
     void setStringValue(std::string vname, std::string v, DVEntry *dve = NULL);
     void setStringValue(FieldInfo *fi, std::string v, DVEntry *dve);
     std::string getStringValue(FieldInfo *fi);
+    std::string getStringValue(std::string vname);
 
     // Check if the meter has received a value for this field.
     bool hasValue(FieldInfo *fi);

@@ -1872,6 +1872,12 @@ void MeterCommonImplementation::setStringValue(string vname, string v, DVEntry *
     setStringValue(fi, v, dve);
 }
 
+string MeterCommonImplementation::getStringValue(string vname)
+{
+    if (string_values_.count(vname) == 0) return "";
+    return string_values_[vname].value;
+}
+
 string MeterCommonImplementation::getStringValue(FieldInfo *fi)
 {
     string field_name_no_unit = fi->vname();
@@ -2577,6 +2583,11 @@ void FieldInfo::performExtraction(Meter *m, Telegram *t, DVEntry *dve)
     {
         // Extract a string.
         extractString(m, t, dve);
+        if (hasFormat())
+        {
+            string raw = m->getStringValue(this);
+            if (raw != "null") m->setStringValue(this, applyFormat(raw, m), dve);
+        }
     }
     else if (hasFormula())
     {
@@ -2774,6 +2785,28 @@ static string add_tpl_status(string existing_status, Meter *m, Telegram *t)
     }
 
     return existing_status;
+}
+
+string FieldInfo::applyFormat(const string &raw, Meter *m)
+{
+    string result;
+    size_t i = 0;
+    while (i < format_.size())
+    {
+        if (format_[i] == '{')
+        {
+            size_t end = format_.find('}', i);
+            if (end == string::npos) { result += format_.substr(i); break; }
+            string key = format_.substr(i+1, end-i-1);
+            result += (key == "value") ? raw : m->getStringValue(key);
+            i = end + 1;
+        }
+        else
+        {
+            result += format_[i++];
+        }
+    }
+    return result;
 }
 
 bool FieldInfo::extractString(Meter *m, Telegram *t, DVEntry *dve)
