@@ -1,0 +1,543 @@
+// Copyright (C) 2026 Fredrik Oehrstroem (gpl-3.0-or-later)
+driver {
+    name           = mkradio3a
+    meter_type     = WaterMeter
+    default_fields = name,id,total_m3,target_m3,timestamp
+    manufacturer   = Techem
+    detect {
+        mvt = TCH,50,72
+    }
+    fields {
+        field {
+            name       = curr_date_raw
+            quantity   = Dimensionless
+            attributes = HIDE
+            match {
+                difvifkey = 02FD3A
+            }
+        }
+        field {
+            name       = total_raw
+            quantity   = Dimensionless
+            attributes = HIDE
+            match {
+                difvifkey = 03FD3A
+            }
+        }
+        field {
+            name       = hist0_raw
+            quantity   = Dimensionless
+            attributes = HIDE
+            match {
+                difvifkey = 8200FD3A
+            }
+        }
+        field {
+            name       = hist1_raw
+            quantity   = Dimensionless
+            attributes = HIDE
+            match {
+                difvifkey = 8201FD3A
+            }
+        }
+        field {
+            name       = hist2_raw
+            quantity   = Dimensionless
+            attributes = HIDE
+            match {
+                difvifkey = 8202FD3A
+            }
+        }
+        field {
+            name       = hist3_raw
+            quantity   = Dimensionless
+            attributes = HIDE
+            match {
+                difvifkey = 8203FD3A
+            }
+        }
+        field {
+            name       = hist4_raw
+            quantity   = Dimensionless
+            attributes = HIDE
+            match {
+                difvifkey = 8204FD3A
+            }
+        }
+        field {
+            name       = hist5_raw
+            quantity   = Dimensionless
+            attributes = HIDE
+            match {
+                difvifkey = 8205FD3A
+            }
+        }
+        field {
+            name       = hist6_raw
+            quantity   = Dimensionless
+            attributes = HIDE
+            match {
+                difvifkey = 8206FD3A
+            }
+        }
+        field {
+            name       = hist7_raw
+            quantity   = Dimensionless
+            attributes = HIDE
+            match {
+                difvifkey = 8207FD3A
+            }
+        }
+        field {
+            name       = hist8_raw
+            quantity   = Dimensionless
+            attributes = HIDE
+            match {
+                difvifkey = 8208FD3A
+            }
+        }
+        field {
+            name       = hist9_raw
+            quantity   = Dimensionless
+            attributes = HIDE
+            match {
+                difvifkey = 8209FD3A
+            }
+        }
+        field {
+            name       = hist10_raw
+            quantity   = Dimensionless
+            attributes = HIDE
+            match {
+                difvifkey = 820AFD3A
+            }
+        }
+        field {
+            name       = hist11_raw
+            quantity   = Dimensionless
+            attributes = HIDE
+            match {
+                difvifkey = 820BFD3A
+            }
+        }
+        field {
+            name       = curr_day
+            quantity   = Dimensionless
+            attributes = HIDE
+            calculate  = 'curr_date_raw_counter % 32counter'
+        }
+        field {
+            name       = curr_month
+            quantity   = Dimensionless
+            attributes = HIDE
+            calculate  = '(curr_date_raw_counter >> 5counter) % 16counter'
+        }
+        field {
+            name       = curr_year
+            quantity   = Dimensionless
+            attributes = HIDE
+            calculate  = 'curr_date_raw_counter >> 9counter'
+        }
+        field {
+            name       = is_early
+            quantity   = Dimensionless
+            attributes = HIDE
+            calculate  = 'curr_day_counter <= 15counter'
+        }
+        field {
+            name       = is_late
+            quantity   = Dimensionless
+            attributes = HIDE
+            calculate  = '1counter - is_early_counter'
+        }
+        field {
+            name       = hist0_lo
+            quantity   = Dimensionless
+            attributes = HIDE
+            calculate  = 'hist0_raw_counter % 256counter'
+        }
+        field {
+            name       = hist1_lo
+            quantity   = Dimensionless
+            attributes = HIDE
+            calculate  = 'hist1_raw_counter % 256counter'
+        }
+        field {
+            name       = hist2_lo
+            quantity   = Dimensionless
+            attributes = HIDE
+            calculate  = 'hist2_raw_counter % 256counter'
+        }
+        field {
+            name       = hist3_lo
+            quantity   = Dimensionless
+            attributes = HIDE
+            calculate  = 'hist3_raw_counter % 256counter'
+        }
+        field {
+            name       = hist4_lo
+            quantity   = Dimensionless
+            attributes = HIDE
+            calculate  = 'hist4_raw_counter % 256counter'
+        }
+        field {
+            name       = hist5_lo
+            quantity   = Dimensionless
+            attributes = HIDE
+            calculate  = 'hist5_raw_counter % 256counter'
+        }
+        field {
+            name       = hist6_lo
+            quantity   = Dimensionless
+            attributes = HIDE
+            calculate  = 'hist6_raw_counter % 256counter'
+        }
+        field {
+            name       = hist7_lo
+            quantity   = Dimensionless
+            attributes = HIDE
+            calculate  = 'hist7_raw_counter % 256counter'
+        }
+        field {
+            name       = hist8_lo
+            quantity   = Dimensionless
+            attributes = HIDE
+            calculate  = 'hist8_raw_counter % 256counter'
+        }
+        field {
+            name       = hist9_lo
+            quantity   = Dimensionless
+            attributes = HIDE
+            calculate  = 'hist9_raw_counter % 256counter'
+        }
+        field {
+            name       = hist10_lo
+            quantity   = Dimensionless
+            attributes = HIDE
+            calculate  = 'hist10_raw_counter % 256counter'
+        }
+        field {
+            name       = hist11_lo
+            quantity   = Dimensionless
+            attributes = HIDE
+            calculate  = 'hist11_raw_counter % 256counter'
+        }
+        field {
+            name       = hist0_hi
+            quantity   = Dimensionless
+            attributes = HIDE
+            calculate  = 'hist0_raw_counter >> 8counter'
+        }
+        field {
+            name       = hist1_hi
+            quantity   = Dimensionless
+            attributes = HIDE
+            calculate  = 'hist1_raw_counter >> 8counter'
+        }
+        field {
+            name       = hist2_hi
+            quantity   = Dimensionless
+            attributes = HIDE
+            calculate  = 'hist2_raw_counter >> 8counter'
+        }
+        field {
+            name       = hist3_hi
+            quantity   = Dimensionless
+            attributes = HIDE
+            calculate  = 'hist3_raw_counter >> 8counter'
+        }
+        field {
+            name       = hist4_hi
+            quantity   = Dimensionless
+            attributes = HIDE
+            calculate  = 'hist4_raw_counter >> 8counter'
+        }
+        field {
+            name       = hist5_hi
+            quantity   = Dimensionless
+            attributes = HIDE
+            calculate  = 'hist5_raw_counter >> 8counter'
+        }
+        field {
+            name       = hist6_hi
+            quantity   = Dimensionless
+            attributes = HIDE
+            calculate  = 'hist6_raw_counter >> 8counter'
+        }
+        field {
+            name       = hist7_hi
+            quantity   = Dimensionless
+            attributes = HIDE
+            calculate  = 'hist7_raw_counter >> 8counter'
+        }
+        field {
+            name       = hist8_hi
+            quantity   = Dimensionless
+            attributes = HIDE
+            calculate  = 'hist8_raw_counter >> 8counter'
+        }
+        field {
+            name       = hist9_hi
+            quantity   = Dimensionless
+            attributes = HIDE
+            calculate  = 'hist9_raw_counter >> 8counter'
+        }
+        field {
+            name       = hist10_hi
+            quantity   = Dimensionless
+            attributes = HIDE
+            calculate  = 'hist10_raw_counter >> 8counter'
+        }
+        field {
+            name       = hist11_hi
+            quantity   = Dimensionless
+            attributes = HIDE
+            calculate  = 'hist11_raw_counter >> 8counter'
+        }
+        field {
+            name       = rel0
+            quantity   = Volume
+            attributes = HIDE
+            calculate  = '((is_early_counter * hist0_lo_counter) + (is_late_counter * (hist0_lo_counter + hist0_hi_counter))) * 0.1m3'
+        }
+        field {
+            name       = rel1
+            quantity   = Volume
+            attributes = HIDE
+            calculate  = '((is_early_counter * (hist0_hi_counter + hist1_lo_counter)) + (is_late_counter * (hist1_lo_counter + hist1_hi_counter))) * 0.1m3'
+        }
+        field {
+            name       = rel2
+            quantity   = Volume
+            attributes = HIDE
+            calculate  = '((is_early_counter * (hist1_hi_counter + hist2_lo_counter)) + (is_late_counter * (hist2_lo_counter + hist2_hi_counter))) * 0.1m3'
+        }
+        field {
+            name       = rel3
+            quantity   = Volume
+            attributes = HIDE
+            calculate  = '((is_early_counter * (hist2_hi_counter + hist3_lo_counter)) + (is_late_counter * (hist3_lo_counter + hist3_hi_counter))) * 0.1m3'
+        }
+        field {
+            name       = rel4
+            quantity   = Volume
+            attributes = HIDE
+            calculate  = '((is_early_counter * (hist3_hi_counter + hist4_lo_counter)) + (is_late_counter * (hist4_lo_counter + hist4_hi_counter))) * 0.1m3'
+        }
+        field {
+            name       = rel5
+            quantity   = Volume
+            attributes = HIDE
+            calculate  = '((is_early_counter * (hist4_hi_counter + hist5_lo_counter)) + (is_late_counter * (hist5_lo_counter + hist5_hi_counter))) * 0.1m3'
+        }
+        field {
+            name       = rel6
+            quantity   = Volume
+            attributes = HIDE
+            calculate  = '((is_early_counter * (hist5_hi_counter + hist6_lo_counter)) + (is_late_counter * (hist6_lo_counter + hist6_hi_counter))) * 0.1m3'
+        }
+        field {
+            name       = rel7
+            quantity   = Volume
+            attributes = HIDE
+            calculate  = '((is_early_counter * (hist6_hi_counter + hist7_lo_counter)) + (is_late_counter * (hist7_lo_counter + hist7_hi_counter))) * 0.1m3'
+        }
+        field {
+            name       = rel8
+            quantity   = Volume
+            attributes = HIDE
+            calculate  = '((is_early_counter * (hist7_hi_counter + hist8_lo_counter)) + (is_late_counter * (hist8_lo_counter + hist8_hi_counter))) * 0.1m3'
+        }
+        field {
+            name       = rel9
+            quantity   = Volume
+            attributes = HIDE
+            calculate  = '((is_early_counter * (hist8_hi_counter + hist9_lo_counter)) + (is_late_counter * (hist9_lo_counter + hist9_hi_counter))) * 0.1m3'
+        }
+        field {
+            name       = rel10
+            quantity   = Volume
+            attributes = HIDE
+            calculate  = '((is_early_counter * (hist9_hi_counter + hist10_lo_counter)) + (is_late_counter * (hist10_lo_counter + hist10_hi_counter))) * 0.1m3'
+        }
+        field {
+            name       = rel11
+            quantity   = Volume
+            attributes = HIDE
+            calculate  = '((is_early_counter * (hist10_hi_counter + hist11_lo_counter)) + (is_late_counter * (hist11_lo_counter + hist11_hi_counter))) * 0.1m3'
+        }
+        field {
+            name      = total
+            quantity  = Volume
+            info      = 'The total water consumption recorded by this meter.'
+            calculate = 'total_raw_counter * 0.1m3'
+        }
+        field {
+            name      = target
+            quantity  = Volume
+            info      = 'The total water consumption recorded at the beginning of this month.'
+            calculate = rel0_m3
+        }
+        field {
+            name         = target
+            quantity     = PointInTime
+            display_unit = date
+            info         = 'Date of current billing period.'
+            calculate    = "'2000-01-01 02:00:00' +
+                            (((curr_year_counter * 12counter) + curr_month_counter - 1counter) * 1month) +
+                            ((curr_day_counter - 1counter) * 24h)"
+        }
+        field {
+            name      = last_jan
+            quantity  = Volume
+            info      = 'The total water consumption recorded at the beginning of January.'
+            calculate = '((curr_month_counter == 1counter) * rel0_m3) + ((curr_month_counter == 2counter) * rel1_m3) + ((curr_month_counter == 3counter) * rel2_m3) + ((curr_month_counter == 4counter) * rel3_m3) + ((curr_month_counter == 5counter) * rel4_m3) + ((curr_month_counter == 6counter) * rel5_m3) + ((curr_month_counter == 7counter) * rel6_m3) + ((curr_month_counter == 8counter) * rel7_m3) + ((curr_month_counter == 9counter) * rel8_m3) + ((curr_month_counter == 10counter) * rel9_m3) + ((curr_month_counter == 11counter) * rel10_m3) + ((curr_month_counter == 12counter) * rel11_m3)'
+        }
+        field {
+            name      = last_feb
+            quantity  = Volume
+            info      = 'The total water consumption recorded at the beginning of February.'
+            calculate = '((curr_month_counter == 1counter) * rel11_m3) + ((curr_month_counter == 2counter) * rel0_m3) + ((curr_month_counter == 3counter) * rel1_m3) + ((curr_month_counter == 4counter) * rel2_m3) + ((curr_month_counter == 5counter) * rel3_m3) + ((curr_month_counter == 6counter) * rel4_m3) + ((curr_month_counter == 7counter) * rel5_m3) + ((curr_month_counter == 8counter) * rel6_m3) + ((curr_month_counter == 9counter) * rel7_m3) + ((curr_month_counter == 10counter) * rel8_m3) + ((curr_month_counter == 11counter) * rel9_m3) + ((curr_month_counter == 12counter) * rel10_m3)'
+        }
+        field {
+            name      = last_mar
+            quantity  = Volume
+            info      = 'The total water consumption recorded at the beginning of March.'
+            calculate = '((curr_month_counter == 1counter) * rel10_m3) + ((curr_month_counter == 2counter) * rel11_m3) + ((curr_month_counter == 3counter) * rel0_m3) + ((curr_month_counter == 4counter) * rel1_m3) + ((curr_month_counter == 5counter) * rel2_m3) + ((curr_month_counter == 6counter) * rel3_m3) + ((curr_month_counter == 7counter) * rel4_m3) + ((curr_month_counter == 8counter) * rel5_m3) + ((curr_month_counter == 9counter) * rel6_m3) + ((curr_month_counter == 10counter) * rel7_m3) + ((curr_month_counter == 11counter) * rel8_m3) + ((curr_month_counter == 12counter) * rel9_m3)'
+        }
+        field {
+            name      = last_apr
+            quantity  = Volume
+            info      = 'The total water consumption recorded at the beginning of April.'
+            calculate = '((curr_month_counter == 1counter) * rel9_m3) + ((curr_month_counter == 2counter) * rel10_m3) + ((curr_month_counter == 3counter) * rel11_m3) + ((curr_month_counter == 4counter) * rel0_m3) + ((curr_month_counter == 5counter) * rel1_m3) + ((curr_month_counter == 6counter) * rel2_m3) + ((curr_month_counter == 7counter) * rel3_m3) + ((curr_month_counter == 8counter) * rel4_m3) + ((curr_month_counter == 9counter) * rel5_m3) + ((curr_month_counter == 10counter) * rel6_m3) + ((curr_month_counter == 11counter) * rel7_m3) + ((curr_month_counter == 12counter) * rel8_m3)'
+        }
+        field {
+            name      = last_may
+            quantity  = Volume
+            info      = 'The total water consumption recorded at the beginning of May.'
+            calculate = '((curr_month_counter == 1counter) * rel8_m3) + ((curr_month_counter == 2counter) * rel9_m3) + ((curr_month_counter == 3counter) * rel10_m3) + ((curr_month_counter == 4counter) * rel11_m3) + ((curr_month_counter == 5counter) * rel0_m3) + ((curr_month_counter == 6counter) * rel1_m3) + ((curr_month_counter == 7counter) * rel2_m3) + ((curr_month_counter == 8counter) * rel3_m3) + ((curr_month_counter == 9counter) * rel4_m3) + ((curr_month_counter == 10counter) * rel5_m3) + ((curr_month_counter == 11counter) * rel6_m3) + ((curr_month_counter == 12counter) * rel7_m3)'
+        }
+        field {
+            name      = last_jun
+            quantity  = Volume
+            info      = 'The total water consumption recorded at the beginning of June.'
+            calculate = '((curr_month_counter == 1counter) * rel7_m3) + ((curr_month_counter == 2counter) * rel8_m3) + ((curr_month_counter == 3counter) * rel9_m3) + ((curr_month_counter == 4counter) * rel10_m3) + ((curr_month_counter == 5counter) * rel11_m3) + ((curr_month_counter == 6counter) * rel0_m3) + ((curr_month_counter == 7counter) * rel1_m3) + ((curr_month_counter == 8counter) * rel2_m3) + ((curr_month_counter == 9counter) * rel3_m3) + ((curr_month_counter == 10counter) * rel4_m3) + ((curr_month_counter == 11counter) * rel5_m3) + ((curr_month_counter == 12counter) * rel6_m3)'
+        }
+        field {
+            name      = last_jul
+            quantity  = Volume
+            info      = 'The total water consumption recorded at the beginning of July.'
+            calculate = '((curr_month_counter == 1counter) * rel6_m3) + ((curr_month_counter == 2counter) * rel7_m3) + ((curr_month_counter == 3counter) * rel8_m3) + ((curr_month_counter == 4counter) * rel9_m3) + ((curr_month_counter == 5counter) * rel10_m3) + ((curr_month_counter == 6counter) * rel11_m3) + ((curr_month_counter == 7counter) * rel0_m3) + ((curr_month_counter == 8counter) * rel1_m3) + ((curr_month_counter == 9counter) * rel2_m3) + ((curr_month_counter == 10counter) * rel3_m3) + ((curr_month_counter == 11counter) * rel4_m3) + ((curr_month_counter == 12counter) * rel5_m3)'
+        }
+        field {
+            name      = last_aug
+            quantity  = Volume
+            info      = 'The total water consumption recorded at the beginning of August.'
+            calculate = '((curr_month_counter == 1counter) * rel5_m3) + ((curr_month_counter == 2counter) * rel6_m3) + ((curr_month_counter == 3counter) * rel7_m3) + ((curr_month_counter == 4counter) * rel8_m3) + ((curr_month_counter == 5counter) * rel9_m3) + ((curr_month_counter == 6counter) * rel10_m3) + ((curr_month_counter == 7counter) * rel11_m3) + ((curr_month_counter == 8counter) * rel0_m3) + ((curr_month_counter == 9counter) * rel1_m3) + ((curr_month_counter == 10counter) * rel2_m3) + ((curr_month_counter == 11counter) * rel3_m3) + ((curr_month_counter == 12counter) * rel4_m3)'
+        }
+        field {
+            name      = last_sep
+            quantity  = Volume
+            info      = 'The total water consumption recorded at the beginning of September.'
+            calculate = '((curr_month_counter == 1counter) * rel4_m3) + ((curr_month_counter == 2counter) * rel5_m3) + ((curr_month_counter == 3counter) * rel6_m3) + ((curr_month_counter == 4counter) * rel7_m3) + ((curr_month_counter == 5counter) * rel8_m3) + ((curr_month_counter == 6counter) * rel9_m3) + ((curr_month_counter == 7counter) * rel10_m3) + ((curr_month_counter == 8counter) * rel11_m3) + ((curr_month_counter == 9counter) * rel0_m3) + ((curr_month_counter == 10counter) * rel1_m3) + ((curr_month_counter == 11counter) * rel2_m3) + ((curr_month_counter == 12counter) * rel3_m3)'
+        }
+        field {
+            name      = last_oct
+            quantity  = Volume
+            info      = 'The total water consumption recorded at the beginning of October.'
+            calculate = '((curr_month_counter == 1counter) * rel3_m3) + ((curr_month_counter == 2counter) * rel4_m3) + ((curr_month_counter == 3counter) * rel5_m3) + ((curr_month_counter == 4counter) * rel6_m3) + ((curr_month_counter == 5counter) * rel7_m3) + ((curr_month_counter == 6counter) * rel8_m3) + ((curr_month_counter == 7counter) * rel9_m3) + ((curr_month_counter == 8counter) * rel10_m3) + ((curr_month_counter == 9counter) * rel11_m3) + ((curr_month_counter == 10counter) * rel0_m3) + ((curr_month_counter == 11counter) * rel1_m3) + ((curr_month_counter == 12counter) * rel2_m3)'
+        }
+        field {
+            name      = last_nov
+            quantity  = Volume
+            info      = 'The total water consumption recorded at the beginning of November.'
+            calculate = '((curr_month_counter == 1counter) * rel2_m3) + ((curr_month_counter == 2counter) * rel3_m3) + ((curr_month_counter == 3counter) * rel4_m3) + ((curr_month_counter == 4counter) * rel5_m3) + ((curr_month_counter == 5counter) * rel6_m3) + ((curr_month_counter == 6counter) * rel7_m3) + ((curr_month_counter == 7counter) * rel8_m3) + ((curr_month_counter == 8counter) * rel9_m3) + ((curr_month_counter == 9counter) * rel10_m3) + ((curr_month_counter == 10counter) * rel11_m3) + ((curr_month_counter == 11counter) * rel0_m3) + ((curr_month_counter == 12counter) * rel1_m3)'
+        }
+        field {
+            name      = last_dec
+            quantity  = Volume
+            info      = 'The total water consumption recorded at the beginning of December.'
+            calculate = '((curr_month_counter == 1counter) * rel1_m3) + ((curr_month_counter == 2counter) * rel2_m3) + ((curr_month_counter == 3counter) * rel3_m3) + ((curr_month_counter == 4counter) * rel4_m3) + ((curr_month_counter == 5counter) * rel5_m3) + ((curr_month_counter == 6counter) * rel6_m3) + ((curr_month_counter == 7counter) * rel7_m3) + ((curr_month_counter == 8counter) * rel8_m3) + ((curr_month_counter == 9counter) * rel9_m3) + ((curr_month_counter == 10counter) * rel10_m3) + ((curr_month_counter == 11counter) * rel11_m3) + ((curr_month_counter == 12counter) * rel0_m3)'
+        }
+        field {
+            name                 = mfct_specific_data
+            quantity             = Text
+            attributes           = HIDE
+            match_entire_payload = true
+            ixml                 = "decode = frame.
+                                    frame = byte,
+                                            byte,
+                                            CurrDate,
+                                            Total,
+                                            byte,
+                                            Hist0,
+                                            byte,
+                                            Hist1,
+                                            byte,
+                                            Hist2,
+                                            byte,
+                                            Hist3,
+                                            byte,
+                                            Hist4,
+                                            byte,
+                                            Hist5,
+                                            byte,
+                                            Hist6,
+                                            byte,
+                                            Hist7,
+                                            byte,
+                                            Hist8,
+                                            byte,
+                                            Hist9,
+                                            byte,
+                                            Hist10,
+                                            byte,
+                                            Hist11,
+                                            byte.
+
+                                    CurrDate = word, @DV_curr_date_raw.
+                                    Total = triplet, @DV_total_raw.
+                                    Hist0 = word, @DV_hist0_raw.
+                                    Hist1 = word, @DV_hist1_raw.
+                                    Hist2 = word, @DV_hist2_raw.
+                                    Hist3 = word, @DV_hist3_raw.
+                                    Hist4 = word, @DV_hist4_raw.
+                                    Hist5 = word, @DV_hist5_raw.
+                                    Hist6 = word, @DV_hist6_raw.
+                                    Hist7 = word, @DV_hist7_raw.
+                                    Hist8 = word, @DV_hist8_raw.
+                                    Hist9 = word, @DV_hist9_raw.
+                                    Hist10 = word, @DV_hist10_raw.
+                                    Hist11 = word, @DV_hist11_raw.
+
+                                    -hex  = ['A'-'F';'0'-'9'].
+                                    -byte = hex, hex.
+                                    -word = byte, byte.
+                                    -triplet = byte, byte, byte.
+
+                                    DV_curr_date_raw>dvk = +'02FD3A'.
+                                    DV_total_raw>dvk = +'03FD3A'.
+                                    DV_hist0_raw>dvk = +'8200FD3A'.
+                                    DV_hist1_raw>dvk = +'8201FD3A'.
+                                    DV_hist2_raw>dvk = +'8202FD3A'.
+                                    DV_hist3_raw>dvk = +'8203FD3A'.
+                                    DV_hist4_raw>dvk = +'8204FD3A'.
+                                    DV_hist5_raw>dvk = +'8205FD3A'.
+                                    DV_hist6_raw>dvk = +'8206FD3A'.
+                                    DV_hist7_raw>dvk = +'8207FD3A'.
+                                    DV_hist8_raw>dvk = +'8208FD3A'.
+                                    DV_hist9_raw>dvk = +'8209FD3A'.
+                                    DV_hist10_raw>dvk = +'820AFD3A'.
+                                    DV_hist11_raw>dvk = +'820BFD3A'."
+        }
+    }
+    tests {
+        test {
+            comment  = 'Legacy payload'
+            args     = 'TCH mkradio3a 62560642 NOKEY'
+            telegram = 36446850420656625072A2_0C007C3110250000293400373A002E38000E15002F37003A39003835002F24003930001D2500312500162900
+            json     = '{"_":"telegram","media":"cold water","meter":"mkradio3a","name":"TCH","id":"62560642","target_m3":9.3,"last_apr_m3":8.3,"last_aug_m3":3.5,"last_dec_m3":6.3,"last_feb_m3":6.6,"last_jan_m3":8.6,"last_jul_m3":10.2,"last_jun_m3":11.5,"last_mar_m3":10.5,"last_may_m3":10.9,"last_nov_m3":9.3,"last_oct_m3":11.3,"last_sep_m3":10.2,"total_m3":948.8,"target_date":"2024-11-28","timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'TCH;62560642;948.8;9.3;1111-11-11 11:11.11'
+        }
+    }
+}
