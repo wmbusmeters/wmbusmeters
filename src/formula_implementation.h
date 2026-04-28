@@ -205,6 +205,176 @@ private:
     std::unique_ptr<NumericFormula> inner_;
 };
 
+struct NumericFormulaFloor : public NumericFormula
+{
+    NumericFormulaFloor(FormulaImplementation *f, SIUnit siu,
+                        std::unique_ptr<NumericFormula> &inner)
+        : NumericFormula(f, siu), inner_(std::move(inner)) {}
+
+    double calculate(SIUnit to);
+    std::string str();
+    std::string tree();
+
+    ~NumericFormulaFloor();
+
+private:
+
+    std::unique_ptr<NumericFormula> inner_;
+};
+
+struct NumericFormulaCeil : public NumericFormula
+{
+    NumericFormulaCeil(FormulaImplementation *f, SIUnit siu,
+                       std::unique_ptr<NumericFormula> &inner)
+        : NumericFormula(f, siu), inner_(std::move(inner)) {}
+
+    double calculate(SIUnit to);
+    std::string str();
+    std::string tree();
+
+    ~NumericFormulaCeil();
+
+private:
+
+    std::unique_ptr<NumericFormula> inner_;
+};
+
+struct NumericFormulaModulo : public NumericFormulaPair
+{
+    NumericFormulaModulo(FormulaImplementation *f, SIUnit siu,
+                         std::unique_ptr<NumericFormula> &a,
+                         std::unique_ptr<NumericFormula> &b)
+        : NumericFormulaPair(f, siu, a, b, "MOD", "%") {}
+
+    double calculate(SIUnit to);
+
+    ~NumericFormulaModulo();
+};
+
+struct NumericFormulaShiftLeft : public NumericFormulaPair
+{
+    NumericFormulaShiftLeft(FormulaImplementation *f, SIUnit siu,
+                            std::unique_ptr<NumericFormula> &a,
+                            std::unique_ptr<NumericFormula> &b)
+        : NumericFormulaPair(f, siu, a, b, "SHL", "<<") {}
+
+    double calculate(SIUnit to);
+
+    ~NumericFormulaShiftLeft();
+};
+
+struct NumericFormulaShiftRight : public NumericFormulaPair
+{
+    NumericFormulaShiftRight(FormulaImplementation *f, SIUnit siu,
+                             std::unique_ptr<NumericFormula> &a,
+                             std::unique_ptr<NumericFormula> &b)
+        : NumericFormulaPair(f, siu, a, b, "SHR", ">>") {}
+
+    double calculate(SIUnit to);
+
+    ~NumericFormulaShiftRight();
+};
+
+struct NumericFormulaEQ : public NumericFormulaPair
+{
+    NumericFormulaEQ(FormulaImplementation *f, SIUnit siu,
+                     std::unique_ptr<NumericFormula> &a,
+                     std::unique_ptr<NumericFormula> &b)
+        : NumericFormulaPair(f, siu, a, b, "EQ", "==") {}
+    double calculate(SIUnit to);
+    ~NumericFormulaEQ();
+};
+
+struct NumericFormulaNEQ : public NumericFormulaPair
+{
+    NumericFormulaNEQ(FormulaImplementation *f, SIUnit siu,
+                      std::unique_ptr<NumericFormula> &a,
+                      std::unique_ptr<NumericFormula> &b)
+        : NumericFormulaPair(f, siu, a, b, "NEQ", "!=") {}
+    double calculate(SIUnit to);
+    ~NumericFormulaNEQ();
+};
+
+struct NumericFormulaLT : public NumericFormulaPair
+{
+    NumericFormulaLT(FormulaImplementation *f, SIUnit siu,
+                     std::unique_ptr<NumericFormula> &a,
+                     std::unique_ptr<NumericFormula> &b)
+        : NumericFormulaPair(f, siu, a, b, "LT", "<") {}
+    double calculate(SIUnit to);
+    ~NumericFormulaLT();
+};
+
+struct NumericFormulaGT : public NumericFormulaPair
+{
+    NumericFormulaGT(FormulaImplementation *f, SIUnit siu,
+                     std::unique_ptr<NumericFormula> &a,
+                     std::unique_ptr<NumericFormula> &b)
+        : NumericFormulaPair(f, siu, a, b, "GT", ">") {}
+    double calculate(SIUnit to);
+    ~NumericFormulaGT();
+};
+
+struct NumericFormulaLTE : public NumericFormulaPair
+{
+    NumericFormulaLTE(FormulaImplementation *f, SIUnit siu,
+                      std::unique_ptr<NumericFormula> &a,
+                      std::unique_ptr<NumericFormula> &b)
+        : NumericFormulaPair(f, siu, a, b, "LTE", "<=") {}
+    double calculate(SIUnit to);
+    ~NumericFormulaLTE();
+};
+
+struct NumericFormulaGTE : public NumericFormulaPair
+{
+    NumericFormulaGTE(FormulaImplementation *f, SIUnit siu,
+                      std::unique_ptr<NumericFormula> &a,
+                      std::unique_ptr<NumericFormula> &b)
+        : NumericFormulaPair(f, siu, a, b, "GTE", ">=") {}
+    double calculate(SIUnit to);
+    ~NumericFormulaGTE();
+};
+
+struct NumericFormulaBitwiseAnd : public NumericFormulaPair
+{
+    NumericFormulaBitwiseAnd(FormulaImplementation *f, SIUnit siu,
+                              std::unique_ptr<NumericFormula> &a,
+                              std::unique_ptr<NumericFormula> &b)
+        : NumericFormulaPair(f, siu, a, b, "BAND", "&") {}
+    double calculate(SIUnit to);
+    ~NumericFormulaBitwiseAnd();
+};
+
+struct NumericFormulaBitwiseOr : public NumericFormulaPair
+{
+    NumericFormulaBitwiseOr(FormulaImplementation *f, SIUnit siu,
+                             std::unique_ptr<NumericFormula> &a,
+                             std::unique_ptr<NumericFormula> &b)
+        : NumericFormulaPair(f, siu, a, b, "BOR", "|") {}
+    double calculate(SIUnit to);
+    ~NumericFormulaBitwiseOr();
+};
+
+struct NumericFormulaLogicalAnd : public NumericFormulaPair
+{
+    NumericFormulaLogicalAnd(FormulaImplementation *f, SIUnit siu,
+                              std::unique_ptr<NumericFormula> &a,
+                              std::unique_ptr<NumericFormula> &b)
+        : NumericFormulaPair(f, siu, a, b, "LAND", "&&") {}
+    double calculate(SIUnit to);
+    ~NumericFormulaLogicalAnd();
+};
+
+struct NumericFormulaLogicalOr : public NumericFormulaPair
+{
+    NumericFormulaLogicalOr(FormulaImplementation *f, SIUnit siu,
+                             std::unique_ptr<NumericFormula> &a,
+                             std::unique_ptr<NumericFormula> &b)
+        : NumericFormulaPair(f, siu, a, b, "LOR", "||") {}
+    double calculate(SIUnit to);
+    ~NumericFormulaLogicalOr();
+};
+
 enum class TokenType
 {
     SPACE,
@@ -217,9 +387,24 @@ enum class TokenType
     MINUS,
     TIMES,
     DIV,
+    MOD,
+    SHL,
+    SHR,
+    EQ,
+    NEQ,
+    LT,
+    GT,
+    LTE,
+    GTE,
+    BAND,
+    BOR,
+    LAND,
+    LOR,
     EXP,
     SQRT,
     ROUND,
+    FLOOR,
+    CEIL,
     UNIT,
     FIELD
 };
@@ -280,6 +465,21 @@ struct FormulaImplementation : public Formula
     // The target unit will be SIUnit square rooted.
     void doSquareRoot();
     void doRound();
+    void doFloor();
+    void doCeil();
+    void doModulo();
+    void doShiftLeft();
+    void doShiftRight();
+    void doEQ();
+    void doNEQ();
+    void doLT();
+    void doGT();
+    void doLTE();
+    void doGTE();
+    void doBitwiseAnd();
+    void doBitwiseOr();
+    void doLogicalAnd();
+    void doLogicalOr();
 
     ~FormulaImplementation();
 
@@ -294,9 +494,24 @@ struct FormulaImplementation : public Formula
     size_t findMinus(size_t i);
     size_t findTimes(size_t i);
     size_t findDiv(size_t i);
+    size_t findMod(size_t i);
+    size_t findShl(size_t i);
+    size_t findShr(size_t i);
+    size_t findEQ(size_t i);
+    size_t findNEQ(size_t i);
+    size_t findLT(size_t i);
+    size_t findGT(size_t i);
+    size_t findLTE(size_t i);
+    size_t findGTE(size_t i);
+    size_t findBitwiseAnd(size_t i);
+    size_t findBitwiseOr(size_t i);
+    size_t findLogicalAnd(size_t i);
+    size_t findLogicalOr(size_t i);
     size_t findExp(size_t i);
     size_t findSqrt(size_t i);
     size_t findRound(size_t i);
+    size_t findFloor(size_t i);
+    size_t findCeil(size_t i);
     size_t findLPar(size_t i);
     size_t findRPar(size_t i);
     size_t findField(size_t i);
@@ -312,9 +527,24 @@ struct FormulaImplementation : public Formula
     void handleSubtraction(Token *add);
     void handleMultiplication(Token *add);
     void handleDivision(Token *add);
+    void handleModulo(Token *add);
+    void handleShiftLeft(Token *add);
+    void handleShiftRight(Token *add);
+    void handleEQ(Token *tok);
+    void handleNEQ(Token *tok);
+    void handleLT(Token *tok);
+    void handleGT(Token *tok);
+    void handleLTE(Token *tok);
+    void handleGTE(Token *tok);
+    void handleBitwiseAnd(Token *tok);
+    void handleBitwiseOr(Token *tok);
+    void handleLogicalAnd(Token *tok);
+    void handleLogicalOr(Token *tok);
     void handleExponentiation(Token *add);
     void handleSquareRoot(Token *add);
     void handleRound(Token *add);
+    void handleFloor(Token *add);
+    void handleCeil(Token *add);
     void handleField(Token *field);
 
     void pushOp(NumericFormula *nf);

@@ -81,6 +81,7 @@ bool verbose_ = false;
     X(formulas_dventries)                       \
     X(formulas_stringinterpolation)             \
     X(formulas_rounding)                        \
+    X(formulas_extended_ops)                    \
 
 #define X(t) void test_##t();
 LIST_OF_TESTS
@@ -2847,6 +2848,57 @@ void test_formulas_rounding()
 
     test_formula_value(&fi, NULL, "round(100.542 kwh)", 101, Unit::KWH);
     test_formula_value(&fi, NULL, "round(100.492 kwh)", 100, Unit::KWH);
+}
+
+void test_formulas_extended_ops()
+{
+    FormulaImplementation fi;
+
+    test_formula_value(&fi, NULL, "7counter % 4counter", 3, Unit::COUNTER);
+    test_formula_value(&fi, NULL, "3counter << 4counter", 48, Unit::COUNTER);
+    test_formula_value(&fi, NULL, "48counter >> 4counter", 3, Unit::COUNTER);
+    test_formula_value(&fi, NULL, "floor(100.999 kwh)", 100, Unit::KWH);
+    test_formula_value(&fi, NULL, "ceil(100.001 kwh)", 101, Unit::KWH);
+
+    // Comparison operators — return 1.0 (true) or 0.0 (false)
+    test_formula_value(&fi, NULL, "3counter == 3counter", 1, Unit::COUNTER);
+    test_formula_value(&fi, NULL, "3counter == 4counter", 0, Unit::COUNTER);
+    test_formula_value(&fi, NULL, "3counter != 4counter", 1, Unit::COUNTER);
+    test_formula_value(&fi, NULL, "3counter != 3counter", 0, Unit::COUNTER);
+    test_formula_value(&fi, NULL, "2counter < 3counter",  1, Unit::COUNTER);
+    test_formula_value(&fi, NULL, "3counter < 3counter",  0, Unit::COUNTER);
+    test_formula_value(&fi, NULL, "4counter < 3counter",  0, Unit::COUNTER);
+    test_formula_value(&fi, NULL, "3counter > 2counter",  1, Unit::COUNTER);
+    test_formula_value(&fi, NULL, "3counter > 3counter",  0, Unit::COUNTER);
+    test_formula_value(&fi, NULL, "2counter > 3counter",  0, Unit::COUNTER);
+    test_formula_value(&fi, NULL, "3counter <= 3counter", 1, Unit::COUNTER);
+    test_formula_value(&fi, NULL, "2counter <= 3counter", 1, Unit::COUNTER);
+    test_formula_value(&fi, NULL, "4counter <= 3counter", 0, Unit::COUNTER);
+    test_formula_value(&fi, NULL, "3counter >= 3counter", 1, Unit::COUNTER);
+    test_formula_value(&fi, NULL, "3counter >= 2counter", 1, Unit::COUNTER);
+    test_formula_value(&fi, NULL, "2counter >= 3counter", 0, Unit::COUNTER);
+
+    // Bitwise operators
+    test_formula_value(&fi, NULL, "12counter & 10counter",  8, Unit::COUNTER); // 1100 & 1010 = 1000
+    test_formula_value(&fi, NULL, "12counter | 10counter", 14, Unit::COUNTER); // 1100 | 1010 = 1110
+
+    // Logical operators
+    test_formula_value(&fi, NULL, "1counter && 1counter", 1, Unit::COUNTER);
+    test_formula_value(&fi, NULL, "1counter && 0counter", 0, Unit::COUNTER);
+    test_formula_value(&fi, NULL, "0counter && 1counter", 0, Unit::COUNTER);
+    test_formula_value(&fi, NULL, "0counter && 0counter", 0, Unit::COUNTER);
+    test_formula_value(&fi, NULL, "1counter || 0counter", 1, Unit::COUNTER);
+    test_formula_value(&fi, NULL, "0counter || 1counter", 1, Unit::COUNTER);
+    test_formula_value(&fi, NULL, "0counter || 0counter", 0, Unit::COUNTER);
+    test_formula_value(&fi, NULL, "1counter || 1counter", 1, Unit::COUNTER);
+
+    // Combined: check mkradio3 year_rollover logic directly
+    // curr_month(4) < prev_month(12) => 1 => rollover
+    test_formula_value(&fi, NULL, "(4counter < 12counter) || ((4counter == 12counter) && (27counter < 31counter))", 1, Unit::COUNTER);
+    // same month, same day => 0 => no rollover
+    test_formula_value(&fi, NULL, "(12counter < 12counter) || ((12counter == 12counter) && (31counter < 31counter))", 0, Unit::COUNTER);
+    // same month, curr_day > prev_day => 0 => no rollover
+    test_formula_value(&fi, NULL, "(12counter < 12counter) || ((12counter == 12counter) && (31counter < 15counter))", 0, Unit::COUNTER);
 }
 
 void test_dynamic_loading()

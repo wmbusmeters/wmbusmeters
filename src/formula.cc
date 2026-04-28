@@ -41,6 +41,21 @@ NumericFormulaDivision::~NumericFormulaDivision() { }
 NumericFormulaExponentiation::~NumericFormulaExponentiation() { }
 NumericFormulaSquareRoot::~NumericFormulaSquareRoot() { }
 NumericFormulaRound::~NumericFormulaRound() { }
+NumericFormulaFloor::~NumericFormulaFloor() { }
+NumericFormulaCeil::~NumericFormulaCeil() { }
+NumericFormulaModulo::~NumericFormulaModulo() { }
+NumericFormulaShiftLeft::~NumericFormulaShiftLeft() { }
+NumericFormulaShiftRight::~NumericFormulaShiftRight() { }
+NumericFormulaEQ::~NumericFormulaEQ() { }
+NumericFormulaNEQ::~NumericFormulaNEQ() { }
+NumericFormulaLT::~NumericFormulaLT() { }
+NumericFormulaGT::~NumericFormulaGT() { }
+NumericFormulaLTE::~NumericFormulaLTE() { }
+NumericFormulaGTE::~NumericFormulaGTE() { }
+NumericFormulaBitwiseAnd::~NumericFormulaBitwiseAnd() { }
+NumericFormulaBitwiseOr::~NumericFormulaBitwiseOr() { }
+NumericFormulaLogicalAnd::~NumericFormulaLogicalAnd() { }
+NumericFormulaLogicalOr::~NumericFormulaLogicalOr() { }
 
 double NumericFormulaConstant::calculate(SIUnit to)
 {
@@ -180,6 +195,147 @@ double NumericFormulaRound::calculate(SIUnit to_siunit)
     return r;
 }
 
+double NumericFormulaFloor::calculate(SIUnit to_siunit)
+{
+    double i = inner_->calculate(inner_->siunit());
+    double r = std::floor(i);
+
+    debug("(formula) FLOOR %g (%s) --> %g --> %g %s\n",
+          i, inner_->siunit().str().c_str(),
+          r,
+          r, siunit().str().c_str());
+
+    return r;
+}
+
+double NumericFormulaCeil::calculate(SIUnit to_siunit)
+{
+    double i = inner_->calculate(inner_->siunit());
+    double r = std::ceil(i);
+
+    debug("(formula) CEIL %g (%s) --> %g --> %g %s\n",
+          i, inner_->siunit().str().c_str(),
+          r,
+          r, siunit().str().c_str());
+
+    return r;
+}
+
+double NumericFormulaModulo::calculate(SIUnit to_siunit)
+{
+    SIUnit cu(Unit::COUNTER);
+    double l = left_->calculate(cu);
+    double r = right_->calculate(cu);
+    if (r == 0.0) return std::numeric_limits<double>::quiet_NaN();
+    return std::fmod(l, r);
+}
+
+double NumericFormulaShiftLeft::calculate(SIUnit to_siunit)
+{
+    SIUnit cu(Unit::COUNTER);
+    double l = left_->calculate(cu);
+    double r = right_->calculate(cu);
+    if (r < 0.0 || r > 63.0) return std::numeric_limits<double>::quiet_NaN();
+    uint64_t lv = (uint64_t)llround(l);
+    uint64_t rv = (uint64_t)llround(r);
+    return (double)(lv << rv);
+}
+
+double NumericFormulaShiftRight::calculate(SIUnit to_siunit)
+{
+    SIUnit cu(Unit::COUNTER);
+    double l = left_->calculate(cu);
+    double r = right_->calculate(cu);
+    if (r < 0.0 || r > 63.0) return std::numeric_limits<double>::quiet_NaN();
+    uint64_t lv = (uint64_t)llround(l);
+    uint64_t rv = (uint64_t)llround(r);
+    return (double)(lv >> rv);
+}
+
+double NumericFormulaEQ::calculate(SIUnit to_siunit)
+{
+    SIUnit cu(Unit::COUNTER);
+    double l = left_->calculate(cu);
+    double r = right_->calculate(cu);
+    return (l == r) ? 1.0 : 0.0;
+}
+
+double NumericFormulaNEQ::calculate(SIUnit to_siunit)
+{
+    SIUnit cu(Unit::COUNTER);
+    double l = left_->calculate(cu);
+    double r = right_->calculate(cu);
+    return (l != r) ? 1.0 : 0.0;
+}
+
+double NumericFormulaLT::calculate(SIUnit to_siunit)
+{
+    SIUnit cu(Unit::COUNTER);
+    double l = left_->calculate(cu);
+    double r = right_->calculate(cu);
+    return (l < r) ? 1.0 : 0.0;
+}
+
+double NumericFormulaGT::calculate(SIUnit to_siunit)
+{
+    SIUnit cu(Unit::COUNTER);
+    double l = left_->calculate(cu);
+    double r = right_->calculate(cu);
+    return (l > r) ? 1.0 : 0.0;
+}
+
+double NumericFormulaLTE::calculate(SIUnit to_siunit)
+{
+    SIUnit cu(Unit::COUNTER);
+    double l = left_->calculate(cu);
+    double r = right_->calculate(cu);
+    return (l <= r) ? 1.0 : 0.0;
+}
+
+double NumericFormulaGTE::calculate(SIUnit to_siunit)
+{
+    SIUnit cu(Unit::COUNTER);
+    double l = left_->calculate(cu);
+    double r = right_->calculate(cu);
+    return (l >= r) ? 1.0 : 0.0;
+}
+
+double NumericFormulaBitwiseAnd::calculate(SIUnit to_siunit)
+{
+    SIUnit cu(Unit::COUNTER);
+    double l = left_->calculate(cu);
+    double r = right_->calculate(cu);
+    uint64_t lv = (uint64_t)llround(l);
+    uint64_t rv = (uint64_t)llround(r);
+    return (double)(lv & rv);
+}
+
+double NumericFormulaBitwiseOr::calculate(SIUnit to_siunit)
+{
+    SIUnit cu(Unit::COUNTER);
+    double l = left_->calculate(cu);
+    double r = right_->calculate(cu);
+    uint64_t lv = (uint64_t)llround(l);
+    uint64_t rv = (uint64_t)llround(r);
+    return (double)(lv | rv);
+}
+
+double NumericFormulaLogicalAnd::calculate(SIUnit to_siunit)
+{
+    SIUnit cu(Unit::COUNTER);
+    double l = left_->calculate(cu);
+    double r = right_->calculate(cu);
+    return (l != 0.0 && r != 0.0) ? 1.0 : 0.0;
+}
+
+double NumericFormulaLogicalOr::calculate(SIUnit to_siunit)
+{
+    SIUnit cu(Unit::COUNTER);
+    double l = left_->calculate(cu);
+    double r = right_->calculate(cu);
+    return (l != 0.0 || r != 0.0) ? 1.0 : 0.0;
+}
+
 double NumericFormulaSquareRoot::calculate(SIUnit to_siunit)
 {
     double i = inner_->calculate(inner_->siunit());
@@ -208,9 +364,24 @@ const char *toString(TokenType tt)
     case TokenType::MINUS: return "MINUS";
     case TokenType::TIMES: return "TIMES";
     case TokenType::DIV: return "DIV";
+    case TokenType::MOD: return "MOD";
+    case TokenType::SHL: return "SHL";
+    case TokenType::SHR: return "SHR";
+    case TokenType::EQ:  return "EQ";
+    case TokenType::NEQ: return "NEQ";
+    case TokenType::LT:  return "LT";
+    case TokenType::GT:  return "GT";
+    case TokenType::LTE: return "LTE";
+    case TokenType::GTE: return "GTE";
+    case TokenType::BAND: return "BAND";
+    case TokenType::BOR:  return "BOR";
+    case TokenType::LAND: return "LAND";
+    case TokenType::LOR:  return "LOR";
     case TokenType::EXP: return "EXP";
     case TokenType::SQRT: return "SQRT";
     case TokenType::ROUND: return "ROUND";
+    case TokenType::FLOOR: return "FLOOR";
+    case TokenType::CEIL: return "CEIL";
     case TokenType::UNIT: return "UNIT";
     case TokenType::FIELD: return "FIELD";
     }
@@ -441,6 +612,104 @@ size_t FormulaImplementation::findDiv(size_t i)
     return 0;
 }
 
+size_t FormulaImplementation::findMod(size_t i)
+{
+    if (i >= formula_.length()) return 0;
+
+    char c = formula_[i];
+    if (c == '%') return 1;
+
+    return 0;
+}
+
+size_t FormulaImplementation::findShl(size_t i)
+{
+    if (i+1 >= formula_.length()) return 0;
+    if (formula_[i] == '<' && formula_[i+1] == '<') return 2;
+    return 0;
+}
+
+size_t FormulaImplementation::findShr(size_t i)
+{
+    if (i+1 >= formula_.length()) return 0;
+    if (formula_[i] == '>' && formula_[i+1] == '>') return 2;
+    return 0;
+}
+
+size_t FormulaImplementation::findEQ(size_t i)
+{
+    if (i+1 >= formula_.length()) return 0;
+    if (formula_[i] == '=' && formula_[i+1] == '=') return 2;
+    return 0;
+}
+
+size_t FormulaImplementation::findNEQ(size_t i)
+{
+    if (i+1 >= formula_.length()) return 0;
+    if (formula_[i] == '!' && formula_[i+1] == '=') return 2;
+    return 0;
+}
+
+size_t FormulaImplementation::findLTE(size_t i)
+{
+    if (i+1 >= formula_.length()) return 0;
+    if (formula_[i] == '<' && formula_[i+1] == '=') return 2;
+    return 0;
+}
+
+size_t FormulaImplementation::findGTE(size_t i)
+{
+    if (i+1 >= formula_.length()) return 0;
+    if (formula_[i] == '>' && formula_[i+1] == '=') return 2;
+    return 0;
+}
+
+size_t FormulaImplementation::findLT(size_t i)
+{
+    if (i >= formula_.length()) return 0;
+    if (formula_[i] != '<') return 0;
+    if (i+1 < formula_.length() && (formula_[i+1] == '<' || formula_[i+1] == '=')) return 0;
+    return 1;
+}
+
+size_t FormulaImplementation::findGT(size_t i)
+{
+    if (i >= formula_.length()) return 0;
+    if (formula_[i] != '>') return 0;
+    if (i+1 < formula_.length() && (formula_[i+1] == '>' || formula_[i+1] == '=')) return 0;
+    return 1;
+}
+
+size_t FormulaImplementation::findLogicalAnd(size_t i)
+{
+    if (i+1 >= formula_.length()) return 0;
+    if (formula_[i] == '&' && formula_[i+1] == '&') return 2;
+    return 0;
+}
+
+size_t FormulaImplementation::findBitwiseAnd(size_t i)
+{
+    if (i >= formula_.length()) return 0;
+    if (formula_[i] != '&') return 0;
+    if (i+1 < formula_.length() && formula_[i+1] == '&') return 0;
+    return 1;
+}
+
+size_t FormulaImplementation::findLogicalOr(size_t i)
+{
+    if (i+1 >= formula_.length()) return 0;
+    if (formula_[i] == '|' && formula_[i+1] == '|') return 2;
+    return 0;
+}
+
+size_t FormulaImplementation::findBitwiseOr(size_t i)
+{
+    if (i >= formula_.length()) return 0;
+    if (formula_[i] != '|') return 0;
+    if (i+1 < formula_.length() && formula_[i+1] == '|') return 0;
+    return 1;
+}
+
 size_t FormulaImplementation::findExp(size_t i)
 {
     return 0;
@@ -473,6 +742,30 @@ size_t FormulaImplementation::findRound(size_t i)
     if (!strncmp(&formula_[i], "round", 5) && !is_letter(formula_[i+5]))
     {
         return 5;
+    }
+
+    return 0;
+}
+
+size_t FormulaImplementation::findFloor(size_t i)
+{
+    if (i+5 >= formula_.length()) return 0;
+
+    if (!strncmp(&formula_[i], "floor", 5) && !is_letter(formula_[i+5]))
+    {
+        return 5;
+    }
+
+    return 0;
+}
+
+size_t FormulaImplementation::findCeil(size_t i)
+{
+    if (i+4 >= formula_.length()) return 0;
+
+    if (!strncmp(&formula_[i], "ceil", 4) && !is_letter(formula_[i+4]))
+    {
+        return 4;
     }
 
     return 0;
@@ -580,6 +873,45 @@ bool FormulaImplementation::tokenize()
         len = findDiv(i);
         if (len > 0) { tokens_.push_back(Token(TokenType::DIV, i, len)); i+=len; continue; }
 
+        len = findMod(i);
+        if (len > 0) { tokens_.push_back(Token(TokenType::MOD, i, len)); i+=len; continue; }
+
+        len = findShl(i);
+        if (len > 0) { tokens_.push_back(Token(TokenType::SHL, i, len)); i+=len; continue; }
+
+        len = findShr(i);
+        if (len > 0) { tokens_.push_back(Token(TokenType::SHR, i, len)); i+=len; continue; }
+
+        len = findLTE(i);
+        if (len > 0) { tokens_.push_back(Token(TokenType::LTE, i, len)); i+=len; continue; }
+
+        len = findGTE(i);
+        if (len > 0) { tokens_.push_back(Token(TokenType::GTE, i, len)); i+=len; continue; }
+
+        len = findEQ(i);
+        if (len > 0) { tokens_.push_back(Token(TokenType::EQ, i, len)); i+=len; continue; }
+
+        len = findNEQ(i);
+        if (len > 0) { tokens_.push_back(Token(TokenType::NEQ, i, len)); i+=len; continue; }
+
+        len = findLT(i);
+        if (len > 0) { tokens_.push_back(Token(TokenType::LT, i, len)); i+=len; continue; }
+
+        len = findGT(i);
+        if (len > 0) { tokens_.push_back(Token(TokenType::GT, i, len)); i+=len; continue; }
+
+        len = findLogicalAnd(i);
+        if (len > 0) { tokens_.push_back(Token(TokenType::LAND, i, len)); i+=len; continue; }
+
+        len = findBitwiseAnd(i);
+        if (len > 0) { tokens_.push_back(Token(TokenType::BAND, i, len)); i+=len; continue; }
+
+        len = findLogicalOr(i);
+        if (len > 0) { tokens_.push_back(Token(TokenType::LOR, i, len)); i+=len; continue; }
+
+        len = findBitwiseOr(i);
+        if (len > 0) { tokens_.push_back(Token(TokenType::BOR, i, len)); i+=len; continue; }
+
         len = findExp(i);
         if (len > 0) { tokens_.push_back(Token(TokenType::EXP, i, len)); i+=len; continue; }
 
@@ -588,6 +920,12 @@ bool FormulaImplementation::tokenize()
 
         len = findRound(i);
         if (len > 0) { tokens_.push_back(Token(TokenType::ROUND, i, len)); i+=len; continue; }
+
+        len = findFloor(i);
+        if (len > 0) { tokens_.push_back(Token(TokenType::FLOOR, i, len)); i+=len; continue; }
+
+        len = findCeil(i);
+        if (len > 0) { tokens_.push_back(Token(TokenType::CEIL, i, len)); i+=len; continue; }
 
         len = findUnit(i);
         if (len > 0) { tokens_.push_back(Token(TokenType::UNIT, i, len)); i+=len; continue; }
@@ -667,6 +1005,110 @@ size_t FormulaImplementation::parseOps(size_t i)
         return next;
     }
 
+    if (tok->type == TokenType::MOD)
+    {
+        size_t next = parseOps(i+1);
+        if (!valid_) return next;
+        handleModulo(tok);
+        return next;
+    }
+
+    if (tok->type == TokenType::SHL)
+    {
+        size_t next = parseOps(i+1);
+        if (!valid_) return next;
+        handleShiftLeft(tok);
+        return next;
+    }
+
+    if (tok->type == TokenType::SHR)
+    {
+        size_t next = parseOps(i+1);
+        if (!valid_) return next;
+        handleShiftRight(tok);
+        return next;
+    }
+
+    if (tok->type == TokenType::LTE)
+    {
+        size_t next = parseOps(i+1);
+        if (!valid_) return next;
+        handleLTE(tok);
+        return next;
+    }
+
+    if (tok->type == TokenType::GTE)
+    {
+        size_t next = parseOps(i+1);
+        if (!valid_) return next;
+        handleGTE(tok);
+        return next;
+    }
+
+    if (tok->type == TokenType::EQ)
+    {
+        size_t next = parseOps(i+1);
+        if (!valid_) return next;
+        handleEQ(tok);
+        return next;
+    }
+
+    if (tok->type == TokenType::NEQ)
+    {
+        size_t next = parseOps(i+1);
+        if (!valid_) return next;
+        handleNEQ(tok);
+        return next;
+    }
+
+    if (tok->type == TokenType::LT)
+    {
+        size_t next = parseOps(i+1);
+        if (!valid_) return next;
+        handleLT(tok);
+        return next;
+    }
+
+    if (tok->type == TokenType::GT)
+    {
+        size_t next = parseOps(i+1);
+        if (!valid_) return next;
+        handleGT(tok);
+        return next;
+    }
+
+    if (tok->type == TokenType::LAND)
+    {
+        size_t next = parseOps(i+1);
+        if (!valid_) return next;
+        handleLogicalAnd(tok);
+        return next;
+    }
+
+    if (tok->type == TokenType::BAND)
+    {
+        size_t next = parseOps(i+1);
+        if (!valid_) return next;
+        handleBitwiseAnd(tok);
+        return next;
+    }
+
+    if (tok->type == TokenType::LOR)
+    {
+        size_t next = parseOps(i+1);
+        if (!valid_) return next;
+        handleLogicalOr(tok);
+        return next;
+    }
+
+    if (tok->type == TokenType::BOR)
+    {
+        size_t next = parseOps(i+1);
+        if (!valid_) return next;
+        handleBitwiseOr(tok);
+        return next;
+    }
+
     if (tok->type == TokenType::EXP)
     {
         size_t next = parseOps(i+1);
@@ -688,6 +1130,22 @@ size_t FormulaImplementation::parseOps(size_t i)
         size_t next = parseOps(i+1);
         if (!valid_) return next;
         handleRound(tok);
+        return next;
+    }
+
+    if (tok->type == TokenType::FLOOR)
+    {
+        size_t next = parseOps(i+1);
+        if (!valid_) return next;
+        handleFloor(tok);
+        return next;
+    }
+
+    if (tok->type == TokenType::CEIL)
+    {
+        size_t next = parseOps(i+1);
+        if (!valid_) return next;
+        handleCeil(tok);
         return next;
     }
 
@@ -841,6 +1299,113 @@ void FormulaImplementation::handleDivision(Token *tok)
     doDivision();
 }
 
+void FormulaImplementation::handleModulo(Token *tok)
+{
+    SIUnit cu(Unit::COUNTER);
+    SIUnit right_siunit = topOp()->siunit();
+    SIUnit left_siunit = top2Op()->siunit();
+
+    if (!left_siunit.convertTo(0, cu, NULL) || !right_siunit.convertTo(0, cu, NULL))
+    {
+        errors_.push_back(tostrprintf("Modulo requires counter-compatible values, got %s and %s!\n%s",
+                                      left_siunit.info().c_str(),
+                                      right_siunit.info().c_str(),
+                                      tok->withMarker(formula_).c_str()));
+        valid_ = false;
+        return;
+    }
+
+    doModulo();
+}
+
+void FormulaImplementation::handleShiftLeft(Token *tok)
+{
+    SIUnit cu(Unit::COUNTER);
+    SIUnit right_siunit = topOp()->siunit();
+    SIUnit left_siunit = top2Op()->siunit();
+
+    if (!left_siunit.convertTo(0, cu, NULL) || !right_siunit.convertTo(0, cu, NULL))
+    {
+        errors_.push_back(tostrprintf("Shift-left requires counter-compatible values, got %s and %s!\n%s",
+                                      left_siunit.info().c_str(),
+                                      right_siunit.info().c_str(),
+                                      tok->withMarker(formula_).c_str()));
+        valid_ = false;
+        return;
+    }
+
+    doShiftLeft();
+}
+
+void FormulaImplementation::handleShiftRight(Token *tok)
+{
+    SIUnit cu(Unit::COUNTER);
+    SIUnit right_siunit = topOp()->siunit();
+    SIUnit left_siunit = top2Op()->siunit();
+
+    if (!left_siunit.convertTo(0, cu, NULL) || !right_siunit.convertTo(0, cu, NULL))
+    {
+        errors_.push_back(tostrprintf("Shift-right requires counter-compatible values, got %s and %s!\n%s",
+                                      left_siunit.info().c_str(),
+                                      right_siunit.info().c_str(),
+                                      tok->withMarker(formula_).c_str()));
+        valid_ = false;
+        return;
+    }
+
+    doShiftRight();
+}
+
+void FormulaImplementation::handleEQ(Token *tok)
+{
+    doEQ();
+}
+
+void FormulaImplementation::handleNEQ(Token *tok)
+{
+    doNEQ();
+}
+
+void FormulaImplementation::handleLT(Token *tok)
+{
+    doLT();
+}
+
+void FormulaImplementation::handleGT(Token *tok)
+{
+    doGT();
+}
+
+void FormulaImplementation::handleLTE(Token *tok)
+{
+    doLTE();
+}
+
+void FormulaImplementation::handleGTE(Token *tok)
+{
+    doGTE();
+}
+
+void FormulaImplementation::handleBitwiseAnd(Token *tok)
+{
+    doBitwiseAnd();
+}
+
+void FormulaImplementation::handleBitwiseOr(Token *tok)
+{
+    doBitwiseOr();
+}
+
+void FormulaImplementation::handleLogicalAnd(Token *tok)
+{
+    doLogicalAnd();
+}
+
+void FormulaImplementation::handleLogicalOr(Token *tok)
+{
+    doLogicalOr();
+}
+
 void FormulaImplementation::handleExponentiation(Token *tok)
 {
     // You can only exponentiate to a number.
@@ -855,6 +1420,16 @@ void FormulaImplementation::handleSquareRoot(Token *tok)
 void FormulaImplementation::handleRound(Token *tok)
 {
     doRound();
+}
+
+void FormulaImplementation::handleFloor(Token *tok)
+{
+    doFloor();
+}
+
+void FormulaImplementation::handleCeil(Token *tok)
+{
+    doCeil();
 }
 
 void FormulaImplementation::handleField(Token *field)
@@ -1094,6 +1669,151 @@ void FormulaImplementation::doRound()
     pushOp(new NumericFormulaRound(this, siunit, inner_node));
 }
 
+void FormulaImplementation::doFloor()
+{
+    assert(op_stack_.size() >= 1);
+
+    SIUnit siunit = topOp()->siunit();
+
+    unique_ptr<NumericFormula> inner_node = popOp();
+
+    pushOp(new NumericFormulaFloor(this, siunit, inner_node));
+}
+
+void FormulaImplementation::doCeil()
+{
+    assert(op_stack_.size() >= 1);
+
+    SIUnit siunit = topOp()->siunit();
+
+    unique_ptr<NumericFormula> inner_node = popOp();
+
+    pushOp(new NumericFormulaCeil(this, siunit, inner_node));
+}
+
+void FormulaImplementation::doModulo()
+{
+    assert(op_stack_.size() >= 2);
+
+    unique_ptr<NumericFormula> right_node = popOp();
+    unique_ptr<NumericFormula> left_node = popOp();
+
+    SIUnit siunit(Unit::COUNTER);
+    pushOp(new NumericFormulaModulo(this, siunit, left_node, right_node));
+}
+
+void FormulaImplementation::doShiftLeft()
+{
+    assert(op_stack_.size() >= 2);
+
+    unique_ptr<NumericFormula> right_node = popOp();
+    unique_ptr<NumericFormula> left_node = popOp();
+
+    SIUnit siunit(Unit::COUNTER);
+    pushOp(new NumericFormulaShiftLeft(this, siunit, left_node, right_node));
+}
+
+void FormulaImplementation::doShiftRight()
+{
+    assert(op_stack_.size() >= 2);
+
+    unique_ptr<NumericFormula> right_node = popOp();
+    unique_ptr<NumericFormula> left_node = popOp();
+
+    SIUnit siunit(Unit::COUNTER);
+    pushOp(new NumericFormulaShiftRight(this, siunit, left_node, right_node));
+}
+
+void FormulaImplementation::doEQ()
+{
+    assert(op_stack_.size() >= 2);
+    unique_ptr<NumericFormula> right_node = popOp();
+    unique_ptr<NumericFormula> left_node = popOp();
+    SIUnit siunit(Unit::COUNTER);
+    pushOp(new NumericFormulaEQ(this, siunit, left_node, right_node));
+}
+
+void FormulaImplementation::doNEQ()
+{
+    assert(op_stack_.size() >= 2);
+    unique_ptr<NumericFormula> right_node = popOp();
+    unique_ptr<NumericFormula> left_node = popOp();
+    SIUnit siunit(Unit::COUNTER);
+    pushOp(new NumericFormulaNEQ(this, siunit, left_node, right_node));
+}
+
+void FormulaImplementation::doLT()
+{
+    assert(op_stack_.size() >= 2);
+    unique_ptr<NumericFormula> right_node = popOp();
+    unique_ptr<NumericFormula> left_node = popOp();
+    SIUnit siunit(Unit::COUNTER);
+    pushOp(new NumericFormulaLT(this, siunit, left_node, right_node));
+}
+
+void FormulaImplementation::doGT()
+{
+    assert(op_stack_.size() >= 2);
+    unique_ptr<NumericFormula> right_node = popOp();
+    unique_ptr<NumericFormula> left_node = popOp();
+    SIUnit siunit(Unit::COUNTER);
+    pushOp(new NumericFormulaGT(this, siunit, left_node, right_node));
+}
+
+void FormulaImplementation::doLTE()
+{
+    assert(op_stack_.size() >= 2);
+    unique_ptr<NumericFormula> right_node = popOp();
+    unique_ptr<NumericFormula> left_node = popOp();
+    SIUnit siunit(Unit::COUNTER);
+    pushOp(new NumericFormulaLTE(this, siunit, left_node, right_node));
+}
+
+void FormulaImplementation::doGTE()
+{
+    assert(op_stack_.size() >= 2);
+    unique_ptr<NumericFormula> right_node = popOp();
+    unique_ptr<NumericFormula> left_node = popOp();
+    SIUnit siunit(Unit::COUNTER);
+    pushOp(new NumericFormulaGTE(this, siunit, left_node, right_node));
+}
+
+void FormulaImplementation::doBitwiseAnd()
+{
+    assert(op_stack_.size() >= 2);
+    unique_ptr<NumericFormula> right_node = popOp();
+    unique_ptr<NumericFormula> left_node = popOp();
+    SIUnit siunit(Unit::COUNTER);
+    pushOp(new NumericFormulaBitwiseAnd(this, siunit, left_node, right_node));
+}
+
+void FormulaImplementation::doBitwiseOr()
+{
+    assert(op_stack_.size() >= 2);
+    unique_ptr<NumericFormula> right_node = popOp();
+    unique_ptr<NumericFormula> left_node = popOp();
+    SIUnit siunit(Unit::COUNTER);
+    pushOp(new NumericFormulaBitwiseOr(this, siunit, left_node, right_node));
+}
+
+void FormulaImplementation::doLogicalAnd()
+{
+    assert(op_stack_.size() >= 2);
+    unique_ptr<NumericFormula> right_node = popOp();
+    unique_ptr<NumericFormula> left_node = popOp();
+    SIUnit siunit(Unit::COUNTER);
+    pushOp(new NumericFormulaLogicalAnd(this, siunit, left_node, right_node));
+}
+
+void FormulaImplementation::doLogicalOr()
+{
+    assert(op_stack_.size() >= 2);
+    unique_ptr<NumericFormula> right_node = popOp();
+    unique_ptr<NumericFormula> left_node = popOp();
+    SIUnit siunit(Unit::COUNTER);
+    pushOp(new NumericFormulaLogicalOr(this, siunit, left_node, right_node));
+}
+
 
 void FormulaImplementation::doMeterField(Unit u, FieldInfo *fi)
 {
@@ -1200,6 +1920,30 @@ string NumericFormulaRound::tree()
 {
     string inner = inner_->tree();
     return "<ROUND "+inner+"> ";
+}
+
+string NumericFormulaFloor::str()
+{
+    string inner = inner_->str();
+    return "floor("+inner+")";
+}
+
+string NumericFormulaFloor::tree()
+{
+    string inner = inner_->tree();
+    return "<FLOOR "+inner+"> ";
+}
+
+string NumericFormulaCeil::str()
+{
+    string inner = inner_->str();
+    return "ceil("+inner+")";
+}
+
+string NumericFormulaCeil::tree()
+{
+    string inner = inner_->tree();
+    return "<CEIL "+inner+"> ";
 }
 
 string NumericFormulaMeterField::str()

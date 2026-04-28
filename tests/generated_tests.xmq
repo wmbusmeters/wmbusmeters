@@ -1110,6 +1110,34 @@ test {
     fields   = 'Mino;15503451;OK;0.059;null;1111-11-11 11:11.11'
 }
 test {
+    comment  = 'Version 0x74 payload with prev_date 2018-03-31 and current_date 2018-04-01'
+    args     = 'Duschen mkradio3 34333231 NOKEY'
+    telegram = 2F446850313233347462A2_067F2459001008310000000306060906030609070606050509050505050407040605070500
+    json     = '{"_":"telegram","media":"warm water","meter":"mkradio3","name":"Duschen","id":"34333231","total_m3":13.8,"target_m3":8.9,"current_date":"2018-04-01","prev_date":"2018-03-31","timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'Duschen;34333231;13.8;8.9;2018-04-01;2018-03-31;1111-11-11 11:11.11'
+}
+test {
+    comment  = 'Version 0x74 payload with prev_date 2018-03-31 and current_date 2019-03-31'
+    args     = 'Duschen mkradio3 34333231 NOKEY'
+    telegram = 2F446850313233347462A2_067F245900F007310000000306060906030609070606050509050505050407040605070500
+    json     = '{"_":"telegram","media":"warm water","meter":"mkradio3","name":"Duschen","id":"34333231","total_m3":13.8,"target_m3":8.9,"current_date":"2019-03-31","prev_date":"2018-03-31","timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'Duschen;34333231;13.8;8.9;2019-03-31;2018-03-31;1111-11-11 11:11.11'
+}
+test {
+    comment  = 'Version 0x74 payload with prev_date 2018-03-31'
+    args     = 'Duschen mkradio3 34333231 NOKEY'
+    telegram = 2F446850313233347462A2_067F245900B029310000000306060906030609070606050509050505050407040605070500
+    json     = '{"_":"telegram","media":"warm water","meter":"mkradio3","name":"Duschen","id":"34333231","total_m3":13.8,"target_m3":8.9,"current_date":"2018-04-27","prev_date":"2018-03-31","timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'Duschen;34333231;13.8;8.9;2018-04-27;2018-03-31;1111-11-11 11:11.11'
+}
+test {
+    comment  = 'Version 0x74 legacy payload'
+    args     = 'Duschen mkradio3 34333231 NOKEY'
+    telegram = 2F446850313233347462A2_069F255900B029310000000306060906030609070606050509050505050407040605070500
+    json     = '{"_":"telegram","media":"warm water","meter":"mkradio3","name":"Duschen","id":"34333231","total_m3":13.8,"target_m3":8.9,"current_date":"2019-04-27","prev_date":"2018-12-31","timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'Duschen;34333231;13.8;8.9;2019-04-27;2018-12-31;1111-11-11 11:11.11'
+}
+test {
     args     = 'BAR mkradio4a 01770002 NOKEY'
     comment  = 'Cold water'
     telegram = 4B4468508644710095377202007701A85CFE078A0030052F2F_4315F00200426CBF2C0FEE456BF6F802216503E25EB73E9377D54F672681B76C469696E4C7BCCC9072CC79F712360FC3F57D85
