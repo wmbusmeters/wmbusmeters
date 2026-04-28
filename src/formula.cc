@@ -41,6 +41,7 @@ NumericFormulaDivision::~NumericFormulaDivision() { }
 NumericFormulaExponentiation::~NumericFormulaExponentiation() { }
 NumericFormulaSquareRoot::~NumericFormulaSquareRoot() { }
 NumericFormulaRound::~NumericFormulaRound() { }
+NumericFormulaFloor::~NumericFormulaFloor() { }
 
 double NumericFormulaConstant::calculate(SIUnit to)
 {
@@ -180,6 +181,19 @@ double NumericFormulaRound::calculate(SIUnit to_siunit)
     return r;
 }
 
+double NumericFormulaFloor::calculate(SIUnit to_siunit)
+{
+    double i = inner_->calculate(inner_->siunit());
+    double r = std::floor(i);
+
+    debug("(formula) FLOOR %g (%s) --> %g --> %g %s\n",
+          i, inner_->siunit().str().c_str(),
+          r,
+          r, siunit().str().c_str());
+
+    return r;
+}
+
 double NumericFormulaSquareRoot::calculate(SIUnit to_siunit)
 {
     double i = inner_->calculate(inner_->siunit());
@@ -211,6 +225,7 @@ const char *toString(TokenType tt)
     case TokenType::EXP: return "EXP";
     case TokenType::SQRT: return "SQRT";
     case TokenType::ROUND: return "ROUND";
+    case TokenType::FLOOR: return "FLOOR";
     case TokenType::UNIT: return "UNIT";
     case TokenType::FIELD: return "FIELD";
     }
@@ -478,6 +493,18 @@ size_t FormulaImplementation::findRound(size_t i)
     return 0;
 }
 
+size_t FormulaImplementation::findFloor(size_t i)
+{
+    if (i+5 >= formula_.length()) return 0;
+
+    if (!strncmp(&formula_[i], "floor", 5) && !is_letter(formula_[i+5]))
+    {
+        return 5;
+    }
+
+    return 0;
+}
+
 size_t FormulaImplementation::findLPar(size_t i)
 {
     if (i >= formula_.length()) return 0;
@@ -589,6 +616,9 @@ bool FormulaImplementation::tokenize()
         len = findRound(i);
         if (len > 0) { tokens_.push_back(Token(TokenType::ROUND, i, len)); i+=len; continue; }
 
+        len = findFloor(i);
+        if (len > 0) { tokens_.push_back(Token(TokenType::FLOOR, i, len)); i+=len; continue; }
+
         len = findUnit(i);
         if (len > 0) { tokens_.push_back(Token(TokenType::UNIT, i, len)); i+=len; continue; }
 
@@ -688,6 +718,14 @@ size_t FormulaImplementation::parseOps(size_t i)
         size_t next = parseOps(i+1);
         if (!valid_) return next;
         handleRound(tok);
+        return next;
+    }
+
+    if (tok->type == TokenType::FLOOR)
+    {
+        size_t next = parseOps(i+1);
+        if (!valid_) return next;
+        handleFloor(tok);
         return next;
     }
 
@@ -855,6 +893,11 @@ void FormulaImplementation::handleSquareRoot(Token *tok)
 void FormulaImplementation::handleRound(Token *tok)
 {
     doRound();
+}
+
+void FormulaImplementation::handleFloor(Token *tok)
+{
+    doFloor();
 }
 
 void FormulaImplementation::handleField(Token *field)
@@ -1094,6 +1137,17 @@ void FormulaImplementation::doRound()
     pushOp(new NumericFormulaRound(this, siunit, inner_node));
 }
 
+void FormulaImplementation::doFloor()
+{
+    assert(op_stack_.size() >= 1);
+
+    SIUnit siunit = topOp()->siunit();
+
+    unique_ptr<NumericFormula> inner_node = popOp();
+
+    pushOp(new NumericFormulaFloor(this, siunit, inner_node));
+}
+
 
 void FormulaImplementation::doMeterField(Unit u, FieldInfo *fi)
 {
@@ -1200,6 +1254,18 @@ string NumericFormulaRound::tree()
 {
     string inner = inner_->tree();
     return "<ROUND "+inner+"> ";
+}
+
+string NumericFormulaFloor::str()
+{
+    string inner = inner_->str();
+    return "floor("+inner+")";
+}
+
+string NumericFormulaFloor::tree()
+{
+    string inner = inner_->tree();
+    return "<FLOOR "+inner+"> ";
 }
 
 string NumericFormulaMeterField::str()

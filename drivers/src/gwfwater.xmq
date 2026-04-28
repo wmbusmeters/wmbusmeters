@@ -1,0 +1,163 @@
+// Copyright (C) 2023-2026 Fredrik Öhrström (gpl-3.0-or-later)
+driver {
+    name           = gwfwater
+    meter_type     = WaterMeter
+    default_fields = name,id,total_m3,timestamp
+    detect {
+        mvt = GWF,01,0E
+        mvt = GWF,3C,07
+    }
+    library {
+        use = actuality_duration_s
+        use = total_m3
+        use = target_m3
+        use = target_date
+    }
+    fields {
+        field {
+            name       = status
+            quantity   = Text
+            info       = 'Meter status.'
+            attributes = STATUS,INCLUDE_TPL_STATUS
+        }
+        field {
+            name       = mfct_decoder
+            quantity   = Text
+            info       = 'Decode mfct specific data after DIF 0x0F (type = 01).'
+            attributes = HIDE
+            ixml       = "decode = -'01', byte_a, byte_b, -rest.
+                          -hex   = ['A'-'F';'0'-'9'].
+                          -byte  = hex, hex.
+                          byte_a = byte, @DV_0101.
+                          byte_b = byte, @DV_0102.
+                          -rest  = byte*.
+                          DV_0101>dvk = +'0101'.
+                          DV_0102>dvk = +'0102'."
+            match {
+                difvifkey = 0F
+            }
+        }
+        field {
+            name       = mfct_error_decoder
+            quantity   = Text
+            info       = 'Capture mfct specific data when type byte is not 01.'
+            attributes = HIDE
+            ixml       = "decode = err_payload, @DV_ERRFLAG, -rest.
+                          -err_payload  = not_01_byte, two_bytes.
+                          -not_01_byte  = '0', not_1 | not_0, hex.
+                          -not_0        = ['1'-'9';'A'-'F'].
+                          -not_1        = ['0';'2'-'9';'A'-'F'].
+                          -two_bytes    = byte, byte.
+                          -hex          = ['A'-'F';'0'-'9'].
+                          -byte         = hex, hex.
+                          -rest         = byte*.
+                          DV_ERRFLAG>dvk = +'0103'."
+            match {
+                difvifkey = 0F
+            }
+        }
+        field {
+            name       = mfct_status
+            quantity   = Text
+            info       = 'Mfct status bits.'
+            attributes = INJECT_INTO_STATUS,HIDE
+            match {
+                difvifkey = 0101
+            }
+            lookup {
+                name            = MFCT_FLAGS
+                map_type        = BitToString
+                mask_bits       = 0xFF
+                default_message = ''
+                map {
+                    name  = CONTINUOUS_FLOW
+                    value = 0x02
+                    test  = Set
+                }
+                map {
+                    name  = BROKEN_PIPE
+                    value = 0x08
+                    test  = Set
+                }
+                map {
+                    name  = BATTERY_LOW
+                    value = 0x20
+                    test  = Set
+                }
+                map {
+                    name  = BACKFLOW
+                    value = 0x40
+                    test  = Set
+                }
+            }
+        }
+        field {
+            name       = mfct_type_error
+            quantity   = Text
+            info       = 'Set when manufacturer specific block has unknown type byte.'
+            attributes = INJECT_INTO_STATUS,HIDE
+            format     = 'UNKNOWN_MFCT_STATUS={value}'
+            match {
+                difvifkey = 0103
+            }
+        }
+        field {
+            name           = b_raw
+            quantity       = Dimensionless
+            info           = 'Raw byte b for battery and power mode extraction.'
+            attributes     = HIDE
+            display_unit   = counter
+            vif_scaling    = None
+            dif_signedness = Unsigned
+            match {
+                difvifkey = 0102
+            }
+        }
+        field {
+            name     = power_mode
+            quantity = Text
+            info     = 'Normal or saving.'
+            match {
+                difvifkey = 0102
+            }
+            lookup {
+                name            = POWER_MODE
+                map_type        = BitToString
+                mask_bits       = 0x01
+                default_message = NORMAL
+                map {
+                    name  = SAVING
+                    value = 0x01
+                    test  = Set
+                }
+            }
+        }
+        field {
+            name         = battery
+            quantity     = Time
+            info         = 'Remaining battery life in years.'
+            display_unit = y
+            calculate    = 'floor(b_raw_counter / 8 counter) * 0.5 y'
+        }
+    }
+    tests {
+        test {
+            args     = 'Wateroo gwfwater 20221031 NOKEY'
+            telegram = 3144E61E31102220010E8C04F47ABE0420452F2F_037410000004133E0000004413FFFFFFFF426CFFFF0F0120012F2F2F2F2F
+            json     = '{"_":"telegram","actuality_duration_s": 16,"battery_y": 0,"id": "20221031","media": "bus/system component","meter": "gwfwater","name": "Wateroo","power_mode": "SAVING","status": "BATTERY_LOW POWER_LOW","target_date": "2128-03-31","target_m3": -0.001,"timestamp": "1111-11-11T11:11:11Z","total_m3": 0.062}'
+            fields   = 'Wateroo;20221031;0.062;1111-11-11 11:11.11'
+        }
+        test {
+            args     = 'Watertwo gwfwater 19680750 NOKEY'
+            telegram = 3944E61E46441510020E8C04427250076819E61E3C07B10020452F2F_03748B05000413DC690D004413A4630D00426C213C02FD74B5140F0100E3
+            json     = '{"_": "telegram","actuality_duration_s": 1419,"battery_y": 14,"id": "19680750","media": "water","meter": "gwfwater","name": "Watertwo","power_mode": "SAVING","status": "OK","target_date": "2025-12-01","target_m3": 877.476,"timestamp": "1111-11-11T11:11:11Z","total_m3": 879.068}'
+            fields   = 'Watertwo;19680750;879.068;1111-11-11 11:11.11'
+        }
+        test {
+            args     = 'Watererr gwfwater 19680750 NOKEY'
+            telegram = 3944E61E46441510020E8C04427250076819E61E3C07B10020452F2F_03748B05000413DC690D004413A4630D00426C213C02FD74B5140F0200E3
+            json     = '{"_":"telegram","media":"water","meter":"gwfwater","name":"Watererr","id":"19680750","actuality_duration_s":1419,"target_m3":877.476,"target_date":"2025-12-01","total_m3":879.068,"status":"UNKNOWN_MFCT_STATUS=0200E3","timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'Watererr;19680750;879.068;1111-11-11 11:11.11'
+        }
+    }
+}
