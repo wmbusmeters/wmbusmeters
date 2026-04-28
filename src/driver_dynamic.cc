@@ -337,6 +337,9 @@ XMQProceed DriverDynamic::add_field(XMQDoc *doc, XMQNodePtr field, DriverDynamic
     // The ixml field can be used to decode mfct specific fields.
     string ixml = check_field_ixml(xmqGetStringRel(doc, "ixml", field), dd);
 
+    // Optional output format string for Text fields, e.g. 'PREFIX_{value}'.
+    const char *format_s = xmqGetStringRel(doc, "format", field);
+
     // The calculate formula is optional.
     string calculate = check_calculate(xmqGetStringRel(doc, "calculate", field), dd);
 
@@ -449,6 +452,10 @@ XMQProceed DriverDynamic::add_field(XMQDoc *doc, XMQNodePtr field, DriverDynamic
             {
                 dd->lastAddedField()->setReadableString(rs);
             }
+        }
+        if (format_s)
+        {
+            dd->lastAddedField()->setFormat(format_s);
         }
     }
     return XMQ_CONTINUE;
