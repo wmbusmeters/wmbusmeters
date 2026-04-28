@@ -1,0 +1,89 @@
+// Copyright (C) 2026 Fredrik Oehrstroem (gpl-3.0-or-later)
+driver {
+    name           = mkradio4
+    meter_type     = WaterMeter
+    default_fields = name,id,total_m3,target_m3,timestamp
+    manufacturer   = Techem
+    detect {
+        mvt = TCH,95,62
+        mvt = TCH,70,62
+        mvt = TCH,95,72
+        mvt = TCH,70,72
+    }
+    fields {
+        field {
+            name       = prev_raw
+            quantity   = Dimensionless
+            attributes = HIDE
+            match {
+                difvifkey = 4215
+            }
+        }
+        field {
+            name       = curr_raw
+            quantity   = Dimensionless
+            attributes = HIDE
+            match {
+                difvifkey = 0215
+            }
+        }
+        field {
+            name       = prev
+            quantity   = Volume
+            attributes = HIDE
+            calculate  = 'prev_raw_counter * 1m3'
+        }
+        field {
+            name       = curr
+            quantity   = Volume
+            attributes = HIDE
+            calculate  = 'curr_raw_counter * 1m3'
+        }
+        field {
+            name      = target
+            quantity  = Volume
+            info      = 'The total water consumption recorded at the beginning of this month.'
+            calculate = prev_m3
+        }
+        field {
+            name      = total
+            quantity  = Volume
+            info      = 'The total water consumption recorded by this meter.'
+            calculate = 'prev_m3 + curr_m3'
+        }
+        field {
+            name                 = mfct_specific_data
+            quantity             = Text
+            attributes           = HIDE
+            match_entire_payload = true
+            ixml                 = "decode = frame.
+                                    frame = byte,
+                                            byte,
+                                            byte,
+                                            Prev,
+                                            byte,
+                                            byte,
+                                            Curr,
+                                            byte*.
+
+                                    Prev = word, @DV_prev.
+                                    Curr = word, @DV_curr.
+
+                                    -hex  = ['A'-'F';'0'-'9'].
+                                    -byte = hex, hex.
+                                    -word = byte, byte.
+
+                                    DV_prev>dvk = +'4215'.
+                                    DV_curr>dvk = +'0215'."
+        }
+    }
+    tests {
+        test {
+            comment  = 'Legacy payload'
+            args     = 'Duschagain mkradio4 02410120 NOKEY'
+            telegram = 2F446850200141029562A2_06702901006017030004000300000000000000000000000000000000000000000000000000
+            json     = '{"_":"telegram","media":"warm water","meter":"mkradio4","name":"Duschagain","id":"02410120","total_m3":0.4,"target_m3":0.1,"timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'Duschagain;02410120;0.4;0.1;1111-11-11 11:11.11'
+        }
+    }
+}
