@@ -1674,6 +1674,12 @@ test {
     fields   = 'Heato;94430412;18377;0;17960;1111-11-11 11:11.11'
 }
 test {
+    args     = 'HeatMeter vario451 58234965 NOKEY'
+    telegram = 374468506549235827C3A2_129F25383300A8622600008200800A2AF862115175552877A36F26C9AB1CB24400000004000000000004908002
+    json     = '{"_":"telegram","media":"heat","meter":"vario451","name":"HeatMeter","id":"58234965","total_kwh":6371.666667,"current_kwh":2729.444444,"previous_kwh":3642.222222,"timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'HeatMeter;58234965;6371.666667;2729.444444;3642.222222;1111-11-11 11:11.11'
+}
+test {
     args     = 'water2 waterstarm 51398765 NOKEY'
     telegram = A144C5146587395170078C20947AD10090252F2F_046D862D4A3104131300000001FD1700426C3F3C44130000000044933C0000000084011300000000C401130100000084021300000000C402130000000084031300000000C4031300000000840413FFFFFFFFC40413FFFFFFFF840513FFFFFFFFC40513FFFFFFFF840613FFFFFFFFC40613FFFFFFFF840713FFFFFFFFC40713FFFFFFFF840813FFFFFFFF2F2F2F2F
     json     = '{"_": "telegram","consumption_at_history_10_m3": -0.001,"consumption_at_history_11_m3": -0.001,"consumption_at_history_12_m3": -0.001,"consumption_at_history_13_m3": -0.001,"consumption_at_history_14_m3": -0.001,"consumption_at_history_15_m3": -0.001,"consumption_at_history_1_m3": 0,"consumption_at_history_2_m3": 0.001,"consumption_at_history_3_m3": 0,"consumption_at_history_4_m3": 0,"consumption_at_history_5_m3": 0,"consumption_at_history_6_m3": 0,"consumption_at_history_7_m3": -0.001,"consumption_at_history_8_m3": -0.001,"consumption_at_history_9_m3": -0.001,"consumption_at_set_date_m3": 0,"history_10_date": "2025-03-10","history_11_date": "2025-02-10","history_12_date": "2025-01-10","history_13_date": "2024-12-10","history_14_date": "2024-11-10","history_15_date": "2024-10-10","history_1_date": "2025-12-10","history_2_date": "2025-11-10","history_3_date": "2025-10-10","history_4_date": "2025-09-10","history_5_date": "2025-08-10","history_6_date": "2025-07-10","history_7_date": "2025-06-10","history_8_date": "2025-05-10","history_9_date": "2025-04-10","id": "51398765","media": "water","meter": "waterstarm","meter_datetime": "2026-01-10 13:06","name": "water2","set_date": "2025-12-31","status": "OK","timestamp": "1111-11-11T11:11:11Z","total_backwards_at_set_date_m3": 0,"total_m3": 0.019}'
