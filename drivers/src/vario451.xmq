@@ -1,0 +1,78 @@
+// Copyright (C) 2019-2022 Fredrik Öhrström (gpl-3.0-or-later)
+driver {
+    name           = vario451
+    meter_type     = HeatMeter
+    default_fields = name,id,total_kwh,current_kwh,previous_kwh,timestamp
+    detect {
+        mvt = TCH,27,04
+        mvt = TCH,27,C3
+    }
+    fields {
+        field {
+            name                 = payload_decoder
+            quantity             = Text
+            info                 = 'Decode mfct specific payload (CI=0xA2) into prev/curr billing values.'
+            attributes           = HIDE
+            match_entire_payload = true
+            ixml                 = "decode   = -hdr, prev_val, -two_bytes, curr_val, -rest.
+                                    -hdr       = hex, hex, hex, hex, hex, hex.
+                                    -two_bytes = hex, hex, hex, hex.
+                                    -rest      = hex*.
+                                    -hex       = ['A'-'F'; '0'-'9'].
+                                    prev_val   = hex, hex, hex, hex, @DV_PREV.
+                                    curr_val   = hex, hex, hex, hex, @DV_CURR.
+                                    DV_PREV>dvk = +'027E'.
+                                    DV_CURR>dvk = +'027F'."
+        }
+        field {
+            name           = prev_raw
+            quantity       = Dimensionless
+            info           = 'Raw previous billing period value in units of mGJ (1/1000 GJ).'
+            attributes     = HIDE
+            display_unit   = counter
+            vif_scaling    = None
+            dif_signedness = Unsigned
+            match {
+                difvifkey = 027E
+            }
+        }
+        field {
+            name           = curr_raw
+            quantity       = Dimensionless
+            info           = 'Raw current billing period value in units of mGJ (1/1000 GJ).'
+            attributes     = HIDE
+            display_unit   = counter
+            vif_scaling    = None
+            dif_signedness = Unsigned
+            match {
+                difvifkey = 027F
+            }
+        }
+        field {
+            name      = total
+            quantity  = Energy
+            info      = 'The total energy consumption recorded by this meter.'
+            calculate = '(prev_raw_counter + curr_raw_counter) / 3.6 counter * 1 kwh'
+        }
+        field {
+            name      = current
+            quantity  = Energy
+            info      = 'Energy consumption so far in this billing period.'
+            calculate = 'curr_raw_counter / 3.6 counter * 1 kwh'
+        }
+        field {
+            name      = previous
+            quantity  = Energy
+            info      = 'Energy consumption in previous billing period.'
+            calculate = 'prev_raw_counter / 3.6 counter * 1 kwh'
+        }
+    }
+    tests {
+        test {
+            args     = 'HeatMeter vario451 58234965 NOKEY'
+            telegram = 374468506549235827C3A2_129F25383300A8622600008200800A2AF862115175552877A36F26C9AB1CB24400000004000000000004908002
+            json     = '{"_":"telegram","media":"heat","meter":"vario451","name":"HeatMeter","id":"58234965","total_kwh":6371.666667,"current_kwh":2729.444444,"previous_kwh":3642.222222,"timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'HeatMeter;58234965;6371.666667;2729.444444;3642.222222;1111-11-11 11:11.11'
+        }
+    }
+}
