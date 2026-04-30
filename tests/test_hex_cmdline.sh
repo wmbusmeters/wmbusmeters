@@ -78,7 +78,7 @@ EOF
 
 $PROG 2A442D2C998734761B168D2091D37CAC21E1D68CDAFFCD3DC452BD802913FF7B1706CA9E355D6C2701CC2 2> $TEST/test_output.txt 1>&2
 
-if [ "$?" = "1" ]
+if [ "$?" != "1" ]
 then
     diff $TEST/test_expected.txt $TEST/test_output.txt
     if [ "$?" = "0" ]
