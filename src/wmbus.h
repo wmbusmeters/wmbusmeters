@@ -833,7 +833,6 @@ AccessCheck detectSKIP(Detected *detected, std::shared_ptr<SerialCommunicationMa
 // Try to factory reset an AMB8465/AMB3665 by trying all possible serial speeds and
 // restore to factory settings.
 AccessCheck factoryResetAMB8465(std::string tty, std::shared_ptr<SerialCommunicationManager> handler, int *was_baud);
-AccessCheck factoryResetAMB3665(std::string tty, std::shared_ptr<SerialCommunicationManager> handler, int *was_baud);
 
 Detected detectBusDeviceOnTTY(std::string tty,
                               std::set<BusDeviceType> probe_for,
