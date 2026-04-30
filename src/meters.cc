@@ -115,7 +115,6 @@ void addRegisteredDriver(DriverInfo di)
     if (registered_drivers_->count(di.name().str()) != 0)
     {
         critical("Two drivers trying to register the name \"%s\"\n", di.name().str().c_str());
-        exit(1);
     }
 
     (*registered_drivers_)[di.name().str()] = di;

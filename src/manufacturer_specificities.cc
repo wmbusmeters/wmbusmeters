@@ -370,7 +370,7 @@ void qdsExtractWalkByField(Telegram *t, Meter *driver, DVEntry &mfctEntry, int p
 
     FieldInfo *fieldInfo = driver->findFieldInfo(fieldName, quantity);
     if (fieldInfo == nullptr) {
-        critical("(qds) field info not found: %s\n", fieldName.c_str());
+        critical(EXIT_DEVICE_ERROR, "(qds) field info not found: %s\n", fieldName.c_str());
     }
 
     fieldInfo->performExtraction(driver, t, &fieldEntry);

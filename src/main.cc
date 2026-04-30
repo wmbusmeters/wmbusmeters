@@ -98,69 +98,69 @@ int main(int argc, char **argv)
     {
         printf("wmbusmeters: %s\n", VERSION);
         printf(COMMIT "\n");
-        exit(0);
+        exit(EXIT_SUCCESS);
     }
 
     if (config->license)
     {
         printf("%s%s", AUTHORS, LICENSE);
-        exit(0);
+        exit(EXIT_SUCCESS);
     }
 
     if (config->list_shell_envs)
     {
         list_shell_envs(config.get(), config->list_meter);
-        exit(0);
+        exit(EXIT_SUCCESS);
     }
 
     if (config->list_fields)
     {
         list_fields(config.get(), config->list_meter);
-        exit(0);
+        exit(EXIT_SUCCESS);
     }
 
     if (config->print_driver)
     {
         print_driver(config.get(), config->list_meter);
-        exit(0);
+        exit(EXIT_SUCCESS);
     }
 
     if (config->list_meters)
     {
         list_meters(config.get(), true);
-        exit(0);
+        exit(EXIT_SUCCESS);
     }
 
     if (config->list_units)
     {
         list_units();
-        exit(0);
+        exit(EXIT_SUCCESS);
     }
 
     if (config->need_help)
     {
         printf("wmbusmeters version: " VERSION "\n");
         puts(SHORT_MANUAL);
-        exit(0);
+        exit(EXIT_SUCCESS);
     }
 
     if (config->daemon)
     {
         start_daemon(config->pid_file, config->config_root, config->overrides);
-        exit(0);
+        exit(EXIT_SUCCESS);
     }
 
     if (config->useconfig)
     {
         start_using_config_files(config->config_root, false, config->overrides);
-        exit(0);
+        exit(EXIT_SUCCESS);
     }
     else
     {
         // We want the data visible in the log file asap!
         setbuf(stdout, NULL);
         start(config.get());
-        exit(0);
+        exit(EXIT_SUCCESS);
     }
     critical("(main) internal error\n");
 }
@@ -192,7 +192,7 @@ void list_shell_envs(Configuration *config, string meter_driver)
     mi.driver_name = meter_driver;
     if (!lookupDriverInfo(meter_driver, &di))
     {
-        critical("No such driver %s %s\n", meter_driver.c_str(), removedDriverExplanation(meter_driver).c_str());
+        critical(EXIT_DRIVER_ERROR, "No such driver %s %s\n", meter_driver.c_str(), removedDriverExplanation(meter_driver).c_str());
     }
     meter = di.construct(mi);
 
@@ -242,7 +242,7 @@ void list_fields(Configuration *config, string meter_driver)
     mi.driver_name = meter_driver;
     if (!lookupDriverInfo(meter_driver, &di))
     {
-        critical("No such driver %s\n", meter_driver.c_str());
+        critical(EXIT_DRIVER_ERROR, "No such driver %s\n", meter_driver.c_str());
     }
     meter = di.construct(mi);
 
@@ -311,7 +311,7 @@ void print_driver(Configuration *config, string meter_driver)
     mi.driver_name = meter_driver;
     if (!lookupDriverInfo(meter_driver, &di))
     {
-        critical("info='No such driver %s'\n", meter_driver.c_str());
+        critical(EXIT_DRIVER_ERROR, "info='No such driver %s'\n", meter_driver.c_str());
     }
     meter = di.construct(mi);
 

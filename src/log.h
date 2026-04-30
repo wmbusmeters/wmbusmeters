@@ -19,6 +19,7 @@
 #define LOG_H
 
 #include"always.h"
+#include"exitcodes.h"
 
 #include<cerrno>
 #include<string>

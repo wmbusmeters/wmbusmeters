@@ -185,7 +185,7 @@ shared_ptr<BusDevice> BusManager::createWmbusObject(Detected *detected, Configur
     {
     case DEVICE_AUTO:
         assert(0);
-        critical("Internal error DEVICE_AUTO should not be used here!\n");
+        critical(EXIT_BUS_DEVICE_ERROR, "Internal error DEVICE_AUTO should not be used here!\n");
         break;
     case DEVICE_MBUS:
         verbose("(mbus) on %s\n", detected->found_file.c_str());
@@ -258,12 +258,12 @@ shared_ptr<BusDevice> BusManager::createWmbusObject(Detected *detected, Configur
         break;
     }
     case DEVICE_UNKNOWN:
-        warning("(main) internal error! cannot create an unknown device! exiting!\n");
+        error("(main) internal error! cannot create an unknown device! exiting!\n");
         if (config->daemon) {
             // If starting as a daemon, wait a bit so that systemd have time to catch up.
             sleep(1);
         }
-        exit(1);
+        exit(EXIT_DEVICE_ERROR);
         break;
     }
 

@@ -326,7 +326,7 @@ public:
             DriverInfo di;
             if (!lookupDriverInfo(only, &di))
             {
-                critical("No such driver %s\n", only.c_str());
+                critical(EXIT_DRIVER_ERROR, "No such driver %s\n", only.c_str());
             }
             only = di.name().str();
         }

@@ -692,7 +692,7 @@ bool WMBusIM871aIM170A::deviceSetLinkModes(LinkModeSet lms)
     if (!canSetLinkModes(lms))
     {
         string modes = lms.hr();
-        critical("(im871a) setting link mode(s) %s is not supported for im871a\n", modes.c_str());
+        critical(EXIT_BUS_DEVICE_ERROR, "(im871a) setting link mode(s) %s is not supported for im871a\n", modes.c_str());
     }
 
     LOCK_WMBUS_EXECUTING_COMMAND(set_link_modes);

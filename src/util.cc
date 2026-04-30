@@ -454,14 +454,14 @@ bool checkCharacterDeviceExists(const char *tty, bool fail_if_not)
     int rc = stat(tty, &info);
     if (rc != 0) {
         if (fail_if_not) {
-            critical("Device \"%s\" does not exist.\n", tty);
+            critical(EXIT_DEVICE_ERROR, "Device \"%s\" does not exist.\n", tty);
         } else {
             return false;
         }
     }
     if (!S_ISCHR(info.st_mode)) {
         if (fail_if_not) {
-            critical("Device %s is not a character device.\n", tty);
+            critical(EXIT_DEVICE_ERROR, "Device %s is not a character device.\n", tty);
         } else {
             return false;
         }

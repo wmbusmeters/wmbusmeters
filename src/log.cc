@@ -310,7 +310,7 @@ void error(const char* fmt, ...)
     output_stuff(LOG_CRIT, true, fmt, args);
     va_end(args);
     exitHandler(0);
-    exit(0);
+    exit(EXIT_FAILURE);
 }
 
 void logTelegram(vector<uchar> &original, vector<uchar> &parsed, int header_size, int suffix_size)
