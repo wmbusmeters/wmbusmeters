@@ -20,6 +20,7 @@
 
 #include"always.h"
 
+#include<cerrno>
 #include<string>
 #include<vector>
 
@@ -35,6 +36,9 @@ void notice_timestamp(const char* fmt, ...);
 
 void warning(const char* fmt, ...);
 void error(const char* fmt, ...);
+
+[[noreturn]] void critical(const char* fmt, ...);
+[[noreturn]] void critical(int __status, const char* fmt, ...);
 
 #define verbose(...) { if (isVerboseEnabled()) { verbose_int(__VA_ARGS__); } }
 void verbose_int(const char* fmt, ...);

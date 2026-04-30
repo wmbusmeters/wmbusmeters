@@ -1313,7 +1313,7 @@ bool DVEntry::extractLong(uint64_t *out)
     }
     else
     {
-        error("Unsupported dif format for extraction to long! dif=%02x\n", dif_vif_key.dif());
+        critical("Unsupported dif format for extraction to long! dif=%02x\n", dif_vif_key.dif());
     }
 
     return true;

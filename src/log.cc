@@ -253,7 +253,7 @@ void debug_int(const char* fmt, ...) {
     if (debug_enabled_) {
         va_list args;
         va_start(args, fmt);
-        output_stuff(LOG_NOTICE, false, fmt, args);
+        output_stuff(LOG_DEBUG, false, fmt, args);
         va_end(args);
     }
 }
@@ -288,10 +288,29 @@ void error(const char* fmt, ...)
 {
     va_list args;
     va_start(args, fmt);
-    output_stuff(LOG_NOTICE, true, fmt, args);
+    output_stuff(LOG_ERR, true, fmt, args);
+    va_end(args);
+}
+
+[[noreturn]] void critical(int __status, const char* fmt, ...)
+{
+    va_list args;
+    va_start(args, fmt);
+    output_stuff(LOG_CRIT, true, fmt, args);
     va_end(args);
     exitHandler(0);
-    exit(1);
+    exit(__status);
+}
+
+
+[[noreturn]] void critical(const char* fmt, ...)
+{
+    va_list args;
+    va_start(args, fmt);
+    output_stuff(LOG_CRIT, true, fmt, args);
+    va_end(args);
+    exitHandler(0);
+    exit(0);
 }
 
 void logTelegram(vector<uchar> &original, vector<uchar> &parsed, int header_size, int suffix_size)

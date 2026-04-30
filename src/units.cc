@@ -473,7 +473,7 @@ void assertQuantity(Unit u, Quantity q)
 {
     if (!isQuantity(u, q))
     {
-        error("Internal error! Unit is not of this quantity.\n");
+        critical("Internal error! Unit is not of this quantity.\n");
     }
 }
 

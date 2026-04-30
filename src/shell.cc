@@ -98,7 +98,7 @@ void invokeShell(string program, vector<string> args, vector<string> envs)
         _exit(127);
     } else {
         if (pid == -1) {
-            error("(shell) could not fork!\n");
+            critical("(shell) could not fork!\n");
         }
         debug("(shell) waiting for child %d to complete.\n", pid);
         // Wait for the child to finish!
@@ -137,7 +137,7 @@ bool invokeBackgroundShell(string program, vector<string> args, vector<string> e
     vector<const char*> env = prepareEnv(envs);
 
     if (pipe(link) == -1) {
-        error("(bgshell) could not create pipe!\n");
+        critical("(bgshell) could not create pipe!\n");
     }
 
     *pid = fork();
@@ -275,7 +275,7 @@ int invokeShellCaptureOutput(string program, vector<string> args, vector<string>
     vector<const char*> env = prepareEnv(envs);
 
     if (pipe(link) == -1) {
-        error("(shell) could not create pipe!\n");
+        critical("(shell) could not create pipe!\n");
     }
 
     pid = fork();

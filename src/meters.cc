@@ -114,7 +114,7 @@ void addRegisteredDriver(DriverInfo di)
     verifyDriverLookupCreated();
     if (registered_drivers_->count(di.name().str()) != 0)
     {
-        error("Two drivers trying to register the name \"%s\"\n", di.name().str().c_str());
+        critical("Two drivers trying to register the name \"%s\"\n", di.name().str().c_str());
         exit(1);
     }
 
@@ -185,7 +185,7 @@ bool staticRegisterDriver(function<void(DriverInfo&)> setup)
             bool foo = p->detect(d.mfct, d.version, d.type);
             if (foo)
             {
-                error("Internal error: driver %s tried to register the same auto detect combo as driver %s alread has taken!\n",
+                critical("Internal error: driver %s tried to register the same auto detect combo as driver %s alread has taken!\n",
                       di.name().str().c_str(), p->name().str().c_str());
             }
         }
@@ -219,7 +219,7 @@ string loadDriver(const string &file, const char *content)
     bool ok = DriverDynamic::load(&di, file, content);
     if (!ok)
     {
-        error("Failed to load driver from file: %s\n", file.c_str());
+        critical("Failed to load driver from file: %s\n", file.c_str());
     }
 
     // Check if the driver name has been registered before....
@@ -252,7 +252,7 @@ string loadDriver(const string &file, const char *content)
         else
         {
             // Ok, two xmq drivers in /etc/wmbusmeters.drivers.d that declare the same driver name are NOT ok.
-            error("Conflicting driver names are not permitted. Plese change the driver name in file %s "
+            critical("Conflicting driver names are not permitted. Plese change the driver name in file %s "
                   "to something that is different from %s since the existing driver file %s has already taken the name!\n",
                   file.c_str(), di.name().str().c_str(),
                   existing->getDynamicFileName().c_str());
@@ -320,7 +320,7 @@ string loadDriver(const string &file, const char *content)
                 else
                 {
                     // It is not ok to override an previously dynamically loaded driver though!
-                    error("Newly loaded driver %s (%s) tries to register the same "
+                    critical("Newly loaded driver %s (%s) tries to register the same "
                           "auto detect combo as driver %s (%s) alread has taken! mvt=%s,%02x,%02x\n",
                           di.name().str().c_str(),
                           di.getDynamicFileName().c_str(),
@@ -2427,7 +2427,7 @@ bool is_driver_and_extras(const string& t, DriverName *out_driver_name, string *
         }
         else
         {
-            error("No such driver %s %s\n", t.c_str(), removedDriverExplanation(t).c_str());
+            critical("No such driver %s %s\n", t.c_str(), removedDriverExplanation(t).c_str());
         }
         *out_extras = "";
         return true;
@@ -2447,7 +2447,7 @@ bool is_driver_and_extras(const string& t, DriverName *out_driver_name, string *
     }
     else
     {
-        error("No such driver %s %s\n", type.c_str(), removedDriverExplanation(type).c_str());
+        critical("No such driver %s %s\n", type.c_str(), removedDriverExplanation(type).c_str());
     }
 
     string extras = t.substr(ps+1, pe-ps-1);
@@ -2970,7 +2970,7 @@ bool MeterCommonImplementation::addOptionalLibraryFields(string field_names)
     }
     if (helps.size() > 2)
     {
-        error("Bad library field, only zero or one pipe | symbol is allowed: %s", field_names.c_str());
+        critical("Bad library field, only zero or one pipe | symbol is allowed: %s", field_names.c_str());
     }
 
     if (checkIf(fields,"status-tpl-only"))

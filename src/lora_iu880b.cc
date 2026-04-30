@@ -269,7 +269,7 @@ bool LoRaIU880B::deviceSetLinkModes(LinkModeSet lms)
     if (!canSetLinkModes(lms))
     {
         string modes = lms.hr();
-        error("(iu880b) setting link mode(s) %s is not supported for iu880b\n", modes.c_str());
+        critical("(iu880b) setting link mode(s) %s is not supported for iu880b\n", modes.c_str());
     }
 
     LOCK_WMBUS_EXECUTING_COMMAND(set_link_modes);
