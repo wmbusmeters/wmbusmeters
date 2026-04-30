@@ -518,8 +518,8 @@ string WMBusAmber::getDeviceUniqueId()
     LOCK_WMBUS_EXECUTING_COMMAND(get_device_unique_id);
 
     request_.resize(4);
-    request_[0] = AMBER_SERIAL_SOF;
-    request_[1] = CMD_SERIALNO_REQ;
+    request_[0] = CMD_STX;
+    request_[1] = CMD_GET_SERIALNO;
     request_[2] = 0; // No payload
     request_[3] = xorChecksum(request_, 0, 3);
 
@@ -527,7 +527,7 @@ string WMBusAmber::getDeviceUniqueId()
     bool sent = serial()->send(request_);
     if (!sent) return "?";
 
-    bool ok = waitForResponse(CMD_SERIALNO_REQ | 0x80);
+    bool ok = waitForResponse(CMD_GET_SERIALNO_CNF);
     if (!ok) return "?";
 
     if (response_.size() < 5) return "ERR";
@@ -561,7 +561,7 @@ bool WMBusAmber::getConfiguration()
     LOCK_WMBUS_EXECUTING_COMMAND(getConfiguration);
 
     request_.resize(6);
-    request_[0] = AMBER_SERIAL_SOF;
+    request_[0] = CMD_STX;
     request_[1] = CMD_GET_REQ;
     request_[2] = 0x02;
     request_[3] = 0x00;
@@ -574,7 +574,7 @@ bool WMBusAmber::getConfiguration()
     bool sent = serial()->send(request_);
     if (!sent) return false;
 
-    bool ok = waitForResponse(CMD_GET_REQ | 0x80);
+    bool ok = waitForResponse(CMD_GET_CNF);
     if (!ok) return false;
 
     return device_config_.decodeNoFrame(response_, 3);
@@ -603,7 +603,7 @@ bool WMBusAmber::deviceSetLinkModes(LinkModeSet lms)
         LOCK_WMBUS_EXECUTING_COMMAND(devicesSetLinkModes);
 
         request_.resize(5);
-        request_[0] = AMBER_SERIAL_SOF;
+        request_[0] = CMD_STX;
         request_[1] = CMD_SET_MODE_REQ;
         request_[2] = 1; // Len
         request_[3] = setupAmberBusDeviceToReceiveTelegrams(lms);
@@ -614,7 +614,7 @@ bool WMBusAmber::deviceSetLinkModes(LinkModeSet lms)
 
         if (sent)
         {
-            bool ok = waitForResponse(CMD_SET_MODE_REQ | 0x80);
+            bool ok = waitForResponse(CMD_SET_MODE_CNF);
             if (ok)
             {
                 rc = true;
@@ -755,9 +755,9 @@ void WMBusAmber::processSerialData()
         {
             verbose("(amb8465) rx long delay (%lds), drop incomplete telegram\n", chunk_time.tv_sec);
 
-            // Only trigger a protocol error if we were receiving a specific command response
-            // from the stick (starts with AMBER_SERIAL_SOF).
-            if (read_buffer_.size() > 0 && read_buffer_[0] == AMBER_SERIAL_SOF)
+            // Only trigger a protocol error if we were receiving a specific command response 
+            // from the stick (starts with CMD_STX).
+            if (read_buffer_.size() > 0 && read_buffer_[0] == CMD_STX)
             {
                 protocolErrorDetected();
             }
@@ -830,40 +830,76 @@ void WMBusAmber::handleMessage(int msgid, vector<uchar> &frame, int rssi_dbm)
         handleTelegram(about, frame);
         break;
     }
-    case (0x80|CMD_SET_MODE_REQ):
+    case (CMD_SET_MODE_CNF):
     {
         verbose("(amb8465) set link mode completed\n");
         response_.clear();
         response_.insert(response_.end(), frame.begin(), frame.end());
         debugPayload("(amb8465) set link mode response", response_);
-        notifyResponseIsHere(0x80|CMD_SET_MODE_REQ);
+        notifyResponseIsHere(CMD_SET_MODE_CNF);
         break;
     }
-    case (0x80|CMD_GET_REQ):
+    case (CMD_GET_CNF):
     {
         verbose("(amb8465) get config completed\n");
         response_.clear();
         response_.insert(response_.end(), frame.begin(), frame.end());
         debugPayload("(amb8465) get config response", response_);
-        notifyResponseIsHere(0x80|CMD_GET_REQ);
+        notifyResponseIsHere(CMD_GET_CNF);
         break;
     }
-    case (0x80|CMD_SERIALNO_REQ):
+    case (CMD_GET_SERIALNO_CNF):
     {
         verbose("(amb8465) get device id completed\n");
         response_.clear();
         response_.insert(response_.end(), frame.begin(), frame.end());
         debugPayload("(amb8465) get device id response", response_);
-        notifyResponseIsHere(0x80|CMD_SERIALNO_REQ);
+        notifyResponseIsHere(CMD_GET_SERIALNO_CNF);
         break;
     }
-    case (0x80|CMD_DATA_REQ):
+    case (CMD_DATA_CNF):
     {
         verbose("(amb8465) send telegram completed\n");
         response_.clear();
         response_.insert(response_.end(), frame.begin(), frame.end());
         debugPayload("(amb8465) send telegram response", response_);
-        notifyResponseIsHere(0x80|CMD_DATA_REQ);
+        notifyResponseIsHere(CMD_DATA_CNF);
+        break;
+    }
+    case (CMD_FACTORYRESET_CNF):
+    {
+        verbose("(amb8465) factory reset completed\n");
+        response_.clear();
+        response_.insert(response_.end(), frame.begin(), frame.end());
+        debugPayload("(amb8465) factory reset response", response_);
+        notifyResponseIsHere(CMD_FACTORYRESET_CNF);
+        break;
+    }
+    case (CMD_RESET_CNF):
+    {
+        verbose("(amb8465) module reset completed\n");
+        response_.clear();
+        response_.insert(response_.end(), frame.begin(), frame.end());
+        debugPayload("(amb8465) module reset response", response_);
+        notifyResponseIsHere(CMD_RESET_CNF);
+        break;
+    }
+    case (CMD_SET_CNF):
+    {
+        verbose("(amb8465) set user setting completed\n");
+        response_.clear();
+        response_.insert(response_.end(), frame.begin(), frame.end());
+        debugPayload("(amb8465) set user setting response", response_);
+        notifyResponseIsHere(CMD_SET_CNF);
+        break;
+    }
+    case (CMD_SETUARTSPEED_CNF):
+    {
+        verbose("(amb8465) set UART speed completed\n");
+        response_.clear();
+        response_.insert(response_.end(), frame.begin(), frame.end());
+        debugPayload("(amb8465) set UART speed response", response_);
+        notifyResponseIsHere(CMD_SETUARTSPEED_CNF);
         break;
     }
     default:
@@ -878,6 +914,15 @@ bool WMBusAmber::sendTelegram(LinkMode lm, TelegramFormat format, vector<uchar> 
 {
     if (serial()->readonly()) return true; // Feeding from stdin or file.
     if (content.size() > 250) return false;
+
+    // Manual 5.3: "The host shall not send CMD_DATA_REQ or transparent data"
+    // when in C2/T2-Other RX-only collector mode.
+    if (last_set_link_mode_ == (uchar)LinkModeAMB::C2T2Other)
+    {
+        warning("(amb8465) refusing to send: module is in C2/T2-Other RX-only collector mode. "
+                "Sending CMD_DATA_REQ is not allowed in this mode (manual 5.3).\n");
+        return false;
+    }
 
     LOCK_WMBUS_EXECUTING_COMMAND(sendTelegram);
 
@@ -903,7 +948,7 @@ bool WMBusAmber::sendTelegram(LinkMode lm, TelegramFormat format, vector<uchar> 
     {
         // Switch to the send link mode.
         request_.resize(5);
-        request_[0] = AMBER_SERIAL_SOF;
+        request_[0] = CMD_STX;
         request_[1] = CMD_SET_MODE_REQ;
         request_[2] = 1; // Len
         request_[3] = link_mode;
@@ -914,7 +959,7 @@ bool WMBusAmber::sendTelegram(LinkMode lm, TelegramFormat format, vector<uchar> 
 
         if (sent)
         {
-            bool ok = waitForResponse(CMD_SET_MODE_REQ | 0x80);
+            bool ok = waitForResponse(CMD_SET_MODE_CNF);
             if (ok)
             {
                 rc = true;
@@ -928,7 +973,7 @@ bool WMBusAmber::sendTelegram(LinkMode lm, TelegramFormat format, vector<uchar> 
     }
 
     request_.resize(content.size()+4);
-    request_[0] = AMBER_SERIAL_SOF;
+    request_[0] = CMD_STX;
     request_[1] = CMD_DATA_REQ;
     request_[2] = content.size();
     for (size_t i = 0; i < content.size(); ++i)
@@ -942,7 +987,7 @@ bool WMBusAmber::sendTelegram(LinkMode lm, TelegramFormat format, vector<uchar> 
 
     if (sent)
     {
-        bool ok = waitForResponse(CMD_DATA_REQ | 0x80);
+        bool ok = waitForResponse(CMD_DATA_CNF);
         if (ok)
         {
             rc = true;
@@ -958,7 +1003,7 @@ bool WMBusAmber::sendTelegram(LinkMode lm, TelegramFormat format, vector<uchar> 
     {
         // Restore the link mode.
         request_.resize(5);
-        request_[0] = AMBER_SERIAL_SOF;
+        request_[0] = CMD_STX;
         request_[1] = CMD_SET_MODE_REQ;
         request_[2] = 1; // Len
         request_[3] = last_set_link_mode_;
@@ -969,7 +1014,7 @@ bool WMBusAmber::sendTelegram(LinkMode lm, TelegramFormat format, vector<uchar> 
 
         if (sent)
         {
-            bool ok = waitForResponse(CMD_SET_MODE_REQ | 0x80);
+            bool ok = waitForResponse(CMD_SET_MODE_CNF);
             if (ok)
             {
                 rc = true;
@@ -985,17 +1030,21 @@ bool WMBusAmber::sendTelegram(LinkMode lm, TelegramFormat format, vector<uchar> 
     return rc;
 }
 
-AccessCheck detectAMB8465AMB3665(Detected *detected, shared_ptr<SerialCommunicationManager> manager)
+static int detect_baudrate_ordered[] = { 9600 }; // { 115200, 9600, 19200, 38400, 56000, 4800, 2400, 1200, 0 };
+
+static AccessCheck tryDetectAMB8465AMB3665AtBaud(Detected *detected,
+                                                  shared_ptr<SerialCommunicationManager> manager,
+                                                  int baud)
 {
     assert(detected->found_file != "");
 
     // Talk to the device and expect a very specific answer.
-    auto serial = manager->createSerialDeviceTTY(detected->found_file.c_str(), 9600, PARITY::NONE, "detect amb8465/amb3665");
+    auto serial = manager->createSerialDeviceTTY(detected->found_file.c_str(), baud, PARITY::NONE, "detect amb8465/amb3665");
     serial->disableCallbacks();
     bool ok = serial->open(false);
     if (!ok)
     {
-        verbose("(amb8465/3665) could not open tty %s for detection\n", detected->found_file.c_str());
+        verbose("(amb8465/3665) could not open tty %s at %d bps for detection\n", detected->found_file.c_str(), baud);
         return AccessCheck::NoSuchDevice;
     }
 
@@ -1019,46 +1068,37 @@ AccessCheck detectAMB8465AMB3665(Detected *detected, shared_ptr<SerialCommunicat
     {
         if (count <= 10)
         {
-            debug("(amb8465/3665) cleared %zu bytes from serial buffer\n", response.size());
+            debug("(amb8465/3665) cleared %zu bytes at %d bps from serial buffer\n", response.size(), baud);
         }
         else
         {
-            debug("(amb8465/3665) way too much data received %zu when trying to detect! cannot clear serial buffer!\n",
-                  response.size());
+            debug("(amb8465/3665) way too much data received %zu at %d bps when trying to detect! cannot clear serial buffer!\n",
+                  response.size(), baud);
         }
 
         response.clear();
     }
 
     // Query all of the non-volatile parameter memory.
-    vector<uchar> request;
-    request.resize(6);
-    request[0] = AMBER_SERIAL_SOF;
-    request[1] = CMD_GET_REQ;
-    request[2] = 0x02;
-    request[3] = 0x00; // Start at byte 0
-    request[4] = 0x80; // End at byte 127
-    request[5] = xorChecksum(request, 0, 5);
-
-    assert(request[5] == 0x77);
+    vector<uchar> request = { CMD_STX, CMD_GET_REQ, 0x02, 0x00, 0x80, 0x77 };
 
     bool sent = false;
     count = 0;
     do
     {
-        debug("(amb8465/3665) sending %zu bytes attempt %d\n", request.size(), count);
+        debug("(amb8465/3665) sending %zu bytes attempt %d at %d bps\n", request.size(), count, baud);
         sent = serial->send(request);
-        debug("(amb8465/3665) sent %zu bytes %s\n", request.size(), sent?"OK":"Failed");
+        debug("(amb8465/3665) sent %zu bytes at %d bps  %s\n", request.size(), baud, sent?"OK":"Failed");
         if (!sent)
         {
             // We failed to send! Why? We have successfully opened the tty....
             // Perhaps the dongle needs to wake up. Lets try again in 100 ms.
             usleep(1000*100);
-            count ++;
+            count++;
             if (count >= 4)
             {
                 // Tried and failed 3 times.
-                debug("(amb8465/3665) failed to sent query! Giving up!\n");
+                debug("(amb8465/3665) failed to send query at %d bps!\n", baud);
                 verbose("(amb8465/3665) are you there? no, nothing is there.\n");
                 serial->close();
                 return AccessCheck::NoProperResponse;
@@ -1079,7 +1119,7 @@ AccessCheck detectAMB8465AMB3665(Detected *detected, shared_ptr<SerialCommunicat
     {
         if (count > 3)
         {
-            verbose("(amb8465/3665) are you there? no.\n");
+            verbose("(amb8465/3665) no response at %d bps.\n", baud);
             serial->close();
             return AccessCheck::NoProperResponse;
         }
@@ -1135,25 +1175,41 @@ AccessCheck detectAMB8465AMB3665(Detected *detected, shared_ptr<SerialCommunicat
     {
         // FF8A7A00780080710200000000FFFFFA00FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF003200021400FFFFFFFFFF010004000000FFFFFF01440000000000000000FFFF0B040100FFFFFFFFFF00030000FFFFFFFFFFFFFF0000FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF17
 
-        detected->setAsFound(config.dongleId(), BusDeviceType::DEVICE_AMB8465, 9600, false,
+        detected->setAsFound(config.dongleId(), BusDeviceType::DEVICE_AMB8465, baud, false,
                              detected->specified_device.linkmodes);
 
-        verbose("(amb8465) detect %s\n", config.str().c_str());
-        verbose("(amb8465) are you there? yes %s\n", config.dongleId().c_str());
+        verbose("(amb8465) detected %s at %d bps\n", config.dongleId().c_str(), baud);
     }
 
     if (ok_3665)
     {
         // FF8A8200800080710200000000FFFFFA00FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF0C3200021400FFFFFFFFFF010004000000FFFFFF01440000000000000000FFFF0B060100FFFFFFFFFF00020000FFFFFFFFFFFFFF0000FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF18
 
-        detected->setAsFound(config.dongleId(), BusDeviceType::DEVICE_AMB3665, 9600, false,
+        detected->setAsFound(config.dongleId(), BusDeviceType::DEVICE_AMB3665, baud, false,
                              detected->specified_device.linkmodes);
 
-        verbose("(amb3665) detect %s\n", config.str().c_str());
-        verbose("(amb3665) are you there? yes %s\n", config.dongleId().c_str());
+        verbose("(amb3665) detected %s at %d bps\n", config.dongleId().c_str(), baud);
     }
 
     return AccessCheck::AccessOK;
+}
+
+AccessCheck detectAMB8465AMB3665(Detected *detected, shared_ptr<SerialCommunicationManager> manager)
+{
+    assert(detected->found_file != "");
+
+    for (int i = 0; detect_baudrate_ordered[i] != 0; i++)
+    {
+        verbose("(amb8465/3665) trying detection at %d bps...\n", detect_baudrate_ordered[i]);
+        AccessCheck ac = tryDetectAMB8465AMB3665AtBaud(detected, manager, detect_baudrate_ordered[i]);
+        if (ac == AccessCheck::AccessOK)
+        {
+            return AccessCheck::AccessOK;
+        }
+    }
+
+    verbose("(amb8465/3665) not detected at any baud rate\n");
+    return AccessCheck::NoProperResponse;
 }
 
 static AccessCheck tryFactoryResetAMB8465(string device, shared_ptr<SerialCommunicationManager> manager, int baud)
@@ -1172,17 +1228,10 @@ static AccessCheck tryFactoryResetAMB8465(string device, shared_ptr<SerialCommun
     serial->receive(&data);
     data.clear();
 
-    vector<uchar> request_;
-    request_.resize(4);
-    request_[0] = AMBER_SERIAL_SOF;
-    request_[1] = CMD_FACTORYRESET_REQ;
-    request_[2] = 0; // No payload
-    request_[3] = xorChecksum(request_, 0, 3);
-
-    assert(request_[3] == 0xee);
+    vector<uchar> factoryResetRequest = { CMD_STX, CMD_FACTORYRESET_REQ, 0, 0x33 };
 
     verbose("(amb8465) try factory reset %s using baud %d\n", device.c_str(), baud);
-    serial->send(request_);
+    serial->send(factoryResetRequest);
     // Wait for 100ms so that the USB stick have time to prepare a response.
     usleep(1000*100);
     serial->receive(&data);
@@ -1207,9 +1256,9 @@ static AccessCheck tryFactoryResetAMB8465(string device, shared_ptr<SerialCommun
     if (data.size() < 8 ||
         data[0] != 0xff ||
         data[1] != 0x90 ||
-        data[2] != 0x01 ||
+        data[2] != 0x01 || // Len should be 1.
         data[3] != 0x00 || // Status should be 0.
-        data[4] != xorChecksum(data, 0, 4))
+        data[4] != 0x6E)   // Checksum
     {
         verbose("(amb8465) no response to factory reset %s using baud %d\n", device.c_str(), baud);
         return AccessCheck::NoProperResponse;
@@ -1218,7 +1267,7 @@ static AccessCheck tryFactoryResetAMB8465(string device, shared_ptr<SerialCommun
     return AccessCheck::AccessOK;
 }
 
-int bauds[] = { 1200, 2400, 4800, 9600, 19200, 38400, 56000, 115200, 0 };
+static int bauds[] = { 115200, 9600, 2400, 4800, 19200, 38400, 56000, 1200, 0 };
 
 AccessCheck factoryResetAMB8465(string device, shared_ptr<SerialCommunicationManager> manager, int *was_baud)
 {
