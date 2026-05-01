@@ -116,10 +116,10 @@ LinkMode toLinkMode(const char *arg)
 LinkModeSet parseLinkModes(string m)
 {
     LinkModeSet lms;
-    char buf[m.length()+1];
-    strcpy(buf, m.c_str());
+    vector<char> buf(m.length()+1);
+    strcpy(buf.data(), m.c_str());
     char *saveptr {};
-    const char *tok = strtok_r(buf, ",", &saveptr);
+    const char *tok = strtok_r(buf.data(), ",", &saveptr);
     while (tok != NULL)
     {
         LinkMode lm = toLinkMode(tok);
@@ -136,10 +136,10 @@ LinkModeSet parseLinkModes(string m)
 bool isValidLinkModes(string m)
 {
     LinkModeSet lms;
-    char buf[m.length()+1];
-    strcpy(buf, m.c_str());
+    vector<char> buf(m.length()+1);
+    strcpy(buf.data(), m.c_str());
     char *saveptr {};
-    const char *tok = strtok_r(buf, ",", &saveptr);
+    const char *tok = strtok_r(buf.data(), ",", &saveptr);
     while (tok != NULL)
     {
         LinkMode lm = toLinkMode(tok);
@@ -397,7 +397,7 @@ deque<SHA256_HASH> seen_telegrams;
 bool seen_this_telegram_before(vector<uchar> &frame)
 {
     SHA256_HASH hash;
-    Sha256Calculate(safeButUnsafeVectorPtr(frame), frame.size(), &hash);
+    Sha256Calculate(safeButUnsafeVectorPtr(frame), static_cast<uint32_t>(frame.size()), &hash);
 
     auto i = std::find(seen_telegrams.begin(), seen_telegrams.end(), hash);
 
@@ -784,7 +784,7 @@ void Telegram::addExplanationAndIncrementPos(vector<uchar>::iterator &pos, int l
     vsnprintf(buf, 1023, fmt, args);
     va_end(args);
 
-    Explanation e(parsed.size(), len, buf, k, u);
+    Explanation e(static_cast<int>(parsed.size()), len, buf, k, u);
     explanations.push_back(e);
     parsed.insert(parsed.end(), pos, pos+len);
     pos += len;
@@ -800,7 +800,7 @@ void Telegram::setExplanation(vector<uchar>::iterator &pos, int len, KindOfData 
     vsnprintf(buf, 1023, fmt, args);
     va_end(args);
 
-    Explanation e(distance(frame.begin(),pos), len, buf, k, u);
+    Explanation e(static_cast<int>(distance(frame.begin(),pos)), len, buf, k, u);
     explanations.push_back(e);
 }
 
@@ -877,7 +877,7 @@ bool expectedMore(int line)
 
 bool Telegram::parseMBusDLLandTPL(vector<uchar>::iterator &pos)
 {
-    int remaining = distance(pos, frame.end());
+    int remaining = static_cast<int>(distance(pos, frame.end()));
 
     if (remaining == 1 && *pos == 0xE5)
     {
@@ -921,7 +921,7 @@ bool Telegram::parseMBusDLLandTPL(vector<uchar>::iterator &pos)
     suffix_size = 2;
 
     dll_c = *pos;
-    addExplanationAndIncrementPos(pos, 1, KindOfData::PROTOCOL, Understanding::FULL, "%02x dll-c (%s)", dll_c, mbusCField(dll_c));
+    addExplanationAndIncrementPos(pos, 1, KindOfData::PROTOCOL, Understanding::FULL, "%02x dll-c (%s)", dll_c, mbusCField(static_cast<uchar>(dll_c)));
 
     mbus_primary_address = *pos;
     addExplanationAndIncrementPos(pos, 1, KindOfData::PROTOCOL, Understanding::FULL, "%02x dll-a primary (%d)", mbus_primary_address, mbus_primary_address);
@@ -945,7 +945,7 @@ bool Telegram::parseMBusDLLandTPL(vector<uchar>::iterator &pos)
 
 bool Telegram::parseDLL(vector<uchar>::iterator &pos)
 {
-    int remaining = distance(pos, frame.end());
+    int remaining = static_cast<int>(distance(pos, frame.end()));
     if (remaining == 0) return expectedMore(__LINE__);
 
     debug("(wmbus) parseDLL @%d %d\n", distance(frame.begin(), pos), remaining);
@@ -968,13 +968,13 @@ bool Telegram::parseDLL(vector<uchar>::iterator &pos)
 
     dll_a.resize(6);
     dll_id.resize(4);
-    for (int i=0; i<6; ++i)
+    for (size_t i = 0; i < 6; ++i)
     {
-        dll_a[i] = *(pos+i);
+        dll_a[i] = *(pos+static_cast<vector<uchar>::difference_type>(i));
         if (i<4)
         {
-            dll_id_b[i] = *(pos+i);
-            dll_id[i] = *(pos+3-i);
+            dll_id_b[i] = *(pos+static_cast<vector<uchar>::difference_type>(i));
+            dll_id[i] = *(pos+static_cast<vector<uchar>::difference_type>(3-i));
         }
     }
     // Add dll_id to ids.
@@ -1007,7 +1007,7 @@ string Telegram::toStringFromELLSN(int sn)
 
 bool Telegram::parseELL(vector<uchar>::iterator &pos)
 {
-    int remaining = distance(pos, frame.end());
+    int remaining = static_cast<int>(distance(pos, frame.end()));
     if (remaining == 0) return false;
 
     debug("(wmbus) parseELL @%d %d\n", distance(frame.begin(), pos), remaining);
@@ -1015,7 +1015,7 @@ bool Telegram::parseELL(vector<uchar>::iterator &pos)
     if (!isCiFieldOfType(ci_field, CI_TYPE::ELL)) return true;
     addExplanationAndIncrementPos(pos, 1, KindOfData::PROTOCOL, Understanding::FULL, "%02x ell-ci-field (%s)",
                                   ci_field, ciType(ci_field).c_str());
-    ell_ci = ci_field;
+    ell_ci = static_cast<uchar>(ci_field);
     int len = ciFieldLength(ell_ci);
 
     if (remaining < len+1) return expectedMore(__LINE__);
@@ -1091,7 +1091,7 @@ bool Telegram::parseELL(vector<uchar>::iterator &pos)
 
         ell_sn_session = (ell_sn >> 0)  & 0x0f; // lowest 4 bits
         ell_sn_time = (ell_sn >> 4)  & 0x1ffffff; // next 25 bits
-        ell_sn_sec = (ell_sn >> 29) & 0x7; // next 3 bits.
+        ell_sn_sec = static_cast<uchar>((ell_sn >> 29) & 0x7); // next 3 bits.
         ell_sec_mode = fromIntToELLSecurityMode(ell_sn_sec);
         string info = toString(ell_sec_mode);
         addExplanationAndIncrementPos(pos, 4, KindOfData::PROTOCOL, Understanding::FULL, "%02x%02x%02x%02x sn (%s)",
@@ -1111,8 +1111,8 @@ bool Telegram::parseELL(vector<uchar>::iterator &pos)
         ell_pl_crc_b[1] = *(pos+1);
         ell_pl_crc = (ell_pl_crc_b[1] << 8) | ell_pl_crc_b[0];
 
-        int dist = distance(frame.begin(), pos+2);
-        int len = distance(pos+2, frame.end());
+        size_t dist = static_cast<size_t>(distance(frame.begin(), pos+2));
+        size_t len = static_cast<size_t>(distance(pos+2, frame.end()));
         uint16_t check = crc16_EN13757(&(frame[dist]), len);
 
         addExplanationAndIncrementPos(pos, 2, KindOfData::PROTOCOL, Understanding::FULL,
@@ -1131,7 +1131,7 @@ bool Telegram::parseELL(vector<uchar>::iterator &pos)
             decryption_failed = true;
 
             // Log the content as failed decryption.
-            int num_encrypted_bytes = frame.end()-pos;
+            int num_encrypted_bytes = static_cast<int>(frame.end()-pos);
             string info = bin2hex(pos, frame.end(), num_encrypted_bytes);
             info += " failed decryption. Wrong key?";
             addExplanationAndIncrementPos(pos, num_encrypted_bytes, KindOfData::CONTENT, Understanding::ENCRYPTED, info.c_str());
@@ -1162,7 +1162,7 @@ bool Telegram::parseELL(vector<uchar>::iterator &pos)
 
 bool Telegram::parseNWL(vector<uchar>::iterator &pos)
 {
-    int remaining = distance(pos, frame.end());
+    int remaining = static_cast<int>(distance(pos, frame.end()));
     if (remaining == 0) return false;
 
     debug("(wmbus) parseNWL @%d %d\n", distance(frame.begin(), pos), remaining);
@@ -1187,7 +1187,7 @@ bool Telegram::parseAFL(vector<uchar>::iterator &pos)
     // 90 0F (len) 002C (fc) 25 (mc) 49EE 0A00 77C1 9D3D 1A08 ABCD --- 729067296179161102F
     // 90 0F (len) 002C (fc) 25 (mc) 0C39 0000 ED17 6BBB B159 1ADB --- 7A1D003007103EA
 
-    int remaining = distance(pos, frame.end());
+    int remaining = static_cast<int>(distance(pos, frame.end()));
     if (remaining == 0) return false;
 
     debug("(wmbus) parseAFL @%d %d\n", distance(frame.begin(), pos), remaining);
@@ -1196,7 +1196,7 @@ bool Telegram::parseAFL(vector<uchar>::iterator &pos)
     if (!isCiFieldOfType(ci_field, CI_TYPE::AFL)) return true;
     addExplanationAndIncrementPos(pos, 1, KindOfData::PROTOCOL, Understanding::FULL, "%02x afl-ci-field (%s)",
                                   ci_field, ciType(ci_field).c_str());
-    afl_ci = ci_field;
+    afl_ci = static_cast<uchar>(ci_field);
 
     afl_len = *pos;
     addExplanationAndIncrementPos(pos, 1, KindOfData::PROTOCOL, Understanding::FULL, "%02x afl-len (%d)",
@@ -1454,7 +1454,7 @@ bool Telegram::parseShortTPL(std::vector<uchar>::iterator &pos)
 
     CHECK(1);
     tpl_sts = *pos;
-    tpl_sts_offset = distance(frame.begin(), pos);
+    tpl_sts_offset = static_cast<int>(distance(frame.begin(), pos));
     addExplanationAndIncrementPos(pos, 1, KindOfData::PROTOCOL, Understanding::FULL,
                                   "%02x tpl-sts-field (%s)", tpl_sts, decodeTPLStatusByteOnlyStandardBits(static_cast<uchar>(tpl_sts)).c_str());
     bool ok = parseTPLConfig(pos);
@@ -1477,7 +1477,7 @@ bool Telegram::parseLongTPL(std::vector<uchar>::iterator &pos)
     tpl_a.resize(6);
     for (size_t i = 0; i < 4; ++i)
     {
-        tpl_a[i] = *(pos+i);
+        tpl_a[i] = *(pos+static_cast<vector<uchar>::difference_type>(i));
     }
 
     addExplanationAndIncrementPos(pos, 4, KindOfData::PROTOCOL, Understanding::FULL,
