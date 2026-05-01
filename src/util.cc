@@ -151,19 +151,19 @@ int char2int(char input)
 
 bool isHexChar(uchar c)
 {
-    return char2int(c) != -1;
+    return char2int(static_cast<char>(c)) != -1;
 }
 
 // The byte 0x13 i converted into the integer value 13.
 uchar bcd2bin(uchar c)
 {
-    return (c&15)+(c>>4)*10;
+    return static_cast<uchar>((c&15)+(c>>4)*10);
 }
 
 // The byte 0x13 is converted into the integer value 31.
 uchar revbcd2bin(uchar c)
 {
-    return (c&15)*10+(c>>4);
+    return static_cast<uchar>((c&15)*10+(c>>4));
 }
 
 uchar reverse(uchar c)
@@ -229,7 +229,7 @@ bool hex2bin(const char* src, vector<uchar> *target)
             int hi = char2int(*src);
             int lo = char2int(src[1]);
             if (hi<0 || lo<0) return false;
-            target->push_back(hi*16 + lo);
+            target->push_back(static_cast<uchar>(hi*16 + lo));
             src += 2;
         }
     }
@@ -246,10 +246,10 @@ bool hex2bin(vector<uchar> &src, vector<uchar> *target)
     if (src.size() % 2 == 1) return false;
     for (size_t i=0; i<src.size(); i+=2) {
         if (src[i] != ' ') {
-            int hi = char2int(src[i]);
-            int lo = char2int(src[i+1]);
+            int hi = char2int(static_cast<char>(src[i]));
+            int lo = char2int(static_cast<char>(src[i+1]));
             if (hi<0 || lo<0) return false;
-            target->push_back(hi*16 + lo);
+            target->push_back(static_cast<uchar>(hi*16 + lo));
         }
     }
     return true;
@@ -260,7 +260,7 @@ char const hexChar[16] = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A'
 string bin2hex(const vector<uchar> &target) {
     string str;
     for (size_t i = 0; i < target.size(); ++i) {
-        const char ch = target[i];
+        const uchar ch = target[i];
         str.append(&hexChar[(ch  & 0xF0) >> 4], 1);
         str.append(&hexChar[ch & 0xF], 1);
     }
@@ -270,7 +270,7 @@ string bin2hex(const vector<uchar> &target) {
 string bin2hex(vector<uchar>::iterator data, vector<uchar>::iterator end, int len) {
     string str;
     while (data != end && len-- > 0) {
-        const char ch = *data;
+        const uchar ch = *data;
         data++;
         str.append(&hexChar[(ch  & 0xF0) >> 4], 1);
         str.append(&hexChar[ch & 0xF], 1);
@@ -283,7 +283,7 @@ string bin2hex(vector<uchar> &data, int offset, int len) {
     vector<uchar>::iterator i = data.begin();
     i += offset;
     while (i != data.end() && len-- > 0) {
-        const char ch = *i;
+        const uchar ch = *i;
         i++;
         str.append(&hexChar[(ch  & 0xF0) >> 4], 1);
         str.append(&hexChar[ch & 0xF], 1);
@@ -294,9 +294,9 @@ string bin2hex(vector<uchar> &data, int offset, int len) {
 string safeString(vector<uchar> &target) {
     string str;
     for (size_t i = 0; i < target.size(); ++i) {
-        const char ch = target[i];
+        const uchar ch = target[i];
         if (ch >= 32 && ch < 127 && ch != '<' && ch != '>') {
-            str += ch;
+            str += static_cast<char>(ch);
         } else {
             str += '<';
             str.append(&hexChar[(ch  & 0xF0) >> 4], 1);
@@ -313,8 +313,8 @@ string tostrprintf(const char* fmt, ...)
     char buf[4096];
     va_list args;
     va_start(args, fmt);
-    size_t n = vsnprintf(buf, 4096, fmt, args);
-    assert(n < 4096);
+    int n = vsnprintf(buf, 4096, fmt, args);
+    assert(n >= 0 && n < 4096);
     va_end(args);
     s = buf;
     return s;
