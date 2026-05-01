@@ -280,7 +280,7 @@ void WMBusCUL::processSerialData()
         }
         if (status == FullFrame)
         {
-            read_buffer_.erase(read_buffer_.begin(), read_buffer_.begin()+frame_length);
+            read_buffer_.erase(read_buffer_.begin(), read_buffer_.begin()+static_cast<vector<uchar>::difference_type>(frame_length));
 
             AboutTelegram about("cul", rssi_dbm, LinkMode::UNKNOWN, FrameType::WMBUS);
             handleTelegram(about, payload);
@@ -309,7 +309,7 @@ FrameStatus WMBusCUL::checkCULFrame(vector<uchar> &data,
     }
     eolp++; // Point to byte after CRLF.
     // Normally it is CRLF, but enable code to handle single LF as well.
-    int eof_len = data[eolp-2] == '\r' ? 2 : 1;
+    size_t eof_len = data[eolp-2] == '\r' ? 2u : 1u;
     // If it was a CRLF then eof_len == 2, else it is 1.
     if (data[0] != 'b')
     {
@@ -321,7 +321,11 @@ FrameStatus WMBusCUL::checkCULFrame(vector<uchar> &data,
     // Extract LQI and RSSI from message (appended 1 byte LQI and 1 byte RSSI at the end)
     vector<uchar> hex_buffer;
     vector<uchar> lqi_rssi;
-    hex_buffer.insert(hex_buffer.end(), data.begin()+eolp-eof_len-4, data.begin()+eolp-eof_len);
+    size_t rssi_offset = eolp - eof_len - 4u;
+    size_t rssi_end = eolp - eof_len;
+    hex_buffer.insert(hex_buffer.end(),
+                      data.begin()+static_cast<vector<uchar>::difference_type>(rssi_offset),
+                      data.begin()+static_cast<vector<uchar>::difference_type>(rssi_end));
     bool ok = hex2bin(hex_buffer, &lqi_rssi);
     if(!ok)
     {
@@ -333,7 +337,7 @@ FrameStatus WMBusCUL::checkCULFrame(vector<uchar> &data,
     // LQI is 7 bits unsigned number and relative - range 0-127 lower is better
     uint lqi = lqi_rssi[0]>>1;
     // Raw RSSI value 8 bits 2's complement number
-    int8_t rssi_raw = lqi_rssi[1];
+    int8_t rssi_raw = static_cast<int8_t>(lqi_rssi[1]);
     // Calculate dBm according to datasheet of CC1101 SWRS061I page 44
     *rssi_dbm = rssi_raw/2 - 74;
 
@@ -348,7 +352,10 @@ FrameStatus WMBusCUL::checkCULFrame(vector<uchar> &data,
         // If reception is started with X01, then there are no RSSI bytes.
         // If started with X21, then there are two RSSI bytes (4 hex digits at the end).
         // Now we always start with X21.
-        hex.insert(hex.end(), data.begin()+2, data.begin()+eolp-eof_len-4); // Remove CRLF, RSSI and LQI
+        size_t payload_end = eolp - eof_len - 4u;
+        hex.insert(hex.end(),
+               data.begin()+2,
+               data.begin()+static_cast<vector<uchar>::difference_type>(payload_end)); // Remove CRLF, RSSI and LQI
 
         if (hex.size() % 2 == 1)
         {
@@ -384,7 +391,10 @@ FrameStatus WMBusCUL::checkCULFrame(vector<uchar> &data,
         // If reception is started with X01, then there are no RSSI bytes.
         // If started with X21, then there are two RSSI bytes (4 hex digits at the end).
         // Now we always start with X21.
-        hex.insert(hex.end(), data.begin()+1, data.begin()+eolp-eof_len-4); // Remove CRLF, RSSI and LQI
+        size_t payload_end = eolp - eof_len - 4u;
+        hex.insert(hex.end(),
+               data.begin()+1,
+               data.begin()+static_cast<vector<uchar>::difference_type>(payload_end)); // Remove CRLF, RSSI and LQI
 
         if (hex.size() % 2 == 1)
         {
