@@ -34,6 +34,7 @@
 #include<signal.h>
 #include<stdarg.h>
 #include<stddef.h>
+#include<limits>
 #include<string.h>
 #include<string>
 #include<sys/stat.h>
@@ -328,8 +329,8 @@ string tostrprintf(const string *fmt, ...)
     char buf[4096];
     va_list args;
     va_start(args, fmt); // <<<<< here fmt must be a native type.
-    size_t n = vsnprintf(buf, 4096, fmt->c_str(), args);
-    assert(n < 4096);
+    int n = vsnprintf(buf, 4096, fmt->c_str(), args);
+    assert(n >= 0 && n < 4096);
     va_end(args);
     s = buf;
     return s;
@@ -340,8 +341,8 @@ void strprintf(string *s, const char* fmt, ...)
     char buf[4096];
     va_list args;
     va_start(args, fmt);
-    size_t n = vsnprintf(buf, 4096, fmt, args);
-    assert(n < 4096);
+    int n = vsnprintf(buf, 4096, fmt, args);
+    assert(n >= 0 && n < 4096);
     va_end(args);
     *s = buf;
 }
@@ -413,22 +414,22 @@ bool isValidAlias(const string& alias)
 
 bool isFrequency(const string& fq)
 {
-    int len = fq.length();
+    size_t len = fq.length();
     if (len == 0) return false;
     if (fq[len-1] != 'M') return false;
     len--;
-    for (int i=0; i<len; ++i) {
-        if (!isdigit(fq[i]) && fq[i] != '.') return false;
+    for (size_t i = 0; i < len; ++i) {
+        if (!isdigit(static_cast<unsigned char>(fq[i])) && fq[i] != '.') return false;
     }
     return true;
 }
 
 bool isNumber(const string& fq)
 {
-    int len = fq.length();
+    size_t len = fq.length();
     if (len == 0) return false;
-    for (int i=0; i<len; ++i) {
-        if (!isdigit(fq[i])) return false;
+    for (size_t i = 0; i < len; ++i) {
+        if (!isdigit(static_cast<unsigned char>(fq[i]))) return false;
     }
     return true;
 }
@@ -530,7 +531,7 @@ string eatTo(vector<uchar> &v, vector<uchar>::iterator &i, int c, size_t max, bo
     *err = false;
     while (max > 0 && i != v.end() && (c == -1 || *i != c))
     {
-        s += *i;
+        s += static_cast<char>(*i);
         i++;
         max--;
     }
@@ -557,17 +558,17 @@ void padWithZeroesTo(vector<uchar> *content, size_t len, vector<uchar> *full_con
         for(size_t i = old_size; i < len; ++i) {
             (*content)[i] = 0;
         }
-        full_content->insert(full_content->end(), content->begin()+old_size, content->end());
+        full_content->insert(full_content->end(), content->begin()+static_cast<vector<uchar>::difference_type>(old_size), content->end());
     }
 }
 
 static string space = "                                                                                                                                                               ";
 string padLeft(const string& input, int width)
 {
-    int w = width-input.size();
+    int w = width - static_cast<int>(input.size());
     if (w < 0) return input;
     assert(w < (int)space.length());
-    return space.substr(0, w)+input;
+    return space.substr(0, static_cast<size_t>(w))+input;
 }
 
 int parseTime(const string& s)
@@ -664,7 +665,7 @@ int loadFile(const string& file, vector<string> *lines)
 
 bool loadFile(const string& file, vector<char> *buf)
 {
-    int blocksize = 1024;
+    static constexpr size_t blocksize = 1024;
     char block[blocksize];
 
     int fd = open(file.c_str(), O_RDONLY);
@@ -777,7 +778,7 @@ string strdate(double v)
 {
     if (::isnan(v)) return "null";
     struct tm date;
-    time_t t = v;
+    time_t t = static_cast<time_t>(v);
     localtime_r(&t, &date);
     return strdate(&date);
 }
@@ -793,7 +794,7 @@ string strdatetime(double v)
 {
     if (::isnan(v)) return "null";
     struct tm datetime;
-    time_t t = v;
+    time_t t = static_cast<time_t>(v);
     localtime_r(&t, &datetime);
     return strdatetime(&datetime);
 }
@@ -808,7 +809,7 @@ string strdatetimesec(struct tm *datetime)
 string strdatetimesec(double v)
 {
     struct tm datetime;
-    time_t t = v;
+    time_t t = static_cast<time_t>(v);
     localtime_r(&t, &datetime);
     return strdatetimesec(&datetime);
 }
@@ -1091,7 +1092,7 @@ string currentMicros()
 
 bool hasBytes(int n, vector<uchar>::iterator &pos, vector<uchar> &frame)
 {
-    int remaining = distance(pos, frame.end());
+    vector<uchar>::difference_type remaining = distance(pos, frame.end());
     if (remaining < n) return false;
     return true;
 }
@@ -1211,11 +1212,11 @@ bool extract_periods(const string& periods, vector<TimePeriod> *period_structs)
 {
     if (periods.length() == 0) return false;
 
-    char buf[periods.length()+1];
-    strcpy(buf, periods.c_str());
+    vector<char> buf(periods.length()+1);
+    strcpy(buf.data(), periods.c_str());
 
     char *saveptr {};
-    char *tok = strtok_r(buf, ",", &saveptr);
+    char *tok = strtok_r(buf.data(), ",", &saveptr);
     if (tok == NULL)
     {
         // No comma found.
@@ -1313,10 +1314,10 @@ bool stringFoundCaseIgnored(const string& h, const string& n)
     string needle = n;
     // Modify haystack and needle, in place, to become lowercase.
     for_each(haystack.begin(), haystack.end(), [](char & c) {
-        c = ::tolower(c);
+        c = static_cast<char>(::tolower(static_cast<unsigned char>(c)));
     });
     for_each(needle.begin(), needle.end(), [](char & c) {
-        c = ::tolower(c);
+        c = static_cast<char>(::tolower(static_cast<unsigned char>(c)));
     });
 
     // Now use default c++ find, return true if needle was found in haystack.
@@ -1387,7 +1388,7 @@ vector<string> splitDeviceString(const string& ds)
 uint32_t indexFromRtlSdrName(const string& s)
 {
     size_t p = s.find('_');
-    if (p == string::npos) return -1;
+    if (p == string::npos) return numeric_limits<uint32_t>::max();
     string n = s.substr(0, p);
     return (uint32_t)atoi(n.c_str());
 }
@@ -1402,7 +1403,7 @@ string helper(size_t scale, size_t s, string suffix)
     if (diff == 0) {
         return to_string(s) + ".00"+suffix;
     }
-    size_t dec = (int)(100*(diff+1) / scale);
+    size_t dec = (100 * (diff + 1)) / scale;
     return to_string(s) + ((dec<10)?".0":".") + to_string(dec) + suffix;
 }
 
@@ -1636,14 +1637,14 @@ bool findBytes(vector<uchar> &v, uchar a, uchar b, uchar c, size_t *out)
 
 string reverseBCD(const string& v)
 {
-    int vlen = v.length();
+    size_t vlen = v.length();
     if (vlen % 2 != 0)
     {
         return "BADHEX:"+v;
     }
 
     string n = "";
-    for (int i=0; i<vlen; i+=2)
+    for (size_t i = 0; i < vlen; i += 2)
     {
         n += v[vlen-2-i];
         n += v[vlen-1-i];
@@ -1869,7 +1870,7 @@ string sortStatusString(const string &a)
 
     for (size_t i=0; i<a.length(); ++i)
     {
-        uchar c = a[i];
+        uchar c = static_cast<uchar>(a[i]);
         if (c == ' ')
         {
             if (curr.length() > 0)
@@ -1880,7 +1881,7 @@ string sortStatusString(const string &a)
         }
         else
         {
-            curr += c;
+            curr += static_cast<char>(c);
         }
     }
 
@@ -1922,7 +1923,7 @@ string strTimestampUTC(double v)
 {
     char datetime[40];
     memset(datetime, 0, sizeof(datetime));
-    time_t d = v;
+    time_t d = static_cast<time_t>(v);
     struct tm ts;
     gmtime_r(&d, &ts);
     strftime(datetime, sizeof(datetime), "%FT%TZ", &ts);
@@ -2085,7 +2086,7 @@ int download(const char *suffix, const char *file, const char *local_file)
     if (endptr != NULL && *endptr == 0)
     {
         // Code is valid and it was decoded properly.
-        return code;
+        return static_cast<int>(code);
     }
 
     warning("wmbusmeters: failed to fetch %s using this command: %s\n", suffix, cmd.c_str());
