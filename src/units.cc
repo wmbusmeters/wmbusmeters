@@ -369,7 +369,7 @@ bool SIUnit::mathOpTo(MathOp op, double left, double right, const SIUnit &right_
         {
             if (op == MathOp::SUB) right = -right;
             // We must use the addMonths function since months have different lengths.
-            double result = addMonths(left, right);
+            double result = addMonths(left, static_cast<int>(right));
             if (out_siunit != NULL) *out_siunit = SI_UnixTimestamp;
             if (out != NULL) *out = result;
             return true;
@@ -664,7 +664,7 @@ string to_superscript(int8_t n)
     for (int i=0; i<5; ++i)
     {
         if (buf[i] == 0) break;
-        out += super(buf[i]);
+        out += super(static_cast<uchar>(buf[i]));
     }
 
     return out;
@@ -698,7 +698,7 @@ string to_superscript(string &s)
 
         if (found_start)
         {
-            out += super(s[i]);
+            out += super(static_cast<uchar>(s[i]));
         }
         i++;
     }
@@ -740,14 +740,14 @@ int8_t SIExp::safe_add(int8_t a, int8_t b)
 {
     int sum = a+b;
     if (sum > 127) invalid_ = true;
-    return sum;
+    return static_cast<int8_t>(sum);
 }
 
 int8_t SIExp::safe_sub(int8_t a, int8_t b)
 {
     int diff = a-b;
     if (diff  < -128) invalid_ = true;
-    return diff;
+    return static_cast<int8_t>(diff);
 }
 
 int8_t SIExp::safe_div2(int8_t a)
