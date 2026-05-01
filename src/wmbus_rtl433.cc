@@ -214,7 +214,7 @@ void WMBusRTL433::processSerialData()
         if (status == TextAndNotFrame)
         {
             // The buffer has already been printed by serial cmd.
-            read_buffer_.erase(read_buffer_.begin(), read_buffer_.begin()+frame_length);
+            read_buffer_.erase(read_buffer_.begin(), read_buffer_.begin()+static_cast<vector<uchar>::difference_type>(frame_length));
             if (read_buffer_.size() == 0)
             {
                 break;
@@ -228,7 +228,7 @@ void WMBusRTL433::processSerialData()
         if (status == ErrorInFrame)
         {
             debug("(rtl433) error in received message.\n");
-            read_buffer_.erase(read_buffer_.begin(), read_buffer_.begin()+frame_length);
+            read_buffer_.erase(read_buffer_.begin(), read_buffer_.begin()+static_cast<vector<uchar>::difference_type>(frame_length));
             if (read_buffer_.size() == 0)
             {
                 break;
@@ -263,7 +263,7 @@ void WMBusRTL433::processSerialData()
                 }
             }
 
-            read_buffer_.erase(read_buffer_.begin(), read_buffer_.begin()+frame_length);
+            read_buffer_.erase(read_buffer_.begin(), read_buffer_.begin()+static_cast<vector<uchar>::difference_type>(frame_length));
             if (payload.size() > 0)
             {
                 if (payload[0] != payload.size()-1)
@@ -273,7 +273,7 @@ void WMBusRTL433::processSerialData()
                         warning("(rtl433) dll_len adjusted to %d from %d. Fix rtl_433? This warning will not be printed again.\n", payload.size()-1, payload[0]);
                         warning_dll_len_printed_ = true;
                     }
-                    payload[0] = payload.size()-1;
+                    payload[0] = static_cast<uchar>(payload.size()-1);
                 }
             }
             string id = string("rtl433[")+getDeviceId()+"]";
@@ -355,9 +355,9 @@ FrameStatus WMBusRTL433::checkRTL433Frame(vector<uchar> &data,
         return PartialFrame;
     }
 
-    payload_len = nextcomma-i;
+    payload_len = static_cast<int>(nextcomma-i);
     *hex_payload_len_out = payload_len;
-    *hex_payload_offset = i;
+    *hex_payload_offset = static_cast<int>(i);
 
     return FullFrame;
 }
