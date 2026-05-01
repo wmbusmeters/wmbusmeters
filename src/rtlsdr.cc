@@ -93,7 +93,7 @@ int indexFromRtlSdrSerial(std::string serialnr)
         rtlsdr_get_device_usb_strings(i, mfct, product, serial);
         if (serialnr == serial)
         {
-            return i;
+            return static_cast<int>(i);
         }
     }
 
