@@ -385,7 +385,7 @@ bool flagToManufacturer(const char *s, uint16_t *out_mfct)
         s[1] < '@' || s[1] > 'Z' ||
         s[2] < '@' || s[2] > 'Z') return false;
 
-    *out_mfct = MANFCODE(s[0],s[1],s[2]);
+    *out_mfct = static_cast<uint16_t>(MANFCODE(s[0],s[1],s[2]));
     return true;
 }
 
@@ -457,9 +457,9 @@ string AddressExpression::concat(std::vector<AddressExpression> &address_express
 }
 
 string manufacturerFlag(int m_field) {
-    char a = (m_field/1024)%32+64;
-    char b = (m_field/32)%32+64;
-    char c = (m_field)%32+64;
+    char a = static_cast<char>((m_field/1024)%32+64);
+    char b = static_cast<char>((m_field/32)%32+64);
+    char c = static_cast<char>((m_field)%32+64);
 
     string flag;
     flag += a;
