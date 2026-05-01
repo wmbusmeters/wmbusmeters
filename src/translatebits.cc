@@ -174,7 +174,7 @@ void handleDecimalsToString(Rule& rule, string &out_s, uint64_t bits)
     }
 
     // Switch to signed number here.
-    int number = bits % mask;
+    uint64_t number = bits % mask;
     if (number == 0)
     {
         s += rule.default_message.stringValue()+" ";
@@ -186,11 +186,14 @@ void handleDecimalsToString(Rule& rule, string &out_s, uint64_t bits)
         if ((m.from - (m.from % mask)) != 0)
         {
             string tmp;
-            strprintf(&tmp, "BAD_RULE_%s(from=%d modulomask=%d)", rule.name.c_str(), m.from, rule.mask);
+            strprintf(&tmp, "BAD_RULE_%s(from=%llu modulomask=%llu)",
+                      rule.name.c_str(),
+                      static_cast<unsigned long long>(m.from),
+                      static_cast<unsigned long long>(rule.mask.intValue()));
             s += tmp+" ";
         }
-        int num = m.from % mask; // Better safe than sorry.
-        if ((number - num) >= 0)
+        uint64_t num = m.from % mask; // Better safe than sorry.
+        if (number >= num)
         {
             s += m.to+" ";
             number -= num;
@@ -200,7 +203,7 @@ void handleDecimalsToString(Rule& rule, string &out_s, uint64_t bits)
     {
         // Oups, this number has not been fully understood.
         string tmp;
-        strprintf(&tmp, "%s_%d", rule.name.c_str(), number);
+        strprintf(&tmp, "%s_%llu", rule.name.c_str(), static_cast<unsigned long long>(number));
         s += tmp+" ";
     }
 
