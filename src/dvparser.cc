@@ -564,18 +564,21 @@ bool parseDV(Telegram *t,
         string value = bin2hex(data, data_end, datalen);
         int offset = start_parse_here+data-data_start;
 
-        (*dv_entries)[key] = { offset, DVEntry(offset,
-                                               key,
-                                               mt,
-                                               Vif(full_vif),
-                                               found_combinable_vifs,
-                                               found_combinable_vifs_raw,
-                                               StorageNr(storage_nr),
-                                               TariffNr(tariff),
-                                               SubUnitNr(subunit),
-                                               value) };
-
-        DVEntry *dve = &(*dv_entries)[key].second;
+        auto insert_res = dv_entries->emplace(key,
+                              std::make_pair(offset,
+                                     DVEntry(offset,
+                                         key,
+                                         mt,
+                                         Vif(full_vif),
+                                         std::move(found_combinable_vifs),
+                                         std::move(found_combinable_vifs_raw),
+                                         StorageNr(storage_nr),
+                                         TariffNr(tariff),
+                                         SubUnitNr(subunit),
+                                         value)));
+        assert(insert_res.second);
+        auto &entry = insert_res.first->second;
+        DVEntry *dve = &entry.second;
 
         trace("[DVPARSER] entry %s\n", dve->str().c_str());
 
