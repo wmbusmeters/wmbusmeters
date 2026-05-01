@@ -19,6 +19,8 @@
 # To build with debug information:
 # make DEBUG=true
 # make DEBUG=true HOST=arm
+# Collect telegrams and other data for perf testing.
+# make COLLECT=true
 
 DESTDIR?=/
 
@@ -76,6 +78,12 @@ else
         STRIP_BINARY=cp $(BUILD)/wmbusmeters $(BUILD)/wmbusmeters.g; $(STRIP) $(BUILD)/wmbusmeters
         GCOV=To_run_gcov_add_DEBUG=true
     endif
+endif
+
+ifeq "$(COLLECT)" "true"
+    COLLECT_FLAGS=-DCOLLECT
+else
+    COLLECT_FLAGS=
 endif
 
 $(shell mkdir -p $(BUILD))
@@ -144,7 +152,7 @@ CXXFLAGS +=\
 
 # Additional fedora rpm package build flags
 # -O2 -flto=auto -ffat-lto-objects -fexceptions -g -grecord-gcc-switches -pipe -Wall -Werror=format-security -Wp,-D_FORTIFY_SOURCE=2 -Wp,-D_GLIBCXX_ASSERTIONS -fstack-protector-strong -mtune=generic -fasynchronous-unwind-tables -fstack-clash-protection -fcf-protection
-CXXFLAGS += -I$(BUILD) $(LIBXML_CFLAGS) $(LIBRTLSDR_CFLAGS) $(LIBUSB_CFLAGS@)
+CXXFLAGS += -I$(BUILD) $(LIBXML_CFLAGS) $(LIBRTLSDR_CFLAGS) $(LIBUSB_CFLAGS) $(COLLECT_FLAGS)
 LDFLAGS  ?= $(DEBUG_LDFLAGS)
 LDFLAGS  += $(LIBXML_LIBS) $(LIBRTLSDR_LIBS) $(LIBUSB_LIBS)
 
@@ -276,7 +284,7 @@ $(BUILD)/authors.h:
 
 # Build binary with debug information. ~15M size binary.
 $(BUILD)/wmbusmeters.g: $(PROG_OBJS) $(DRIVER_OBJS) $(BUILD)/main.o $(BUILD)/short_manual.h
-	$(CXX) -o $(BUILD)/wmbusmeters.g $(PROG_OBJS) $(DRIVER_OBJS) $(BUILD)/main.o $(LDFLAGS) -lpthread
+	$(CXX) $(DEBUG_FLAGS) -o $(BUILD)/wmbusmeters.g $(PROG_OBJS) $(DRIVER_OBJS) $(BUILD)/main.o $(LDFLAGS) -lpthread
 
 # Production build will have debug information stripped. ~1.5M size binary.
 # DEBUG=true builds, which has address sanitizer code, will always keep the debug information.
@@ -298,7 +306,10 @@ $(BUILD)/testinternals: $(BUILD)/testinternals.o
 	$(CXX) -o $(BUILD)/testinternals $(PROG_OBJS) $(DRIVER_OBJS) $(BUILD)/testinternals.o $(LDFLAGS)  -lpthread
 
 $(BUILD)/fuzz: $(PROG_OBJS) $(DRIVER_OBJS) $(BUILD)/fuzz.o
-	$(CXX) -o $(BUILD)/fuzz $(PROG_OBJS) $(DRIVER_OBJS) $(BUILD)/fuzz.o $(LDFLAGS) -lpthread
+	$(CXX) $(DEBUG_FLAGS) -o $(BUILD)/fuzz $(PROG_OBJS) $(DRIVER_OBJS) $(BUILD)/fuzz.o $(LDFLAGS) -lpthread
+
+$(BUILD)/perf: $(PROG_OBJS) $(DRIVER_OBJS) $(BUILD)/perf.o
+	$(CXX) $(DEBUG_FLAGS) -o $(BUILD)/perf $(PROG_OBJS) $(DRIVER_OBJS) $(BUILD)/perf.o $(LDFLAGS) -lpthread
 
 clean_executables:
 	rm -rf build/wmbusmeters* build_arm/wmbusmeters* build_debug/wmbusmeters* build_arm_debug/wmbusmeters* *~

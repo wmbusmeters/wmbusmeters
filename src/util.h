@@ -138,6 +138,7 @@ bool checkIfDirExists(const char *dir);
 bool listFiles(const std::string& dir, std::vector<std::string> *files);
 int loadFile(const std::string& file, std::vector<std::string> *lines);
 bool loadFile(const std::string& file, std::vector<char> *buf);
+bool appendFile(const std::string& file, const std::string &line);
 
 std::string eatTo(std::vector<uchar> &v, std::vector<uchar>::iterator &i, int c, size_t max, bool *eof, bool *err);
 

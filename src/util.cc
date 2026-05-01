@@ -758,6 +758,21 @@ bool loadFile(const string& file, vector<char> *buf)
     return true;
 }
 
+bool appendFile(const string &file, const string &line)
+{
+    int fd = open(file.c_str(), O_WRONLY|O_APPEND|O_CREAT, 0644);
+    if (fd >= 0)
+    {
+        ssize_t l = write(fd, line.c_str(), line.length());
+        if (l != (ssize_t)line.length()) return false;
+        l = write(fd, "\n", 1);
+        if (l != 1) return false;
+        close(fd);
+        return true;
+    }
+    return false;
+}
+
 string eatToSkipWhitespace(vector<char> &v, vector<char>::iterator &i, int c, size_t max, bool *eof, bool *err)
 {
     eatWhitespace(v, i, eof);

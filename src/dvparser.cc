@@ -194,6 +194,11 @@ bool parseDV(Telegram *t,
         // part of the data! This is the default.
         format = &data;
         format_end = data_end;
+#ifdef COLLECT
+        string s = bin2hex(data, data_end, data_len);
+        bool ok = appendFile("/tmp/difvifexamples", s);
+        if (!ok) fprintf(stderr, "Failed to append to /tmp/difvifexamples.\n");
+#endif
     } else {
         // A format string has been supplied. The data is compressed,
         // and can only be decoded using the supplied difvifs.
