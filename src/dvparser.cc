@@ -167,6 +167,8 @@ bool loadFormatBytesFromSignature(uint16_t format_signature, vector<uchar> *form
     return false;
 }
 
+static const char hex_upper[] = "0123456789ABCDEF";
+
 bool parseDV(Telegram *t,
              vector<uchar> &databytes,
              vector<uchar>::iterator data,
@@ -523,12 +525,11 @@ bool parseDV(Telegram *t,
             }
         }
 
-        dv = "";
+        dv.clear();
+        dv.reserve(id_bytes.size()*2);
         for (uchar c : id_bytes) {
-            char hex[3];
-            hex[2] = 0;
-            snprintf(hex, 3, "%02X", c);
-            dv.append(hex);
+            dv.push_back(hex_upper[c >> 4]);
+	    dv.push_back(hex_upper[c & 0x0f]);
         }
         DEBUG_PARSER("(dvparser debug) key \"%s\"\n", dv.c_str());
 
