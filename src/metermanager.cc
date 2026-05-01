@@ -60,7 +60,7 @@ public:
     void addMeter(shared_ptr<Meter> meter)
     {
         meters_.push_back(meter);
-        meter->setIndex(meters_.size());
+        meter->setIndex(static_cast<int>(meters_.size()));
         meter->onUpdate(on_meter_updated_);
         meter->setMeterManager(this);
     }
