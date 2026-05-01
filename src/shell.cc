@@ -20,6 +20,12 @@
 #include "shell.h"
 #include "util.h"
 
+#if defined(__GNUC__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wconversion"
+#pragma GCC diagnostic ignored "-Wsign-conversion"
+#endif
+
 #include <assert.h>
 #include <fcntl.h>
 #include <memory.h>
@@ -368,13 +374,17 @@ void detectProcesses(string cmd, vector<int> *pids)
 
     if (!rc) return;
 
-    char buf[out.size()+1];
-    strcpy(buf, out.c_str());
+    vector<char> buf(out.size()+1);
+    strcpy(buf.data(), out.c_str());
     char *pch;
-    pch = strtok (buf," \n");
+    pch = strtok (buf.data()," \n");
     while (pch != NULL)
     {
         pids->push_back(atoi(pch));
         pch = strtok (NULL, " \n");
     }
 }
+
+#if defined(__GNUC__)
+#pragma GCC diagnostic pop
+#endif
