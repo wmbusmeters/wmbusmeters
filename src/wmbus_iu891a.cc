@@ -64,9 +64,13 @@ struct DeviceInfo_IU891A
     bool decode(vector<uchar> &bytes)
     {
         if (bytes.size() < 8) return false;
-        int i = 0;
+        size_t i = 0;
         module_type = bytes[i++];
-        uid = bytes[i+3]<<24|bytes[i+2]<<16|bytes[i+1]<<8|bytes[i]; i+=4;
+        uid = static_cast<uint32_t>(bytes[i+3])<<24 |
+              static_cast<uint32_t>(bytes[i+2])<<16 |
+              static_cast<uint32_t>(bytes[i+1])<<8 |
+              static_cast<uint32_t>(bytes[i]);
+        i += 4;
         strprintf(&uids, "%08x", uid);
         return true;
     }
@@ -89,11 +93,14 @@ struct WMBusAddressInfo_IU891A
     bool decode(vector<uchar> &bytes)
     {
         if (bytes.size() < 8) return false;
-        int i = 0;
-        mfct = bytes[i] << 8 | bytes[i+1];
+        size_t i = 0;
+        mfct = static_cast<uint16_t>(bytes[i] << 8 | bytes[i+1]);
         i += 2;
-        id = bytes[i]<<24|bytes[i+1]<<16|bytes[i+1]<<8|bytes[i+3];
-        i+=4;
+        id = static_cast<uint32_t>(bytes[i])<<24 |
+             static_cast<uint32_t>(bytes[i+1])<<16 |
+             static_cast<uint32_t>(bytes[i+2])<<8 |
+             static_cast<uint32_t>(bytes[i+3]);
+        i += 4;
         version = bytes[i++];
         type = bytes[i++];
 
@@ -139,16 +146,16 @@ struct Config_IU891A
         bytes.resize(11);
         size_t i = 0;
         bytes[i++] = lm;
-        bytes[i++] = option_bits & 0xff;
-        bytes[i++] = (option_bits >> 8) & 0xff;
-        bytes[i++] = ui_option_bits & 0xff;
-        bytes[i++] = (ui_option_bits >> 8) & 0xff;
-        bytes[i++] = led_flash_timing & 0xff;
-        bytes[i++] = (led_flash_timing >> 8) & 0xff;
-        bytes[i++] = recalibrate_in_ms & 0xff;
-        bytes[i++] = (recalibrate_in_ms >> 8) & 0xff;
-        bytes[i++] = (recalibrate_in_ms >> 16) & 0xff;
-        bytes[i++] = (recalibrate_in_ms >> 24) & 0xff;
+        bytes[i++] = static_cast<uchar>(option_bits & 0xff);
+        bytes[i++] = static_cast<uchar>((option_bits >> 8) & 0xff);
+        bytes[i++] = static_cast<uchar>(ui_option_bits & 0xff);
+        bytes[i++] = static_cast<uchar>((ui_option_bits >> 8) & 0xff);
+        bytes[i++] = static_cast<uchar>(led_flash_timing & 0xff);
+        bytes[i++] = static_cast<uchar>((led_flash_timing >> 8) & 0xff);
+        bytes[i++] = static_cast<uchar>(recalibrate_in_ms & 0xff);
+        bytes[i++] = static_cast<uchar>((recalibrate_in_ms >> 8) & 0xff);
+        bytes[i++] = static_cast<uchar>((recalibrate_in_ms >> 16) & 0xff);
+        bytes[i++] = static_cast<uchar>((recalibrate_in_ms >> 24) & 0xff);
     }
 
     bool decode(vector<uchar> &bytes)
@@ -350,13 +357,13 @@ WMBusIU891A::WMBusIU891A(BusDeviceType type, string alias, shared_ptr<SerialDevi
 static void buildRequest(int endpoint_id, int msg_id, vector<uchar>& body, vector<uchar>& out)
 {
     vector<uchar> request;
-    request.push_back(endpoint_id);
-    request.push_back(msg_id);
+    request.push_back(static_cast<uchar>(endpoint_id));
+    request.push_back(static_cast<uchar>(msg_id));
     request.insert(request.end(), body.begin(), body.end());
 
-    uint16_t crc = ~crc16_CCITT(&request[0], request.size()); // Safe to use &[0] since request size > 0
-    request.push_back(crc & 0xff);
-    request.push_back(crc >> 8);
+    uint16_t crc = ~crc16_CCITT(&request[0], static_cast<uint16_t>(request.size())); // Safe to use &[0] since request size > 0
+    request.push_back(static_cast<uchar>(crc & 0xff));
+    request.push_back(static_cast<uchar>(crc >> 8));
 
     addSlipFraming(request, out);
 }
@@ -539,9 +546,9 @@ FrameStatus WMBusIU891A::checkIU891AFrame(vector<uchar> &data,
     *msg_id_out = msg[1];
     *status_byte_out = msg[2];
 
-    uint16_t crc = ~crc16_CCITT(&msg[0], msg.size()-2);
-    uchar crc_lo = crc & 0xff;
-    uchar crc_hi = crc >> 8;
+    uint16_t crc = ~crc16_CCITT(&msg[0], static_cast<uint16_t>(msg.size()-2));
+    uchar crc_lo = static_cast<uchar>(crc & 0xff);
+    uchar crc_hi = static_cast<uchar>(crc >> 8);
 
     if (msg[msg.size()-2] != crc_lo || msg[msg.size()-1] != crc_hi)
     {
@@ -552,7 +559,7 @@ FrameStatus WMBusIU891A::checkIU891AFrame(vector<uchar> &data,
     }
 
     int payload_offset = 3;
-    int payload_len = msg.size()-2;
+    int payload_len = static_cast<int>(msg.size()-2);
 
     if (*endpoint_id_out == SAP_WMBUSGW_ID &&
         *msg_id_out == WMBUSGW_RX_MESSAGE_IND)
@@ -611,7 +618,7 @@ void WMBusIU891A::processSerialData()
         }
         if (status == FullFrame)
         {
-            read_buffer_.erase(read_buffer_.begin(), read_buffer_.begin()+frame_length);
+            read_buffer_.erase(read_buffer_.begin(), read_buffer_.begin()+static_cast<vector<uchar>::difference_type>(frame_length));
 
             // We now have a proper message in payload. Let us trigger actions based on it.
             // It can be wmbus receiver-dongle messages or wmbus remote meter messages received over the radio.
@@ -718,7 +725,7 @@ AccessCheck detectIU891A(Detected *detected, shared_ptr<SerialCommunicationManag
 
     vector<uchar> init;
     init.resize(30);
-    for (int i=0; i<30; ++i)
+    for (size_t i = 0; i < 30; ++i)
     {
         init[i] = 0xc0;
     }
@@ -777,7 +784,7 @@ AccessCheck detectIU891A(Detected *detected, shared_ptr<SerialCommunicationManag
         if (status != PartialFrame && frame_length > 0)
         {
             // Remove this frame, it was either irrelevant or an error.
-            response.erase(response.begin(), response.begin()+frame_length);
+            response.erase(response.begin(), response.begin()+static_cast<vector<uchar>::difference_type>(frame_length));
         }
         vector<uchar> more;
         serial->receive(&more);
@@ -851,7 +858,7 @@ AccessCheck detectIU891A(Detected *detected, shared_ptr<SerialCommunicationManag
         if (status != PartialFrame && frame_length > 0)
         {
             // Remove this frame, it was either irrelevant or an error.
-            response.erase(response.begin(), response.begin()+frame_length);
+            response.erase(response.begin(), response.begin()+static_cast<vector<uchar>::difference_type>(frame_length));
         }
         // Read any more data that might have arrived.
         vector<uchar> more;
