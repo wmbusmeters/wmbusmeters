@@ -34,6 +34,12 @@
 #include<stdexcept>
 #include<time.h>
 
+#if defined(__GNUC__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wconversion"
+#pragma GCC diagnostic ignored "-Wsign-conversion"
+#endif
+
 using namespace std;
 
 map<string, DriverInfo> *registered_drivers_ = NULL;
@@ -3728,3 +3734,7 @@ MeterManager *MeterCommonImplementation::meterManager()
 {
     return meter_manager_;
 }
+
+#if defined(__GNUC__)
+#pragma GCC diagnostic pop
+#endif

@@ -412,11 +412,10 @@ struct Meter;
 
 struct Telegram
 {
-private:
-    Telegram(Telegram&t) { }
-
 public:
     Telegram() = default;
+    Telegram(const Telegram&) = default;
+    Telegram& operator=(const Telegram&) = default;
 
     AboutTelegram about;
 
