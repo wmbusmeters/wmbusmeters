@@ -268,7 +268,7 @@ void debug_prefixed_int(const char *prefix, const char* content) {
         {
             eol = strchr(line, '\n');
             if (!eol) eol = stop;
-            int len = eol-line;
+            int len = static_cast<int>(eol-line);
             debug("%s %.*s\n", prefix, len, line);
             line = eol+1;
         }
@@ -309,8 +309,9 @@ void logTelegram(vector<uchar> &original, vector<uchar> &parsed, int header_size
         }
         time_t diff = time(NULL)-telegrams_start_time_;
         string parsed_hex = bin2hex(logged);
-        string header = parsed_hex.substr(0, header_size*2);
-        string content = parsed_hex.substr(header_size*2);
+        size_t header_hex_len = static_cast<size_t>(header_size) * 2;
+        string header = parsed_hex.substr(0, header_hex_len);
+        string content = parsed_hex.substr(header_hex_len);
         if (suffix_size == 0)
         {
             notice_always("telegram=|%s_%s|+%ld\n",
@@ -319,8 +320,9 @@ void logTelegram(vector<uchar> &original, vector<uchar> &parsed, int header_size
         else
         {
             assert((suffix_size*2) < (int)content.size());
-            string content2 = content.substr(0, content.size()-suffix_size*2);
-            string suffix = content.substr(content.size()-suffix_size*2);
+            size_t suffix_hex_len = static_cast<size_t>(suffix_size) * 2;
+            string content2 = content.substr(0, content.size()-suffix_hex_len);
+            string suffix = content.substr(content.size()-suffix_hex_len);
             notice_always("telegram=|%s_%s_%s|+%ld\n",
                    header.c_str(), content2.c_str(), suffix.c_str(), diff);
         }
