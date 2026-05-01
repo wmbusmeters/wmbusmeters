@@ -277,7 +277,7 @@ void WMBusRTLWMBUS::processSerialData()
         else if (status == TextAndNotFrame)
         {
             const char *exit_message = "rtl_wmbus: exiting";
-            auto end = read_buffer_.begin()+frame_length;
+            auto end = read_buffer_.begin()+static_cast<vector<uchar>::difference_type>(frame_length);
             auto it = std::search(read_buffer_.begin(),
                                   end,
                                   exit_message,
@@ -288,12 +288,12 @@ void WMBusRTLWMBUS::processSerialData()
                 reset();
             }
             // The buffer has already been printed by serial cmd.
-            read_buffer_.erase(read_buffer_.begin(), read_buffer_.begin()+frame_length);
+            read_buffer_.erase(read_buffer_.begin(), read_buffer_.begin()+static_cast<vector<uchar>::difference_type>(frame_length));
         }
         else if (status == ErrorInFrame)
         {
             debug("(rtlwmbus) error in received message.\n");
-            read_buffer_.erase(read_buffer_.begin(), read_buffer_.begin()+frame_length);
+            read_buffer_.erase(read_buffer_.begin(), read_buffer_.begin()+static_cast<vector<uchar>::difference_type>(frame_length));
         }
         else if (status == FullFrame)
         {
@@ -301,7 +301,9 @@ void WMBusRTLWMBUS::processSerialData()
             if (hex_payload_len > 0)
             {
                 vector<uchar> hex;
-                hex.insert(hex.end(), read_buffer_.begin()+hex_payload_offset, read_buffer_.begin()+hex_payload_offset+hex_payload_len);
+                hex.insert(hex.end(),
+                           read_buffer_.begin()+hex_payload_offset,
+                           read_buffer_.begin()+hex_payload_offset+hex_payload_len);
                 bool ok = hex2bin(hex, &payload);
                 if (!ok)
                 {
@@ -319,7 +321,7 @@ void WMBusRTLWMBUS::processSerialData()
                 }
             }
 
-            read_buffer_.erase(read_buffer_.begin(), read_buffer_.begin()+frame_length);
+            read_buffer_.erase(read_buffer_.begin(), read_buffer_.begin()+static_cast<vector<uchar>::difference_type>(frame_length));
             if (payload.size() > 0)
             {
                 if (payload[0] != payload.size()-1)
@@ -329,12 +331,13 @@ void WMBusRTLWMBUS::processSerialData()
                         warning("(rtlwmbus) dll_len adjusted to %d from %d. Upgrade rtl_wmbus? This warning will not be printed again.\n", payload.size()-1, payload[0]);
                         warning_dll_len_printed_ = true;
                     }
-                    payload[0] = payload.size()-1;
+                    payload[0] = static_cast<uchar>(payload.size()-1);
                 }
             }
 
             string id = string("rtlwmbus[")+getDeviceId()+"]";
-            AboutTelegram about(id, rssi, link_mode, FrameType::WMBUS, timestamp.tm_mday ? timegm(&timestamp) : 0);
+            AboutTelegram about(id, static_cast<int>(rssi), link_mode, FrameType::WMBUS,
+                                timestamp.tm_mday ? static_cast<time_t>(timegm(&timestamp)) : 0);
             handleTelegram(about, payload);
         }
         else
@@ -411,7 +414,7 @@ FrameStatus WMBusRTLWMBUS::checkRTLWMBUSFrame(vector<uchar> &data,
     }
     size_t i = 0;
     int count = 0;
-    *timestamp = { 0 };
+    memset(timestamp, 0, sizeof(*timestamp));
     // Look for packet timestamp and rssi
     for (; i+1 < data.size(); ++i) {
         if (data[i] != ';') continue;
@@ -430,7 +433,8 @@ FrameStatus WMBusRTLWMBUS::checkRTLWMBUSFrame(vector<uchar> &data,
         }
         if ((i-from)<5)
         {
-            string rssis = string(data.begin()+from,data.begin()+i);
+            string rssis = string(data.begin()+static_cast<vector<uchar>::difference_type>(from),
+                                  data.begin()+static_cast<vector<uchar>::difference_type>(i));
             *rssi = atof(rssis.c_str());
         }
     }
@@ -456,9 +460,9 @@ FrameStatus WMBusRTLWMBUS::checkRTLWMBUSFrame(vector<uchar> &data,
         return PartialFrame;
     }
 
-    payload_len = eolp-i;
+    payload_len = static_cast<int>(eolp-i);
     *hex_payload_len_out = payload_len;
-    *hex_payload_offset = i;
+    *hex_payload_offset = static_cast<int>(i);
 
     debug("(rtlwmbus) received full frame\n");
     return FullFrame;
