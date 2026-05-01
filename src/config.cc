@@ -196,7 +196,7 @@ void parseMeterConfig(Configuration *c, vector<char> &buf, string file)
         else if (startsWith(p.first, "json_") ||
                 startsWith(p.first, "field_"))
         {
-            int off = 5;
+            size_t off = 5;
             if (startsWith(p.first, "field_")) { off = 6; }
             string keyvalue = p.first.substr(off)+"="+p.second;
             extra_constant_fields.push_back(keyvalue);
@@ -413,7 +413,7 @@ bool handleDeviceOrHex(Configuration *c, string devicefilehex)
     if (!ok) return false;
 
     // Number the devices
-    specified_device.index = c->supplied_bus_devices.size();
+    specified_device.index = static_cast<int>(c->supplied_bus_devices.size());
     // Probe for the specified devices.
     c->probe_for.insert(specified_device.type);
 
@@ -821,7 +821,7 @@ shared_ptr<Configuration> loadConfiguration(string root, ConfigOverrides overrid
         else if (startsWith(p.first, "json_") ||
                  startsWith(p.first, "field_"))
         {
-            int off = 5;
+            size_t off = 5;
             if (startsWith(p.first, "field_")) { off = 6; }
             string s = p.first.substr(off);
             string keyvalue = s+"="+p.second;
