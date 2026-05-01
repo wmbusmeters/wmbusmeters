@@ -122,7 +122,7 @@ void
     // Fill W[16..63]
     for( i=16; i<64; i++ )
     {
-        W[i] = Gamma1( W[i-2]) + W[i-7] + Gamma0( W[i-15] ) + W[i-16];
+        W[i] = static_cast<uint32_t>(Gamma1(W[i-2]) + W[i-7] + Gamma0(W[i-15]) + W[i-16]);
     }
 
     // Compress
