@@ -69,12 +69,16 @@ struct IM871ADeviceInfo
     bool decode(vector<uchar> &bytes)
     {
         if (bytes.size() < 8) return false;
-        int i = 0;
+        size_t i = 0;
         module_type = bytes[i++];
         device_mode = bytes[i++];
         firmware_version = bytes[i++];
         hci_version = bytes[i++];
-        uid = bytes[i+3]<<24|bytes[i+2]<<16|bytes[i+1]<<8|bytes[i]; i+=4;
+        uid = static_cast<uint32_t>(bytes[i+3])<<24 |
+              static_cast<uint32_t>(bytes[i+2])<<16 |
+              static_cast<uint32_t>(bytes[i+1])<<8 |
+              static_cast<uint32_t>(bytes[i]);
+        i += 4;
         return true;
     }
 };
@@ -271,7 +275,7 @@ int toDBM(int rssi)
     // rssi = 45  -> -100 dbm
 #define SLOPE (80.0/(205.0-45.0))
     if (rssi >= 230) return 0;
-    int dbm = -100+SLOPE*(rssi-45);
+    int dbm = static_cast<int>(-100+SLOPE*(rssi-45));
     return dbm;
 }
 
@@ -412,7 +416,7 @@ LinkModeSet WMBusIM871aIM170A::getLinkModes()
     bool has_wmbus_device_type = (iff1&64)==64;
     bool has_radio_channel = (iff1&128)==128;
 
-    int offset = 1;
+    size_t offset = 1;
     if (has_device_mode)
     {
         verbose("(im871a) config: device mode %02x\n", response_[offset]);
@@ -421,34 +425,34 @@ LinkModeSet WMBusIM871aIM170A::getLinkModes()
     if (has_link_mode)
     {
         verbose("(im871a) config: link mode %02x\n", response_[offset]);
-        if (response_[offset] == (int)LinkModeIM871A::C1a) {
+        if (response_[offset] == static_cast<uchar>(LinkModeIM871A::C1a)) {
             lm = LinkMode::C1;
         }
-        if (response_[offset] == (int)LinkModeIM871A::S1) {
+        if (response_[offset] == static_cast<uchar>(LinkModeIM871A::S1)) {
             lm = LinkMode::S1;
         }
-        if (response_[offset] == (int)LinkModeIM871A::S1m) {
+        if (response_[offset] == static_cast<uchar>(LinkModeIM871A::S1m)) {
             lm = LinkMode::S1m;
         }
-        if (response_[offset] == (int)LinkModeIM871A::T1) {
+        if (response_[offset] == static_cast<uchar>(LinkModeIM871A::T1)) {
             lm = LinkMode::T1;
         }
-        if (response_[offset] == (int)LinkModeIM871A::CT_N1A) {
+        if (response_[offset] == static_cast<uchar>(LinkModeIM871A::CT_N1A)) {
             lm = LinkMode::N1a;
         }
-        if (response_[offset] == (int)LinkModeIM871A::N1B) {
+        if (response_[offset] == static_cast<uchar>(LinkModeIM871A::N1B)) {
             lm = LinkMode::N1b;
         }
-        if (response_[offset] == (int)LinkModeIM871A::N1C) {
+        if (response_[offset] == static_cast<uchar>(LinkModeIM871A::N1C)) {
             lm = LinkMode::N1c;
         }
-        if (response_[offset] == (int)LinkModeIM871A::N1D) {
+        if (response_[offset] == static_cast<uchar>(LinkModeIM871A::N1D)) {
             lm = LinkMode::N1d;
         }
-        if (response_[offset] == (int)LinkModeIM871A::N1E) {
+        if (response_[offset] == static_cast<uchar>(LinkModeIM871A::N1E)) {
             lm = LinkMode::N1e;
         }
-        if (response_[offset] == (int)LinkModeIM871A::N1F) {
+        if (response_[offset] == static_cast<uchar>(LinkModeIM871A::N1F)) {
             lm = LinkMode::N1f;
         }
         offset++;
@@ -458,7 +462,7 @@ LinkModeSet WMBusIM871aIM170A::getLinkModes()
         offset++;
     }
     if (has_wmbus_man_id) {
-        int flagid = 256*response_[offset+1] +response_[offset+0];
+        int flagid = 256*response_[offset+1] + response_[offset];
         string flag = manufacturerFlag(flagid);
         verbose("(im871a) config: wmbus mfg id %02x%02x (%s)\n", response_[offset+1], response_[offset+0],
                 flag.c_str());
@@ -750,7 +754,7 @@ FrameStatus WMBusIM871aIM170A::checkIM871AFrame(vector<uchar> &data,
             if (data[i] == 0xa5)
             {
                 debug("(im871a) found a5 at pos %d\n", i);
-                data.erase(data.begin(), data.begin()+i);
+                data.erase(data.begin(), data.begin()+static_cast<vector<uchar>::difference_type>(i));
                 found_a5 = true;;
                 break;
             }
@@ -819,13 +823,13 @@ FrameStatus WMBusIM871aIM170A::checkIM871AFrame(vector<uchar> &data,
     *payload_len_out = payload_len;
     *payload_offset = 4;
 
-    *frame_length = *payload_offset+payload_len+(has_timestamp?4:0)+(has_rssi?1:0)+(has_crc16?2:0);
+    *frame_length = static_cast<size_t>(*payload_offset + payload_len + (has_timestamp?4:0) + (has_rssi?1:0) + (has_crc16?2:0));
     if (data.size() < *frame_length) {
         debug("(im871a) not enough bytes yet, partial frame %d %d.\n", data.size(), *frame_length);
         return PartialFrame;
     }
 
-    int i = *payload_offset + payload_len;
+    size_t i = static_cast<size_t>(*payload_offset + payload_len);
     if (has_timestamp) {
         uint32_t a = data[i];
         uint32_t b = data[i+1];
@@ -847,8 +851,8 @@ FrameStatus WMBusIM871aIM170A::checkIM871AFrame(vector<uchar> &data,
         uint32_t b = data[i+1];
         uint32_t crc16 = a+b*256;
         i+=2;
-        uint16_t gotcrc = ~crc16_CCITT(&data[1], i-1-2);
-        bool crcok = crc16_CCITT_check(&data[1], i-1);
+        uint16_t gotcrc = ~crc16_CCITT(&data[1], static_cast<uint16_t>(i-1-2));
+        bool crcok = crc16_CCITT_check(&data[1], static_cast<uint16_t>(i-1));
         debug("(im871a) got crc16 %04x expected %04x\n", crc16, gotcrc);
         if (!crcok) {
             warning("(im871a) warning: got wrong crc %04x expected %04x\n", gotcrc, crc16);
@@ -902,14 +906,14 @@ void WMBusIM871aIM170A::processSerialData()
                 if (endpoint == RADIOLINK_ID &&
                     msgid == RADIOLINK_MSG_WMBUSMSG_IND)
                 {
-                    payload.insert(payload.begin(), payload_len); // Re-insert the len byte.
+                    payload.insert(payload.begin(), static_cast<uchar>(payload_len)); // Re-insert the len byte.
                 }
                 // Insert the payload.
                 payload.insert(payload.end(),
                                read_buffer_.begin()+payload_offset,
                                read_buffer_.begin()+payload_offset+payload_len);
             }
-            read_buffer_.erase(read_buffer_.begin(), read_buffer_.begin()+frame_length);
+            read_buffer_.erase(read_buffer_.begin(), read_buffer_.begin()+static_cast<vector<uchar>::difference_type>(frame_length));
 
             // We now have a proper message in payload. Let us trigger actions based on it.
             // It can be wmbus receiver-dongle messages or wmbus remote meter messages received over the radio.
@@ -1132,7 +1136,7 @@ bool WMBusIM871aIM170A::sendTelegram(LinkMode lm, TelegramFormat format, vector<
             return false;
         }
 
-        request_[3] = content.size();
+        request_[3] = static_cast<uchar>(content.size());
 
         for (size_t i=0; i<content.size(); ++i)
         {
