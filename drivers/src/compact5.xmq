@@ -1,0 +1,99 @@
+// Copyright (C) 2020-2022 Fredrik Öhrström (gpl-3.0-or-later)
+driver {
+    name           = compact5
+    meter_type     = HeatMeter
+    default_fields = name,id,total_kwh,current_kwh,previous_kwh,timestamp
+    detect {
+        mvt = TCH,45,04
+        mvt = TCH,45,C3
+        mvt = TCH,22,43
+        mvt = TCH,45,43
+        mvt = TCH,39,43
+    }
+    fields {
+        field {
+            name                 = payload_decoder
+            quantity             = Text
+            info                 = 'Decode mfct specific payload (CI=0xA1/0xA2) into prev/curr billing values.'
+            attributes           = HIDE
+            match_entire_payload = true
+            ixml                 = "decode    = -hdr, prev_val, -one_byte, curr_val, -rest.
+                                    -hdr      = hex, hex, hex, hex, hex, hex.
+                                    -one_byte = hex, hex.
+                                    -rest     = hex*.
+                                    -hex      = ['A'-'F'; '0'-'9'].
+                                    prev_val  = hex, hex, hex, hex, hex, hex, @DV_PREV.
+                                    curr_val  = hex, hex, hex, hex, hex, hex, @DV_CURR.
+                                    DV_PREV>dvk = +'037E'.
+                                    DV_CURR>dvk = +'037F'."
+        }
+        field {
+            name           = prev_raw
+            quantity       = Dimensionless
+            info           = 'Raw previous billing period value in kWh.'
+            attributes     = HIDE
+            display_unit   = counter
+            vif_scaling    = None
+            dif_signedness = Unsigned
+            match {
+                difvifkey = 037E
+            }
+        }
+        field {
+            name           = curr_raw
+            quantity       = Dimensionless
+            info           = 'Raw current billing period value in kWh.'
+            attributes     = HIDE
+            display_unit   = counter
+            vif_scaling    = None
+            dif_signedness = Unsigned
+            match {
+                difvifkey = 037F
+            }
+        }
+        field {
+            name      = total
+            quantity  = Energy
+            info      = 'The total energy consumption recorded by this meter.'
+            calculate = '(prev_raw_counter + curr_raw_counter) / 1 counter * 1 kwh'
+        }
+        field {
+            name      = current
+            quantity  = Energy
+            info      = 'Energy consumption so far in this billing period.'
+            calculate = 'curr_raw_counter / 1 counter * 1 kwh'
+        }
+        field {
+            name      = previous
+            quantity  = Energy
+            info      = 'Energy consumption in previous billing period.'
+            calculate = 'prev_raw_counter / 1 counter * 1 kwh'
+        }
+    }
+    tests {
+        test {
+            args     = 'Heating compact5 62626262 NOKEY'
+            telegram = 36446850626262624543A1_009F2777010060780000000A000000000000000000000000000000000000000000000000A0400000B4010000
+            json     = '{"_":"telegram","current_kwh":120,"id":"62626262","media":"heat","meter":"compact5","name":"Heating","previous_kwh":375,"timestamp":"1111-11-11T11:11:11Z","total_kwh":495}'
+            fields   = 'Heating;62626262;495;120;375;1111-11-11 11:11.11'
+        }
+        test {
+            args     = 'Heating2 compact5 66336633 NOKEY'
+            telegram = 37446850336633663943a2_10672c866100181c01000480794435d50000000000000000000000000000000000000000000000000000000000
+            json     = '{"_":"telegram","current_kwh":284,"id":"66336633","media":"heat","meter":"compact5","name":"Heating2","previous_kwh":24966,"timestamp":"1111-11-11T11:11:11Z","total_kwh":25250}'
+            fields   = 'Heating2;66336633;25250;284;24966;1111-11-11 11:11.11'
+        }
+        test {
+            args     = 'vario compact5 67552079 NOKEY'
+            telegram = 37446850792055673943A2_109F2F13C500608F1D00008066E8A69B26988D335F6411450C564C5145145CA0F1DA35B9DD37A1936BBF3D31D8
+            json     = '{"_":"telegram","current_kwh":7567,"id":"67552079","media":"heat","meter":"compact5","name":"vario","previous_kwh":50451,"timestamp":"1111-11-11T11:11:11Z","total_kwh":58018}'
+            fields   = 'vario;67552079;58018;7567;50451;1111-11-11 11:11.11'
+        }
+        test {
+            args     = 'tt compact5 41711422 NOKEY'
+            telegram = 3d446850221471414543a100ff32406002c8cd0000019f81071f68e001072c0c9106642075B5a6ac6ad229e993376aa7d10e1e5c60c1050000000056fed3
+            json     = '{"_":"telegram","current_kwh":205,"id":"41711422","media":"heat","meter":"compact5","name":"tt","previous_kwh":155712,"timestamp":"1111-11-11T11:11:11Z","total_kwh":155917}'
+            fields   = 'tt;41711422;155917;205;155712;1111-11-11 11:11.11'
+        }
+    }
+}
