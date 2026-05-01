@@ -20,12 +20,6 @@
 #include "shell.h"
 #include "util.h"
 
-#if defined(__GNUC__)
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wconversion"
-#pragma GCC diagnostic ignored "-Wsign-conversion"
-#endif
-
 #include <assert.h>
 #include <fcntl.h>
 #include <memory.h>
@@ -44,7 +38,7 @@ extern char **environ;
 vector<const char*> prepareEnv(vector<string>& envs)
 {
     map<string, const char*> env_map;
-    int i;
+    size_t i;
 
     for (i = 0; environ[i]; i++) {
         string e = environ[i];
@@ -75,7 +69,7 @@ void invokeShell(string program, vector<string> args, vector<string> envs)
     char *p = new char[program.length()+1];
     strcpy(p, program.c_str());
     argv[0] = p;
-    int i = 1;
+    size_t i = 1;
     debug("(shell) exec \"%s\"\n", program.c_str());
     for (auto &a : args) {
         argv[i] = a.c_str();
@@ -131,7 +125,7 @@ bool invokeBackgroundShell(string program, vector<string> args, vector<string> e
     char *p = new char[program.length()+1];
     strcpy(p, program.c_str());
     argv[0] = p;
-    int i = 1;
+    size_t i = 1;
     debug("(bgshell) exec background \"%s\"\n", program.c_str());
     for (auto &a : args) {
         argv[i] = a.c_str();
@@ -268,7 +262,7 @@ int invokeShellCaptureOutput(string program, vector<string> args, vector<string>
     char *p = new char[program.length()+1];
     strcpy(p, program.c_str());
     argv[0] = p;
-    int i = 1;
+    size_t i = 1;
 
     debug("(shell) exec (capture output) \"%s\"\n", program.c_str());
     for (auto &a : args) {
@@ -385,6 +379,3 @@ void detectProcesses(string cmd, vector<int> *pids)
     }
 }
 
-#if defined(__GNUC__)
-#pragma GCC diagnostic pop
-#endif
