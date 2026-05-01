@@ -2377,7 +2377,7 @@ string Telegram::analyzeParse(OutputFormat format, int *content_length, int *und
         }
     }
 
-    for (int p = 0; p < max_pos; p++)
+    for (size_t p = 0; p < static_cast<size_t>(max_pos); p++)
     {
         if (byte_status[p] >= 1) l++;
         if (byte_status[p] >= 2) u++;
@@ -3836,16 +3836,16 @@ string vif_7F_ManufacturerExtensionType(uchar dif, uchar vif, uchar vife)
 string vifeType(int dif, int vif, int vife)
 {
     if (vif == 0xfb) { // 0x7b without high bit
-        return vif_7B_FirstExtensionType(dif, vif, vife);
+        return vif_7B_FirstExtensionType(static_cast<uchar>(dif), static_cast<uchar>(vif), static_cast<uchar>(vife));
     }
     if (vif == 0xfd) { // 0x7d without high bit
-        return vif_7D_SecondExtensionType(dif, vif, vife);
+        return vif_7D_SecondExtensionType(static_cast<uchar>(dif), static_cast<uchar>(vif), static_cast<uchar>(vife));
     }
     if (vif == 0xef) { // 0x6f without high bit
-        return vif_6F_ThirdExtensionType(dif, vif, vife);
+        return vif_6F_ThirdExtensionType(static_cast<uchar>(dif), static_cast<uchar>(vif), static_cast<uchar>(vife));
     }
     if (vif == 0xff) { // 0x7f without high bit
-        return vif_7F_ManufacturerExtensionType(dif, vif, vife);
+        return vif_7F_ManufacturerExtensionType(static_cast<uchar>(dif), static_cast<uchar>(vif), static_cast<uchar>(vife));
     }
     vife = vife & 0x7f; // Strip the bit signifying more vifes after this.
     if (vife == 0x1f) {
@@ -4048,7 +4048,7 @@ string vifeType(int dif, int vif, int vife)
 double toDoubleFromBytes(vector<uchar> &bytes, int len) {
     double d = 0;
     for (int i=0; i<len; ++i) {
-        double x = bytes[i];
+        double x = bytes[static_cast<size_t>(i)];
         d += x*(256^i);
     }
     return d;
@@ -4057,15 +4057,45 @@ double toDoubleFromBytes(vector<uchar> &bytes, int len) {
 double toDoubleFromBCD(vector<uchar> &bytes, int len) {
     double d = 0;
     for (int i=0; i<len; ++i) {
-        double x = bytes[i]&0xf;
+        double x = bytes[static_cast<size_t>(i)]&0xf;
         d += x*(10^(i*2));
-        double xx = bytes[i]>>4;
+        double xx = bytes[static_cast<size_t>(i)]>>4;
         d += xx*(10^(1+i*2));
     }
     return d;
 }
 
 double dataAsDouble(int dif, int vif, int vife, string data)
+{
+    vector<uchar> bytes;
+    hex2bin(data, &bytes);
+
+    int t = dif & 0x0f;
+    switch (t) {
+    case 0x0: return 0;
+    case 0x1: return toDoubleFromBytes(bytes, 1);
+    case 0x2: return toDoubleFromBytes(bytes, 2);
+    case 0x3: return toDoubleFromBytes(bytes, 3);
+    case 0x4: return toDoubleFromBytes(bytes, 4);
+    case 0x5: return -1.0;  //  How is REAL stored?
+    case 0x6: return toDoubleFromBytes(bytes, 6);
+        // Note that for 64 bit data, storing it into a double might lose precision
+        // since the mantissa is less than 64 bit. It is unlikely that anyone
+        // really needs true 64 bit precision in their measurements from a physical meter though.
+    case 0x7: return toDoubleFromBytes(bytes, 8);
+    case 0x8: return -1.0; // Selection for Readout?
+    case 0x9: return toDoubleFromBCD(bytes, 1);
+    case 0xA: return toDoubleFromBCD(bytes, 2);
+    case 0xB: return toDoubleFromBCD(bytes, 3);
+    case 0xC: return toDoubleFromBCD(bytes, 4);
+    case 0xD: return -1.0; // variable length
+    case 0xE: return toDoubleFromBCD(bytes, 6);
+    case 0xF: return -1.0; // Special Functions
+    }
+    return -1.0;
+}
+
+uint64_t dataAsUint64(int dif, int vif, int vife, string data)
 {
     vector<uchar> bytes;
     hex2bin(data, &bytes);
@@ -4093,36 +4123,6 @@ double dataAsDouble(int dif, int vif, int vife, string data)
     case 0xF: return static_cast<uint64_t>(-1); // Special Functions
     }
     return static_cast<uint64_t>(-1);
-}
-
-uint64_t dataAsUint64(int dif, int vif, int vife, string data)
-{
-    vector<uchar> bytes;
-    hex2bin(data, &bytes);
-
-    int t = dif & 0x0f;
-    switch (t) {
-    case 0x0: return 0.0;
-    case 0x1: return toDoubleFromBytes(bytes, 1);
-    case 0x2: return toDoubleFromBytes(bytes, 2);
-    case 0x3: return toDoubleFromBytes(bytes, 3);
-    case 0x4: return toDoubleFromBytes(bytes, 4);
-    case 0x5: return -1;  //  How is REAL stored?
-    case 0x6: return toDoubleFromBytes(bytes, 6);
-        // Note that for 64 bit data, storing it into a double might lose precision
-        // since the mantissa is less than 64 bit. It is unlikely that anyone
-        // really needs true 64 bit precision in their measurements from a physical meter though.
-    case 0x7: return toDoubleFromBytes(bytes, 8);
-    case 0x8: return -1; // Selection for Readout?
-    case 0x9: return toDoubleFromBCD(bytes, 1);
-    case 0xA: return toDoubleFromBCD(bytes, 2);
-    case 0xB: return toDoubleFromBCD(bytes, 3);
-    case 0xC: return toDoubleFromBCD(bytes, 4);
-    case 0xD: return -1; // variable length
-    case 0xE: return toDoubleFromBCD(bytes, 6);
-    case 0xF: return -1; // Special Functions
-    }
-    return -1;
 }
 
 string linkModeName(LinkMode link_mode)
