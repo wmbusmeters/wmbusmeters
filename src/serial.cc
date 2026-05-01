@@ -24,6 +24,12 @@
 #include"threads.h"
 #include"timings.h"
 
+#if defined(__GNUC__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wconversion"
+#pragma GCC diagnostic ignored "-Wsign-conversion"
+#endif
+
 #include <algorithm>
 #include <assert.h>
 #include <dirent.h>
@@ -1903,3 +1909,7 @@ AccessCheck SerialCommunicationManagerImp::checkAccess(string device,
 
     return AccessCheck::NoSuchDevice;
 }
+
+#if defined(__GNUC__)
+#pragma GCC diagnostic pop
+#endif
