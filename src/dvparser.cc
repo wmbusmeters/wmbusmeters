@@ -28,6 +28,12 @@
 #include<limits>
 #include<unordered_map>
 
+#if defined(__GNUC__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wconversion"
+#pragma GCC diagnostic ignored "-Wsign-conversion"
+#endif
+
 // The parser should not crash on invalid data, but yeah, when I
 // need to debug it because it crashes on invalid data, then
 // I enable the following define...
@@ -2530,3 +2536,7 @@ LIST_OF_VIF_COMBINABLES
     available_vif_combinables_.pop_back();
     return available_vif_combinables_;
 }
+
+#if defined(__GNUC__)
+#pragma GCC diagnostic pop
+#endif
