@@ -662,7 +662,7 @@ FrameStatus WMBusAmber::checkAMB8465Frame(vector<uchar> &data,
         *payload_len_out = payload_len;
         *payload_offset = 3;
         // FF CMD len payload [RSSI] CS (Note, RSSI already included in the payload_len if present.)
-        *frame_length = 4 + payload_len;
+        *frame_length = static_cast<size_t>(4 + payload_len);
         if (data.size() < *frame_length)
         {
             debug("(amb8465) not enough bytes yet, partial command response %d %d.\n", data.size(), *frame_length);
@@ -708,8 +708,8 @@ FrameStatus WMBusAmber::checkAMB8465Frame(vector<uchar> &data,
     }
     *msgid_out = 0; // 0 is used to signal
     *payload_len_out = payload_len;
-    *payload_offset = offset+1;
-    *frame_length = payload_len+offset+1;
+    *payload_offset = static_cast<int>(offset + 1);
+    *frame_length = static_cast<size_t>(payload_len) + offset + 1;
     if (data.size() < *frame_length)
     {
         debug("(amb8465) not enough bytes yet, partial frame %d %d.\n", data.size(), *frame_length);
@@ -766,7 +766,8 @@ void WMBusAmber::processSerialData()
         }
         else
         {
-            unsigned long chunk_time_ms = 1000 * chunk_time.tv_sec + chunk_time.tv_usec / 1000;
+            unsigned long chunk_time_ms =
+                static_cast<unsigned long>(1000 * chunk_time.tv_sec + chunk_time.tv_usec / 1000);
             debug("(amb8465) chunk time %ld msec\n", chunk_time_ms);
         }
     }
@@ -809,11 +810,11 @@ void WMBusAmber::processSerialData()
             vector<uchar> payload;
             if (payload_len > 0)
             {
-                payload.insert(payload.end(), payload_len); // Re-insert the len byte.
+                payload.insert(payload.end(), static_cast<uchar>(payload_len)); // Re-insert the len byte.
                 payload.insert(payload.end(), read_buffer_.begin()+payload_offset, read_buffer_.begin()+payload_offset+payload_len);
             }
 
-            read_buffer_.erase(read_buffer_.begin(), read_buffer_.begin()+frame_length);
+            read_buffer_.erase(read_buffer_.begin(), read_buffer_.begin()+static_cast<vector<uchar>::difference_type>(frame_length));
 
             handleMessage(msgid, payload, rssi_dbm);
         }
@@ -930,7 +931,7 @@ bool WMBusAmber::sendTelegram(LinkMode lm, TelegramFormat format, vector<uchar> 
     request_.resize(content.size()+4);
     request_[0] = AMBER_SERIAL_SOF;
     request_[1] = CMD_DATA_REQ;
-    request_[2] = content.size();
+    request_[2] = static_cast<uchar>(content.size());
     for (size_t i = 0; i < content.size(); ++i)
     {
         request_[3+i] = content[i];
@@ -1004,7 +1005,7 @@ AccessCheck detectAMB8465AMB3665(Detected *detected, shared_ptr<SerialCommunicat
     // First clear out any data in the queue, this might require multiple reads.
     for (;;)
     {
-        size_t n = serial->receive(&response);
+        size_t n = static_cast<size_t>(serial->receive(&response));
         count++;
         if (n == 0) break;
         if (count > 10)
@@ -1085,7 +1086,7 @@ AccessCheck detectAMB8465AMB3665(Detected *detected, shared_ptr<SerialCommunicat
         }
         debug("(amb8465/3665) reading response... %d\n", count);
 
-        size_t n = serial->receive(&data);
+        size_t n = static_cast<size_t>(serial->receive(&data));
         count++;
         if (n == 0)
         {
