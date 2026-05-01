@@ -24,6 +24,12 @@
 #include"manufacturer_specificities.h"
 #include"meters.h"
 
+#if defined(__GNUC__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wconversion"
+#pragma GCC diagnostic ignored "-Wsign-conversion"
+#endif
+
 using namespace std;
 
 std::set<int> diehl_manufacturers = {
@@ -378,3 +384,7 @@ void qdsExtractWalkByField(Telegram *t, Meter *driver, DVEntry &mfctEntry, int p
 
     t->addSpecialExplanation(mfctEntry.offset + pos / 2, n / 2, KindOfData::CONTENT, Understanding::FULL, info.c_str());
 }
+
+#if defined(__GNUC__)
+#pragma GCC diagnostic pop
+#endif
