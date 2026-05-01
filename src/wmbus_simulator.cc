@@ -126,7 +126,7 @@ void WMBusSimulator::simulate()
     for (auto l : lines_)
     {
         string hex = "";
-        int found_time = 0;
+        bool found_time = false;
         time_t rel_time = 0;
         if (l.substr(0,9) == "telegram=")
         {
@@ -135,7 +135,7 @@ void WMBusSimulator::simulate()
                 if (l[i] == '|') continue;
                 if (l[i] == '+')
                 {
-                    found_time = i;
+                    found_time = true;
                     rel_time = atoi(&l[i+1]);
                     break;
                 }
