@@ -1,0 +1,166 @@
+// Copyright (C) 2026 Fredrik Oehrstroem (gpl-3.0-or-later)
+driver {
+    name           = mkradio3
+    meter_type     = WaterMeter
+    default_fields = name,id,total_m3,target_m3,current_date,prev_date,timestamp
+    manufacturer   = Techem
+    detect {
+        mvt = TCH,74,62
+        mvt = TCH,74,72
+    }
+    fields {
+        field {
+            name     = target
+            quantity = Volume
+            info     = 'The total water consumption recorded at the beginning of this month.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = Volume
+                storage_nr       = 1
+            }
+        }
+        field {
+            name       = current
+            quantity   = Volume
+            attributes = HIDE
+            match {
+                measurement_type = Instantaneous
+                vif_range        = Volume
+            }
+        }
+        field {
+            name      = total
+            quantity  = Volume
+            info      = 'The total water consumption recorded by this meter.'
+            calculate = target_m3+current_m3
+        }
+        field {
+            name       = curr_date_raw
+            quantity   = Dimensionless
+            attributes = HIDE
+            match {
+                difvifkey = 42FD3A
+            }
+        }
+        field {
+            name       = prev_date_raw
+            quantity   = Dimensionless
+            attributes = HIDE
+            match {
+                difvifkey = 02FD3A
+            }
+        }
+        field {
+            name       = prev_day
+            quantity   = Dimensionless
+            attributes = HIDE
+            calculate  = 'prev_date_raw_counter % 32counter'
+        }
+        field {
+            name       = prev_month
+            quantity   = Dimensionless
+            attributes = HIDE
+            calculate  = '(prev_date_raw_counter >> 5counter) % 16counter'
+        }
+        field {
+            name       = prev_year
+            quantity   = Dimensionless
+            attributes = HIDE
+            calculate  = 'prev_date_raw_counter >> 9counter'
+        }
+        field {
+            name       = curr_day
+            quantity   = Dimensionless
+            attributes = HIDE
+            calculate  = '(curr_date_raw_counter >> 4counter) % 32counter'
+        }
+        field {
+            name       = curr_month
+            quantity   = Dimensionless
+            attributes = HIDE
+            calculate  = '(curr_date_raw_counter >> 9counter) % 16counter'
+        }
+        field {
+            name       = curr_year
+            quantity   = Dimensionless
+            attributes = HIDE
+            info       = 'Current billing year is previous year unless month/day rolled over.'
+            calculate  = 'prev_year_counter + ((curr_month_counter < prev_month_counter) || ((curr_month_counter == prev_month_counter) && (curr_day_counter <= prev_day_counter)))'
+        }
+        field {
+            name         = current
+            quantity     = PointInTime
+            display_unit = date
+            info         = 'Date of current billing period.'
+            calculate    = "'2000-01-01' +
+                            (((curr_year_counter * 12counter) + curr_month_counter - 1counter) * 1month) +
+                            ((curr_day_counter - 1counter) * 24h)"
+        }
+        field {
+            name         = prev
+            quantity     = PointInTime
+            display_unit = date
+            info         = 'Date of previous billing period.'
+            calculate    = "'2000-01-01' +
+                            (((prev_year_counter * 12counter) + prev_month_counter - 1counter) * 1month) +
+                            ((prev_day_counter - 1counter) * 24h)"
+        }
+        field {
+            name                 = mfct_specific_data
+            quantity             = Text
+            attributes           = HIDE
+            match_entire_payload = true
+            ixml                 = "decode = frame.
+                                    frame = byte,
+                                            PrevDate,
+                                            PrevVolume,
+                                            CurrDate,
+                                            CurrVolume,
+                                            byte*.
+
+                                    PrevDate = word, @DV_prev_date_raw.
+                                    PrevVolume = word, @DV_target.
+                                    CurrDate = word, @DV_current_date_raw.
+                                    CurrVolume = word, @DV_current.
+
+                                    -hex  = ['A'-'F';'0'-'9'].
+                                    -byte = hex, hex.
+                                    -word = byte, byte.
+
+                                    DV_prev_date_raw>dvk = +'02FD3A'.
+                                    DV_target>dvk = +'4215'.
+                                    DV_current_date_raw>dvk = +'42FD3A'.
+                                    DV_current>dvk = +'0215'."
+        }
+    }
+    tests {
+        test {
+            comment  = 'Version 0x74 legacy payload'
+            args     = 'Duschen mkradio3 34333231 NOKEY'
+            telegram = 2F446850313233347462A2_069F255900B029310000000306060906030609070606050509050505050407040605070500
+            json     = '{"_":"telegram","media":"warm water","meter":"mkradio3","name":"Duschen","id":"34333231","total_m3":13.8,"target_m3":8.9,"current_date":"2019-04-27","prev_date":"2018-12-31","timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'Duschen;34333231;13.8;8.9;2019-04-27;2018-12-31;1111-11-11 11:11.11'
+        }
+        test {
+            comment  = 'Version 0x74 payload with prev_date 2018-03-31'
+            args     = 'Duschen mkradio3 34333231 NOKEY'
+            telegram = 2F446850313233347462A2_067F245900B029310000000306060906030609070606050509050505050407040605070500
+            json     = '{"_":"telegram","media":"warm water","meter":"mkradio3","name":"Duschen","id":"34333231","total_m3":13.8,"target_m3":8.9,"current_date":"2018-04-27","prev_date":"2018-03-31","timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'Duschen;34333231;13.8;8.9;2018-04-27;2018-03-31;1111-11-11 11:11.11'
+        }
+        test {
+            comment  = 'Version 0x74 payload with prev_date 2018-03-31 and current_date 2019-03-31'
+            args     = 'Duschen mkradio3 34333231 NOKEY'
+            telegram = 2F446850313233347462A2_067F245900F007310000000306060906030609070606050509050505050407040605070500
+            json     = '{"_":"telegram","media":"warm water","meter":"mkradio3","name":"Duschen","id":"34333231","total_m3":13.8,"target_m3":8.9,"current_date":"2019-03-31","prev_date":"2018-03-31","timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'Duschen;34333231;13.8;8.9;2019-03-31;2018-03-31;1111-11-11 11:11.11'
+        }
+        test {
+            comment  = 'Version 0x74 payload with prev_date 2018-03-31 and current_date 2018-04-01'
+            args     = 'Duschen mkradio3 34333231 NOKEY'
+            telegram = 2F446850313233347462A2_067F2459001008310000000306060906030609070606050509050505050407040605070500
+            json     = '{"_":"telegram","media":"warm water","meter":"mkradio3","name":"Duschen","id":"34333231","total_m3":13.8,"target_m3":8.9,"current_date":"2018-04-01","prev_date":"2018-03-31","timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'Duschen;34333231;13.8;8.9;2018-04-01;2018-03-31;1111-11-11 11:11.11'
+        }
+    }
+}
