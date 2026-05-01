@@ -28,7 +28,7 @@ struct TriggerBits
 {
     TriggerBits() : bits_(0) {}
     TriggerBits(uint64_t b) : bits_(b) {}
-    int intValue() const { return bits_; }
+    int intValue() const { return static_cast<int>(bits_); }
     bool operator==(const TriggerBits &tb) const { return bits_ == tb.bits_; }
     bool operator!=(const TriggerBits &tb) const { return bits_ != tb.bits_; }
 
@@ -42,7 +42,7 @@ struct MaskBits
 {
     MaskBits() : bits_(0) {}
     MaskBits(uint64_t b) : bits_(b) {}
-    int intValue() { return bits_; }
+    int intValue() { return static_cast<int>(bits_); }
     bool operator==(const MaskBits &tb) const { return bits_ == tb.bits_; }
     bool operator!=(const MaskBits &tb) const { return bits_ != tb.bits_; }
 

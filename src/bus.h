@@ -48,7 +48,7 @@ struct BusManager
     void regularCheckup();
     void sendQueue();
 
-    int numBusDevices() { return  bus_devices_.size(); }
+    int numBusDevices() { return static_cast<int>(bus_devices_.size()); }
     BusDevice *findBus(std::string bus_alias);
     void queueSendBusContent(const SendBusContent &sbc);
 

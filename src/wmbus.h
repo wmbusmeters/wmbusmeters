@@ -184,7 +184,7 @@ struct LinkModeSet
     // Mark set as all linkmodes!
     void setAll() { set_ = (int)LinkMode::Any; }
     // For bit counting etc.
-    int asBits() { return set_; }
+    int asBits() { return static_cast<int>(set_); }
 
     // Return a human readable string.
     std::string hr();
