@@ -74,7 +74,7 @@ else
         endif
     else
         # Release build
-        DEBUG_FLAGS=-Os -g
+        DEBUG_FLAGS=-O3 -g
         STRIP_BINARY=cp $(BUILD)/wmbusmeters $(BUILD)/wmbusmeters.g; $(STRIP) $(BUILD)/wmbusmeters
         GCOV=To_run_gcov_add_DEBUG=true
     endif
@@ -303,7 +303,7 @@ testinternals: $(BUILD)/testinternals
 $(BUILD)/testinternals.o: $(PROG_OBJS) $(DRIVER_OBJS) $(wildcard src/*.h)
 
 $(BUILD)/testinternals: $(BUILD)/testinternals.o
-	$(CXX) -o $(BUILD)/testinternals $(PROG_OBJS) $(DRIVER_OBJS) $(BUILD)/testinternals.o $(LDFLAGS)  -lpthread
+	$(CXX) $(DEBUG_FLAGS) -o $(BUILD)/testinternals $(PROG_OBJS) $(DRIVER_OBJS) $(BUILD)/testinternals.o $(LDFLAGS)  -lpthread
 
 $(BUILD)/fuzz: $(PROG_OBJS) $(DRIVER_OBJS) $(BUILD)/fuzz.o
 	$(CXX) $(DEBUG_FLAGS) -o $(BUILD)/fuzz $(PROG_OBJS) $(DRIVER_OBJS) $(BUILD)/fuzz.o $(LDFLAGS) -lpthread
