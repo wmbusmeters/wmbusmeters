@@ -4072,27 +4072,27 @@ double dataAsDouble(int dif, int vif, int vife, string data)
 
     int t = dif & 0x0f;
     switch (t) {
-    case 0x0: return 0.0;
-    case 0x1: return toDoubleFromBytes(bytes, 1);
-    case 0x2: return toDoubleFromBytes(bytes, 2);
-    case 0x3: return toDoubleFromBytes(bytes, 3);
-    case 0x4: return toDoubleFromBytes(bytes, 4);
-    case 0x5: return -1;  //  How is REAL stored?
-    case 0x6: return toDoubleFromBytes(bytes, 6);
+    case 0x0: return 0;
+    case 0x1: return static_cast<uint64_t>(toDoubleFromBytes(bytes, 1));
+    case 0x2: return static_cast<uint64_t>(toDoubleFromBytes(bytes, 2));
+    case 0x3: return static_cast<uint64_t>(toDoubleFromBytes(bytes, 3));
+    case 0x4: return static_cast<uint64_t>(toDoubleFromBytes(bytes, 4));
+    case 0x5: return static_cast<uint64_t>(-1);  //  How is REAL stored?
+    case 0x6: return static_cast<uint64_t>(toDoubleFromBytes(bytes, 6));
         // Note that for 64 bit data, storing it into a double might lose precision
         // since the mantissa is less than 64 bit. It is unlikely that anyone
         // really needs true 64 bit precision in their measurements from a physical meter though.
-    case 0x7: return toDoubleFromBytes(bytes, 8);
-    case 0x8: return -1; // Selection for Readout?
-    case 0x9: return toDoubleFromBCD(bytes, 1);
-    case 0xA: return toDoubleFromBCD(bytes, 2);
-    case 0xB: return toDoubleFromBCD(bytes, 3);
-    case 0xC: return toDoubleFromBCD(bytes, 4);
-    case 0xD: return -1; // variable length
-    case 0xE: return toDoubleFromBCD(bytes, 6);
-    case 0xF: return -1; // Special Functions
+    case 0x7: return static_cast<uint64_t>(toDoubleFromBytes(bytes, 8));
+    case 0x8: return static_cast<uint64_t>(-1); // Selection for Readout?
+    case 0x9: return static_cast<uint64_t>(toDoubleFromBCD(bytes, 1));
+    case 0xA: return static_cast<uint64_t>(toDoubleFromBCD(bytes, 2));
+    case 0xB: return static_cast<uint64_t>(toDoubleFromBCD(bytes, 3));
+    case 0xC: return static_cast<uint64_t>(toDoubleFromBCD(bytes, 4));
+    case 0xD: return static_cast<uint64_t>(-1); // variable length
+    case 0xE: return static_cast<uint64_t>(toDoubleFromBCD(bytes, 6));
+    case 0xF: return static_cast<uint64_t>(-1); // Special Functions
     }
-    return -1;
+    return static_cast<uint64_t>(-1);
 }
 
 uint64_t dataAsUint64(int dif, int vif, int vife, string data)
@@ -4838,7 +4838,9 @@ bool trimCRCsFrameFormatAInternal(std::vector<uchar> &payload, bool fail_is_ok)
             }
             return false;
         }
-        out.insert(out.end(), payload.begin()+pos, payload.begin()+pos+16);
+        out.insert(out.end(),
+               payload.begin()+static_cast<vector<uchar>::difference_type>(pos),
+               payload.begin()+static_cast<vector<uchar>::difference_type>(pos+16));
         if (!fail_is_ok)
         {
             debug("(wmbus) ff a dll crc mid %zu-%zu %04x ok\n", pos, to-1, calc_crc);
@@ -4860,7 +4862,9 @@ bool trimCRCsFrameFormatAInternal(std::vector<uchar> &payload, bool fail_is_ok)
             }
             return false;
         }
-        out.insert(out.end(), payload.begin()+pos, payload.begin()+tto);
+        out.insert(out.end(),
+               payload.begin()+static_cast<vector<uchar>::difference_type>(pos),
+               payload.begin()+static_cast<vector<uchar>::difference_type>(tto));
         if (!fail_is_ok)
         {
             debug("(wmbus) ff a dll crc final %zu-%zu %04x ok\n", pos, tto-1, calc_crc);
@@ -4869,7 +4873,7 @@ bool trimCRCsFrameFormatAInternal(std::vector<uchar> &payload, bool fail_is_ok)
 
     debugPayload("(wmbus) trimming frame A", payload);
 
-    out[0] = out.size()-1;
+    out[0] = static_cast<uchar>(out.size()-1);
     size_t new_len = out[0]+1;
     size_t old_size = payload.size();
     payload = out;
@@ -4923,7 +4927,7 @@ bool trimCRCsFrameFormatBInternal(std::vector<uchar> &payload, bool fail_is_ok)
         return false;
     }
 
-    out.insert(out.end(), payload.begin(), payload.begin()+crc1_pos);
+    out.insert(out.end(), payload.begin(), payload.begin()+static_cast<vector<uchar>::difference_type>(crc1_pos));
     if (!fail_is_ok)
     {
         debug("(wmbus) ff b dll crc first 0-%zu %04x ok\n", crc1_pos, calc_crc);
@@ -4946,7 +4950,9 @@ bool trimCRCsFrameFormatBInternal(std::vector<uchar> &payload, bool fail_is_ok)
             return false;
         }
 
-        out.insert(out.end(), payload.begin()+crc1_pos+2, payload.begin()+crc2_pos);
+        out.insert(out.end(),
+               payload.begin()+static_cast<vector<uchar>::difference_type>(crc1_pos+2),
+               payload.begin()+static_cast<vector<uchar>::difference_type>(crc2_pos));
         if (!fail_is_ok)
         {
             debug("(wmbus) ff b dll crc final %zu-%zu %04x ok\n", crc1_pos+2, crc2_pos, calc_crc);
@@ -4955,7 +4961,7 @@ bool trimCRCsFrameFormatBInternal(std::vector<uchar> &payload, bool fail_is_ok)
 
     debugPayload("(wmbus) trimming frame B", payload);
 
-    out[0] = out.size()-1;
+    out[0] = static_cast<uchar>(out.size()-1);
     size_t new_len = out[0]+1;
     size_t old_size = payload.size();
     payload = out;
@@ -5026,7 +5032,7 @@ FrameStatus checkWMBusFrame(vector<uchar> &data,
                 if (data[i]+1 == (uchar)remaining && data[i+1] == 0x44)
                 {
                     found = true;
-                    offset = i+1;
+                    offset = static_cast<int>(i+1);
                     verbose("(wmbus) out of sync, skipping %d bytes.\n", (int)i);
                     break;
                 }
@@ -5049,7 +5055,7 @@ FrameStatus checkWMBusFrame(vector<uchar> &data,
     }
     *payload_len_out = payload_len;
     *payload_offset = offset;
-    *frame_length = payload_len+offset;
+    *frame_length = static_cast<size_t>(payload_len+offset);
     if (data.size() < *frame_length)
     {
         // Not enough bytes for this payload_len....
@@ -5057,13 +5063,13 @@ FrameStatus checkWMBusFrame(vector<uchar> &data,
         {
             // This is used from simulate files and hex in command line and analyze.
             // Lets be lax and just adjust the length to what is available.
-            payload_len = data.size() - offset;
+                payload_len = static_cast<int>(data.size() - static_cast<size_t>(offset));
             *payload_len_out = payload_len;
-            *frame_length = payload_len+offset;
+                *frame_length = static_cast<size_t>(payload_len+offset);
             warning("(wmbus) not enough bytes, frame length byte changed from %d(%02x) to %d(%02x)!\n",
-                    data[offset-1], data[offset-1],
+                    data[static_cast<size_t>(offset-1)], data[static_cast<size_t>(offset-1)],
                     payload_len, payload_len);
-            data[offset-1] = payload_len;
+                data[static_cast<size_t>(offset-1)] = static_cast<uchar>(payload_len);
 
             return FullFrame;
         }
@@ -5147,7 +5153,7 @@ FrameStatus checkMBusFrame(vector<uchar> &data,
         return ErrorInFrame;
     }
     int payload_len = data[1];
-    *frame_length = payload_len+4+1+1; // start(4)+cs(1)+stop(1)
+    *frame_length = static_cast<size_t>(payload_len+4+1+1); // start(4)+cs(1)+stop(1)
     if (data.size() < *frame_length)
     {
         if (!only_test)
@@ -5173,7 +5179,7 @@ FrameStatus checkMBusFrame(vector<uchar> &data,
         return ErrorInFrame;
     }
 
-    *payload_len_out = *frame_length;
+    *payload_len_out = static_cast<int>(*frame_length);
     *payload_offset = 0;
     if (!only_test)
     {
