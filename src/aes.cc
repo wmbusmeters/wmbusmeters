@@ -184,7 +184,8 @@ static uint8_t getSBoxInvert(uint8_t num)
 // This function produces Nb(Nr+1) round keys. The round keys are used in each round to decrypt the states.
 static void KeyExpansion(void)
 {
-  uint32_t i, k;
+  uint32_t i;
+  uint8_t k;
   uint8_t tempa[4]; // Used for the column/row operations
 
   // The first round key is the key itself.
