@@ -194,7 +194,7 @@ void test_crc()
     }
 }
 
-bool tst_parse(const char *data, std::map<std::string,std::pair<int,DVEntry>> *dv_entries, int testnr)
+bool tst_parse(const char *data, std::unordered_map<std::string,std::pair<int,DVEntry>> *dv_entries, int testnr)
 {
     debug("\n\nTest nr %d......\n\n", testnr);
     bool b;
@@ -208,7 +208,7 @@ bool tst_parse(const char *data, std::map<std::string,std::pair<int,DVEntry>> *d
     return b;
 }
 
-bool tst_ixmlparse(const char *hex, const char *grammar, std::map<std::string,std::pair<int,DVEntry>> *dv_entries, int testnr)
+bool tst_ixmlparse(const char *hex, const char *grammar, std::unordered_map<std::string,std::pair<int,DVEntry>> *dv_entries, int testnr)
 {
     debug("\n\nTest ixml parse nr %d......\n\n", testnr);
     bool b;
@@ -231,7 +231,7 @@ bool tst_ixmlparse(const char *hex, const char *grammar, std::map<std::string,st
     return b;
 }
 
-void tst_double(map<string,pair<int,DVEntry>> &values, const char *key, double v, int testnr)
+void tst_double(unordered_map<string,pair<int,DVEntry>> &values, const char *key, double v, int testnr)
 {
     int offset;
     double value;
@@ -245,7 +245,7 @@ void tst_double(map<string,pair<int,DVEntry>> &values, const char *key, double v
     }
 }
 
-void tst_string(map<string,pair<int,DVEntry>> &values, const char *key, const char *v, int testnr)
+void tst_string(unordered_map<string,pair<int,DVEntry>> &values, const char *key, const char *v, int testnr)
 {
     int offset;
     string value;
@@ -258,7 +258,7 @@ void tst_string(map<string,pair<int,DVEntry>> &values, const char *key, const ch
     }
 }
 
-void tst_date(map<string,pair<int,DVEntry>> &values, const char *key, string date_expected, int testnr)
+void tst_date(unordered_map<string,pair<int,DVEntry>> &values, const char *key, string date_expected, int testnr)
 {
     int offset;
     struct tm value;
@@ -277,7 +277,7 @@ void tst_date(map<string,pair<int,DVEntry>> &values, const char *key, string dat
 
 void test_dvparser()
 {
-    map<string,pair<int,DVEntry>> dv_entries;
+    unordered_map<string,pair<int,DVEntry>> dv_entries;
 
     int testnr = 1;
     tst_parse("2F 2F 0B 13 56 34 12 8B 82 00 93 3E 67 45 23 0D FD 10 0A 30 31 32 33 34 35 36 37 38 39 0F 88 2F", &dv_entries, testnr);
@@ -305,7 +305,7 @@ void test_dvparser()
 
 void test_ixmlparser()
 {
-    map<string,pair<int,DVEntry>> dv_entries;
+    unordered_map<string,pair<int,DVEntry>> dv_entries;
 
     int testnr = 1;
     tst_ixmlparse("10351F0400",

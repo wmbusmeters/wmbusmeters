@@ -28,6 +28,7 @@
 #include<inttypes.h>
 #include<map>
 #include<set>
+#include<unordered_map>
 
 // Check and remove the data link layer CRCs from a wmbus telegram.
 // If the CRCs do not pass the test, return false.
@@ -574,7 +575,7 @@ public:
 
     // The actual content of the (w)mbus telegram. The DifVif entries.
     // Mapped from their key for quick access to their offset and content.
-    std::map<std::string,std::pair<int,DVEntry>> dv_entries;
+    std::unordered_map<std::string,std::pair<int,DVEntry>> dv_entries;
 
     std::string autoDetectPossibleDrivers();
 

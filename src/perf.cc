@@ -83,7 +83,7 @@ int main(int argc, char **argv)
             int64_t start = current_time_micros();
             for (int j = 0; j < reps; ++j)
             {
-                map<string,pair<int,DVEntry>> dv_entries;
+                unordered_map<string,pair<int,DVEntry>> dv_entries;
                 Telegram t;
                 vector<uchar>::iterator i = buf.begin();
                 parseDV(&t, buf, i, buf.size(), &dv_entries);

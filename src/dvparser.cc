@@ -25,6 +25,7 @@
 #include<cmath>
 #include<memory.h>
 #include<limits>
+#include<unordered_map>
 
 // The parser should not crash on invalid data, but yeah, when I
 // need to debug it because it crashes on invalid data, then
@@ -152,7 +153,7 @@ LIST_OF_VIF_RANGES
     return false;
 }
 
-map<uint16_t,string> hash_to_format_;
+unordered_map<uint16_t,string> hash_to_format_;
 
 bool loadFormatBytesFromSignature(uint16_t format_signature, vector<uchar> *format_bytes)
 {
@@ -170,12 +171,12 @@ bool parseDV(Telegram *t,
              vector<uchar> &databytes,
              vector<uchar>::iterator data,
              size_t data_len,
-             map<string,pair<int,DVEntry>> *dv_entries,
+             unordered_map<string,pair<int,DVEntry>> *dv_entries,
              vector<uchar>::iterator *format,
              size_t format_len,
              uint16_t *format_hash)
 {
-    map<string,int> dv_count;
+    unordered_map<string,int> dv_count;
     vector<uchar> format_bytes;
     vector<uchar> id_bytes;
     vector<uchar> data_bytes;
@@ -667,7 +668,7 @@ string generate_dif_vif_key(const char *dif, const char *vif_range, const char *
 struct OffsetEntries {
     Telegram *telegram;
     int offset;
-    map<string,pair<int,DVEntry>> *dv_entries;
+    unordered_map<string,pair<int,DVEntry>> *dv_entries;
 };
 typedef OffsetEntries OffsetEntries;
 
@@ -676,7 +677,7 @@ XMQProceed add_value(XMQDoc *doc, XMQNodePtr node, void *user_data)
     OffsetEntries *oe = (OffsetEntries*)user_data;
     Telegram *t = oe->telegram;
     int offset = oe->offset;
-    map<string,pair<int,DVEntry>> *dv_entries = oe->dv_entries;
+    unordered_map<string,pair<int,DVEntry>> *dv_entries = oe->dv_entries;
 
     const char *difvifkey = xmqGetStringRel(doc, "@dvk", node);
     if (!difvifkey) return XMQ_CONTINUE;
@@ -718,7 +719,7 @@ bool parseWithIXML(Telegram *t,
                    int offset,
                    std::string hex,
                    XMQDoc *ixml_grammar,
-                   std::map<std::string,std::pair<int,DVEntry>> *dv_entries)
+                   std::unordered_map<std::string,std::pair<int,DVEntry>> *dv_entries)
 {
     XMQDoc *decode = xmqNewDoc();
     bool b = xmqParseBufferWithIXML(decode,
@@ -755,19 +756,19 @@ bool parseWithIXML(Telegram *t,
     return b;
 }
 
-bool hasKey(std::map<std::string,std::pair<int,DVEntry>> *dv_entries, std::string key)
+bool hasKey(std::unordered_map<std::string,std::pair<int,DVEntry>> *dv_entries, std::string key)
 {
     return dv_entries->count(key) > 0;
 }
 
 bool findKey(MeasurementType mit, VIFRange vif_range, StorageNr storagenr, TariffNr tariffnr,
-             std::string *key, std::map<std::string,std::pair<int,DVEntry>> *dv_entries)
+             std::string *key, std::unordered_map<std::string,std::pair<int,DVEntry>> *dv_entries)
 {
     return findKeyWithNr(mit, vif_range, storagenr, tariffnr, 1, key, dv_entries);
 }
 
 bool findKeyWithNr(MeasurementType mit, VIFRange vif_range, StorageNr storagenr, TariffNr tariffnr, int nr,
-                   std::string *key, std::map<std::string,std::pair<int,DVEntry>> *dv_entries)
+                   std::string *key, std::unordered_map<std::string,std::pair<int,DVEntry>> *dv_entries)
 {
     /*debug("(dvparser) looking for type=%s vifrange=%s storagenr=%d tariffnr=%d\n",
       measurementTypeName(mit).c_str(), toString(vif_range), storagenr.intValue(), tariffnr.intValue());*/
@@ -880,7 +881,7 @@ void extractDV(string &s, uchar *dif, int *vif, bool *has_difes, bool *has_vifes
     }
 }
 
-bool extractDVuint8(map<string,pair<int,DVEntry>> *dv_entries,
+bool extractDVuint8(unordered_map<string,pair<int,DVEntry>> *dv_entries,
                     string key,
                     int *offset,
                     uchar *value)
@@ -901,7 +902,7 @@ bool extractDVuint8(map<string,pair<int,DVEntry>> *dv_entries,
     return true;
 }
 
-bool extractDVuint16(map<string,pair<int,DVEntry>> *dv_entries,
+bool extractDVuint16(unordered_map<string,pair<int,DVEntry>> *dv_entries,
                      string key,
                      int *offset,
                      uint16_t *value)
@@ -922,7 +923,7 @@ bool extractDVuint16(map<string,pair<int,DVEntry>> *dv_entries,
     return true;
 }
 
-bool extractDVuint24(map<string,pair<int,DVEntry>> *dv_entries,
+bool extractDVuint24(unordered_map<string,pair<int,DVEntry>> *dv_entries,
                      string key,
                      int *offset,
                      uint32_t *value)
@@ -943,7 +944,7 @@ bool extractDVuint24(map<string,pair<int,DVEntry>> *dv_entries,
     return true;
 }
 
-bool extractDVuint32(map<string,pair<int,DVEntry>> *dv_entries,
+bool extractDVuint32(unordered_map<string,pair<int,DVEntry>> *dv_entries,
                      string key,
                      int *offset,
                      uint32_t *value)
@@ -964,7 +965,7 @@ bool extractDVuint32(map<string,pair<int,DVEntry>> *dv_entries,
     return true;
 }
 
-bool extractDVdouble(map<string,pair<int,DVEntry>> *dv_entries,
+bool extractDVdouble(unordered_map<string,pair<int,DVEntry>> *dv_entries,
                      string key,
                      int *offset,
                      double *value,
@@ -1176,7 +1177,7 @@ bool DVEntry::extractDouble(double *out, bool auto_scale, bool force_unsigned)
     return true;
 }
 
-bool extractDVlong(map<string,pair<int,DVEntry>> *dv_entries,
+bool extractDVlong(unordered_map<string,pair<int,DVEntry>> *dv_entries,
                    string key,
                    int *offset,
                    uint64_t *out)
@@ -1324,7 +1325,7 @@ bool DVEntry::extractLong(uint64_t *out)
     return true;
 }
 
-bool extractDVHexString(map<string,pair<int,DVEntry>> *dv_entries,
+bool extractDVHexString(unordered_map<string,pair<int,DVEntry>> *dv_entries,
                         string key,
                         int *offset,
                         string *value)
@@ -1342,7 +1343,7 @@ bool extractDVHexString(map<string,pair<int,DVEntry>> *dv_entries,
 }
 
 
-bool extractDVReadableString(map<string,pair<int,DVEntry>> *dv_entries,
+bool extractDVReadableString(unordered_map<string,pair<int,DVEntry>> *dv_entries,
                              string key,
                              int *offset,
                              string *out)
@@ -1497,7 +1498,7 @@ bool extractTime(uchar hi, uchar lo, struct tm *date)
     return true;
 }
 
-bool extractDVdate(map<string,pair<int,DVEntry>> *dv_entries,
+bool extractDVdate(unordered_map<string,pair<int,DVEntry>> *dv_entries,
                    string key,
                    int *offset,
                    struct tm *out)

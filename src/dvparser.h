@@ -27,6 +27,7 @@
 #include<set>
 #include<string>
 #include<vector>
+#include<unordered_map>
 
 #define LIST_OF_VIF_RANGES \
     X(Volume,0x10,0x17,Quantity::Volume,Unit::M3) \
@@ -545,7 +546,7 @@ bool parseDV(Telegram *t,
              std::vector<uchar> &databytes,
              std::vector<uchar>::iterator data,
              size_t data_len,
-             std::map<std::string,std::pair<int,DVEntry>> *dv_entries,
+             std::unordered_map<std::string,std::pair<int,DVEntry>> *dv_entries,
              std::vector<uchar>::iterator *format = NULL,
              size_t format_len = 0,
              uint16_t *format_hash = NULL);
@@ -557,44 +558,44 @@ bool parseWithIXML(Telegram *t,
                    int offset, // Where the hex starts in the telegram.
                    std::string hex,
                    XMQDoc *ixml_grammar,
-                   std::map<std::string,std::pair<int,DVEntry>> *dv_entries);
+                   std::unordered_map<std::string,std::pair<int,DVEntry>> *dv_entries);
 
 // Instead of using a hardcoded difvif as key in the extractDV... below,
 // find an existing difvif entry in the values based on the desired value information type.
 // Like: Volume, VolumeFlow, FlowTemperature, ExternalTemperature etc
 // in combination with the storagenr. (Later I will add tariff/subunit)
 bool findKey(MeasurementType mt, VIFRange vi, StorageNr storagenr, TariffNr tariffnr,
-             std::string *key, std::map<std::string,std::pair<int,DVEntry>> *values);
+             std::string *key, std::unordered_map<std::string,std::pair<int,DVEntry>> *values);
 // Some meters have multiple identical DIF/VIF values! Meh, they are not using storage nrs or tariff nrs.
 // So here we can pick for example nr 2 of an identical set if DIF/VIF values.
 // Nr 1 means the first found value.
 bool findKeyWithNr(MeasurementType mt, VIFRange vi, StorageNr storagenr, TariffNr tariffnr, int indexnr,
-                   std::string *key, std::map<std::string,std::pair<int,DVEntry>> *values);
+                   std::string *key, std::unordered_map<std::string,std::pair<int,DVEntry>> *values);
 
-bool hasKey(std::map<std::string,std::pair<int,DVEntry>> *values, std::string key);
+bool hasKey(std::unordered_map<std::string,std::pair<int,DVEntry>> *values, std::string key);
 
-bool extractDVuint8(std::map<std::string,std::pair<int,DVEntry>> *values,
+bool extractDVuint8(std::unordered_map<std::string,std::pair<int,DVEntry>> *values,
                     std::string key,
                     int *offset,
                     uchar *value);
 
-bool extractDVuint16(std::map<std::string,std::pair<int,DVEntry>> *values,
+bool extractDVuint16(std::unordered_map<std::string,std::pair<int,DVEntry>> *values,
                      std::string key,
                      int *offset,
                      uint16_t *value);
 
-bool extractDVuint24(std::map<std::string,std::pair<int,DVEntry>> *values,
+bool extractDVuint24(std::unordered_map<std::string,std::pair<int,DVEntry>> *values,
                      std::string key,
                      int *offset,
                      uint32_t *value);
 
-bool extractDVuint32(std::map<std::string,std::pair<int,DVEntry>> *values,
+bool extractDVuint32(std::unordered_map<std::string,std::pair<int,DVEntry>> *values,
                      std::string key,
                      int *offset,
                      uint32_t *value);
 
 // All values are scaled according to the vif and wmbusmeters scaling defaults.
-bool extractDVdouble(std::map<std::string,std::pair<int,DVEntry>> *values,
+bool extractDVdouble(std::unordered_map<std::string,std::pair<int,DVEntry>> *values,
                      std::string key,
                      int *offset,
                      double *value,
@@ -602,25 +603,25 @@ bool extractDVdouble(std::map<std::string,std::pair<int,DVEntry>> *values,
                      bool force_unsigned = false);
 
 // Extract a value without scaling. Works for 8bits to 64 bits, binary and bcd.
-bool extractDVlong(std::map<std::string,std::pair<int,DVEntry>> *values,
+bool extractDVlong(std::unordered_map<std::string,std::pair<int,DVEntry>> *values,
                    std::string key,
                    int *offset,
                    uint64_t *value);
 
 // Just copy the raw hex data into the string, not reversed or anything.
-bool extractDVHexString(std::map<std::string,std::pair<int,DVEntry>> *values,
+bool extractDVHexString(std::unordered_map<std::string,std::pair<int,DVEntry>> *values,
                         std::string key,
                         int *offset,
                         std::string *value);
 
 // Read the content and attempt to reverse and transform it into a readble string
 // based on the dif information.
-bool extractDVReadableString(std::map<std::string,std::pair<int,DVEntry>> *values,
+bool extractDVReadableString(std::unordered_map<std::string,std::pair<int,DVEntry>> *values,
                              std::string key,
                              int *offset,
                              std::string *value);
 
-bool extractDVdate(std::map<std::string,std::pair<int,DVEntry>> *values,
+bool extractDVdate(std::unordered_map<std::string,std::pair<int,DVEntry>> *values,
                    std::string key,
                    int *offset,
                    struct tm *value);
