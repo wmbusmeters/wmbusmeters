@@ -29,6 +29,7 @@
 #include"translatebits.h"
 #include"util.h"
 #include"wmbus.h"
+#include"wmbus_rc1180.h"
 #include"dvparser.h"
 #include"xmq.h"
 
@@ -82,6 +83,8 @@ bool verbose_ = false;
     X(formulas_stringinterpolation)             \
     X(formulas_rounding)                        \
     X(formulas_extended_ops)                    \
+    X(isvalidbps)                               \
+    X(rcuartbaudratefrombauds)                  \
 
 #define X(t) void test_##t();
 LIST_OF_TESTS
@@ -2918,4 +2921,84 @@ void test_dynamic_loading()
         printf("ERROR in dynamic loading got %s but expected %s!\n",
                toString(vr), toString(VIFRange::DateTime));
     }
+}
+
+void test_isvalidbps()
+{
+    // Test valid baud rates
+    assert(isValidBps("300") == true);
+    assert(isValidBps("600") == true);
+    assert(isValidBps("1200") == true);
+    assert(isValidBps("2400") == true);
+    assert(isValidBps("4800") == true);
+    assert(isValidBps("9600") == true);
+    assert(isValidBps("14400") == true);
+    assert(isValidBps("19200") == true);
+    assert(isValidBps("38400") == true);
+    assert(isValidBps("57600") == true);
+    assert(isValidBps("115200") == true);
+    assert(isValidBps("230400") == true);
+
+    // Test invalid baud rates
+    assert(isValidBps("100") == false);
+    assert(isValidBps("150") == false);
+    assert(isValidBps("1500") == false);
+    assert(isValidBps("3000") == false);
+    assert(isValidBps("5000") == false);
+    assert(isValidBps("7200") == false);
+    assert(isValidBps("10000") == false);
+    assert(isValidBps("460800") == false);
+    assert(isValidBps("9999999") == false);
+
+    // Test non-numeric strings
+    assert(isValidBps("abc") == false);
+    assert(isValidBps("12a4") == false);
+    assert(isValidBps("96 00") == false);
+    assert(isValidBps("9600x") == false);
+
+    // Test empty string
+    assert(isValidBps("") == false);
+
+    // Test edge cases
+    assert(isValidBps("0") == false);
+    assert(isValidBps("1") == false);
+    assert(isValidBps("-9600") == false);
+
+    printf("OK: test_isvalidbps\n");
+}
+
+
+void test_rcuartbaudratefrombauds()
+{
+    silentLogging(true);
+    assert(rcUartBaudRateFromBauds(2400) == RcUartBaudRate::b2400);
+    assert(rcUartBaudRateFromBauds(4800) == RcUartBaudRate::b4800);
+    assert(rcUartBaudRateFromBauds(9600) == RcUartBaudRate::b9600);
+    assert(rcUartBaudRateFromBauds(14400) == RcUartBaudRate::b14400);
+    assert(rcUartBaudRateFromBauds(19200) == RcUartBaudRate::b19200);
+    assert(rcUartBaudRateFromBauds(28800) == RcUartBaudRate::b28800);
+    assert(rcUartBaudRateFromBauds(38400) == RcUartBaudRate::b38400);
+    assert(rcUartBaudRateFromBauds(57600) == RcUartBaudRate::b57600);
+    assert(rcUartBaudRateFromBauds(76800) == RcUartBaudRate::b76800);
+    assert(rcUartBaudRateFromBauds(115200) == RcUartBaudRate::b115200);
+    assert(rcUartBaudRateFromBauds(230400) == RcUartBaudRate::b230400);
+
+    assert(rcUartBaudRateFromBauds(1) == RcUartBaudRate::invalid);
+    assert(rcUartBaudRateFromBauds(100) == RcUartBaudRate::invalid);
+    assert(rcUartBaudRateFromBauds(1200) == RcUartBaudRate::invalid);
+    assert(rcUartBaudRateFromBauds(3600) == RcUartBaudRate::invalid);
+    assert(rcUartBaudRateFromBauds(5000) == RcUartBaudRate::invalid);
+    assert(rcUartBaudRateFromBauds(0) == RcUartBaudRate::invalid);
+    assert(rcUartBaudRateFromBauds(999999) == RcUartBaudRate::invalid);
+
+    assert(rcUartBaudRateFromBauds(2401) == RcUartBaudRate::invalid);
+    assert(rcUartBaudRateFromBauds(9601) == RcUartBaudRate::invalid);
+    assert(rcUartBaudRateFromBauds(19201) == RcUartBaudRate::invalid);
+
+    assert(rcUartBaudRateFromBauds(1000) == RcUartBaudRate::invalid);
+    assert(rcUartBaudRateFromBauds(8000) == RcUartBaudRate::invalid);
+    assert(rcUartBaudRateFromBauds(16000) == RcUartBaudRate::invalid);
+
+    silentLogging(false);
+    printf("OK: test_rcuartbaudratefrombauds\n");
 }

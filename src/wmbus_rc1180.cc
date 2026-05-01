@@ -19,6 +19,7 @@
 #include"log.h"
 #include"wmbus.h"
 #include"wmbus_common_implementation.h"
+#include"wmbus_rc1180.h"
 #include"wmbus_utils.h"
 #include"serial.h"
 
@@ -35,24 +36,7 @@
 
 using namespace std;
 
-const int DEFAULT_BAUD_RATE = 19200;
-
-enum class RcUartBaudRate : uchar
-{
-    b2400 = 1,
-    b4800 = 2,
-    b9600 = 3,
-    b14400 = 4,
-    b19200 = 5,
-    b28800 = 6,
-    b38400 = 7,
-    b57600 = 8,
-    b76800 = 9,
-    b115200 = 10,
-    b230400 = 11,
-};
-
-static RcUartBaudRate rcUartBaudRateFromBauds(int baud_rate)
+RcUartBaudRate rcUartBaudRateFromBauds(int baud_rate)
 {
     switch (baud_rate)
     {
@@ -68,25 +52,51 @@ static RcUartBaudRate rcUartBaudRateFromBauds(int baud_rate)
         case 115200: return RcUartBaudRate::b115200;
         case 230400: return RcUartBaudRate::b230400;
     }
-    throw std::invalid_argument("Unable to convert baud_rate: " + std::to_string(baud_rate) + " to RC enum");
+
+    warning("Unable to convert baud_rate: %d to RC enum\n", baud_rate);
+    return RcUartBaudRate::invalid;
+
 }
 
 static int getConfiguredBaudRate(const Detected& d) noexcept
-try
 {
-    if (d.specified_device.bps.empty())
-    {
-        return DEFAULT_BAUD_RATE;
+    const char* b_str = d.specified_device.bps.c_str();
+    unsigned int value = 0;
+    unsigned int len = 0;
+    
+    while (*b_str) {
+        if (++len > 6) {
+            goto invalid;
+        }
+        char c = *b_str++;
+        if (c < '0' || c > '9') {
+            goto invalid;
+        };
+        value = value * 10 + (c - '0');
     }
-    const int result = stoi(d.specified_device.bps);
-    info("(rc1180) Boud rate overwritten to %i\n", result);
-    return result;
-}
-catch(const std::exception& e)
-{
-    warning("(rc1180) Unable to convert baud_rate: \"%s\" to int: %s - using default\n",
-            d.specified_device.bps.c_str(), e.what());
-    return DEFAULT_BAUD_RATE;
+    
+    switch (value * 10ULL + len) {
+        case 1152006:
+        case 12004:
+        case 144005:
+        case 192005:
+        case 24004:
+        case 2304006:
+        case 3003:
+        case 384005:
+        case 48004:
+        case 576005:
+        case 6003:
+        case 96004:
+            info("(rc1180) Baud rate overwritten to %i\n", value);
+            return value;
+    }
+
+    invalid:
+        warning("(rc1180) Invalid baud_rate: \"%s\" - using default %i\n", d.specified_device.bps.c_str(), WMBUS_RC1180_DEFAULT_BAUD_RATE);
+        return WMBUS_RC1180_DEFAULT_BAUD_RATE;
+
+
 }
 
 struct ConfigRC1180
@@ -433,9 +443,9 @@ try
 
     ConfigRC1180 co;
     ok = co.decode(data);
-    if (!ok || co.uart_baud_rate != rcUartBaudRateFromBauds(baud_rate))
+    if (!ok || co.uart_baud_rate == RcUartBaudRate::invalid || co.uart_baud_rate != rcUartBaudRateFromBauds(baud_rate))
     {
-        // Decode must be ok and the uart_baud_rate mus match the speed we are using.
+        // Decode must be ok and the uart_baud_rate must match the speed we are using.
         serial->close();
         verbose("(rc1180) are you there? no.\n");
         return AccessCheck::NoProperResponse;
