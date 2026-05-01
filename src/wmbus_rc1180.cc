@@ -378,13 +378,13 @@ void WMBusRC1180::processSerialData()
             {
                 if (device_config_.usingRssi())
                 {
-                    rssi = read_buffer_[payload_offset+payload_len-1];
+                    rssi = read_buffer_[static_cast<size_t>(payload_offset+payload_len-1)];
                     payload_len--;
                 }
-                payload.insert(payload.end(), payload_len); // Re-insert the len byte.
+                payload.insert(payload.end(), static_cast<uchar>(payload_len)); // Re-insert the len byte.
                 payload.insert(payload.end(), read_buffer_.begin()+payload_offset, read_buffer_.begin()+payload_offset+payload_len);
             }
-            read_buffer_.erase(read_buffer_.begin(), read_buffer_.begin()+frame_length);
+            read_buffer_.erase(read_buffer_.begin(), read_buffer_.begin()+static_cast<vector<uchar>::difference_type>(frame_length));
             AboutTelegram about("rc1180["+cached_device_id_+"]", rssi, LinkMode::UNKNOWN, FrameType::WMBUS);
             handleTelegram(about, payload);
         }
