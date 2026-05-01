@@ -1597,7 +1597,7 @@ bool FormulaImplementation::go()
 
 Token *FormulaImplementation::LA(size_t i)
 {
-    if (i < 0 || i >= tokens_.size()) return NULL;
+    if (i >= tokens_.size()) return NULL;
     return &tokens_[i];
 }
 
