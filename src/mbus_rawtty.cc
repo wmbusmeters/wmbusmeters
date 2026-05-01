@@ -108,7 +108,7 @@ void MBusRawTTY::deviceReset()
     buf[1] = 0x40; // SND_NKE
     buf[2] = 0xff; // broadcast address 255
     uchar cs = 0;
-    for (int i=1; i<3; ++i) cs += buf[i];
+    for (size_t i = 1; i < 3; ++i) cs += buf[i];
     buf[3] = cs; // checksum
     buf[4] = 0x16; // Stop
 
@@ -159,7 +159,7 @@ void MBusRawTTY::processSerialData()
             {
                 payload.insert(payload.end(), read_buffer_.begin()+payload_offset, read_buffer_.begin()+payload_offset+payload_len);
             }
-            read_buffer_.erase(read_buffer_.begin(), read_buffer_.begin()+frame_length);
+            read_buffer_.erase(read_buffer_.begin(), read_buffer_.begin()+static_cast<vector<uchar>::difference_type>(frame_length));
             AboutTelegram about(busAlias(), 0, LinkMode::UNKNOWN, FrameType::MBUS);
             handleTelegram(about, payload);
         }
