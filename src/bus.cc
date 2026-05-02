@@ -183,88 +183,31 @@ shared_ptr<BusDevice> BusManager::createWmbusObject(Detected *detected, Configur
 
     switch (detected->found_type)
     {
-    case DEVICE_AUTO:
-        assert(0);
-        error("Internal error DEVICE_AUTO should not be used here!\n");
-        break;
-    case DEVICE_MBUS:
-        verbose("(mbus) on %s\n", detected->found_file.c_str());
-        wmbus = openMBUS(*detected, serial_manager_, serial_override);
-        break;
-    case DEVICE_IM871A:
-        verbose("(im871a) on %s\n", detected->found_file.c_str());
-        wmbus = openIM871A(*detected, serial_manager_, serial_override);
-        break;
-    case DEVICE_IM170A:
-        verbose("(im170a) on %s\n", detected->found_file.c_str());
-        wmbus = openIM170A(*detected, serial_manager_, serial_override);
-        break;
-    case DEVICE_IU891A:
-        verbose("(iu891a) on %s\n", detected->found_file.c_str());
-        wmbus = openIU891A(*detected, serial_manager_, serial_override);
-        break;
-    case DEVICE_AMB8465:
-        verbose("(amb8465) on %s\n", detected->found_file.c_str());
-        wmbus = openAMB8465(*detected, serial_manager_, serial_override);
-        break;
-    case DEVICE_AMB3665:
-        verbose("(amb3665) on %s\n", detected->found_file.c_str());
-        wmbus = openAMB3665(*detected, serial_manager_, serial_override);
-        break;
-    case DEVICE_SIMULATION:
-        verbose("(simulation) in %s\n", detected->found_file.c_str());
-        wmbus = openSimulator(*detected, serial_manager_, serial_override);
-        break;
-    case DEVICE_RAWTTY:
-        verbose("(rawtty) on %s\n", detected->found_file.c_str());
-        wmbus = openRawTTY(*detected, serial_manager_, serial_override);
-        break;
-    case DEVICE_HEXTTY:
-        verbose("(hextty) on %s\n", detected->found_file.c_str());
-        wmbus = openHexTTY(*detected, serial_manager_, serial_override);
-        break;
-    case DEVICE_XMQTTY:
-        verbose("(xmqtty) on %s\n", detected->found_file.c_str());
-        wmbus = openXmqTTY(*detected, serial_manager_, serial_override);
-        break;
-    case DEVICE_RTLWMBUS:
-        wmbus = openRTLWMBUS(*detected, config->bin_dir, config->daemon, serial_manager_, serial_override);
-        break;
-    case DEVICE_RTL433:
-        wmbus = openRTL433(*detected, config->bin_dir, config->daemon, serial_manager_, serial_override);
-        break;
-    case DEVICE_CUL:
-    {
-        verbose("(cul) on %s\n", detected->found_file.c_str());
-        wmbus = openCUL(*detected, serial_manager_, serial_override);
-        break;
-    }
-    case DEVICE_RC1180:
-    {
-        verbose("(rc1180) on %s\n", detected->found_file.c_str());
-        wmbus = openRC1180(*detected, serial_manager_, serial_override);
-        break;
-    }
-    case DEVICE_IU880B:
-    {
-        verbose("(iu880b) on %s\n", detected->found_file.c_str());
-        wmbus = openIU880B(*detected, serial_manager_, serial_override);
-        break;
-    }
-    case DEVICE_SOCKET:
-    {
-        verbose("(socket) on %s\n", detected->specified_device.extras.c_str());
-        wmbus = openSocket(*detected, serial_manager_, serial_override);
-        break;
-    }
-    case DEVICE_UNKNOWN:
-        warning("(main) internal error! cannot create an unknown device! exiting!\n");
-        if (config->daemon) {
-            // If starting as a daemon, wait a bit so that systemd have time to catch up.
-            sleep(1);
-        }
-        exit(1);
-        break;
+        #define X(name,text,detector,opener) case DEVICE_ ## name: \
+            verbose("Creating device %s\n", toString(DEVICE_ ## name)); \
+            wmbus = opener(*detected, serial_manager_, serial_override); \
+            break;
+        #define X_RTLSDR(name,text,detector,opener) case DEVICE_ ## name: \
+            verbose("Creating device %s\n", toString(DEVICE_ ## name)); \
+            wmbus = opener(*detected, config->bin_dir, config->daemon, serial_manager_, serial_override); \
+            break;
+        #define X_SPECIAL(name,text,detector,opener) case DEVICE_ ## name: \
+            warning("(main) internal error! cannot create an unknown device! exiting!\n"); \
+            if (config->daemon) { \
+                /* If starting as a daemon, wait a bit so that systemd have time to catch up. */ \
+                sleep(1); \
+            } \
+            exit(1); \
+            break;
+        #define X_TTY(name,text,detector,opener) case DEVICE_ ## name: \
+            verbose("Creating device %s\n", toString(DEVICE_ ## name)); \
+            wmbus = opener(*detected, serial_manager_, serial_override); \
+            break;
+        LIST_OF_BUS_DEVICES
+        #undef X_RTLSDR
+        #undef X_SPECIAL
+        #undef X_TTY
+        #undef X
     }
 
     if (detected->found_device_id != "" &&  !detected->found_tty_override)

@@ -36,29 +36,35 @@ void removeAnyDLLCRCs(std::vector<uchar> &payload);
 bool trimCRCsFrameFormatA(std::vector<uchar> &payload);
 bool trimCRCsFrameFormatB(std::vector<uchar> &payload);
 
-#define LIST_OF_MBUS_DEVICES \
-    X(UNKNOWN,unknown,false,false,detectUNKNOWN)     \
-    X(MBUS,mbus,true,false,detectMBUS)               \
-    X(AUTO,auto,false,false,detectAUTO)              \
-    X(AMB8465,amb8465,true,false,detectAMB8465AMB3665)\
-    X(AMB3665,amb3665,true,false,detectSKIP)         \
-    X(CUL,cul,true,false,detectCUL)                  \
-    X(IM871A,im871a,true,false,detectIM871AIM170A)   \
-    X(IM170A,im170a,true,false,detectSKIP)           \
-    X(IU891A,iu891a,true,false,detectIU891A)         \
-    X(RAWTTY,rawtty,true,false,detectRAWTTY)         \
-    X(HEXTTY,hextty,true,false,detectSKIP)           \
-    X(XMQTTY,xmqtty,true,false,detectSKIP)         \
-    X(RC1180,rc1180,true,false,detectRC1180)         \
-    X(RTL433,rtl433,false,true,detectRTL433)         \
-    X(RTLWMBUS,rtlwmbus,false,true,detectRTLWMBUS)   \
-    X(IU880B,iu880b,true,false,detectSKIP)         \
-    X(SOCKET,socket,false,false,detectSKIP)       \
-    X(SIMULATION,simulation,false,false,detectSIMULATION)
+#define LIST_OF_BUS_DEVICES                                 \
+    X_SPECIAL(UNKNOWN,unknown,detectUNKNOWN,nullptr_t)      \
+    X_SPECIAL(AUTO,auto,detectAUTO,nullptr_t)               \
+    X_TTY(MBUS,mbus,detectMBUS,openMBUS)                    \
+    X_TTY(AMB8465,amb8465,detectAMB8465AMB3665,openAMB8465) \
+    X_TTY(AMB3665,amb3665,detectSKIP,openAMB3665)           \
+    X_TTY(CUL,cul,detectCUL,openCUL)                        \
+    X_TTY(IM871A,im871a,detectIM871AIM170A,openIM871A)      \
+    X_TTY(IM170A,im170a,detectSKIP,openIM170A)              \
+    X_TTY(IU891A,iu891a,detectIU891A,openIU891A)            \
+    X_TTY(RAWTTY,rawtty,detectRAWTTY,openRawTTY)            \
+    X_TTY(HEXTTY,hextty,detectSKIP,openHexTTY)              \
+    X_TTY(XMQTTY,xmqtty,detectSKIP,openXmqTTY)              \
+    X_TTY(RC1180,rc1180,detectRC1180,openRC1180)            \
+    X_TTY(IU880B,iu880b,detectSKIP,openIU880B)              \
+    X_RTLSDR(RTL433,rtl433,detectRTL433,openRTL433)         \
+    X_RTLSDR(RTLWMBUS,rtlwmbus,detectRTLWMBUS,openRTLWMBUS) \
+    X(SOCKET,socket,detectSKIP,openSocket)                  \
+    X(SIMULATION,simulation,detectSIMULATION,openSimulator)
 
 enum BusDeviceType {
-#define X(name,text,tty,rtlsdr,detector) DEVICE_ ## name,
-LIST_OF_MBUS_DEVICES
+#define X(name,text,detector,opener) DEVICE_ ## name,
+#define X_RTLSDR X
+#define X_SPECIAL X
+#define X_TTY X
+LIST_OF_BUS_DEVICES
+#undef X_RTLSDR
+#undef X_SPECIAL
+#undef X_TTY
 #undef X
 };
 

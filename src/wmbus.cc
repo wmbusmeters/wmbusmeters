@@ -64,8 +64,6 @@ LIST_OF_LINK_MODES
 }
 
 LinkModeInfo *getLinkModeInfo(LinkMode lm);
-LinkModeInfo *getLinkModeInfoFromBit(int bit);
-
 LinkModeInfo *getLinkModeInfo(LinkMode lm)
 {
     for (auto& s : link_modes_)
@@ -5187,8 +5185,14 @@ const char *toString(BusDeviceType t)
 {
     switch (t)
     {
-#define X(name,text,tty,rtlsdr,detector) case DEVICE_ ## name: return #text;
-LIST_OF_MBUS_DEVICES
+#define X(name,text,detector,opener) case DEVICE_ ## name: return #text;
+#define X_RTLSDR X
+#define X_SPECIAL X
+#define X_TTY X
+LIST_OF_BUS_DEVICES
+#undef X_RTLSDR
+#undef X_SPECIAL
+#undef X_TTY
 #undef X
 
     }
@@ -5199,18 +5203,29 @@ const char *toLowerCaseString(BusDeviceType t)
 {
     switch (t)
     {
-#define X(name,text,tty,rtlsdr,detector) case DEVICE_ ## name: return #text;
-LIST_OF_MBUS_DEVICES
+#define X(name,text,detector,opener) case DEVICE_ ## name: return #text;
+#define X_RTLSDR X
+#define X_SPECIAL X
+#define X_TTY X
+LIST_OF_BUS_DEVICES
+#undef X_RTLSDR
+#undef X_SPECIAL
+#undef X_TTY
 #undef X
-
     }
     return "?";
 }
 
 BusDeviceType toBusDeviceType(string &t)
 {
-#define X(name,text,tty,rtlsdr,detector) if (t == #text) return DEVICE_ ## name;
-LIST_OF_MBUS_DEVICES
+#define X(name,text,detector,opener) if (t == #text) return DEVICE_ ## name;
+#define X_RTLSDR X
+#define X_SPECIAL X
+#define X_TTY X
+LIST_OF_BUS_DEVICES
+#undef X_RTLSDR
+#undef X_SPECIAL
+#undef X_TTY
 #undef X
     return DEVICE_UNKNOWN;
 }
@@ -5850,8 +5865,14 @@ AccessCheck reDetectDevice(Detected *detected, shared_ptr<SerialCommunicationMan
 {
     BusDeviceType type = detected->specified_device.type;
 
-#define X(name,text,tty,rtlsdr,detector) if (type == BusDeviceType::DEVICE_ ## name) return detector(detected,handler);
-LIST_OF_MBUS_DEVICES
+#define X(name,text,detector,opener) if (type == BusDeviceType::DEVICE_ ## name) return detector(detected,handler);
+#define X_RTLSDR X
+#define X_SPECIAL X
+#define X_TTY X
+LIST_OF_BUS_DEVICES
+#undef X_RTLSDR
+#undef X_SPECIAL
+#undef X_TTY
 #undef X
 
     assert(0);
@@ -5860,21 +5881,35 @@ LIST_OF_MBUS_DEVICES
 
 bool usesRTLSDR(BusDeviceType t)
 {
-#define X(name,text,tty,rtlsdr,detector) if (t == BusDeviceType::DEVICE_ ## name) return rtlsdr;
-LIST_OF_MBUS_DEVICES
+    switch (t) {
+#define X(name,text,detector,opener) 
+#define X_RTLSDR(name,text,detector,opener) case BusDeviceType::DEVICE_ ## name:
+#define X_SPECIAL X
+#define X_TTY X
+LIST_OF_BUS_DEVICES
+#undef X_RTLSDR
+#undef X_SPECIAL
+#undef X_TTY
 #undef X
-
-    assert(0);
+        return true;
+    }
     return false;
 }
 
 bool usesTTY(BusDeviceType t)
 {
-#define X(name,text,tty,rtlsdr,detector) if (t == BusDeviceType::DEVICE_ ## name) return tty;
-LIST_OF_MBUS_DEVICES
+    switch (t) {
+#define X(name,text,detector,opener)
+#define X_RTLSDR X
+#define X_SPECIAL X
+#define X_TTY(name,text,detector,opener) case BusDeviceType::DEVICE_ ## name:
+LIST_OF_BUS_DEVICES
+#undef X_RTLSDR
+#undef X_SPECIAL
+#undef X_TTY
 #undef X
-
-    assert(0);
+        return true;
+    }
     return false;
 }
 
