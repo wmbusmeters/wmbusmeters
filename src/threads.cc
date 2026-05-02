@@ -168,7 +168,7 @@ bool Semaphore::wait()
         if (!rc) break;
         if (rc == EINTR) continue;
         if (rc == ETIMEDOUT) break;
-        error("(thread) pthread cond timedwait ERROR %d\n", rc);
+        error(EXIT_THREAD_ERROR, "(thread) pthread cond timedwait ERROR %d\n", rc);
     }
 
     pthread_mutex_unlock(&mutex_);
@@ -186,7 +186,7 @@ void Semaphore::notify()
     int rc = pthread_cond_signal(&condition_);
     if (rc)
     {
-        error("(thread) pthread cond signal ERROR\n");
+        error(EXIT_THREAD_ERROR, "(thread) pthread cond signal ERROR\n");
     }
 }
 

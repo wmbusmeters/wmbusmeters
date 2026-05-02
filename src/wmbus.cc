@@ -124,7 +124,7 @@ LinkModeSet parseLinkModes(string m)
         LinkMode lm = toLinkMode(tok);
         if (lm == LinkMode::UNKNOWN)
         {
-            error("(wmbus) not a valid link mode: %s\n", tok);
+            error(EXIT_FAILURE, "(wmbus) not a valid link mode: %s\n", tok);
         }
         lms.addLinkMode(lm);
         tok = strtok_r(NULL, ",", &saveptr);
@@ -4558,7 +4558,7 @@ bool BusDeviceCommonImplementation::waitForResponse(int id)
 
     if (waiting_for_response_id_ != 0)
     {
-        error("(wmbus) bad internal state tried waitForResponse(%d) but already waiting for %d! Exiting!\n", id, waiting_for_response_id_);
+        error(EXIT_BUS_DEVICE_ERROR, "(wmbus) bad internal state tried waitForResponse(%d) but already waiting for %d! Exiting!\n", id, waiting_for_response_id_);
     }
 
     waiting_for_response_id_ = id;
@@ -5783,7 +5783,7 @@ Detected detectBusDeviceWithFileOrHex(SpecifiedDevice &specified_device,
     LinkModeSet desired_linkmodes = lms;
     if (specified_device.type == BusDeviceType::DEVICE_UNKNOWN)
     {
-        error("You have to specify the expected device type for the tty %s\n",
+        error(EXIT_BUS_DEVICE_ERROR, "You have to specify the expected device type for the tty %s\n",
               specified_device.file.c_str());
     }
 

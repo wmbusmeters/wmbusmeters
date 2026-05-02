@@ -454,14 +454,14 @@ bool checkCharacterDeviceExists(const char *tty, bool fail_if_not)
     int rc = stat(tty, &info);
     if (rc != 0) {
         if (fail_if_not) {
-            error("Device \"%s\" does not exist.\n", tty);
+            error(EXIT_DEVICE_ERROR, "Device \"%s\" does not exist.\n", tty);
         } else {
             return false;
         }
     }
     if (!S_ISCHR(info.st_mode)) {
         if (fail_if_not) {
-            error("Device %s is not a character device.\n", tty);
+            error(EXIT_DEVICE_ERROR, "Device %s is not a character device.\n", tty);
         } else {
             return false;
         }
@@ -701,7 +701,7 @@ int loadFile(const string& file, vector<string> *lines)
             if (errno == EINTR) {
                 continue;
             }
-            error("Could not read file %s errno=%d\n", file.c_str(), errno);
+            error(EXIT_FILE_ERROR, "Could not read file %s errno=%d\n", file.c_str(), errno);
             close(fd);
             return -1;
         }
@@ -717,7 +717,7 @@ int loadFile(const string& file, vector<string> *lines)
     for (;;) {
         string line = eatTo(buf, i, '\n', 32768, &eof, &err);
         if (err) {
-            error("Error parsing simulation file.\n");
+            error(EXIT_FILE_ERROR, "Error parsing simulation file.\n");
         }
         if (line.length() > 0) {
             lines->push_back(line);
@@ -997,7 +997,7 @@ AccessCheck checkIfExistsAndHasAccess(const string& device)
     // What are the groups I am member of?
     int rc = getgrouplist(p->pw_name, p->pw_gid, my_groups, &ngroups);
     if (rc < 0) {
-        error("(wmbusmeters) cannot handle users with more than 256 groups\n");
+        error(EXIT_PERMISSION_ERROR, "(wmbusmeters) cannot handle users with more than 256 groups\n");
     }
 
     // What is the group of the tty?

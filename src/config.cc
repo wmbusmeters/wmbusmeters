@@ -154,13 +154,13 @@ void parseMeterConfig(Configuration *c, vector<char> &buf, string file)
         {
             if (poll_interval != 0)
             {
-                error("You have already specified a poll interval for this meter!\n");
+                error(EXIT_CONFIG_ERROR, "You have already specified a poll interval for this meter!\n");
             }
             poll_interval = parseTime(p.second);
 
             if (poll_interval == 0)
             {
-                error("Poll interval must be non-zero \"%s\"!\n", p.second.c_str());
+                error(EXIT_CONFIG_ERROR, "Poll interval must be non-zero \"%s\"!\n", p.second.c_str());
             }
         }
         else if (p.first == "identitymode")
@@ -169,7 +169,7 @@ void parseMeterConfig(Configuration *c, vector<char> &buf, string file)
 
             if (identity_mode == IdentityMode::INVALID)
             {
-                error("Invalid identity mode: \"%s\"!\n", p.second.c_str());
+                error(EXIT_CONFIG_ERROR, "Invalid identity mode: \"%s\"!\n", p.second.c_str());
             }
         }
         else if (p.first == "shell")
@@ -399,7 +399,7 @@ bool handleDeviceOrHex(Configuration *c, string devicefilehex)
     {
         if (invalid_hex)
         {
-            error("Bad hex: \"%s\"\nHex string must have an even length of hexadecimal characters.\n", devicefilehex.c_str());
+            error(EXIT_CONFIG_ERROR, "Bad hex: \"%s\"\nHex string must have an even length of hexadecimal characters.\n", devicefilehex.c_str());
         }
     }
 
@@ -407,7 +407,7 @@ bool handleDeviceOrHex(Configuration *c, string devicefilehex)
     bool ok = specified_device.parse(devicefilehex);
     if (!ok && SpecifiedDevice::isLikelyDevice(devicefilehex))
     {
-        error("Not a valid device \"%s\"\n", devicefilehex.c_str());
+        error(EXIT_CONFIG_ERROR, "Not a valid device \"%s\"\n", devicefilehex.c_str());
     }
 
     if (!ok) return false;
@@ -421,7 +421,7 @@ bool handleDeviceOrHex(Configuration *c, string devicefilehex)
     {
         if (!specified_device.linkmodes.empty())
         {
-            error("An mbus device must not have linkmode set. \"%s\"\n", devicefilehex.c_str());
+            error(EXIT_CONFIG_ERROR, "An mbus device must not have linkmode set. \"%s\"\n", devicefilehex.c_str());
         }
     }
 
@@ -452,11 +452,11 @@ bool handleDeviceOrHex(Configuration *c, string devicefilehex)
     {
         if (c->single_device_override)
         {
-            error("You can only specify one stdin or one file or one command!\n");
+            error(EXIT_CONFIG_ERROR, "You can only specify one stdin or one file or one command!\n");
         }
         if (c->use_auto_device_detect)
         {
-            error("You cannot mix auto with stdin or a file.\n");
+            error(EXIT_CONFIG_ERROR, "You cannot mix auto with stdin or a file.\n");
         }
         if (specified_device.is_simulation) c->simulation_found = true;
         c->single_device_override = true;
@@ -494,11 +494,11 @@ void handleListenTo(Configuration *c, string mode)
     LinkModeSet lms = parseLinkModes(mode.c_str());
     if (lms.empty())
     {
-        error("Unknown link modes \"%s\"!\n", mode.c_str());
+        error(EXIT_CONFIG_ERROR, "Unknown link modes \"%s\"!\n", mode.c_str());
     }
     if (!c->default_device_linkmodes.empty())
     {
-        error("You have already specified the default link modes!\n");
+        error(EXIT_CONFIG_ERROR, "You have already specified the default link modes!\n");
     }
 
     c->default_device_linkmodes = lms;
@@ -508,14 +508,14 @@ void handleExitAfter(Configuration *c, string after)
 {
     if (c->exitafter > 0)
     {
-        error("You have already specified an exit after time!\n");
+        error(EXIT_CONFIG_ERROR, "You have already specified an exit after time!\n");
     }
 
     c->exitafter = parseTime(after);
 
     if (c->exitafter == 0)
     {
-        error("Exit after time must be non-zero \"%s\"!\n", after.c_str());
+        error(EXIT_CONFIG_ERROR, "Exit after time must be non-zero \"%s\"!\n", after.c_str());
     }
 }
 
@@ -774,10 +774,12 @@ shared_ptr<Configuration> loadConfiguration(string root, ConfigOverrides overrid
     }
 
     debug("(config) loading %s\n", conf_file.c_str());
-    bool ok = loadFile(conf_file, &global_conf);
-    global_conf.push_back('\n');
 
-    if (!ok) exit(1);
+    if (!loadFile(conf_file, &global_conf)) {
+        error(EXIT_CONFIG_ERROR, "Cannot load config file \"%s\"\n", conf_file.c_str());
+    }
+
+    global_conf.push_back('\n');
 
     auto i = global_conf.begin();
 

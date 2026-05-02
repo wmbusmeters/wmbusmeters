@@ -315,7 +315,6 @@ const SIUnit &toSIUnit(Unit u);
 const char *toString(Quantity q);
 bool isQuantity(Unit u, Quantity q);
 Quantity toQuantity(Unit u);
-void assertQuantity(Unit u, Quantity q);
 Unit defaultUnitForQuantity(Quantity q);
 std::string unitToStringHR(Unit u);
 std::string unitToStringLowerCase(Unit u);

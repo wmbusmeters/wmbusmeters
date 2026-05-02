@@ -112,7 +112,7 @@ shared_ptr<BusDevice> openSocket(Detected detected,
 
     if (socket_path.empty())
     {
-        error("(socket) no socket path specified. Use SOCKET(/path/to/socket)\n");
+        error(EXIT_SOCKET_ERROR, "(socket) no socket path specified. Use SOCKET(/path/to/socket)\n");
     }
 
     auto serial = manager->createSerialDeviceSocket(socket_path, "socket");
