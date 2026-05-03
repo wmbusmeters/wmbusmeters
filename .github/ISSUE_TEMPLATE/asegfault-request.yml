@@ -4,7 +4,7 @@ labels: ["segfault"]
 body:
   - type: markdown
     attributes:
-      value: Thanks for taking the time to fill out this request!
+      value: Write SEGFAULT in the title! Thanks for taking the time to fill out this request!
   - type: input
     id: os-version
     attributes:
