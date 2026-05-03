@@ -2068,20 +2068,27 @@ string FieldInfo::renderJson(Meter *m, DVEntry *dve)
     {
         if (displayUnit() == Unit::DateLT)
         {
-            s += "\""+field_name+"_"+display_unit_s+"\":\""+strdate(m->getNumericValue(field_name, Unit::DateLT))+"\"";
+            double v = m->getNumericValue(field_name, Unit::DateLT);
+            if (std::isnan(v)) s += "\""+field_name+"_"+display_unit_s+"\":null";
+            else s += "\""+field_name+"_"+display_unit_s+"\":\""+strdate(v)+"\"";
         }
         else if (displayUnit() == Unit::DateTimeLT)
         {
-            s += "\""+field_name+"_"+display_unit_s+"\":\""+strdatetime(m->getNumericValue(field_name, Unit::DateTimeLT))+"\"";
+            double v = m->getNumericValue(field_name, Unit::DateTimeLT);
+            if (std::isnan(v)) s += "\""+field_name+"_"+display_unit_s+"\":null";
+            else s += "\""+field_name+"_"+display_unit_s+"\":\""+strdatetime(v)+"\"";
         }
         else if (displayUnit() == Unit::DateTimeUTC)
         {
-            s += "\""+field_name+"_"+display_unit_s+"\":\""+strTimestampUTC(m->getNumericValue(field_name, Unit::DateTimeUTC))+"\"";
+            double v = m->getNumericValue(field_name, Unit::DateTimeUTC);
+            if (std::isnan(v)) s += "\""+field_name+"_"+display_unit_s+"\":null";
+            else s += "\""+field_name+"_"+display_unit_s+"\":\""+strTimestampUTC(v)+"\"";
         }
         else
         {
-            // All numeric values.
-            s += "\""+field_name+"_"+display_unit_s+"\":"+valueToString(m->getNumericValue(field_name, displayUnit()), displayUnit());
+            double v = m->getNumericValue(field_name, displayUnit());
+            if (std::isnan(v)) s += "\""+field_name+"_"+display_unit_s+"\":null";
+            else s += "\""+field_name+"_"+display_unit_s+"\":"+valueToString(v, displayUnit());
         }
     }
 
