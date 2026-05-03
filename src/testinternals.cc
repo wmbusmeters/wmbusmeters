@@ -20,6 +20,7 @@
 #include"aescmac.h"
 #include"cmdline.h"
 #include"config.h"
+#include"crc16.h"
 #include"drivers.h"
 #include"formula_implementation.h"
 #include"manufacturers.h"
