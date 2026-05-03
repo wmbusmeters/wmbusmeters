@@ -1,0 +1,28 @@
+name: Ticket a segmentation fault at runtime
+description: This is the ticket to create when wmbusmeters crashes
+labels: ["segfault"]
+body:
+  - type: markdown
+    attributes:
+      value: Thanks for taking the time to fill out this request!
+  - type: input
+    id: os-version
+    attributes:
+      label: OS version
+      description: Specify OS version where wmbusmeters is running
+    validations:
+      required: true
+  - type: input
+    id: wmbusmeters-version
+    attributes:
+      label: wmbusmeters version
+      description: Specify wmbusmeters version
+    validations:
+      required: true
+  - type: textarea
+    id: descriptiom
+    attributes:
+      label: Your message goes here
+      description: Write SEGFAULT in the title! Provide as detailed description as possible and preferably how to reproduce it. If you can, build with make debug=TRUE and reproduce the crash. This will create a stack trace that is super useful for me.
+    validations:
+      required: true
