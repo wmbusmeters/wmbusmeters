@@ -19,6 +19,7 @@
 #define LOG_H
 
 #include"always.h"
+#include"exitcodes.h"
 
 #include<string>
 #include<vector>
@@ -34,7 +35,9 @@ void notice_always(const char* fmt, ...);
 void notice_timestamp(const char* fmt, ...);
 
 void warning(const char* fmt, ...);
-void error(const char* fmt, ...);
+
+// [[noreturn]] void error(const char* fmt, ...);
+[[noreturn]] void error(int __status, const char* fmt, ...);
 
 #define verbose(...) { if (isVerboseEnabled()) { verbose_int(__VA_ARGS__); } }
 void verbose_int(const char* fmt, ...);

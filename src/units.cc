@@ -469,14 +469,6 @@ LIST_OF_QUANTITIES
     return Quantity::Unknown;
 }
 
-void assertQuantity(Unit u, Quantity q)
-{
-    if (!isQuantity(u, q))
-    {
-        error("Internal error! Unit is not of this quantity.\n");
-    }
-}
-
 Unit defaultUnitForQuantity(Quantity q)
 {
 #define X(quantity,default_unit) if (q == Quantity::quantity) return Unit::default_unit;

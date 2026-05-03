@@ -175,7 +175,7 @@ void WMBusSimulator::simulate()
         bool ok = hex2bin(hex.c_str(), &payload);
         if (!ok)
         {
-            error("Not a valid string of hex bytes! \"%s\"\n", l.c_str());
+            error(EXIT_BUS_DEVICE_ERROR, "Not a valid string of hex bytes! \"%s\"\n", l.c_str());
         }
 
         size_t frame_length;

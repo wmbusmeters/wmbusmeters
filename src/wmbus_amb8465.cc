@@ -589,7 +589,7 @@ bool WMBusAmber::deviceSetLinkModes(LinkModeSet lms)
     if (!canSetLinkModes(lms))
     {
         string modes = lms.hr();
-        error("(amb8465) setting link mode(s) %s is not supported for amb8465 \n", modes.c_str());
+        error(EXIT_BUS_DEVICE_ERROR, "(amb8465) setting link mode(s) %s is not supported for amb8465 \n", modes.c_str());
     }
 
     {
@@ -889,7 +889,7 @@ bool WMBusAmber::sendTelegram(LinkMode lm, TelegramFormat format, vector<uchar> 
 
     if (link_mode == 0xff)
     {
-        error("(amb8465) setting link mode %s for sending is not supported for amb8465 \n", toString(lm));
+        error(EXIT_BUS_DEVICE_ERROR, "(amb8465) setting link mode %s for sending is not supported for amb8465 \n", toString(lm));
     }
 
     {
