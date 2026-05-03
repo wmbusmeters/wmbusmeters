@@ -565,6 +565,16 @@ FieldInfo *MeterCommonImplementation::lastAddedField()
     return &field_infos_.back();
 }
 
+int MeterCommonImplementation::indexRequiredStatusField()
+{
+    if (required_status_field_index_ != -1) return required_status_field_index_;
+    FieldInfo &fi = field_infos_.back();
+    if (fi.printProperties().hasSTATUS() && fi.printProperties().hasREQUIRED() && !fi.printProperties().hasHIDE())
+        required_status_field_index_ = (int)(field_infos_.size() - 1);
+    
+    return required_status_field_index_;
+}
+
 void MeterCommonImplementation::addNumericFieldWithExtractor(string vname,
                                                              string help,
                                                              PrintProperties print_properties,
@@ -747,6 +757,7 @@ void MeterCommonImplementation::addStringFieldWithExtractor(string vname,
     {
         field_infos_.back().matchEntirePayload(true);
     }
+    indexRequiredStatusField();
 }
 
 void MeterCommonImplementation::addStringFieldWithExtractorAndLookup(string vname,
@@ -775,6 +786,7 @@ void MeterCommonImplementation::addStringFieldWithExtractorAndLookup(string vnam
                   NULL, /* Formula */
                   this /* Meter */
             ));
+    indexRequiredStatusField();
 }
 
 void MeterCommonImplementation::addStringField(string vname,
@@ -801,6 +813,7 @@ void MeterCommonImplementation::addStringField(string vname,
                   NULL, /* Formula */
                   this /* Meter */
             ));
+    indexRequiredStatusField();
 }
 
 bool send_primary_poll(Meter *m, BusDevice *bus_device, AddressExpression *ae, bool next_telegram, uchar fcb)
@@ -1512,6 +1525,14 @@ bool MeterCommonImplementation::handleTelegram(AboutTelegram &about, vector<ucha
     }
     // Invoke any calculators working on the extracted fields.
     processFieldCalculators();
+
+    // Inject ERROR for any STATUS+REQUIRED field that was not matched.
+    if (required_status_field_index_ >= 0)
+    {
+        FieldInfo &fi = field_infos_[required_status_field_index_];
+        if (string_values_.count(fi.vname()) == 0)
+            string_values_[fi.vname()] = StringField("ERROR", &fi);
+    }
 
     // All done....
 

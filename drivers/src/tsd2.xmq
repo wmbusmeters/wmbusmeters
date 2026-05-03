@@ -25,7 +25,7 @@ driver {
             name           = status
             quantity       = Text
             info           = 'The current status: OK or SMOKE.'
-            attributes     = STATUS
+            attributes     = STATUS,REQUIRED
             vif_scaling    = None
             dif_signedness = Unsigned
             match {

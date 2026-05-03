@@ -112,6 +112,7 @@ protected:
 
     void markLastFieldAsLibrary();
     FieldInfo *lastAddedField();
+    int indexRequiredStatusField();
 
     void addNumericFieldWithExtractor(
         std::string vname,           // Name of value without unit, eg "total" "total_month{storagenr}"
@@ -252,6 +253,7 @@ private:
     bool has_process_content_ = false;
     bool has_received_first_telegram_ = false;
     MeterManager *meter_manager_ {};
+    int required_status_field_index_ = -1;
 
 protected:
 
