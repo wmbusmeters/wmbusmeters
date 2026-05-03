@@ -1,0 +1,41 @@
+// Copyright (C) 2024 Fredrik Öhrström (gpl-3.0-or-later)
+driver {
+    name           = istawater
+    meter_type     = WaterMeter
+    default_fields = name,id,total_m3,target_m3,timestamp
+    detect {
+        mvt = IST,31,07
+    }
+    library {
+        use = total_m3
+    }
+    fields {
+        field {
+            name     = target
+            quantity = Volume
+            match {
+                measurement_type = Instantaneous
+                vif_range        = Volume
+                storage_nr       = 2
+            }
+        }
+        field {
+            name         = target
+            quantity     = PointInTime
+            display_unit = date
+            match {
+                measurement_type = Instantaneous
+                vif_range        = Date
+                storage_nr       = 2
+            }
+        }
+    }
+    tests {
+        test {
+            args     = 'I istawater 22705729 NOKEY'
+            telegram = 434474262957702231078c2095900f002c25d744B09e30930afB644687f97ad7002007102f2f0c136960320082016c1e398c0113626032002f2f2f2f2f2f2f2f2f2f2f2f
+            json     = '{"_": "telegram","id": "22705729","media": "water","meter": "istawater","name": "I","target_date": "2024-09-30","target_m3": 326.062,"timestamp": "1111-11-11T11:11:11Z","total_m3": 326.069}'
+            fields   = 'I;22705729;326.069;326.062;1111-11-11 11:11.11'
+        }
+    }
+}

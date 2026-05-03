@@ -759,6 +759,12 @@ test {
     fields   = 'HeatItUp;33503169;OK;0;0;1111-11-11 11:11.11'
 }
 test {
+    args     = 'I istawater 22705729 NOKEY'
+    telegram = 434474262957702231078c2095900f002c25d744B09e30930afB644687f97ad7002007102f2f0c136960320082016c1e398c0113626032002f2f2f2f2f2f2f2f2f2f2f2f
+    json     = '{"_": "telegram","id": "22705729","media": "water","meter": "istawater","name": "I","target_date": "2024-09-30","target_m3": 326.062,"timestamp": "1111-11-11T11:11:11Z","total_m3": 326.069}'
+    fields   = 'I;22705729;326.069;326.062;1111-11-11 11:11.11'
+}
+test {
     args     = 'Heat_lower_case itronheat 11755757 NOKEY'
     comment  = 'Itron Heatmeter with strange MFCT iTW instead of ITW'
     telegram = 404497A65757751100047A040000A00406494C0000041348318000066D2B0ED7EE2A0044069A360000426CDF2C0D7FEB0700000006040C5C7E034E0C7942502321
