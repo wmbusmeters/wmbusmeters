@@ -277,6 +277,14 @@ void tst_date(unordered_map<string,pair<int,DVEntry>> &values, const char *key, 
     }
 }
 
+void tst_no_key(unordered_map<string,pair<int,DVEntry>> &values, const char *key, int testnr)
+{
+    if (hasKey(&values, key))
+    {
+        fprintf(stderr, "Error in dvparser testnr %d: key %s should not exist\n", testnr, key);
+    }
+}
+
 void test_dvparser()
 {
     unordered_map<string,pair<int,DVEntry>> dv_entries;
@@ -344,16 +352,16 @@ void test_dvparser()
 
     testnr++;
     dv_entries.clear();
-    // spacing value 251 is reserved; parser should ignore spacing semantics and still decode profile values.
+    // spacing value 251 is reserved and compact profile shall be rejected.
     tst_parse("0213E803 0D9313 04 72FB0500", &dv_entries, testnr);
-    tst_double(dv_entries, "4213", 0.995, testnr);
+    tst_no_key(dv_entries, "4213", testnr);
 
     testnr++;
     dv_entries.clear();
     // spacing value 253 is reserved for spacing units 00b..10b (half-month only valid with 11b).
-    // parser should keep robust behavior and still decode values.
+    // compact profile shall be rejected for this invalid combination.
     tst_parse("0213E803 0D9313 04 52FD0500", &dv_entries, testnr);
-    tst_double(dv_entries, "4213", 0.995, testnr);
+    tst_no_key(dv_entries, "4213", testnr);
 
     testnr++;
     dv_entries.clear();

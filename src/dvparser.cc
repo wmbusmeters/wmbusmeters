@@ -249,6 +249,13 @@ static bool decodeCompactProfileHeader(uchar spacing_control,
         *distance = CompactProfileDistance::NotSpacedInTime;
         return true;
     }
+
+    // EN 13757-3 Annex F.8: these spacing values are reserved.
+    if (spacing_value == 251 || spacing_value == 252 || spacing_value == 255)
+    {
+        return false;
+    }
+
     if (spacing_value >= 1 && spacing_value <= 250)
     {
         switch (spacing_unit)
@@ -260,20 +267,26 @@ static bool decodeCompactProfileHeader(uchar spacing_control,
         }
         return true;
     }
-    if (spacing_value == 253 && spacing_unit == 0x3)
+    if (spacing_value == 253)
     {
-        *distance = CompactProfileDistance::HalfMonth;
-        return true;
+        if (spacing_unit == 0x3)
+        {
+            *distance = CompactProfileDistance::HalfMonth;
+            return true;
+        }
+        // EN 13757-3 Annex F.8: 253 is reserved unless spacing unit is days/month.
+        return false;
     }
     if (spacing_value == 254)
     {
         if (spacing_unit == 0x1) { *distance = CompactProfileDistance::SixMonths; return true; }
         if (spacing_unit == 0x2) { *distance = CompactProfileDistance::ThreeMonths; return true; }
         if (spacing_unit == 0x3) { *distance = CompactProfileDistance::OneMonth; return true; }
+        // EN 13757-3 Annex F.8: spacing value 254 with spacing unit 00b is reserved.
+        return false;
     }
 
-    // Reserved/unknown spacing codes are left as Unknown but should not block parsing.
-    return true;
+    return false;
 }
 
 static bool findCompactProfileBaseValue(unordered_map<string,pair<int,DVEntry>> *dv_entries,
@@ -580,12 +593,13 @@ static void addSyntheticCompactProfileEntries(unordered_map<string,pair<int,DVEn
     CompactProfileIncrementMode increment_mode;
     CompactProfileDistance distance;
     bool binary_value_is_unsigned = false;
-    decodeCompactProfileHeader(spacing_control,
-                               spacing_value,
-                               &slot_dif_nibble,
-                               &increment_mode,
-                               &distance,
-                               &binary_value_is_unsigned);
+    bool valid_header = decodeCompactProfileHeader(spacing_control,
+                                                   spacing_value,
+                                                   &slot_dif_nibble,
+                                                   &increment_mode,
+                                                   &distance,
+                                                   &binary_value_is_unsigned);
+    if (!valid_header) return;
 
     int slot_bytes = difLenBytes(slot_dif_nibble);
     if (slot_bytes <= 0) return; // variable-length or unknown slot type
