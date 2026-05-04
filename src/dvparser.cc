@@ -156,6 +156,120 @@ LIST_OF_VIF_RANGES
 
 unordered_map<uint16_t,string> hash_to_format_;
 
+static string makeSyntheticStorageKey(uchar dif_data_len_nibble, int storage_nr, uchar vif)
+{
+    vector<uchar> key_bytes;
+
+    int lsb_of_storage_nr = storage_nr & 1;
+    int remaining_storage_bits = storage_nr >> 1;
+
+    uchar dif = (dif_data_len_nibble & 0x0f) | (lsb_of_storage_nr ? 0x40 : 0x00);
+    if (remaining_storage_bits > 0) {
+        dif |= 0x80;
+    }
+    key_bytes.push_back(dif);
+
+    while (remaining_storage_bits > 0)
+    {
+        uchar dife = remaining_storage_bits & 0x0f;
+        remaining_storage_bits >>= 4;
+        if (remaining_storage_bits > 0) {
+            dife |= 0x80;
+        }
+        key_bytes.push_back(dife);
+    }
+
+    key_bytes.push_back(vif);
+    return bin2hex(key_bytes);
+}
+
+static void addSyntheticCompactProfileEntries(unordered_map<string,pair<int,DVEntry>> *dv_entries,
+                                              int offset,
+                                              DVEntry &entry)
+{
+    bool has_compact = entry.combinable_vifs.count(VIFCombinable::CompactProfile) > 0;
+    bool has_inverse_compact = entry.combinable_vifs.count(VIFCombinable::InverseCompactProfile) > 0;
+    if (!has_compact && !has_inverse_compact) return;
+
+    vector<uchar> payload;
+    hex2bin(entry.value, &payload);
+
+    if (payload.size() < 2) return;
+
+    // The compact profile payload starts with a format frame: a DIF byte (with optional
+    // DIFE bytes signaled by the DIF/DIFE extension bit), followed by a single VIF byte.
+    // VIFE are NOT part of the format frame even if the VIF extension bit is set.
+    // The DIF low nibble (passed to makeSyntheticStorageKey) encodes the slot byte width.
+    size_t fmt = 0;
+    uchar format_dif = payload[fmt++];
+    while ((payload[fmt - 1] & 0x80) && fmt < payload.size()) fmt++; // skip DIFE bytes
+    if (fmt >= payload.size()) return; // missing VIF
+    fmt++; // skip VIF byte
+    size_t data_start = fmt;
+
+    int slot_bytes = difLenBytes(format_dif);
+    if (slot_bytes <= 0) return; // variable-length or unknown slot type
+
+    if ((payload.size() - data_start) % (size_t)slot_bytes != 0) return;
+
+    // Storage of compact-profile payload acts as a base/reference value.
+    // History points are generated from the next storage and onward.
+    int base_storage = entry.storage_nr.intValue();
+    int synthetic_index = 0;
+    uchar slot_dif_nibble = format_dif & 0x0f;
+
+    auto add_slot = [&](size_t slot_offset)
+    {
+        // All-bits-set for the slot width is the sentinel for "no data / slot not yet used".
+        bool all_ff = true;
+        for (int i = 0; i < slot_bytes; i++) {
+            if (payload[slot_offset + i] != 0xff) { all_ff = false; break; }
+        }
+        if (all_ff) return;
+
+        int storage_nr = base_storage + 1 + synthetic_index;
+        string base_key = makeSyntheticStorageKey(slot_dif_nibble, storage_nr, entry.vif.intValue() & 0xff);
+        string key = base_key;
+        int duplicate_nr = 2;
+        while (dv_entries->count(key) > 0)
+        {
+            strprintf(&key, "%s_%d", base_key.c_str(), duplicate_nr);
+            duplicate_nr++;
+        }
+
+        string value_hex = bin2hex(vector<uchar>(payload.begin() + slot_offset,
+                                                  payload.begin() + slot_offset + slot_bytes));
+        set<VIFCombinable> no_combinable_vifs;
+        set<uint16_t> no_combinable_vifs_raw;
+
+        auto insert_res = dv_entries->emplace(key,
+                          std::make_pair(offset,
+                                 DVEntry(offset,
+                                         DifVifKey(key),
+                                         entry.measurement_type,
+                                         entry.vif,
+                                         std::move(no_combinable_vifs),
+                                         std::move(no_combinable_vifs_raw),
+                                         StorageNr(storage_nr),
+                                         entry.tariff_nr,
+                                         entry.subunit_nr,
+                                         value_hex)));
+        assert(insert_res.second);
+        synthetic_index++;
+    };
+
+    if (has_inverse_compact)
+    {
+        for (size_t i = data_start; i + (size_t)slot_bytes <= payload.size(); i += slot_bytes)
+            add_slot(i);
+    }
+    else
+    {
+        for (size_t end = payload.size(); end >= data_start + (size_t)slot_bytes; end -= slot_bytes)
+            add_slot(end - slot_bytes);
+    }
+}
+
 bool loadFormatBytesFromSignature(uint16_t format_signature, vector<uchar> *format_bytes)
 {
     if (hash_to_format_.count(format_signature) > 0) {
@@ -582,6 +696,8 @@ bool parseDV(Telegram *t,
         DVEntry *dve = &entry.second;
 
         trace("[DVPARSER] entry %s\n", dve->str().c_str());
+
+        addSyntheticCompactProfileEntries(dv_entries, offset, *dve);
 
         assert(key == dve->dif_vif_key.str());
 
