@@ -624,9 +624,34 @@ static bool stepCompactProfileDate(struct tm *date,
     }
     else if (distance == CompactProfileDistance::HalfMonth)
     {
-        // EN 13757-3 defines a half-month spacing marker. Model this as 15 days for
-        // synthetic date slot generation.
-        step_seconds = (int64_t)15 * 24 * 60 * 60;
+        // EN 13757-3 defines half-month spacing in conjunction with days/month unit.
+        // Use calendar half-month boundaries (1st/16th) instead of a fixed 15-day offset.
+        int day = date->tm_mday;
+        if (inverse)
+        {
+            if (day >= 16)
+            {
+                date->tm_mday = 1;
+            }
+            else
+            {
+                addMonths(date, -1);
+                date->tm_mday = 16;
+            }
+        }
+        else
+        {
+            if (day <= 15)
+            {
+                date->tm_mday = 16;
+            }
+            else
+            {
+                addMonths(date, 1);
+                date->tm_mday = 1;
+            }
+        }
+        return true;
     }
     else
     {
