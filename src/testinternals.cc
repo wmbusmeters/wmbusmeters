@@ -385,6 +385,16 @@ void test_dvparser()
     tst_parse("0213E803 0D9313 08 F2FE010000800700", &dv_entries, testnr);
     tst_double(dv_entries, "4213", 0.999, testnr);
     tst_no_key(dv_entries, "820113", testnr);
+
+    testnr++;
+    dv_entries.clear();
+    // Inverse compact profile with spacing value 2 and spacing unit days.
+    // Base date 2024-01-10 => generated history dates 2024-01-08 and 2024-01-06.
+    tst_parse("820413E803 82046C0A31 8D04931306720205000300", &dv_entries, testnr);
+    tst_double(dv_entries, "C20413", 0.995, testnr);
+    tst_double(dv_entries, "820513", 0.992, testnr);
+    tst_date(dv_entries, "C2046C", "2024-01-08 00:00:00", testnr);
+    tst_date(dv_entries, "82056C", "2024-01-06 00:00:00", testnr);
 }
 
 void test_ixmlparser()

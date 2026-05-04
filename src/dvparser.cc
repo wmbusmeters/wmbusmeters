@@ -218,12 +218,14 @@ static bool decodeCompactProfileHeader(uchar spacing_control,
                                        uchar *slot_dif_nibble,
                                        CompactProfileIncrementMode *mode,
                                        CompactProfileDistance *distance,
-                                       bool *binary_value_is_unsigned)
+                                       bool *binary_value_is_unsigned,
+                                       int *spacing_step)
 {
     *slot_dif_nibble = spacing_control & 0x0f;
     *mode = CompactProfileIncrementMode::Unknown;
     *distance = CompactProfileDistance::Unknown;
     *binary_value_is_unsigned = false;
+    *spacing_step = 0;
 
     switch ((spacing_control >> 6) & 0x03)
     {
@@ -247,6 +249,7 @@ static bool decodeCompactProfileHeader(uchar spacing_control,
     if (spacing_value == 0)
     {
         *distance = CompactProfileDistance::NotSpacedInTime;
+        *spacing_step = 0;
         return true;
     }
 
@@ -258,6 +261,7 @@ static bool decodeCompactProfileHeader(uchar spacing_control,
 
     if (spacing_value >= 1 && spacing_value <= 250)
     {
+        *spacing_step = spacing_value;
         switch (spacing_unit)
         {
             case 0x0: *distance = CompactProfileDistance::Seconds; break;
@@ -272,6 +276,7 @@ static bool decodeCompactProfileHeader(uchar spacing_control,
         if (spacing_unit == 0x3)
         {
             *distance = CompactProfileDistance::HalfMonth;
+            *spacing_step = 1;
             return true;
         }
         // EN 13757-3 Annex F.8: 253 is reserved unless spacing unit is days/month.
@@ -279,9 +284,9 @@ static bool decodeCompactProfileHeader(uchar spacing_control,
     }
     if (spacing_value == 254)
     {
-        if (spacing_unit == 0x1) { *distance = CompactProfileDistance::SixMonths; return true; }
-        if (spacing_unit == 0x2) { *distance = CompactProfileDistance::ThreeMonths; return true; }
-        if (spacing_unit == 0x3) { *distance = CompactProfileDistance::OneMonth; return true; }
+        if (spacing_unit == 0x1) { *distance = CompactProfileDistance::SixMonths; *spacing_step = 6; return true; }
+        if (spacing_unit == 0x2) { *distance = CompactProfileDistance::ThreeMonths; *spacing_step = 3; return true; }
+        if (spacing_unit == 0x3) { *distance = CompactProfileDistance::OneMonth; *spacing_step = 1; return true; }
         // EN 13757-3 Annex F.8: spacing value 254 with spacing unit 00b is reserved.
         return false;
     }
@@ -583,6 +588,62 @@ static bool isCompactSignedBinaryIllegalValue(const vector<uchar> &bytes)
     return bytes.back() == 0x80;
 }
 
+static bool stepCompactProfileDate(struct tm *date,
+                                   CompactProfileDistance distance,
+                                   int spacing_step,
+                                   bool inverse)
+{
+    int direction = inverse ? -1 : 1;
+
+    if (distance == CompactProfileDistance::OneMonth ||
+        distance == CompactProfileDistance::ThreeMonths ||
+        distance == CompactProfileDistance::SixMonths)
+    {
+        int months = spacing_step;
+        if (months <= 0) months = 1;
+        addMonths(date, direction * months);
+        return true;
+    }
+
+    int64_t step_seconds = 0;
+    if (distance == CompactProfileDistance::Seconds)
+    {
+        step_seconds = spacing_step;
+    }
+    else if (distance == CompactProfileDistance::Minutes)
+    {
+        step_seconds = (int64_t)spacing_step * 60;
+    }
+    else if (distance == CompactProfileDistance::Hours)
+    {
+        step_seconds = (int64_t)spacing_step * 60 * 60;
+    }
+    else if (distance == CompactProfileDistance::Days)
+    {
+        step_seconds = (int64_t)spacing_step * 24 * 60 * 60;
+    }
+    else if (distance == CompactProfileDistance::HalfMonth)
+    {
+        // EN 13757-3 defines a half-month spacing marker. Model this as 15 days for
+        // synthetic date slot generation.
+        step_seconds = (int64_t)15 * 24 * 60 * 60;
+    }
+    else
+    {
+        return false;
+    }
+
+    if (step_seconds <= 0) return false;
+
+    time_t t = mktime(date);
+    if (t == (time_t)-1) return false;
+
+    int64_t shifted = (int64_t)t + direction * step_seconds;
+    time_t ts = (time_t)shifted;
+    if (!localtime_r(&ts, date)) return false;
+    return true;
+}
+
 static void addSyntheticCompactProfileEntries(unordered_map<string,pair<int,DVEntry>> *dv_entries,
                                               int offset,
                                               DVEntry &entry)
@@ -607,12 +668,14 @@ static void addSyntheticCompactProfileEntries(unordered_map<string,pair<int,DVEn
     CompactProfileIncrementMode increment_mode;
     CompactProfileDistance distance;
     bool binary_value_is_unsigned = false;
+    int spacing_step = 0;
     bool valid_header = decodeCompactProfileHeader(spacing_control,
                                                    spacing_value,
                                                    &slot_dif_nibble,
                                                    &increment_mode,
                                                    &distance,
-                                                   &binary_value_is_unsigned);
+                                                   &binary_value_is_unsigned,
+                                                   &spacing_step);
     if (!valid_header) return;
 
     int slot_bytes = difLenBytes(slot_dif_nibble);
@@ -746,30 +809,9 @@ static void addSyntheticCompactProfileEntries(unordered_map<string,pair<int,DVEn
 
         if (have_running_base_date)
         {
-            bool can_step_date = false;
-            int months_step = 0;
-
-            if (distance == CompactProfileDistance::OneMonth)
+            struct tm next_date = running_base_date;
+            if (stepCompactProfileDate(&next_date, distance, spacing_step, has_inverse_compact))
             {
-                can_step_date = true;
-                months_step = 1;
-            }
-            else if (distance == CompactProfileDistance::ThreeMonths)
-            {
-                can_step_date = true;
-                months_step = 3;
-            }
-            else if (distance == CompactProfileDistance::SixMonths)
-            {
-                can_step_date = true;
-                months_step = 6;
-            }
-
-            if (can_step_date)
-            {
-                struct tm next_date = running_base_date;
-                addMonths(&next_date, has_inverse_compact ? -months_step : months_step);
-
                 vector<uchar> date_bytes;
                 if (encodeDateBytes(next_date, base_date_len, &date_bytes))
                 {
