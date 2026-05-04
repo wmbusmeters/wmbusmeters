@@ -56,6 +56,7 @@ namespace
                         Translate::MapType::BitToString,
                         AlwaysTrigger, MaskBits(0xffff),
                         "OK",
+                        "ERROR",
                         {
                             // !!! Uncertain !!!
                             // The documentation links to some intranet site, Qundis Error Codes Specification v1.7

@@ -1450,6 +1450,7 @@ void test_translate()
                     AlwaysTrigger,
                     MaskBits(0x3f),
                     "OOOK",
+                    "ERROR",
                     {
                         { 0x01, "BACKWARD_FLOW" },
                         { 0x02, "DRY" },
@@ -1469,6 +1470,7 @@ void test_translate()
                     AlwaysTrigger,
                     MaskBits(0x03),
                     "OK",
+                    "ERROR",
                     {
                         // Test that 0x01 is set, means OK (ie installed)
                         // Not set means not installed.

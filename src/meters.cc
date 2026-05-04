@@ -1526,12 +1526,24 @@ bool MeterCommonImplementation::handleTelegram(AboutTelegram &about, vector<ucha
     // Invoke any calculators working on the extracted fields.
     processFieldCalculators();
 
-    // Inject ERROR for any STATUS+REQUIRED field that was not matched.
-    if (required_status_field_index_ >= 0)
+    // Inject fallback_message for any STATUS+REQUIRED field that was not matched.
+    if (required_status_field_index_ != -1)
     {
         FieldInfo &fi = field_infos_[required_status_field_index_];
         if (string_values_.count(fi.vname()) == 0)
-            string_values_[fi.vname()] = StringField("ERROR", &fi);
+        {
+            std::string fallback_msg = "ERROR"; // default fallback for lookups without rules
+            if (fi.lookup().hasLookups() && fi.lookup().rules.size() > 0)
+            {
+                fallback_msg = fi.lookup().rules[0].fallback_message.stringValue();
+                // If fallback_message is empty, use default_message as fallback
+                if (fallback_msg.empty())
+                {
+                    fallback_msg = "ERROR";
+                }
+            }
+            string_values_[fi.vname()] = StringField(fallback_msg, &fi);
+        }
     }
 
     // All done....

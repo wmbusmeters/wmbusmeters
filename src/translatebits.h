@@ -52,6 +52,18 @@ private:
 
 extern MaskBits AutoMask;
 
+struct FallbackMessage
+{
+    FallbackMessage() : message_("") {}
+    FallbackMessage(std::string m) : message_(m) {}
+    const std::string &stringValue() { return message_; }
+    bool operator==(const FallbackMessage &dm) const { return message_ == dm.message_; }
+    bool operator!=(const FallbackMessage &dm) const { return message_ != dm.message_; }
+
+private:
+    std::string message_;
+};
+
 struct DefaultMessage
 {
     DefaultMessage() : message_("") {}
@@ -91,16 +103,18 @@ namespace Translate
         TriggerBits trigger; // Bits that must be set.
         MaskBits mask; // Bits to be used are set as 1.
         DefaultMessage default_message; // If no bits are set print this, typically "OK" or "".
+        FallbackMessage fallback_message; // If the field is required but the field is missing, print this, otherwise "ERROR".
         std::vector<Map> map;
 
         Rule() {};
-        Rule(std::string n, MapType t, TriggerBits tr, MaskBits mb, std::string dm, std::vector<Map> m)
-            : name(n), type(t), trigger(tr), mask(mb), default_message(dm), map(m) {}
+        Rule(std::string n, MapType t, TriggerBits tr, MaskBits mb, std::string dm, std::string fm, std::vector<Map> m)
+            : name(n), type(t), trigger(tr), mask(mb), default_message(dm), fallback_message(fm), map(m) {}
         Rule(std::string n, MapType t) :
-            name(n), type(t), trigger(AlwaysTrigger), mask(AutoMask), default_message(DefaultMessage("")) {}
+            name(n), type(t), trigger(AlwaysTrigger), mask(AutoMask), default_message(DefaultMessage("")), fallback_message(FallbackMessage("")) {}
         Rule &set(TriggerBits t) { trigger = t; return *this; }
         Rule &set(MaskBits m) { mask = m; return *this; }
         Rule &set(DefaultMessage m) { default_message = m; return *this; }
+        Rule &set(FallbackMessage m) { fallback_message = m; return *this; }
         Rule &add(Map m) { map.push_back(m); return *this; }
     };
 

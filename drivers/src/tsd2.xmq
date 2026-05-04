@@ -33,13 +33,18 @@ driver {
                 difvifkey        = 0101
             }
             lookup {
-                name            = STATUS
-                map_type        = BitToString
-                mask_bits       = 0xff
-                default_message = OK
+                name             = STATUS
+                map_type         = BitToString
+                mask_bits        = 0xff
+                default_message  = OK
+                fallback_message = ERROR
+                map {
+                    name  = OK
+                    value = 0xff
+                    test  = NotSet
+                }
                 map {
                     name  = SMOKE
-                    info  = 'Smoke detected.'
                     value = 0x01
                     test  = Set
                 }

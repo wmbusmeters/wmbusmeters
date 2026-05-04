@@ -1281,7 +1281,7 @@ Translate::MapType checked_map_type(const char *map_type_s, DriverDynamic *dd)
                 "Available map types:\n"
                 "BitToString\n"
                 "IndexToString\n"
-                "DecimalToString\n"
+                "DecimalsToString\n"
                 "%s\n",
                 dd->fileName().c_str(),
                 map_type_s,
