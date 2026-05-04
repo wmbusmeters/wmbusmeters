@@ -569,6 +569,20 @@ static bool encodeCompactSlotSigned(uchar slot_dif_nibble,
     return true;
 }
 
+static bool isCompactSignedBinaryIllegalValue(const vector<uchar> &bytes)
+{
+    if (bytes.empty()) return false;
+
+    // EN 13757-3 Annex F.2.4 references Annex A type B/C "illegal" coding.
+    // For signed binary (type B), illegal is the most negative value, e.g.
+    // -128 (0x80), -32768 (0x8000), etc.
+    for (size_t i = 0; i + 1 < bytes.size(); i++)
+    {
+        if (bytes[i] != 0x00) return false;
+    }
+    return bytes.back() == 0x80;
+}
+
 static void addSyntheticCompactProfileEntries(unordered_map<string,pair<int,DVEntry>> *dv_entries,
                                               int offset,
                                               DVEntry &entry)
@@ -628,14 +642,41 @@ static void addSyntheticCompactProfileEntries(unordered_map<string,pair<int,DVEn
                                    &running_base_date,
                                    &base_date_len);
 
+    bool stop_iteration = false;
+
     auto add_slot = [&](size_t slot_offset)
     {
+        if (stop_iteration) return;
+
         // All-bits-set for the slot width is the sentinel for "no data / slot not yet used".
         bool all_ff = true;
         for (int i = 0; i < slot_bytes; i++) {
             if (payload[slot_offset + i] != 0xff) { all_ff = false; break; }
         }
-        if (all_ff) return;
+
+        bool is_incremental_mode = increment_mode != CompactProfileIncrementMode::Absolute;
+        if (all_ff)
+        {
+            // For incremental compact profiles, invalid values terminate profile processing
+            // from this slot and onward.
+            if (is_incremental_mode)
+            {
+                stop_iteration = true;
+            }
+            return;
+        }
+
+        vector<uchar> value_bytes(payload.begin() + slot_offset,
+                                  payload.begin() + slot_offset + slot_bytes);
+
+        if (is_incremental_mode &&
+            isCompactBinaryDifNibble(slot_dif_nibble) &&
+            !binary_value_is_unsigned &&
+            isCompactSignedBinaryIllegalValue(value_bytes))
+        {
+            stop_iteration = true;
+            return;
+        }
 
         int storage_nr = base_storage + 1 + synthetic_index;
         string base_key = makeSyntheticStorageKey(slot_dif_nibble, storage_nr, entry.vif.intValue() & 0xff);
@@ -647,38 +688,42 @@ static void addSyntheticCompactProfileEntries(unordered_map<string,pair<int,DVEn
             duplicate_nr++;
         }
 
-        vector<uchar> value_bytes(payload.begin() + slot_offset,
-                                  payload.begin() + slot_offset + slot_bytes);
-
         if (has_inverse_compact &&
-            increment_mode != CompactProfileIncrementMode::Absolute &&
+            is_incremental_mode &&
             have_running_base_value)
         {
             int64_t delta = 0;
-            if (decodeCompactSlotSigned(slot_dif_nibble, value_bytes, binary_value_is_unsigned, &delta))
+            if (!decodeCompactSlotSigned(slot_dif_nibble, value_bytes, binary_value_is_unsigned, &delta))
             {
-                int64_t absolute = running_base_value;
-                if (increment_mode == CompactProfileIncrementMode::Increments)
-                {
-                    absolute = running_base_value - delta;
-                }
-                else if (increment_mode == CompactProfileIncrementMode::Decrements)
-                {
-                    absolute = running_base_value + delta;
-                }
-                else if (increment_mode == CompactProfileIncrementMode::SignedDifference)
-                {
-                    // difference = younger - older  =>  older = younger - difference
-                    absolute = running_base_value - delta;
-                }
-
-                vector<uchar> encoded_absolute;
-                if (encodeCompactSlotSigned(slot_dif_nibble, slot_bytes, absolute, false, &encoded_absolute))
-                {
-                    value_bytes = encoded_absolute;
-                    running_base_value = absolute;
-                }
+                stop_iteration = true;
+                return;
             }
+
+            int64_t absolute = running_base_value;
+            if (increment_mode == CompactProfileIncrementMode::Increments)
+            {
+                absolute = running_base_value - delta;
+            }
+            else if (increment_mode == CompactProfileIncrementMode::Decrements)
+            {
+                absolute = running_base_value + delta;
+            }
+            else if (increment_mode == CompactProfileIncrementMode::SignedDifference)
+            {
+                // difference = younger - older  =>  older = younger - difference
+                absolute = running_base_value - delta;
+            }
+
+            vector<uchar> encoded_absolute;
+            if (!encodeCompactSlotSigned(slot_dif_nibble, slot_bytes, absolute, false, &encoded_absolute))
+            {
+                // Overflow or unsupported conversion: terminate this profile from here.
+                stop_iteration = true;
+                return;
+            }
+
+            value_bytes = encoded_absolute;
+            running_base_value = absolute;
         }
 
         string value_hex = bin2hex(value_bytes);

@@ -369,6 +369,22 @@ void test_dvparser()
     // Value 0xFFFB should decode as -5 (with energy scaling => -0.005 kWh).
     tst_parse("0213E803 0D9313 04 32FEFBFF", &dv_entries, testnr);
     tst_double(dv_entries, "4213", -0.005, testnr);
+
+    testnr++;
+    dv_entries.clear();
+    // Increments mode: first delta valid, second delta is invalid (all-FF for unsigned),
+    // so processing shall stop and later slots shall be ignored.
+    tst_parse("0213E803 0D9313 08 72FE0500FFFF0700", &dv_entries, testnr);
+    tst_double(dv_entries, "4213", 0.995, testnr);
+    tst_no_key(dv_entries, "820113", testnr);
+
+    testnr++;
+    dv_entries.clear();
+    // Signed-difference mode: first difference valid, second is illegal signed minimum
+    // (0x8000), so processing shall stop from that slot onward.
+    tst_parse("0213E803 0D9313 08 F2FE010000800700", &dv_entries, testnr);
+    tst_double(dv_entries, "4213", 0.999, testnr);
+    tst_no_key(dv_entries, "820113", testnr);
 }
 
 void test_ixmlparser()
