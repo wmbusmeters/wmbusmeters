@@ -285,6 +285,22 @@ void tst_no_key(unordered_map<string,pair<int,DVEntry>> &values, const char *key
     }
 }
 
+void tst_subunit(unordered_map<string,pair<int,DVEntry>> &values, const char *key, int expected_subunit, int testnr)
+{
+    if (!hasKey(&values, key))
+    {
+        fprintf(stderr, "Error in dvparser testnr %d: key %s does not exist\n", testnr, key);
+        return;
+    }
+
+    int got = values[key].second.subunit_nr.intValue();
+    if (got != expected_subunit)
+    {
+        fprintf(stderr, "Error in dvparser testnr %d: key %s subunit %d but expected %d\n",
+                testnr, key, got, expected_subunit);
+    }
+}
+
 void test_dvparser()
 {
     unordered_map<string,pair<int,DVEntry>> dv_entries;
@@ -416,6 +432,14 @@ void test_dvparser()
     tst_double(dv_entries, "820513", 1.002, testnr);
     tst_date(dv_entries, "C2046C", "2024-02-16 00:00:00", testnr);
     tst_date(dv_entries, "82056C", "2024-03-16 00:00:00", testnr);
+
+    testnr++;
+    dv_entries.clear();
+    // spacing value 0 means array mode; spacing unit addresses column number.
+    // Here spacing unit 01b => column 2, which maps to subunit offset +1.
+    tst_parse("0213E803 0D9313 04 12000500", &dv_entries, testnr);
+    tst_double(dv_entries, "4213", 0.005, testnr);
+    tst_subunit(dv_entries, "4213", 1, testnr);
 }
 
 void test_ixmlparser()

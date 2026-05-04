@@ -219,13 +219,15 @@ static bool decodeCompactProfileHeader(uchar spacing_control,
                                        CompactProfileIncrementMode *mode,
                                        CompactProfileDistance *distance,
                                        bool *binary_value_is_unsigned,
-                                       int *spacing_step)
+                                       int *spacing_step,
+                                       int *array_column)
 {
     *slot_dif_nibble = spacing_control & 0x0f;
     *mode = CompactProfileIncrementMode::Unknown;
     *distance = CompactProfileDistance::Unknown;
     *binary_value_is_unsigned = false;
     *spacing_step = 0;
+    *array_column = 0;
 
     switch ((spacing_control >> 6) & 0x03)
     {
@@ -250,6 +252,9 @@ static bool decodeCompactProfileHeader(uchar spacing_control,
     {
         *distance = CompactProfileDistance::NotSpacedInTime;
         *spacing_step = 0;
+        // EN 13757-3 Table F.8 footnote a:
+        // with spacing value 0, spacing unit addresses up to four columns.
+        *array_column = ((spacing_control >> 4) & 0x03) + 1;
         return true;
     }
 
@@ -695,13 +700,15 @@ static void addSyntheticCompactProfileEntries(unordered_map<string,pair<int,DVEn
     CompactProfileDistance distance;
     bool binary_value_is_unsigned = false;
     int spacing_step = 0;
+    int array_column = 0;
     bool valid_header = decodeCompactProfileHeader(spacing_control,
                                                    spacing_value,
                                                    &slot_dif_nibble,
                                                    &increment_mode,
                                                    &distance,
                                                    &binary_value_is_unsigned,
-                                                   &spacing_step);
+                                                   &spacing_step,
+                                                   &array_column);
     if (!valid_header) return;
 
     int slot_bytes = difLenBytes(slot_dif_nibble);
@@ -768,6 +775,12 @@ static void addSyntheticCompactProfileEntries(unordered_map<string,pair<int,DVEn
         }
 
         int storage_nr = base_storage + 1 + synthetic_index;
+        int synthetic_subunit = entry.subunit_nr.intValue();
+        if (distance == CompactProfileDistance::NotSpacedInTime && array_column > 0)
+        {
+            // Use column index to separate parallel array columns.
+            synthetic_subunit += array_column - 1;
+        }
         string base_key = makeSyntheticStorageKey(slot_dif_nibble, storage_nr, entry.vif.intValue() & 0xff);
         string key = base_key;
         int duplicate_nr = 2;
@@ -832,6 +845,7 @@ static void addSyntheticCompactProfileEntries(unordered_map<string,pair<int,DVEn
                                          entry.subunit_nr,
                                          value_hex)));
         assert(insert_res.second);
+                        insert_res.first->second.second.subunit_nr = SubUnitNr(synthetic_subunit);
 
         if (have_running_base_date)
         {
@@ -854,7 +868,7 @@ static void addSyntheticCompactProfileEntries(unordered_map<string,pair<int,DVEn
                     set<VIFCombinable> no_date_combinable_vifs;
                     set<uint16_t> no_date_combinable_vifs_raw;
 
-                    auto date_insert_res = dv_entries->emplace(date_key,
+                        auto date_insert_res = dv_entries->emplace(date_key,
                                         std::make_pair(offset,
                                                DVEntry(offset,
                                                        DifVifKey(date_key),
@@ -864,7 +878,7 @@ static void addSyntheticCompactProfileEntries(unordered_map<string,pair<int,DVEn
                                                        std::move(no_date_combinable_vifs_raw),
                                                        StorageNr(storage_nr),
                                                        entry.tariff_nr,
-                                                       entry.subunit_nr,
+                                           SubUnitNr(synthetic_subunit),
                                            date_hex)));
                     assert(date_insert_res.second);
 
