@@ -58,7 +58,7 @@ argparser.add_argument("-o", "--output", type=str, action='store', dest='output'
 args = argparser.parse_args()
 
 # adjust the config folder location to full target path
-args.config = args.config.strip(os.path.sep) + '/etc/wmbusmeters.d/'
+args.config = os.path.join(args.config, 'etc/wmbusmeters.d/')
 
 
 # test if input file exists
