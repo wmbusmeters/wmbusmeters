@@ -303,6 +303,64 @@ void test_dvparser()
     dv_entries.clear();
     tst_parse("426C FE04", &dv_entries, testnr);
     tst_date(dv_entries, "426C", "2007-04-30 00:00:00", testnr); // 2010-dec-31
+
+    testnr++;
+    dv_entries.clear();
+    // Base value + inverse compact profile, increment mode "increments" (01b), 1 month spacing.
+    // spacing control 0x72: mode=01b, spacing unit=11b (days/month), element size=dif low nibble 0x2.
+    // spacing value 0xFE: one month.
+    // base=1.000, deltas=0.005 and 0.007 => older values 0.995 and 0.988.
+    tst_parse("0213E803 0D9313 06 72FE05000700", &dv_entries, testnr);
+    tst_double(dv_entries, "4213", 0.995, testnr);
+    tst_double(dv_entries, "820113", 0.988, testnr);
+
+    testnr++;
+    dv_entries.clear();
+    // Base value + inverse compact profile, increment mode "decrements" (10b), 1 month spacing.
+    // base=1.000, deltas=0.005 and 0.007 => older values 1.005 and 1.012.
+    tst_parse("0213E803 0D9313 06 B2FE05000700", &dv_entries, testnr);
+    tst_double(dv_entries, "4213", 1.005, testnr);
+    tst_double(dv_entries, "820113", 1.012, testnr);
+
+    testnr++;
+    dv_entries.clear();
+    // Base value + inverse compact profile, increment mode "signed difference" (11b), 1 month spacing.
+    // difference = younger - older. base=1.000, diff=-0.005 then +0.007 => older values 1.005 and 0.998.
+    tst_parse("0213E803 0D9313 06 F2FEFBFF0700", &dv_entries, testnr);
+    tst_double(dv_entries, "4213", 1.005, testnr);
+    tst_double(dv_entries, "820113", 0.998, testnr);
+
+    testnr++;
+    dv_entries.clear();
+    // spacing value 0xFD with spacing unit 11b means half-month spacing (Annex F.8).
+    tst_parse("0213E803 0D9313 04 72FD0500", &dv_entries, testnr);
+    tst_double(dv_entries, "4213", 0.995, testnr);
+
+    testnr++;
+    dv_entries.clear();
+    // spacing value 0 means values are an array (not spaced in time); parser should still decode values.
+    tst_parse("0213E803 0D9313 04 72000500", &dv_entries, testnr);
+    tst_double(dv_entries, "4213", 0.995, testnr);
+
+    testnr++;
+    dv_entries.clear();
+    // spacing value 251 is reserved; parser should ignore spacing semantics and still decode profile values.
+    tst_parse("0213E803 0D9313 04 72FB0500", &dv_entries, testnr);
+    tst_double(dv_entries, "4213", 0.995, testnr);
+
+    testnr++;
+    dv_entries.clear();
+    // spacing value 253 is reserved for spacing units 00b..10b (half-month only valid with 11b).
+    // parser should keep robust behavior and still decode values.
+    tst_parse("0213E803 0D9313 04 52FD0500", &dv_entries, testnr);
+    tst_double(dv_entries, "4213", 0.995, testnr);
+
+    testnr++;
+    dv_entries.clear();
+    // Absolute mode (00b) with binary signed values: no delta reconstruction is performed.
+    // Value 0xFFFB should decode as -5 (with energy scaling => -0.005 kWh).
+    tst_parse("0213E803 0D9313 04 32FEFBFF", &dv_entries, testnr);
+    tst_double(dv_entries, "4213", -0.005, testnr);
 }
 
 void test_ixmlparser()
