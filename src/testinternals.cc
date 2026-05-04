@@ -405,6 +405,17 @@ void test_dvparser()
     tst_double(dv_entries, "820113", 0.992, testnr);
     tst_date(dv_entries, "426C", "2024-01-01 00:00:00", testnr);
     tst_date(dv_entries, "82016C", "2023-12-16 00:00:00", testnr);
+
+    testnr++;
+    dv_entries.clear();
+    // Compact profile with register numbers (VIFE 1Eh): first profile value belongs to next register.
+    // Base storage/register #8 with base date 2024-01-16 and base value 1000.
+    // Profile values 1001 and 1002 shall map to storage/register #9 and #10 in forward order.
+    tst_parse("820413E803 82046C1031 8D04931E0632FEE903EA03", &dv_entries, testnr);
+    tst_double(dv_entries, "C20413", 1.001, testnr);
+    tst_double(dv_entries, "820513", 1.002, testnr);
+    tst_date(dv_entries, "C2046C", "2024-02-16 00:00:00", testnr);
+    tst_date(dv_entries, "82056C", "2024-03-16 00:00:00", testnr);
 }
 
 void test_ixmlparser()

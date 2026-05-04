@@ -674,8 +674,9 @@ static void addSyntheticCompactProfileEntries(unordered_map<string,pair<int,DVEn
                                               DVEntry &entry)
 {
     bool has_compact = entry.combinable_vifs.count(VIFCombinable::CompactProfile) > 0;
+    bool has_compact_with_register = entry.combinable_vifs.count(VIFCombinable::CompactProfileWithRegister) > 0;
     bool has_inverse_compact = entry.combinable_vifs.count(VIFCombinable::InverseCompactProfile) > 0;
-    if (!has_compact && !has_inverse_compact) return;
+    if (!has_compact && !has_compact_with_register && !has_inverse_compact) return;
 
     vector<uchar> payload;
     hex2bin(entry.value, &payload);
@@ -875,7 +876,7 @@ static void addSyntheticCompactProfileEntries(unordered_map<string,pair<int,DVEn
         synthetic_index++;
     };
 
-    if (has_inverse_compact)
+    if (has_inverse_compact || has_compact_with_register)
     {
         for (size_t i = data_start; i + (size_t)slot_bytes <= payload.size(); i += slot_bytes)
             add_slot(i);
