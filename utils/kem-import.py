@@ -178,6 +178,7 @@ def print_meter(meterName,meterType,meterNum,meterSerial,meterVendor,meterConfig
         if (wmbusmeters_driver is not None):
             try:
                 f = open(args.config+meterSerial, 'w')
+                f.write("# %s type %s config %s\n" % (meterName, meterModel, meterConfig))
                 f.write("name=%s\n" % (meterNum))
                 f.write("driver=%s\n" % (wmbusmeters_driver))
                 f.write("id=%s\n" % (meterSerial))
