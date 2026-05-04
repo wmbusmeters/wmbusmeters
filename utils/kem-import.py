@@ -159,8 +159,8 @@ def print_meter(meterName,meterType,meterNum,meterSerial,meterVendor,meterConfig
         wmbusmeters_driver = 'multical21'
     elif (meterName == 'MC603') and (meterModel.startswith('603')): 
         wmbusmeters_driver = 'multical603'
-    elif (meterName == 'KWM2210'): 
-        wmbusmeters_driver = 'flowiq2200'
+    elif meterName.startswith('KWM'):
+        wmbusmeters_driver = 'kamwater'
     else:
         wmbusmeters_driver = None
 
