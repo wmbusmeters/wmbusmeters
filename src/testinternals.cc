@@ -1606,6 +1606,25 @@ void test_dvs()
     {
         printf("ERROR test_dvs 1\n");
     }
+
+    string third = vifeType(0, 0xef, 0x01);
+    if (third != "Reserved for future third extension table")
+    {
+        printf("ERROR test_dvs 2 expected \"Reserved for future third extension table\" got \"%s\"\n", third.c_str());
+    }
+
+    // High continuation bit should not affect the textual VIFE code.
+    string third_cont = vifeType(0, 0xef, 0x81);
+    if (third_cont != "Reserved for future third extension table")
+    {
+        printf("ERROR test_dvs 3 expected \"Reserved for future third extension table\" got \"%s\"\n", third_cont.c_str());
+    }
+
+    string mfct = vifeType(0, 0xff, 0x22);
+    if (mfct != "Manufacturer specific")
+    {
+        printf("ERROR test_dvs 4 expected \"Manufacturer specific\" got \"%s\"\n", mfct.c_str());
+    }
 }
 
 void test_ascii_detection()
