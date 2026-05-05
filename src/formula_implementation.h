@@ -164,7 +164,7 @@ struct NumericFormulaExponentiation : public NumericFormulaPair
     NumericFormulaExponentiation(FormulaImplementation *f, SIUnit siu,
                                  std::unique_ptr<NumericFormula> &a,
                                  std::unique_ptr<NumericFormula> &b)
-        : NumericFormulaPair(f, siu, a, b, "EXP", "^") {}
+        : NumericFormulaPair(f, siu, a, b, "EXP", "**") {}
 
     double calculate(SIUnit to);
 
