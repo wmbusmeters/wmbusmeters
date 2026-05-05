@@ -1826,6 +1826,18 @@ test {
     fields   = 'licznik;16466583;0;1111-11-11 11:11.11'
 }
 test {
+    args     = 'StatusWater zenner0b 50087367 NOKEY'
+    telegram = 1E44496A677308500B167AD80010252F2F0F80BF1B0080BF1B0000A6420000
+    json     = '{"_":"telegram","id":"50087367","media":"cold water","meter":"zenner0b","name":"StatusWater","status":"STATUS_001BBF80","target_m3":7.1035,"timestamp":"1111-11-11T11:11:11Z","total_m3":17.062}'
+    fields   = 'StatusWater;50087367;0x001BBF80;17.062;7.1035;1111-11-11 11:11.11'
+}
+test {
+    args     = 'TestWater zenner0b 50087367 NOKEY'
+    telegram = 1E44496A677308500B167AD80010252F2F0F0000000080BF1B0000A6420000
+    json     = '{"_":"telegram","id":"50087367","media":"cold water","meter":"zenner0b","name":"TestWater","status":"OK","target_m3":7.1035,"timestamp":"1111-11-11T11:11:11Z","total_m3":17.062}'
+    fields   = 'TestWater;50087367;OK;17.062;7.1035;1111-11-11 11:11.11'
+}
+test {
     args     = 'ZennerHCA2 zennerhca 80081907 750381240D0A7E371D4CB8D1869D8F9B'
     telegram = 5e44496a07190880fc087a714050058922c9598bdddfbb5bbf44b9d54830830eb6be3ba8117dfc88ae1b251837dfecb04e071554125366ef9d72dce87c9a099ad0cd9bf70f4a2e9c4c58d780444219c3f546c887fbc2d93c272e314f925473
     json     = '{"_":"telegram","media":"heat cost allocation","meter":"zennerhca","name":"ZennerHCA2","id":"80081907","consumption_hca":0,"previous_billing_consumption_hca":0,"previous_billing_date":"2026-02-01","status":"DUAL_SENSOR_MODE","target_date":"2026-01-01","target_hca":2,"timestamp":"1111-11-11T11:11:11Z"}'
