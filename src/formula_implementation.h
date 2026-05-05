@@ -164,7 +164,7 @@ struct NumericFormulaExponentiation : public NumericFormulaPair
     NumericFormulaExponentiation(FormulaImplementation *f, SIUnit siu,
                                  std::unique_ptr<NumericFormula> &a,
                                  std::unique_ptr<NumericFormula> &b)
-        : NumericFormulaPair(f, siu, a, b, "EXP", "**") {}
+        : NumericFormulaPair(f, siu, a, b, "POW", "**") {}
 
     double calculate(SIUnit to);
 
@@ -400,7 +400,7 @@ enum class TokenType
     BOR,
     LAND,
     LOR,
-    EXP,
+    POW,
     SQRT,
     ROUND,
     FLOOR,
@@ -507,7 +507,7 @@ struct FormulaImplementation : public Formula
     size_t findBitwiseOr(size_t i);
     size_t findLogicalAnd(size_t i);
     size_t findLogicalOr(size_t i);
-    size_t findExp(size_t i);
+    size_t findPow(size_t i);
     size_t findSqrt(size_t i);
     size_t findRound(size_t i);
     size_t findFloor(size_t i);

@@ -377,7 +377,7 @@ const char *toString(TokenType tt)
     case TokenType::BOR:  return "BOR";
     case TokenType::LAND: return "LAND";
     case TokenType::LOR:  return "LOR";
-    case TokenType::EXP: return "EXP";
+    case TokenType::POW: return "POW";
     case TokenType::SQRT: return "SQRT";
     case TokenType::ROUND: return "ROUND";
     case TokenType::FLOOR: return "FLOOR";
@@ -710,7 +710,7 @@ size_t FormulaImplementation::findBitwiseOr(size_t i)
     return 1;
 }
 
-size_t FormulaImplementation::findExp(size_t i)
+size_t FormulaImplementation::findPow(size_t i)
 {
     if (i+1 >= formula_.length()) return 0;
     if (formula_[i] == '*' && formula_[i+1] == '*') return 2;
@@ -906,8 +906,8 @@ bool FormulaImplementation::tokenize()
         len = findBitwiseOr(i);
         if (len > 0) { tokens_.push_back(Token(TokenType::BOR, i, len)); i+=len; continue; }
 
-        len = findExp(i);
-        if (len > 0) { tokens_.push_back(Token(TokenType::EXP, i, len)); i+=len; continue; }
+        len = findPow(i);
+        if (len > 0) { tokens_.push_back(Token(TokenType::POW, i, len)); i+=len; continue; }
 
         len = findSqrt(i);
         if (len > 0) { tokens_.push_back(Token(TokenType::SQRT, i, len)); i+=len; continue; }
@@ -1103,7 +1103,7 @@ size_t FormulaImplementation::parseOps(size_t i)
         return next;
     }
 
-    if (tok->type == TokenType::EXP)
+    if (tok->type == TokenType::POW)
     {
         size_t next = parseOps(i+1);
         if (!valid_) return next;
