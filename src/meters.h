@@ -365,6 +365,14 @@ struct FieldInfo
     void setNullValue(double nv) { has_null_value_ = true; null_value_ = nv; }
     bool hasNullValue() { return has_null_value_; }
     double nullValue() { return null_value_; }
+    void setTPLAESCBCIVPayloadTransform(int payload_offset, int payload_length, int tpl_acc_offset)
+    {
+        has_tpl_aes_cbc_iv_payload_transform_ = true;
+        payload_offset_ = payload_offset;
+        payload_length_ = payload_length;
+        tpl_acc_offset_ = tpl_acc_offset;
+    }
+    bool transformPayload(Telegram *t, std::vector<uchar> *content);
 
 private:
 
@@ -413,6 +421,11 @@ private:
     // If set, this extracted value is treated as null (no data).
     bool has_null_value_ {};
     double null_value_ {};
+
+    bool has_tpl_aes_cbc_iv_payload_transform_ {};
+    int payload_offset_ {};
+    int payload_length_ {};
+    int tpl_acc_offset_ {};
 };
 
 struct BusManager;
