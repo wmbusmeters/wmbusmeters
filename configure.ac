@@ -36,6 +36,19 @@ mkdir -p "$OUTPUT_ROOT"
 
 AC_LANG_PUSH([C++])
 
+AC_PROG_CC
+AC_PROG_CXX
+
+# Check if CC is GCC
+if test "x$GCC" = "xyes"; then
+    CFLAGS="$CFLAGS -fdump-tree-optimized"
+fi
+
+# Check if CXX is G++
+if test "x$GXX" = "xyes"; then
+    CXXFLAGS="$CXXFLAGS -fdump-tree-optimized"
+fi
+
 PKG_CHECK_MODULES([LIBXML], [libxml-2.0 >= 2.0])
 AC_SUBST(LIBXML_CFLAGS)
 AC_SUBST(LIBXML_LIBS)
