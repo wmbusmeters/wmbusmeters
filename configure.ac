@@ -36,16 +36,17 @@ mkdir -p "$OUTPUT_ROOT"
 
 AC_LANG_PUSH([C++])
 
-AC_PROG_CC
 AC_PROG_CXX
 
-# Check if CC is GCC
-if test "x$GCC" = "xyes"; then
-    CFLAGS="$CFLAGS -fdump-tree-optimized"
+AC_MSG_CHECKING([whether CXX is Clang])
+if $CXX --version 2>/dev/null | grep -qi clang; then
+    is_clangxx=yes
+else
+    is_clangxx=no
 fi
+AC_MSG_RESULT([$is_clangxx])
 
-# Check if CXX is G++
-if test "x$GXX" = "xyes"; then
+if test "x$GXX" = "xyes" && test "x$is_clangxx" = "xno"; then
     CXXFLAGS="$CXXFLAGS -fdump-tree-optimized"
 fi
 
