@@ -74,7 +74,7 @@ else
         endif
     else
         # Release build
-        DEBUG_FLAGS=-O2 -g -flto
+        DEBUG_FLAGS=-O2 -g
         STRIP_BINARY=cp $(BUILD)/wmbusmeters $(BUILD)/wmbusmeters.g; $(STRIP) $(BUILD)/wmbusmeters
         GCOV=To_run_gcov_add_DEBUG=true
     endif
