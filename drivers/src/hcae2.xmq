@@ -100,8 +100,154 @@ driver {
                 storage_nr       = 1
             }
         }
+        /* ----------- Half-monthly delta history -----------
+
+           # Telegram Data Layout
+
+           Storages 2..31 hold 30 differences between consecutive half-monthly snapshots (not absolute readings).
+
+           # Field Interpretation
+
+           NOTE: the snapshot ranges in the table below rest on multiple assumptions.
+           See the Assumptions and Verification section at the bottom of this comment.
+
+           Sum from the oldest forward for the cumulative reading at any half-month.
+
+           Across target_date the stored delta is negative because the counter resets
+           to 0 at the billing-period boundary. Summing through it still yields the
+           correct post-reset cumulative.
+
+           # Example (ActiveLong telegram)
+
+           Snapshot ranges below are LEFT..RIGHT, both edges inclusive.
+
+           Anchors from the ActiveLong test telegram:
+
+           half_month_history_start_date = 2025-02-15
+           target_date                   = 2025-12-31
+           target_hca                    = 373         (reading at target_date)
+           consumption_hca               = 242         (reading at telegram time)
+           meter_datetime                = 2026-05-06 12:04
+
+           Anchored cells are tagged with the source field. Other dates follow from the assumed cadence.
+
+           storage field                           delta   cum. sum                    snapshot range
+           ------- ----------------------------    -----   --------                    ----------------------------------------------------
+                 2 delta_30_half_months_ago_hca      173        173                    2025-01-01..2025-02-15 half_month_history_start_date
+                 3 delta_29_half_months_ago_hca       34        207                    2025-02-16..2025-02-28
+                 4 delta_28_half_months_ago_hca       12        219                    2025-03-01..2025-03-15
+                 5 delta_27_half_months_ago_hca       26        245                    2025-03-16..2025-03-31
+                 6 delta_26_half_months_ago_hca        5        250                    2025-04-01..2025-04-15
+                 7 delta_25_half_months_ago_hca        0        250                    2025-04-16..2025-04-30
+             8..17 ............................        0        250                    2025-05-01..2025-09-30
+                18 delta_14_half_months_ago_hca        0        250                    2025-10-01..2025-10-15
+                19 delta_13_half_months_ago_hca       12        262                    2025-10-16..2025-10-31
+                20 delta_12_half_months_ago_hca       13        275                    2025-11-01..2025-11-15
+                21 delta_11_half_months_ago_hca       34        309                    2025-11-16..2025-11-30
+                22 delta_10_half_months_ago_hca       41        350                    2025-12-01..2025-12-15
+                23 delta_9_half_months_ago_hca        23        373 target_hca         2025-12-16..2025-12-31 target_date
+
+           --------------------------------------------------RESET: End of Billing Period--------------------------------------------------
+
+                24 delta_8_half_months_ago_hca      -335         38                    2026-01-01..2026-01-15
+                25 delta_7_half_months_ago_hca        67        105                    2026-01-16..2026-01-31
+                26 delta_6_half_months_ago_hca        30        135                    2026-02-01..2026-02-15
+                27 delta_5_half_months_ago_hca        40        175                    2026-02-16..2026-02-28
+                28 delta_4_half_months_ago_hca         2        177                    2026-03-01..2026-03-15
+                29 delta_3_half_months_ago_hca        33        210                    2026-03-16..2026-03-31
+                30 delta_2_half_months_ago_hca        25        235                    2026-04-01..2026-04-15
+                31 delta_1_half_months_ago_hca         7        242                    2026-04-16..2026-04-30
+                [live in-progress; not transmitted]  x=0  242+x=242 consumption_hca    2026-05-01..2026-05-06 meter_datetime
+
+           # Assumptions and Verification
+
+           ## Verified
+
+           - sum(delta_30_half_months_ago_hca..delta_9_half_months_ago_hca) == target_hca (373)
+           - sum(delta_{1..30}_half_months_ago_hca) == consumption_hca (242)
+           - delta_8_half_months_ago_hca is large-negative (-335, i.e. ~ -target_hca):
+             meter resets to 0 at target_date and stores raw cumulative differences
+             across the reset. Rules out the alternative where the meter zeros its
+             offset and stores post-reset accumulation directly (which would give a
+             small non-negative value for delta_8_half_months_ago_hca).
+
+           ## Assumptions
+
+           - cadence is 15th / end-of-month: the only cadence where target_date
+             coincides naturally with a snapshot date, no special boundary handling.
+             Disambiguator: a captured half_month_history_start_date that doesn't
+             fall on the 15th or last day of a month rules out this cadence.
+             half_month_history_start_date is the only cadence-determined right
+             edge observable in the telegram. target_date is constrained by
+             billing period configuration, not by the half-monthly cadence.
+           - delta_1_half_months_ago_hca's right edge is the most recent
+             completed snapshot before meter_datetime, with the trailing partial period
+             as a separate live-bucket row. Alternative: delta_1_half_months_ago_hca
+             extends to meter_datetime, no live row.
+             Disambiguator: observing x = consumption_hca - sum(delta_{1..30}_half_months_ago_hca) > 0
+             in any capture. The assumed model permits x >= 0, the alternative
+             requires x == 0 always. Any x > 0 rules out the alternative.
+
+           See the TBD comment at the top of the tests block below for the captures
+           needed to settle these.
+
+           Note on meter configurability: hcae2 can be configured for monthly or annual
+           billing periods, and a separate setting toggles between continued metering
+           across billing periods and reset at end of billing period. The captures we
+           have are all from a meter configured for annual billing with end-of-period
+           reset (verified by the negative delta crossing target_date: see Verified
+           above). Whether (and how) either setting affects the wmbus telegram contents on
+           differently-configured meters has not been observed.
+           -------------------------------------------------- */
+        field {
+            name     = half_month_history_start
+            quantity = PointInTime
+            info     = 'EXPERIMENTAL: Date of the oldest half-monthly delta in the history series, anchors delta_30_half_months_ago_hca.'
+            // don't rely on this (yet), drop DEPRECATED once hcae2 is fully understood
+            attributes   = DEPRECATED
+            display_unit = date
+            match {
+                measurement_type = Instantaneous
+                vif_range        = Date
+                storage_nr       = 2
+            }
+        }
+        field {
+            name     = 'delta_{32counter-storage_counter}_half_months_ago'
+            quantity = HCA
+            // don't rely on this (yet), drop DEPRECATED once hcae2 is fully understood
+            attributes = DEPRECATED
+            info       = 'EXPERIMENTAL: Difference between two consecutive half-monthly snapshots (not an absolute reading).
+                          -- The fields delta_{1..30}_half_months_ago_hca together span >= 15 months.
+                          -- delta_30_half_months_ago_hca may cover more than a half-month: its left edge anchors to the start of the billing cycle containing the oldest snapshot.
+                          -- Sum from delta_30_half_months_ago_hca forward for the cumulative reading at any half-month.
+                          -- The delta crossing target_date is large-negative due to the billing-period reset (sum still yields the correct post-reset cumulative).
+                          -- See the hcae2 driver source for further information including meter-configuration caveats.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = HeatCostAllocation
+                storage_nr       = 2,31
+            }
+        }
     }
     tests {
+        /* TBD: captures still needed to fully verify the half-monthly delta model
+           (see Assumptions and Verification in the block comment above).
+
+           1. A corresponding capture for ActiveLong taken ~1 month later from the same
+              meter (annual billing with end-of-period reset, same config).
+              Required to disambiguate cadence (15th/EOM vs 1st/15th) and
+              delta_1_half_months_ago_hca's right-edge model: both shift between the two captures under exactly
+              one of each pair of alternatives, so the diff settles them. Replacing
+              ActiveLong with such a pair is also acceptable.
+
+           2. Capture pairs from meters with the other configuration combinations:
+                - annual billing, no reset (continuous metering across periods)
+                - monthly billing with reset
+                - monthly billing, no reset
+              Required to confirm whether the post-target_date negative-delta and
+              cum-sum invariants generalise across the meter-configurability matrix
+              or are specific to the annual+reset case captured so far. */
         test {
             args     = 'T1Short hcae2 54423117 NOKEY'
             comment  = 'Captured HCAe2 telegram, T1 mode, short format'
@@ -113,7 +259,7 @@ driver {
             args     = 'T1Long hcae2 54423117 NOKEY'
             comment  = 'Captured EFE telegram, T1 mode, long format, full half-monthly delta history (all zero on this meter)'
             telegram = C946C5141731425431087AD00B00002F2F046D14374535036E000000426C5E34436E00000082016C2F3283016E000000C2016E000082026E0000C2026E000082036E0000C2036E000082046E0000C2046E000082056E0000C2056E000082066E0000C2066E000082076E0000C2076E000082086E0000C2086E000082096E0000C2096E0000820A6E0000C20A6E0000820B6E0000C20B6E0000820C6E0000C20C6E0000820D6E0000C20D6E0000820E6E0000C20E6E0000820F6E0000C20F6E0000317F1A346D00335B34
-            json     = '{"_":"telegram","media":"heat cost allocation","meter":"hcae2","name":"T1Long","id":"54423117","consumption_hca":0,"consumption_at_set_date_1_hca":0,"current_consumption_hca":0,"target_date":"2026-04-30","target_hca":0,"meter_datetime":"2026-05-05 23:20","meter_datetime_at_error":"2026-04-27 19:00","status":"ALARM OPEN_C PERMANENT_ERROR SENSOR_BREAK UNEXPECTED_RST","timestamp":"1111-11-11T11:11:11Z"}'
+            json     = '{"_":"telegram","media":"heat cost allocation","meter":"hcae2","name":"T1Long","id":"54423117","consumption_hca":0,"consumption_at_set_date_1_hca":0,"delta_10_half_months_ago_hca":0,"delta_11_half_months_ago_hca":0,"delta_12_half_months_ago_hca":0,"delta_13_half_months_ago_hca":0,"delta_14_half_months_ago_hca":0,"delta_15_half_months_ago_hca":0,"delta_16_half_months_ago_hca":0,"delta_17_half_months_ago_hca":0,"delta_18_half_months_ago_hca":0,"delta_19_half_months_ago_hca":0,"delta_1_half_months_ago_hca":0,"delta_20_half_months_ago_hca":0,"delta_21_half_months_ago_hca":0,"delta_22_half_months_ago_hca":0,"delta_23_half_months_ago_hca":0,"delta_24_half_months_ago_hca":0,"delta_25_half_months_ago_hca":0,"delta_26_half_months_ago_hca":0,"delta_27_half_months_ago_hca":0,"delta_28_half_months_ago_hca":0,"delta_29_half_months_ago_hca":0,"delta_2_half_months_ago_hca":0,"delta_30_half_months_ago_hca":0,"delta_3_half_months_ago_hca":0,"delta_4_half_months_ago_hca":0,"delta_5_half_months_ago_hca":0,"delta_6_half_months_ago_hca":0,"delta_7_half_months_ago_hca":0,"delta_8_half_months_ago_hca":0,"delta_9_half_months_ago_hca":0,"current_consumption_hca":0,"half_month_history_start_date":"2025-02-15","target_date":"2026-04-30","target_hca":0,"meter_datetime":"2026-05-05 23:20","meter_datetime_at_error":"2026-04-27 19:00","status":"ALARM OPEN_C PERMANENT_ERROR SENSOR_BREAK UNEXPECTED_RST","timestamp":"1111-11-11T11:11:11Z"}'
             fields   = 'T1Long;54423117;0;ALARM OPEN_C PERMANENT_ERROR SENSOR_BREAK UNEXPECTED_RST;1111-11-11 11:11.11'
         }
         test {
@@ -127,14 +273,14 @@ driver {
             args     = 'C1Long hcae2 54423117 NOKEY'
             comment  = 'Captured HCAe2 telegram, C1 mode, long format, full half-monthly delta history (all zero on this meter)'
             telegram = CD46C5141731425431087A0A0B00002F2F046D2A344535036E000000426C5E34436E00000082016C2F3283016E000000C2016E000082026E0000C2026E000082036E0000C2036E000082046E0000C2046E000082056E0000C2056E000082066E0000C2066E000082076E0000C2076E000082086E0000C2086E000082096E15420000C2096E0000820A6E0000C20A6E0000820B6E0000C20B6E0000820C6E0000C20C6E0000820D6E0000C20D6E0000820E6E0000C20E6E0000820F6E0000C20F6E0000317F1A346D00335B34BB6D
-            json     = '{"_":"telegram","media":"heat cost allocation","meter":"hcae2","name":"C1Long","id":"54423117","consumption_hca":0,"consumption_at_set_date_1_hca":0,"current_consumption_hca":0,"target_date":"2026-04-30","target_hca":0,"meter_datetime":"2026-05-05 20:42","meter_datetime_at_error":"2026-04-27 19:00","status":"ALARM OPEN_C PERMANENT_ERROR SENSOR_BREAK UNEXPECTED_RST","timestamp":"1111-11-11T11:11:11Z"}'
+            json     = '{"_":"telegram","media":"heat cost allocation","meter":"hcae2","name":"C1Long","id":"54423117","consumption_hca":0,"consumption_at_set_date_1_hca":0,"delta_10_half_months_ago_hca":0,"delta_11_half_months_ago_hca":0,"delta_12_half_months_ago_hca":0,"delta_13_half_months_ago_hca":0,"delta_14_half_months_ago_hca":0,"delta_15_half_months_ago_hca":0,"delta_16_half_months_ago_hca":0,"delta_17_half_months_ago_hca":0,"delta_18_half_months_ago_hca":0,"delta_19_half_months_ago_hca":0,"delta_1_half_months_ago_hca":0,"delta_20_half_months_ago_hca":0,"delta_21_half_months_ago_hca":0,"delta_22_half_months_ago_hca":0,"delta_23_half_months_ago_hca":0,"delta_24_half_months_ago_hca":0,"delta_25_half_months_ago_hca":0,"delta_26_half_months_ago_hca":0,"delta_27_half_months_ago_hca":0,"delta_28_half_months_ago_hca":0,"delta_29_half_months_ago_hca":0,"delta_2_half_months_ago_hca":0,"delta_30_half_months_ago_hca":0,"delta_3_half_months_ago_hca":0,"delta_4_half_months_ago_hca":0,"delta_5_half_months_ago_hca":0,"delta_6_half_months_ago_hca":0,"delta_7_half_months_ago_hca":0,"delta_8_half_months_ago_hca":0,"delta_9_half_months_ago_hca":0,"current_consumption_hca":0,"half_month_history_start_date":"2025-02-15","target_date":"2026-04-30","target_hca":0,"meter_datetime":"2026-05-05 20:42","meter_datetime_at_error":"2026-04-27 19:00","status":"ALARM OPEN_C PERMANENT_ERROR SENSOR_BREAK UNEXPECTED_RST","timestamp":"1111-11-11T11:11:11Z"}'
             fields   = 'C1Long;54423117;0;ALARM OPEN_C PERMANENT_ERROR SENSOR_BREAK UNEXPECTED_RST;1111-11-11 11:11.11'
         }
         test {
             args     = 'ActiveLong hcae2 23412960 NOKEY'
             comment  = 'Captured HCAe2 telegram, C1 mode, long format, full half-monthly delta history (real data, thanks Christoph!)'
             telegram = CE44C5146029412331087A6E00C0252F2F046D042C4635036EF20000426C3F3C436E75010082016C2F3283016EAD0000C2016E220082026E0C00C2026E1A0082036E0500C2036E000082046E0000C2046E000082056E0000C2056E000082066E0000C2066E000082076E0000C2076E000082086E0000C2086E000082096E0000C2096E0C00820A6E0D00C20A6E2200820B6E2900C20B6E1700820C6EB1FEC20C6E4300820D6E1E00C20D6E2800820E6E0200C20E6E2100820F6E1900C20F6E0700317F00346D002000002F2F2F2F2F
-            json     = '{"_":"telegram","media":"heat cost allocation","meter":"hcae2","name":"ActiveLong","id":"23412960","consumption_hca":242,"consumption_at_set_date_1_hca":373,"current_consumption_hca":242,"target_date":"2025-12-31","target_hca":373,"meter_datetime":"2026-05-06 12:04","meter_datetime_at_error":"2000-00-00 00:00","status":"OK","timestamp":"1111-11-11T11:11:11Z"}'
+            json     = '{"_":"telegram","media":"heat cost allocation","meter":"hcae2","name":"ActiveLong","id":"23412960","consumption_hca":242,"consumption_at_set_date_1_hca":373,"delta_10_half_months_ago_hca":41,"delta_11_half_months_ago_hca":34,"delta_12_half_months_ago_hca":13,"delta_13_half_months_ago_hca":12,"delta_14_half_months_ago_hca":0,"delta_15_half_months_ago_hca":0,"delta_16_half_months_ago_hca":0,"delta_17_half_months_ago_hca":0,"delta_18_half_months_ago_hca":0,"delta_19_half_months_ago_hca":0,"delta_1_half_months_ago_hca":7,"delta_20_half_months_ago_hca":0,"delta_21_half_months_ago_hca":0,"delta_22_half_months_ago_hca":0,"delta_23_half_months_ago_hca":0,"delta_24_half_months_ago_hca":0,"delta_25_half_months_ago_hca":0,"delta_26_half_months_ago_hca":5,"delta_27_half_months_ago_hca":26,"delta_28_half_months_ago_hca":12,"delta_29_half_months_ago_hca":34,"delta_2_half_months_ago_hca":25,"delta_30_half_months_ago_hca":173,"delta_3_half_months_ago_hca":33,"delta_4_half_months_ago_hca":2,"delta_5_half_months_ago_hca":40,"delta_6_half_months_ago_hca":30,"delta_7_half_months_ago_hca":67,"delta_8_half_months_ago_hca":-335,"delta_9_half_months_ago_hca":23,"current_consumption_hca":242,"half_month_history_start_date":"2025-02-15","target_date":"2025-12-31","target_hca":373,"meter_datetime":"2026-05-06 12:04","meter_datetime_at_error":"2000-00-00 00:00","status":"OK","timestamp":"1111-11-11T11:11:11Z"}'
             fields   = 'ActiveLong;23412960;242;OK;1111-11-11 11:11.11'
         }
     }
