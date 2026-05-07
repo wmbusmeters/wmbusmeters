@@ -7,53 +7,10 @@ driver {
     detect {
         mvt = EFE,31,08
     }
+    library {
+        use = status-tpl-only
+    }
     fields {
-        field {
-            name       = status
-            quantity   = Text
-            info       = 'Meter status from error flags and tpl status field.'
-            attributes = STATUS,INCLUDE_TPL_STATUS
-            match {
-                measurement_type = Instantaneous
-                vif_range        = ErrorFlags
-            }
-            lookup {
-                name            = ERROR_FLAGS
-                map_type        = BitToString
-                mask_bits       = 0xffff
-                default_message = OK
-                map {
-                    name  = MEASUREMENT
-                    value = 0x0001
-                    test  = Set
-                }
-                map {
-                    name  = SABOTAGE
-                    value = 0x0002
-                    test  = Set
-                }
-                map {
-                    name  = BATTERY
-                    value = 0x0004
-                    test  = Set
-                }
-                map {
-                    name  = CS
-                    value = 0x0008
-                    test  = Set
-                }
-                map {
-                    name  = HF
-                    value = 0x0010
-                    test  = Set
-                }
-                map {
-                    name  = RESET
-                    value = 0x0020
-                    test  = Set
-                }
-            }
-        }
         field {
             name     = current_consumption
             quantity = HCA
