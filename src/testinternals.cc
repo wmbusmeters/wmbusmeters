@@ -2856,6 +2856,7 @@ void test_formulas_extended_ops()
     FormulaImplementation fi;
 
     test_formula_value(&fi, NULL, "7counter % 4counter", 3, Unit::COUNTER);
+    test_formula_value(&fi, NULL, "2counter ** 3counter", 8, Unit::COUNTER);
     test_formula_value(&fi, NULL, "3counter << 4counter", 48, Unit::COUNTER);
     test_formula_value(&fi, NULL, "48counter >> 4counter", 3, Unit::COUNTER);
     test_formula_value(&fi, NULL, "floor(100.999 kwh)", 100, Unit::KWH);

@@ -178,7 +178,7 @@ double NumericFormulaExponentiation::calculate(SIUnit to_siunit)
     double v {};
     siunit().convertTo(p, to_siunit, &v);
 
-    debug("(formula) %g <-- %g <-- pow %g ^ %g\n", v, p, l, r);
+    debug("(formula) %g <-- %g <-- pow %g ** %g\n", v, p, l, r);
     return v;
 }
 
@@ -377,7 +377,7 @@ const char *toString(TokenType tt)
     case TokenType::BOR:  return "BOR";
     case TokenType::LAND: return "LAND";
     case TokenType::LOR:  return "LOR";
-    case TokenType::EXP: return "EXP";
+    case TokenType::POW: return "POW";
     case TokenType::SQRT: return "SQRT";
     case TokenType::ROUND: return "ROUND";
     case TokenType::FLOOR: return "FLOOR";
@@ -596,10 +596,10 @@ size_t FormulaImplementation::findTimes(size_t i)
 {
     if (i >= formula_.length()) return 0;
 
-    char c = formula_[i];
-    if (c == '*') return 1;
+    if (formula_[i] != '*') return 0;
+    if (i+1 < formula_.length() && formula_[i+1] == '*') return 0;
 
-    return 0;
+    return 1;
 }
 
 size_t FormulaImplementation::findDiv(size_t i)
@@ -710,17 +710,11 @@ size_t FormulaImplementation::findBitwiseOr(size_t i)
     return 1;
 }
 
-size_t FormulaImplementation::findExp(size_t i)
+size_t FormulaImplementation::findPow(size_t i)
 {
+    if (i+1 >= formula_.length()) return 0;
+    if (formula_[i] == '*' && formula_[i+1] == '*') return 2;
     return 0;
-    /*
-    if (i >= formula_.length()) return 0;
-
-    char c = formula_[i];
-    if (c == '^') return 1;
-
-    return 0;
-    */
 }
 
 size_t FormulaImplementation::findSqrt(size_t i)
@@ -912,8 +906,8 @@ bool FormulaImplementation::tokenize()
         len = findBitwiseOr(i);
         if (len > 0) { tokens_.push_back(Token(TokenType::BOR, i, len)); i+=len; continue; }
 
-        len = findExp(i);
-        if (len > 0) { tokens_.push_back(Token(TokenType::EXP, i, len)); i+=len; continue; }
+        len = findPow(i);
+        if (len > 0) { tokens_.push_back(Token(TokenType::POW, i, len)); i+=len; continue; }
 
         len = findSqrt(i);
         if (len > 0) { tokens_.push_back(Token(TokenType::SQRT, i, len)); i+=len; continue; }
@@ -1109,7 +1103,7 @@ size_t FormulaImplementation::parseOps(size_t i)
         return next;
     }
 
-    if (tok->type == TokenType::EXP)
+    if (tok->type == TokenType::POW)
     {
         size_t next = parseOps(i+1);
         if (!valid_) return next;
@@ -1632,17 +1626,13 @@ void FormulaImplementation::doExponentiation()
 {
     assert(op_stack_.size() >= 2);
 
-//    SIUnit right_siunit = topOp()->siunit();
-
     unique_ptr<NumericFormula> right_node = popOp();
 
     SIUnit left_siunit = topOp()->siunit();
 
     unique_ptr<NumericFormula> left_node = popOp();
 
-    pushOp(new NumericFormulaDivision(this, left_siunit, left_node, right_node));
-
-//    assert(canConvert(left_siunit, right_siunit));
+    pushOp(new NumericFormulaExponentiation(this, left_siunit, left_node, right_node));
 }
 
 void FormulaImplementation::doSquareRoot()
