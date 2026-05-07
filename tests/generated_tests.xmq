@@ -517,35 +517,35 @@ test {
     args     = 'ActiveLong hcae2 23412960 NOKEY'
     comment  = 'Captured HCAe2 telegram, C1 mode, long format, full half-monthly delta history (real data, thanks Christoph!)'
     telegram = CE44C5146029412331087A6E00C0252F2F046D042C4635036EF20000426C3F3C436E75010082016C2F3283016EAD0000C2016E220082026E0C00C2026E1A0082036E0500C2036E000082046E0000C2046E000082056E0000C2056E000082066E0000C2066E000082076E0000C2076E000082086E0000C2086E000082096E0000C2096E0C00820A6E0D00C20A6E2200820B6E2900C20B6E1700820C6EB1FEC20C6E4300820D6E1E00C20D6E2800820E6E0200C20E6E2100820F6E1900C20F6E0700317F00346D002000002F2F2F2F2F
-    json     = '{"_":"telegram","media":"heat cost allocation","meter":"hcae2","name":"ActiveLong","id":"23412960","consumption_at_set_date_1_hca":373,"current_consumption_hca":242,"status":"OK","timestamp":"1111-11-11T11:11:11Z"}'
+    json     = '{"_":"telegram","media":"heat cost allocation","meter":"hcae2","name":"ActiveLong","id":"23412960","consumption_hca":242,"consumption_at_set_date_1_hca":373,"current_consumption_hca":242,"target_date":"2025-12-31","target_hca":373,"meter_datetime":"2026-05-06 12:04","meter_datetime_at_error":"2000-00-00 00:00","status":"OK","timestamp":"1111-11-11T11:11:11Z"}'
     fields   = 'ActiveLong;23412960;242;OK;1111-11-11 11:11.11'
 }
 test {
     args     = 'C1Long hcae2 54423117 NOKEY'
     comment  = 'Captured HCAe2 telegram, C1 mode, long format, full half-monthly delta history (all zero on this meter)'
     telegram = CD46C5141731425431087A0A0B00002F2F046D2A344535036E000000426C5E34436E00000082016C2F3283016E000000C2016E000082026E0000C2026E000082036E0000C2036E000082046E0000C2046E000082056E0000C2056E000082066E0000C2066E000082076E0000C2076E000082086E0000C2086E000082096E15420000C2096E0000820A6E0000C20A6E0000820B6E0000C20B6E0000820C6E0000C20C6E0000820D6E0000C20D6E0000820E6E0000C20E6E0000820F6E0000C20F6E0000317F1A346D00335B34BB6D
-    json     = '{"_":"telegram","media":"heat cost allocation","meter":"hcae2","name":"C1Long","id":"54423117","consumption_at_set_date_1_hca":0,"current_consumption_hca":0,"status":"ALARM PERMANENT_ERROR","timestamp":"1111-11-11T11:11:11Z"}'
+    json     = '{"_":"telegram","media":"heat cost allocation","meter":"hcae2","name":"C1Long","id":"54423117","consumption_hca":0,"consumption_at_set_date_1_hca":0,"current_consumption_hca":0,"target_date":"2026-04-30","target_hca":0,"meter_datetime":"2026-05-05 20:42","meter_datetime_at_error":"2026-04-27 19:00","status":"ALARM PERMANENT_ERROR","timestamp":"1111-11-11T11:11:11Z"}'
     fields   = 'C1Long;54423117;0;ALARM PERMANENT_ERROR;1111-11-11 11:11.11'
 }
 test {
     args     = 'C1Short hcae2 54423117 NOKEY'
     comment  = 'Captured HCAe2 telegram, C1 mode, short format'
     telegram = 2F46C5141731425431087A0A0B00002F2F046D28344535036E000000426C5E34436E000000317F1A346D00335B340186
-    json     = '{"_":"telegram","media":"heat cost allocation","meter":"hcae2","name":"C1Short","id":"54423117","consumption_at_set_date_1_hca":0,"current_consumption_hca":0,"status":"ALARM PERMANENT_ERROR","timestamp":"1111-11-11T11:11:11Z"}'
+    json     = '{"_":"telegram","media":"heat cost allocation","meter":"hcae2","name":"C1Short","id":"54423117","consumption_hca":0,"consumption_at_set_date_1_hca":0,"current_consumption_hca":0,"target_date":"2026-04-30","target_hca":0,"meter_datetime":"2026-05-05 20:40","meter_datetime_at_error":"2026-04-27 19:00","status":"ALARM PERMANENT_ERROR","timestamp":"1111-11-11T11:11:11Z"}'
     fields   = 'C1Short;54423117;0;ALARM PERMANENT_ERROR;1111-11-11 11:11.11'
 }
 test {
     args     = 'T1Long hcae2 54423117 NOKEY'
     comment  = 'Captured EFE telegram, T1 mode, long format, full half-monthly delta history (all zero on this meter)'
     telegram = C946C5141731425431087AD00B00002F2F046D14374535036E000000426C5E34436E00000082016C2F3283016E000000C2016E000082026E0000C2026E000082036E0000C2036E000082046E0000C2046E000082056E0000C2056E000082066E0000C2066E000082076E0000C2076E000082086E0000C2086E000082096E0000C2096E0000820A6E0000C20A6E0000820B6E0000C20B6E0000820C6E0000C20C6E0000820D6E0000C20D6E0000820E6E0000C20E6E0000820F6E0000C20F6E0000317F1A346D00335B34
-    json     = '{"_":"telegram","media":"heat cost allocation","meter":"hcae2","name":"T1Long","id":"54423117","consumption_at_set_date_1_hca":0,"current_consumption_hca":0,"status":"ALARM PERMANENT_ERROR","timestamp":"1111-11-11T11:11:11Z"}'
+    json     = '{"_":"telegram","media":"heat cost allocation","meter":"hcae2","name":"T1Long","id":"54423117","consumption_hca":0,"consumption_at_set_date_1_hca":0,"current_consumption_hca":0,"target_date":"2026-04-30","target_hca":0,"meter_datetime":"2026-05-05 23:20","meter_datetime_at_error":"2026-04-27 19:00","status":"ALARM PERMANENT_ERROR","timestamp":"1111-11-11T11:11:11Z"}'
     fields   = 'T1Long;54423117;0;ALARM PERMANENT_ERROR;1111-11-11 11:11.11'
 }
 test {
     args     = 'T1Short hcae2 54423117 NOKEY'
     comment  = 'Captured HCAe2 telegram, T1 mode, short format'
     telegram = 2D46C5141731425431087A0A0B00002F2F046D24344535036E000000426C5E34436E000000317F1A346D00335B34
-    json     = '{"_":"telegram","media":"heat cost allocation","meter":"hcae2","name":"T1Short","id":"54423117","consumption_at_set_date_1_hca":0,"current_consumption_hca":0,"status":"ALARM PERMANENT_ERROR","timestamp":"1111-11-11T11:11:11Z"}'
+    json     = '{"_":"telegram","media":"heat cost allocation","meter":"hcae2","name":"T1Short","id":"54423117","consumption_hca":0,"consumption_at_set_date_1_hca":0,"current_consumption_hca":0,"target_date":"2026-04-30","target_hca":0,"meter_datetime":"2026-05-05 20:36","meter_datetime_at_error":"2026-04-27 19:00","status":"ALARM PERMANENT_ERROR","timestamp":"1111-11-11T11:11:11Z"}'
     fields   = 'T1Short;54423117;0;ALARM PERMANENT_ERROR;1111-11-11 11:11.11'
 }
 test {
