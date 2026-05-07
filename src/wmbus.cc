@@ -372,7 +372,7 @@ void Telegram::printTPL()
 
     verbose("(telegram) TPL CI=%02x", tpl_ci);
 
-    if (tpl_ci == 0x7a || tpl_ci == 0x72)
+    if (tpl_ci == 0x7a || tpl_ci == 0x72 || tpl_ci == 0x73)
     {
         string tpl_cfg_info = toStringFromTPLConfig(tpl_cfg);
         verbose(" ACC=%02x STS=%02x CFG=%04x (%s)",
@@ -4199,6 +4199,12 @@ bool Telegram::findFormatBytesFromKnownMeterSignatures(vector<uchar> *format_byt
         // Kamstrup Multical 303
         hex2bin("0406041404FF0704FF080259025D023B02FF22026C44064414426C", format_bytes);
         debug("(wmbus) using hard coded format for hash ae5a\n");
+    }
+    else if (format_signature == 0x052d)
+    {
+        // Engelmann FAW
+        hex2bin("426C441301FD17840113C40113840213C40213840313C40313840413C40413840513C40513840613C40613840713C40713840813046D0413", format_bytes);
+        debug("(wmbus) using hard coded format for hash 052d\n");
     }
     else
     {
