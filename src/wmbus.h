@@ -607,6 +607,7 @@ private:
     void printTPL();
 
     bool parse_TPL_72(std::vector<uchar>::iterator &pos);
+    bool parse_TPL_73(std::vector<uchar>::iterator &pos);
     bool parse_TPL_78(std::vector<uchar>::iterator &pos);
     bool parse_TPL_79(std::vector<uchar>::iterator &pos);
     bool parse_TPL_7A(std::vector<uchar>::iterator &pos);

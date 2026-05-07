@@ -622,13 +622,10 @@ string mediaTypeJSON(int a_field_device_type, int m_field)
     return "Unknown";
 }
 
-/*
-    X(0x73, TPL_73,  "TPL: long header compact APL follows", 0, CI_TYPE::TPL, "") \
-*/
-
 #define LIST_OF_CI_FIELDS \
     X(0x51, TPL_51,  "TPL: APL follows", 0, CI_TYPE::TPL, "")       \
     X(0x72, TPL_72,  "TPL: long header APL follows", 0, CI_TYPE::TPL, "") \
+    X(0x73, TPL_73,  "TPL: long header compact APL follows", 0, CI_TYPE::TPL, "") \
     X(0x78, TPL_78,  "TPL: no header APL follows", 0, CI_TYPE::TPL, "") \
     X(0x79, TPL_79,  "TPL: compact APL follows", 0, CI_TYPE::TPL, "") \
     X(0x7A, TPL_7A,  "TPL: short header APL follows", 0, CI_TYPE::TPL, "") \
@@ -1872,6 +1869,63 @@ bool Telegram::parse_TPL_79(vector<uchar>::iterator &pos)
     return true;
 }
 
+bool Telegram::parse_TPL_73(vector<uchar>::iterator &pos)
+{
+    bool ok = parseLongTPL(pos);
+    if (!ok) return false;
+
+    bool decrypt_ok = potentiallyDecrypt(pos);
+    if (!decrypt_ok)
+    {
+        decryption_failed = true;
+        return true;
+    }
+
+    CHECK(2);
+    uchar ecrc0 = *(pos+0);
+    uchar ecrc1 = *(pos+1);
+    size_t offset = distance(frame.begin(), pos);
+    addExplanationAndIncrementPos(pos, 2, KindOfData::PROTOCOL, Understanding::FULL,
+                                  "%02x%02x format signature", ecrc0, ecrc1);
+    format_signature = ecrc1<<8 | ecrc0;
+
+    vector<uchar> format_bytes;
+    ok = loadFormatBytesFromSignature(format_signature, &format_bytes);
+    if (!ok) {
+        ok = findFormatBytesFromKnownMeterSignatures(&format_bytes);
+        if (!ok)
+        {
+            addMoreExplanation(offset, " (unknown)");
+            int num_compressed_bytes = distance(pos, frame.end());
+            string info = bin2hex(pos, frame.end(), num_compressed_bytes);
+            info += " compressed and signature unknown";
+            addExplanationAndIncrementPos(pos, distance(pos, frame.end()),
+                                          KindOfData::CONTENT, Understanding::COMPRESSED,
+                                          info.c_str());
+            verbose("(wmbus) ignoring compressed telegram since format signature hash 0x%02x is yet unknown.\n"
+                    "     this is not a problem, since you only need wait for at most 8 telegrams\n"
+                    "     (8*16 seconds) until an full length telegram arrives and then we know\n"
+                    "     the format giving this hash and start decoding the telegrams properly.\n",
+                    format_signature);
+            return false;
+        }
+    }
+    vector<uchar>::iterator format = format_bytes.begin();
+
+    CHECK(2);
+    int ecrc2 = *(pos+0);
+    int ecrc3 = *(pos+1);
+    addExplanationAndIncrementPos(pos, 2, KindOfData::PROTOCOL, Understanding::FULL,
+                                  "%02x%02x full frame crc", ecrc2, ecrc3);
+
+    header_size = distance(frame.begin(), pos);
+    int remaining = distance(pos, frame.end())-suffix_size;
+
+    parseDV(this, frame, pos, remaining, &dv_entries, &format, format_bytes.size());
+
+    return true;
+}
+
 bool Telegram::parse_TPL_7A(vector<uchar>::iterator &pos)
 {
     bool ok = parseShortTPL(pos);
@@ -1927,6 +1981,7 @@ bool Telegram::parseTPL(vector<uchar>::iterator &pos)
     switch (tpl_ci)
     {
         case CI_Field_Values::TPL_72: return parse_TPL_72(pos);
+        case CI_Field_Values::TPL_73: return parse_TPL_73(pos);
         case CI_Field_Values::TPL_78: return parse_TPL_78(pos);
         case CI_Field_Values::TPL_79: return parse_TPL_79(pos);
         case CI_Field_Values::TPL_7A: return parse_TPL_7A(pos);
