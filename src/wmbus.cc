@@ -3767,13 +3767,15 @@ string vif_7D_SecondExtensionType(uchar dif, uchar vif, uchar vife)
 string vif_6F_ThirdExtensionType(uchar dif, uchar vif, uchar vife)
 {
     assert(vif == 0xef);
-    return "?";
+    // EN 13757-3:2018, 6.4.3 Table 11: EFh is reserved for a future third extension table.
+    return "Reserved for future third extension table";
 }
 
 string vif_7F_ManufacturerExtensionType(uchar dif, uchar vif, uchar vife)
 {
     assert(vif == 0xff);
-    return "?";
+    // EN 13757-3:2018, 6.4.3 Table 11: 7Fh/FFh block (including VIFEs) is manufacturer specific.
+    return "Manufacturer specific";
 }
 
 string vifeType(int dif, int vif, int vife)

@@ -1,0 +1,123 @@
+// Copyright (C) 2020-2026 Fredrik Öhrström (gpl-3.0-or-later)
+driver {
+    name           = tsd2
+    meter_type     = SmokeDetector
+    default_fields = name,id,status,prev_date,timestamp
+    manufacturer   = Techem
+    detect {
+        mvt = TCH,76,F0
+    }
+    fields {
+        field {
+            name                 = payload
+            quantity             = Text
+            attributes           = REQUIRED
+            match_entire_payload = true
+            ixml                 = "decode = status_byte, date_word, -byte*.
+                                    status_byte = byte, @DV_status.
+                                    date_word = byte, byte, @DV_date_raw.
+                                    -hex = ['A'-'F'; '0'-'9'].
+                                    -byte = hex, hex.
+                                    DV_status>dvk = +'0101'.
+                                    DV_date_raw>dvk = +'02FD3A'."
+        }
+        field {
+            name       = status
+            quantity   = Text
+            info       = 'The current status: OK or SMOKE or errors.'
+            attributes = STATUS,INCLUDE_TPL_STATUS
+        }
+        field {
+            name           = detector
+            quantity       = Text
+            info           = 'The current status: OK or SMOKE.'
+            attributes     = INJECT_INTO_STATUS,HIDE
+            vif_scaling    = None
+            dif_signedness = Unsigned
+            match {
+                measurement_type = Instantaneous
+                difvifkey        = 0101
+            }
+            lookup {
+                name      = STATUS
+                map_type  = IndexToString
+                mask_bits = 0xff
+                map {
+                    name  = OK
+                    value = 0
+                    test  = Set
+                }
+                map {
+                    name  = SMOKE
+                    value = 1
+                    test  = Set
+                }
+            }
+        }
+        field {
+            name       = prev_date_raw
+            quantity   = Dimensionless
+            attributes = HIDE
+            match {
+                difvifkey = 02FD3A
+            }
+        }
+        field {
+            name       = prev_day
+            quantity   = Dimensionless
+            attributes = HIDE
+            calculate  = 'prev_date_raw_counter % 32counter'
+        }
+        field {
+            name       = prev_month
+            quantity   = Dimensionless
+            attributes = HIDE
+            calculate  = '(prev_date_raw_counter >> 5counter) % 16counter'
+        }
+        field {
+            name       = prev_year
+            quantity   = Dimensionless
+            attributes = HIDE
+            calculate  = 'prev_date_raw_counter >> 9counter'
+        }
+        field {
+            name         = prev
+            quantity     = PointInTime
+            display_unit = DateLT
+            info         = 'Date of previous billing period.'
+            calculate    = "'2000-01-01' +
+                            (((prev_year_counter * 12counter) + prev_month_counter - 1counter) * 1month) +
+                            ((prev_day_counter - 1counter) * 24h)"
+        }
+    }
+    tests {
+        test {
+            comment  = 'Status OK with date'
+            args     = 'Smokey tsd2 91633569 NOKEY'
+            telegram = 294468506935639176F0A0_009F2782290060822900000401D6311AF93E1BF93E008DC3009ED4000FE500
+            json     = '{"_":"telegram","media":"smoke detector","meter":"tsd2","name":"Smokey","id":"91633569","status":"OK","prev_date":"2019-12-31","timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'Smokey;91633569;OK;2019-12-31;1111-11-11 11:11.11'
+        }
+        test {
+            comment  = 'Status SMOKE with date'
+            args     = 'Smokey tsd2 91633569 NOKEY'
+            telegram = 294468506935639176F0A0_019F2782290060822900000401D6311AF93E1BF93E008DC3009ED4000FE500
+            json     = '{"_":"telegram","media":"smoke detector","meter":"tsd2","name":"Smokey","id":"91633569","status":"SMOKE","prev_date":"2019-12-31","timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'Smokey;91633569;SMOKE;2019-12-31;1111-11-11 11:11.11'
+        }
+        test {
+            comment  = 'Invalid status byte.'
+            args     = 'Smokey tsd2 91633569 NOKEY'
+            telegram = 294468506935639176F0A0_719F2782290060822900000401D6311AF93E1BF93E008DC3009ED4000FE500
+            json     = '{"_":"telegram","media":"smoke detector","meter":"tsd2","name":"Smokey","id":"91633569","status":"STATUS_71","prev_date":"2019-12-31","timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'Smokey;91633569;STATUS_71;2019-12-31;1111-11-11 11:11.11'
+        }
+        test {
+            comment  = 'Broken payload, decoding error in status and prev_date is null'
+            args     = 'Smokey tsd2 91633569 NOKEY'
+            telegram = 0C4468506935639176F0A0_019F
+            json     = '{"_":"telegram","media":"smoke detector","meter":"tsd2","name":"Smokey","id":"91633569","status":"DECODING_ERROR_payload","prev_date":null,"timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'Smokey;91633569;DECODING_ERROR_payload;null;1111-11-11 11:11.11'
+        }
+    }
+}

@@ -13,7 +13,7 @@ rm -f $TEST/test_output.txt $TEST/test_expected.txt $TEST/simulation_tmp.txt
 
 echo "$HEX" | sed 's/^/telegram=/g' | sed 's/,/\ntelegram=/g' > $TEST/simulation_tmp.txt
 
-$PROG --driver=$DRIVER --format=json $TEST/simulation_tmp.txt $ARGS \
+$PROG --driver=$DRIVER --format=json $TEST/simulation_tmp.txt $ARGS 2> $TEST/test_error.txt \
     | tail -n 1 \
     | jq . --sort-keys \
     | sed 's/"timestamp": "....-..-..T..:..:..Z"/"timestamp": "1111-11-11T11:11:11Z"/' \
@@ -31,7 +31,7 @@ fi
 
 rm -f $TEST/test_output.txt $TEST/test_expected.txt
 
-$PROG --driver=$DRIVER --format=fields $TEST/simulation_tmp.txt $ARGS \
+$PROG --driver=$DRIVER --format=fields $TEST/simulation_tmp.txt $ARGS 2> $TEST/test_error.txt \
     | sed 's/....-..-.. ..:..:../1111-11-11 11:11.11/' \
     | tail -n 1 \
      > $TEST/test_output.txt

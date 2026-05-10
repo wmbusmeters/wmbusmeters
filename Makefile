@@ -74,7 +74,7 @@ else
         endif
     else
         # Release build
-        DEBUG_FLAGS=-O3 -g
+        DEBUG_FLAGS=-O2 -g
         STRIP_BINARY=cp $(BUILD)/wmbusmeters $(BUILD)/wmbusmeters.g; $(STRIP) $(BUILD)/wmbusmeters
         GCOV=To_run_gcov_add_DEBUG=true
     endif
@@ -162,12 +162,10 @@ LDFLAGS  += $(LIBXML_LIBS) $(LIBRTLSDR_LIBS) $(LIBUSB_LIBS)
 #endif
 
 $(BUILD)/%.o: src/%.cc $(wildcard src/%.h)
-#	$(CXX) $(CXXFLAGS) $< -c -E > $@.src
 	$(CXX) $(CXXFLAGS) $< -MMD -c -o $@
 
 $(BUILD)/%.o: src/%.c $(wildcard src/%.h)
-#	$(CXX) $(CXXFLAGS) $< -c -E > $@.src
-	$(CXX) -fpermissive $(CXXFLAGS)  $< -MMD -c -o $@
+	$(CXX) -fpermissive $(CXXFLAGS) $< -MMD -c -o $@
 
 PROG_OBJS:=\
 	$(BUILD)/address.o \
