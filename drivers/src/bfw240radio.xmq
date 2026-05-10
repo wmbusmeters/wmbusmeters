@@ -1,0 +1,370 @@
+// Copyright (C) 2021-2026 Fredrik Öhrström (gpl-3.0-or-later)
+driver {
+    name           = bfw240radio
+    meter_type     = HeatCostAllocationMeter
+    default_fields = name,id,current_hca,prev_hca,timestamp
+    detect {
+        mvt = BFW,02,08
+    }
+    fields {
+        field {
+            name                 = payload_decoder
+            quantity             = Text
+            attributes           = HIDE
+            match_entire_payload = true
+            ixml                 = "decode = byte, byte, byte, byte,
+                                            prev_bytes,
+                                            current_bytes,
+                                            byte, byte,
+                                            hist_18_17,
+                                            hist_16_15,
+                                            hist_14_13,
+                                            hist_12_11,
+                                            hist_10_09,
+                                            hist_08_07,
+                                            hist_06_05,
+                                            hist_04_03,
+                                            hist_02_01,
+                                            date_bytes.
+                                    -hex  = ['A'-'F';'0'-'9'].
+                                    -byte = hex, hex.
+                                    -word = byte, byte.
+                                    -triplet = byte, byte, byte.
+                                    prev_bytes = word, @DV_prev_raw.
+                                    current_bytes = word, @DV_current_raw.
+                                    hist_18_17 = triplet, @DV_hist_18_17_raw.
+                                    hist_16_15 = triplet, @DV_hist_16_15_raw.
+                                    hist_14_13 = triplet, @DV_hist_14_13_raw.
+                                    hist_12_11 = triplet, @DV_hist_12_11_raw.
+                                    hist_10_09 = triplet, @DV_hist_10_09_raw.
+                                    hist_08_07 = triplet, @DV_hist_08_07_raw.
+                                    hist_06_05 = triplet, @DV_hist_06_05_raw.
+                                    hist_04_03 = triplet, @DV_hist_04_03_raw.
+                                    hist_02_01 = triplet, @DV_hist_02_01_raw.
+                                    date_bytes = triplet, @DV_date_raw.
+                                    DV_prev_raw>dvk = +'02FD3A'.
+                                    DV_current_raw>dvk = +'42FD3A'.
+                                    DV_hist_18_17_raw>dvk = +'03FD3A'.
+                                    DV_hist_16_15_raw>dvk = +'43FD3A'.
+                                    DV_hist_14_13_raw>dvk = +'8300FD3A'.
+                                    DV_hist_12_11_raw>dvk = +'C300FD3A'.
+                                    DV_hist_10_09_raw>dvk = +'8301FD3A'.
+                                    DV_hist_08_07_raw>dvk = +'C301FD3A'.
+                                    DV_hist_06_05_raw>dvk = +'8302FD3A'.
+                                    DV_hist_04_03_raw>dvk = +'C302FD3A'.
+                                    DV_hist_02_01_raw>dvk = +'8303FD3A'.
+                                    DV_date_raw>dvk = +'C303FD3A'."
+        }
+        field {
+            name           = prev_raw
+            quantity       = Dimensionless
+            attributes     = HIDE
+            dif_signedness = Unsigned
+            match {
+                difvifkey = 02FD3A
+            }
+        }
+        field {
+            name           = current_raw
+            quantity       = Dimensionless
+            attributes     = HIDE
+            dif_signedness = Unsigned
+            match {
+                difvifkey = 42FD3A
+            }
+        }
+        field {
+            name           = hist_18_17_raw
+            quantity       = Dimensionless
+            attributes     = HIDE
+            dif_signedness = Unsigned
+            match {
+                difvifkey = 03FD3A
+            }
+        }
+        field {
+            name           = hist_16_15_raw
+            quantity       = Dimensionless
+            attributes     = HIDE
+            dif_signedness = Unsigned
+            match {
+                difvifkey = 43FD3A
+            }
+        }
+        field {
+            name           = hist_14_13_raw
+            quantity       = Dimensionless
+            attributes     = HIDE
+            dif_signedness = Unsigned
+            match {
+                difvifkey = 8300FD3A
+            }
+        }
+        field {
+            name           = hist_12_11_raw
+            quantity       = Dimensionless
+            attributes     = HIDE
+            dif_signedness = Unsigned
+            match {
+                difvifkey = C300FD3A
+            }
+        }
+        field {
+            name           = hist_10_09_raw
+            quantity       = Dimensionless
+            attributes     = HIDE
+            dif_signedness = Unsigned
+            match {
+                difvifkey = 8301FD3A
+            }
+        }
+        field {
+            name           = hist_08_07_raw
+            quantity       = Dimensionless
+            attributes     = HIDE
+            dif_signedness = Unsigned
+            match {
+                difvifkey = C301FD3A
+            }
+        }
+        field {
+            name           = hist_06_05_raw
+            quantity       = Dimensionless
+            attributes     = HIDE
+            dif_signedness = Unsigned
+            match {
+                difvifkey = 8302FD3A
+            }
+        }
+        field {
+            name           = hist_04_03_raw
+            quantity       = Dimensionless
+            attributes     = HIDE
+            dif_signedness = Unsigned
+            match {
+                difvifkey = C302FD3A
+            }
+        }
+        field {
+            name           = hist_02_01_raw
+            quantity       = Dimensionless
+            attributes     = HIDE
+            dif_signedness = Unsigned
+            match {
+                difvifkey = 8303FD3A
+            }
+        }
+        field {
+            name           = date_raw
+            quantity       = Dimensionless
+            attributes     = HIDE
+            dif_signedness = Unsigned
+            match {
+                difvifkey = C303FD3A
+            }
+        }
+        field {
+            name      = prev
+            quantity  = HCA
+            info      = 'Energy consumption at end of previous billing period.'
+            calculate = '(((prev_raw_counter % 256counter) * 256counter) + (prev_raw_counter >> 8counter)) * 1hca'
+        }
+        field {
+            name      = current
+            quantity  = HCA
+            info      = 'Energy consumption so far in this billing period.'
+            calculate = '(((current_raw_counter % 256counter) * 256counter) + (current_raw_counter >> 8counter)) * 1hca'
+        }
+        field {
+            name       = device_day_bcd
+            quantity   = Dimensionless
+            attributes = HIDE
+            calculate  = 'date_raw_counter % 256counter'
+        }
+        field {
+            name       = device_month_bcd
+            quantity   = Dimensionless
+            attributes = HIDE
+            calculate  = '(date_raw_counter >> 8counter) % 256counter'
+        }
+        field {
+            name       = device_year_bcd
+            quantity   = Dimensionless
+            attributes = HIDE
+            calculate  = 'date_raw_counter >> 16counter'
+        }
+        field {
+            name       = device_day
+            quantity   = Dimensionless
+            attributes = HIDE
+            calculate  = '((device_day_bcd_counter >> 4counter) * 10counter) + (device_day_bcd_counter % 16counter)'
+        }
+        field {
+            name       = device_month
+            quantity   = Dimensionless
+            attributes = HIDE
+            calculate  = '((device_month_bcd_counter >> 4counter) * 10counter) + (device_month_bcd_counter % 16counter)'
+        }
+        field {
+            name       = device_year
+            quantity   = Dimensionless
+            attributes = HIDE
+            calculate  = '((device_year_bcd_counter >> 4counter) * 10counter) + (device_year_bcd_counter % 16counter)'
+        }
+        field {
+            name         = device
+            quantity     = PointInTime
+            display_unit = date
+            info         = 'Device date when telegram was sent.'
+            calculate    = "'2000-01-01' +
+                            (((device_year_counter * 12counter) + device_month_counter - 1counter) * 1month) +
+                            ((device_day_counter - 1counter) * 24h)"
+        }
+        field {
+            name      = prev_01
+            quantity  = HCA
+            info      = 'Energy consumption 1 month ago.'
+            calculate = '((((hist_02_01_raw_counter >> 8counter) % 16counter) * 256counter) + (hist_02_01_raw_counter >> 16counter)) * 1hca'
+        }
+        field {
+            name      = prev_02
+            quantity  = HCA
+            info      = 'Energy consumption 2 months ago.'
+            calculate = '(((((hist_02_01_raw_counter >> 8counter) % 256counter) >> 4counter) * 256counter) + (hist_02_01_raw_counter % 256counter)) * 1hca'
+        }
+        field {
+            name      = prev_03
+            quantity  = HCA
+            info      = 'Energy consumption 3 months ago.'
+            calculate = '((((hist_04_03_raw_counter >> 8counter) % 16counter) * 256counter) + (hist_04_03_raw_counter >> 16counter)) * 1hca'
+        }
+        field {
+            name      = prev_04
+            quantity  = HCA
+            info      = 'Energy consumption 4 months ago.'
+            calculate = '(((((hist_04_03_raw_counter >> 8counter) % 256counter) >> 4counter) * 256counter) + (hist_04_03_raw_counter % 256counter)) * 1hca'
+        }
+        field {
+            name      = prev_05
+            quantity  = HCA
+            info      = 'Energy consumption 5 months ago.'
+            calculate = '((((hist_06_05_raw_counter >> 8counter) % 16counter) * 256counter) + (hist_06_05_raw_counter >> 16counter)) * 1hca'
+        }
+        field {
+            name      = prev_06
+            quantity  = HCA
+            info      = 'Energy consumption 6 months ago.'
+            calculate = '(((((hist_06_05_raw_counter >> 8counter) % 256counter) >> 4counter) * 256counter) + (hist_06_05_raw_counter % 256counter)) * 1hca'
+        }
+        field {
+            name      = prev_07
+            quantity  = HCA
+            info      = 'Energy consumption 7 months ago.'
+            calculate = '((((hist_08_07_raw_counter >> 8counter) % 16counter) * 256counter) + (hist_08_07_raw_counter >> 16counter)) * 1hca'
+        }
+        field {
+            name      = prev_08
+            quantity  = HCA
+            info      = 'Energy consumption 8 months ago.'
+            calculate = '(((((hist_08_07_raw_counter >> 8counter) % 256counter) >> 4counter) * 256counter) + (hist_08_07_raw_counter % 256counter)) * 1hca'
+        }
+        field {
+            name      = prev_09
+            quantity  = HCA
+            info      = 'Energy consumption 9 months ago.'
+            calculate = '((((hist_10_09_raw_counter >> 8counter) % 16counter) * 256counter) + (hist_10_09_raw_counter >> 16counter)) * 1hca'
+        }
+        field {
+            name      = prev_10
+            quantity  = HCA
+            info      = 'Energy consumption 10 months ago.'
+            calculate = '(((((hist_10_09_raw_counter >> 8counter) % 256counter) >> 4counter) * 256counter) + (hist_10_09_raw_counter % 256counter)) * 1hca'
+        }
+        field {
+            name      = prev_11
+            quantity  = HCA
+            info      = 'Energy consumption 11 months ago.'
+            calculate = '((((hist_12_11_raw_counter >> 8counter) % 16counter) * 256counter) + (hist_12_11_raw_counter >> 16counter)) * 1hca'
+        }
+        field {
+            name      = prev_12
+            quantity  = HCA
+            info      = 'Energy consumption 12 months ago.'
+            calculate = '(((((hist_12_11_raw_counter >> 8counter) % 256counter) >> 4counter) * 256counter) + (hist_12_11_raw_counter % 256counter)) * 1hca'
+        }
+        field {
+            name      = prev_13
+            quantity  = HCA
+            info      = 'Energy consumption 13 months ago.'
+            calculate = '((((hist_14_13_raw_counter >> 8counter) % 16counter) * 256counter) + (hist_14_13_raw_counter >> 16counter)) * 1hca'
+        }
+        field {
+            name      = prev_14
+            quantity  = HCA
+            info      = 'Energy consumption 14 months ago.'
+            calculate = '(((((hist_14_13_raw_counter >> 8counter) % 256counter) >> 4counter) * 256counter) + (hist_14_13_raw_counter % 256counter)) * 1hca'
+        }
+        field {
+            name      = prev_15
+            quantity  = HCA
+            info      = 'Energy consumption 15 months ago.'
+            calculate = '((((hist_16_15_raw_counter >> 8counter) % 16counter) * 256counter) + (hist_16_15_raw_counter >> 16counter)) * 1hca'
+        }
+        field {
+            name      = prev_16
+            quantity  = HCA
+            info      = 'Energy consumption 16 months ago.'
+            calculate = '(((((hist_16_15_raw_counter >> 8counter) % 256counter) >> 4counter) * 256counter) + (hist_16_15_raw_counter % 256counter)) * 1hca'
+        }
+        field {
+            name      = prev_17
+            quantity  = HCA
+            info      = 'Energy consumption 17 months ago.'
+            calculate = '((((hist_18_17_raw_counter >> 8counter) % 16counter) * 256counter) + (hist_18_17_raw_counter >> 16counter)) * 1hca'
+        }
+        field {
+            name      = prev_18
+            quantity  = HCA
+            info      = 'Energy consumption 18 months ago.'
+            calculate = '(((((hist_18_17_raw_counter >> 8counter) % 256counter) >> 4counter) * 256counter) + (hist_18_17_raw_counter % 256counter)) * 1hca'
+        }
+    }
+    tests {
+        test {
+            args     = 'bfw bfw240radio 00707788 NOKEY'
+            telegram = 3644D7088877700002087ADBC000002F2F9E1F03C10388152A00000000000000000000000000000204000404000EE2020AC1321D280221
+            json     = '{"_":"telegram","media":"heat cost allocation","meter":"bfw240radio","name":"bfw","id":"00707788","current_hca":904,"prev_hca":961,"prev_01_hca":541,"prev_02_hca":961,"prev_03_hca":522,"prev_04_hca":226,"prev_05_hca":14,"prev_06_hca":4,"prev_07_hca":4,"prev_08_hca":4,"prev_09_hca":2,"prev_10_hca":0,"prev_11_hca":0,"prev_12_hca":0,"prev_13_hca":0,"prev_14_hca":0,"prev_15_hca":0,"prev_16_hca":0,"prev_17_hca":0,"prev_18_hca":0,"device_date":"2021-02-28","timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'bfw;00707788;904;961;1111-11-11 11:11.11'
+        }
+        test {
+            args     = 'bfw bfw240radio 00707788 NOKEY'
+            telegram = 3644D7088877700002087A8BC000002F2F011F03C1038D152A0000000000000000000000000200040400040E00E20A23C11D238D010321
+            json     = '{"_":"telegram","media":"heat cost allocation","meter":"bfw240radio","name":"bfw","id":"00707788","current_hca":909,"prev_hca":961,"prev_01_hca":909,"prev_02_hca":541,"prev_03_hca":961,"prev_04_hca":522,"prev_05_hca":226,"prev_06_hca":14,"prev_07_hca":4,"prev_08_hca":4,"prev_09_hca":4,"prev_10_hca":2,"prev_11_hca":0,"prev_12_hca":0,"prev_13_hca":0,"prev_14_hca":0,"prev_15_hca":0,"prev_16_hca":0,"prev_17_hca":0,"prev_18_hca":0,"device_date":"2021-03-01","timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'bfw;00707788;909;961;1111-11-11 11:11.11'
+        }
+        test {
+            args     = 'bfww bfw240radio 00707076 NOKEY'
+            telegram = 3644D7087670700002087A9CC000002F2F6E1F000000000B36000000000000000000000000000000000000000000000000000000260221
+            json     = '{"_":"telegram","media":"heat cost allocation","meter":"bfw240radio","name":"bfww","id":"00707076","current_hca":0,"prev_hca":0,"prev_01_hca":0,"prev_02_hca":0,"prev_03_hca":0,"prev_04_hca":0,"prev_05_hca":0,"prev_06_hca":0,"prev_07_hca":0,"prev_08_hca":0,"prev_09_hca":0,"prev_10_hca":0,"prev_11_hca":0,"prev_12_hca":0,"prev_13_hca":0,"prev_14_hca":0,"prev_15_hca":0,"prev_16_hca":0,"prev_17_hca":0,"prev_18_hca":0,"device_date":"2021-02-26","timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'bfww;00707076;0;0;1111-11-11 11:11.11'
+        }
+        test {
+            args     = 'bfww bfw240radio 00707076 NOKEY'
+            telegram = 3644D7087670700002087A27C000002F2F011F000000000B36000000000000000000000000000000000000000000000000000000010321
+            json     = '{"_":"telegram","media":"heat cost allocation","meter":"bfw240radio","name":"bfww","id":"00707076","current_hca":0,"prev_hca":0,"prev_01_hca":0,"prev_02_hca":0,"prev_03_hca":0,"prev_04_hca":0,"prev_05_hca":0,"prev_06_hca":0,"prev_07_hca":0,"prev_08_hca":0,"prev_09_hca":0,"prev_10_hca":0,"prev_11_hca":0,"prev_12_hca":0,"prev_13_hca":0,"prev_14_hca":0,"prev_15_hca":0,"prev_16_hca":0,"prev_17_hca":0,"prev_18_hca":0,"device_date":"2021-03-01","timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'bfww;00707076;0;0;1111-11-11 11:11.11'
+        }
+        test {
+            args     = 'bfwww bfw240radio 00707447 NOKEY'
+            telegram = 3644D7084774700002087A80C000002F2F6F1F01440100147000000000000000000000000000000000000000000037009B4410AC260221
+            json     = '{"_":"telegram","media":"heat cost allocation","meter":"bfw240radio","name":"bfwww","id":"00707447","current_hca":256,"prev_hca":324,"prev_01_hca":172,"prev_02_hca":324,"prev_03_hca":155,"prev_04_hca":55,"prev_05_hca":0,"prev_06_hca":0,"prev_07_hca":0,"prev_08_hca":0,"prev_09_hca":0,"prev_10_hca":0,"prev_11_hca":0,"prev_12_hca":0,"prev_13_hca":0,"prev_14_hca":0,"prev_15_hca":0,"prev_16_hca":0,"prev_17_hca":0,"prev_18_hca":0,"device_date":"2021-02-26","timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'bfwww;00707447;256;324;1111-11-11 11:11.11'
+        }
+        test {
+            args     = 'bfwww bfw240radio 00707447 NOKEY'
+            telegram = 3644D7084774700002087AE1C000002F2F481F0144010014700000000000000000000000000000000000000000379B0144AC0100040321
+            json     = '{"_":"telegram","media":"heat cost allocation","meter":"bfw240radio","name":"bfwww","id":"00707447","current_hca":256,"prev_hca":324,"prev_01_hca":256,"prev_02_hca":172,"prev_03_hca":324,"prev_04_hca":155,"prev_05_hca":55,"prev_06_hca":0,"prev_07_hca":0,"prev_08_hca":0,"prev_09_hca":0,"prev_10_hca":0,"prev_11_hca":0,"prev_12_hca":0,"prev_13_hca":0,"prev_14_hca":0,"prev_15_hca":0,"prev_16_hca":0,"prev_17_hca":0,"prev_18_hca":0,"device_date":"2021-03-04","timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'bfwww;00707447;256;324;1111-11-11 11:11.11'
+        }
+    }
+}

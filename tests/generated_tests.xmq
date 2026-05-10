@@ -230,6 +230,42 @@ test {
     fields   = 'Votten;61070071;466.472;;1111-11-11 11:11.11'
 }
 test {
+    args     = 'bfwww bfw240radio 00707447 NOKEY'
+    telegram = 3644D7084774700002087AE1C000002F2F481F0144010014700000000000000000000000000000000000000000379B0144AC0100040321
+    json     = '{"_":"telegram","media":"heat cost allocation","meter":"bfw240radio","name":"bfwww","id":"00707447","current_hca":256,"prev_hca":324,"prev_01_hca":256,"prev_02_hca":172,"prev_03_hca":324,"prev_04_hca":155,"prev_05_hca":55,"prev_06_hca":0,"prev_07_hca":0,"prev_08_hca":0,"prev_09_hca":0,"prev_10_hca":0,"prev_11_hca":0,"prev_12_hca":0,"prev_13_hca":0,"prev_14_hca":0,"prev_15_hca":0,"prev_16_hca":0,"prev_17_hca":0,"prev_18_hca":0,"device_date":"2021-03-04","timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'bfwww;00707447;256;324;1111-11-11 11:11.11'
+}
+test {
+    args     = 'bfwww bfw240radio 00707447 NOKEY'
+    telegram = 3644D7084774700002087A80C000002F2F6F1F01440100147000000000000000000000000000000000000000000037009B4410AC260221
+    json     = '{"_":"telegram","media":"heat cost allocation","meter":"bfw240radio","name":"bfwww","id":"00707447","current_hca":256,"prev_hca":324,"prev_01_hca":172,"prev_02_hca":324,"prev_03_hca":155,"prev_04_hca":55,"prev_05_hca":0,"prev_06_hca":0,"prev_07_hca":0,"prev_08_hca":0,"prev_09_hca":0,"prev_10_hca":0,"prev_11_hca":0,"prev_12_hca":0,"prev_13_hca":0,"prev_14_hca":0,"prev_15_hca":0,"prev_16_hca":0,"prev_17_hca":0,"prev_18_hca":0,"device_date":"2021-02-26","timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'bfwww;00707447;256;324;1111-11-11 11:11.11'
+}
+test {
+    args     = 'bfww bfw240radio 00707076 NOKEY'
+    telegram = 3644D7087670700002087A27C000002F2F011F000000000B36000000000000000000000000000000000000000000000000000000010321
+    json     = '{"_":"telegram","media":"heat cost allocation","meter":"bfw240radio","name":"bfww","id":"00707076","current_hca":0,"prev_hca":0,"prev_01_hca":0,"prev_02_hca":0,"prev_03_hca":0,"prev_04_hca":0,"prev_05_hca":0,"prev_06_hca":0,"prev_07_hca":0,"prev_08_hca":0,"prev_09_hca":0,"prev_10_hca":0,"prev_11_hca":0,"prev_12_hca":0,"prev_13_hca":0,"prev_14_hca":0,"prev_15_hca":0,"prev_16_hca":0,"prev_17_hca":0,"prev_18_hca":0,"device_date":"2021-03-01","timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'bfww;00707076;0;0;1111-11-11 11:11.11'
+}
+test {
+    args     = 'bfww bfw240radio 00707076 NOKEY'
+    telegram = 3644D7087670700002087A9CC000002F2F6E1F000000000B36000000000000000000000000000000000000000000000000000000260221
+    json     = '{"_":"telegram","media":"heat cost allocation","meter":"bfw240radio","name":"bfww","id":"00707076","current_hca":0,"prev_hca":0,"prev_01_hca":0,"prev_02_hca":0,"prev_03_hca":0,"prev_04_hca":0,"prev_05_hca":0,"prev_06_hca":0,"prev_07_hca":0,"prev_08_hca":0,"prev_09_hca":0,"prev_10_hca":0,"prev_11_hca":0,"prev_12_hca":0,"prev_13_hca":0,"prev_14_hca":0,"prev_15_hca":0,"prev_16_hca":0,"prev_17_hca":0,"prev_18_hca":0,"device_date":"2021-02-26","timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'bfww;00707076;0;0;1111-11-11 11:11.11'
+}
+test {
+    args     = 'bfw bfw240radio 00707788 NOKEY'
+    telegram = 3644D7088877700002087A8BC000002F2F011F03C1038D152A0000000000000000000000000200040400040E00E20A23C11D238D010321
+    json     = '{"_":"telegram","media":"heat cost allocation","meter":"bfw240radio","name":"bfw","id":"00707788","current_hca":909,"prev_hca":961,"prev_01_hca":909,"prev_02_hca":541,"prev_03_hca":961,"prev_04_hca":522,"prev_05_hca":226,"prev_06_hca":14,"prev_07_hca":4,"prev_08_hca":4,"prev_09_hca":4,"prev_10_hca":2,"prev_11_hca":0,"prev_12_hca":0,"prev_13_hca":0,"prev_14_hca":0,"prev_15_hca":0,"prev_16_hca":0,"prev_17_hca":0,"prev_18_hca":0,"device_date":"2021-03-01","timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'bfw;00707788;909;961;1111-11-11 11:11.11'
+}
+test {
+    args     = 'bfw bfw240radio 00707788 NOKEY'
+    telegram = 3644D7088877700002087ADBC000002F2F9E1F03C10388152A00000000000000000000000000000204000404000EE2020AC1321D280221
+    json     = '{"_":"telegram","media":"heat cost allocation","meter":"bfw240radio","name":"bfw","id":"00707788","current_hca":904,"prev_hca":961,"prev_01_hca":541,"prev_02_hca":961,"prev_03_hca":522,"prev_04_hca":226,"prev_05_hca":14,"prev_06_hca":4,"prev_07_hca":4,"prev_08_hca":4,"prev_09_hca":2,"prev_10_hca":0,"prev_11_hca":0,"prev_12_hca":0,"prev_13_hca":0,"prev_14_hca":0,"prev_15_hca":0,"prev_16_hca":0,"prev_17_hca":0,"prev_18_hca":0,"device_date":"2021-02-28","timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'bfw;00707788;904;961;1111-11-11 11:11.11'
+}
+test {
     args     = 'HeatCool c5isf 32022703 NOKEY'
     telegram = 8E44496A03270232880D7AED0080052F2F0406050200008410069A1700000413BC6F2E00840406E701000082046C2131841406C20B000082146C2131043B00000000042D0000000002595D09025D240802FD17000084800106050200008280016C213C948001AE2501000000849001069A1700008290016C213C849001AE25000000002F2F2F2F2F2F2F2F2F2F2F2F
     json     = '{"_":"telegram","media":"heat/cooling load","meter":"c5isf","name":"HeatCool","id":"32022703","due_date":"2025-01-01","due_energy_consumption_kwh":487,"flow_temperature_c":23.97,"max_power_last_month_kw":1,"power_kw":0,"prev_1_month_kwh":517,"prev_1_month_date":"2025-12-01","return_temperature_c":20.84,"total_cooling_consumption_kwh":6042,"total_energy_consumption_kwh":517,"total_energy_consumption_last_month_kwh":517,"total_volume_m3":3043.26,"volume_flow_m3h":0,"status":"OK","timestamp":"1111-11-11T11:11:11Z"}'
