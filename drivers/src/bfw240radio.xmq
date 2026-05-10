@@ -1,4 +1,17 @@
-// Copyright (C) 2021-2026 Fredrik Öhrström (gpl-3.0-or-later)
+/* Copyright (C) 2021-2026 Fredrik Öhrström (gpl-3.0-or-later)
+
+   date of telegram reception--------------------------------------------------------------------------------|
+                                                                                                             |
+   18 historic monthly values (newest to the right, byte-reordering for 2.,4.,6.,...-oldest month)----|      |
+                                                                                                      |      |
+   ???------------------------|                                                                       |      |
+                              |                                                                       |      |
+   current consumption---|    |                                                                       |      |
+                         |    |                                                                       |      |
+   prev. cons.---vvvv vvvv vvvv vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv vvvvvv
+   feb: 2F2F6F1F 0144 0100 1470 000 000 000 000 000 000 000 000 000 000 000 000 000 000 370 09B 441 0AC 260221
+   mar: 2F2F481F 0144 0100 1470 000 000 000 000 000 000 000 000 000 000 000 000 000 037 9B0 144 AC0 100 040321
+   apr: 2F2F871F 0144 013C 1470 000 000 000 000 000 000 000 000 000 000 000 000 370 09B 441 0AC 001 13C 030421 */
 driver {
     name           = bfw240radio
     meter_type     = HeatCostAllocationMeter
@@ -8,9 +21,9 @@ driver {
     }
     fields {
         field {
-            name                 = payload_decoder
+            name                 = payload
             quantity             = Text
-            attributes           = HIDE
+            attributes           = HIDE,REQUIRED
             match_entire_payload = true
             ixml                 = "decode = byte, byte, byte, byte,
                                             prev_bytes,
