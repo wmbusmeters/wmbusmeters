@@ -28,8 +28,6 @@ DEFAULT_CONF_DIR?=/etc
 DEFAULT_DEAMON_DRIVER_DOWNLOAD_DIR?=/var/lib/wmbusmeters/wmbusmeters.drivers.d/downloaded
 DEFAULT_USER_DRIVER_DOWNLOAD_DIR?=.local/share/wmbusmeters/wmbusmeters.drivers.d
 
-DUMP_FLAGS=-fdump-tree-optimized
-
 include $(wildcard build/*/spec.gmk)
 
 ifeq (,$(CONF_NAME))
@@ -76,7 +74,7 @@ else
         endif
     else
         # Release build
-        DEBUG_FLAGS=-O2 -g -flto
+        DEBUG_FLAGS=-O2 -g
         STRIP_BINARY=cp $(BUILD)/wmbusmeters $(BUILD)/wmbusmeters.g; $(STRIP) $(BUILD)/wmbusmeters
         GCOV=To_run_gcov_add_DEBUG=true
     endif
@@ -164,10 +162,10 @@ LDFLAGS  += $(LIBXML_LIBS) $(LIBRTLSDR_LIBS) $(LIBUSB_LIBS)
 #endif
 
 $(BUILD)/%.o: src/%.cc $(wildcard src/%.h)
-	$(CXX) $(CXXFLAGS) $(DUMP_FLAGS) $< -MMD -c -o $@
+	$(CXX) $(CXXFLAGS) $< -MMD -c -o $@
 
 $(BUILD)/%.o: src/%.c $(wildcard src/%.h)
-	$(CXX) -fpermissive $(CXXFLAGS) $(DUMP_FLAGS)  $< -MMD -c -o $@
+	$(CXX) -fpermissive $(CXXFLAGS) $< -MMD -c -o $@
 
 PROG_OBJS:=\
 	$(BUILD)/address.o \

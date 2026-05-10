@@ -156,6 +156,752 @@ LIST_OF_VIF_RANGES
 
 unordered_map<uint16_t,string> hash_to_format_;
 
+static string makeSyntheticStorageKey(uchar dif_data_len_nibble, int storage_nr, uchar vif)
+{
+    vector<uchar> key_bytes;
+
+    int lsb_of_storage_nr = storage_nr & 1;
+    int remaining_storage_bits = storage_nr >> 1;
+
+    uchar dif = (dif_data_len_nibble & 0x0f) | (lsb_of_storage_nr ? 0x40 : 0x00);
+    if (remaining_storage_bits > 0) {
+        dif |= 0x80;
+    }
+    key_bytes.push_back(dif);
+
+    while (remaining_storage_bits > 0)
+    {
+        uchar dife = remaining_storage_bits & 0x0f;
+        remaining_storage_bits >>= 4;
+        if (remaining_storage_bits > 0) {
+            dife |= 0x80;
+        }
+        key_bytes.push_back(dife);
+    }
+
+    key_bytes.push_back(vif);
+    return bin2hex(key_bytes);
+}
+
+enum class CompactProfileIncrementMode
+{
+    Unknown,
+    Absolute,
+    Increments,
+    Decrements,
+    SignedDifference,
+};
+
+enum class CompactProfileDistance
+{
+    Unknown,
+    NotSpacedInTime,
+    Seconds,
+    Minutes,
+    Hours,
+    Days,
+    HalfMonth,
+    OneMonth,
+    ThreeMonths,
+    SixMonths,
+};
+
+static bool isCompactBinaryDifNibble(uchar slot_dif_nibble)
+{
+    return
+        slot_dif_nibble == 0x1 || slot_dif_nibble == 0x2 || slot_dif_nibble == 0x3 ||
+        slot_dif_nibble == 0x4 || slot_dif_nibble == 0x6 || slot_dif_nibble == 0x7;
+}
+
+static bool decodeCompactProfileHeader(uchar spacing_control,
+                                       uchar spacing_value,
+                                       uchar *slot_dif_nibble,
+                                       CompactProfileIncrementMode *mode,
+                                       CompactProfileDistance *distance,
+                                       bool *binary_value_is_unsigned,
+                                       int *spacing_step,
+                                       int *array_column)
+{
+    *slot_dif_nibble = spacing_control & 0x0f;
+    *mode = CompactProfileIncrementMode::Unknown;
+    *distance = CompactProfileDistance::Unknown;
+    *binary_value_is_unsigned = false;
+    *spacing_step = 0;
+    *array_column = 0;
+
+    switch ((spacing_control >> 6) & 0x03)
+    {
+        case 0x0: *mode = CompactProfileIncrementMode::Absolute; break;
+        case 0x1: *mode = CompactProfileIncrementMode::Increments; break;
+        case 0x2: *mode = CompactProfileIncrementMode::Decrements; break;
+        case 0x3: *mode = CompactProfileIncrementMode::SignedDifference; break;
+    }
+
+    if (isCompactBinaryDifNibble(*slot_dif_nibble))
+    {
+        uchar increment_bits = (spacing_control >> 6) & 0x03;
+        // EN 13757-3 Annex F.2.4, Note 1:
+        // binary values use unsigned coding for increment modes 01b and 10b,
+        // and signed coding for 00b and 11b.
+        *binary_value_is_unsigned = (increment_bits == 0x1 || increment_bits == 0x2);
+    }
+
+    uchar spacing_unit = (spacing_control >> 4) & 0x03;
+
+    if (spacing_value == 0)
+    {
+        *distance = CompactProfileDistance::NotSpacedInTime;
+        *spacing_step = 0;
+        // EN 13757-3 Table F.8 footnote a:
+        // with spacing value 0, spacing unit addresses up to four columns.
+        *array_column = ((spacing_control >> 4) & 0x03) + 1;
+        return true;
+    }
+
+    // EN 13757-3 Annex F.8: these spacing values are reserved.
+    if (spacing_value == 251 || spacing_value == 252 || spacing_value == 255)
+    {
+        return false;
+    }
+
+    if (spacing_value >= 1 && spacing_value <= 250)
+    {
+        *spacing_step = spacing_value;
+        switch (spacing_unit)
+        {
+            case 0x0: *distance = CompactProfileDistance::Seconds; break;
+            case 0x1: *distance = CompactProfileDistance::Minutes; break;
+            case 0x2: *distance = CompactProfileDistance::Hours; break;
+            case 0x3: *distance = CompactProfileDistance::Days; break;
+        }
+        return true;
+    }
+    if (spacing_value == 253)
+    {
+        if (spacing_unit == 0x3)
+        {
+            *distance = CompactProfileDistance::HalfMonth;
+            *spacing_step = 1;
+            return true;
+        }
+        // EN 13757-3 Annex F.8: 253 is reserved unless spacing unit is days/month.
+        return false;
+    }
+    if (spacing_value == 254)
+    {
+        if (spacing_unit == 0x1) { *distance = CompactProfileDistance::SixMonths; *spacing_step = 6; return true; }
+        if (spacing_unit == 0x2) { *distance = CompactProfileDistance::ThreeMonths; *spacing_step = 3; return true; }
+        if (spacing_unit == 0x3) { *distance = CompactProfileDistance::OneMonth; *spacing_step = 1; return true; }
+        // EN 13757-3 Annex F.8: spacing value 254 with spacing unit 00b is reserved.
+        return false;
+    }
+
+    return false;
+}
+
+static bool findCompactProfileBaseValue(unordered_map<string,pair<int,DVEntry>> *dv_entries,
+                                        DVEntry &entry,
+                                        uchar slot_dif_nibble,
+                                        uint64_t *base_value)
+{
+    int base_storage = entry.storage_nr.intValue();
+    int target_vif = entry.vif.intValue() & 0xff;
+    int target_tariff = entry.tariff_nr.intValue();
+    int target_subunit = entry.subunit_nr.intValue();
+
+    for (auto &kv : *dv_entries)
+    {
+        DVEntry &cand = kv.second.second;
+        if ((cand.dif_vif_key.dif() & 0x0f) != slot_dif_nibble) continue;
+        if (cand.storage_nr.intValue() != base_storage) continue;
+        if ((cand.vif.intValue() & 0xff) != target_vif) continue;
+        if (cand.tariff_nr.intValue() != target_tariff) continue;
+        if (cand.subunit_nr.intValue() != target_subunit) continue;
+
+        uint64_t v;
+        if (cand.extractLong(&v))
+        {
+            *base_value = v;
+            return true;
+        }
+    }
+
+    return false;
+}
+
+static bool encodeDateBytes(const struct tm &date, int date_len, vector<uchar> *out)
+{
+    out->clear();
+
+    int year = date.tm_year + 1900;
+    int month = date.tm_mon + 1;
+    int day = date.tm_mday;
+
+    if (year < 2000 || year > 2127) return false;
+    if (month < 1 || month > 12) return false;
+    if (day < 1 || day > 31) return false;
+
+    int y = year - 2000;
+    uchar lo_date = (uchar)((day & 0x1f) | ((y & 0x07) << 5));
+    uchar hi_date = (uchar)((month & 0x0f) | ((y & 0x78) << 1));
+
+    if (date_len == 2)
+    {
+        out->push_back(lo_date);
+        out->push_back(hi_date);
+        return true;
+    }
+
+    if (date_len == 4)
+    {
+        if (date.tm_hour < 0 || date.tm_hour > 23) return false;
+        if (date.tm_min < 0 || date.tm_min > 59) return false;
+        uchar lo_time = (uchar)(date.tm_min & 0x3f);
+        uchar hi_time = (uchar)(date.tm_hour & 0x1f);
+        out->push_back(lo_time);
+        out->push_back(hi_time);
+        out->push_back(lo_date);
+        out->push_back(hi_date);
+        return true;
+    }
+
+    return false;
+}
+
+static bool findCompactProfileBaseDate(unordered_map<string,pair<int,DVEntry>> *dv_entries,
+                                       DVEntry &entry,
+                                       uchar *date_dif_nibble,
+                                       uchar *date_vif,
+                                       MeasurementType *date_measurement_type,
+                                       struct tm *base_date,
+                                       int *date_len)
+{
+    int base_storage = entry.storage_nr.intValue();
+    int target_tariff = entry.tariff_nr.intValue();
+    int target_subunit = entry.subunit_nr.intValue();
+
+    for (auto &kv : *dv_entries)
+    {
+        DVEntry &cand = kv.second.second;
+        if (cand.storage_nr.intValue() != base_storage) continue;
+        if (cand.tariff_nr.intValue() != target_tariff) continue;
+        if (cand.subunit_nr.intValue() != target_subunit) continue;
+        if (!isInsideVIFRange(cand.vif, VIFRange::Date)) continue;
+
+        struct tm d;
+        if (!cand.extractDate(&d)) continue;
+
+        vector<uchar> bytes;
+        hex2bin(cand.value, &bytes);
+        if (bytes.size() != 2 && bytes.size() != 4) continue;
+
+        *date_dif_nibble = cand.dif_vif_key.dif() & 0x0f;
+        *date_vif = cand.vif.intValue() & 0xff;
+        *date_measurement_type = cand.measurement_type;
+        *base_date = d;
+        *date_len = (int)bytes.size();
+        return true;
+    }
+
+    return false;
+}
+
+static bool decodeCompactSlotUnsigned(uchar slot_dif_nibble,
+                                      const vector<uchar> &bytes,
+                                      uint64_t *out)
+{
+    if (slot_dif_nibble == 0x1 || slot_dif_nibble == 0x2 || slot_dif_nibble == 0x3 ||
+        slot_dif_nibble == 0x4 || slot_dif_nibble == 0x6 || slot_dif_nibble == 0x7)
+    {
+        uint64_t v = 0;
+        for (size_t i = 0; i < bytes.size(); i++)
+        {
+            v |= ((uint64_t)bytes[i]) << (8 * i);
+        }
+        *out = v;
+        return true;
+    }
+
+    if (slot_dif_nibble == 0x9 || slot_dif_nibble == 0xA || slot_dif_nibble == 0xB ||
+        slot_dif_nibble == 0xC || slot_dif_nibble == 0xE)
+    {
+        uint64_t value = 0;
+        uint64_t mul = 1;
+        for (size_t i = 0; i < bytes.size(); i++)
+        {
+            int lo = bytes[i] & 0x0f;
+            int hi = (bytes[i] >> 4) & 0x0f;
+            if (lo > 9 || hi > 9) return false;
+            value += (uint64_t)lo * mul;
+            mul *= 10;
+            value += (uint64_t)hi * mul;
+            mul *= 10;
+        }
+        *out = value;
+        return true;
+    }
+
+    return false;
+}
+
+static bool decodeCompactSlotSigned(uchar slot_dif_nibble,
+                                    const vector<uchar> &bytes,
+                                    bool binary_value_is_unsigned,
+                                    int64_t *out)
+{
+    if (slot_dif_nibble == 0x9 || slot_dif_nibble == 0xA || slot_dif_nibble == 0xB ||
+        slot_dif_nibble == 0xC || slot_dif_nibble == 0xE)
+    {
+        uint64_t u = 0;
+        if (!decodeCompactSlotUnsigned(slot_dif_nibble, bytes, &u)) return false;
+        if (u > (uint64_t)numeric_limits<int64_t>::max()) return false;
+        *out = (int64_t)u;
+        return true;
+    }
+
+    if (!isCompactBinaryDifNibble(slot_dif_nibble)) return false;
+
+    uint64_t raw = 0;
+    for (size_t i = 0; i < bytes.size(); i++)
+    {
+        raw |= ((uint64_t)bytes[i]) << (8 * i);
+    }
+
+    int bits = (int)bytes.size() * 8;
+    if (bits <= 0 || bits > 64) return false;
+
+    if (binary_value_is_unsigned)
+    {
+        if (raw > (uint64_t)numeric_limits<int64_t>::max()) return false;
+        *out = (int64_t)raw;
+        return true;
+    }
+
+    if (bits < 64)
+    {
+        uint64_t sign_mask = (uint64_t)1 << (bits - 1);
+        uint64_t value_mask = ((uint64_t)1 << bits) - 1;
+        raw &= value_mask;
+        if (raw & sign_mask)
+        {
+            raw |= ~value_mask;
+        }
+    }
+    *out = (int64_t)raw;
+    return true;
+}
+
+static bool encodeCompactSlotUnsigned(uchar slot_dif_nibble,
+                                      int slot_bytes,
+                                      uint64_t value,
+                                      vector<uchar> *out)
+{
+    out->clear();
+    out->reserve(slot_bytes);
+
+    if (slot_dif_nibble == 0x1 || slot_dif_nibble == 0x2 || slot_dif_nibble == 0x3 ||
+        slot_dif_nibble == 0x4 || slot_dif_nibble == 0x6 || slot_dif_nibble == 0x7)
+    {
+        for (int i = 0; i < slot_bytes; i++)
+        {
+            out->push_back((uchar)((value >> (8 * i)) & 0xff));
+        }
+        return true;
+    }
+
+    if (slot_dif_nibble == 0x9 || slot_dif_nibble == 0xA || slot_dif_nibble == 0xB ||
+        slot_dif_nibble == 0xC || slot_dif_nibble == 0xE)
+    {
+        for (int i = 0; i < slot_bytes; i++)
+        {
+            uchar lo = value % 10;
+            value /= 10;
+            uchar hi = value % 10;
+            value /= 10;
+            out->push_back((uchar)((hi << 4) | lo));
+        }
+        return value == 0;
+    }
+
+    return false;
+}
+
+static bool encodeCompactSlotSigned(uchar slot_dif_nibble,
+                                    int slot_bytes,
+                                    int64_t value,
+                                    bool binary_value_is_unsigned,
+                                    vector<uchar> *out)
+{
+    out->clear();
+    out->reserve(slot_bytes);
+
+    if (slot_dif_nibble == 0x9 || slot_dif_nibble == 0xA || slot_dif_nibble == 0xB ||
+        slot_dif_nibble == 0xC || slot_dif_nibble == 0xE)
+    {
+        if (value < 0) return false;
+        return encodeCompactSlotUnsigned(slot_dif_nibble, slot_bytes, (uint64_t)value, out);
+    }
+
+    if (!isCompactBinaryDifNibble(slot_dif_nibble)) return false;
+
+    int bits = slot_bytes * 8;
+    if (bits <= 0 || bits > 64) return false;
+
+    uint64_t raw = 0;
+    if (binary_value_is_unsigned)
+    {
+        if (value < 0) return false;
+        if (bits < 64 && (uint64_t)value > (((uint64_t)1 << bits) - 1)) return false;
+        raw = (uint64_t)value;
+    }
+    else
+    {
+        int64_t min_v;
+        int64_t max_v;
+        if (bits == 64)
+        {
+            min_v = numeric_limits<int64_t>::min();
+            max_v = numeric_limits<int64_t>::max();
+        }
+        else
+        {
+            min_v = -((int64_t)1 << (bits - 1));
+            max_v = ((int64_t)1 << (bits - 1)) - 1;
+        }
+        if (value < min_v || value > max_v) return false;
+        raw = (uint64_t)value;
+    }
+
+    for (int i = 0; i < slot_bytes; i++)
+    {
+        out->push_back((uchar)((raw >> (8 * i)) & 0xff));
+    }
+    return true;
+}
+
+static bool isCompactSignedBinaryIllegalValue(const vector<uchar> &bytes)
+{
+    if (bytes.empty()) return false;
+
+    // EN 13757-3 Annex F.2.4 references Annex A type B/C "illegal" coding.
+    // For signed binary (type B), illegal is the most negative value, e.g.
+    // -128 (0x80), -32768 (0x8000), etc.
+    for (size_t i = 0; i + 1 < bytes.size(); i++)
+    {
+        if (bytes[i] != 0x00) return false;
+    }
+    return bytes.back() == 0x80;
+}
+
+static bool stepCompactProfileDate(struct tm *date,
+                                   CompactProfileDistance distance,
+                                   int spacing_step,
+                                   bool inverse)
+{
+    int direction = inverse ? -1 : 1;
+
+    if (distance == CompactProfileDistance::OneMonth ||
+        distance == CompactProfileDistance::ThreeMonths ||
+        distance == CompactProfileDistance::SixMonths)
+    {
+        int months = spacing_step;
+        if (months <= 0) months = 1;
+        addMonths(date, direction * months);
+        return true;
+    }
+
+    int64_t step_seconds = 0;
+    if (distance == CompactProfileDistance::Seconds)
+    {
+        step_seconds = spacing_step;
+    }
+    else if (distance == CompactProfileDistance::Minutes)
+    {
+        step_seconds = (int64_t)spacing_step * 60;
+    }
+    else if (distance == CompactProfileDistance::Hours)
+    {
+        step_seconds = (int64_t)spacing_step * 60 * 60;
+    }
+    else if (distance == CompactProfileDistance::Days)
+    {
+        step_seconds = (int64_t)spacing_step * 24 * 60 * 60;
+    }
+    else if (distance == CompactProfileDistance::HalfMonth)
+    {
+        // EN 13757-3 defines half-month spacing in conjunction with days/month unit.
+        // Use calendar half-month boundaries (1st/16th) instead of a fixed 15-day offset.
+        int day = date->tm_mday;
+        if (inverse)
+        {
+            if (day >= 16)
+            {
+                date->tm_mday = 1;
+            }
+            else
+            {
+                addMonths(date, -1);
+                date->tm_mday = 16;
+            }
+        }
+        else
+        {
+            if (day <= 15)
+            {
+                date->tm_mday = 16;
+            }
+            else
+            {
+                addMonths(date, 1);
+                date->tm_mday = 1;
+            }
+        }
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+
+    if (step_seconds <= 0) return false;
+
+    time_t t = mktime(date);
+    if (t == (time_t)-1) return false;
+
+    int64_t shifted = (int64_t)t + direction * step_seconds;
+    time_t ts = (time_t)shifted;
+    if (!localtime_r(&ts, date)) return false;
+    return true;
+}
+
+static void addSyntheticCompactProfileEntries(unordered_map<string,pair<int,DVEntry>> *dv_entries,
+                                              int offset,
+                                              DVEntry &entry)
+{
+    bool has_compact = entry.combinable_vifs.count(VIFCombinable::CompactProfile) > 0;
+    bool has_compact_with_register = entry.combinable_vifs.count(VIFCombinable::CompactProfileWithRegister) > 0;
+    bool has_inverse_compact = entry.combinable_vifs.count(VIFCombinable::InverseCompactProfile) > 0;
+    if (!has_compact && !has_compact_with_register && !has_inverse_compact) return;
+
+    vector<uchar> payload;
+    hex2bin(entry.value, &payload);
+
+    if (payload.size() < 2) return;
+
+    // EN 13757-3 Annex F compact profile header in variable-length payload:
+    //   byte 0 = spacing control (bit field), byte 1 = spacing value.
+    // The lower nibble of spacing control defines profile element size using DIF low-nibble encoding.
+    uchar spacing_control = payload[0];
+    uchar spacing_value = payload[1];
+    size_t data_start = 2;
+
+    uchar slot_dif_nibble = 0;
+    CompactProfileIncrementMode increment_mode;
+    CompactProfileDistance distance;
+    bool binary_value_is_unsigned = false;
+    int spacing_step = 0;
+    int array_column = 0;
+    bool valid_header = decodeCompactProfileHeader(spacing_control,
+                                                   spacing_value,
+                                                   &slot_dif_nibble,
+                                                   &increment_mode,
+                                                   &distance,
+                                                   &binary_value_is_unsigned,
+                                                   &spacing_step,
+                                                   &array_column);
+    if (!valid_header) return;
+
+    int slot_bytes = difLenBytes(slot_dif_nibble);
+    if (slot_bytes <= 0) return; // variable-length or unknown slot type
+
+    if ((payload.size() - data_start) % (size_t)slot_bytes != 0) return;
+
+    // Storage of compact-profile payload acts as a base/reference value.
+    // History points are generated from the next storage and onward.
+    int base_storage = entry.storage_nr.intValue();
+    int synthetic_index = 0;
+    uint64_t running_base_value_u = 0;
+    bool have_running_base_value = findCompactProfileBaseValue(dv_entries, entry, slot_dif_nibble, &running_base_value_u);
+    int64_t running_base_value = (int64_t)running_base_value_u;
+
+    uchar date_dif_nibble = 0;
+    uchar date_vif = 0;
+    MeasurementType date_measurement_type = MeasurementType::Instantaneous;
+    struct tm running_base_date {};
+    int base_date_len = 0;
+    bool have_running_base_date =
+        findCompactProfileBaseDate(dv_entries,
+                                   entry,
+                                   &date_dif_nibble,
+                                   &date_vif,
+                                   &date_measurement_type,
+                                   &running_base_date,
+                                   &base_date_len);
+
+    bool stop_iteration = false;
+
+    auto add_slot = [&](size_t slot_offset)
+    {
+        if (stop_iteration) return;
+
+        // All-bits-set for the slot width is the sentinel for "no data / slot not yet used".
+        bool all_ff = true;
+        for (int i = 0; i < slot_bytes; i++) {
+            if (payload[slot_offset + i] != 0xff) { all_ff = false; break; }
+        }
+
+        bool is_incremental_mode = increment_mode != CompactProfileIncrementMode::Absolute;
+        if (all_ff)
+        {
+            // For incremental compact profiles, invalid values terminate profile processing
+            // from this slot and onward.
+            if (is_incremental_mode)
+            {
+                stop_iteration = true;
+            }
+            return;
+        }
+
+        vector<uchar> value_bytes(payload.begin() + slot_offset,
+                                  payload.begin() + slot_offset + slot_bytes);
+
+        if (is_incremental_mode &&
+            isCompactBinaryDifNibble(slot_dif_nibble) &&
+            !binary_value_is_unsigned &&
+            isCompactSignedBinaryIllegalValue(value_bytes))
+        {
+            stop_iteration = true;
+            return;
+        }
+
+        int storage_nr = base_storage + 1 + synthetic_index;
+        int synthetic_subunit = entry.subunit_nr.intValue();
+        if (distance == CompactProfileDistance::NotSpacedInTime && array_column > 0)
+        {
+            // Use column index to separate parallel array columns.
+            synthetic_subunit += array_column - 1;
+        }
+        string base_key = makeSyntheticStorageKey(slot_dif_nibble, storage_nr, entry.vif.intValue() & 0xff);
+        string key = base_key;
+        int duplicate_nr = 2;
+        while (dv_entries->count(key) > 0)
+        {
+            strprintf(&key, "%s_%d", base_key.c_str(), duplicate_nr);
+            duplicate_nr++;
+        }
+
+        if (has_inverse_compact &&
+            is_incremental_mode &&
+            have_running_base_value)
+        {
+            int64_t delta = 0;
+            if (!decodeCompactSlotSigned(slot_dif_nibble, value_bytes, binary_value_is_unsigned, &delta))
+            {
+                stop_iteration = true;
+                return;
+            }
+
+            int64_t absolute = running_base_value;
+            if (increment_mode == CompactProfileIncrementMode::Increments)
+            {
+                absolute = running_base_value - delta;
+            }
+            else if (increment_mode == CompactProfileIncrementMode::Decrements)
+            {
+                absolute = running_base_value + delta;
+            }
+            else if (increment_mode == CompactProfileIncrementMode::SignedDifference)
+            {
+                // difference = younger - older  =>  older = younger - difference
+                absolute = running_base_value - delta;
+            }
+
+            vector<uchar> encoded_absolute;
+            if (!encodeCompactSlotSigned(slot_dif_nibble, slot_bytes, absolute, false, &encoded_absolute))
+            {
+                // Overflow or unsupported conversion: terminate this profile from here.
+                stop_iteration = true;
+                return;
+            }
+
+            value_bytes = encoded_absolute;
+            running_base_value = absolute;
+        }
+
+        string value_hex = bin2hex(value_bytes);
+        set<VIFCombinable> no_combinable_vifs;
+        set<uint16_t> no_combinable_vifs_raw;
+
+        auto insert_res = dv_entries->emplace(key,
+                          std::make_pair(offset,
+                                 DVEntry(offset,
+                                         DifVifKey(key),
+                                         entry.measurement_type,
+                                         entry.vif,
+                                         std::move(no_combinable_vifs),
+                                         std::move(no_combinable_vifs_raw),
+                                         StorageNr(storage_nr),
+                                         entry.tariff_nr,
+                                         entry.subunit_nr,
+                                         value_hex)));
+        assert(insert_res.second);
+                        insert_res.first->second.second.subunit_nr = SubUnitNr(synthetic_subunit);
+
+        if (have_running_base_date)
+        {
+            struct tm next_date = running_base_date;
+            if (stepCompactProfileDate(&next_date, distance, spacing_step, has_inverse_compact))
+            {
+                vector<uchar> date_bytes;
+                if (encodeDateBytes(next_date, base_date_len, &date_bytes))
+                {
+                    string date_hex = bin2hex(date_bytes);
+                    string date_base_key = makeSyntheticStorageKey(date_dif_nibble, storage_nr, date_vif);
+                    string date_key = date_base_key;
+                    int date_duplicate_nr = 2;
+                    while (dv_entries->count(date_key) > 0)
+                    {
+                        strprintf(&date_key, "%s_%d", date_base_key.c_str(), date_duplicate_nr);
+                        date_duplicate_nr++;
+                    }
+
+                    set<VIFCombinable> no_date_combinable_vifs;
+                    set<uint16_t> no_date_combinable_vifs_raw;
+
+                        auto date_insert_res = dv_entries->emplace(date_key,
+                                        std::make_pair(offset,
+                                               DVEntry(offset,
+                                                       DifVifKey(date_key),
+                                                       date_measurement_type,
+                                                       Vif(date_vif),
+                                                       std::move(no_date_combinable_vifs),
+                                                       std::move(no_date_combinable_vifs_raw),
+                                                       StorageNr(storage_nr),
+                                                       entry.tariff_nr,
+                                           SubUnitNr(synthetic_subunit),
+                                           date_hex)));
+                    assert(date_insert_res.second);
+
+                    running_base_date = next_date;
+                }
+            }
+        }
+
+        synthetic_index++;
+    };
+
+    if (has_inverse_compact || has_compact_with_register)
+    {
+        for (size_t i = data_start; i + (size_t)slot_bytes <= payload.size(); i += slot_bytes)
+            add_slot(i);
+    }
+    else
+    {
+        for (size_t end = payload.size(); end >= data_start + (size_t)slot_bytes; end -= slot_bytes)
+            add_slot(end - slot_bytes);
+    }
+}
+
 bool loadFormatBytesFromSignature(uint16_t format_signature, vector<uchar> *format_bytes)
 {
     if (hash_to_format_.count(format_signature) > 0) {
@@ -583,6 +1329,8 @@ bool parseDV(Telegram *t,
 
         trace("[DVPARSER] entry %s\n", dve->str().c_str());
 
+        addSyntheticCompactProfileEntries(dv_entries, offset, *dve);
+
         assert(key == dve->dif_vif_key.str());
 
         if (value.length() > 0) {
@@ -736,8 +1484,6 @@ bool parseWithIXML(Telegram *t,
     // Add off=12 attributes so that we can print
     // explanations that map to the original telegram.
     xmqAnnotateOffsets(decode, "off", NULL);
-
-    //xmqForeach(decode, "//*[@off]", update_offset, &oe);
 
     if (isDebugEnabled() || t->beingAnalyzed())
     {

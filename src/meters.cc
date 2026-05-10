@@ -1352,8 +1352,23 @@ bool checkPrintableField(string *buf, string desired_field, Meter *m, Telegram *
             // Strings are simply just print them.
             if (desired_field == fi.vname())
             {
-                *buf += m->getStringValue(&fi) + c;
-                return true;
+                // Unless it is the status field...
+                if (fi.printProperties().hasSTATUS())
+                {
+                    string s = ((MeterCommonImplementation*)m)->getStatusField(&fi);
+                    if (t->decoding_errors != "")
+                    {
+                        s = joinStatusOKStrings(s, t->decoding_errors);
+                    }
+                    *buf += s + c;
+                    return true;
+                }
+                else
+                {
+                    // Strings are simple.
+                    *buf += m->getStringValue(&fi) + c;
+                    return true;
+                }
             }
         }
         else
@@ -1562,13 +1577,20 @@ void MeterCommonImplementation::processFieldIXMLs(Telegram *t)
                     vector<uchar> frame;
                     t->extractFrame(&frame);
                     string hex = bin2hex(frame);
-
-                    warning("(meters) meter: %s failed to decode ixml field: %s over entire payload\n"
-                            "Please open an issue at https://github.com/wmbusmeters/wmbusmeters/\n"
-                            "and report this telegram: %s\n",
-                            name().c_str(),
-                            fi.vname().c_str(),
-                            hex.c_str());
+                    if (fi.printProperties().hasREQUIRED())
+                    {
+                        t->decoding_errors = joinStatusEmptyStrings(t->decoding_errors,
+                                                                    string("DECODING_ERROR_")+fi.vname());
+                        if (!t->beingAnalyzed())
+                        {
+                            warning("(meters) meter: %s failed to decode ixml field: %s over entire payload\n"
+                                    "Please open an issue at https://github.com/wmbusmeters/wmbusmeters/\n"
+                                    "and report this telegram: %s\n",
+                                    name().c_str(),
+                                    fi.vname().c_str(),
+                                    hex.c_str());
+                        }
+                    }
                 }
                 continue;
             }
@@ -1611,13 +1633,20 @@ void MeterCommonImplementation::processFieldIXMLs(Telegram *t)
                         vector<uchar> frame;
                         t->extractFrame(&frame);
                         string hex = bin2hex(frame);
-
-                        warning("(meters) meter: %s failed to decode ixml field: %s\n"
-                                "Please open an issue at https://github.com/wmbusmeters/wmbusmeters/\n"
-                                "and report this telegram: %s\n",
-                                name().c_str(),
-                                fi.vname().c_str(),
-                                hex.c_str());
+                        if (fi.printProperties().hasREQUIRED())
+                        {
+                            t->decoding_errors = joinStatusEmptyStrings(t->decoding_errors,
+                                                                        string("DECODING_ERROR_")+fi.vname());
+                            if (!t->beingAnalyzed())
+                            {
+                                warning("(meters) meter: %s failed to decode ixml field: %s\n"
+                                        "Please open an issue at https://github.com/wmbusmeters/wmbusmeters/\n"
+                                        "and report this telegram: %s\n",
+                                        name().c_str(),
+                                        fi.vname().c_str(),
+                                        hex.c_str());
+                            }
+                        }
                     }
                 }
             }
@@ -2129,22 +2158,29 @@ string FieldInfo::renderJson(Meter *m, DVEntry *dve)
     }
     else
     {
+        string key = "\""+field_name+"_"+display_unit_s+"\":";
         if (displayUnit() == Unit::DateLT)
         {
-            s += "\""+field_name+"_"+display_unit_s+"\":\""+strdate(m->getNumericValue(field_name, Unit::DateLT))+"\"";
+            double t = m->getNumericValue(field_name, Unit::DateLT);
+            if (isnan(t)) s += key + "null";
+            else s += key+"\""+strdate(t)+"\"";
         }
         else if (displayUnit() == Unit::DateTimeLT)
         {
-            s += "\""+field_name+"_"+display_unit_s+"\":\""+strdatetime(m->getNumericValue(field_name, Unit::DateTimeLT))+"\"";
+            double t = m->getNumericValue(field_name, Unit::DateTimeLT);
+            if (isnan(t)) s+= key + "null";
+            else s += key+"\""+strdatetime(t)+"\"";
         }
         else if (displayUnit() == Unit::DateTimeUTC)
         {
-            s += "\""+field_name+"_"+display_unit_s+"\":\""+strTimestampUTC(m->getNumericValue(field_name, Unit::DateTimeUTC))+"\"";
+            double t = m->getNumericValue(field_name, Unit::DateTimeUTC);
+            if (isnan(t)) s += key + "null";
+            else s += key+"\""+strTimestampUTC(t)+"\"";
         }
         else
         {
             // All numeric values.
-            s += "\""+field_name+"_"+display_unit_s+"\":"+valueToString(m->getNumericValue(field_name, displayUnit()), displayUnit());
+            s += key+valueToString(m->getNumericValue(field_name, displayUnit()), displayUnit());
         }
     }
 
@@ -2183,7 +2219,7 @@ void MeterCommonImplementation::printMeter(Telegram *t,
 {
     bool first = !t->meter->hasReceivedFirstTelegram();
 
-    *human_readable = concatFields(this, t, '\t', field_infos_, true, selected_fields, extra_constant_fields);
+   *human_readable = concatFields(this, t, '\t', field_infos_, true, selected_fields, extra_constant_fields);
     *fields = concatFields(this, t, separator, field_infos_, false, selected_fields, extra_constant_fields);
 
     string media;
@@ -2261,6 +2297,10 @@ void MeterCommonImplementation::printMeter(Telegram *t,
         if (sf.field_info->printProperties().hasSTATUS())
         {
             string in = getStatusField(sf.field_info);
+            if (t->decoding_errors != "")
+            {
+                in = joinStatusOKStrings(in, t->decoding_errors);
+            }
             out = tostrprintf("\"%s\":\"%s\"", vname.c_str(), in.c_str());
             s += indent+out+","+newline;
         }
