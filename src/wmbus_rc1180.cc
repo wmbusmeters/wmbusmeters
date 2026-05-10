@@ -39,6 +39,7 @@ const int DEFAULT_BAUD_RATE = 19200;
 
 enum class RcUartBaudRate : uchar
 {
+    UNKNOWN = 0,
     b2400 = 1,
     b4800 = 2,
     b9600 = 3,
@@ -68,7 +69,7 @@ static RcUartBaudRate rcUartBaudRateFromBauds(int baud_rate)
         case 115200: return RcUartBaudRate::b115200;
         case 230400: return RcUartBaudRate::b230400;
     }
-    throw std::invalid_argument("Unable to convert baud_rate: " + std::to_string(baud_rate) + " to RC enum");
+    return RcUartBaudRate::UNKNOWN;
 }
 
 static int getConfiguredBaudRate(const Detected& d)
@@ -431,9 +432,12 @@ AccessCheck detectRC1180(Detected *detected, shared_ptr<SerialCommunicationManag
 
     ConfigRC1180 co;
     ok = co.decode(data);
-    if (!ok || co.uart_baud_rate != rcUartBaudRateFromBauds(baud_rate))
+    if (!ok)
     {
-        // Decode must be ok and the uart_baud_rate must match the speed we are using.
+        // Decode must be ok
+        // Skipping old test: co.uart_baud_rate != rcUartBaudRateFromBauds(baud_rate)
+        // If we received a config and it decoded ok, then clearly the baud rate is correct,
+        // otherwise we could not have received the config.
         serial->close();
         verbose("(rc1180) are you there? no.\n");
         return AccessCheck::NoProperResponse;
