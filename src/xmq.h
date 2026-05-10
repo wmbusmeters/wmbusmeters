@@ -161,6 +161,7 @@ typedef enum
     XMQ_FLAG_NOMERGE = 8,
     XMQ_FLAG_IXML_ALL_PARSES = 16,
     XMQ_FLAG_IXML_TRY_TO_RECOVER = 32,
+    XMQ_FLAG_IXML_FAIL_SILENT = 64,
 } XMQFlagBits;
 
 /**
@@ -558,6 +559,13 @@ void *xmqGetImplementationDoc(XMQDoc *doq);
     Set the underlying implementation doc, could be an xmlDocPtr from libxml2 for example.
 */
 void xmqSetImplementationDoc(XMQDoc *doq, void *doc);
+
+/**
+    xmqClearDoc:
+
+    Clear out, make the document empty.
+*/
+void xmqClearDoc(XMQDoc *doc);
 
 /**
     xmqFreeDoc:

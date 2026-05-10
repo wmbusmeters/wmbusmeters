@@ -1352,8 +1352,23 @@ bool checkPrintableField(string *buf, string desired_field, Meter *m, Telegram *
             // Strings are simply just print them.
             if (desired_field == fi.vname())
             {
-                *buf += m->getStringValue(&fi) + c;
-                return true;
+                // Unless it is the status field...
+                if (fi.printProperties().hasSTATUS())
+                {
+                    string s = ((MeterCommonImplementation*)m)->getStatusField(&fi);
+                    if (t->decoding_errors != "")
+                    {
+                        s = joinStatusOKStrings(s, t->decoding_errors);
+                    }
+                    *buf += s + c;
+                    return true;
+                }
+                else
+                {
+                    // Strings are simple.
+                    *buf += m->getStringValue(&fi) + c;
+                    return true;
+                }
             }
         }
         else
@@ -1540,6 +1555,20 @@ void MeterCommonImplementation::processFieldIXMLs(Telegram *t)
                 // Special case for mfct specific meters not compliant with difvif parsing.
                 vector<uchar> content;
                 t->extractPayload(&content);
+                if (!fi.transformPayload(t, &content))
+                {
+                    vector<uchar> frame;
+                    t->extractFrame(&frame);
+                    string hex = bin2hex(frame);
+
+                    warning("(meters) meter: %s failed to transform entire payload for ixml field: %s\n"
+                            "Please open an issue at https://github.com/wmbusmeters/wmbusmeters/\n"
+                            "and report this telegram: %s\n",
+                            name().c_str(),
+                            fi.vname().c_str(),
+                            hex.c_str());
+                    continue;
+                }
                 string value = bin2hex(content);
                 debug("(ixml) parsing entire payload %s\n", value.c_str());
                 bool ok = parseWithIXML(t, t->header_size, value, fi.ixmlGrammar(), &t->dv_entries);
@@ -1548,13 +1577,20 @@ void MeterCommonImplementation::processFieldIXMLs(Telegram *t)
                     vector<uchar> frame;
                     t->extractFrame(&frame);
                     string hex = bin2hex(frame);
-
-                    warning("(meters) meter: %s failed to decode ixml field: %s over entire payload\n"
-                            "Please open an issue at https://github.com/wmbusmeters/wmbusmeters/\n"
-                            "and report this telegram: %s\n",
-                            name().c_str(),
-                            fi.vname().c_str(),
-                            hex.c_str());
+                    if (fi.printProperties().hasREQUIRED())
+                    {
+                        t->decoding_errors = joinStatusEmptyStrings(t->decoding_errors,
+                                                                    string("DECODING_ERROR_")+fi.vname());
+                        if (!t->beingAnalyzed())
+                        {
+                            warning("(meters) meter: %s failed to decode ixml field: %s over entire payload\n"
+                                    "Please open an issue at https://github.com/wmbusmeters/wmbusmeters/\n"
+                                    "and report this telegram: %s\n",
+                                    name().c_str(),
+                                    fi.vname().c_str(),
+                                    hex.c_str());
+                        }
+                    }
                 }
                 continue;
             }
@@ -1597,13 +1633,20 @@ void MeterCommonImplementation::processFieldIXMLs(Telegram *t)
                         vector<uchar> frame;
                         t->extractFrame(&frame);
                         string hex = bin2hex(frame);
-
-                        warning("(meters) meter: %s failed to decode ixml field: %s\n"
-                                "Please open an issue at https://github.com/wmbusmeters/wmbusmeters/\n"
-                                "and report this telegram: %s\n",
-                                name().c_str(),
-                                fi.vname().c_str(),
-                                hex.c_str());
+                        if (fi.printProperties().hasREQUIRED())
+                        {
+                            t->decoding_errors = joinStatusEmptyStrings(t->decoding_errors,
+                                                                        string("DECODING_ERROR_")+fi.vname());
+                            if (!t->beingAnalyzed())
+                            {
+                                warning("(meters) meter: %s failed to decode ixml field: %s\n"
+                                        "Please open an issue at https://github.com/wmbusmeters/wmbusmeters/\n"
+                                        "and report this telegram: %s\n",
+                                        name().c_str(),
+                                        fi.vname().c_str(),
+                                        hex.c_str());
+                            }
+                        }
                     }
                 }
             }
@@ -2038,6 +2081,55 @@ string FieldInfo::generateFieldNameWithUnit(Meter *m, DVEntry *dve)
     return var+"_"+display_unit_s;
 }
 
+bool FieldInfo::transformPayload(Telegram *t, vector<uchar> *content)
+{
+    if (!has_tpl_aes_cbc_iv_payload_transform_) return true;
+
+    if (payload_offset_ < 0 || payload_length_ < 0 || tpl_acc_offset_ < 0)
+    {
+        warning("(field) invalid payload transform configuration for field %s\n", vname().c_str());
+        return false;
+    }
+    if ((size_t)tpl_acc_offset_ >= content->size() || (size_t)payload_offset_ >= content->size())
+    {
+        warning("(field) payload transform offset outside payload for field %s\n", vname().c_str());
+        return false;
+    }
+
+    size_t payload_end = content->size();
+    if (payload_length_ > 0)
+    {
+        payload_end = payload_offset_ + payload_length_;
+        if (payload_end > content->size())
+        {
+            warning("(field) payload transform length outside payload for field %s\n", vname().c_str());
+            return false;
+        }
+    }
+
+    Meter *meter = t->meter;
+    MeterKeys *keys = meter ? meter->meterKeys() : NULL;
+    if (keys == NULL || keys->confidentiality_key.size() != 16)
+    {
+        warning("(field) payload transform requires a 16-byte meter key for field %s\n", vname().c_str());
+        return false;
+    }
+
+    t->tpl_acc = (*content)[tpl_acc_offset_];
+
+    vector<uchar> frame(content->begin() + payload_offset_, content->begin() + payload_end);
+    vector<uchar>::iterator pos = frame.begin();
+    vector<uchar> aes_key = keys->confidentiality_key;
+    int num_encrypted_bytes = 0;
+    int num_not_encrypted_at_end = 0;
+
+    bool ok = decrypt_TPL_AES_CBC_IV(t, frame, pos, aes_key, &num_encrypted_bytes, &num_not_encrypted_at_end);
+    if (!ok) return false;
+
+    *content = frame;
+    return true;
+}
+
 
 string FieldInfo::renderJson(Meter *m, DVEntry *dve)
 {
@@ -2066,22 +2158,29 @@ string FieldInfo::renderJson(Meter *m, DVEntry *dve)
     }
     else
     {
+        string key = "\""+field_name+"_"+display_unit_s+"\":";
         if (displayUnit() == Unit::DateLT)
         {
-            s += "\""+field_name+"_"+display_unit_s+"\":\""+strdate(m->getNumericValue(field_name, Unit::DateLT))+"\"";
+            double t = m->getNumericValue(field_name, Unit::DateLT);
+            if (isnan(t)) s += key + "null";
+            else s += key+"\""+strdate(t)+"\"";
         }
         else if (displayUnit() == Unit::DateTimeLT)
         {
-            s += "\""+field_name+"_"+display_unit_s+"\":\""+strdatetime(m->getNumericValue(field_name, Unit::DateTimeLT))+"\"";
+            double t = m->getNumericValue(field_name, Unit::DateTimeLT);
+            if (isnan(t)) s+= key + "null";
+            else s += key+"\""+strdatetime(t)+"\"";
         }
         else if (displayUnit() == Unit::DateTimeUTC)
         {
-            s += "\""+field_name+"_"+display_unit_s+"\":\""+strTimestampUTC(m->getNumericValue(field_name, Unit::DateTimeUTC))+"\"";
+            double t = m->getNumericValue(field_name, Unit::DateTimeUTC);
+            if (isnan(t)) s += key + "null";
+            else s += key+"\""+strTimestampUTC(t)+"\"";
         }
         else
         {
             // All numeric values.
-            s += "\""+field_name+"_"+display_unit_s+"\":"+valueToString(m->getNumericValue(field_name, displayUnit()), displayUnit());
+            s += key+valueToString(m->getNumericValue(field_name, displayUnit()), displayUnit());
         }
     }
 
@@ -2120,7 +2219,7 @@ void MeterCommonImplementation::printMeter(Telegram *t,
 {
     bool first = !t->meter->hasReceivedFirstTelegram();
 
-    *human_readable = concatFields(this, t, '\t', field_infos_, true, selected_fields, extra_constant_fields);
+   *human_readable = concatFields(this, t, '\t', field_infos_, true, selected_fields, extra_constant_fields);
     *fields = concatFields(this, t, separator, field_infos_, false, selected_fields, extra_constant_fields);
 
     string media;
@@ -2198,6 +2297,10 @@ void MeterCommonImplementation::printMeter(Telegram *t,
         if (sf.field_info->printProperties().hasSTATUS())
         {
             string in = getStatusField(sf.field_info);
+            if (t->decoding_errors != "")
+            {
+                in = joinStatusOKStrings(in, t->decoding_errors);
+            }
             out = tostrprintf("\"%s\":\"%s\"", vname.c_str(), in.c_str());
             s += indent+out+","+newline;
         }

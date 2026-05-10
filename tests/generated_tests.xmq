@@ -194,6 +194,93 @@ test {
     fields   = 'Vattur;0014a807;7177.666667;1111-11-11 11:11.11'
 }
 test {
+    args     = 'HCA3 apatoreitn 37373733 NOKEY'
+    telegram = 29441486333737370408B60EFFFFF1460186EC1B934EE91BA57BA0A1000059009C250100322DE413B415
+    json     = '{"_":"telegram","media":"heat cost allocation","meter":"apatoreitn","name":"HCA3","id":"37373733","current_hca":1,"previous_hca":89,"current_date":"2022-09-18","season_start_date":"2016-05-01","esb_date":"2018-12-28","temp_room_avg_c":21.703125,"temp_room_prev_avg_c":19.890625,"timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'HCA3;37373733;1;89;2022-09-18;2016-05-01;2018-12-28;21.703125;19.890625;1111-11-11 11:11.11'
+}
+test {
+    args     = 'HCA2 apatoreitn 37373732 NOKEY'
+    telegram = 25441486323737370408B60AFFFFF5450186F41B9D58A0A100007809000000001F2D6416C819
+    json     = '{"_":"telegram","media":"heat cost allocation","meter":"apatoreitn","name":"HCA2","id":"37373732","current_hca":0,"previous_hca":2424,"current_date":"2022-08-31","season_start_date":"2016-05-01","esb_date":null,"temp_room_avg_c":25.78125,"temp_room_prev_avg_c":22.390625,"timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'HCA2;37373732;0;2424;2022-08-31;2016-05-01;null;25.78125;22.390625;1111-11-11 11:11.11'
+}
+test {
+    args     = 'HCA1 apatoreitn 37373731 NOKEY'
+    telegram = 19440186313737370408A0A1000059001C270100322DE413B415
+    json     = '{"_":"telegram","media":"heat cost allocation","meter":"apatoreitn","name":"HCA1","id":"37373731","current_hca":1,"previous_hca":89,"current_date":"2022-09-18","season_start_date":"2016-05-01","esb_date":"2019-08-28","temp_room_avg_c":21.703125,"temp_room_prev_avg_c":19.890625,"timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'HCA1;37373731;1;89;2022-09-18;2016-05-01;2019-08-28;21.703125;19.890625;1111-11-11 11:11.11'
+}
+test {
+    comment  = 'Issue 1215 cluster 3 recovery'
+    args     = 'ApNa1 apatorna1 04913581 00000000000000000000000000000000'
+    telegram = 1C440106813591041407A0130197DAF2A1C02F9B77B14ACD51CB20C41E
+    json     = '{"_":"telegram","media":"water","meter":"apatorna1","name":"ApNa1","id":"04913581","historic_m3":662.325,"historic_datetime":"2024-09-30 22:20","historic_age_h":473,"meter_datetime":"2024-10-20 15:20","total_m3":696.576,"current_status":"OK","frame_status":"SUMMER_TIME","historic_status":"MINIMUM_FLOW","timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'ApNa1;04913581;696.576;1111-11-11 11:11.11'
+}
+test {
+    comment  = 'Issue 1215 cluster 3 dip'
+    args     = 'ApNa1 apatorna1 04913581 00000000000000000000000000000000'
+    telegram = 1C440106813591041407A10C010AEF3C1D41BE7F7A33B9EB469924397C
+    json     = '{"_":"telegram","media":"water","meter":"apatorna1","name":"ApNa1","id":"04913581","historic_m3":662.325,"historic_datetime":"2024-09-30 22:18","historic_age_h":473,"meter_datetime":"2024-10-20 15:18","total_m3":696.32,"current_status":"OK","frame_status":"SUMMER_TIME","historic_status":"MINIMUM_FLOW","timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'ApNa1;04913581;696.32;1111-11-11 11:11.11'
+}
+test {
+    comment  = 'Issue 1215 cluster 3 before dip'
+    args     = 'ApNa1 apatorna1 04913581 00000000000000000000000000000000'
+    telegram = 1C440106813591041407A0080174159B7E36D8E6421E3AED55C76BA54A
+    json     = '{"_":"telegram","media":"water","meter":"apatorna1","name":"ApNa1","id":"04913581","historic_m3":662.325,"historic_datetime":"2024-09-30 22:18","historic_age_h":473,"meter_datetime":"2024-10-20 15:18","total_m3":696.575,"current_status":"OK","frame_status":"SUMMER_TIME","historic_status":"MINIMUM_FLOW","timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'ApNa1;04913581;696.575;1111-11-11 11:11.11'
+}
+test {
+    comment  = 'Issue 1215 cluster 2 recovery'
+    args     = 'ApNa1 apatorna1 04913581 00000000000000000000000000000000'
+    telegram = 1C440106813591041407A00C019334727003B3DA268CF11117D85B6D71
+    json     = '{"_":"telegram","media":"water","meter":"apatorna1","name":"ApNa1","id":"04913581","historic_m3":662.325,"historic_datetime":"2024-09-30 22:06","historic_age_h":375,"meter_datetime":"2024-10-16 13:06","total_m3":689.415,"current_status":"OK","frame_status":"SUMMER_TIME","historic_status":"MINIMUM_FLOW","timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'ApNa1;04913581;689.415;1111-11-11 11:11.11'
+}
+test {
+    comment  = 'Issue 1215 cluster 2 dip'
+    args     = 'ApNa1 apatorna1 04913581 00000000000000000000000000000000'
+    telegram = 1C440106813591041407A0020134813C00486734067DB0111C30188137
+    json     = '{"_":"telegram","media":"water","meter":"apatorna1","name":"ApNa1","id":"04913581","historic_m3":662.325,"historic_datetime":"2024-09-30 22:04","historic_age_h":375,"meter_datetime":"2024-10-16 13:04","total_m3":689.152,"current_status":"OK","frame_status":"SUMMER_TIME","historic_status":"MINIMUM_FLOW","timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'ApNa1;04913581;689.152;1111-11-11 11:11.11'
+}
+test {
+    comment  = 'Issue 1215 cluster 2 before dip'
+    args     = 'ApNa1 apatorna1 04913581 00000000000000000000000000000000'
+    telegram = 1C440106813591041407A0FF019E3790584B0876226B94ADC34FFABDED
+    json     = '{"_":"telegram","media":"water","meter":"apatorna1","name":"ApNa1","id":"04913581","historic_m3":662.325,"historic_datetime":"2024-09-30 22:04","historic_age_h":375,"meter_datetime":"2024-10-16 13:04","total_m3":689.403,"current_status":"OK","frame_status":"SUMMER_TIME","historic_status":"MINIMUM_FLOW","timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'ApNa1;04913581;689.403;1111-11-11 11:11.11'
+}
+test {
+    comment  = 'Issue 1215 cluster 1 recovery'
+    args     = 'ApNa1 apatorna1 04913581 00000000000000000000000000000000'
+    telegram = 1C440106813591041407A174013655E9B2B8085E2F256908D7498C402C
+    json     = '{"_":"telegram","media":"water","meter":"apatorna1","name":"ApNa1","id":"04913581","historic_m3":662.325,"historic_datetime":"2024-09-30 22:21","historic_age_h":351,"meter_datetime":"2024-10-15 13:21","total_m3":687.357,"current_status":"OK","frame_status":"SUMMER_TIME","historic_status":"OK","timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'ApNa1;04913581;687.357;1111-11-11 11:11.11'
+}
+test {
+    comment  = 'Issue 1215 cluster 1 dip'
+    args     = 'ApNa1 apatorna1 04913581 00000000000000000000000000000000'
+    telegram = 1C440106813591041407A17D01416562108AB98A0FE92FC06AA8122176
+    json     = '{"_":"telegram","media":"water","meter":"apatorna1","name":"ApNa1","id":"04913581","historic_m3":662.325,"historic_datetime":"2024-09-30 22:22","historic_age_h":351,"meter_datetime":"2024-10-15 13:22","total_m3":687.104,"current_status":"OK","frame_status":"SUMMER_TIME","historic_status":"OK","timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'ApNa1;04913581;687.104;1111-11-11 11:11.11'
+}
+test {
+    comment  = 'Issue 1215 cluster 1 before dip'
+    args     = 'ApNa1 apatorna1 04913581 00000000000000000000000000000000'
+    telegram = 1C440106813591041407A07F018D43B54E718E8718D5D2C8F939194847
+    json     = '{"_":"telegram","media":"water","meter":"apatorna1","name":"ApNa1","id":"04913581","historic_m3":662.325,"historic_datetime":"2024-09-30 22:23","historic_age_h":351,"meter_datetime":"2024-10-15 13:23","total_m3":687.361,"current_status":"OK","frame_status":"SUMMER_TIME","historic_status":"OK","timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'ApNa1;04913581;687.361;1111-11-11 11:11.11'
+}
+test {
+    args     = 'ApNa1 apatorna1 04913581 00000000000000000000000000000000'
+    telegram = 1C440106813591041407A0B000266A705474DDB80D9A0EB9AE2EF29D96
+    json     = '{"_":"telegram","media":"water","meter":"apatorna1","name":"ApNa1","id":"04913581","historic_m3":300.619,"historic_datetime":"2024-02-29 22:22","historic_age_h":545,"meter_datetime":"2024-03-23 15:22","total_m3":345.312,"current_status":"OK","frame_status":"OK","historic_status":"MINIMUM_FLOW","timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'ApNa1;04913581;345.312;1111-11-11 11:11.11'
+}
+test {
     args     = 'W aptmbusna 00345157 NOKEY'
     telegram = 68565668086C7257513400010615072EF80000_0C7857513400046D0BAB5934041307590000023B00004413A2560000426C41340227CB0803FD175E0B0004FF0A0404010002FF0B000003FF0C9700B90F0004351BFF0001020100_A716
     json     = '{"_": "telegram","fabrication_no": "00345157","id": "00345157","media": "water","meter": "aptmbusna","meter_datetime": "2026-04-25 11:11","name": "W","operating_time_h": 54024,"status": "PERMANENT_ERROR P_CLOCK_HAND_ERROR P_DETECTION_WITHOUT_CHANGES P_LEAK P_MBUS_DISCONNECTED P_MINIMUM_FLOW P_PROCESSOR_RESET P_REVERSE_FLOW P_STRONG_LIGHT TEMPORARY_ERROR UNKNOWN_E0","target_date": "2026-04-01","target_m3": 22.178,"timestamp": "1111-11-11T11:11:11Z","total_m3": 22.791,"volume_flow_m3h": 0}'
@@ -230,6 +317,42 @@ test {
     fields   = 'Votten;61070071;466.472;;1111-11-11 11:11.11'
 }
 test {
+    args     = 'bfwww bfw240radio 00707447 NOKEY'
+    telegram = 3644D7084774700002087AE1C000002F2F481F0144010014700000000000000000000000000000000000000000379B0144AC0100040321
+    json     = '{"_":"telegram","media":"heat cost allocation","meter":"bfw240radio","name":"bfwww","id":"00707447","current_hca":256,"prev_hca":324,"prev_01_hca":256,"prev_02_hca":172,"prev_03_hca":324,"prev_04_hca":155,"prev_05_hca":55,"prev_06_hca":0,"prev_07_hca":0,"prev_08_hca":0,"prev_09_hca":0,"prev_10_hca":0,"prev_11_hca":0,"prev_12_hca":0,"prev_13_hca":0,"prev_14_hca":0,"prev_15_hca":0,"prev_16_hca":0,"prev_17_hca":0,"prev_18_hca":0,"device_date":"2021-03-04","timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'bfwww;00707447;256;324;1111-11-11 11:11.11'
+}
+test {
+    args     = 'bfwww bfw240radio 00707447 NOKEY'
+    telegram = 3644D7084774700002087A80C000002F2F6F1F01440100147000000000000000000000000000000000000000000037009B4410AC260221
+    json     = '{"_":"telegram","media":"heat cost allocation","meter":"bfw240radio","name":"bfwww","id":"00707447","current_hca":256,"prev_hca":324,"prev_01_hca":172,"prev_02_hca":324,"prev_03_hca":155,"prev_04_hca":55,"prev_05_hca":0,"prev_06_hca":0,"prev_07_hca":0,"prev_08_hca":0,"prev_09_hca":0,"prev_10_hca":0,"prev_11_hca":0,"prev_12_hca":0,"prev_13_hca":0,"prev_14_hca":0,"prev_15_hca":0,"prev_16_hca":0,"prev_17_hca":0,"prev_18_hca":0,"device_date":"2021-02-26","timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'bfwww;00707447;256;324;1111-11-11 11:11.11'
+}
+test {
+    args     = 'bfww bfw240radio 00707076 NOKEY'
+    telegram = 3644D7087670700002087A27C000002F2F011F000000000B36000000000000000000000000000000000000000000000000000000010321
+    json     = '{"_":"telegram","media":"heat cost allocation","meter":"bfw240radio","name":"bfww","id":"00707076","current_hca":0,"prev_hca":0,"prev_01_hca":0,"prev_02_hca":0,"prev_03_hca":0,"prev_04_hca":0,"prev_05_hca":0,"prev_06_hca":0,"prev_07_hca":0,"prev_08_hca":0,"prev_09_hca":0,"prev_10_hca":0,"prev_11_hca":0,"prev_12_hca":0,"prev_13_hca":0,"prev_14_hca":0,"prev_15_hca":0,"prev_16_hca":0,"prev_17_hca":0,"prev_18_hca":0,"device_date":"2021-03-01","timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'bfww;00707076;0;0;1111-11-11 11:11.11'
+}
+test {
+    args     = 'bfww bfw240radio 00707076 NOKEY'
+    telegram = 3644D7087670700002087A9CC000002F2F6E1F000000000B36000000000000000000000000000000000000000000000000000000260221
+    json     = '{"_":"telegram","media":"heat cost allocation","meter":"bfw240radio","name":"bfww","id":"00707076","current_hca":0,"prev_hca":0,"prev_01_hca":0,"prev_02_hca":0,"prev_03_hca":0,"prev_04_hca":0,"prev_05_hca":0,"prev_06_hca":0,"prev_07_hca":0,"prev_08_hca":0,"prev_09_hca":0,"prev_10_hca":0,"prev_11_hca":0,"prev_12_hca":0,"prev_13_hca":0,"prev_14_hca":0,"prev_15_hca":0,"prev_16_hca":0,"prev_17_hca":0,"prev_18_hca":0,"device_date":"2021-02-26","timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'bfww;00707076;0;0;1111-11-11 11:11.11'
+}
+test {
+    args     = 'bfw bfw240radio 00707788 NOKEY'
+    telegram = 3644D7088877700002087A8BC000002F2F011F03C1038D152A0000000000000000000000000200040400040E00E20A23C11D238D010321
+    json     = '{"_":"telegram","media":"heat cost allocation","meter":"bfw240radio","name":"bfw","id":"00707788","current_hca":909,"prev_hca":961,"prev_01_hca":909,"prev_02_hca":541,"prev_03_hca":961,"prev_04_hca":522,"prev_05_hca":226,"prev_06_hca":14,"prev_07_hca":4,"prev_08_hca":4,"prev_09_hca":4,"prev_10_hca":2,"prev_11_hca":0,"prev_12_hca":0,"prev_13_hca":0,"prev_14_hca":0,"prev_15_hca":0,"prev_16_hca":0,"prev_17_hca":0,"prev_18_hca":0,"device_date":"2021-03-01","timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'bfw;00707788;909;961;1111-11-11 11:11.11'
+}
+test {
+    args     = 'bfw bfw240radio 00707788 NOKEY'
+    telegram = 3644D7088877700002087ADBC000002F2F9E1F03C10388152A00000000000000000000000000000204000404000EE2020AC1321D280221
+    json     = '{"_":"telegram","media":"heat cost allocation","meter":"bfw240radio","name":"bfw","id":"00707788","current_hca":904,"prev_hca":961,"prev_01_hca":541,"prev_02_hca":961,"prev_03_hca":522,"prev_04_hca":226,"prev_05_hca":14,"prev_06_hca":4,"prev_07_hca":4,"prev_08_hca":4,"prev_09_hca":2,"prev_10_hca":0,"prev_11_hca":0,"prev_12_hca":0,"prev_13_hca":0,"prev_14_hca":0,"prev_15_hca":0,"prev_16_hca":0,"prev_17_hca":0,"prev_18_hca":0,"device_date":"2021-02-28","timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'bfw;00707788;904;961;1111-11-11 11:11.11'
+}
+test {
     args     = 'HeatCool c5isf 32022703 NOKEY'
     telegram = 8E44496A03270232880D7AED0080052F2F0406050200008410069A1700000413BC6F2E00840406E701000082046C2131841406C20B000082146C2131043B00000000042D0000000002595D09025D240802FD17000084800106050200008280016C213C948001AE2501000000849001069A1700008290016C213C849001AE25000000002F2F2F2F2F2F2F2F2F2F2F2F
     json     = '{"_":"telegram","media":"heat/cooling load","meter":"c5isf","name":"HeatCool","id":"32022703","due_date":"2025-01-01","due_energy_consumption_kwh":487,"flow_temperature_c":23.97,"max_power_last_month_kw":1,"power_kw":0,"prev_1_month_kwh":517,"prev_1_month_date":"2025-12-01","return_temperature_c":20.84,"total_cooling_consumption_kwh":6042,"total_energy_consumption_kwh":517,"total_energy_consumption_last_month_kwh":517,"total_volume_m3":3043.26,"volume_flow_m3h":0,"status":"OK","timestamp":"1111-11-11T11:11:11Z"}'
@@ -250,13 +373,13 @@ test {
 test {
     args     = 'Caltos2 caltose 80081809 EB7CA876CAA641DAC39239326F6DD7EA'
     telegram = 5e44496a09180880fc087a84405005760039129d1ce51ce54ef7b4aa5383f1fd525f87046d4f869a3189e5b0c400ecf9c41ae6ed6cf94810f09f4f113c04cc731e379e62ea0331ec7f8b09511357a7f7a484851c3de2ec414dcfdebd4af67d
-    json     = '{"_":"telegram","media":"heat cost allocation","meter":"caltose","name":"Caltos2","id":"80081809","base_date":"2026-02-01","base_hca":0,"consumption_hca":0,"target_date":"2026-01-01","target_hca":0,"status":"MODE_2F","timestamp":"1111-11-11T11:11:11Z"}'
+    json     = '{"_":"telegram","media":"heat cost allocation","meter":"caltose","name":"Caltos2","id":"80081809","base_date":"2026-02-01","base_hca":0,"consumption_hca":0,"consumption_1_hca":0,"consumption_1":"2026-01-01","consumption_2_hca":0,"consumption_2":"2025-12-01","consumption_3_hca":0,"consumption_3":"2025-11-01","consumption_4_hca":0,"consumption_4":"2025-10-01","target_date":"2026-01-01","target_hca":0,"status":"MODE_2F","timestamp":"1111-11-11T11:11:11Z"}'
     fields   = 'Caltos2;80081809;MODE_2F;0;0;2026-01-01;1111-11-11 11:11.11'
 }
 test {
     args     = 'Caltos caltose 80081991 6B6B5EB80884328A7B1E45043D39FAAD'
     telegram = 5e44496a91190880fc087a744050052f05bf0c6baf613a078098e048ae47ffb93083b455065e03de9b7878c8b3bb063637ea5693160e831cc3d4e0470fabbcd4fedb09d289a0025ca7960d5c7b8064b1093037e7a0a57908edb554d17ad587
-    json     = '{"_":"telegram","media":"heat cost allocation","meter":"caltose","name":"Caltos","id":"80081991","base_date":"2026-02-01","base_hca":203,"consumption_hca":225,"target_date":"2026-01-01","target_hca":99,"status":"MODE_2F","timestamp":"1111-11-11T11:11:11Z"}'
+    json     = '{"_":"telegram","media":"heat cost allocation","meter":"caltose","name":"Caltos","id":"80081991","base_date":"2026-02-01","base_hca":203,"consumption_hca":225,"consumption_1_hca":99,"consumption_1":"2026-01-01","consumption_2_hca":52,"consumption_2":"2025-12-01","consumption_3_hca":10,"consumption_3":"2025-11-01","consumption_4_hca":0,"consumption_4":"2025-10-01","target_date":"2026-01-01","target_hca":99,"status":"MODE_2F","timestamp":"1111-11-11T11:11:11Z"}'
     fields   = 'Caltos;80081991;MODE_2F;225;99;2026-01-01;1111-11-11 11:11.11'
 }
 test {
@@ -496,7 +619,7 @@ test {
 test {
     args     = 'Rooom fhkvdataiv 14542076 FCF41938F63432975B52505F547FCEDF'
     telegram = 4E4468507620541494087AAD004005089D86B62A329B3439873999738F82461ABDE3C7AC78692B363F3B41EB68607F9C9160F550769B065B6EA00A2E44346E29FF5DC5CB86283C69324AD33D137F6F
-    json     = '{"_":"telegram","media":"heat cost allocation","meter":"fhkvdataiv","name":"Rooom","id":"14542076","status":"OK","current_consumption_hca":2,"set_date":"2020-12-31","consumption_at_set_date_hca":25,"set_date_1":"2020-12-31","consumption_at_set_date_1_hca":25,"set_date_8":"2019-10-31","consumption_at_set_date_8_hca":0,"timestamp":"1111-11-11T11:11:11Z"}'
+    json     = '{"_":"telegram","media":"heat cost allocation","meter":"fhkvdataiv","name":"Rooom","id":"14542076","status":"OK","current_consumption_hca":2,"set_date":"2020-12-31","consumption_at_set_date_hca":25,"set_date_8":"2019-10-31","consumption_at_set_date_1_hca":22,"consumption_at_set_date_1":"2019-11-30","consumption_at_set_date_2_hca":3,"consumption_at_set_date_2":"2019-12-31","consumption_at_set_date_3_hca":0,"consumption_at_set_date_3":"2020-01-31","consumption_at_set_date_4_hca":0,"consumption_at_set_date_4":"2020-02-29","consumption_at_set_date_5_hca":0,"consumption_at_set_date_5":"2020-03-31","consumption_at_set_date_6_hca":0,"consumption_at_set_date_6":"2020-04-30","consumption_at_set_date_7_hca":0,"consumption_at_set_date_7":"2020-05-31","consumption_at_set_date_8_hca":0,"consumption_at_set_date_8":"2020-06-30","consumption_at_set_date_9_hca":0,"consumption_at_set_date_9":"2020-07-31","consumption_at_set_date_10_hca":0,"consumption_at_set_date_10":"2020-08-31","consumption_at_set_date_11_hca":0,"consumption_at_set_date_11":"2020-09-30","consumption_at_set_date_12_hca":0,"consumption_at_set_date_12":"2020-10-31","consumption_at_set_date_13_hca":0,"consumption_at_set_date_13":"2020-11-30","consumption_at_set_date_14_hca":0,"consumption_at_set_date_14":"2020-12-31","timestamp":"1111-11-11T11:11:11Z"}'
     fields   = 'Rooom;14542076;2;2020-12-31;25;1111-11-11 11:11.11'
 }
 test {
@@ -524,6 +647,24 @@ test {
     telegram = 3644E61E32616600020E7250521123E61E3C031B0020652F2F_03745E00000413FE8D0100441300000000426C000002FD74B10F0F0100A8
     json     = '{"_": "telegram","status":"OK","actuality_duration_s": 94,"id": "23115250","media": "gas","meter": "gwfgas","name": "mygas1","target_date": "1999-11-30","target_m3": 0,"timestamp": "1111-11-11T11:11:11Z","total_m3": 101.886}'
     fields   = 'mygas1;23115250;101.886;0;1111-11-11 11:11.11'
+}
+test {
+    args     = 'Watererr gwfwater 19680750 NOKEY'
+    telegram = 3944E61E46441510020E8C04427250076819E61E3C07B10020452F2F_03748B05000413DC690D004413A4630D00426C213C02FD74B5140F0200E3
+    json     = '{"_":"telegram","media":"water","meter":"gwfwater","name":"Watererr","id":"19680750","battery_y": null,"actuality_duration_s":1419,"target_m3":877.476,"target_date":"2025-12-01","total_m3":879.068,"status":"UNKNOWN_MFCT_STATUS_2","timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'Watererr;19680750;879.068;1111-11-11 11:11.11'
+}
+test {
+    args     = 'Watertwo gwfwater 19680750 NOKEY'
+    telegram = 3944E61E46441510020E8C04427250076819E61E3C07B10020452F2F_03748B05000413DC690D004413A4630D00426C213C02FD74B5140F0100E3
+    json     = '{"_": "telegram","actuality_duration_s": 1419,"battery_y": 14,"id": "19680750","media": "water","meter": "gwfwater","name": "Watertwo","power_mode": "SAVING","status": "OK","target_date": "2025-12-01","target_m3": 877.476,"timestamp": "1111-11-11T11:11:11Z","total_m3": 879.068}'
+    fields   = 'Watertwo;19680750;879.068;1111-11-11 11:11.11'
+}
+test {
+    args     = 'Wateroo gwfwater 20221031 NOKEY'
+    telegram = 3144E61E31102220010E8C04F47ABE0420452F2F_037410000004133E0000004413FFFFFFFF426CFFFF0F0120012F2F2F2F2F
+    json     = '{"_":"telegram","actuality_duration_s": 16,"battery_y": 0,"id": "20221031","media": "bus/system component","meter": "gwfwater","name": "Wateroo","power_mode": "SAVING","status": "BATTERY_LOW POWER_LOW","target_date": "2128-03-31","target_m3": -0.001,"timestamp": "1111-11-11T11:11:11Z","total_m3": 0.062}'
+    fields   = 'Wateroo;20221031;0.062;1111-11-11 11:11.11'
 }
 test {
     args     = 'HeatMeter2 hcae2 60200770 NOKEY'
@@ -1716,6 +1857,34 @@ test {
     fields   = 'Witer;78563412;481.899;21.1;0;354.259;0;2019-12-31;461.287;2020-07-31 23:59;1111-11-11 11:11.11'
 }
 test {
+    comment  = 'Broken payload, decoding error in status and prev_date is null'
+    args     = 'Smokey tsd2 91633569 NOKEY'
+    telegram = 0C4468506935639176F0A0_019F
+    json     = '{"_":"telegram","media":"smoke detector","meter":"tsd2","name":"Smokey","id":"91633569","status":"DECODING_ERROR_payload","prev_date":null,"timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'Smokey;91633569;DECODING_ERROR_payload;null;1111-11-11 11:11.11'
+}
+test {
+    comment  = 'Invalid status byte.'
+    args     = 'Smokey tsd2 91633569 NOKEY'
+    telegram = 294468506935639176F0A0_719F2782290060822900000401D6311AF93E1BF93E008DC3009ED4000FE500
+    json     = '{"_":"telegram","media":"smoke detector","meter":"tsd2","name":"Smokey","id":"91633569","status":"STATUS_71","prev_date":"2019-12-31","timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'Smokey;91633569;STATUS_71;2019-12-31;1111-11-11 11:11.11'
+}
+test {
+    comment  = 'Status SMOKE with date'
+    args     = 'Smokey tsd2 91633569 NOKEY'
+    telegram = 294468506935639176F0A0_019F2782290060822900000401D6311AF93E1BF93E008DC3009ED4000FE500
+    json     = '{"_":"telegram","media":"smoke detector","meter":"tsd2","name":"Smokey","id":"91633569","status":"SMOKE","prev_date":"2019-12-31","timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'Smokey;91633569;SMOKE;2019-12-31;1111-11-11 11:11.11'
+}
+test {
+    comment  = 'Status OK with date'
+    args     = 'Smokey tsd2 91633569 NOKEY'
+    telegram = 294468506935639176F0A0_009F2782290060822900000401D6311AF93E1BF93E008DC3009ED4000FE500
+    json     = '{"_":"telegram","media":"smoke detector","meter":"tsd2","name":"Smokey","id":"91633569","status":"OK","prev_date":"2019-12-31","timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'Smokey;91633569;OK;2019-12-31;1111-11-11 11:11.11'
+}
+test {
     args     = 'MyUltra2 ultraheat 71635605 NOKEY'
     telegram = 3b44a7320556637104047afa2000202f2f0c06774202000c14399956000b2d0200f00b3b3018000a5a51030a5e520302fd170000066d0c080af42500
     json     = '{"_":"telegram","flow_c": 35.1,"flow_m3h": 1.83,"heat_kwh": 24277,"id": "71635605","media": "heat","meter": "ultraheat","meter_datetime": "2023-05-20 10:08:12","name": "MyUltra2","power_kw": -0.2,"return_c": 35.2,"status": "UNKNOWN_20","timestamp": "1111-11-11T11:11:11Z","volume_m3": 5699.39}'
@@ -1838,14 +2007,26 @@ test {
     fields   = 'licznik;16466583;0;1111-11-11 11:11.11'
 }
 test {
+    args     = 'StatusWater zenner0b 50087367 NOKEY'
+    telegram = 1E44496A677308500B167AD80010252F2F0F80BF1B0080BF1B0000A6420000
+    json     = '{"_":"telegram","id":"50087367","media":"cold water","meter":"zenner0b","name":"StatusWater","status":"STATUS_1BBF80","target_m3":7.1035,"timestamp":"1111-11-11T11:11:11Z","total_m3":17.062}'
+    fields   = 'StatusWater;50087367;STATUS_1BBF80;17.062;7.1035;1111-11-11 11:11.11'
+}
+test {
+    args     = 'TestWater zenner0b 50087367 NOKEY'
+    telegram = 1E44496A677308500B167AD80010252F2F0F0000000080BF1B0000A6420000
+    json     = '{"_":"telegram","id":"50087367","media":"cold water","meter":"zenner0b","name":"TestWater","status":"OK","target_m3":7.1035,"timestamp":"1111-11-11T11:11:11Z","total_m3":17.062}'
+    fields   = 'TestWater;50087367;OK;17.062;7.1035;1111-11-11 11:11.11'
+}
+test {
     args     = 'ZennerHCA2 zennerhca 80081907 750381240D0A7E371D4CB8D1869D8F9B'
     telegram = 5e44496a07190880fc087a714050058922c9598bdddfbb5bbf44b9d54830830eb6be3ba8117dfc88ae1b251837dfecb04e071554125366ef9d72dce87c9a099ad0cd9bf70f4a2e9c4c58d780444219c3f546c887fbc2d93c272e314f925473
-    json     = '{"_":"telegram","media":"heat cost allocation","meter":"zennerhca","name":"ZennerHCA2","id":"80081907","consumption_hca":0,"previous_billing_consumption_hca":0,"previous_billing_date":"2026-02-01","status":"DUAL_SENSOR_MODE","target_date":"2026-01-01","target_hca":2,"timestamp":"1111-11-11T11:11:11Z"}'
+    json     = '{"_":"telegram","media":"heat cost allocation","meter":"zennerhca","name":"ZennerHCA2","id":"80081907","consumption_hca":0,"previous_billing_consumption_hca":0,"previous_billing_consumption_1_hca":2,"previous_billing_consumption_1":"2026-01-01","previous_billing_consumption_2_hca":0,"previous_billing_consumption_2":"2025-12-01","previous_billing_consumption_3_hca":0,"previous_billing_consumption_3":"2025-11-01","previous_billing_consumption_4_hca":0,"previous_billing_consumption_4":"2025-10-01","previous_billing_date":"2026-02-01","status":"DUAL_SENSOR_MODE","target_date":"2026-01-01","target_hca":2,"timestamp":"1111-11-11T11:11:11Z"}'
     fields   = 'ZennerHCA2;80081907;0;2026-01-01;2;DUAL_SENSOR_MODE;1111-11-11 11:11.11'
 }
 test {
     args     = 'ZennerHCA zennerhca 80081812 DC7C9EF16126348CDFD52CE6567A9FFD'
     telegram = 5e44496a12180880fc087a7040500584a63344b5af071a23539c6020cbba81fa6adcfe738682a0924d4f6f7d89d165c9144e4918cdc2d5f86be7b5bd8143528273accc131a13d0b100f2540dc1f2c379dde4984236d3bca424113cf0ee1bbd
-    json     = '{"_":"telegram","media":"heat cost allocation","meter":"zennerhca","name":"ZennerHCA","id":"80081812","consumption_hca":339,"previous_billing_consumption_hca":272,"previous_billing_date":"2026-02-01","status":"DUAL_SENSOR_MODE","target_date":"2026-01-01","target_hca":627,"timestamp":"1111-11-11T11:11:11Z"}'
+    json     = '{"_":"telegram","media":"heat cost allocation","meter":"zennerhca","name":"ZennerHCA","id":"80081812","consumption_hca":339,"previous_billing_consumption_hca":272,"previous_billing_consumption_1_hca":627,"previous_billing_consumption_1":"2026-01-01","previous_billing_consumption_2_hca":395,"previous_billing_consumption_2":"2025-12-01","previous_billing_consumption_3_hca":176,"previous_billing_consumption_3":"2025-11-01","previous_billing_consumption_4_hca":7,"previous_billing_consumption_4":"2025-10-01","previous_billing_date":"2026-02-01","status":"DUAL_SENSOR_MODE","target_date":"2026-01-01","target_hca":627,"timestamp":"1111-11-11T11:11:11Z"}'
     fields   = 'ZennerHCA;80081812;339;2026-01-01;627;DUAL_SENSOR_MODE;1111-11-11 11:11.11'
 }

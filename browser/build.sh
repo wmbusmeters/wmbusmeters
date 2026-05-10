@@ -71,6 +71,7 @@ fi
 echo "==> Compiling src/ (only changed files)..."
 
 CORE_SRCS="
+  $SRC/crc16.cc
   $SRC/dvparser.cc  $SRC/wmbus.cc  $SRC/wmbus_utils.cc  $SRC/wmbus_simulator.cc
   $SRC/address.cc  $SRC/units.cc  $SRC/translatebits.cc  $SRC/formula.cc
   $SRC/meters.cc  $SRC/metermanager.cc  $SRC/printer.cc  $SRC/drivers.cc
