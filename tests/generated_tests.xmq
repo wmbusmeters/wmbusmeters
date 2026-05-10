@@ -250,13 +250,13 @@ test {
 test {
     args     = 'Caltos2 caltose 80081809 EB7CA876CAA641DAC39239326F6DD7EA'
     telegram = 5e44496a09180880fc087a84405005760039129d1ce51ce54ef7b4aa5383f1fd525f87046d4f869a3189e5b0c400ecf9c41ae6ed6cf94810f09f4f113c04cc731e379e62ea0331ec7f8b09511357a7f7a484851c3de2ec414dcfdebd4af67d
-    json     = '{"_":"telegram","media":"heat cost allocation","meter":"caltose","name":"Caltos2","id":"80081809","base_date":"2026-02-01","base_hca":0,"consumption_hca":0,"target_date":"2026-01-01","target_hca":0,"status":"MODE_2F","timestamp":"1111-11-11T11:11:11Z"}'
+    json     = '{"_":"telegram","media":"heat cost allocation","meter":"caltose","name":"Caltos2","id":"80081809","base_date":"2026-02-01","base_hca":0,"consumption_hca":0,"consumption_1_hca":0,"consumption_1":"2026-01-01","consumption_2_hca":0,"consumption_2":"2025-12-01","consumption_3_hca":0,"consumption_3":"2025-11-01","consumption_4_hca":0,"consumption_4":"2025-10-01","target_date":"2026-01-01","target_hca":0,"status":"MODE_2F","timestamp":"1111-11-11T11:11:11Z"}'
     fields   = 'Caltos2;80081809;MODE_2F;0;0;2026-01-01;1111-11-11 11:11.11'
 }
 test {
     args     = 'Caltos caltose 80081991 6B6B5EB80884328A7B1E45043D39FAAD'
     telegram = 5e44496a91190880fc087a744050052f05bf0c6baf613a078098e048ae47ffb93083b455065e03de9b7878c8b3bb063637ea5693160e831cc3d4e0470fabbcd4fedb09d289a0025ca7960d5c7b8064b1093037e7a0a57908edb554d17ad587
-    json     = '{"_":"telegram","media":"heat cost allocation","meter":"caltose","name":"Caltos","id":"80081991","base_date":"2026-02-01","base_hca":203,"consumption_hca":225,"target_date":"2026-01-01","target_hca":99,"status":"MODE_2F","timestamp":"1111-11-11T11:11:11Z"}'
+    json     = '{"_":"telegram","media":"heat cost allocation","meter":"caltose","name":"Caltos","id":"80081991","base_date":"2026-02-01","base_hca":203,"consumption_hca":225,"consumption_1_hca":99,"consumption_1":"2026-01-01","consumption_2_hca":52,"consumption_2":"2025-12-01","consumption_3_hca":10,"consumption_3":"2025-11-01","consumption_4_hca":0,"consumption_4":"2025-10-01","target_date":"2026-01-01","target_hca":99,"status":"MODE_2F","timestamp":"1111-11-11T11:11:11Z"}'
     fields   = 'Caltos;80081991;MODE_2F;225;99;2026-01-01;1111-11-11 11:11.11'
 }
 test {
@@ -484,7 +484,7 @@ test {
 test {
     args     = 'Rooom fhkvdataiv 14542076 FCF41938F63432975B52505F547FCEDF'
     telegram = 4E4468507620541494087AAD004005089D86B62A329B3439873999738F82461ABDE3C7AC78692B363F3B41EB68607F9C9160F550769B065B6EA00A2E44346E29FF5DC5CB86283C69324AD33D137F6F
-    json     = '{"_":"telegram","media":"heat cost allocation","meter":"fhkvdataiv","name":"Rooom","id":"14542076","status":"OK","current_consumption_hca":2,"set_date":"2020-12-31","consumption_at_set_date_hca":25,"set_date_1":"2020-12-31","consumption_at_set_date_1_hca":25,"set_date_8":"2019-10-31","consumption_at_set_date_8_hca":0,"timestamp":"1111-11-11T11:11:11Z"}'
+    json     = '{"_":"telegram","media":"heat cost allocation","meter":"fhkvdataiv","name":"Rooom","id":"14542076","status":"OK","current_consumption_hca":2,"set_date":"2020-12-31","consumption_at_set_date_hca":25,"set_date_8":"2019-10-31","consumption_at_set_date_1_hca":22,"consumption_at_set_date_1":"2019-11-30","consumption_at_set_date_2_hca":3,"consumption_at_set_date_2":"2019-12-31","consumption_at_set_date_3_hca":0,"consumption_at_set_date_3":"2020-01-31","consumption_at_set_date_4_hca":0,"consumption_at_set_date_4":"2020-02-29","consumption_at_set_date_5_hca":0,"consumption_at_set_date_5":"2020-03-31","consumption_at_set_date_6_hca":0,"consumption_at_set_date_6":"2020-04-30","consumption_at_set_date_7_hca":0,"consumption_at_set_date_7":"2020-05-31","consumption_at_set_date_8_hca":0,"consumption_at_set_date_8":"2020-06-30","consumption_at_set_date_9_hca":0,"consumption_at_set_date_9":"2020-07-31","consumption_at_set_date_10_hca":0,"consumption_at_set_date_10":"2020-08-31","consumption_at_set_date_11_hca":0,"consumption_at_set_date_11":"2020-09-30","consumption_at_set_date_12_hca":0,"consumption_at_set_date_12":"2020-10-31","consumption_at_set_date_13_hca":0,"consumption_at_set_date_13":"2020-11-30","consumption_at_set_date_14_hca":0,"consumption_at_set_date_14":"2020-12-31","timestamp":"1111-11-11T11:11:11Z"}'
     fields   = 'Rooom;14542076;2;2020-12-31;25;1111-11-11 11:11.11'
 }
 test {
@@ -1874,12 +1874,12 @@ test {
 test {
     args     = 'ZennerHCA2 zennerhca 80081907 750381240D0A7E371D4CB8D1869D8F9B'
     telegram = 5e44496a07190880fc087a714050058922c9598bdddfbb5bbf44b9d54830830eb6be3ba8117dfc88ae1b251837dfecb04e071554125366ef9d72dce87c9a099ad0cd9bf70f4a2e9c4c58d780444219c3f546c887fbc2d93c272e314f925473
-    json     = '{"_":"telegram","media":"heat cost allocation","meter":"zennerhca","name":"ZennerHCA2","id":"80081907","consumption_hca":0,"previous_billing_consumption_hca":0,"previous_billing_date":"2026-02-01","status":"DUAL_SENSOR_MODE","target_date":"2026-01-01","target_hca":2,"timestamp":"1111-11-11T11:11:11Z"}'
+    json     = '{"_":"telegram","media":"heat cost allocation","meter":"zennerhca","name":"ZennerHCA2","id":"80081907","consumption_hca":0,"previous_billing_consumption_hca":0,"previous_billing_consumption_1_hca":2,"previous_billing_consumption_1":"2026-01-01","previous_billing_consumption_2_hca":0,"previous_billing_consumption_2":"2025-12-01","previous_billing_consumption_3_hca":0,"previous_billing_consumption_3":"2025-11-01","previous_billing_consumption_4_hca":0,"previous_billing_consumption_4":"2025-10-01","previous_billing_date":"2026-02-01","status":"DUAL_SENSOR_MODE","target_date":"2026-01-01","target_hca":2,"timestamp":"1111-11-11T11:11:11Z"}'
     fields   = 'ZennerHCA2;80081907;0;2026-01-01;2;DUAL_SENSOR_MODE;1111-11-11 11:11.11'
 }
 test {
     args     = 'ZennerHCA zennerhca 80081812 DC7C9EF16126348CDFD52CE6567A9FFD'
     telegram = 5e44496a12180880fc087a7040500584a63344b5af071a23539c6020cbba81fa6adcfe738682a0924d4f6f7d89d165c9144e4918cdc2d5f86be7b5bd8143528273accc131a13d0b100f2540dc1f2c379dde4984236d3bca424113cf0ee1bbd
-    json     = '{"_":"telegram","media":"heat cost allocation","meter":"zennerhca","name":"ZennerHCA","id":"80081812","consumption_hca":339,"previous_billing_consumption_hca":272,"previous_billing_date":"2026-02-01","status":"DUAL_SENSOR_MODE","target_date":"2026-01-01","target_hca":627,"timestamp":"1111-11-11T11:11:11Z"}'
+    json     = '{"_":"telegram","media":"heat cost allocation","meter":"zennerhca","name":"ZennerHCA","id":"80081812","consumption_hca":339,"previous_billing_consumption_hca":272,"previous_billing_consumption_1_hca":627,"previous_billing_consumption_1":"2026-01-01","previous_billing_consumption_2_hca":395,"previous_billing_consumption_2":"2025-12-01","previous_billing_consumption_3_hca":176,"previous_billing_consumption_3":"2025-11-01","previous_billing_consumption_4_hca":7,"previous_billing_consumption_4":"2025-10-01","previous_billing_date":"2026-02-01","status":"DUAL_SENSOR_MODE","target_date":"2026-01-01","target_hca":627,"timestamp":"1111-11-11T11:11:11Z"}'
     fields   = 'ZennerHCA;80081812;339;2026-01-01;627;DUAL_SENSOR_MODE;1111-11-11 11:11.11'
 }

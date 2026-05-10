@@ -277,6 +277,30 @@ void tst_date(unordered_map<string,pair<int,DVEntry>> &values, const char *key, 
     }
 }
 
+void tst_no_key(unordered_map<string,pair<int,DVEntry>> &values, const char *key, int testnr)
+{
+    if (hasKey(&values, key))
+    {
+        fprintf(stderr, "Error in dvparser testnr %d: key %s should not exist\n", testnr, key);
+    }
+}
+
+void tst_subunit(unordered_map<string,pair<int,DVEntry>> &values, const char *key, int expected_subunit, int testnr)
+{
+    if (!hasKey(&values, key))
+    {
+        fprintf(stderr, "Error in dvparser testnr %d: key %s does not exist\n", testnr, key);
+        return;
+    }
+
+    int got = values[key].second.subunit_nr.intValue();
+    if (got != expected_subunit)
+    {
+        fprintf(stderr, "Error in dvparser testnr %d: key %s subunit %d but expected %d\n",
+                testnr, key, got, expected_subunit);
+    }
+}
+
 void test_dvparser()
 {
     unordered_map<string,pair<int,DVEntry>> dv_entries;
@@ -303,6 +327,119 @@ void test_dvparser()
     dv_entries.clear();
     tst_parse("426C FE04", &dv_entries, testnr);
     tst_date(dv_entries, "426C", "2007-04-30 00:00:00", testnr); // 2010-dec-31
+
+    testnr++;
+    dv_entries.clear();
+    // Base value + inverse compact profile, increment mode "increments" (01b), 1 month spacing.
+    // spacing control 0x72: mode=01b, spacing unit=11b (days/month), element size=dif low nibble 0x2.
+    // spacing value 0xFE: one month.
+    // base=1.000, deltas=0.005 and 0.007 => older values 0.995 and 0.988.
+    tst_parse("0213E803 0D9313 06 72FE05000700", &dv_entries, testnr);
+    tst_double(dv_entries, "4213", 0.995, testnr);
+    tst_double(dv_entries, "820113", 0.988, testnr);
+
+    testnr++;
+    dv_entries.clear();
+    // Base value + inverse compact profile, increment mode "decrements" (10b), 1 month spacing.
+    // base=1.000, deltas=0.005 and 0.007 => older values 1.005 and 1.012.
+    tst_parse("0213E803 0D9313 06 B2FE05000700", &dv_entries, testnr);
+    tst_double(dv_entries, "4213", 1.005, testnr);
+    tst_double(dv_entries, "820113", 1.012, testnr);
+
+    testnr++;
+    dv_entries.clear();
+    // Base value + inverse compact profile, increment mode "signed difference" (11b), 1 month spacing.
+    // difference = younger - older. base=1.000, diff=-0.005 then +0.007 => older values 1.005 and 0.998.
+    tst_parse("0213E803 0D9313 06 F2FEFBFF0700", &dv_entries, testnr);
+    tst_double(dv_entries, "4213", 1.005, testnr);
+    tst_double(dv_entries, "820113", 0.998, testnr);
+
+    testnr++;
+    dv_entries.clear();
+    // spacing value 0xFD with spacing unit 11b means half-month spacing (Annex F.8).
+    tst_parse("0213E803 0D9313 04 72FD0500", &dv_entries, testnr);
+    tst_double(dv_entries, "4213", 0.995, testnr);
+
+    testnr++;
+    dv_entries.clear();
+    // spacing value 0 means values are an array (not spaced in time); parser should still decode values.
+    tst_parse("0213E803 0D9313 04 72000500", &dv_entries, testnr);
+    tst_double(dv_entries, "4213", 0.995, testnr);
+
+    testnr++;
+    dv_entries.clear();
+    // spacing value 251 is reserved and compact profile shall be rejected.
+    tst_parse("0213E803 0D9313 04 72FB0500", &dv_entries, testnr);
+    tst_no_key(dv_entries, "4213", testnr);
+
+    testnr++;
+    dv_entries.clear();
+    // spacing value 253 is reserved for spacing units 00b..10b (half-month only valid with 11b).
+    // compact profile shall be rejected for this invalid combination.
+    tst_parse("0213E803 0D9313 04 52FD0500", &dv_entries, testnr);
+    tst_no_key(dv_entries, "4213", testnr);
+
+    testnr++;
+    dv_entries.clear();
+    // Absolute mode (00b) with binary signed values: no delta reconstruction is performed.
+    // Value 0xFFFB should decode as -5 (with energy scaling => -0.005 kWh).
+    tst_parse("0213E803 0D9313 04 32FEFBFF", &dv_entries, testnr);
+    tst_double(dv_entries, "4213", -0.005, testnr);
+
+    testnr++;
+    dv_entries.clear();
+    // Increments mode: first delta valid, second delta is invalid (all-FF for unsigned),
+    // so processing shall stop and later slots shall be ignored.
+    tst_parse("0213E803 0D9313 08 72FE0500FFFF0700", &dv_entries, testnr);
+    tst_double(dv_entries, "4213", 0.995, testnr);
+    tst_no_key(dv_entries, "820113", testnr);
+
+    testnr++;
+    dv_entries.clear();
+    // Signed-difference mode: first difference valid, second is illegal signed minimum
+    // (0x8000), so processing shall stop from that slot onward.
+    tst_parse("0213E803 0D9313 08 F2FE010000800700", &dv_entries, testnr);
+    tst_double(dv_entries, "4213", 0.999, testnr);
+    tst_no_key(dv_entries, "820113", testnr);
+
+    testnr++;
+    dv_entries.clear();
+    // Inverse compact profile with spacing value 2 and spacing unit days.
+    // Base date 2024-01-10 => generated history dates 2024-01-08 and 2024-01-06.
+    tst_parse("820413E803 82046C0A31 8D04931306720205000300", &dv_entries, testnr);
+    tst_double(dv_entries, "C20413", 0.995, testnr);
+    tst_double(dv_entries, "820513", 0.992, testnr);
+    tst_date(dv_entries, "C2046C", "2024-01-08 00:00:00", testnr);
+    tst_date(dv_entries, "82056C", "2024-01-06 00:00:00", testnr);
+
+    testnr++;
+    dv_entries.clear();
+    // Inverse compact profile with half-month spacing (253 + days/month unit).
+    // Base date 2024-01-16 => generated history dates 2024-01-01 and 2023-12-16.
+    tst_parse("0213E803 026C1031 0D9313 06 72FD05000300", &dv_entries, testnr);
+    tst_double(dv_entries, "4213", 0.995, testnr);
+    tst_double(dv_entries, "820113", 0.992, testnr);
+    tst_date(dv_entries, "426C", "2024-01-01 00:00:00", testnr);
+    tst_date(dv_entries, "82016C", "2023-12-16 00:00:00", testnr);
+
+    testnr++;
+    dv_entries.clear();
+    // Compact profile with register numbers (VIFE 1Eh): first profile value belongs to next register.
+    // Base storage/register #8 with base date 2024-01-16 and base value 1000.
+    // Profile values 1001 and 1002 shall map to storage/register #9 and #10 in forward order.
+    tst_parse("820413E803 82046C1031 8D04931E0632FEE903EA03", &dv_entries, testnr);
+    tst_double(dv_entries, "C20413", 1.001, testnr);
+    tst_double(dv_entries, "820513", 1.002, testnr);
+    tst_date(dv_entries, "C2046C", "2024-02-16 00:00:00", testnr);
+    tst_date(dv_entries, "82056C", "2024-03-16 00:00:00", testnr);
+
+    testnr++;
+    dv_entries.clear();
+    // spacing value 0 means array mode; spacing unit addresses column number.
+    // Here spacing unit 01b => column 2, which maps to subunit offset +1.
+    tst_parse("0213E803 0D9313 04 12000500", &dv_entries, testnr);
+    tst_double(dv_entries, "4213", 0.005, testnr);
+    tst_subunit(dv_entries, "4213", 1, testnr);
 }
 
 void test_ixmlparser()
