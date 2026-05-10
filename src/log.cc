@@ -294,17 +294,6 @@ void trace_int(const char* fmt, ...) {
     exit(__status);
 }
 
-
-// [[noreturn]] void error(const char* fmt, ...)
-// {
-//     va_list args;
-//     va_start(args, fmt);
-//     output_stuff(LOG_ERR, true, fmt, args);
-//     va_end(args);
-//     exitHandler(0);
-//     exit(EXIT_FAILURE);
-// }
-
 void logTelegram(vector<uchar> &original, vector<uchar> &parsed, int header_size, int suffix_size)
 {
     if (isLogTelegramsEnabled())
