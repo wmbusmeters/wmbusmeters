@@ -737,8 +737,6 @@ bool parseWithIXML(Telegram *t,
     // explanations that map to the original telegram.
     xmqAnnotateOffsets(decode, "off", NULL);
 
-    //xmqForeach(decode, "//*[@off]", update_offset, &oe);
-
     if (isDebugEnabled() || t->beingAnalyzed())
     {
         XMQOutputSettings *os = xmqNewOutputSettings();

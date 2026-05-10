@@ -73,6 +73,8 @@ double NumericFormulaMeterField::calculate(SIUnit to_si_unit)
     Unit field_unit = fi->displayUnit();
     double val = formula()->meter()->getNumericValue(fi, field_unit);
 
+    if (isnan(val)) return val;
+
     const SIUnit& field_si_unit = toSIUnit(field_unit);
 
     double r {};

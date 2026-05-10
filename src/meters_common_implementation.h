@@ -197,7 +197,10 @@ protected:
     void processFieldIXMLs(Telegram *t);
     void processFieldExtractors(Telegram *t);
     void processFieldCalculators();
+public:
+    // This should be refactored.
     std::string getStatusField(FieldInfo *fi);
+protected:
 
     virtual void processContent(Telegram *t);
 
