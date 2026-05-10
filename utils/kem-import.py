@@ -58,7 +58,7 @@ argparser.add_argument("-o", "--output", type=str, action='store', dest='output'
 args = argparser.parse_args()
 
 # adjust the config folder location to full target path
-args.config = args.config.strip(os.path.sep) + '/etc/wmbusmeters.d/'
+args.config = os.path.join(args.config, 'etc/wmbusmeters.d/')
 
 
 # test if input file exists
@@ -159,8 +159,8 @@ def print_meter(meterName,meterType,meterNum,meterSerial,meterVendor,meterConfig
         wmbusmeters_driver = 'multical21'
     elif (meterName == 'MC603') and (meterModel.startswith('603')): 
         wmbusmeters_driver = 'multical603'
-    elif (meterName == 'KWM2210'): 
-        wmbusmeters_driver = 'flowiq2200'
+    elif meterName.startswith('KWM'):
+        wmbusmeters_driver = 'kamwater'
     else:
         wmbusmeters_driver = None
 
@@ -178,6 +178,7 @@ def print_meter(meterName,meterType,meterNum,meterSerial,meterVendor,meterConfig
         if (wmbusmeters_driver is not None):
             try:
                 f = open(args.config+meterSerial, 'w')
+                f.write("# %s type %s config %s\n" % (meterName, meterModel, meterConfig))
                 f.write("name=%s\n" % (meterNum))
                 f.write("driver=%s\n" % (wmbusmeters_driver))
                 f.write("id=%s\n" % (meterSerial))

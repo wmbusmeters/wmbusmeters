@@ -71,21 +71,20 @@ static RcUartBaudRate rcUartBaudRateFromBauds(int baud_rate)
     throw std::invalid_argument("Unable to convert baud_rate: " + std::to_string(baud_rate) + " to RC enum");
 }
 
-static int getConfiguredBaudRate(const Detected& d) noexcept
-try
+static int getConfiguredBaudRate(const Detected& d)
 {
     if (d.specified_device.bps.empty())
     {
         return DEFAULT_BAUD_RATE;
     }
-    const int result = stoi(d.specified_device.bps);
-    info("(rc1180) Boud rate overwritten to %i\n", result);
-    return result;
-}
-catch(const std::exception& e)
-{
-    warning("(rc1180) Unable to convert baud_rate: \"%s\" to int: %s - using default\n",
-            d.specified_device.bps.c_str(), e.what());
+    int result = atoi(d.specified_device.bps.c_str());
+    if (result > 0)
+    {
+        info("(rc1180) baud rate set to %i\n", result);
+        return result;
+    }
+    warning("(rc1180) unable to convert baud_rate: \"%s\" to int - using default\n",
+            d.specified_device.bps.c_str());
     return DEFAULT_BAUD_RATE;
 }
 
@@ -392,7 +391,6 @@ void WMBusRC1180::processSerialData()
 }
 
 AccessCheck detectRC1180(Detected *detected, shared_ptr<SerialCommunicationManager> manager)
-try
 {
     // Talk to the device and expect a very specific answer.
     const int baud_rate = getConfiguredBaudRate(*detected);
@@ -435,7 +433,7 @@ try
     ok = co.decode(data);
     if (!ok || co.uart_baud_rate != rcUartBaudRateFromBauds(baud_rate))
     {
-        // Decode must be ok and the uart_baud_rate mus match the speed we are using.
+        // Decode must be ok and the uart_baud_rate must match the speed we are using.
         serial->close();
         verbose("(rc1180) are you there? no.\n");
         return AccessCheck::NoProperResponse;
@@ -473,9 +471,4 @@ try
     verbose("(rc1180) are you there? yes %s\n", co.dongleId().c_str());
 
     return AccessCheck::AccessOK;
-}
-catch(const std::exception& e)
-{
-    warning("(rc1180) are you there? dunno, exception occured: %s\n", e.what());
-    return AccessCheck::NoProperResponse;
 }
