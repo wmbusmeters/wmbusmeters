@@ -367,9 +367,18 @@ bool SIUnit::mathOpTo(MathOp op, double left, double right, const SIUnit &right_
         }
         if (right_siunit.exp() == SI_Month.exp())
         {
-            // Move right argument (day, hour, min, s) to seconds.
             if (op == MathOp::SUB) right = -right;
+            // We must use the addMonths function since months have different lengths.
             double result = addMonths(left, right);
+            if (out_siunit != NULL) *out_siunit = SI_UnixTimestamp;
+            if (out != NULL) *out = result;
+            return true;
+        }
+        if (right_siunit.exp() == SI_Year.exp())
+        {
+            if (op == MathOp::SUB) right = -right;
+            // We must use the addYears function since years have different lengths (leap years).
+            double result = addYears(left, right);
             if (out_siunit != NULL) *out_siunit = SI_UnixTimestamp;
             if (out != NULL) *out = result;
             return true;

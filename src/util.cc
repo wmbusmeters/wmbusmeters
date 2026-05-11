@@ -886,6 +886,16 @@ void addMonths(struct tm *date, int months)
     date->tm_mday = day;
 }
 
+double addYears(double t, int y)
+{
+    return addMonths(t, y*12);
+}
+
+void addYears(struct tm *date, int y)
+{
+    return addMonths(date, 12*y);
+}
+
 const char* toString(AccessCheck ac)
 {
     switch (ac)

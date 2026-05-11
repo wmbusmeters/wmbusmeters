@@ -56,6 +56,7 @@ bool verbose_ = false;
     X(device_parsing) \
     X(meters)         \
     X(months)         \
+    X(years)          \
     X(aes)            \
     X(sbc)            \
     X(hex)            \
@@ -1218,7 +1219,7 @@ void test_month(int y, int m, int day, int mdiff, string from, string to)
         os != to)
     {
         printf("ERROR! Expected %s + %d months should be %s\n"
-               "But got %s - 11 = %s\n",
+               "But got %s != %s\n",
                from.c_str(), mdiff, to.c_str(),
                s.c_str(), os.c_str());
     }
@@ -1240,6 +1241,45 @@ void test_months()
     test_month(2001,02,28, -12, "2001-02-28", "2000-02-29");
     // 2100 is not a leap year since %100=0 and not overriden %400 != 0.
     test_month(2000,02,29, 12*100, "2000-02-29", "2100-02-28");
+}
+
+void test_year(int y, int m, int day, int ydiff, string from, string to)
+{
+    struct tm date {};
+    date.tm_year  = y-1900;
+    date.tm_mon   = m-1;
+    date.tm_mday  = day;
+
+    string s = strdate(&date);
+
+    struct tm d;
+    d = date;
+    addYears(&d, ydiff);
+
+    string os = strdate(&d);
+
+    if (s != from ||
+        os != to)
+    {
+        printf("ERROR! Expected %s + %d years should be %s\n"
+               "But got %s != %s\n",
+               from.c_str(), ydiff, to.c_str(),
+               s.c_str(), os.c_str());
+    }
+}
+
+
+void test_years()
+{
+    test_year(2020,12,31, 2, "2020-12-31", "2022-12-31");
+    test_year(2020,12,31, -2, "2020-12-31", "2018-12-31");
+    test_year(1900,01,01, 222, "1900-01-01", "2122-01-01");
+    // 2020 was a leap year.
+    test_year(2021,02,28, -1, "2021-02-28", "2020-02-29");
+    // 2000 was a leap year %100=0 but %400=0 overrides.
+    test_year(2001,02,28, -1, "2001-02-28", "2000-02-29");
+    // 2100 is not a leap year since %100=0 and not overriden %400 != 0.
+    test_year(2000,02,29, 100, "2000-02-29", "2100-02-28");
 }
 
 // Vatten    multical21:BUS1:c1 12345678 KEY
@@ -2784,6 +2824,9 @@ void test_formulas_datetimes()
     test_datetime(f.get(), "'2021-01-31' - 24month", 2019, 1, 31);
     test_datetime(f.get(), "'2021-01-31' + 24month", 2023, 1, 31);
     test_datetime(f.get(), "'2021-01-31' + 22month", 2022, 11, 30);
+
+    test_datetime(f.get(), "'2021-01-31' + 2y", 2023, 01, 31);
+    test_datetime(f.get(), "'2000-01-01' + 24y + 5month + 3d", 2024, 6, 4);
 
     // 2020 was a leap year.
     test_datetime(f.get(), "'2021-02-28' -12month", 2020,2,29);

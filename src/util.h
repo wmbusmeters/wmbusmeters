@@ -87,6 +87,8 @@ std::string strdatetimesec(double v);
 std::string strTimestampUTC(double v);
 void addMonths(struct tm* date, int m);
 double addMonths(double t, int m);
+void addYears(struct tm* date, int y);
+double addYears(double t, int y);
 
 bool stringFoundCaseIgnored(const std::string& haystack, const std::string& needle);
 
