@@ -55,6 +55,7 @@ NumericFormulaLTE::~NumericFormulaLTE() { }
 NumericFormulaGTE::~NumericFormulaGTE() { }
 NumericFormulaBitwiseAnd::~NumericFormulaBitwiseAnd() { }
 NumericFormulaBitwiseOr::~NumericFormulaBitwiseOr() { }
+NumericFormulaBitwiseXor::~NumericFormulaBitwiseXor() { }
 NumericFormulaLogicalAnd::~NumericFormulaLogicalAnd() { }
 NumericFormulaLogicalOr::~NumericFormulaLogicalOr() { }
 
@@ -323,6 +324,16 @@ double NumericFormulaBitwiseOr::calculate(SIUnit to_siunit)
     return (double)(lv | rv);
 }
 
+double NumericFormulaBitwiseXor::calculate(SIUnit to_siunit)
+{
+    SIUnit cu(Unit::COUNTER);
+    double l = left_->calculate(cu);
+    double r = right_->calculate(cu);
+    uint64_t lv = (uint64_t)llround(l);
+    uint64_t rv = (uint64_t)llround(r);
+    return (double)(lv ^ rv);
+}
+
 double NumericFormulaLogicalAnd::calculate(SIUnit to_siunit)
 {
     SIUnit cu(Unit::COUNTER);
@@ -400,6 +411,7 @@ const char *toString(TokenType tt)
     case TokenType::GTE: return "GTE";
     case TokenType::BAND: return "BAND";
     case TokenType::BOR:  return "BOR";
+    case TokenType::BXOR: return "BXOR";
     case TokenType::LAND: return "LAND";
     case TokenType::LOR:  return "LOR";
     case TokenType::POW: return "POW";
@@ -737,6 +749,13 @@ size_t FormulaImplementation::findBitwiseOr(size_t i)
     return 1;
 }
 
+size_t FormulaImplementation::findBitwiseXor(size_t i)
+{
+    if (i >= formula_.length()) return 0;
+    if (formula_[i] != '^') return 0;
+    return 1;
+}
+
 size_t FormulaImplementation::findPow(size_t i)
 {
     if (i+1 >= formula_.length()) return 0;
@@ -948,6 +967,9 @@ bool FormulaImplementation::tokenize()
         len = findBitwiseOr(i);
         if (len > 0) { tokens_.push_back(Token(TokenType::BOR, i, len)); i+=len; continue; }
 
+        len = findBitwiseXor(i);
+        if (len > 0) { tokens_.push_back(Token(TokenType::BXOR, i, len)); i+=len; continue; }
+
         len = findPow(i);
         if (len > 0) { tokens_.push_back(Token(TokenType::POW, i, len)); i+=len; continue; }
 
@@ -1148,6 +1170,14 @@ size_t FormulaImplementation::parseOps(size_t i)
         size_t next = parseOps(i+1);
         if (!valid_) return next;
         handleBitwiseOr(tok);
+        return next;
+    }
+
+    if (tok->type == TokenType::BXOR)
+    {
+        size_t next = parseOps(i+1);
+        if (!valid_) return next;
+        handleBitwiseXor(tok);
         return next;
     }
 
@@ -1497,6 +1527,11 @@ void FormulaImplementation::handleBitwiseAnd(Token *tok)
 void FormulaImplementation::handleBitwiseOr(Token *tok)
 {
     doBitwiseOr();
+}
+
+void FormulaImplementation::handleBitwiseXor(Token *tok)
+{
+    doBitwiseXor();
 }
 
 void FormulaImplementation::handleLogicalAnd(Token *tok)
@@ -1910,6 +1945,15 @@ void FormulaImplementation::doBitwiseOr()
     unique_ptr<NumericFormula> left_node = popOp();
     SIUnit siunit(Unit::COUNTER);
     pushOp(new NumericFormulaBitwiseOr(this, siunit, left_node, right_node));
+}
+
+void FormulaImplementation::doBitwiseXor()
+{
+    assert(op_stack_.size() >= 2);
+    unique_ptr<NumericFormula> right_node = popOp();
+    unique_ptr<NumericFormula> left_node = popOp();
+    SIUnit siunit(Unit::COUNTER);
+    pushOp(new NumericFormulaBitwiseXor(this, siunit, left_node, right_node));
 }
 
 void FormulaImplementation::doLogicalAnd()

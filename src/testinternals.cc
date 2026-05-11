@@ -3137,6 +3137,7 @@ void test_formulas_extended_ops()
     // Bitwise operators
     test_formula_value(&fi, NULL, "12counter & 10counter",  8, Unit::COUNTER); // 1100 & 1010 = 1000
     test_formula_value(&fi, NULL, "12counter | 10counter", 14, Unit::COUNTER); // 1100 | 1010 = 1110
+    test_formula_value(&fi, NULL, "12counter ^ 10counter",  6, Unit::COUNTER); // 1100 ^ 1010 = 0110
 
     // Logical operators
     test_formula_value(&fi, NULL, "1counter && 1counter", 1, Unit::COUNTER);

@@ -376,6 +376,16 @@ struct NumericFormulaBitwiseOr : public NumericFormulaPair
     ~NumericFormulaBitwiseOr();
 };
 
+struct NumericFormulaBitwiseXor : public NumericFormulaPair
+{
+    NumericFormulaBitwiseXor(FormulaImplementation *f, SIUnit siu,
+                              std::unique_ptr<NumericFormula> &a,
+                              std::unique_ptr<NumericFormula> &b)
+        : NumericFormulaPair(f, siu, a, b, "BXOR", "^") {}
+    double calculate(SIUnit to);
+    ~NumericFormulaBitwiseXor();
+};
+
 struct NumericFormulaLogicalAnd : public NumericFormulaPair
 {
     NumericFormulaLogicalAnd(FormulaImplementation *f, SIUnit siu,
@@ -419,6 +429,7 @@ enum class TokenType
     GTE,
     BAND,
     BOR,
+    BXOR,
     LAND,
     LOR,
     POW,
@@ -501,6 +512,7 @@ struct FormulaImplementation : public Formula
     void doGTE();
     void doBitwiseAnd();
     void doBitwiseOr();
+    void doBitwiseXor();
     void doLogicalAnd();
     void doLogicalOr();
     void doMkDate();
@@ -529,6 +541,7 @@ struct FormulaImplementation : public Formula
     size_t findGTE(size_t i);
     size_t findBitwiseAnd(size_t i);
     size_t findBitwiseOr(size_t i);
+    size_t findBitwiseXor(size_t i);
     size_t findLogicalAnd(size_t i);
     size_t findLogicalOr(size_t i);
     size_t findPow(size_t i);
@@ -565,6 +578,7 @@ struct FormulaImplementation : public Formula
     void handleGTE(Token *tok);
     void handleBitwiseAnd(Token *tok);
     void handleBitwiseOr(Token *tok);
+    void handleBitwiseXor(Token *tok);
     void handleLogicalAnd(Token *tok);
     void handleLogicalOr(Token *tok);
     void handleExponentiation(Token *add);

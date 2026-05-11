@@ -39,6 +39,31 @@ fi
 
 if [ "$TESTRESULT" = "ERROR" ]; then echo ERROR: $TESTNAME;  exit 1; fi
 
+TESTNAME="Test bitwise XOR (^) formula operator"
+TESTRESULT="ERROR"
+
+$PROG --format=fields --selectfields=xor_counter \
+      --calculate_xor_counter='19 counter ^ 127 counter' \
+      23442D2C998734761B168D2087D19EAD217F1779EDA86AB6_710008190000081900007F13 \
+      MyTapWater multical21 76348799 "" \
+      > $TEST/test_output.txt 2>&1
+
+cat <<EOF > $TEST/test_expected.txt
+108
+EOF
+
+if [ "$?" = "0" ]
+then
+    diff $TEST/test_expected.txt $TEST/test_output.txt
+    if [ "$?" = "0" ]
+    then
+        echo "OK: $TESTNAME"
+        TESTRESULT="OK"
+    fi
+fi
+
+if [ "$TESTRESULT" = "ERROR" ]; then echo ERROR: $TESTNAME;  exit 1; fi
+
 TESTNAME="Test meter config formulas calculate_... "
 TESTRESULT="ERROR"
 
