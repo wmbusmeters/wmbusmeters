@@ -1,4 +1,4 @@
-// Copyright (C) 2026 Fredrik Oehrstroem (gpl-3.0-or-later)
+// Copyright (C) 2026 Fredrik Öhrström (gpl-3.0-or-later)
 driver {
     name           = mkradio3
     meter_type     = WaterMeter

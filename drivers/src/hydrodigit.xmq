@@ -1,4 +1,5 @@
-// Copyright (C) 2026 Fredrik Oehrstroem (gpl-3.0-or-later)
+/* Copyright (C) 2019-2026 Fredrik Öhrström (gpl-3.0-or-later)
+   Copyright (C) 2025 Karel Blavka (gpl-3.0-or-later) */
 driver {
     name           = hydrodigit
     meter_type     = WaterMeter
