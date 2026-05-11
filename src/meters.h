@@ -356,6 +356,9 @@ struct FieldInfo
     void matchEntirePayload(bool b) { match_entire_payload_ = b; }
     bool matchEntirePayload() { return match_entire_payload_; }
 
+    void matchEntireFrame(bool b) { match_entire_frame_ = b; }
+    bool matchEntireFrame() { return match_entire_frame_; }
+
     void setReadableString(ReadableString rs) { readable_string_ = rs; }
     ReadableString readableString() { return readable_string_; }
 
@@ -411,6 +414,9 @@ private:
 
     // For ixml parsing, nab the entire payload, since it does not conform to the difvif structure.
     bool match_entire_payload_ {};
+
+    // For ixml parsing, nab the entire frame (including TPL header), to access bytes like tpl_acc.
+    bool match_entire_frame_ {};
 
     // If true, then force readable string extraction.
     ReadableString readable_string_ {};
