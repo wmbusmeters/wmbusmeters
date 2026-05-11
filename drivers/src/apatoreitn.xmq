@@ -149,7 +149,7 @@ driver {
             quantity     = PointInTime
             display_unit = date
             info         = 'Current date, as reported by meter.'
-            calculate    = "'2000-01-01 02:00:00' +
+            calculate    = "'2000-01-01 00:00:00' +
                             (((current_year_counter * 12counter) + current_month_counter - 1counter) * 1month) +
                             ((current_day_counter - 1counter) * 24h)"
         }
@@ -158,7 +158,7 @@ driver {
             quantity     = PointInTime
             display_unit = date
             info         = 'Season start date.'
-            calculate    = "'2000-01-01 02:00:00' +
+            calculate    = "'2000-01-01 00:00:00' +
                             (((season_start_year_counter * 12counter) + season_start_month_counter - 1counter) * 1month) +
                             ((season_start_day_counter - 1counter) * 24h)"
         }
@@ -168,7 +168,7 @@ driver {
             display_unit = date
             null_string  = ''
             info         = 'Electronic seal protection break date.'
-            calculate    = "'2000-01-01 02:00:00' +
+            calculate    = "'2000-01-01 00:00:00' +
                             (((esb_year_counter * 12counter) + esb_month_counter - 1counter) * 1month) +
                             ((esb_day_counter - 1counter) * 24h)"
         }

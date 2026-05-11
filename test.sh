@@ -20,6 +20,8 @@ then
     exit 1
 fi
 
+export TZ=UTC
+
 $TESTINTERNAL
 if [ "$?" = "0" ]; then
     echo OK: test internals
