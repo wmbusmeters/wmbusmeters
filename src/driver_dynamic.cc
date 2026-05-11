@@ -357,6 +357,58 @@ XMQProceed DriverDynamic::add_field(XMQDoc *doc, XMQNodePtr field, DriverDynamic
         has_null_value = true;
     }
 
+    const char *transform_payload_s = xmqGetStringRel(doc, "transform_payload", field);
+    bool use_tpl_aes_cbc_iv_payload_transform = false;
+    int payload_offset = 0;
+    int payload_length = 0;
+    int tpl_acc_offset = 0;
+    if (transform_payload_s)
+    {
+        vector<string> parts = splitString(transform_payload_s, ',');
+        for (string &part : parts) trimWhitespace(&part);
+
+        string transform_payload_name = parts[0];
+        if (transform_payload_name == "tpl_aes_cbc_iv")
+        {
+            use_tpl_aes_cbc_iv_payload_transform = true;
+            if (parts.size() == 4)
+            {
+                payload_offset = atoi(parts[1].c_str());
+                payload_length = atoi(parts[2].c_str());
+                tpl_acc_offset = atoi(parts[3].c_str());
+            }
+            else if (parts.size() != 1)
+            {
+                warning("(driver) error in %s, transform_payload tpl_aes_cbc_iv must be either "
+                        "\"tpl_aes_cbc_iv\" or \"tpl_aes_cbc_iv,<payload_offset>,<payload_length>,<tpl_acc_offset>\" not \"%s\"\n",
+                        dd->fileName().c_str(), transform_payload_s);
+                use_tpl_aes_cbc_iv_payload_transform = false;
+            }
+        }
+        else
+        {
+            warning("(driver) error in %s, unknown transform_payload \"%s\"\n",
+                    dd->fileName().c_str(), transform_payload_s);
+        }
+    }
+    const char *payload_offset_s = xmqGetStringRel(doc, "payload_offset", field);
+    if (transform_payload_s == NULL || splitString(transform_payload_s, ',').size() == 1)
+    {
+        if (payload_offset_s) payload_offset = atoi(payload_offset_s);
+    }
+
+    const char *payload_length_s = xmqGetStringRel(doc, "payload_length", field);
+    if (transform_payload_s == NULL || splitString(transform_payload_s, ',').size() == 1)
+    {
+        if (payload_length_s) payload_length = atoi(payload_length_s);
+    }
+
+    const char *tpl_acc_offset_s = xmqGetStringRel(doc, "payload_tpl_acc_offset", field);
+    if (transform_payload_s == NULL || splitString(transform_payload_s, ',').size() == 1)
+    {
+        if (tpl_acc_offset_s) tpl_acc_offset = atoi(tpl_acc_offset_s);
+    }
+
     // Now find all matchers.
     FieldMatcher match = FieldMatcher::build();
     dd->tmp_matcher_ = &match;
@@ -369,6 +421,13 @@ XMQProceed DriverDynamic::add_field(XMQDoc *doc, XMQNodePtr field, DriverDynamic
         warning("(driver) error in %s, match_entire_payload cannot be combined with match { }.\n",
                 dd->fileName().c_str());
         match_entire_payload = false;
+    }
+
+    if (use_tpl_aes_cbc_iv_payload_transform && !match_entire_payload)
+    {
+        warning("(driver) error in %s, transform_payload requires match_entire_payload = true.\n",
+                dd->fileName().c_str());
+        use_tpl_aes_cbc_iv_payload_transform = false;
     }
 
     // Now find all matchers.
@@ -448,6 +507,10 @@ XMQProceed DriverDynamic::add_field(XMQDoc *doc, XMQNodePtr field, DriverDynamic
             if (rs != ReadableString::Unknown)
             {
                 dd->lastAddedField()->setReadableString(rs);
+            }
+            if (use_tpl_aes_cbc_iv_payload_transform)
+            {
+                dd->lastAddedField()->setTPLAESCBCIVPayloadTransform(payload_offset, payload_length, tpl_acc_offset);
             }
         }
     }

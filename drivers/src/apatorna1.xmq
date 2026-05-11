@@ -1,0 +1,483 @@
+// Copyright (C) 2026 Fredrik Öhrström (gpl-3.0-or-later)
+driver {
+    name           = apatorna1
+    meter_type     = WaterMeter
+    default_fields = name,id,total_m3,timestamp
+    manufacturer   = Apator
+    detect {
+        mvt = APA,14,07
+    }
+    fields {
+        field {
+            name           = packed_total_raw
+            quantity       = Dimensionless
+            attributes     = HIDE
+            vif_scaling    = None
+            dif_signedness = Unsigned
+            match {
+                difvifkey = 04FB00
+            }
+        }
+        field {
+            name           = meter_datetime_b0
+            quantity       = Dimensionless
+            attributes     = HIDE
+            vif_scaling    = None
+            dif_signedness = Unsigned
+            match {
+                difvifkey = 01FB01
+            }
+        }
+        field {
+            name           = meter_datetime_b1
+            quantity       = Dimensionless
+            attributes     = HIDE
+            vif_scaling    = None
+            dif_signedness = Unsigned
+            match {
+                difvifkey = 01FB02
+            }
+        }
+        field {
+            name           = meter_datetime_b2
+            quantity       = Dimensionless
+            attributes     = HIDE
+            vif_scaling    = None
+            dif_signedness = Unsigned
+            match {
+                difvifkey = 01FB03
+            }
+        }
+        field {
+            name           = meter_datetime_b3
+            quantity       = Dimensionless
+            attributes     = HIDE
+            vif_scaling    = None
+            dif_signedness = Unsigned
+            match {
+                difvifkey = 01FB04
+            }
+        }
+        field {
+            name           = historic_age_low_raw
+            quantity       = Dimensionless
+            attributes     = HIDE
+            vif_scaling    = None
+            dif_signedness = Unsigned
+            match {
+                difvifkey = 01FB05
+            }
+        }
+        field {
+            name           = historic_age_meta_raw
+            quantity       = Dimensionless
+            attributes     = HIDE
+            vif_scaling    = None
+            dif_signedness = Unsigned
+            match {
+                difvifkey = 01FB06
+            }
+        }
+        field {
+            name           = historic_delta_b0_raw
+            quantity       = Dimensionless
+            attributes     = HIDE
+            vif_scaling    = None
+            dif_signedness = Unsigned
+            match {
+                difvifkey = 01FB07
+            }
+        }
+        field {
+            name           = historic_delta_b1_raw
+            quantity       = Dimensionless
+            attributes     = HIDE
+            vif_scaling    = None
+            dif_signedness = Unsigned
+            match {
+                difvifkey = 01FB08
+            }
+        }
+        field {
+            name           = historic_delta_b2_raw
+            quantity       = Dimensionless
+            attributes     = HIDE
+            vif_scaling    = None
+            dif_signedness = Unsigned
+            match {
+                difvifkey = 01FB09
+            }
+        }
+        field {
+            name           = frame_status_raw
+            quantity       = Dimensionless
+            attributes     = HIDE
+            vif_scaling    = None
+            dif_signedness = Unsigned
+            match {
+                difvifkey = 01FB10
+            }
+        }
+        field {
+            name           = current_status_raw
+            quantity       = Dimensionless
+            attributes     = HIDE
+            vif_scaling    = None
+            dif_signedness = Unsigned
+            match {
+                difvifkey = 01FB11
+            }
+        }
+        field {
+            name           = historic_status_raw
+            quantity       = Dimensionless
+            attributes     = HIDE
+            vif_scaling    = None
+            dif_signedness = Unsigned
+            match {
+                difvifkey = 01FB12
+            }
+        }
+        field {
+            name       = packed_total_multiplier
+            quantity   = Dimensionless
+            attributes = HIDE
+            calculate  = '((((packed_total_raw_counter >> 4counter) % 4counter) == 0counter) * 1counter) +
+                          ((((packed_total_raw_counter >> 4counter) % 4counter) == 1counter) * 10counter) +
+                          ((((packed_total_raw_counter >> 4counter) % 4counter) == 2counter) * 100counter) +
+                          ((((packed_total_raw_counter >> 4counter) % 4counter) == 3counter) * 1000counter)'
+        }
+        field {
+            name      = total
+            quantity  = Volume
+            info      = 'The total water consumption recorded by this meter.'
+            calculate = '((((packed_total_raw_counter >> 8counter) * 16counter) + (packed_total_raw_counter % 16counter)) * packed_total_multiplier_counter / 1000counter) * 1m3'
+        }
+        field {
+            name         = meter
+            quantity     = PointInTime
+            info         = 'Date and time reported inside the encrypted manufacturer payload.'
+            display_unit = datetime
+            calculate    = "'2000-01-01 00:00:00' +
+                            (((meter_datetime_b3_counter << 24counter) +
+                                (meter_datetime_b2_counter << 16counter) +
+                                (meter_datetime_b1_counter << 8counter) +
+                                meter_datetime_b0_counter) * 1s)"
+        }
+        field {
+            name         = historic_age
+            quantity     = Time
+            info         = 'Age of the last historical reading carried in the telegram.'
+            display_unit = h
+            calculate    = '((((historic_age_meta_raw_counter >> 2counter) * 256counter) + historic_age_low_raw_counter) * 1h)'
+        }
+        field {
+            name      = historic
+            quantity  = Volume
+            info      = 'The last historical water consumption recorded by this meter.'
+            calculate = 'total_m3 - (((((historic_delta_b2_raw_counter << 18counter) +
+                         (historic_delta_b1_raw_counter << 10counter) +
+                         (historic_delta_b0_raw_counter << 2counter) +
+                         (historic_age_meta_raw_counter % 4counter)) * packed_total_multiplier_counter) / 1000counter) * 1m3)'
+        }
+        field {
+            name         = historic
+            quantity     = PointInTime
+            info         = 'Date and time of the last historical reading carried in the telegram.'
+            display_unit = datetime
+            calculate    = 'meter_datetime - historic_age_h'
+        }
+        field {
+            name     = frame_status
+            quantity = Text
+            info     = 'Status flags stored in the unencrypted manufacturer payload byte.'
+            match {
+                difvifkey = 01FB10
+            }
+            lookup {
+                name            = FRAME_STATUS_FLAGS
+                map_type        = BitToString
+                mask_bits       = 0xff
+                default_message = OK
+                map {
+                    name  = SUMMER_TIME
+                    value = 0x01
+                    test  = Set
+                }
+                map {
+                    name  = HISTORICAL_INDICATION
+                    value = 0x02
+                    test  = Set
+                }
+                map {
+                    name  = MAX_SPEED_EXCEEDED
+                    value = 0x04
+                    test  = Set
+                }
+                map {
+                    name  = DEVICE_ACCESS_ERROR
+                    value = 0x08
+                    test  = Set
+                }
+                map {
+                    name  = TWO_WAY_COM_BLOCK
+                    value = 0x10
+                    test  = Set
+                }
+                map {
+                    name  = INSTALL_FRAME
+                    value = 0x20
+                    test  = Set
+                }
+                map {
+                    name  = WRONG_TEMPERATURE
+                    value = 0x40
+                    test  = Set
+                }
+                map {
+                    name  = SERVICE_EVENT
+                    value = 0x80
+                    test  = Set
+                }
+            }
+        }
+        field {
+            name     = current_status
+            quantity = Text
+            info     = 'Current alarm and tamper flags from the decrypted payload.'
+            match {
+                difvifkey = 01FB11
+            }
+            lookup {
+                name            = CURRENT_STATUS_FLAGS
+                map_type        = BitToString
+                mask_bits       = 0xff
+                default_message = OK
+                map {
+                    name  = MINIMUM_FLOW
+                    value = 0x80
+                    test  = Set
+                }
+                map {
+                    name  = MAXIMUM_FLOW
+                    value = 0x40
+                    test  = Set
+                }
+                map {
+                    name  = REVERSE_FLOW
+                    value = 0x20
+                    test  = Set
+                }
+                map {
+                    name  = MEASUREMENT_UNCHANGED
+                    value = 0x10
+                    test  = Set
+                }
+                map {
+                    name  = LEAK
+                    value = 0x08
+                    test  = Set
+                }
+                map {
+                    name  = DEVICE_DISCONNECTED
+                    value = 0x04
+                    test  = Set
+                }
+                map {
+                    name  = MAGNETIC_FIELD
+                    value = 0x02
+                    test  = Set
+                }
+                map {
+                    name  = BATTERY_LOW
+                    value = 0x01
+                    test  = Set
+                }
+            }
+        }
+        field {
+            name     = historic_status
+            quantity = Text
+            info     = 'Historic alarm and tamper flags from the decrypted payload.'
+            match {
+                difvifkey = 01FB12
+            }
+            lookup {
+                name            = HISTORIC_STATUS_FLAGS
+                map_type        = BitToString
+                mask_bits       = 0xff
+                default_message = OK
+                map {
+                    name  = MINIMUM_FLOW
+                    value = 0x80
+                    test  = Set
+                }
+                map {
+                    name  = MAXIMUM_FLOW
+                    value = 0x40
+                    test  = Set
+                }
+                map {
+                    name  = REVERSE_FLOW
+                    value = 0x20
+                    test  = Set
+                }
+                map {
+                    name  = MEASUREMENT_UNCHANGED
+                    value = 0x10
+                    test  = Set
+                }
+                map {
+                    name  = LEAK
+                    value = 0x08
+                    test  = Set
+                }
+                map {
+                    name  = DEVICE_DISCONNECTED
+                    value = 0x04
+                    test  = Set
+                }
+                map {
+                    name  = MAGNETIC_FIELD
+                    value = 0x02
+                    test  = Set
+                }
+                map {
+                    name  = BATTERY_LIFETIME_THRESHOLD_EXCEEDED
+                    value = 0x01
+                    test  = Set
+                }
+            }
+        }
+        field {
+            name                 = mfct_header_data
+            quantity             = Text
+            attributes           = HIDE
+            match_entire_payload = true
+            ixml                 = "decode = tpl_acc, frame_status, rest.
+                                    tpl_acc = -byte.
+                                    frame_status = byte, @DV_frame_status_raw.
+                                    rest = byte*.
+
+                                    -hex  = ['A'-'F';'0'-'9'].
+                                    -byte = hex, hex.
+
+                                    DV_frame_status_raw>dvk = +'01FB10'."
+        }
+        field {
+            name                 = mfct_specific_data
+            quantity             = Text
+            attributes           = HIDE
+            match_entire_payload = true
+            transform_payload    = tpl_aes_cbc_iv,2,16,0
+            ixml                 = "decode = -pad, packed_total, meter_datetime, historic_payload, current_status, historic_status.
+                                    packed_total = quad, @DV_packed_total_raw.
+                                    meter_datetime = dt_b0, dt_b1, dt_b2, dt_b3.
+                                    dt_b0 = byte, @DV_meter_datetime_b0.
+                                    dt_b1 = byte, @DV_meter_datetime_b1.
+                                    dt_b2 = byte, @DV_meter_datetime_b2.
+                                    dt_b3 = byte, @DV_meter_datetime_b3.
+                                    historic_payload = historic_age_low,
+                                                       historic_age_meta,
+                                                       historic_delta_b0,
+                                                       historic_delta_b1,
+                                                       historic_delta_b2.
+                                    historic_age_low = byte, @DV_historic_age_low_raw.
+                                    historic_age_meta = byte, @DV_historic_age_meta_raw.
+                                    historic_delta_b0 = byte, @DV_historic_delta_b0_raw.
+                                    historic_delta_b1 = byte, @DV_historic_delta_b1_raw.
+                                    historic_delta_b2 = byte, @DV_historic_delta_b2_raw.
+                                    current_status = byte, @DV_current_status_raw.
+                                    historic_status = byte, @DV_historic_status_raw.
+
+                                    -hex  = ['A'-'F';'0'-'9'].
+                                    -byte = hex, hex.
+                                    -quad = byte, byte, byte, byte.
+                                    -pad  = byte.
+
+                                    DV_packed_total_raw>dvk = +'04FB00'.
+                                    DV_meter_datetime_b0>dvk = +'01FB01'.
+                                    DV_meter_datetime_b1>dvk = +'01FB02'.
+                                    DV_meter_datetime_b2>dvk = +'01FB03'.
+                                    DV_meter_datetime_b3>dvk = +'01FB04'.
+                                    DV_historic_age_low_raw>dvk = +'01FB05'.
+                                    DV_historic_age_meta_raw>dvk = +'01FB06'.
+                                    DV_historic_delta_b0_raw>dvk = +'01FB07'.
+                                    DV_historic_delta_b1_raw>dvk = +'01FB08'.
+                                    DV_historic_delta_b2_raw>dvk = +'01FB09'.
+                                    DV_current_status_raw>dvk = +'01FB11'.
+                                    DV_historic_status_raw>dvk = +'01FB12'."
+        }
+    }
+    tests {
+        test {
+            args     = 'ApNa1 apatorna1 04913581 00000000000000000000000000000000'
+            telegram = 1C440106813591041407A0B000266A705474DDB80D9A0EB9AE2EF29D96
+            json     = '{"_":"telegram","media":"water","meter":"apatorna1","name":"ApNa1","id":"04913581","historic_m3":300.619,"historic_datetime":"2024-02-29 22:22","historic_age_h":545,"meter_datetime":"2024-03-23 15:22","total_m3":345.312,"current_status":"OK","frame_status":"OK","historic_status":"MINIMUM_FLOW","timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'ApNa1;04913581;345.312;1111-11-11 11:11.11'
+        }
+        test {
+            comment  = 'Issue 1215 cluster 1 before dip'
+            args     = 'ApNa1 apatorna1 04913581 00000000000000000000000000000000'
+            telegram = 1C440106813591041407A07F018D43B54E718E8718D5D2C8F939194847
+            json     = '{"_":"telegram","media":"water","meter":"apatorna1","name":"ApNa1","id":"04913581","historic_m3":662.325,"historic_datetime":"2024-09-30 22:23","historic_age_h":351,"meter_datetime":"2024-10-15 13:23","total_m3":687.361,"current_status":"OK","frame_status":"SUMMER_TIME","historic_status":"OK","timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'ApNa1;04913581;687.361;1111-11-11 11:11.11'
+        }
+        test {
+            comment  = 'Issue 1215 cluster 1 dip'
+            args     = 'ApNa1 apatorna1 04913581 00000000000000000000000000000000'
+            telegram = 1C440106813591041407A17D01416562108AB98A0FE92FC06AA8122176
+            json     = '{"_":"telegram","media":"water","meter":"apatorna1","name":"ApNa1","id":"04913581","historic_m3":662.325,"historic_datetime":"2024-09-30 22:22","historic_age_h":351,"meter_datetime":"2024-10-15 13:22","total_m3":687.104,"current_status":"OK","frame_status":"SUMMER_TIME","historic_status":"OK","timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'ApNa1;04913581;687.104;1111-11-11 11:11.11'
+        }
+        test {
+            comment  = 'Issue 1215 cluster 1 recovery'
+            args     = 'ApNa1 apatorna1 04913581 00000000000000000000000000000000'
+            telegram = 1C440106813591041407A174013655E9B2B8085E2F256908D7498C402C
+            json     = '{"_":"telegram","media":"water","meter":"apatorna1","name":"ApNa1","id":"04913581","historic_m3":662.325,"historic_datetime":"2024-09-30 22:21","historic_age_h":351,"meter_datetime":"2024-10-15 13:21","total_m3":687.357,"current_status":"OK","frame_status":"SUMMER_TIME","historic_status":"OK","timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'ApNa1;04913581;687.357;1111-11-11 11:11.11'
+        }
+        test {
+            comment  = 'Issue 1215 cluster 2 before dip'
+            args     = 'ApNa1 apatorna1 04913581 00000000000000000000000000000000'
+            telegram = 1C440106813591041407A0FF019E3790584B0876226B94ADC34FFABDED
+            json     = '{"_":"telegram","media":"water","meter":"apatorna1","name":"ApNa1","id":"04913581","historic_m3":662.325,"historic_datetime":"2024-09-30 22:04","historic_age_h":375,"meter_datetime":"2024-10-16 13:04","total_m3":689.403,"current_status":"OK","frame_status":"SUMMER_TIME","historic_status":"MINIMUM_FLOW","timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'ApNa1;04913581;689.403;1111-11-11 11:11.11'
+        }
+        test {
+            comment  = 'Issue 1215 cluster 2 dip'
+            args     = 'ApNa1 apatorna1 04913581 00000000000000000000000000000000'
+            telegram = 1C440106813591041407A0020134813C00486734067DB0111C30188137
+            json     = '{"_":"telegram","media":"water","meter":"apatorna1","name":"ApNa1","id":"04913581","historic_m3":662.325,"historic_datetime":"2024-09-30 22:04","historic_age_h":375,"meter_datetime":"2024-10-16 13:04","total_m3":689.152,"current_status":"OK","frame_status":"SUMMER_TIME","historic_status":"MINIMUM_FLOW","timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'ApNa1;04913581;689.152;1111-11-11 11:11.11'
+        }
+        test {
+            comment  = 'Issue 1215 cluster 2 recovery'
+            args     = 'ApNa1 apatorna1 04913581 00000000000000000000000000000000'
+            telegram = 1C440106813591041407A00C019334727003B3DA268CF11117D85B6D71
+            json     = '{"_":"telegram","media":"water","meter":"apatorna1","name":"ApNa1","id":"04913581","historic_m3":662.325,"historic_datetime":"2024-09-30 22:06","historic_age_h":375,"meter_datetime":"2024-10-16 13:06","total_m3":689.415,"current_status":"OK","frame_status":"SUMMER_TIME","historic_status":"MINIMUM_FLOW","timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'ApNa1;04913581;689.415;1111-11-11 11:11.11'
+        }
+        test {
+            comment  = 'Issue 1215 cluster 3 before dip'
+            args     = 'ApNa1 apatorna1 04913581 00000000000000000000000000000000'
+            telegram = 1C440106813591041407A0080174159B7E36D8E6421E3AED55C76BA54A
+            json     = '{"_":"telegram","media":"water","meter":"apatorna1","name":"ApNa1","id":"04913581","historic_m3":662.325,"historic_datetime":"2024-09-30 22:18","historic_age_h":473,"meter_datetime":"2024-10-20 15:18","total_m3":696.575,"current_status":"OK","frame_status":"SUMMER_TIME","historic_status":"MINIMUM_FLOW","timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'ApNa1;04913581;696.575;1111-11-11 11:11.11'
+        }
+        test {
+            comment  = 'Issue 1215 cluster 3 dip'
+            args     = 'ApNa1 apatorna1 04913581 00000000000000000000000000000000'
+            telegram = 1C440106813591041407A10C010AEF3C1D41BE7F7A33B9EB469924397C
+            json     = '{"_":"telegram","media":"water","meter":"apatorna1","name":"ApNa1","id":"04913581","historic_m3":662.325,"historic_datetime":"2024-09-30 22:18","historic_age_h":473,"meter_datetime":"2024-10-20 15:18","total_m3":696.32,"current_status":"OK","frame_status":"SUMMER_TIME","historic_status":"MINIMUM_FLOW","timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'ApNa1;04913581;696.32;1111-11-11 11:11.11'
+        }
+        test {
+            comment  = 'Issue 1215 cluster 3 recovery'
+            args     = 'ApNa1 apatorna1 04913581 00000000000000000000000000000000'
+            telegram = 1C440106813591041407A0130197DAF2A1C02F9B77B14ACD51CB20C41E
+            json     = '{"_":"telegram","media":"water","meter":"apatorna1","name":"ApNa1","id":"04913581","historic_m3":662.325,"historic_datetime":"2024-09-30 22:20","historic_age_h":473,"meter_datetime":"2024-10-20 15:20","total_m3":696.576,"current_status":"OK","frame_status":"SUMMER_TIME","historic_status":"MINIMUM_FLOW","timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'ApNa1;04913581;696.576;1111-11-11 11:11.11'
+        }
+    }
+}
