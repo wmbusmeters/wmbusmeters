@@ -1,0 +1,623 @@
+// Copyright (C) 2026 Fredrik Oehrstroem (gpl-3.0-or-later)
+driver {
+    name           = hydrodigit
+    meter_type     = WaterMeter
+    default_fields = name,id,total_m3,meter_datetime,timestamp
+    detect {
+        mvt = BMT,13,06
+        mvt = BMT,17,06
+        mvt = BMT,13,07
+        mvt = BMT,15,07
+        mvt = BMT,17,07
+    }
+    fields {
+        field {
+            name     = total
+            quantity = Volume
+            info     = 'The total water consumption recorded by this meter.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = Volume
+            }
+        }
+        field {
+            name         = meter
+            quantity     = PointInTime
+            display_unit = datetime
+            info         = 'Meter timestamp for measurement.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = DateTime
+            }
+        }
+        field {
+            name     = contents
+            quantity = Text
+            info     = 'Contents of this telegram'
+            match {
+                difvifkey = 01FB05
+            }
+            lookup {
+                name            = CONTENTS
+                map_type        = BitToString
+                mask_bits       = 0x97
+                default_message = ''
+                map {
+                    name  = BATTERY_VOLTAGE
+                    value = 0x01
+                    test  = Set
+                }
+                map {
+                    name  = FRAUD_DATE
+                    value = 0x02
+                    test  = Set
+                }
+                map {
+                    name  = LEAK_DATE
+                    value = 0x80
+                    test  = Set
+                }
+                map {
+                    name  = BACKFLOW
+                    value = 0x04
+                    test  = Set
+                }
+                map {
+                    name  = MONTHLY_DATA
+                    value = 0x10
+                    test  = Set
+                }
+            }
+        }
+        field {
+            name     = fraud_type
+            quantity = Text
+            info     = 'Type of fraud detected by the meter'
+            match {
+                difvifkey = 01FE0F
+            }
+            lookup {
+                name            = FRAUD_TYPE
+                map_type        = BitToString
+                mask_bits       = 0xE0
+                default_message = NO_TYPE_INFO
+                map {
+                    name  = MAGNETIC_FRAUD_ATTEMPT
+                    value = 0x80
+                    test  = Set
+                }
+                map {
+                    name  = SENSOR_FRAUD_ATTEMPT
+                    value = 0x40
+                    test  = Set
+                }
+                map {
+                    name  = MODULE_REMOVED
+                    value = 0x20
+                    test  = Set
+                }
+            }
+        }
+        field {
+            name           = battery_raw
+            quantity       = Dimensionless
+            attributes     = HIDE
+            vif_scaling    = None
+            dif_signedness = Unsigned
+            match {
+                difvifkey = 01FB01
+            }
+        }
+        field {
+            name       = battery_nibble
+            quantity   = Dimensionless
+            attributes = HIDE
+            calculate  = 'battery_raw_counter % 16counter'
+        }
+        field {
+            name      = voltage
+            quantity  = Voltage
+            info      = 'Voltage of the battery inside the meter'
+            calculate = '(
+                            ((battery_nibble_counter == 1counter) * 1.9counter) +
+                            ((battery_nibble_counter == 2counter) * 2.1counter) +
+                            ((battery_nibble_counter == 3counter) * 2.2counter) +
+                            ((battery_nibble_counter == 4counter) * 2.3counter) +
+                            ((battery_nibble_counter == 5counter) * 2.4counter) +
+                            ((battery_nibble_counter == 6counter) * 2.5counter) +
+                            ((battery_nibble_counter == 7counter) * 2.65counter) +
+                            ((battery_nibble_counter == 8counter) * 2.8counter) +
+                            ((battery_nibble_counter == 9counter) * 2.9counter) +
+                            ((battery_nibble_counter == 10counter) * 3.05counter) +
+                            ((battery_nibble_counter == 11counter) * 3.2counter) +
+                            ((battery_nibble_counter == 12counter) * 3.35counter) +
+                            ((battery_nibble_counter == 13counter) * 3.5counter) +
+                            (((battery_nibble_counter == 0counter) || (battery_nibble_counter == 14counter) || (battery_nibble_counter == 15counter)) * 3.7counter)
+                         ) * 1v'
+        }
+        field {
+            name           = fraud_date_raw
+            quantity       = Dimensionless
+            attributes     = HIDE
+            vif_scaling    = None
+            dif_signedness = Unsigned
+            match {
+                difvifkey = 03FB02
+            }
+        }
+        field {
+            name         = fraud
+            quantity     = PointInTime
+            display_unit = date
+            info         = 'Date of fraud detected by the meter'
+            match {
+                difvifkey = 03FB02
+            }
+            calculate = 'mkdate(
+                             2000counter + (((fraud_date_raw_counter & 255counter) >> 4counter) * 10counter) + (fraud_date_raw_counter & 15counter),
+                             (fraud_date_raw_counter >> 8counter) & 15counter,
+                             (((fraud_date_raw_counter >> 16counter) & 255counter) >> 4counter) * 10counter + ((fraud_date_raw_counter >> 16counter) & 15counter)
+                         )'
+        }
+        field {
+            name           = leak_date_raw
+            quantity       = Dimensionless
+            attributes     = HIDE
+            vif_scaling    = None
+            dif_signedness = Unsigned
+            match {
+                difvifkey = 03FB03
+            }
+        }
+        field {
+            name         = leak
+            quantity     = PointInTime
+            display_unit = date
+            info         = 'Date of leakage detected by meter'
+            match {
+                difvifkey = 03FB03
+            }
+            calculate = 'mkdate(
+                             2000counter + (((leak_date_raw_counter & 255counter) >> 4counter) * 10counter) + (leak_date_raw_counter & 15counter),
+                             (((leak_date_raw_counter >> 8counter) & 255counter) >> 4counter) * 10counter + ((leak_date_raw_counter >> 8counter) & 15counter),
+                             (((leak_date_raw_counter >> 16counter) & 255counter) >> 4counter) * 10counter + ((leak_date_raw_counter >> 16counter) & 15counter)
+                         )'
+        }
+        field {
+            name           = backflow_raw
+            quantity       = Dimensionless
+            attributes     = HIDE
+            vif_scaling    = None
+            dif_signedness = Unsigned
+            match {
+                difvifkey = 04FB04
+            }
+        }
+        field {
+            name     = backflow
+            quantity = Volume
+            info     = 'Backflow detected by the meter'
+            match {
+                difvifkey = 04FB04
+            }
+            calculate = 'backflow_raw_counter / 1000counter * 1m3'
+        }
+        field {
+            name           = january_total_raw
+            quantity       = Dimensionless
+            attributes     = HIDE
+            vif_scaling    = None
+            dif_signedness = Unsigned
+            match {
+                difvifkey = 03FB10
+            }
+        }
+        field {
+            name     = January_total
+            quantity = Volume
+            info     = 'Total value at the end of January'
+            match {
+                difvifkey = 03FB10
+            }
+            calculate = '((january_total_raw_counter < 10000000counter) * (january_total_raw_counter / 100counter)) * 1m3'
+        }
+        field {
+            name           = february_total_raw
+            quantity       = Dimensionless
+            attributes     = HIDE
+            vif_scaling    = None
+            dif_signedness = Unsigned
+            match {
+                difvifkey = 03FB11
+            }
+        }
+        field {
+            name     = February_total
+            quantity = Volume
+            info     = 'Total value at the end of February'
+            match {
+                difvifkey = 03FB11
+            }
+            calculate = '((february_total_raw_counter < 10000000counter) * (february_total_raw_counter / 100counter)) * 1m3'
+        }
+        field {
+            name           = march_total_raw
+            quantity       = Dimensionless
+            attributes     = HIDE
+            vif_scaling    = None
+            dif_signedness = Unsigned
+            match {
+                difvifkey = 03FB12
+            }
+        }
+        field {
+            name     = March_total
+            quantity = Volume
+            info     = 'Total value at the end of March'
+            match {
+                difvifkey = 03FB12
+            }
+            calculate = '((march_total_raw_counter < 10000000counter) * (march_total_raw_counter / 100counter)) * 1m3'
+        }
+        field {
+            name           = april_total_raw
+            quantity       = Dimensionless
+            attributes     = HIDE
+            vif_scaling    = None
+            dif_signedness = Unsigned
+            match {
+                difvifkey = 03FB13
+            }
+        }
+        field {
+            name     = April_total
+            quantity = Volume
+            info     = 'Total value at the end of April'
+            match {
+                difvifkey = 03FB13
+            }
+            calculate = '((april_total_raw_counter < 10000000counter) * (april_total_raw_counter / 100counter)) * 1m3'
+        }
+        field {
+            name           = may_total_raw
+            quantity       = Dimensionless
+            attributes     = HIDE
+            vif_scaling    = None
+            dif_signedness = Unsigned
+            match {
+                difvifkey = 03FB14
+            }
+        }
+        field {
+            name     = May_total
+            quantity = Volume
+            info     = 'Total value at the end of May'
+            match {
+                difvifkey = 03FB14
+            }
+            calculate = '((may_total_raw_counter < 10000000counter) * (may_total_raw_counter / 100counter)) * 1m3'
+        }
+        field {
+            name           = june_total_raw
+            quantity       = Dimensionless
+            attributes     = HIDE
+            vif_scaling    = None
+            dif_signedness = Unsigned
+            match {
+                difvifkey = 03FB15
+            }
+        }
+        field {
+            name     = June_total
+            quantity = Volume
+            info     = 'Total value at the end of June'
+            match {
+                difvifkey = 03FB15
+            }
+            calculate = '((june_total_raw_counter < 10000000counter) * (june_total_raw_counter / 100counter)) * 1m3'
+        }
+        field {
+            name           = july_total_raw
+            quantity       = Dimensionless
+            attributes     = HIDE
+            vif_scaling    = None
+            dif_signedness = Unsigned
+            match {
+                difvifkey = 03FB16
+            }
+        }
+        field {
+            name     = July_total
+            quantity = Volume
+            info     = 'Total value at the end of July'
+            match {
+                difvifkey = 03FB16
+            }
+            calculate = '((july_total_raw_counter < 10000000counter) * (july_total_raw_counter / 100counter)) * 1m3'
+        }
+        field {
+            name           = august_total_raw
+            quantity       = Dimensionless
+            attributes     = HIDE
+            vif_scaling    = None
+            dif_signedness = Unsigned
+            match {
+                difvifkey = 03FB17
+            }
+        }
+        field {
+            name     = August_total
+            quantity = Volume
+            info     = 'Total value at the end of August'
+            match {
+                difvifkey = 03FB17
+            }
+            calculate = '((august_total_raw_counter < 10000000counter) * (august_total_raw_counter / 100counter)) * 1m3'
+        }
+        field {
+            name           = september_total_raw
+            quantity       = Dimensionless
+            attributes     = HIDE
+            vif_scaling    = None
+            dif_signedness = Unsigned
+            match {
+                difvifkey = 03FB18
+            }
+        }
+        field {
+            name     = September_total
+            quantity = Volume
+            info     = 'Total value at the end of September'
+            match {
+                difvifkey = 03FB18
+            }
+            calculate = '((september_total_raw_counter < 10000000counter) * (september_total_raw_counter / 100counter)) * 1m3'
+        }
+        field {
+            name           = october_total_raw
+            quantity       = Dimensionless
+            attributes     = HIDE
+            vif_scaling    = None
+            dif_signedness = Unsigned
+            match {
+                difvifkey = 03FB19
+            }
+        }
+        field {
+            name     = October_total
+            quantity = Volume
+            info     = 'Total value at the end of October'
+            match {
+                difvifkey = 03FB19
+            }
+            calculate = '((october_total_raw_counter < 10000000counter) * (october_total_raw_counter / 100counter)) * 1m3'
+        }
+        field {
+            name           = november_total_raw
+            quantity       = Dimensionless
+            attributes     = HIDE
+            vif_scaling    = None
+            dif_signedness = Unsigned
+            match {
+                difvifkey = 03FB1A
+            }
+        }
+        field {
+            name     = November_total
+            quantity = Volume
+            info     = 'Total value at the end of November'
+            match {
+                difvifkey = 03FB1A
+            }
+            calculate = '((november_total_raw_counter < 10000000counter) * (november_total_raw_counter / 100counter)) * 1m3'
+        }
+        field {
+            name           = december_total_raw
+            quantity       = Dimensionless
+            attributes     = HIDE
+            vif_scaling    = None
+            dif_signedness = Unsigned
+            match {
+                difvifkey = 03FB1B
+            }
+        }
+        field {
+            name     = December_total
+            quantity = Volume
+            info     = 'Total value at the end of December'
+            match {
+                difvifkey = 03FB1B
+            }
+            calculate = '((december_total_raw_counter < 10000000counter) * (december_total_raw_counter / 100counter)) * 1m3'
+        }
+        field {
+            name       = mfct_specific_data
+            quantity   = Text
+            attributes = HIDE
+            match {
+                difvifkey = 0F
+            }
+            ixml = "decode =
+                    frame_00 |
+                    frame_01 |
+                    frame_02 |
+                    frame_03 |
+                    frame_04 |
+                    frame_05 |
+                    frame_06 |
+                    frame_07 |
+                    frame_10 |
+                    frame_11 |
+                    frame_12 |
+                    frame_13 |
+                    frame_14 |
+                    frame_15 |
+                    frame_16 |
+                    frame_17 |
+                    frame_80 |
+                    frame_81 |
+                    frame_82 |
+                    frame_83 |
+                    frame_84 |
+                    frame_85 |
+                    frame_86 |
+                    frame_87 |
+                    frame_90 |
+                    frame_91 |
+                    frame_92 |
+                    frame_93 |
+                    frame_94 |
+                    frame_95 |
+                    frame_96 |
+                    frame_97.
+                    frame_00 = contents_00, byte*.
+                    frame_01 = contents_01, Battery, byte*.
+                    frame_02 = contents_02, Fraud, byte*.
+                    frame_03 = contents_03, Battery, Fraud, byte*.
+                    frame_04 = contents_04, Backflow, byte*.
+                    frame_05 = contents_05, Battery, Backflow, byte*.
+                    frame_06 = contents_06, Fraud, Backflow, byte*.
+                    frame_07 = contents_07, Battery, Fraud, Backflow, byte*.
+                    frame_10 = contents_10, Monthly, byte*.
+                    frame_11 = contents_11, Battery, Monthly, byte*.
+                    frame_12 = contents_12, Fraud, Monthly, byte*.
+                    frame_13 = contents_13, Battery, Fraud, Monthly, byte*.
+                    frame_14 = contents_14, Backflow, Monthly, byte*.
+                    frame_15 = contents_15, Battery, Backflow, Monthly, byte*.
+                    frame_16 = contents_16, Fraud, Backflow, Monthly, byte*.
+                    frame_17 = contents_17, Battery, Fraud, Backflow, Monthly, byte*.
+                    frame_80 = contents_80, Leak, byte*.
+                    frame_81 = contents_81, Battery, Leak, byte*.
+                    frame_82 = contents_82, Fraud, Leak, byte*.
+                    frame_83 = contents_83, Battery, Fraud, Leak, byte*.
+                    frame_84 = contents_84, Leak, Backflow, byte*.
+                    frame_85 = contents_85, Battery, Leak, Backflow, byte*.
+                    frame_86 = contents_86, Fraud, Leak, Backflow, byte*.
+                    frame_87 = contents_87, Battery, Fraud, Leak, Backflow, byte*.
+                    frame_90 = contents_90, Leak, Monthly, byte*.
+                    frame_91 = contents_91, Battery, Leak, Monthly, byte*.
+                    frame_92 = contents_92, Fraud, Leak, Monthly, byte*.
+                    frame_93 = contents_93, Battery, Fraud, Leak, Monthly, byte*.
+                    frame_94 = contents_94, Leak, Backflow, Monthly, byte*.
+                    frame_95 = contents_95, Battery, Leak, Backflow, Monthly, byte*.
+                    frame_96 = contents_96, Fraud, Leak, Backflow, Monthly, byte*.
+                    frame_97 = contents_97, Battery, Fraud, Leak, Backflow, Monthly, byte*.
+                    contents_00 = ('00' | '08' | '20' | '28' | '40' | '48' | '60' | '68'), @DV_content_indicator.
+                    contents_01 = ('01' | '09' | '21' | '29' | '41' | '49' | '61' | '69'), @DV_content_indicator.
+                    contents_02 = ('02' | '0A' | '22' | '2A' | '42' | '4A' | '62' | '6A'), @DV_content_indicator.
+                    contents_03 = ('03' | '0B' | '23' | '2B' | '43' | '4B' | '63' | '6B'), @DV_content_indicator.
+                    contents_04 = ('04' | '0C' | '24' | '2C' | '44' | '4C' | '64' | '6C'), @DV_content_indicator.
+                    contents_05 = ('05' | '0D' | '25' | '2D' | '45' | '4D' | '65' | '6D'), @DV_content_indicator.
+                    contents_06 = ('06' | '0E' | '26' | '2E' | '46' | '4E' | '66' | '6E'), @DV_content_indicator.
+                    contents_07 = ('07' | '0F' | '27' | '2F' | '47' | '4F' | '67' | '6F'), @DV_content_indicator.
+                    contents_10 = ('10' | '18' | '30' | '38' | '50' | '58' | '70' | '78'), @DV_content_indicator.
+                    contents_11 = ('11' | '19' | '31' | '39' | '51' | '59' | '71' | '79'), @DV_content_indicator.
+                    contents_12 = ('12' | '1A' | '32' | '3A' | '52' | '5A' | '72' | '7A'), @DV_content_indicator.
+                    contents_13 = ('13' | '1B' | '33' | '3B' | '53' | '5B' | '73' | '7B'), @DV_content_indicator.
+                    contents_14 = ('14' | '1C' | '34' | '3C' | '54' | '5C' | '74' | '7C'), @DV_content_indicator.
+                    contents_15 = ('15' | '1D' | '35' | '3D' | '55' | '5D' | '75' | '7D'), @DV_content_indicator.
+                    contents_16 = ('16' | '1E' | '36' | '3E' | '56' | '5E' | '76' | '7E'), @DV_content_indicator.
+                    contents_17 = ('17' | '1F' | '37' | '3F' | '57' | '5F' | '77' | '7F'), @DV_content_indicator.
+                    contents_80 = ('80' | '88' | 'A0' | 'A8' | 'C0' | 'C8' | 'E0' | 'E8'), @DV_content_indicator.
+                    contents_81 = ('81' | '89' | 'A1' | 'A9' | 'C1' | 'C9' | 'E1' | 'E9'), @DV_content_indicator.
+                    contents_82 = ('82' | '8A' | 'A2' | 'AA' | 'C2' | 'CA' | 'E2' | 'EA'), @DV_content_indicator.
+                    contents_83 = ('83' | '8B' | 'A3' | 'AB' | 'C3' | 'CB' | 'E3' | 'EB'), @DV_content_indicator.
+                    contents_84 = ('84' | '8C' | 'A4' | 'AC' | 'C4' | 'CC' | 'E4' | 'EC'), @DV_content_indicator.
+                    contents_85 = ('85' | '8D' | 'A5' | 'AD' | 'C5' | 'CD' | 'E5' | 'ED'), @DV_content_indicator.
+                    contents_86 = ('86' | '8E' | 'A6' | 'AE' | 'C6' | 'CE' | 'E6' | 'EE'), @DV_content_indicator.
+                    contents_87 = ('87' | '8F' | 'A7' | 'AF' | 'C7' | 'CF' | 'E7' | 'EF'), @DV_content_indicator.
+                    contents_90 = ('90' | '98' | 'B0' | 'B8' | 'D0' | 'D8' | 'F0' | 'F8'), @DV_content_indicator.
+                    contents_91 = ('91' | '99' | 'B1' | 'B9' | 'D1' | 'D9' | 'F1' | 'F9'), @DV_content_indicator.
+                    contents_92 = ('92' | '9A' | 'B2' | 'BA' | 'D2' | 'DA' | 'F2' | 'FA'), @DV_content_indicator.
+                    contents_93 = ('93' | '9B' | 'B3' | 'BB' | 'D3' | 'DB' | 'F3' | 'FB'), @DV_content_indicator.
+                    contents_94 = ('94' | '9C' | 'B4' | 'BC' | 'D4' | 'DC' | 'F4' | 'FC'), @DV_content_indicator.
+                    contents_95 = ('95' | '9D' | 'B5' | 'BD' | 'D5' | 'DD' | 'F5' | 'FD'), @DV_content_indicator.
+                    contents_96 = ('96' | '9E' | 'B6' | 'BE' | 'D6' | 'DE' | 'F6' | 'FE'), @DV_content_indicator.
+                    contents_97 = ('97' | '9F' | 'B7' | 'BF' | 'D7' | 'DF' | 'F7' | 'FF'), @DV_content_indicator.
+                    Battery = byte, @DV_battery_raw.
+                    Fraud = fraud_tm, fraud_date.
+                    fraud_tm = byte, @DV_fraud_type.
+                    fraud_date = triplet, @DV_fraud_date_raw.
+                    Leak = triplet, @DV_leak_date_raw.
+                    Backflow = quad, @DV_backflow_raw.
+                    Monthly = January, February, March, April, May, June, July, August, September, October, November, December.
+                    January = triplet, @DV_january_total_raw.
+                    February = triplet, @DV_february_total_raw.
+                    March = triplet, @DV_march_total_raw.
+                    April = triplet, @DV_april_total_raw.
+                    May = triplet, @DV_may_total_raw.
+                    June = triplet, @DV_june_total_raw.
+                    July = triplet, @DV_july_total_raw.
+                    August = triplet, @DV_august_total_raw.
+                    September = triplet, @DV_september_total_raw.
+                    October = triplet, @DV_october_total_raw.
+                    November = triplet, @DV_november_total_raw.
+                    December = triplet, @DV_december_total_raw.
+
+                    -hex     = ['A'-'F';'0'-'9'].
+                    -byte    = hex, hex.
+                    -triplet = byte, byte, byte.
+                    -quad    = byte, byte, byte, byte.
+
+                    DV_content_indicator>dvk   = +'01FB05'.
+                    DV_fraud_type>dvk           = +'01FE0F'.
+                    DV_battery_raw>dvk          = +'01FB01'.
+                    DV_fraud_date_raw>dvk       = +'03FB02'.
+                    DV_leak_date_raw>dvk        = +'03FB03'.
+                    DV_backflow_raw>dvk         = +'04FB04'.
+                    DV_january_total_raw>dvk = +'03FB10'.
+                    DV_february_total_raw>dvk = +'03FB11'.
+                    DV_march_total_raw>dvk = +'03FB12'.
+                    DV_april_total_raw>dvk = +'03FB13'.
+                    DV_may_total_raw>dvk = +'03FB14'.
+                    DV_june_total_raw>dvk = +'03FB15'.
+                    DV_july_total_raw>dvk = +'03FB16'.
+                    DV_august_total_raw>dvk = +'03FB17'.
+                    DV_september_total_raw>dvk = +'03FB18'.
+                    DV_october_total_raw>dvk = +'03FB19'.
+                    DV_november_total_raw>dvk = +'03FB1A'.
+                    DV_december_total_raw>dvk = +'03FB1B'."
+        }
+    }
+    tests {
+        test {
+            args     = 'HydrodigitWater hydrodigit 86868686 NOKEY'
+            telegram = 4E44B4098686868613077AF0004005_2F2F0C1366380000046D27287E2A0F150E00000000C10000D10000E60000FD00000C01002F0100410100540100680100890000A00000B30000002F2F2F2F2F2F
+            json     = '{"_":"telegram","April_total_m3":2.53,"August_total_m3":3.4,"December_total_m3":1.79,"February_total_m3":2.09,"January_total_m3":1.93,"July_total_m3":3.21,"June_total_m3":3.03,"March_total_m3":2.3,"May_total_m3":2.68,"November_total_m3":1.6,"October_total_m3":1.37,"September_total_m3":3.6,"backflow_m3":0,"contents":"BACKFLOW BATTERY_VOLTAGE MONTHLY_DATA","id":"86868686","media":"water","meter":"hydrodigit","meter_datetime":"2019-10-30 08:39","name":"HydrodigitWater","timestamp":"1111-11-11T11:11:11Z","total_m3":3.866,"voltage_v":3.7}'
+            fields   = 'HydrodigitWater;86868686;3.866;2019-10-30 08:39;1111-11-11 11:11.11'
+        }
+        test {
+            args     = 'HydridigitWaterr hydrodigit 03245501 NOKEY'
+            telegram = 2444B4090155240317068C00487AC0000000_0C1335670000046D172EEA280F030000000000
+            json     = '{"_":"telegram","contents":"BATTERY_VOLTAGE FRAUD_DATE","fraud_date":null,"fraud_type":"NO_TYPE_INFO","id":"03245501","media":"warm water","meter":"hydrodigit","meter_datetime":"2023-08-10 14:23","name":"HydridigitWaterr","timestamp":"1111-11-11T11:11:11Z","total_m3":6.735,"voltage_v":3.7}'
+            fields   = 'HydridigitWaterr;03245501;6.735;2023-08-10 14:23;1111-11-11 11:11.11'
+        }
+        test {
+            args     = 'Hydro3 hydrodigit 87654321 NOKEY'
+            comment  = 'This is a nice one to showcase the backflow encoding.'
+            telegram = 4644B4092143658713077A9C000000_0C1364390400_046D212F1635_0F152A0F000000440F00C00F00511000D51000B20B00180C007C0C00E60C00560D00D10D00400E00C60E0000
+            json     = '{"_":"telegram","April_total_m3":43.09,"August_total_m3":33.02,"December_total_m3":37.82,"February_total_m3":40.32,"January_total_m3":39.08,"July_total_m3":31.96,"June_total_m3":30.96,"March_total_m3":41.77,"May_total_m3":29.94,"November_total_m3":36.48,"October_total_m3":35.37,"September_total_m3":34.14,"backflow_m3":0.015,"contents":"BACKFLOW BATTERY_VOLTAGE MONTHLY_DATA","id":"87654321","media":"water","meter":"hydrodigit","meter_datetime":"2024-05-22 15:33","name":"Hydro3","timestamp":"1111-11-11T11:11:11Z","total_m3":43.964,"voltage_v":3.05}'
+            fields   = 'Hydro3;87654321;43.964;2024-05-22 15:33;1111-11-11 11:11.11'
+        }
+        test {
+            args     = 'Hydro4 hydrodigit 87654322 NOKEY'
+            comment  = 'This one adds a leak date to the definition, plus shows how the monthly data looks before module installation.'
+            telegram = 4944B4092243658713077A7F000000_0C1363020400_046D242C1236_0F950A24042507000000A405006E0700850900CA0B004A0E00FFFFFFFFFFFF020000020000250000B3010095030000
+            json     = '{"_":"telegram","April_total_m3":30.18,"August_total_m3":0.02,"December_total_m3":9.17,"February_total_m3":19.02,"January_total_m3":14.44,"July_total_m3":0,"June_total_m3":0,"March_total_m3":24.37,"May_total_m3":36.58,"November_total_m3":4.35,"October_total_m3":0.37,"September_total_m3":0.02,"backflow_m3":0.007,"contents":"BACKFLOW BATTERY_VOLTAGE LEAK_DATE MONTHLY_DATA","id":"87654322","leak_date":"2024-04-25","media":"water","meter":"hydrodigit","meter_datetime":"2024-06-18 12:36","name":"Hydro4","timestamp":"1111-11-11T11:11:11Z","total_m3":40.263,"voltage_v":3.05}'
+            fields   = 'Hydro4;87654322;40.263;2024-06-18 12:36;1111-11-11 11:11.11'
+        }
+        test {
+            args     = 'HydrodigitWaterrr hydrodigit 23746391 NOKEY'
+            comment  = 'This one has a backflow and a leak date, but no monthly data.'
+            telegram = 2144B4099163742315077A400000000C1399999999046D092A30340F050B01000000
+            json     = '{"_":"telegram","backflow_m3":0.001,"contents":"BACKFLOW BATTERY_VOLTAGE","id":"23746391","media":"water","meter":"hydrodigit","meter_datetime":"2025-04-16 10:09","name":"HydrodigitWaterrr","timestamp":"1111-11-11T11:11:11Z","total_m3":99999.999,"voltage_v":3.2}'
+            fields   = 'HydrodigitWaterrr;23746391;99999.999;2025-04-16 10:09;1111-11-11 11:11.11'
+        }
+        test {
+            args     = 'hydro7 hydrodigit 03122061 NOKEY'
+            telegram = 4C44B4096120120317077AB90000000C1330000000046D132E3E360F8F000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+            json     = '{"_":"telegram","backflow_m3":0,"contents":"BACKFLOW BATTERY_VOLTAGE FRAUD_DATE LEAK_DATE","fraud_date":null,"fraud_type":"NO_TYPE_INFO","id":"03122061","leak_date":null,"media":"water","meter":"hydrodigit","meter_datetime":"2025-06-30 14:19","name":"hydro7","timestamp":"1111-11-11T11:11:11Z","total_m3":0.03,"voltage_v":3.7}'
+            fields   = 'hydro7;03122061;0.03;2025-06-30 14:19;1111-11-11 11:11.11'
+        }
+    }
+}

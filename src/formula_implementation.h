@@ -239,6 +239,27 @@ private:
     std::unique_ptr<NumericFormula> inner_;
 };
 
+struct NumericFormulaMkDate : public NumericFormula
+{
+    NumericFormulaMkDate(FormulaImplementation *f, SIUnit siu,
+                         std::unique_ptr<NumericFormula> &year,
+                         std::unique_ptr<NumericFormula> &month,
+                         std::unique_ptr<NumericFormula> &day)
+        : NumericFormula(f, siu), year_(std::move(year)), month_(std::move(month)), day_(std::move(day)) {}
+
+    double calculate(SIUnit to);
+    std::string str();
+    std::string tree();
+
+    ~NumericFormulaMkDate();
+
+private:
+
+    std::unique_ptr<NumericFormula> year_;
+    std::unique_ptr<NumericFormula> month_;
+    std::unique_ptr<NumericFormula> day_;
+};
+
 struct NumericFormulaModulo : public NumericFormulaPair
 {
     NumericFormulaModulo(FormulaImplementation *f, SIUnit siu,
@@ -405,6 +426,8 @@ enum class TokenType
     ROUND,
     FLOOR,
     CEIL,
+    MKDATE,
+    COMMA,
     UNIT,
     FIELD
 };
@@ -480,6 +503,7 @@ struct FormulaImplementation : public Formula
     void doBitwiseOr();
     void doLogicalAnd();
     void doLogicalOr();
+    void doMkDate();
 
     ~FormulaImplementation();
 
@@ -512,6 +536,8 @@ struct FormulaImplementation : public Formula
     size_t findRound(size_t i);
     size_t findFloor(size_t i);
     size_t findCeil(size_t i);
+    size_t findMkDate(size_t i);
+    size_t findComma(size_t i);
     size_t findLPar(size_t i);
     size_t findRPar(size_t i);
     size_t findField(size_t i);
@@ -519,6 +545,7 @@ struct FormulaImplementation : public Formula
     Token *LA(size_t i);
     size_t parseOps(size_t i);
     size_t parsePar(size_t i);
+    size_t parseMkDate(size_t i);
 
     void handleConstant(Token *number, Token *unit);
     void handleSeconds(Token *number);
@@ -545,6 +572,7 @@ struct FormulaImplementation : public Formula
     void handleRound(Token *add);
     void handleFloor(Token *add);
     void handleCeil(Token *add);
+    void handleMkDate(Token *tok);
     void handleField(Token *field);
 
     void pushOp(NumericFormula *nf);

@@ -40,6 +40,7 @@ NumericFormulaMultiplication::~NumericFormulaMultiplication() { }
 NumericFormulaDivision::~NumericFormulaDivision() { }
 NumericFormulaExponentiation::~NumericFormulaExponentiation() { }
 NumericFormulaSquareRoot::~NumericFormulaSquareRoot() { }
+NumericFormulaMkDate::~NumericFormulaMkDate() { }
 NumericFormulaRound::~NumericFormulaRound() { }
 NumericFormulaFloor::~NumericFormulaFloor() { }
 NumericFormulaCeil::~NumericFormulaCeil() { }
@@ -338,6 +339,28 @@ double NumericFormulaLogicalOr::calculate(SIUnit to_siunit)
     return (l != 0.0 || r != 0.0) ? 1.0 : 0.0;
 }
 
+double NumericFormulaMkDate::calculate(SIUnit to_siunit)
+{
+    SIUnit cu(Unit::COUNTER);
+    int year  = (int)llround(year_ ->calculate(cu));
+    int month = (int)llround(month_->calculate(cu));
+    int day   = (int)llround(day_  ->calculate(cu));
+
+    if (month <= 0 || day <= 0)
+        return std::numeric_limits<double>::quiet_NaN();
+
+    struct tm t {};
+    t.tm_year = year - 1900;
+    t.tm_mon  = month - 1;
+    t.tm_mday = day;
+    t.tm_isdst = -1;
+    time_t epoch = mktime(&t);
+
+    debug("(formula) MKDATE %d-%02d-%02d --> %ld\n", year, month, day, (long)epoch);
+
+    return (double)epoch;
+}
+
 double NumericFormulaSquareRoot::calculate(SIUnit to_siunit)
 {
     double i = inner_->calculate(inner_->siunit());
@@ -384,6 +407,8 @@ const char *toString(TokenType tt)
     case TokenType::ROUND: return "ROUND";
     case TokenType::FLOOR: return "FLOOR";
     case TokenType::CEIL: return "CEIL";
+    case TokenType::MKDATE: return "MKDATE";
+    case TokenType::COMMA: return "COMMA";
     case TokenType::UNIT: return "UNIT";
     case TokenType::FIELD: return "FIELD";
     }
@@ -767,6 +792,21 @@ size_t FormulaImplementation::findCeil(size_t i)
     return 0;
 }
 
+size_t FormulaImplementation::findMkDate(size_t i)
+{
+    if (i+6 >= formula_.length()) return 0;
+    if (!strncmp(&formula_[i], "mkdate", 6) && !is_letter(formula_[i+6]))
+        return 6;
+    return 0;
+}
+
+size_t FormulaImplementation::findComma(size_t i)
+{
+    if (i >= formula_.length()) return 0;
+    if (formula_[i] == ',') return 1;
+    return 0;
+}
+
 size_t FormulaImplementation::findLPar(size_t i)
 {
     if (i >= formula_.length()) return 0;
@@ -922,6 +962,12 @@ bool FormulaImplementation::tokenize()
 
         len = findCeil(i);
         if (len > 0) { tokens_.push_back(Token(TokenType::CEIL, i, len)); i+=len; continue; }
+
+        len = findMkDate(i);
+        if (len > 0) { tokens_.push_back(Token(TokenType::MKDATE, i, len)); i+=len; continue; }
+
+        len = findComma(i);
+        if (len > 0) { tokens_.push_back(Token(TokenType::COMMA, i, len)); i+=len; continue; }
 
         len = findUnit(i);
         if (len > 0) { tokens_.push_back(Token(TokenType::UNIT, i, len)); i+=len; continue; }
@@ -1145,6 +1191,16 @@ size_t FormulaImplementation::parseOps(size_t i)
         return next;
     }
 
+    if (tok->type == TokenType::MKDATE)
+    {
+        return parseMkDate(i);
+    }
+
+    if (tok->type == TokenType::COMMA)
+    {
+        return i;
+    }
+
     if (tok->type == TokenType::LPAR)
     {
         return parsePar(i);
@@ -1202,6 +1258,57 @@ size_t FormulaImplementation::parsePar(size_t i)
         return i;
     }
     return i+1;
+}
+
+size_t FormulaImplementation::parseMkDate(size_t i)
+{
+    // i points at MKDATE; next must be LPAR
+    Token *lpar = LA(i+1);
+    if (lpar == NULL || lpar->type != TokenType::LPAR)
+    {
+        errors_.push_back("Expected '(' after mkdate!\n"+LA(i)->withMarker(formula_));
+        valid_ = false;
+        return i;
+    }
+    i += 2; // skip mkdate and (
+
+    // Parse each of the three arguments, stopping at COMMA or RPAR
+    for (int arg = 0; arg < 3; arg++)
+    {
+        for (;;)
+        {
+            Token *tok = LA(i);
+            if (tok == NULL || tok->type == TokenType::COMMA || tok->type == TokenType::RPAR) break;
+            size_t next = parseOps(i);
+            if (!valid_ || next == i) break;
+            i = next;
+        }
+        if (!valid_) return i;
+
+        if (arg < 2)
+        {
+            Token *sep = LA(i);
+            if (sep == NULL || sep->type != TokenType::COMMA)
+            {
+                errors_.push_back("Expected ',' in mkdate arguments!\n");
+                valid_ = false;
+                return i;
+            }
+            i++; // skip comma
+        }
+    }
+
+    Token *rpar = LA(i);
+    if (rpar == NULL || rpar->type != TokenType::RPAR)
+    {
+        errors_.push_back("Expected ')' after mkdate arguments!\n");
+        valid_ = false;
+        return i;
+    }
+    i++; // skip )
+
+    handleMkDate(NULL);
+    return i;
 }
 
 void FormulaImplementation::handleConstant(Token *number, Token *unit)
@@ -1426,6 +1533,11 @@ void FormulaImplementation::handleFloor(Token *tok)
 void FormulaImplementation::handleCeil(Token *tok)
 {
     doCeil();
+}
+
+void FormulaImplementation::handleMkDate(Token *tok)
+{
+    doMkDate();
 }
 
 void FormulaImplementation::handleField(Token *field)
@@ -1683,6 +1795,18 @@ void FormulaImplementation::doCeil()
     pushOp(new NumericFormulaCeil(this, siunit, inner_node));
 }
 
+void FormulaImplementation::doMkDate()
+{
+    assert(op_stack_.size() >= 3);
+
+    unique_ptr<NumericFormula> day_node   = popOp();
+    unique_ptr<NumericFormula> month_node = popOp();
+    unique_ptr<NumericFormula> year_node  = popOp();
+
+    SIUnit siunit(Unit::UnixTimestamp);
+    pushOp(new NumericFormulaMkDate(this, siunit, year_node, month_node, day_node));
+}
+
 void FormulaImplementation::doModulo()
 {
     assert(op_stack_.size() >= 2);
@@ -1936,6 +2060,16 @@ string NumericFormulaCeil::tree()
 {
     string inner = inner_->tree();
     return "<CEIL "+inner+"> ";
+}
+
+string NumericFormulaMkDate::str()
+{
+    return "mkdate("+year_->str()+","+month_->str()+","+day_->str()+")";
+}
+
+string NumericFormulaMkDate::tree()
+{
+    return "<MKDATE "+year_->tree()+" "+month_->tree()+" "+day_->tree()+"> ";
 }
 
 string NumericFormulaMeterField::str()
