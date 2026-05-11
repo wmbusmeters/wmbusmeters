@@ -7,6 +7,8 @@ driver {
         mvt = BMT,05,07
     }
     fields {
+        // RFM-TX1 (tpl-cfg 1006) uses proprietary payload layout. The ixml rule below
+        // reconstructs pseudo DV entries so the rest of the driver can decode like normal fields.
         field {
             name               = payload_decoder
             quantity           = Text
@@ -121,31 +123,45 @@ driver {
             name       = row
             quantity   = Dimensionless
             attributes = HIDE
-            calculate  = 'key_raw_counter & 15counter'
+            // Row selector used by all t0..t3 lookup formulas.
+            // key_raw is the telegram key byte; low nibble gives a row in [0..15].
+            calculate = 'key_raw_counter & 15counter'
         }
+        // t0..t3 are row-indexed lookup values. Each formula returns exactly one constant
+        // for the selected row (all other terms evaluate to 0).
+        // Keep each ((row==N)*value) term wrapped in parentheses because the formula parser
+        // does not apply standard operator precedence between + and *.
         field {
             name       = t0
             quantity   = Dimensionless
             attributes = HIDE
-            calculate  = '((row_counter == 0counter)*122counter) + ((row_counter == 1counter)*112counter) + ((row_counter == 2counter)*185counter) + ((row_counter == 3counter)*121counter) + ((row_counter == 4counter)*7counter) + ((row_counter == 5counter)*50counter) + ((row_counter == 6counter)*156counter) + ((row_counter == 7counter)*180counter) + ((row_counter == 8counter)*10counter) + ((row_counter == 9counter)*240counter) + ((row_counter == 10counter)*22counter) + ((row_counter == 11counter)*12counter) + ((row_counter == 12counter)*74counter) + ((row_counter == 13counter)*119counter) + ((row_counter == 14counter)*189counter) + ((row_counter == 15counter)*57counter)'
+            // LUT value for d0, where encrypted byte0 is (data_raw_counter & 255counter)
+            // and d0 is computed below as byte0 ^ key_raw_counter ^ t0_counter.
+            calculate = '((row_counter == 0counter)*122counter) + ((row_counter == 1counter)*112counter) + ((row_counter == 2counter)*185counter) + ((row_counter == 3counter)*121counter) + ((row_counter == 4counter)*7counter) + ((row_counter == 5counter)*50counter) + ((row_counter == 6counter)*156counter) + ((row_counter == 7counter)*180counter) + ((row_counter == 8counter)*10counter) + ((row_counter == 9counter)*240counter) + ((row_counter == 10counter)*22counter) + ((row_counter == 11counter)*12counter) + ((row_counter == 12counter)*74counter) + ((row_counter == 13counter)*119counter) + ((row_counter == 14counter)*189counter) + ((row_counter == 15counter)*57counter)'
         }
         field {
             name       = t1
             quantity   = Dimensionless
             attributes = HIDE
-            calculate  = '((row_counter == 0counter)*16counter) + ((row_counter == 1counter)*19counter) + ((row_counter == 2counter)*11counter) + ((row_counter == 3counter)*7counter) + ((row_counter == 4counter)*154counter) + ((row_counter == 5counter)*161counter) + ((row_counter == 6counter)*126counter) + ((row_counter == 7counter)*196counter) + ((row_counter == 8counter)*206counter) + ((row_counter == 9counter)*5counter) + ((row_counter == 10counter)*152counter) + ((row_counter == 11counter)*201counter) + ((row_counter == 12counter)*72counter) + ((row_counter == 13counter)*46counter) + ((row_counter == 14counter)*120counter) + ((row_counter == 15counter)*111counter)'
+            // LUT value for d1, with byte1 = ((data_raw_counter >> 8counter) & 255counter)
+            // and d1 computed below as byte1 ^ key_raw_counter ^ t1_counter.
+            calculate = '((row_counter == 0counter)*16counter) + ((row_counter == 1counter)*19counter) + ((row_counter == 2counter)*11counter) + ((row_counter == 3counter)*7counter) + ((row_counter == 4counter)*154counter) + ((row_counter == 5counter)*161counter) + ((row_counter == 6counter)*126counter) + ((row_counter == 7counter)*196counter) + ((row_counter == 8counter)*206counter) + ((row_counter == 9counter)*5counter) + ((row_counter == 10counter)*152counter) + ((row_counter == 11counter)*201counter) + ((row_counter == 12counter)*72counter) + ((row_counter == 13counter)*46counter) + ((row_counter == 14counter)*120counter) + ((row_counter == 15counter)*111counter)'
         }
         field {
             name       = t2
             quantity   = Dimensionless
             attributes = HIDE
-            calculate  = '((row_counter == 0counter)*26counter) + ((row_counter == 1counter)*34counter) + ((row_counter == 2counter)*142counter) + ((row_counter == 3counter)*74counter) + ((row_counter == 4counter)*203counter) + ((row_counter == 5counter)*57counter) + ((row_counter == 6counter)*96counter) + ((row_counter == 7counter)*128counter) + ((row_counter == 8counter)*25counter) + ((row_counter == 9counter)*165counter) + ((row_counter == 10counter)*17counter) + ((row_counter == 11counter)*125counter) + ((row_counter == 12counter)*228counter) + ((row_counter == 13counter)*138counter) + ((row_counter == 14counter)*87counter) + ((row_counter == 15counter)*40counter)'
+            // LUT value for d2, with byte2 = ((data_raw_counter >> 16counter) & 255counter)
+            // and d2 computed below as byte2 ^ key_raw_counter ^ t2_counter.
+            calculate = '((row_counter == 0counter)*26counter) + ((row_counter == 1counter)*34counter) + ((row_counter == 2counter)*142counter) + ((row_counter == 3counter)*74counter) + ((row_counter == 4counter)*203counter) + ((row_counter == 5counter)*57counter) + ((row_counter == 6counter)*96counter) + ((row_counter == 7counter)*128counter) + ((row_counter == 8counter)*25counter) + ((row_counter == 9counter)*165counter) + ((row_counter == 10counter)*17counter) + ((row_counter == 11counter)*125counter) + ((row_counter == 12counter)*228counter) + ((row_counter == 13counter)*138counter) + ((row_counter == 14counter)*87counter) + ((row_counter == 15counter)*40counter)'
         }
         field {
             name       = t3
             quantity   = Dimensionless
             attributes = HIDE
-            calculate  = '((row_counter == 0counter)*10counter) + ((row_counter == 1counter)*19counter) + ((row_counter == 2counter)*153counter) + ((row_counter == 3counter)*22counter) + ((row_counter == 4counter)*105counter) + ((row_counter == 5counter)*14counter) + ((row_counter == 6counter)*153counter) + ((row_counter == 7counter)*163counter) + ((row_counter == 8counter)*3counter) + ((row_counter == 9counter)*134counter) + ((row_counter == 10counter)*94counter) + ((row_counter == 11counter)*162counter) + ((row_counter == 12counter)*31counter) + ((row_counter == 13counter)*232counter) + ((row_counter == 14counter)*140counter) + ((row_counter == 15counter)*5counter)'
+            // LUT value for d3, with byte3 = ((data_raw_counter >> 24counter) & 255counter)
+            // and d3 computed below as byte3 ^ key_raw_counter ^ t3_counter.
+            calculate = '((row_counter == 0counter)*10counter) + ((row_counter == 1counter)*19counter) + ((row_counter == 2counter)*153counter) + ((row_counter == 3counter)*22counter) + ((row_counter == 4counter)*105counter) + ((row_counter == 5counter)*14counter) + ((row_counter == 6counter)*153counter) + ((row_counter == 7counter)*163counter) + ((row_counter == 8counter)*3counter) + ((row_counter == 9counter)*134counter) + ((row_counter == 10counter)*94counter) + ((row_counter == 11counter)*162counter) + ((row_counter == 12counter)*31counter) + ((row_counter == 13counter)*232counter) + ((row_counter == 14counter)*140counter) + ((row_counter == 15counter)*5counter)'
         }
         field {
             name       = d0
@@ -208,9 +224,11 @@ driver {
             calculate  = '((year_raw_counter >> 4counter) * 10counter) + (year_raw_counter % 16counter)'
         }
         field {
-            name      = total
-            quantity  = Volume
-            info      = 'The total water consumption recorded by this meter.'
+            name     = total
+            quantity = Volume
+            info     = 'The total water consumption recorded by this meter.'
+            // d0..d3 are decrypted bytes; each byte stores two BCD digits. Rebuild the
+            // 8-digit reading and scale from liters to m3.
             calculate = '((((d0_counter >> 4counter) * 10counter) + (d0_counter % 16counter)) + (100counter * (((d1_counter >> 4counter) * 10counter) + (d1_counter % 16counter))) + (10000counter * (((d2_counter >> 4counter) * 10counter) + (d2_counter % 16counter))) + (1000000counter * (((d3_counter >> 4counter) * 10counter) + (d3_counter % 16counter)))) / 1000counter * 1m3'
         }
         field {
@@ -218,10 +236,12 @@ driver {
             quantity     = PointInTime
             display_unit = datetime
             info         = 'Date time when meter sent this telegram.'
-            calculate    = "'2000-01-01 00:00:00' +
-                            (((year_counter * 12counter) + mon_counter - 1counter) * 1month) +
-                            ((day_counter - 1counter) * 24h) +
-                            ((((hour_counter * 3600counter) + (min_counter * 60counter) + sec_counter)) * 1s)"
+            // Meter datetime bytes are plain BCD (yy MM dd HH mm ss) in telegram payload.
+            // Build local meter time from component fields, matching behavior confirmed in issue #101.
+            calculate = "'2000-01-01 00:00:00' +
+                         (((year_counter * 12counter) + mon_counter - 1counter) * 1month) +
+                         ((day_counter - 1counter) * 24h) +
+                         ((((hour_counter * 3600counter) + (min_counter * 60counter) + sec_counter)) * 1s)"
         }
     }
     tests {
