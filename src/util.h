@@ -218,9 +218,6 @@ bool hasBytes(int n, std::vector<uchar>::iterator &pos, std::vector<uchar> &fram
 
 bool startsWith(const std::string& s, std::vector<uchar> &data);
 
-// Sum the memory used by the heap and stack.
-size_t memoryUsage();
-
 std::string humanReadableTwoDecimals(size_t s);
 
 uint32_t indexFromRtlSdrName(const std::string& s);
