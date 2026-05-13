@@ -1151,58 +1151,74 @@ bool extract_times(const char *p, TimePeriod *tp)
     return true;
 }
 
-int day_name_to_nr(const string& name)
+int day_name_to_nr(const char * name)
 {
-    if (name == "mon") return 0;
-    if (name == "tue") return 1;
-    if (name == "wed") return 2;
-    if (name == "thu") return 3;
-    if (name == "fri") return 4;
-    if (name == "say") return 5;
-    if (name == "sun") return 6;
-    return -1;
+    return (
+        (name[0] == 'm' && name[1] == 'o' && name[2] == 'n') ? 0:
+        (name[0] == 't' && name[1] == 'u' && name[2] == 'e') ? 1:
+        (name[0] == 'w' && name[1] == 'e' && name[2] == 'd') ? 2:
+        (name[0] == 't' && name[1] == 'h' && name[2] == 'u') ? 3:
+        (name[0] == 'f' && name[1] == 'r' && name[2] == 'i') ? 4:
+        (name[0] == 's' && name[1] == 'a' && name[2] == 't') ? 5:
+        (name[0] == 's' && name[1] == 'u' && name[2] == 'n') ? 6:
+        -1
+    );
 }
 
-bool extract_days(char *p, TimePeriod *tp)
+bool extract_days(const char *p, TimePeriod *tp, int len)
 {
-    if (strlen(p) == 3)
+    // Expect "mon" or similar.
+    if (len == 3)
     {
-        string s = p;
-        int d = day_name_to_nr(s);
-        if (d == -1) return false;
-        tp->day_in_week_from = d;
-        tp->day_in_week_to = d;
+        int day = day_name_to_nr(p);
+        if (day == -1) return false;
+
+        tp->day_in_week_from = day;
+        tp->day_in_week_to = day;
+
         return true;
+
+    // Expect "mon-fri" or similar.
+    } else if (len == 7) {
+
+        // Must have - in middle.
+        if (p[3] != '-') return false;
+            
+        int from_day = day_name_to_nr(p);
+        int to_day = day_name_to_nr(p+4);
+
+        if (
+            from_day == -1 ||
+            to_day == -1 ||
+            from_day >= to_day
+        ) return false;
+
+        tp->day_in_week_from = from_day;
+        tp->day_in_week_to = to_day;
+
+        return true;
+    } else {
+        return false;
+    }
+}
+
+bool extract_single_period(const char *tok, TimePeriod *tp)
+{
+    
+    size_t len = strlen(tok);
+    if (
+        len < 8 ||          // Minimum length is 8 chars, eg "1(00-23)"
+        tok[len-1] != ')'   // Must end in )
+    ) {
+        return false;
     }
 
-    if (strlen(p) != 7) return false; // Expect mon-fri
-    if (p[3] != '-') return false; // Must have - in middle.
-    string from = string(p, p+3);
-    string to = string(p+4, p+7);
-
-    int f = day_name_to_nr(from);
-    int t = day_name_to_nr(to);
-    if (f == -1 || t == -1) return false;
-    if (f >= t) return false;
-    tp->day_in_week_from = f;
-    tp->day_in_week_to = t;
-    return true;
-}
-
-bool extract_single_period(char *tok, TimePeriod *tp)
-{
-    // Minimum length is 8 chars, eg "1(00-23)"
-    size_t len = strlen(tok);
-    if (len < 8) return false;
     // tok is for example: mon-fri(00-23) or tue(18-19) or 1(00-23)
-    char *p = strchr(tok, '(');
-    if (p == NULL) return false; // There must be a (
-    if (tok[len-1] != ')') return false; // Must end in )
-    bool ok = extract_times(p, tp);
-    if (!ok) return false;
-    *p = 0; // Terminate in the middle of tok.
-    ok = extract_days(tok, tp);
-    if (!ok) return false;
+    const char *p = strchr(tok, '(');
+    if (p == NULL) return false;
+
+    if (!extract_times(p, tp)) return false;
+    if (!extract_days(tok, tp, p - tok)) return false;
 
     return true;
 }
