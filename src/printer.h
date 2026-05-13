@@ -16,7 +16,6 @@
 */
 
 #include"config.h"
-#include"meters.h"
 #include"wmbus.h"
 
 struct Printer {

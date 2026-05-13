@@ -21,7 +21,6 @@
 #include"config.h"
 #include"threads.h"
 #include"units.h"
-#include"wmbus.h"
 
 #include<memory>
 #include<set>
