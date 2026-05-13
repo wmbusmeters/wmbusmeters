@@ -18,7 +18,7 @@
 #ifndef SERIAL_H_
 #define SERIAL_H_
 
-#include"util.h"
+#include "access_check.h"
 
 #include<functional>
 #include<memory>

@@ -168,6 +168,7 @@ $(BUILD)/%.o: src/%.c $(wildcard src/%.h)
 	$(CXX) -fpermissive $(CXXFLAGS) $< -MMD -c -o $@
 
 PROG_OBJS:=\
+	$(BUILD)/access_check.o \
 	$(BUILD)/address.o \
 	$(BUILD)/aes.o \
 	$(BUILD)/aescmac.o \
