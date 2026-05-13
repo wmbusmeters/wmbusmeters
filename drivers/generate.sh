@@ -1,11 +1,46 @@
 #!/bin/bash
+# Copyright (C) 2026 Fredrik Öhrström (gpl-3.0-or-later)
 
 export PROG="$1"
-export OUT="build/generated_database.cc"
+export OUT="build/generated_database.h"
+
+TMP=$(mktemp)
+
+(grep -rEc "Copyright \(C\) (....-)?.... [^\(]+ \(.+\)" src ./src | grep :0 > "$TMP")
+
+if [ -s "$TMP" ]
+then
+    echo "These files do not have a proper copyright notice:"
+    sed 's/:0//' "$TMP"
+    exit 1
+fi
 
 cat > $OUT <<EOF
 /*
- Copyright (C) 2024-2026 Fredrik Öhrström (gpl-3.0-or-later)
+ Copyright (C) 2024-$(date +%Y) Fredrik Öhrström (gpl-3.0-or-later)
+EOF
+
+(grep -rEo "Copyright \(C\) (....-)?.... [^\(]+ \(.+\)" src ./src \
+    | cut -f 2 -d ':' \
+    | tr -s ' ' \
+    | sed 's/ <.*>//' \
+    | sed -E '
+        s/(C) ([0-9]{4}) /(C) \2-\2 /
+        s/\(([0-9]{4})-\1\)/(\1)/
+    ' \
+    | grep -v Öhrström \
+    | sort -ru \
+    | sed 's/^/ /' \
+| sed -E '
+    s/^( *Copyright \(C\)) ([0-9]{4}-[0-9]{4}) /\1 \2 /
+    t
+    s/^( *Copyright \(C\)) ([0-9]{4}) /\1      \2 /
+'
+) > "$TMP"
+
+cat "$TMP" >> "$OUT"
+
+cat >> $OUT <<EOF
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by

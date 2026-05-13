@@ -1,5 +1,21 @@
 /*
  Copyright (C) 2024-2026 Fredrik Öhrström (gpl-3.0-or-later)
+ Copyright (C)      2026 Hynek Moravec (gpl-3.0-or-later)
+ Copyright (C)      2026 Felix Hauptmann (gpl-3.0-or-later)
+ Copyright (C)      2025 obidobi (gpl-3.0-or-later)
+ Copyright (C)      2025 Karel Blavka (gpl-3.0-or-later)
+ Copyright (C)      2024 Marton Czwick (CC0-1.0)
+ Copyright (C)      2024 Arthur van Dorp (gpl-3.0-or-later)
+ Copyright (C)      2023 Andreas Horrer (gpl-3.0-or-later)
+ Copyright (C)      2022 thecem (gpl-3.0-or-later)
+ Copyright (C)      2022 Alexander Streit (gpl-3.0-or-later)
+ Copyright (C)      2021 Vincent Privat (gpl-3.0-or-later)
+ Copyright (C)      2021 Olli Salonen (gpl-3.0-or-later)
+ Copyright (C)      2020 Janus Bo Andersen (gpl-3.0-or-later)
+ Copyright (C)      2020 Eric Bus (gpl-3.0-or-later)
+ Copyright (C)      2020 Avandorp (gpl-3.0-or-later)
+ Copyright (C) 2020-2022 Patrick Schwarz (gpl-3.0-or-later)
+ Copyright (C)      2018 David Mallon (gpl-3.0-or-later)
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by

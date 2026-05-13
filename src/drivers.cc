@@ -20,9 +20,10 @@
 #include<map>
 
 #include"always.h"
+#include"drivers.h"
+#include"generated_database.h"
 #include"log.h"
 #include"util.h"
-#include"drivers.h"
 
 using namespace std;
 
@@ -45,8 +46,6 @@ void loadDriversFromDir(std::string dir)
         string s = loadDriver(file_name, NULL);
     }
 }
-
-#include"generated_database.cc"
 
 map<uint32_t,const char*> builtins_mvt_lookup_;
 map<string,BuiltinDriver*> builtins_name_lookup_;

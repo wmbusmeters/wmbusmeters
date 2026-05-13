@@ -15,10 +15,10 @@ tests:
 	@for i in $(wildcard src/*) ; do xmq $$i select /driver/tests/test to-xmq >> build/generated_tests.xmq; done
 
 install: database tests
-	@grep -v "// Generated " < build/generated_database.cc > build/a
-	@grep -v "// Generated " < ../src/generated_database.cc > build/b
+	@grep -v "// Generated " < build/generated_database.h > build/a
+	@grep -v "// Generated " < ../src/generated_database.h > build/b
 	@if ! diff build/a build/b ; then \
-            cp build/generated_database.cc ../src ; echo "Installed db"; else echo "No changes db." ; fi
+            cp build/generated_database.h ../src ; echo "Installed db"; else echo "No changes db." ; fi
 	@grep -v "// Generated " < build/generated_tests.xmq > build/a
 	@grep -v "// Generated " < ../tests/generated_tests.xmq > build/b
 	@if ! diff build/a build/b ; then \
