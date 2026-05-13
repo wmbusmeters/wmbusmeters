@@ -18,6 +18,7 @@
 #ifndef METER_H_
 #define METER_H_
 
+#include"drivers.h"
 #include"dvparser.h"
 #include"formula.h"
 #include"util.h"
@@ -148,13 +149,6 @@ struct MeterInfo
 // Dynamic loading of drivers based on the driver info.
 //
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-struct MVT
-{
-    uint16_t mfct;
-    uchar version;
-    uchar type;
-};
 
 struct DriverInfo
 {
