@@ -21,7 +21,6 @@
 #include"always.h"
 #include"log.h"
 #include"units.h"
-#include"util.h"
 #include"wmbus.h"
 #include"meters.h"
 #include<set>

@@ -18,12 +18,12 @@
 #ifndef WMBUS_H
 #define WMBUS_H
 
+#include"access_check.h"
 #include"address.h"
 #include"dvparser.h"
 #include"manufacturers.h"
 #include"serial.h"
 #include"translatebits.h"
-#include"util.h"
 
 #include<inttypes.h>
 #include<map>
