@@ -126,4 +126,14 @@ void prepareBuiltinDrivers()
             builtins_mvts_[i].mvt.type;
         builtins_mvt_lookup_[key] = builtins_mvts_[i].name;
     }
+
+    // Register compact frame format signatures from any driver that declares them,
+    // so signatures are known before the first compact telegram arrives.
+    for (size_t i = 0; i < num_drivers; ++i)
+    {
+        if (string_view(builtins_[i].content).find("compact_frame_formats") != string_view::npos)
+        {
+            registerCompactFrameFormatsFromContent(builtins_[i].content);
+        }
+    }
 }

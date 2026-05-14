@@ -7,6 +7,9 @@ driver {
         mvt = KAM,33,02
         mvt = GAV,00,02
     }
+    compact_frame_formats {
+        difvif = 040504FB827504853C04FB82F53C01FD17
+    }
     fields {
         field {
             name       = status

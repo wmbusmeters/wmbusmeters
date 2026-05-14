@@ -1550,8 +1550,6 @@ bool Telegram::checkMAC(std::vector<uchar> &frame,
     return ok;
 }
 
-bool loadFormatBytesFromSignature(uint16_t format_signature, vector<uchar> *format_bytes);
-
 bool Telegram::alreadyDecryptedCBC(vector<uchar>::iterator &pos)
 {
     CHECK(2);
@@ -1831,26 +1829,21 @@ bool Telegram::parse_TPL_79(vector<uchar>::iterator &pos)
     format_signature = ecrc1<<8 | ecrc0;
 
     vector<uchar> format_bytes;
-    bool ok = loadFormatBytesFromSignature(format_signature, &format_bytes);
-    if (!ok) {
-        // We have not yet seen a long frame, but we know the formats for some
-        // meter specific hashes.
-        ok = findFormatBytesFromKnownMeterSignatures(&format_bytes);
-        if (!ok)
-        {
-            addMoreExplanation(offset, " (unknown)");
-            int num_compressed_bytes = distance(pos, frame.end());
-            string info = bin2hex(pos, frame.end(), num_compressed_bytes);
-            info += " compressed and signature unknown";
-            addExplanationAndIncrementPos(pos, distance(pos, frame.end()), KindOfData::CONTENT, Understanding::COMPRESSED, info.c_str());
+    bool ok = lookupCompactFormat(MVT{(uint16_t)dll_mfct, dll_version, dll_type}, format_signature, format_bytes);
+    if (!ok)
+    {
+        addMoreExplanation(offset, " (unknown)");
+        int num_compressed_bytes = distance(pos, frame.end());
+        string info = bin2hex(pos, frame.end(), num_compressed_bytes);
+        info += " compressed and signature unknown";
+        addExplanationAndIncrementPos(pos, distance(pos, frame.end()), KindOfData::CONTENT, Understanding::COMPRESSED, info.c_str());
 
-            verbose("(wmbus) ignoring compressed telegram since format signature hash 0x%02x is yet unknown.\n"
-                    "     this is not a problem, since you only need wait for at most 8 telegrams\n"
-                    "     (8*16 seconds) until an full length telegram arrives and then we know\n"
-                    "     the format giving this hash and start decoding the telegrams properly.\n",
-                    format_signature);
-            return false;
-        }
+        verbose("(wmbus) ignoring compressed telegram since format signature hash 0x%02x is yet unknown.\n"
+                "     this is not a problem, since you only need wait for at most 8 telegrams\n"
+                "     (8*16 seconds) until an full length telegram arrives and then we know\n"
+                "     the format giving this hash and start decoding the telegrams properly.\n",
+                format_signature);
+        return false;
     }
     vector<uchar>::iterator format = format_bytes.begin();
 
@@ -1890,25 +1883,22 @@ bool Telegram::parse_TPL_73(vector<uchar>::iterator &pos)
     format_signature = ecrc1<<8 | ecrc0;
 
     vector<uchar> format_bytes;
-    ok = loadFormatBytesFromSignature(format_signature, &format_bytes);
-    if (!ok) {
-        ok = findFormatBytesFromKnownMeterSignatures(&format_bytes);
-        if (!ok)
-        {
-            addMoreExplanation(offset, " (unknown)");
-            int num_compressed_bytes = distance(pos, frame.end());
-            string info = bin2hex(pos, frame.end(), num_compressed_bytes);
-            info += " compressed and signature unknown";
-            addExplanationAndIncrementPos(pos, distance(pos, frame.end()),
-                                          KindOfData::CONTENT, Understanding::COMPRESSED,
-                                          info.c_str());
-            verbose("(wmbus) ignoring compressed telegram since format signature hash 0x%02x is yet unknown.\n"
-                    "     this is not a problem, since you only need wait for at most 8 telegrams\n"
-                    "     (8*16 seconds) until an full length telegram arrives and then we know\n"
-                    "     the format giving this hash and start decoding the telegrams properly.\n",
-                    format_signature);
-            return false;
-        }
+    ok = lookupCompactFormat(MVT{(uint16_t)tpl_mfct, tpl_version, tpl_type}, format_signature, format_bytes);
+    if (!ok)
+    {
+        addMoreExplanation(offset, " (unknown)");
+        int num_compressed_bytes = distance(pos, frame.end());
+        string info = bin2hex(pos, frame.end(), num_compressed_bytes);
+        info += " compressed and signature unknown";
+        addExplanationAndIncrementPos(pos, distance(pos, frame.end()),
+                                      KindOfData::CONTENT, Understanding::COMPRESSED,
+                                      info.c_str());
+        verbose("(wmbus) ignoring compressed telegram since format signature hash 0x%02x is yet unknown.\n"
+                "     this is not a problem, since you only need wait for at most 8 telegrams\n"
+                "     (8*16 seconds) until an full length telegram arrives and then we know\n"
+                "     the format giving this hash and start decoding the telegrams properly.\n",
+                format_signature);
+        return false;
     }
     vector<uchar>::iterator format = format_bytes.begin();
 
@@ -4150,69 +4140,6 @@ string measurementTypeName(MeasurementType mt)
 }
 
 BusDevice::~BusDevice() {
-}
-
-bool Telegram::findFormatBytesFromKnownMeterSignatures(vector<uchar> *format_bytes)
-{
-    bool ok = true;
-    if (format_signature == 0xa8ed)
-    {
-        hex2bin("02FF2004134413615B6167", format_bytes);
-        debug("(wmbus) using hard coded format for hash a8ed\n");
-    }
-    else if (format_signature == 0xc412)
-    {
-        hex2bin("02FF20041392013BA1015B8101E7FF0F", format_bytes);
-        debug("(wmbus) using hard coded format for hash c412\n");
-    }
-    else if (format_signature == 0x61eb)
-    {
-        hex2bin("02FF2004134413A1015B8101E7FF0F", format_bytes);
-        debug("(wmbus) using hard coded format for hash 61eb\n");
-    }
-    else if (format_signature == 0xd2f7)
-    {
-        hex2bin("02FF2004134413615B5167", format_bytes);
-        debug("(wmbus) using hard coded format for hash d2f7\n");
-    }
-    else if (format_signature == 0xdd34)
-    {
-        hex2bin("02FF2004134413", format_bytes);
-        debug("(wmbus) using hard coded format for hash dd34\n");
-    }
-    else if (format_signature == 0x7c0e)
-    {
-        hex2bin("02FF200413523B", format_bytes);
-        debug("(wmbus) using hard coded format for hash 7c0e\n");
-    }
-    else if (format_signature == 0x0905)
-    {
-        hex2bin("04FF234413523B06FF1B426C61675167023B04138101E7FF0F", format_bytes);
-        debug("(wmbus) using hard coded format for hash 0905\n");
-    }
-    else if (format_signature == 0x2274)
-    {
-        // Kamstrup EM24 W1
-        hex2bin("040504FB827504853C04FB82F53C01FD17", format_bytes);
-        debug("(wmbus) using hard coded format for hash 2274\n");
-    }
-    else if (format_signature == 0xae5a)
-    {
-        // Kamstrup Multical 303
-        hex2bin("0406041404FF0704FF080259025D023B02FF22026C44064414426C", format_bytes);
-        debug("(wmbus) using hard coded format for hash ae5a\n");
-    }
-    else if (format_signature == 0x052d)
-    {
-        // Engelmann FAW
-        hex2bin("426C441301FD17840113C40113840213C40213840313C40313840413C40413840513C40513840613C40613840713C40713840813046D0413", format_bytes);
-        debug("(wmbus) using hard coded format for hash 052d\n");
-    }
-    else
-    {
-        ok = false;
-    }
-    return ok;
 }
 
 BusDeviceCommonImplementation::~BusDeviceCommonImplementation()

@@ -16,6 +16,16 @@ driver {
         mvt = KAM,1d,16
         // flowiq2200
     }
+    compact_frame_formats {
+        difvif = 02FF2004134413615B6167
+        difvif = 02FF20041392013BA1015B8101E7FF0F
+        difvif = 04FF234413523B06FF1B426C61675167023B04138101E7FF0F
+        // Unknown if KamHeat or KamWater
+        difvif = 02FF2004134413A1015B8101E7FF0F
+        difvif = 02FF2004134413615B5167
+        difvif = 02FF2004134413
+        difvif = 02FF200413523B
+    }
     library {
         use = total_m3
         use = target_m3

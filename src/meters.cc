@@ -17,6 +17,7 @@
 
 #include"bus.h"
 #include"config.h"
+#include"crc16.h"
 #include"drivers.h"
 #include"driver_dynamic.h"
 #include"meters.h"
@@ -200,6 +201,59 @@ bool staticRegisterDriver(function<void(DriverInfo&)> setup)
     return true;
 }
 
+static XMQProceed collect_mvt_cb(XMQDoc *doc, XMQNodePtr node, vector<MVT> *mvts)
+{
+    string mvt_s = xmqGetStringRel(doc, ".", node);
+    auto fields = splitString(mvt_s, ',');
+    if (fields.size() != 3) return XMQ_CONTINUE;
+    uint16_t mfct = 0;
+    if (fields[0].length() == 3)
+    {
+        mfct = toMfctCode(fields[0][0], fields[0][1], fields[0][2]);
+    }
+    else
+    {
+        char *eptr;
+        mfct = (uint16_t)strtol(fields[0].c_str(), &eptr, 16);
+        if (*eptr) return XMQ_CONTINUE;
+    }
+    uchar version = (uchar)strtol(fields[1].c_str(), NULL, 16);
+    uchar type    = (uchar)strtol(fields[2].c_str(), NULL, 16);
+    mvts->push_back({ mfct, version, type });
+    return XMQ_CONTINUE;
+}
+
+struct RegisterCFFContext { vector<MVT> *mvts; };
+
+static XMQProceed register_compact_frame_format_cb(XMQDoc *doc, XMQNodePtr node, RegisterCFFContext *ctx)
+{
+    const char *difvif_s = xmqGetStringRel(doc, ".", node);
+    if (!difvif_s) return XMQ_CONTINUE;
+    vector<uchar> difvif;
+    hex2bin(difvif_s, &difvif);
+    uint16_t sig = crc16_EN13757(difvif.data(), difvif.size());
+    for (auto &mvt : *ctx->mvts)
+    {
+        registerCompactFormatForMVT(mvt, sig, difvif);
+    }
+    return XMQ_CONTINUE;
+}
+
+void registerCompactFrameFormatsFromContent(const char *content)
+{
+    XMQDoc *doc = xmqNewDoc();
+    bool ok = xmqParseBuffer(doc, content, content + strlen(content), NULL, 0);
+    if (ok)
+    {
+        vector<MVT> mvts;
+        xmqForeach(doc, "/driver/detect/mvt", (XMQNodeCallback)collect_mvt_cb, &mvts);
+        RegisterCFFContext ctx { &mvts };
+        xmqForeach(doc, "/driver/compact_frame_formats/difvif",
+                   (XMQNodeCallback)register_compact_frame_format_cb, &ctx);
+    }
+    xmqFreeDoc(doc);
+}
+
 string loadDriver(const string &file, const char *content)
 {
     bool loading_builtin = false;
@@ -219,6 +273,14 @@ string loadDriver(const string &file, const char *content)
     if (!ok)
     {
         error(EXIT_DRIVER_ERROR, "Failed to load driver from file: %s\n", file.c_str());
+    }
+
+    for (auto &mvt : di.mvts())
+    {
+        for (auto &[sig, difvif] : di.compactFrameFormats())
+        {
+            registerCompactFormatForMVT(mvt, sig, difvif);
+        }
     }
 
     // Check if the driver name has been registered before....
