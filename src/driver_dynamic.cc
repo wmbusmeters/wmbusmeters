@@ -26,11 +26,13 @@
 
 using namespace std;
 
-string check_driver_name(const char *name, string file);
-string check_aliases(const char *aliases, string file);
-MeterType check_meter_type(const char *meter_type_s, string file);
-string check_default_fields(const char *fields, string file);
-void check_detection_triplets(DriverInfo *di, string file);
+bool process_driver_name(DriverInfo *di);
+bool process_aliases(DriverInfo *di);
+bool process_meter_type(DriverInfo *di);
+bool process_default_fields(DriverInfo *di);
+bool process_force_media_type(DriverInfo *di);
+bool process_mvt(DriverInfo *di);
+bool process_mfct_tpl_status(DriverInfo *di);
 
 string check_field_name(const char *name, DriverDynamic *dd);
 string check_field_ixml(const char *ixml, DriverDynamic *dd);
@@ -103,45 +105,31 @@ bool DriverDynamic::load(DriverInfo *di, const string &file_name, const char *co
         return false;
     }
 
-    try
-    {
-        string name = check_driver_name(xmqGetString(doc, "/driver/name"), file);
-        di->setName(name);
+    di->setDynamic(file, doc);
 
-        string aliases = check_aliases(xmqGetString(doc, "/driver/aliases"), file);
-        di->setAliases(aliases);
-
-        MeterType meter_type = check_meter_type(xmqGetString(doc, "/driver/meter_type"), file);
-        di->setMeterType(meter_type);
-
-        string default_fields = check_default_fields(xmqGetString(doc, "/driver/default_fields"), file);
-        di->setDefaultFields(default_fields);
-
-        const char *media_type_s = xmqGetString(doc, "/driver/force_media_type");
-        if (media_type_s) di->setMediaType(media_type_s);
-
-        if (!content)
-        {
-            verbose("(driver) loading driver %s from file %s\n", name.c_str(), file.c_str());
-        }
-
-        di->setDynamic(file, doc);
-
-        xmqForeach(doc, "/driver/detect/mvt", (XMQNodeCallback)add_detect, di);
-        xmqForeach(doc, "/driver/mfct_tpl_status_bits", (XMQNodeCallback)add_mfct_tpl_status, di);
-
-        check_detection_triplets(di, file);
-
-        di->setConstructor([](MeterInfo& mi, DriverInfo& di){ return shared_ptr<Meter>(new DriverDynamic(mi, di)); });
-
-        return true;
-    }
-    catch (...)
-    {
-        xmqFreeDoc(doc);
+    if (
+        (
+            process_driver_name(di) &&
+            process_aliases(di) &&
+            process_meter_type(di) &&
+            process_default_fields(di) &&
+            process_force_media_type(di) &&
+            process_mvt(di) &&
+            process_mfct_tpl_status(di)
+        ) == false
+    ) {
         di->setDynamic(file, NULL);
         return false;
     }
+
+    if (!content)
+    {
+        verbose("(driver) loading driver %s from file %s\n", di->name(), di->getDynamicFileName().c_str());
+    }
+
+    di->setConstructor([](MeterInfo& mi, DriverInfo& di){ return shared_ptr<Meter>(new DriverDynamic(mi, di)); });
+
+    return true;
 }
 
 DriverDynamic::DriverDynamic(MeterInfo &mi, DriverInfo &di) :
@@ -183,7 +171,7 @@ DriverDynamic::~DriverDynamic()
 {
 }
 
-XMQProceed DriverDynamic::add_detect(XMQDoc *doc, XMQNodePtr detect, DriverInfo *di)
+XMQProceed add_detect(XMQDoc *doc, XMQNodePtr detect, DriverInfo *di)
 {
     string mvt = xmqGetStringRel(doc, ".", detect);
 
@@ -613,7 +601,7 @@ XMQProceed DriverDynamic::add_lookup(XMQDoc *doc, XMQNodePtr lookup, DriverDynam
     return XMQ_CONTINUE;
 }
 
-XMQProceed DriverDynamic::add_mfct_tpl_status_map(XMQDoc *doc, XMQNodePtr map, Translate::Rule *rule)
+XMQProceed add_mfct_tpl_status_map(XMQDoc *doc, XMQNodePtr map, Translate::Rule *rule)
 {
     const char *name = xmqGetStringRel(doc, "name", map);
     const char *value_s = xmqGetStringRel(doc, "value", map);
@@ -629,7 +617,7 @@ XMQProceed DriverDynamic::add_mfct_tpl_status_map(XMQDoc *doc, XMQNodePtr map, T
     return XMQ_CONTINUE;
 }
 
-XMQProceed DriverDynamic::add_mfct_tpl_status(XMQDoc *doc, XMQNodePtr node, DriverInfo *di)
+XMQProceed add_mfct_tpl_status(XMQDoc *doc, XMQNodePtr node, DriverInfo *di)
 {
     const char *mask_bits_s = xmqGetStringRel(doc, "mask_bits", node);
     const char *default_message = xmqGetStringRel(doc, "default_message", node);
@@ -650,18 +638,20 @@ XMQProceed DriverDynamic::add_mfct_tpl_status(XMQDoc *doc, XMQNodePtr node, Driv
     return XMQ_CONTINUE;
 }
 
-string check_driver_name(const char *name, string file)
+bool process_driver_name(DriverInfo *di)
 {
+    const char *name = xmqGetString(di->getDynamicDriver(), "/driver/name");
+
     if (!name)
     {
         warning("(driver) error in %s, cannot find: driver/name\n"
                 "%s\n"
                 "A driver file looks like this: driver { name = abc123 ... }\n"
                 "%s\n",
-                file.c_str(),
+                di->getDynamicFileName().c_str(),
                 line,
                 line);
-        throw 1;
+        return false;
     }
 
     if (!is_lowercase_alpha_num_underscore(name))
@@ -670,18 +660,21 @@ string check_driver_name(const char *name, string file)
                 "%s\n"
                 "The driver name must consist of lower case ascii a-z, digits 0-9 and _ .\n"
                 "%s\n",
-                file.c_str(),
+                di->getDynamicFileName().c_str(),
                 name,
                 line,
                 line);
-        throw 1;
+        return false;
     }
 
-    return name;
+    di->setName(name);
+    return true;
 }
 
-MeterType check_meter_type(const char *meter_type_s, string file)
+bool process_meter_type(DriverInfo *di)
 {
+    const char *meter_type_s = xmqGetString(di->getDynamicDriver(), "/driver/meter_type");
+
     if (!meter_type_s)
     {
         warning("(driver) error in %s, cannot find: driver/meter_type\n"
@@ -689,11 +682,11 @@ MeterType check_meter_type(const char *meter_type_s, string file)
                 "Remember to add: meter_type = ...\n"
                 "Available meter types are:\n%s\n"
                 "%s\n",
-                file.c_str(),
+                di->getDynamicFileName().c_str(),
                 line,
                 availableMeterTypes(),
                 line);
-        throw 1;
+        return false;
     }
 
     MeterType meter_type = toMeterType(meter_type_s);
@@ -704,29 +697,31 @@ MeterType check_meter_type(const char *meter_type_s, string file)
                 "%s\n"
                 "Available meter types are:\n%s\n"
                 "%s\n",
-                file.c_str(),
+                di->getDynamicFileName().c_str(),
                 meter_type_s,
                 line,
                 availableMeterTypes(),
                 line);
-        throw 1;
+        return false;
     }
 
-    return meter_type;
+    di->setMeterType(meter_type);
+    return true;
 }
 
-string check_aliases(const char *aliases, string file)
+bool process_aliases(DriverInfo *di)
 {
-    if (!aliases)
-    {
-        return "";
-    }
+    const char *aliases = xmqGetString(di->getDynamicDriver(), "/driver/aliases");
 
-    return aliases;
+    di->setAliases(!aliases ? "" : aliases);
+
+    return true;
 }
 
-string check_default_fields(const char *default_fields, string file)
+bool process_default_fields(DriverInfo *di)
 {
+    const char *default_fields = xmqGetString(di->getDynamicDriver(), "/driver/default_fields");
+
     if (!default_fields)
     {
         warning("(driver) error in %s, cannot find: driver/default_fields\n"
@@ -734,17 +729,31 @@ string check_default_fields(const char *default_fields, string file)
                 "Remember to add for example: default_fields = name,id,total_m3,timestamp\n"
                 "Where you change total_m3 to your meters most important field.\n"
                 "%s\n",
-                file.c_str(),
+                di->getDynamicFileName().c_str(),
                 line,
                 line);
-        throw 1;
+        return false;
     }
 
-    return default_fields;
+    di->setDefaultFields(default_fields);
+    return true;
 }
 
-void check_detection_triplets(DriverInfo *di, string file)
+bool process_force_media_type(DriverInfo *di)
 {
+    const char *media_type_s = xmqGetString(di->getDynamicDriver(), "/driver/force_media_type");
+
+    if (media_type_s)
+    {
+        di->setMediaType(media_type_s);
+    }
+    return true;
+}
+
+bool process_mvt(DriverInfo *di)
+{
+    xmqForeach(di->getDynamicDriver(), "/driver/detect/mvt", (XMQNodeCallback)add_detect, di);
+
     if (di->mvts().size() == 0)
     {
         warning("(driver) error in %s, cannot find any detection triplets: driver/detect/mvt\n"
@@ -755,11 +764,19 @@ void check_detection_triplets(DriverInfo *di, string file)
                 "The manufacturer can be given as three uppercase characters A-Z\n"
                 "or as 4 lower case hex digits.\n"
                 "%s\n",
-                file.c_str(),
+                di->getDynamicFileName().c_str(),
                 line,
                 line);
-        throw 1;
+        return false;
     }
+
+    return true;
+}
+
+bool process_mfct_tpl_status(DriverInfo *di)
+{
+    xmqForeach(di->getDynamicDriver(), "/driver/mfct_tpl_status_bits", (XMQNodeCallback)add_mfct_tpl_status, di);
+    return true;
 }
 
 string check_field_name(const char *name, DriverDynamic *dd)
