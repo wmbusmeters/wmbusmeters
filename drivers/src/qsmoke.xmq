@@ -6,6 +6,8 @@ driver {
     detect {
         mvt = QDS,21,1a
         mvt = QDS,23,1a
+        mvt = LSE,21,1a
+        mvt = LSE,23,1a
     }
     fields {
         field {

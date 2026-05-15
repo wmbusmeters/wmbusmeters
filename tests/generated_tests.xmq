@@ -1309,13 +1309,13 @@ test {
 test {
     args     = 'Water lse_07_17 13963399 NOKEY'
     telegram = 2A4465329933961318067AD8800000_8C04130070000082046CBE2B01FD0C11046D1800A12C02FDAC7E9B2E
-    json     = '{"_":"telegram","media":"warm water","meter":"lse_07_17","name":"Water","id":"13963399","what_m3":7,"what_date":"2021-11-30","device_datetime":"2021-12-01 00:24","model_version":"11","timestamp":"1111-11-11T11:11:11Z"}'
+    json     = '{"_":"telegram","media":"warm water","meter":"lse_07_17","name":"Water","id":"13963399","consumption_at_set_date_8_m3":7,"set_date_8":"2021-11-30","device_datetime":"2021-12-01 00:24","model_version":"11","timestamp":"1111-11-11T11:11:11Z"}'
     fields   = 'Water;13963399;null;null;null;null;null;2021-12-01 00:24;1111-11-11 11:11.11'
 }
 test {
     args     = 'Water lse_07_17 13963399 NOKEY'
     telegram = 244465329933961318067AE1000000_8C04130070000082046CBE2B01FD0C11046D010CA22C
-    json     = '{"_":"telegram","media":"warm water","meter":"lse_07_17","name":"Water","id":"13963399","what_m3":7,"what_date":"2021-11-30","device_datetime":"2021-12-02 12:01","model_version":"11","timestamp":"1111-11-11T11:11:11Z"}'
+    json     = '{"_":"telegram","media":"warm water","meter":"lse_07_17","name":"Water","id":"13963399","consumption_at_set_date_8_m3":7,"set_date_8":"2021-11-30","device_datetime":"2021-12-02 12:01","model_version":"11","timestamp":"1111-11-11T11:11:11Z"}'
     fields   = 'Water;13963399;null;null;null;null;null;2021-12-02 12:01;1111-11-11 11:11.11'
 }
 test {
@@ -1573,6 +1573,13 @@ test {
     fields   = 'HCA1;91835132;304;2020-09-30;366;1111-11-11 11:11.11'
 }
 test {
+    args     = 'MyElement4 qcaloric 90919293 NOKEY'
+    comment  = 'Another mostly empty telegram, but values are now valid.'
+    telegram = 49449344939291903408780DFF5F350082180000800007B06EFFFF970000009F2C70020000BE26970000000000010018002E001F002E0023FF210008000500020000002F046D220FA228
+    json     = '{"_":"telegram","media":"heat cost allocation","meter":"qcaloric","name":"MyElement4","id":"90919293","status":"OK","current_consumption_hca":97,"set_date":"2020-12-31","consumption_at_set_date_hca":270,"set_date_1":"2020-12-31","consumption_at_set_date_1_hca":270,"set_date_17":"2021-06-30","consumption_at_set_date_17_hca":97,"error_date":"2127-15-31","device_datetime":"2021-08-02 15:34","timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'MyElement4;90919293;97;2020-12-31;270;1111-11-11 11:11.11'
+}
+test {
     args     = 'MyElement3 qcaloric 90919293 NOKEY'
     comment  = 'Normal telegram that fills in values.'
     telegram = 314493449392919034087a520000200b6e9700004b6e700200426c9f2ccb086e970000c2086cbe26326cffff046d2d16a227
@@ -1587,10 +1594,10 @@ test {
 }
 test {
     args     = 'MyElement2 qcaloric 90919293 NOKEY'
-    comment  = 'Test mostly proprietary telegram without values'
+    comment  = 'Walkby telegram with WalkByDataSet manufacturer block (Type2, Bcd6, VIF=HCA).'
     telegram = 49449344939291903408780DFF5F350082180000800007B06EFFFF970000009F2C70020000BE26970000000000010018002E001F002E0023FF210008000500020000002F046D220FA227
-    json     = '{"_":"telegram","media":"heat cost allocation","meter":"qcaloric","name":"MyElement2","id":"90919293","status":"OK","device_datetime":"2021-07-02 15:34","timestamp":"1111-11-11T11:11:11Z"}'
-    fields   = 'MyElement2;90919293;null;null;null;1111-11-11 11:11.11'
+    json     = '{"_":"telegram","media":"heat cost allocation","meter":"qcaloric","name":"MyElement2","id":"90919293","status":"OK","current_consumption_hca":97,"set_date":"2020-12-31","consumption_at_set_date_hca":270,"set_date_1":"2020-12-31","consumption_at_set_date_1_hca":270,"set_date_17":"2021-06-30","consumption_at_set_date_17_hca":97,"device_datetime":"2021-07-02 15:34","timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'MyElement2;90919293;97;2020-12-31;270;1111-11-11 11:11.11'
 }
 test {
     args     = 'MyElement1 qcaloric 78563412 NOKEY'
@@ -1625,14 +1632,14 @@ test {
 test {
     args     = 'QQA qheatv2 67958979 NOKEY'
     telegram = 58449344798995673E377807797989956793443E040DFF5F3500827D0000810007C006FFFF531100003F3C490900005F318010000083003C0022000B0000000000000000000A002B00510083002F02FD170000046D16085832
-    json     = '{"_": "telegram","enhanced_id": "043E449367958979","id": "67958979","media": "radio converter (meter side)","meter": "qheatv2","meter_datetime": "2026-02-24 08:22","name": "QQA","status": "OK","target_date": "2026-01-31","target_year_date": "2025-12-31","target_year_kwh": 1080,"timestamp": "1111-11-11T11:11:11Z","total_kwh": 1153}'
+    json     = '{"_": "telegram","energy_delta_10_kwh":10,"energy_delta_11_kwh":43,"energy_delta_12_kwh":81,"energy_delta_13_kwh":131,"energy_delta_2_kwh":131,"energy_delta_3_kwh":60,"energy_delta_4_kwh":34,"energy_delta_5_kwh":11,"energy_delta_6_kwh":0,"energy_delta_7_kwh":0,"energy_delta_8_kwh":0,"energy_delta_9_kwh":0,"enhanced_id": "043E449367958979","id": "67958979","media": "radio converter (meter side)","meter": "qheatv2","meter_datetime": "2026-02-24 08:22","name": "QQA","status": "OK","target_date": "2026-01-31","target_kwh":1080,"target_year_date": "2025-12-31","target_year_kwh":949,"timestamp": "1111-11-11T11:11:11Z","total_kwh": 1153}'
     fields   = 'QQA;67958979;OK;1153;1111-11-11 11:11.11'
 }
 test {
     args     = 'QHeat55r qheatv2 68267443 NOKEY'
     comment  = 'Q Walk by telegram sent every 112 seconds'
     telegram = 5844934443742668483778_077943742668934448040DFF5F3500822A0000610107C006FFFF14000000FFFF000000003C32000000000080008000800080008000800080008000800080008000002F02FD170000046D1B0F3533
-    json     = '{"_": "telegram","enhanced_id": "0448449368267443","id": "68267443","media": "radio converter (meter side)","meter": "qheatv2","meter_datetime": "2025-03-21 15:27","name": "QHeat55r","status": "OK","target_date": "2025-02-28","target_year_date": "2128-03-31","target_year_kwh": 0,"timestamp": "1111-11-11T11:11:11Z","total_kwh": 14}'
+    json     = '{"_": "telegram","energy_delta_10_kwh":-32768,"energy_delta_11_kwh":-32768,"energy_delta_12_kwh":-32768,"energy_delta_13_kwh":0,"energy_delta_2_kwh":-32768,"energy_delta_3_kwh":-32768,"energy_delta_4_kwh":-32768,"energy_delta_5_kwh":-32768,"energy_delta_6_kwh":-32768,"energy_delta_7_kwh":-32768,"energy_delta_8_kwh":-32768,"energy_delta_9_kwh":-32768,"enhanced_id": "0448449368267443","id": "68267443","media": "radio converter (meter side)","meter": "qheatv2","meter_datetime": "2025-03-21 15:27","name": "QHeat55r","status": "OK","target_date": "2025-02-28","target_kwh": 0,"target_year_date": "2128-03-31","target_year_kwh": 0,"timestamp": "1111-11-11T11:11:11Z","total_kwh": 14}'
     fields   = 'QHeat55r;68267443;OK;14;1111-11-11 11:11.11'
 }
 test {
@@ -1646,7 +1653,7 @@ test {
 test {
     args     = 'QQ1 qheatv2 68204641 NOKEY'
     telegram = 58449344414620684737780779414620689344470c0dff5f3500825a00000e0007c00dffff310803001f3c036800003e34310803000080008000800080008000800000931a92293128190c00002f02fd170000046d000f3235
-    json     = '{"_": "telegram","enhanced_id": "0C47449368204641","id": "68204641","media": "radio converter (meter side)","meter": "qheatv2","meter_datetime": "2025-05-18 15:00","name": "QQ1","status": "OK","target_date": "2025-04-30","target_year_date": "2024-12-31","target_year_kwh": 856.416667,"timestamp": "1111-11-11T11:11:11Z","total_kwh": 856.416667}'
+    json     = '{"_": "telegram","energy_delta_10_kwh":295.611111,"energy_delta_11_kwh":285.805556,"energy_delta_12_kwh":86.027778,"energy_delta_13_kwh":0,"energy_delta_2_kwh":-910.222222,"energy_delta_3_kwh":-910.222222,"energy_delta_4_kwh":-910.222222,"energy_delta_5_kwh":-910.222222,"energy_delta_6_kwh":-910.222222,"energy_delta_7_kwh":-910.222222,"energy_delta_8_kwh":0,"energy_delta_9_kwh":188.972222,"enhanced_id": "0C47449368204641","id": "68204641","media": "radio converter (meter side)","meter": "qheatv2","meter_datetime": "2025-05-18 15:00","name": "QQ1","status": "OK","target_date": "2025-04-30","target_kwh":856.416667,"target_year_date": "2024-12-31","target_year_kwh":188.972222,"timestamp": "1111-11-11T11:11:11Z","total_kwh": 856.416667}'
     fields   = 'QQ1;68204641;OK;856.416667;1111-11-11 11:11.11'
 }
 test {
@@ -1750,7 +1757,7 @@ test {
     args     = 'QWooo qwaterv2 78563412 NOKEY'
     comment  = 'Proprietary Q walk-by message'
     telegram = 49449344123456781606780DFF5F3500824E00007F0007C113FFFF63961300DF2C82731200FE2463811300A400F200D100A900DD00E000E90006011601EA0027010F012F046D0211F225
-    json     = '{"_":"telegram","target_date": "2023-04-30","target_m3": 138.163,"target_year_date": "2022-12-31","target_year_m3": 127.382,"id": "78563412","media": "warm water","meter": "qwaterv2","meter_datetime": "2023-05-18 17:02","name": "QWooo","status": "OK","timestamp": "1111-11-11T11:11:11Z","total_m3": 139.663}'
+    json     = '{"_":"telegram","id": "78563412","media": "warm water","meter": "qwaterv2","meter_datetime": "2023-05-18 17:02","name": "QWooo","status": "OK","target_date": "2023-04-30","target_m3": 138.163,"target_year_date": "2022-12-31","target_year_m3": 127.382,"timestamp": "1111-11-11T11:11:11Z","total_m3": 139.663,"volume_delta_2_m3":0.164,"volume_delta_3_m3":0.242,"volume_delta_4_m3":0.209,"volume_delta_5_m3":0.169,"volume_delta_6_m3":0.221,"volume_delta_7_m3":0.224,"volume_delta_8_m3":0.233,"volume_delta_9_m3":0.262,"volume_delta_10_m3":0.278,"volume_delta_11_m3":0.234,"volume_delta_12_m3":0.295,"volume_delta_13_m3":0.271}'
     fields   = 'QWooo;78563412;OK;139.663;1111-11-11 11:11.11'
 }
 test {
@@ -1789,7 +1796,7 @@ test {
     args     = 'MyQWater qwaterv2 12353648 NOKEY'
     comment  = 'A walk by telegram with mfct data.'
     telegram = 4b449344483635121806780dff5f350082da0000600107c113ffff48200000bf2c91170000df2120200000008001000000060019001000160018000d001300350017002f046d370cc422c759
-    json     = '{"_": "telegram","id": "12353648","media": "warm water","meter": "qwaterv2","meter_datetime": "2022-02-04 12:55","name": "MyQWater","status": "OK","target_date": "2022-01-31","target_year_date": "2021-12-31","target_m3":2.02,"target_year_m3": 1.791,"timestamp": "1111-11-11T11:11:11Z","total_m3": 2.048}'
+    json     = '{"_": "telegram","id": "12353648","media": "warm water","meter": "qwaterv2","meter_datetime": "2022-02-04 12:55","name": "MyQWater","status": "OK","target_date": "2022-01-31","target_m3":2.02,"target_year_date": "2021-12-31","target_year_m3": 1.791,"timestamp": "1111-11-11T11:11:11Z","total_m3": 2.048,"volume_delta_2_m3":-32.768,"volume_delta_3_m3":0.001,"volume_delta_4_m3":0,"volume_delta_5_m3":0.006,"volume_delta_6_m3":0.025,"volume_delta_7_m3":0.016,"volume_delta_8_m3":0.022,"volume_delta_9_m3":0.024,"volume_delta_10_m3":0.013,"volume_delta_11_m3":0.019,"volume_delta_12_m3":0.053,"volume_delta_13_m3":0.023}'
     fields   = 'MyQWater;12353648;OK;2.048;1111-11-11 11:11.11'
 }
 test {

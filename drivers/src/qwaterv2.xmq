@@ -20,6 +20,15 @@ driver {
         mvt = QDS,1D,07
         mvt = QDS,36,06
         mvt = QDS,36,07
+        mvt = LSE,19,07
+        mvt = LSE,1A,06
+        mvt = LSE,1A,07
+        mvt = LSE,1D,06
+        mvt = LSE,1D,07
+        mvt = LSE,33,37
+        mvt = LSE,35,37
+        mvt = LSE,36,06
+        mvt = LSE,36,07
     }
     library {
         use = total_m3
@@ -166,9 +175,21 @@ driver {
             match {
                 difvifkey = 0DFF5F
             }
+            // Siemens/Qundis WalkByDataSet block: DIF=0D (variable-len), VIF=FF (mfct), VIFE=5F, 53 bytes.
+            // 9-byte proprietary header (skipped as quad, quad, byte):
+            //   [0]   0x00     reserved
+            //   [1]   0x82     wbdsId: Type 2 WalkByDataSet
+            //   [2]   counter  rolling transmission counter (increments each send)
+            //   [3]   0x00     reserved
+            //   [4]   0x00     reserved
+            //   [5]   flags    device-specific status/flags (format unknown)
+            //   [6]   0x00/01  extra flag
+            //   [7]   0x07     constant (possibly number of data records)
+            //   [8]   0xC1     meter type: 0xB0=HCA, 0xC0=heat, 0xC1=warm/cold water
+            // Byte [9] is the VIF (0x13 = volume in liters), which is matched below.
             ixml = "decode = quad, quad, byte, volume_l.
 
-                    volume_l = '13', error_date, total_l, target_year_date, target_year_l, target_date, target_l, byte*.
+                    volume_l = '13', error_date, total_l, target_year_date, target_year_l, target_date, target_l, delta1, delta2, delta3, delta4, delta5, delta6, delta7, delta8, delta9, delta10, delta11, delta12, -pad.
 
                     error_date = word, @DV_426C.
                     target_year_date = word, @DV_426C.
@@ -177,6 +198,20 @@ driver {
                     total_l = quad, @DV_0C13.
                     target_year_l = quad, @DV_4C13.
                     target_l = quad, @DV_CC0813.
+
+                    delta1  = word, @DV_820113.
+                    delta2  = word, @DV_C20113.
+                    delta3  = word, @DV_820213.
+                    delta4  = word, @DV_C20213.
+                    delta5  = word, @DV_820313.
+                    delta6  = word, @DV_C20313.
+                    delta7  = word, @DV_820413.
+                    delta8  = word, @DV_C20413.
+                    delta9  = word, @DV_820513.
+                    delta10 = word, @DV_C20513.
+                    delta11 = word, @DV_820613.
+                    delta12 = word, @DV_C20613.
+                    -pad = byte.
 
                     -hex  = ['A'-'F';'0'-'9'].
                     -byte = hex, hex.
@@ -192,7 +227,30 @@ driver {
                     DV_426C>dvk = +'426C'.
                     DV_C2086C>dvk = +'C2086C'.
 
-                   "
+                    DV_820113>dvk = +'820113'.
+                    DV_C20113>dvk = +'C20113'.
+                    DV_820213>dvk = +'820213'.
+                    DV_C20213>dvk = +'C20213'.
+                    DV_820313>dvk = +'820313'.
+                    DV_C20313>dvk = +'C20313'.
+                    DV_820413>dvk = +'820413'.
+                    DV_C20413>dvk = +'C20413'.
+                    DV_820513>dvk = +'820513'.
+                    DV_C20513>dvk = +'C20513'.
+                    DV_820613>dvk = +'820613'.
+                    DV_C20613>dvk = +'C20613'."
+        }
+        field {
+            name           = 'volume_delta_{storage_counter}'
+            quantity       = Volume
+            info           = 'Monthly volume delta.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
+            match {
+                measurement_type = Instantaneous
+                vif_range        = AnyVolumeVIF
+                storage_nr       = 2,13
+            }
         }
     }
     tests {
@@ -206,7 +264,7 @@ driver {
             args     = 'MyQWater qwaterv2 12353648 NOKEY'
             comment  = 'A walk by telegram with mfct data.'
             telegram = 4b449344483635121806780dff5f350082da0000600107c113ffff48200000bf2c91170000df2120200000008001000000060019001000160018000d001300350017002f046d370cc422c759
-            json     = '{"_": "telegram","id": "12353648","media": "warm water","meter": "qwaterv2","meter_datetime": "2022-02-04 12:55","name": "MyQWater","status": "OK","target_date": "2022-01-31","target_year_date": "2021-12-31","target_m3":2.02,"target_year_m3": 1.791,"timestamp": "1111-11-11T11:11:11Z","total_m3": 2.048}'
+            json     = '{"_": "telegram","id": "12353648","media": "warm water","meter": "qwaterv2","meter_datetime": "2022-02-04 12:55","name": "MyQWater","status": "OK","target_date": "2022-01-31","target_m3":2.02,"target_year_date": "2021-12-31","target_year_m3": 1.791,"timestamp": "1111-11-11T11:11:11Z","total_m3": 2.048,"volume_delta_2_m3":-32.768,"volume_delta_3_m3":0.001,"volume_delta_4_m3":0,"volume_delta_5_m3":0.006,"volume_delta_6_m3":0.025,"volume_delta_7_m3":0.016,"volume_delta_8_m3":0.022,"volume_delta_9_m3":0.024,"volume_delta_10_m3":0.013,"volume_delta_11_m3":0.019,"volume_delta_12_m3":0.053,"volume_delta_13_m3":0.023}'
             fields   = 'MyQWater;12353648;OK;2.048;1111-11-11 11:11.11'
         }
         test {
@@ -245,7 +303,7 @@ driver {
             args     = 'QWooo qwaterv2 78563412 NOKEY'
             comment  = 'Proprietary Q walk-by message'
             telegram = 49449344123456781606780DFF5F3500824E00007F0007C113FFFF63961300DF2C82731200FE2463811300A400F200D100A900DD00E000E90006011601EA0027010F012F046D0211F225
-            json     = '{"_":"telegram","target_date": "2023-04-30","target_m3": 138.163,"target_year_date": "2022-12-31","target_year_m3": 127.382,"id": "78563412","media": "warm water","meter": "qwaterv2","meter_datetime": "2023-05-18 17:02","name": "QWooo","status": "OK","timestamp": "1111-11-11T11:11:11Z","total_m3": 139.663}'
+            json     = '{"_":"telegram","id": "78563412","media": "warm water","meter": "qwaterv2","meter_datetime": "2023-05-18 17:02","name": "QWooo","status": "OK","target_date": "2023-04-30","target_m3": 138.163,"target_year_date": "2022-12-31","target_year_m3": 127.382,"timestamp": "1111-11-11T11:11:11Z","total_m3": 139.663,"volume_delta_2_m3":0.164,"volume_delta_3_m3":0.242,"volume_delta_4_m3":0.209,"volume_delta_5_m3":0.169,"volume_delta_6_m3":0.221,"volume_delta_7_m3":0.224,"volume_delta_8_m3":0.233,"volume_delta_9_m3":0.262,"volume_delta_10_m3":0.278,"volume_delta_11_m3":0.234,"volume_delta_12_m3":0.295,"volume_delta_13_m3":0.271}'
             fields   = 'QWooo;78563412;OK;139.663;1111-11-11 11:11.11'
         }
         test {
