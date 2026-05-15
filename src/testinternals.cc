@@ -195,6 +195,44 @@ void test_crc()
     if (crc != 0xc2b7) {
         printf("ERROR! %4x should be c2b7\n", crc);
     }
+
+    block[0]='1';
+    block[1]='2';
+    block[2]='3';
+    block[3]='4';
+    block[4]='5';
+    block[5]='6';
+    block[6]='7';
+    block[7]='8';
+    block[8]='9';
+
+    crc = crc16_CCITT(block, 9);
+
+    if (crc != 0x29B1) {
+        printf("ERROR! CCITT %04x should be 29b1\n", crc);
+    }
+
+    // Generic overload: crc16_EN13757(data,len) == ~crc16(0x3D65, 0x0000, data, len)
+    block[0]='1';
+    block[1]='2';
+    block[2]='3';
+    block[3]='4';
+    block[4]='5';
+    block[5]='6';
+    block[6]='7';
+    block[7]='8';
+    block[8]='9';
+
+    crc = ~crc16(0x3D65, 0x0000, block, 9);
+    if (crc != 0xc2b7) {
+        printf("ERROR! generic crc16(EN13757) %04x should be c2b7\n", crc);
+    }
+    // Apator-specific variant (POLY=0x41A5, INIT=0x5B25) used in methods b and c.
+    // No real test vector available yet; just verify the call compiles and runs.
+    uint16_t apator_crc = crc16(0x41A5, 0x5B25, block, 9);
+    (void)apator_crc;
+
+    printf("OK: Test CRC16\n");
 }
 
 bool tst_parse(const char *data, std::unordered_map<std::string,std::pair<int,DVEntry>> *dv_entries, int testnr)
