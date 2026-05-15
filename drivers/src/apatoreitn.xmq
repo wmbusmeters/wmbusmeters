@@ -265,6 +265,20 @@ driver {
                                     DV_temp_room_prev_avg>dvk = +'02FB02'."
         }
     }
+    /* TODO A3: EITN-9 full format support.
+       pktType 9 (unencrypted, SW 8): 54-byte payload containing seal conditions, current+previous
+       year temperatures, 15-month HCA history, and error field.
+       pktType 10 (AES-128-CBC, SW 9/13): same payload encrypted using method a (IV = bytes[2..9]
+       of the raw telegram duplicated twice; verify last 2 decrypted bytes == 0x0000).
+       Detection: module_type = 0x08.
+       Blocked on: real EITN-9 test telegram with known key.
+
+       TODO A4: EITN-40 monthly history variants (pktTypes 5, 6, 7 in wmbus_decoding.md).
+       pktType 5 (unencrypted): standard 16 payload bytes + bytes 21-22 (Uint12 current month HCA)
+       + bytes 23-24 (Uint12 last month HCA).
+       pktType 6 (AES-128-ECB double-block, method c) and pktType 7 (AES-128-ECB+XOR, method b):
+       encrypted variants using non-standard CRC16 (POLY=0x41A5, INIT=0x5B25) for validation.
+       Blocked on: real EITN-40 monthly test telegram with known key. */
     tests {
         test {
             args     = 'HCA1 apatoreitn 37373731 NOKEY'
