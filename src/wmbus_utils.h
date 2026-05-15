@@ -27,9 +27,18 @@ bool decrypt_TPL_AES_CBC_IV(Telegram *t,std::vector<uchar> &frame,std::vector<uc
                             int *num_encrypted_bytes,
                             int *num_not_encrypted_at_end);
 
+// IV = M(2)+A(6) repeated twice (Apator method a). Verifies last 2 decrypted bytes == 0x0000.
 bool decrypt_TPL_AES_CBC_IV_HEADER_REPEATED(Telegram *t,std::vector<uchar> &frame,std::vector<uchar>::iterator &pos,std::vector<uchar> &aeskey,
                                             int *num_encrypted_bytes,
                                             int *num_not_encrypted_at_end);
+// ECB-decrypt first 16 bytes, XOR next 2 with first 2, CRC16(0x41A5,0x5B25) check, strip 2-byte header (Apator method b).
+bool decrypt_TPL_AES_ECB_CBC_XOR(Telegram *t,std::vector<uchar> &frame,std::vector<uchar>::iterator &pos,std::vector<uchar> &aeskey,
+                                  int *num_encrypted_bytes,
+                                  int *num_not_encrypted_at_end);
+// ECB double-block with manual CBC chaining, CRC16(0x41A5,0x5B25) check, strip 2-byte header (Apator method c).
+bool decrypt_TPL_AES_ECB_DOUBLE(Telegram *t,std::vector<uchar> &frame,std::vector<uchar>::iterator &pos,std::vector<uchar> &aeskey,
+                                 int *num_encrypted_bytes,
+                                 int *num_not_encrypted_at_end);
 bool decrypt_TPL_AES_CBC_NO_IV(Telegram *t,std::vector<uchar> &frame,std::vector<uchar>::iterator &pos,std::vector<uchar> &aeskey,
                                int *num_encrypted_bytes,
                                int *num_not_encrypted_at_end);

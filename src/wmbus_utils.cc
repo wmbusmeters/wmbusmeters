@@ -18,6 +18,7 @@
 #include"always.h"
 #include"log.h"
 #include"aes.h"
+#include"crc16.h"
 #include"util.h"
 #include"wmbus.h"
 
@@ -297,6 +298,115 @@ bool decrypt_TPL_AES_CBC_IV_HEADER_REPEATED(Telegram *t,
         frame.insert(frame.end(), buffer.begin()+num_bytes_to_decrypt, buffer.end());
         debugPayload("(TPL) appended  ", frame, pos);
     }
+    return true;
+}
+
+bool decrypt_TPL_AES_ECB_CBC_XOR(Telegram *t,
+                                  vector<uchar> &frame,
+                                  vector<uchar>::iterator &pos,
+                                  vector<uchar> &aeskey,
+                                  int *num_encrypted_bytes,
+                                  int *num_not_encrypted_at_end)
+{
+    // Method b: ECB-decrypt first 16 bytes, XOR next 2 with first 2, CRC16 check, strip 2-byte header.
+    // Byte offsets relative to content (= raw telegram bytes starting at offset 11, after CI byte).
+    if (aeskey.size() == 0) return false;
+
+    vector<uchar> buffer(pos, frame.end());
+
+    if (buffer.size() < 18)
+    {
+        warning("(TPL) warning: aes-ecb-cbc-xor decryption needs at least 18 bytes, got %zu\n", buffer.size());
+        return false;
+    }
+
+    *num_encrypted_bytes = 16;
+    *num_not_encrypted_at_end = buffer.size() - 16;
+
+    debugPayload("(TPL) AES ECB CBC XOR decrypting", buffer);
+
+    // Step 1: AES-128-ECB decrypt first 16 bytes in-place.
+    uchar plaintext[16];
+    AES_ECB_decrypt(safeButUnsafeVectorPtr(buffer), safeButUnsafeVectorPtr(aeskey), plaintext, 16);
+    memcpy(safeButUnsafeVectorPtr(buffer), plaintext, 16);
+
+    // Step 2: CBC-XOR chaining — XOR bytes[16..17] with decrypted bytes[0..1].
+    buffer[16] ^= buffer[0];
+    buffer[17] ^= buffer[1];
+
+    // Step 3: CRC16 check — bytes[0..1] are the CRC of bytes[2..3].
+    uint16_t expected_crc = ((uint16_t)buffer[0] << 8) | buffer[1];
+    uint16_t actual_crc = crc16(0x41A5, 0x5B25, &buffer[2], 2);
+    if (expected_crc != actual_crc)
+    {
+        warning("(TPL) warning: aes-ecb-cbc-xor CRC16 check failed (expected %04x got %04x)\n",
+                expected_crc, actual_crc);
+        return false;
+    }
+
+    // Step 4: Remove the 2-byte verification header (shift payload left by 2).
+    buffer.erase(buffer.begin(), buffer.begin() + 2);
+
+    frame.erase(pos, frame.end());
+    frame.insert(frame.end(), buffer.begin(), buffer.end());
+
+    debugPayload("(TPL) decrypted ", frame, pos);
+    return true;
+}
+
+bool decrypt_TPL_AES_ECB_DOUBLE(Telegram *t,
+                                 vector<uchar> &frame,
+                                 vector<uchar>::iterator &pos,
+                                 vector<uchar> &aeskey,
+                                 int *num_encrypted_bytes,
+                                 int *num_not_encrypted_at_end)
+{
+    // Method c: ECB-decrypt second 16-byte block, XOR with first block (CBC chaining),
+    //           ECB-decrypt first block, CRC16 check, strip 2-byte header.
+    if (aeskey.size() == 0) return false;
+
+    vector<uchar> buffer(pos, frame.end());
+
+    if (buffer.size() < 32)
+    {
+        warning("(TPL) warning: aes-ecb-double decryption needs at least 32 bytes, got %zu\n", buffer.size());
+        return false;
+    }
+
+    *num_encrypted_bytes = 32;
+    *num_not_encrypted_at_end = buffer.size() - 32;
+
+    debugPayload("(TPL) AES ECB DOUBLE decrypting", buffer);
+
+    // Step 1: ECB-decrypt second block (bytes[16..31]).
+    uchar plaintext2[16];
+    AES_ECB_decrypt(&buffer[16], safeButUnsafeVectorPtr(aeskey), plaintext2, 16);
+
+    // Step 2: XOR bytes[16..31] with bytes[0..15] (manual CBC chaining).
+    for (int i = 0; i < 16; i++) buffer[16 + i] = plaintext2[i] ^ buffer[i];
+
+    // Step 3: ECB-decrypt first block (bytes[0..15]).
+    uchar plaintext1[16];
+    AES_ECB_decrypt(safeButUnsafeVectorPtr(buffer), safeButUnsafeVectorPtr(aeskey), plaintext1, 16);
+    memcpy(safeButUnsafeVectorPtr(buffer), plaintext1, 16);
+
+    // Step 4: CRC16 check — bytes[0..1] are the CRC of bytes[2..3].
+    uint16_t expected_crc = ((uint16_t)buffer[0] << 8) | buffer[1];
+    uint16_t actual_crc = crc16(0x41A5, 0x5B25, &buffer[2], 2);
+    if (expected_crc != actual_crc)
+    {
+        warning("(TPL) warning: aes-ecb-double CRC16 check failed (expected %04x got %04x)\n",
+                expected_crc, actual_crc);
+        return false;
+    }
+
+    // Step 5: Remove the 2-byte verification header (shift payload left by 2).
+    buffer.erase(buffer.begin(), buffer.begin() + 2);
+
+    frame.erase(pos, frame.end());
+    frame.insert(frame.end(), buffer.begin(), buffer.end());
+
+    debugPayload("(TPL) decrypted ", frame, pos);
     return true;
 }
 

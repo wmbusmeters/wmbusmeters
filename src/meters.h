@@ -376,6 +376,14 @@ struct FieldInfo
     {
         has_tpl_aes_cbc_iv_header_repeated_payload_transform_ = true;
     }
+    void setTPLAESECBCBCXORPayloadTransform()
+    {
+        has_tpl_aes_ecb_cbc_xor_payload_transform_ = true;
+    }
+    void setTPLAESECBDoublePayloadTransform()
+    {
+        has_tpl_aes_ecb_double_payload_transform_ = true;
+    }
     bool transformPayload(Telegram *t, std::vector<uchar> *content);
 
 private:
@@ -428,6 +436,8 @@ private:
 
     bool has_tpl_aes_cbc_iv_payload_transform_ {};
     bool has_tpl_aes_cbc_iv_header_repeated_payload_transform_ {};
+    bool has_tpl_aes_ecb_cbc_xor_payload_transform_ {};
+    bool has_tpl_aes_ecb_double_payload_transform_ {};
     int payload_offset_ {};
     int payload_length_ {};
     int tpl_acc_offset_ {};

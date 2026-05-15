@@ -2084,7 +2084,9 @@ string FieldInfo::generateFieldNameWithUnit(Meter *m, DVEntry *dve)
 bool FieldInfo::transformPayload(Telegram *t, vector<uchar> *content)
 {
     if (!has_tpl_aes_cbc_iv_payload_transform_ &&
-        !has_tpl_aes_cbc_iv_header_repeated_payload_transform_) return true;
+        !has_tpl_aes_cbc_iv_header_repeated_payload_transform_ &&
+        !has_tpl_aes_ecb_cbc_xor_payload_transform_ &&
+        !has_tpl_aes_ecb_double_payload_transform_) return true;
 
     Meter *meter = t->meter;
     MeterKeys *keys = meter ? meter->meterKeys() : NULL;
@@ -2094,15 +2096,24 @@ bool FieldInfo::transformPayload(Telegram *t, vector<uchar> *content)
         return false;
     }
 
-    if (has_tpl_aes_cbc_iv_header_repeated_payload_transform_)
+    if (has_tpl_aes_cbc_iv_header_repeated_payload_transform_ ||
+        has_tpl_aes_ecb_cbc_xor_payload_transform_ ||
+        has_tpl_aes_ecb_double_payload_transform_)
     {
         vector<uchar> frame(content->begin(), content->end());
         vector<uchar>::iterator pos = frame.begin();
         vector<uchar> aes_key = keys->confidentiality_key;
         int num_encrypted_bytes = 0;
         int num_not_encrypted_at_end = 0;
+        bool ok = false;
 
-        bool ok = decrypt_TPL_AES_CBC_IV_HEADER_REPEATED(t, frame, pos, aes_key, &num_encrypted_bytes, &num_not_encrypted_at_end);
+        if (has_tpl_aes_cbc_iv_header_repeated_payload_transform_)
+            ok = decrypt_TPL_AES_CBC_IV_HEADER_REPEATED(t, frame, pos, aes_key, &num_encrypted_bytes, &num_not_encrypted_at_end);
+        else if (has_tpl_aes_ecb_cbc_xor_payload_transform_)
+            ok = decrypt_TPL_AES_ECB_CBC_XOR(t, frame, pos, aes_key, &num_encrypted_bytes, &num_not_encrypted_at_end);
+        else
+            ok = decrypt_TPL_AES_ECB_DOUBLE(t, frame, pos, aes_key, &num_encrypted_bytes, &num_not_encrypted_at_end);
+
         if (!ok) return false;
 
         *content = frame;
