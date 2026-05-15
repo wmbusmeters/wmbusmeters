@@ -372,6 +372,10 @@ struct FieldInfo
         payload_length_ = payload_length;
         tpl_acc_offset_ = tpl_acc_offset;
     }
+    void setTPLAESCBCIVHeaderRepeatedPayloadTransform()
+    {
+        has_tpl_aes_cbc_iv_header_repeated_payload_transform_ = true;
+    }
     bool transformPayload(Telegram *t, std::vector<uchar> *content);
 
 private:
@@ -423,6 +427,7 @@ private:
     double null_value_ {};
 
     bool has_tpl_aes_cbc_iv_payload_transform_ {};
+    bool has_tpl_aes_cbc_iv_header_repeated_payload_transform_ {};
     int payload_offset_ {};
     int payload_length_ {};
     int tpl_acc_offset_ {};

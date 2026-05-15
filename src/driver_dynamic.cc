@@ -359,6 +359,7 @@ XMQProceed DriverDynamic::add_field(XMQDoc *doc, XMQNodePtr field, DriverDynamic
 
     const char *transform_payload_s = xmqGetStringRel(doc, "transform_payload", field);
     bool use_tpl_aes_cbc_iv_payload_transform = false;
+    bool use_tpl_aes_cbc_iv_header_repeated_payload_transform = false;
     int payload_offset = 0;
     int payload_length = 0;
     int tpl_acc_offset = 0;
@@ -384,6 +385,10 @@ XMQProceed DriverDynamic::add_field(XMQDoc *doc, XMQNodePtr field, DriverDynamic
                         dd->fileName().c_str(), transform_payload_s);
                 use_tpl_aes_cbc_iv_payload_transform = false;
             }
+        }
+        else if (transform_payload_name == "tpl_aes_cbc_iv_header_repeated")
+        {
+            use_tpl_aes_cbc_iv_header_repeated_payload_transform = true;
         }
         else
         {
@@ -428,6 +433,13 @@ XMQProceed DriverDynamic::add_field(XMQDoc *doc, XMQNodePtr field, DriverDynamic
         warning("(driver) error in %s, transform_payload requires match_entire_payload = true.\n",
                 dd->fileName().c_str());
         use_tpl_aes_cbc_iv_payload_transform = false;
+    }
+
+    if (use_tpl_aes_cbc_iv_header_repeated_payload_transform && !match_entire_payload)
+    {
+        warning("(driver) error in %s, transform_payload tpl_aes_cbc_iv_header_repeated requires match_entire_payload = true.\n",
+                dd->fileName().c_str());
+        use_tpl_aes_cbc_iv_header_repeated_payload_transform = false;
     }
 
     // Now find all matchers.
@@ -511,6 +523,10 @@ XMQProceed DriverDynamic::add_field(XMQDoc *doc, XMQNodePtr field, DriverDynamic
             if (use_tpl_aes_cbc_iv_payload_transform)
             {
                 dd->lastAddedField()->setTPLAESCBCIVPayloadTransform(payload_offset, payload_length, tpl_acc_offset);
+            }
+            if (use_tpl_aes_cbc_iv_header_repeated_payload_transform)
+            {
+                dd->lastAddedField()->setTPLAESCBCIVHeaderRepeatedPayloadTransform();
             }
         }
     }

@@ -2083,8 +2083,33 @@ string FieldInfo::generateFieldNameWithUnit(Meter *m, DVEntry *dve)
 
 bool FieldInfo::transformPayload(Telegram *t, vector<uchar> *content)
 {
-    if (!has_tpl_aes_cbc_iv_payload_transform_) return true;
+    if (!has_tpl_aes_cbc_iv_payload_transform_ &&
+        !has_tpl_aes_cbc_iv_header_repeated_payload_transform_) return true;
 
+    Meter *meter = t->meter;
+    MeterKeys *keys = meter ? meter->meterKeys() : NULL;
+    if (keys == NULL || keys->confidentiality_key.size() != 16)
+    {
+        warning("(field) payload transform requires a 16-byte meter key for field %s\n", vname().c_str());
+        return false;
+    }
+
+    if (has_tpl_aes_cbc_iv_header_repeated_payload_transform_)
+    {
+        vector<uchar> frame(content->begin(), content->end());
+        vector<uchar>::iterator pos = frame.begin();
+        vector<uchar> aes_key = keys->confidentiality_key;
+        int num_encrypted_bytes = 0;
+        int num_not_encrypted_at_end = 0;
+
+        bool ok = decrypt_TPL_AES_CBC_IV_HEADER_REPEATED(t, frame, pos, aes_key, &num_encrypted_bytes, &num_not_encrypted_at_end);
+        if (!ok) return false;
+
+        *content = frame;
+        return true;
+    }
+
+    // tpl_aes_cbc_iv path
     if (payload_offset_ < 0 || payload_length_ < 0 || tpl_acc_offset_ < 0)
     {
         warning("(field) invalid payload transform configuration for field %s\n", vname().c_str());
@@ -2105,14 +2130,6 @@ bool FieldInfo::transformPayload(Telegram *t, vector<uchar> *content)
             warning("(field) payload transform length outside payload for field %s\n", vname().c_str());
             return false;
         }
-    }
-
-    Meter *meter = t->meter;
-    MeterKeys *keys = meter ? meter->meterKeys() : NULL;
-    if (keys == NULL || keys->confidentiality_key.size() != 16)
-    {
-        warning("(field) payload transform requires a 16-byte meter key for field %s\n", vname().c_str());
-        return false;
     }
 
     t->tpl_acc = (*content)[tpl_acc_offset_];

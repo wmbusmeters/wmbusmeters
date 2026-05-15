@@ -199,6 +199,107 @@ bool decrypt_TPL_AES_CBC_IV(Telegram *t,
     return true;
 }
 
+bool decrypt_TPL_AES_CBC_IV_HEADER_REPEATED(Telegram *t,
+                                    vector<uchar> &frame,
+                                    vector<uchar>::iterator &pos,
+                                    vector<uchar> &aeskey,
+                                    int *num_encrypted_bytes,
+                                    int *num_not_encrypted_at_end)
+{
+    vector<uchar> buffer;
+    buffer.insert(buffer.end(), pos, frame.end());
+
+    size_t num_bytes_to_decrypt = frame.end()-pos;
+
+    if (t->tpl_num_encr_blocks)
+    {
+        num_bytes_to_decrypt = t->tpl_num_encr_blocks*16;
+    }
+
+    *num_encrypted_bytes = num_bytes_to_decrypt;
+
+    if (buffer.size() < num_bytes_to_decrypt)
+    {
+        warning("(TPL) warning: aes-cbc-iv-header-repeated decryption received less bytes than expected for decryption! "
+                "Got %zu bytes but expected at least %zu bytes since num encr blocks was %d.\n",
+                buffer.size(), num_bytes_to_decrypt,
+                t->tpl_num_encr_blocks);
+        num_bytes_to_decrypt = buffer.size();
+        *num_encrypted_bytes = num_bytes_to_decrypt;
+
+        if (num_bytes_to_decrypt < 16) return false;
+    }
+
+    *num_not_encrypted_at_end = buffer.size()-num_bytes_to_decrypt;
+
+    debug("(TPL) num encrypted blocks %zu (%d bytes and remaining unencrypted %zu bytes)\n",
+          t->tpl_num_encr_blocks, num_bytes_to_decrypt, buffer.size()-num_bytes_to_decrypt);
+
+    if (aeskey.size() == 0) return false;
+
+    debugPayload("(TPL) AES CBC IV HEADER REPEATED decrypting", buffer);
+
+    if (num_bytes_to_decrypt % 16 != 0)
+    {
+        warning("(TPL) warning: decryption received non-multiple of 16 bytes! "
+                "Got %zu bytes shrinking message to %zu bytes.\n",
+                num_bytes_to_decrypt, num_bytes_to_decrypt - num_bytes_to_decrypt % 16);
+        num_bytes_to_decrypt -= num_bytes_to_decrypt % 16;
+        *num_encrypted_bytes = num_bytes_to_decrypt;
+        assert (num_bytes_to_decrypt % 16 == 0);
+        if (num_bytes_to_decrypt < 16) return false;
+    }
+
+    // IV = M(2) + A(6) repeated twice (Apator method a).
+    uchar iv[16];
+    int i=0;
+    if (t->tpl_id_found)
+    {
+        iv[i++] = t->tpl_mfct_b[0]; iv[i++] = t->tpl_mfct_b[1];
+        for (int j=0; j<6; ++j) { iv[i++] = t->tpl_a[j]; }
+        iv[i++] = t->tpl_mfct_b[0]; iv[i++] = t->tpl_mfct_b[1];
+        for (int j=0; j<6; ++j) { iv[i++] = t->tpl_a[j]; }
+    }
+    else
+    {
+        iv[i++] = t->dll_mfct_b[0]; iv[i++] = t->dll_mfct_b[1];
+        for (int j=0; j<6; ++j) { iv[i++] = t->dll_a[j]; }
+        iv[i++] = t->dll_mfct_b[0]; iv[i++] = t->dll_mfct_b[1];
+        for (int j=0; j<6; ++j) { iv[i++] = t->dll_a[j]; }
+    }
+
+    vector<uchar> ivv(iv, iv+16);
+    string s = bin2hex(ivv);
+    debug("(TPL) IV HEADER REPEATED %s\n", s.c_str());
+
+    uchar buffer_data[num_bytes_to_decrypt];
+    memcpy(buffer_data, safeButUnsafeVectorPtr(buffer), num_bytes_to_decrypt);
+    uchar decrypted_data[num_bytes_to_decrypt];
+
+    AES_CBC_decrypt_buffer(decrypted_data, buffer_data, num_bytes_to_decrypt, safeButUnsafeVectorPtr(aeskey), iv);
+
+    // Verify: last 2 decrypted bytes must be 0x00 0x00 (Apator method a check).
+    if (num_bytes_to_decrypt >= 2 &&
+        decrypted_data[num_bytes_to_decrypt-2] != 0x00 &&
+        decrypted_data[num_bytes_to_decrypt-1] != 0x00)
+    {
+        warning("(TPL) warning: aes-cbc-iv-header-repeated decryption trailer check failed (last 2 bytes not 0x0000).\n");
+        return false;
+    }
+
+    frame.erase(pos, frame.end());
+    frame.insert(frame.end(), decrypted_data, decrypted_data+num_bytes_to_decrypt);
+
+    debugPayload("(TPL) decrypted ", frame, pos);
+
+    if (num_bytes_to_decrypt < buffer.size())
+    {
+        frame.insert(frame.end(), buffer.begin()+num_bytes_to_decrypt, buffer.end());
+        debugPayload("(TPL) appended  ", frame, pos);
+    }
+    return true;
+}
+
 bool decrypt_TPL_AES_CBC_NO_IV(Telegram *t, vector<uchar> &frame, vector<uchar>::iterator &pos, vector<uchar> &aeskey,
                                int *num_encrypted_bytes,
                                int *num_not_encrypted_at_end)
