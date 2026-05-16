@@ -303,7 +303,7 @@ Received telegram from: 18001698
           manufacturer: (HYD) Diehl Metering, Germany (0x2324)
                   type: Water meter (0x07)
                    ver: 0x85
-                driver: izar
+                driver: izarv2
 Received telegram from: 61070071
           manufacturer: (AAA) Aventies, Germany (0x421)
                   type: Water meter (0x07) encrypted

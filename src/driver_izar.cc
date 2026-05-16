@@ -71,13 +71,13 @@ namespace
                             "manufacture_year,timestamp");
         di.setMeterType(MeterType::WaterMeter);
         di.addLinkMode(LinkMode::T1);
-        di.addMVT(MANUFACTURER_HYD,  0x07,  0x85);
-        di.addMVT(MANUFACTURER_SAP,  0x15,    -1);
-        di.addMVT(MANUFACTURER_SAP,  0x04,    -1);
-        di.addMVT(MANUFACTURER_SAP,  0x07,  0x00);
-        di.addMVT(MANUFACTURER_DME,  0x07,  0x78);
-        di.addMVT(MANUFACTURER_DME,  0x06,  0x78);
-        di.addMVT(MANUFACTURER_HYD,  0x07,  0x86);
+        // di.addMVT(MANUFACTURER_HYD,  0x07,  0x85);
+        // di.addMVT(MANUFACTURER_SAP,  0x15,    -1);
+        // di.addMVT(MANUFACTURER_SAP,  0x04,    -1);
+        // di.addMVT(MANUFACTURER_SAP,  0x07,  0x00);
+        // di.addMVT(MANUFACTURER_DME,  0x07,  0x78);
+        // di.addMVT(MANUFACTURER_DME,  0x06,  0x78);
+        // di.addMVT(MANUFACTURER_HYD,  0x07,  0x86);
         di.usesProcessContent();
 
         di.setConstructor([](MeterInfo& mi, DriverInfo& di){ return shared_ptr<Meter>(new Driver(mi, di)); });
@@ -130,6 +130,10 @@ namespace
         addStringField("manufacture_year",
                        "The year during which the meter was manufactured.",
                        DEFAULT_PRINT_PROPERTIES);
+
+        addStringField("manufacture_y",
+                       "The year during which the meter was manufactured.",
+                       DEFAULT_PRINT_PROPERTIES|PrintProperty::HIDE);
     }
 
     string Driver::currentAlarmsText(IzarAlarms &alarms)
