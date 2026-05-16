@@ -27,6 +27,8 @@ driver {
         difvif = 02FF200413523B
         // Kamstrup KWM2231
         difvif = 04FF2304134413426C023B92013BA2013B06FF1BA1015B91015BA10167
+        // Kamstrup flowIQ2200 / flowIQ2100 compact frame
+        difvif = 04FF2304134413426C023B92013BA2013B06FF1BA1015B91015BA10167
     }
     library {
         use = total_m3
@@ -49,22 +51,78 @@ driver {
                 default_message = OK
                 map {
                     name  = DRY
-                    value = 0x01
+                    value = 0x00000001
                     test  = Set
                 }
                 map {
                     name  = REVERSE
-                    value = 0x02
+                    value = 0x00000002
                     test  = Set
                 }
                 map {
                     name  = LEAK
-                    value = 0x04
+                    value = 0x00000004
                     test  = Set
                 }
                 map {
                     name  = BURST
-                    value = 0x08
+                    value = 0x00000008
+                    test  = Set
+                }
+                map {
+                    name  = TAMPER
+                    value = 0x00000010
+                    test  = Set
+                }
+                map {
+                    name  = LOW_BATTERY
+                    value = 0x00000020
+                    test  = Set
+                }
+                map {
+                    name  = TAMBIENT_LOW
+                    value = 0x00000040
+                    test  = Set
+                }
+                map {
+                    name  = TAMBIENT_HIGH
+                    value = 0x00000080
+                    test  = Set
+                }
+                map {
+                    name  = FLOW_ABOVE_Q4
+                    value = 0x00000100
+                    test  = Set
+                }
+                map {
+                    name  = INTERNAL_ERROR
+                    value = 0x00000200
+                    test  = Set
+                }
+                map {
+                    name  = ULTRASONIC_INTERRUPTION
+                    value = 0x00000400
+                    test  = Set
+                }
+                map {
+                    name  = NO_CONSUMPTION
+                    value = 0x00000800
+                    test  = Set
+                }
+                map {
+                    name  = FLOW_CAVITATION
+                    value = 0x00001000
+                    test  = Set
+                }
+                // 0x00002000 not used
+                map {
+                    name  = HARDWARE_FAILURE
+                    value = 0x00004000
+                    test  = Set
+                }
+                map {
+                    name  = TAMPER_DISPLAY
+                    value = 0x00008000
                     test  = Set
                 }
             }
@@ -80,26 +138,82 @@ driver {
             lookup {
                 name            = ERROR_FLAGS
                 map_type        = BitToString
-                mask_bits       = 0x000f
+                mask_bits       = 0xffff
                 default_message = OK
                 map {
                     name  = DRY
-                    value = 0x01
+                    value = 0x0001
                     test  = Set
                 }
                 map {
                     name  = REVERSE
-                    value = 0x02
+                    value = 0x0002
                     test  = Set
                 }
                 map {
                     name  = LEAK
-                    value = 0x04
+                    value = 0x0004
                     test  = Set
                 }
                 map {
                     name  = BURST
-                    value = 0x08
+                    value = 0x0008
+                    test  = Set
+                }
+                map {
+                    name  = TAMPER
+                    value = 0x0010
+                    test  = Set
+                }
+                map {
+                    name  = LOW_BATTERY
+                    value = 0x0020
+                    test  = Set
+                }
+                map {
+                    name  = TAMBIENT_LOW
+                    value = 0x0040
+                    test  = Set
+                }
+                map {
+                    name  = TAMBIENT_HIGH
+                    value = 0x0080
+                    test  = Set
+                }
+                map {
+                    name  = FLOW_ABOVE_Q4
+                    value = 0x0100
+                    test  = Set
+                }
+                map {
+                    name  = INTERNAL_ERROR
+                    value = 0x0200
+                    test  = Set
+                }
+                map {
+                    name  = ULTRASONIC_INTERRUPTION
+                    value = 0x0400
+                    test  = Set
+                }
+                map {
+                    name  = NO_CONSUMPTION
+                    value = 0x0800
+                    test  = Set
+                }
+                map {
+                    name  = FLOW_CAVITATION
+                    value = 0x1000
+                    test  = Set
+                }
+                // 0x2000 not used
+                map {
+                    name  = HARDWARE_FAILURE
+                    value = 0x4000
+                    test  = Set
+                }
+                map {
+                    name  = TAMPER_DISPLAY
+                    value = 0x8000
                     test  = Set
                 }
             }
@@ -113,27 +227,84 @@ driver {
                 difvifkey = 02FF20
             }
             lookup {
-                name      = ERROR_FLAGS
-                map_type  = BitToString
-                mask_bits = 0x000f
+                name            = ERROR_FLAGS
+                map_type        = BitToString
+                mask_bits       = 0xffff
+                default_message = OK
                 map {
                     name  = DRY
-                    value = 0x01
+                    value = 0x0001
                     test  = Set
                 }
                 map {
                     name  = REVERSE
-                    value = 0x02
+                    value = 0x0002
                     test  = Set
                 }
                 map {
                     name  = LEAK
-                    value = 0x04
+                    value = 0x0004
                     test  = Set
                 }
                 map {
                     name  = BURST
-                    value = 0x08
+                    value = 0x0008
+                    test  = Set
+                }
+                map {
+                    name  = TAMPER
+                    value = 0x0010
+                    test  = Set
+                }
+                map {
+                    name  = LOW_BATTERY
+                    value = 0x0020
+                    test  = Set
+                }
+                map {
+                    name  = TAMBIENT_LOW
+                    value = 0x0040
+                    test  = Set
+                }
+                map {
+                    name  = TAMBIENT_HIGH
+                    value = 0x0080
+                    test  = Set
+                }
+                map {
+                    name  = FLOW_ABOVE_Q4
+                    value = 0x0100
+                    test  = Set
+                }
+                map {
+                    name  = INTERNAL_ERROR
+                    value = 0x0200
+                    test  = Set
+                }
+                map {
+                    name  = ULTRASONIC_INTERRUPTION
+                    value = 0x0400
+                    test  = Set
+                }
+                map {
+                    name  = NO_CONSUMPTION
+                    value = 0x0800
+                    test  = Set
+                }
+                map {
+                    name  = FLOW_CAVITATION
+                    value = 0x1000
+                    test  = Set
+                }
+                // 0x2000 not used
+                map {
+                    name  = HARDWARE_FAILURE
+                    value = 0x4000
+                    test  = Set
+                }
+                map {
+                    name  = TAMPER_DISPLAY
+                    value = 0x8000
                     test  = Set
                 }
             }
@@ -474,14 +645,20 @@ driver {
         test {
             args     = 'Votten flowiq2200 23813076 NOKEY'
             telegram = 4744372C763081233C168D2056D1ED11205A3C78_04FF2300080000441300000000523B000006FF1B08900008F0FF426CC12B61670A51671B023B000004131F0F00008101E7FF0F13
-            json     = '{"_":"telegram","media":"cold water","meter":"kamwater","name":"Votten","id":"23813076","flow_m3h":0,"max_external_temperature_c":27,"target_m3":0,"target_date":"2022-11-01","total_m3":3.871,"min_external_temperature_last_month_c":10,"status":"ERROR_FLAGS_800","timestamp":"1111-11-11T11:11:11Z"}'
-            fields   = 'Votten;23813076;ERROR_FLAGS_800;3.871;0;1111-11-11 11:11.11'
+            json     = '{"_":"telegram","media":"cold water","meter":"kamwater","name":"Votten","id":"23813076","flow_m3h":0,"max_external_temperature_c":27,"target_m3":0,"target_date":"2022-11-01","total_m3":3.871,"min_external_temperature_last_month_c":10,"status":"NO_CONSUMPTION","timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'Votten;23813076;NO_CONSUMPTION;3.871;0;1111-11-11 11:11.11'
         }
         test {
             args     = 'Votten flowiq2200 23813076 NOKEY'
             telegram = 3244372C763081233C168D2057D2ED11205a817905095480_0008000000000000000008900008F0FFC12B0A1B23001F0F000013
-            json     = '{"_":"telegram","media":"cold water","meter":"kamwater","name":"Votten","id":"23813076","min_external_temperature_last_month_c":10,"flow_m3h":0.035,"max_external_temperature_c":27,"target_m3":0,"target_date":"2022-11-01","total_m3":3.871,"status":"ERROR_FLAGS_800","timestamp":"1111-11-11T11:11:11Z"}'
-            fields   = 'Votten;23813076;ERROR_FLAGS_800;3.871;0;1111-11-11 11:11.11'
+            json     = '{"_":"telegram","media":"cold water","meter":"kamwater","name":"Votten","id":"23813076","min_external_temperature_last_month_c":10,"flow_m3h":0.035,"max_external_temperature_c":27,"target_m3":0,"target_date":"2022-11-01","total_m3":3.871,"status":"NO_CONSUMPTION","timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'Votten;23813076;NO_CONSUMPTION;3.871;0;1111-11-11 11:11.11'
+        }
+        test {
+            args     = 'VottenCompact flowiq2200 23347419 A7FA5B81935AEC8F9A8AA266861E1336'
+            telegram = 3444372c197434233c168d20B39cf9a921c816f87B86d91ed5371B979e3a111B703e7f9757f69f890B281958f43e7f184B33a4f0f7
+            json     = '{"_":"telegram","media":"cold water","meter":"kamwater","name":"VottenCompact","id":"23347419","flow_m3h":0,"flow_temperature_c":8,"max_flow_m3h":0.604,"max_flow_temperature_c":19,"min_external_temperature_last_day_c":15,"min_flow_m3h":0,"min_flow_temperature_c":8,"target_m3":192.25,"target_date":"2026-05-01","total_m3":194.924,"status":"ERROR_FLAGS_100000","timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'VottenCompact;23347419;ERROR_FLAGS_100000;194.924;192.25;1111-11-11 11:11.11'
         }
     }
 }

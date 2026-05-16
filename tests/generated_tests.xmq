@@ -1229,16 +1229,22 @@ test {
     fields   = 'Pressing;77000317;LOW;1.02;1.03;1.02;1111-11-11 11:11.11'
 }
 test {
+    args     = 'VottenCompact flowiq2200 23347419 A7FA5B81935AEC8F9A8AA266861E1336'
+    telegram = 3444372c197434233c168d20B39cf9a921c816f87B86d91ed5371B979e3a111B703e7f9757f69f890B281958f43e7f184B33a4f0f7
+    json     = '{"_":"telegram","media":"cold water","meter":"kamwater","name":"VottenCompact","id":"23347419","flow_m3h":0,"flow_temperature_c":8,"max_flow_m3h":0.604,"max_flow_temperature_c":19,"min_external_temperature_last_day_c":15,"min_flow_m3h":0,"min_flow_temperature_c":8,"target_m3":192.25,"target_date":"2026-05-01","total_m3":194.924,"status":"ERROR_FLAGS_100000","timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'VottenCompact;23347419;ERROR_FLAGS_100000;194.924;192.25;1111-11-11 11:11.11'
+}
+test {
     args     = 'Votten flowiq2200 23813076 NOKEY'
     telegram = 3244372C763081233C168D2057D2ED11205a817905095480_0008000000000000000008900008F0FFC12B0A1B23001F0F000013
-    json     = '{"_":"telegram","media":"cold water","meter":"kamwater","name":"Votten","id":"23813076","min_external_temperature_last_month_c":10,"flow_m3h":0.035,"max_external_temperature_c":27,"target_m3":0,"target_date":"2022-11-01","total_m3":3.871,"status":"ERROR_FLAGS_800","timestamp":"1111-11-11T11:11:11Z"}'
-    fields   = 'Votten;23813076;ERROR_FLAGS_800;3.871;0;1111-11-11 11:11.11'
+    json     = '{"_":"telegram","media":"cold water","meter":"kamwater","name":"Votten","id":"23813076","min_external_temperature_last_month_c":10,"flow_m3h":0.035,"max_external_temperature_c":27,"target_m3":0,"target_date":"2022-11-01","total_m3":3.871,"status":"NO_CONSUMPTION","timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'Votten;23813076;NO_CONSUMPTION;3.871;0;1111-11-11 11:11.11'
 }
 test {
     args     = 'Votten flowiq2200 23813076 NOKEY'
     telegram = 4744372C763081233C168D2056D1ED11205A3C78_04FF2300080000441300000000523B000006FF1B08900008F0FF426CC12B61670A51671B023B000004131F0F00008101E7FF0F13
-    json     = '{"_":"telegram","media":"cold water","meter":"kamwater","name":"Votten","id":"23813076","flow_m3h":0,"max_external_temperature_c":27,"target_m3":0,"target_date":"2022-11-01","total_m3":3.871,"min_external_temperature_last_month_c":10,"status":"ERROR_FLAGS_800","timestamp":"1111-11-11T11:11:11Z"}'
-    fields   = 'Votten;23813076;ERROR_FLAGS_800;3.871;0;1111-11-11 11:11.11'
+    json     = '{"_":"telegram","media":"cold water","meter":"kamwater","name":"Votten","id":"23813076","flow_m3h":0,"max_external_temperature_c":27,"target_m3":0,"target_date":"2022-11-01","total_m3":3.871,"min_external_temperature_last_month_c":10,"status":"NO_CONSUMPTION","timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'Votten;23813076;NO_CONSUMPTION;3.871;0;1111-11-11 11:11.11'
 }
 test {
     args     = 'VATTEN flowiq2200 52525252 NOKEY'
