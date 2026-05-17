@@ -1,0 +1,150 @@
+// Copyright (C) 2026 Fredrik Öhrström (gpl-3.0-or-later)
+driver {
+    name           = engelmann_faw_ri
+    aliases        = engelmann-faw-ri
+    meter_type     = WaterMeter
+    manufacturer   = Engelmann
+    default_fields = name,id,total_m3,status,timestamp
+    detect {
+        mvt = EFE,70,06
+        mvt = EFE,70,07
+    }
+    library {
+        use = total_m3
+    }
+    fields {
+        field {
+            name       = status
+            quantity   = Text
+            info       = 'Status and error flags.'
+            attributes = STATUS,INCLUDE_TPL_STATUS
+            match {
+                measurement_type = Instantaneous
+                vif_range        = ErrorFlags
+            }
+            lookup {
+                name            = ERROR_FLAGS
+                map_type        = BitToString
+                mask_bits       = 0xff
+                default_message = OK
+                map {
+                    name  = SENSOR_ERROR
+                    value = 0x01
+                    test  = Set
+                }
+                map {
+                    name  = RESET
+                    value = 0x02
+                    test  = Set
+                }
+                map {
+                    name  = SOFTWARE_FAULT
+                    value = 0x04
+                    test  = Set
+                }
+                map {
+                    name  = MANIPULATION
+                    value = 0x08
+                    test  = Set
+                }
+                map {
+                    name  = LOW_BATTERY
+                    value = 0x10
+                    test  = Set
+                }
+                map {
+                    name  = ERRONEOUS_FLOW
+                    value = 0x20
+                    test  = Set
+                }
+                map {
+                    name  = LEAKAGE
+                    value = 0x40
+                    test  = Set
+                }
+                map {
+                    name  = OVERLOAD
+                    value = 0x80
+                    test  = Set
+                }
+            }
+        }
+        field {
+            name         = set
+            quantity     = PointInTime
+            info         = 'The most recent billing period date.'
+            display_unit = DateLT
+            match {
+                measurement_type = Instantaneous
+                vif_range        = Date
+                storage_nr       = 1
+            }
+        }
+        field {
+            name     = meter
+            quantity = PointInTime
+            info     = 'Meter datetime.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = DateTime
+            }
+        }
+        field {
+            name     = consumption_at_set_date
+            quantity = Volume
+            info     = 'The total water consumption at the most recent billing period date.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = Volume
+                storage_nr       = 1
+            }
+        }
+        field {
+            name     = total_backwards_at_set_date
+            quantity = Volume
+            info     = 'The total backward water volume at the most recent billing period date.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = AnyVolumeVIF
+                storage_nr       = 1
+                add_combinable   = BackwardFlow
+            }
+        }
+        field {
+            name     = 'consumption_at_history_{storage_counter - 1 counter}'
+            quantity = Volume
+            info     = 'Water consumption N month(s) ago.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = Volume
+                storage_nr       = 2,16
+            }
+        }
+        field {
+            name         = 'history_{storage_counter - 1 counter}'
+            quantity     = PointInTime
+            info         = 'The historic date N months ago.'
+            display_unit = DateLT
+            calculate    = 'meter_datetime - ((storage_counter-1counter) * 1 month)'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = Volume
+                storage_nr       = 2,16
+            }
+        }
+    }
+    tests {
+        test {
+            args     = 'water engelmann-faw-ri 50496629 FFEEDDCCBBAA00998877665544332211'
+            telegram = a144c5142966495070078c20d07a0d0090257db8bb9938a1ff7c4b9a4492f4ea5f278b725057eee6837c17397e9605f3a448a338bd8407a2a5846632c334dff577f427f054f55e68a00fa5c85ccbc808ccdd2bb537a83234a50392968f00c1d7473455f9fc4c88fb195ca1712325da8c6aa7fdb7c4b77b9b84a4a0ccac4f586775fa66007dbdc2c615b69247401e9b9a863ac5a5873484b1b7d0178198e88f701e53
+            json     = '{"_": "telegram","consumption_at_history_10_m3": -0.001,"consumption_at_history_11_m3": -0.001,"consumption_at_history_12_m3": -0.001,"consumption_at_history_13_m3": -0.001,"consumption_at_history_14_m3": -0.001,"consumption_at_history_15_m3": -0.001,"consumption_at_history_1_m3": 0.003,"consumption_at_history_2_m3": 0.003,"consumption_at_history_3_m3": 0.003,"consumption_at_history_4_m3": 0.002,"consumption_at_history_5_m3": 0.002,"consumption_at_history_6_m3": 0,"consumption_at_history_7_m3": 0,"consumption_at_history_8_m3": -0.001,"consumption_at_history_9_m3": -0.001,"consumption_at_set_date_m3": 0,"history_10_date": "2024-10-20","history_11_date": "2024-09-20","history_12_date": "2024-08-20","history_13_date": "2024-07-20","history_14_date": "2024-06-20","history_15_date": "2024-05-20","history_1_date": "2025-07-20","history_2_date": "2025-06-20","history_3_date": "2025-05-20","history_4_date": "2025-04-20","history_5_date": "2025-03-20","history_6_date": "2025-02-20","history_7_date": "2025-01-20","history_8_date": "2024-12-20","history_9_date": "2024-11-20","id": "50496629","media": "water","meter": "engelmann_faw_ri","meter_datetime": "2025-08-20 14:51","name": "water","set_date": "2128-03-31","status": "OK","timestamp": "1111-11-11T11:11:11Z","total_backwards_at_set_date_m3": 0,"total_m3": 0.003}'
+            fields   = 'water;50496629;0.003;OK;1111-11-11 11:11.11'
+        }
+        test {
+            args     = 'water2 engelmann-faw-ri 51398765 NOKEY'
+            telegram = A144C5146587395170078C20947AD10090252F2F_046D862D4A3104131300000001FD1700426C3F3C44130000000044933C0000000084011300000000C401130100000084021300000000C402130000000084031300000000C4031300000000840413FFFFFFFFC40413FFFFFFFF840513FFFFFFFFC40513FFFFFFFF840613FFFFFFFFC40613FFFFFFFF840713FFFFFFFFC40713FFFFFFFF840813FFFFFFFF2F2F2F2F
+            json     = '{"_": "telegram","consumption_at_history_10_m3": -0.001,"consumption_at_history_11_m3": -0.001,"consumption_at_history_12_m3": -0.001,"consumption_at_history_13_m3": -0.001,"consumption_at_history_14_m3": -0.001,"consumption_at_history_15_m3": -0.001,"consumption_at_history_1_m3": 0,"consumption_at_history_2_m3": 0.001,"consumption_at_history_3_m3": 0,"consumption_at_history_4_m3": 0,"consumption_at_history_5_m3": 0,"consumption_at_history_6_m3": 0,"consumption_at_history_7_m3": -0.001,"consumption_at_history_8_m3": -0.001,"consumption_at_history_9_m3": -0.001,"consumption_at_set_date_m3": 0,"history_10_date": "2025-03-10","history_11_date": "2025-02-10","history_12_date": "2025-01-10","history_13_date": "2024-12-10","history_14_date": "2024-11-10","history_15_date": "2024-10-10","history_1_date": "2025-12-10","history_2_date": "2025-11-10","history_3_date": "2025-10-10","history_4_date": "2025-09-10","history_5_date": "2025-08-10","history_6_date": "2025-07-10","history_7_date": "2025-06-10","history_8_date": "2025-05-10","history_9_date": "2025-04-10","id": "51398765","media": "water","meter": "engelmann_faw_ri","meter_datetime": "2026-01-10 13:06","name": "water2","set_date": "2025-12-31","status": "OK","timestamp": "1111-11-11T11:11:11Z","total_backwards_at_set_date_m3": 0,"total_m3": 0.019}'
+            fields   = 'water2;51398765;0.019;OK;1111-11-11 11:11.11'
+        }
+    }
+}
