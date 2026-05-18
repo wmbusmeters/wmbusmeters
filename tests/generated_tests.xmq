@@ -215,63 +215,63 @@ test {
     comment  = 'Issue 1215 cluster 3 recovery'
     args     = 'ApNa1 apatorna1 04913581 00000000000000000000000000000000'
     telegram = 1C440106813591041407A0130197DAF2A1C02F9B77B14ACD51CB20C41E
-    json     = '{"_":"telegram","media":"water","meter":"apatorna1","name":"ApNa1","id":"04913581","historic_m3":662.325,"historic_datetime":"2024-09-30 22:20","historic_age_h":473,"meter_datetime":"2024-10-20 15:20","total_m3":696.576,"current_status":"OK","frame_status":"SUMMER_TIME","historic_status":"MINIMUM_FLOW","timestamp":"1111-11-11T11:11:11Z"}'
+    json     = '{"_":"telegram","media":"water","meter":"apatorna1","name":"ApNa1","id":"04913581","historic_m3":662.325,"historic_datetime":"2024-09-30 21:20","historic_age_h":473,"meter_datetime":"2024-10-20 14:20","total_m3":696.576,"current_status":"OK","frame_status":"SUMMER_TIME","historic_status":"MINIMUM_FLOW","timestamp":"1111-11-11T11:11:11Z"}'
     fields   = 'ApNa1;04913581;696.576;1111-11-11 11:11.11'
 }
 test {
     comment  = 'Issue 1215 cluster 3 dip'
     args     = 'ApNa1 apatorna1 04913581 00000000000000000000000000000000'
     telegram = 1C440106813591041407A10C010AEF3C1D41BE7F7A33B9EB469924397C
-    json     = '{"_":"telegram","media":"water","meter":"apatorna1","name":"ApNa1","id":"04913581","historic_m3":662.325,"historic_datetime":"2024-09-30 22:18","historic_age_h":473,"meter_datetime":"2024-10-20 15:18","total_m3":696.32,"current_status":"OK","frame_status":"SUMMER_TIME","historic_status":"MINIMUM_FLOW","timestamp":"1111-11-11T11:11:11Z"}'
+    json     = '{"_":"telegram","media":"water","meter":"apatorna1","name":"ApNa1","id":"04913581","historic_m3":662.325,"historic_datetime":"2024-09-30 21:18","historic_age_h":473,"meter_datetime":"2024-10-20 14:18","total_m3":696.32,"current_status":"OK","frame_status":"SUMMER_TIME","historic_status":"MINIMUM_FLOW","timestamp":"1111-11-11T11:11:11Z"}'
     fields   = 'ApNa1;04913581;696.32;1111-11-11 11:11.11'
 }
 test {
     comment  = 'Issue 1215 cluster 3 before dip'
     args     = 'ApNa1 apatorna1 04913581 00000000000000000000000000000000'
     telegram = 1C440106813591041407A0080174159B7E36D8E6421E3AED55C76BA54A
-    json     = '{"_":"telegram","media":"water","meter":"apatorna1","name":"ApNa1","id":"04913581","historic_m3":662.325,"historic_datetime":"2024-09-30 22:18","historic_age_h":473,"meter_datetime":"2024-10-20 15:18","total_m3":696.575,"current_status":"OK","frame_status":"SUMMER_TIME","historic_status":"MINIMUM_FLOW","timestamp":"1111-11-11T11:11:11Z"}'
+    json     = '{"_":"telegram","media":"water","meter":"apatorna1","name":"ApNa1","id":"04913581","historic_m3":662.325,"historic_datetime":"2024-09-30 21:18","historic_age_h":473,"meter_datetime":"2024-10-20 14:18","total_m3":696.575,"current_status":"OK","frame_status":"SUMMER_TIME","historic_status":"MINIMUM_FLOW","timestamp":"1111-11-11T11:11:11Z"}'
     fields   = 'ApNa1;04913581;696.575;1111-11-11 11:11.11'
 }
 test {
     comment  = 'Issue 1215 cluster 2 recovery'
     args     = 'ApNa1 apatorna1 04913581 00000000000000000000000000000000'
     telegram = 1C440106813591041407A00C019334727003B3DA268CF11117D85B6D71
-    json     = '{"_":"telegram","media":"water","meter":"apatorna1","name":"ApNa1","id":"04913581","historic_m3":662.325,"historic_datetime":"2024-09-30 22:06","historic_age_h":375,"meter_datetime":"2024-10-16 13:06","total_m3":689.415,"current_status":"OK","frame_status":"SUMMER_TIME","historic_status":"MINIMUM_FLOW","timestamp":"1111-11-11T11:11:11Z"}'
+    json     = '{"_":"telegram","media":"water","meter":"apatorna1","name":"ApNa1","id":"04913581","historic_m3":662.325,"historic_datetime":"2024-09-30 21:06","historic_age_h":375,"meter_datetime":"2024-10-16 12:06","total_m3":689.415,"current_status":"OK","frame_status":"SUMMER_TIME","historic_status":"MINIMUM_FLOW","timestamp":"1111-11-11T11:11:11Z"}'
     fields   = 'ApNa1;04913581;689.415;1111-11-11 11:11.11'
 }
 test {
     comment  = 'Issue 1215 cluster 2 dip'
     args     = 'ApNa1 apatorna1 04913581 00000000000000000000000000000000'
     telegram = 1C440106813591041407A0020134813C00486734067DB0111C30188137
-    json     = '{"_":"telegram","media":"water","meter":"apatorna1","name":"ApNa1","id":"04913581","historic_m3":662.325,"historic_datetime":"2024-09-30 22:04","historic_age_h":375,"meter_datetime":"2024-10-16 13:04","total_m3":689.152,"current_status":"OK","frame_status":"SUMMER_TIME","historic_status":"MINIMUM_FLOW","timestamp":"1111-11-11T11:11:11Z"}'
+    json     = '{"_":"telegram","media":"water","meter":"apatorna1","name":"ApNa1","id":"04913581","historic_m3":662.325,"historic_datetime":"2024-09-30 21:04","historic_age_h":375,"meter_datetime":"2024-10-16 12:04","total_m3":689.152,"current_status":"OK","frame_status":"SUMMER_TIME","historic_status":"MINIMUM_FLOW","timestamp":"1111-11-11T11:11:11Z"}'
     fields   = 'ApNa1;04913581;689.152;1111-11-11 11:11.11'
 }
 test {
     comment  = 'Issue 1215 cluster 2 before dip'
     args     = 'ApNa1 apatorna1 04913581 00000000000000000000000000000000'
     telegram = 1C440106813591041407A0FF019E3790584B0876226B94ADC34FFABDED
-    json     = '{"_":"telegram","media":"water","meter":"apatorna1","name":"ApNa1","id":"04913581","historic_m3":662.325,"historic_datetime":"2024-09-30 22:04","historic_age_h":375,"meter_datetime":"2024-10-16 13:04","total_m3":689.403,"current_status":"OK","frame_status":"SUMMER_TIME","historic_status":"MINIMUM_FLOW","timestamp":"1111-11-11T11:11:11Z"}'
+    json     = '{"_":"telegram","media":"water","meter":"apatorna1","name":"ApNa1","id":"04913581","historic_m3":662.325,"historic_datetime":"2024-09-30 21:04","historic_age_h":375,"meter_datetime":"2024-10-16 12:04","total_m3":689.403,"current_status":"OK","frame_status":"SUMMER_TIME","historic_status":"MINIMUM_FLOW","timestamp":"1111-11-11T11:11:11Z"}'
     fields   = 'ApNa1;04913581;689.403;1111-11-11 11:11.11'
 }
 test {
     comment  = 'Issue 1215 cluster 1 recovery'
     args     = 'ApNa1 apatorna1 04913581 00000000000000000000000000000000'
     telegram = 1C440106813591041407A174013655E9B2B8085E2F256908D7498C402C
-    json     = '{"_":"telegram","media":"water","meter":"apatorna1","name":"ApNa1","id":"04913581","historic_m3":662.325,"historic_datetime":"2024-09-30 22:21","historic_age_h":351,"meter_datetime":"2024-10-15 13:21","total_m3":687.357,"current_status":"OK","frame_status":"SUMMER_TIME","historic_status":"OK","timestamp":"1111-11-11T11:11:11Z"}'
+    json     = '{"_":"telegram","media":"water","meter":"apatorna1","name":"ApNa1","id":"04913581","historic_m3":662.325,"historic_datetime":"2024-09-30 21:21","historic_age_h":351,"meter_datetime":"2024-10-15 12:21","total_m3":687.357,"current_status":"OK","frame_status":"SUMMER_TIME","historic_status":"OK","timestamp":"1111-11-11T11:11:11Z"}'
     fields   = 'ApNa1;04913581;687.357;1111-11-11 11:11.11'
 }
 test {
     comment  = 'Issue 1215 cluster 1 dip'
     args     = 'ApNa1 apatorna1 04913581 00000000000000000000000000000000'
     telegram = 1C440106813591041407A17D01416562108AB98A0FE92FC06AA8122176
-    json     = '{"_":"telegram","media":"water","meter":"apatorna1","name":"ApNa1","id":"04913581","historic_m3":662.325,"historic_datetime":"2024-09-30 22:22","historic_age_h":351,"meter_datetime":"2024-10-15 13:22","total_m3":687.104,"current_status":"OK","frame_status":"SUMMER_TIME","historic_status":"OK","timestamp":"1111-11-11T11:11:11Z"}'
+    json     = '{"_":"telegram","media":"water","meter":"apatorna1","name":"ApNa1","id":"04913581","historic_m3":662.325,"historic_datetime":"2024-09-30 21:22","historic_age_h":351,"meter_datetime":"2024-10-15 12:22","total_m3":687.104,"current_status":"OK","frame_status":"SUMMER_TIME","historic_status":"OK","timestamp":"1111-11-11T11:11:11Z"}'
     fields   = 'ApNa1;04913581;687.104;1111-11-11 11:11.11'
 }
 test {
     comment  = 'Issue 1215 cluster 1 before dip'
     args     = 'ApNa1 apatorna1 04913581 00000000000000000000000000000000'
     telegram = 1C440106813591041407A07F018D43B54E718E8718D5D2C8F939194847
-    json     = '{"_":"telegram","media":"water","meter":"apatorna1","name":"ApNa1","id":"04913581","historic_m3":662.325,"historic_datetime":"2024-09-30 22:23","historic_age_h":351,"meter_datetime":"2024-10-15 13:23","total_m3":687.361,"current_status":"OK","frame_status":"SUMMER_TIME","historic_status":"OK","timestamp":"1111-11-11T11:11:11Z"}'
+    json     = '{"_":"telegram","media":"water","meter":"apatorna1","name":"ApNa1","id":"04913581","historic_m3":662.325,"historic_datetime":"2024-09-30 21:23","historic_age_h":351,"meter_datetime":"2024-10-15 12:23","total_m3":687.361,"current_status":"OK","frame_status":"SUMMER_TIME","historic_status":"OK","timestamp":"1111-11-11T11:11:11Z"}'
     fields   = 'ApNa1;04913581;687.361;1111-11-11 11:11.11'
 }
 test {

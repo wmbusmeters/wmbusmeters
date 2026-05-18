@@ -383,7 +383,7 @@ driver {
             quantity     = PointInTime
             display_unit = date
             info         = 'Date of current billing period.'
-            calculate    = "'2000-01-01 02:00:00' +
+            calculate    = "'2000-01-01 00:00:00' +
                             (((curr_year_counter * 12counter) + curr_month_counter - 1counter) * 1month) +
                             ((curr_day_counter - 1counter) * 24h)"
         }
