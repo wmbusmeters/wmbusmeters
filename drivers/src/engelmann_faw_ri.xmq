@@ -8,6 +8,7 @@ driver {
     detect {
         mvt = EFE,70,06
         mvt = EFE,70,07
+        mvt = EFE,70,16
     }
     library {
         use = total_m3

@@ -2,10 +2,21 @@
    Copyright (C) 2022-2024 Fredrik Öhrström (gpl-3.0-or-later) */
 driver {
     name           = sensostar
-    meter_type     = HeatMeter
+    aliases        = sensostar2c
+    meter_type     = HeatCoolingMeter
+    manufacturer   = Engelmann
     default_fields = name,id,status,total_kwh,total_water_m3,target_date,target_kwh,timestamp
     detect {
+        // Heat
         mvt = EFE,00,04
+        // Cooling outlet
+        mvt = EFE,00,0a
+        // Cooling inlet
+        mvt = EFE,00,0b
+        // Heat inlet
+        mvt = EFE,00,0c
+        // Combined heat/cool
+        mvt = EFE,00,0d
     }
     library {
         use = meter_datetime,fabrication_no,model_version,on_time_h,parameter_set
