@@ -20,7 +20,6 @@
 
 #include"dvparser.h"
 #include"formula.h"
-#include"util.h"
 #include"units.h"
 #include"translatebits.h"
 #include"xmq.h"

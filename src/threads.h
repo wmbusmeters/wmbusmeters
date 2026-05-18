@@ -18,8 +18,6 @@
 #ifndef THREADS_H
 #define THREADS_H
 
-#include "util.h"
-
 #include <functional>
 #include <pthread.h>
 #include <sys/types.h>

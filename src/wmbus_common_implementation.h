@@ -18,9 +18,7 @@
 #ifndef WMBUS_COMMON_H
 #define WMBUS_COMMON_H
 
-#include "util.h"
 #include "threads.h"
-#include "wmbus.h"
 
 struct BusDeviceCommonImplementation : public BusDevice
 {
