@@ -1263,11 +1263,6 @@ bool isInsideTimePeriod(time_t now, string periods)
     return false;
 }
 
-size_t memoryUsage()
-{
-    return 0;
-}
-
 vector<string> alarm_shells_;
 
 const char* toString(Alarm type)
