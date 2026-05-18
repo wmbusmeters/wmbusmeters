@@ -26,6 +26,7 @@ struct DriverDynamic : public MeterCommonImplementation
     ~DriverDynamic();
     static bool load(DriverInfo *di, const std::string &name, const char *content);
     static XMQProceed add_detect(XMQDoc *doc, XMQNodePtr detect, DriverInfo *di);
+    static XMQProceed add_compact_frame_format(XMQDoc *doc, XMQNodePtr node, DriverInfo *di);
     static XMQProceed add_use(XMQDoc *doc, XMQNodePtr field, DriverDynamic *dd);
     static XMQProceed add_field(XMQDoc *doc, XMQNodePtr field, DriverDynamic *dd);
     static XMQProceed add_match(XMQDoc *doc, XMQNodePtr match, DriverDynamic *dd);

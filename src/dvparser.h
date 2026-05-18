@@ -29,6 +29,13 @@
 #include<vector>
 #include<unordered_map>
 
+struct MVT
+{
+    uint16_t mfct;
+    uchar version;
+    uchar type;
+};
+
 #define LIST_OF_VIF_RANGES \
     X(Volume,0x10,0x17,Quantity::Volume,Unit::M3) \
     X(OnTime,0x20,0x23, Quantity::Time, Unit::Hour)  \
@@ -538,7 +545,9 @@ struct FieldMatcher
     std::string str();
 };
 
-bool loadFormatBytesFromSignature(uint16_t format_signature, std::vector<uchar> *format_bytes);
+
+void registerCompactFormatForMVT(MVT mvt, uint16_t sig, std::vector<uchar> difvif);
+bool lookupCompactFormat(MVT mvt, uint16_t sig, std::vector<uchar> &format_bytes);
 
 struct Telegram;
 

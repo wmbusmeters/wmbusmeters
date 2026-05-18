@@ -7,6 +7,9 @@ driver {
     detect {
         mvt = EFE,00,07
     }
+    compact_frame_formats {
+        difvif = 426C441301FD17840113C40113840213C40213840313C40313840413C40413840513C40513840613C40613840713C40713840813046D0413
+    }
     fields {
         field {
             name     = total

@@ -154,7 +154,8 @@ LIST_OF_VIF_RANGES
     return false;
 }
 
-unordered_map<uint16_t,string> hash_to_format_;
+unordered_map<uint16_t,vector<uchar>> hash_to_format_;
+unordered_map<uint32_t,unordered_map<uint16_t,vector<uchar>>> mt_to_compact_formats_;
 
 static string makeSyntheticStorageKey(uchar dif_data_len_nibble, int storage_nr, uchar vif)
 {
@@ -902,16 +903,35 @@ static void addSyntheticCompactProfileEntries(unordered_map<string,pair<int,DVEn
     }
 }
 
-bool loadFormatBytesFromSignature(uint16_t format_signature, vector<uchar> *format_bytes)
+void registerCompactFormatForMVT(MVT mvt, uint16_t sig, vector<uchar> difvif)
 {
-    if (hash_to_format_.count(format_signature) > 0) {
-        debug("(dvparser) found remembered format for hash %x\n", format_signature);
-        // Return the proper hash!
-        hex2bin(hash_to_format_[format_signature], format_bytes);
-        return true;
+    uint32_t key = (uint32_t(mvt.mfct & 0x7fff) << 8) | uint32_t(mvt.type);
+    mt_to_compact_formats_[key][sig] = std::move(difvif);
+    debug("(dvparser) registered compact frame format sig=%04x for mfct=%04x type=%02x\n", sig, mvt.mfct, mvt.type);
+}
+
+bool lookupCompactFormat(MVT mvt, uint16_t sig, vector<uchar> &format_bytes)
+{
+    uint32_t key = (uint32_t(mvt.mfct & 0x7fff) << 8) | uint32_t(mvt.type);
+    auto it = mt_to_compact_formats_.find(key);
+    if (it != mt_to_compact_formats_.end())
+    {
+        auto jt = it->second.find(sig);
+        if (jt != it->second.end())
+        {
+            debug("(dvparser) found pre-declared format for sig=%04x mfct=%04x type=%02x\n", sig, mvt.mfct, mvt.type);
+            format_bytes = jt->second;
+            return true;
+        }
     }
-    // Unknown format signature.
-    return false;
+    if (hash_to_format_.count(sig) == 0)
+    {
+        debug("(dvparser) no compact frame format found for sig=%04x mfct=%04x type=%02x\n", sig, mvt.mfct, mvt.type);
+        return false;
+    }
+    debug("(dvparser) found runtime-learned format for sig=%04x\n", sig);
+    format_bytes = hash_to_format_[sig];
+    return true;
 }
 
 static const char hex_upper[] = "0123456789ABCDEF";
@@ -1344,13 +1364,12 @@ bool parseDV(Telegram *t,
         }
     }
 
-    string format_string = bin2hex(format_bytes);
     uint16_t hash = crc16_EN13757(safeButUnsafeVectorPtr(format_bytes), format_bytes.size());
 
     if (data_has_difvifs) {
         if (hash_to_format_.count(hash) == 0) {
-            hash_to_format_[hash] = format_string;
-            debug("(dvparser) found new format \"%s\" with hash %x, remembering!\n", format_string.c_str(), hash);
+            hash_to_format_[hash] = format_bytes;
+            debug("(dvparser) found new format \"%s\" with hash %x, remembering!\n", bin2hex(format_bytes).c_str(), hash);
         }
     }
 

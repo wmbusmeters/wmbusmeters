@@ -630,7 +630,7 @@ private:
                   std::vector<uchar>::iterator to,
                   std::vector<uchar> &mac,
                   std::vector<uchar> &mackey);
-    bool findFormatBytesFromKnownMeterSignatures(std::vector<uchar> *format_bytes);
+
 };
 
 struct SendBusContent

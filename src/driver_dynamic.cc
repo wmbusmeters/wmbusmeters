@@ -17,6 +17,7 @@
 
 #include"driver_dynamic.h"
 #include"always.h"
+#include"crc16.h"
 #include"log.h"
 #include"meters_common_implementation.h"
 #include"xmq.h"
@@ -128,6 +129,7 @@ bool DriverDynamic::load(DriverInfo *di, const string &file_name, const char *co
         di->setDynamic(file, doc);
 
         xmqForeach(doc, "/driver/detect/mvt", (XMQNodeCallback)add_detect, di);
+        xmqForeach(doc, "/driver/compact_frame_formats/difvif", (XMQNodeCallback)add_compact_frame_format, di);
         xmqForeach(doc, "/driver/mfct_tpl_status_bits", (XMQNodeCallback)add_mfct_tpl_status, di);
 
         check_detection_triplets(di, file);
@@ -280,6 +282,26 @@ XMQProceed DriverDynamic::add_detect(XMQDoc *doc, XMQNodePtr detect, DriverInfo 
           type);
 
     di->addMVT(mfct_code, type, version);
+    return XMQ_CONTINUE;
+}
+
+XMQProceed DriverDynamic::add_compact_frame_format(XMQDoc *doc, XMQNodePtr node, DriverInfo *di)
+{
+    const char *difvif_s = xmqGetStringRel(doc, ".", node);
+
+    if (!difvif_s)
+    {
+        warning("(driver) error in %s, compact_frame_format requires difvif\n"
+                "%s\n",
+                di->getDynamicFileName().c_str(),
+                line);
+        return XMQ_CONTINUE;
+    }
+
+    vector<uchar> difvif;
+    hex2bin(difvif_s, &difvif);
+    uint16_t sig = crc16_EN13757(difvif.data(), difvif.size());
+    di->addCompactFrameFormat(sig, std::move(difvif));
     return XMQ_CONTINUE;
 }
 
