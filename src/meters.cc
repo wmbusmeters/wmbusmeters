@@ -1663,6 +1663,34 @@ void MeterCommonImplementation::processFieldIXMLs(Telegram *t)
     {
         if (fi.hasIXML())
         {
+            if (fi.matchEntireFrame())
+            {
+                // Pass the full frame (including TPL header) to ixml so grammars can access bytes like tpl_acc.
+                vector<uchar> frame;
+                t->extractFrame(&frame);
+                string value = bin2hex(frame);
+                debug("(ixml) parsing entire frame %s\n", value.c_str());
+                bool ok = parseWithIXML(t, 0, value, fi.ixmlGrammar(), &t->dv_entries);
+                if (!ok)
+                {
+                    if (fi.printProperties().hasREQUIRED())
+                    {
+                        t->decoding_errors = joinStatusEmptyStrings(t->decoding_errors,
+                                                                    string("DECODING_ERROR_")+fi.vname());
+                        if (!t->beingAnalyzed())
+                        {
+                            warning("(meters) meter: %s failed to decode ixml field: %s over entire frame\n"
+                                    "Please open an issue at https://github.com/wmbusmeters/wmbusmeters/\n"
+                                    "and report this telegram: %s\n",
+                                    name().c_str(),
+                                    fi.vname().c_str(),
+                                    value.c_str());
+                        }
+                    }
+                }
+                continue;
+            }
+
             if (fi.matchEntirePayload())
             {
                 // Special case for mfct specific meters not compliant with difvif parsing.
