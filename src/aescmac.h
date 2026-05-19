@@ -18,7 +18,7 @@
 #ifndef _AESCMAC_H_
 #define _AESCMAC_H_
 
-typedef unsigned char uchar;
+#include "always.h"
 
 void AES_CMAC (uchar *key, uchar *input, int length, uchar *mac);
 

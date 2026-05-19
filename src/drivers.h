@@ -18,11 +18,10 @@
 #ifndef DRIVERS_H_
 #define DRIVERS_H_
 
-#include<string>
+#include "always.h"
 
-#include"meters.h"
-
-typedef unsigned char uchar;
+#include <cstdint>
+#include <string>
 
 struct BuiltinDriver
 {
@@ -30,6 +29,13 @@ struct BuiltinDriver
     const char *aliases;
     const char *content;
     bool loaded;
+};
+
+struct MVT
+{
+    uint16_t mfct;
+    uchar version;
+    uchar type;
 };
 
 struct MapToDriver {
