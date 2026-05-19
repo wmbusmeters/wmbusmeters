@@ -19,6 +19,12 @@ driver {
 
         // flowiq2200
         mvt = KAM,1d,16
+
+        // KWM2230 / 3230, warm
+        mvt = KAW,42,06
+
+        // KWM2230 / 3230, cold
+        mvt = KAW,42,16
     }
     compact_frame_formats {
         difvif = 02FF2004134413615B6167
