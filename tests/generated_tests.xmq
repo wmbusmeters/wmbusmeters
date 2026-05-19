@@ -1576,7 +1576,7 @@ test {
     args     = 'MyElement4 qcaloric 90919293 NOKEY'
     comment  = 'Another mostly empty telegram, but values are now valid.'
     telegram = 49449344939291903408780DFF5F350082180000800007B06EFFFF970000009F2C70020000BE26970000000000010018002E001F002E0023FF210008000500020000002F046D220FA228
-    json     = '{"_":"telegram","media":"heat cost allocation","meter":"qcaloric","name":"MyElement4","id":"90919293","status":"OK","current_consumption_hca":97,"set_date":"2020-12-31","consumption_at_set_date_hca":270,"set_date_1":"2020-12-31","consumption_at_set_date_1_hca":270,"set_date_17":"2021-06-30","consumption_at_set_date_17_hca":97,"error_date":"2127-15-31","device_datetime":"2021-08-02 15:34","timestamp":"1111-11-11T11:11:11Z"}'
+    json     = '{"_":"telegram","media":"heat cost allocation","meter":"qcaloric","name":"MyElement4","id":"90919293","status":"OK","current_consumption_hca":97,"set_date":"2020-12-31","consumption_at_set_date_hca":270,"set_date_1":"2020-12-31","consumption_at_set_date_1_hca":270,"set_date_17":"2021-06-30","consumption_at_set_date_17_hca":97,"device_datetime":"2021-08-02 15:34","timestamp":"1111-11-11T11:11:11Z"}'
     fields   = 'MyElement4;90919293;97;2020-12-31;270;1111-11-11 11:11.11'
 }
 test {
