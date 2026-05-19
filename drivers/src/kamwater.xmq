@@ -25,6 +25,8 @@ driver {
         difvif = 02FF2004134413615B5167
         difvif = 02FF2004134413
         difvif = 02FF200413523B
+        // Kamstrup KWM2231
+        difvif = 04FF2304134413426C023B92013BA2013B06FF1BA1015B91015BA10167
     }
     library {
         use = total_m3
