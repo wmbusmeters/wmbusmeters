@@ -593,6 +593,7 @@ struct FormulaImplementation : public Formula
     std::unique_ptr<NumericFormula> popOp();
     NumericFormula *topOp();
     NumericFormula *top2Op();
+    bool hasStackMinSizeOf(size_t n);
 
     Meter *meter() { return meter_; }
     DVEntry *dventry() { return dventry_; }

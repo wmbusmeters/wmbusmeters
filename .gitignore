@@ -12,3 +12,5 @@ config.log
 autom4te.cache/
 fuzz_testcases/telegrams/
 perftest
+fuzz_testcases/**/findings/
+afl_prepared

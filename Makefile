@@ -307,8 +307,14 @@ $(BUILD)/testinternals.o: $(PROG_OBJS) $(DRIVER_OBJS) $(wildcard src/*.h)
 $(BUILD)/testinternals: $(BUILD)/testinternals.o
 	$(CXX) $(DEBUG_FLAGS) -o $(BUILD)/testinternals $(PROG_OBJS) $(DRIVER_OBJS) $(BUILD)/testinternals.o $(LDFLAGS)  -lpthread
 
-$(BUILD)/fuzz: $(PROG_OBJS) $(DRIVER_OBJS) $(BUILD)/fuzz.o
-	$(CXX) $(DEBUG_FLAGS) -o $(BUILD)/fuzz $(PROG_OBJS) $(DRIVER_OBJS) $(BUILD)/fuzz.o $(LDFLAGS) -lpthread
+$(BUILD)/fuzz_difvifparser: $(PROG_OBJS) $(DRIVER_OBJS) $(BUILD)/fuzz_difvifparser.o
+	$(CXX) $(DEBUG_FLAGS) -o $(BUILD)/fuzz_difvifparser $(PROG_OBJS) $(DRIVER_OBJS) $(BUILD)/fuzz_difvifparser.o $(LDFLAGS) -lpthread
+
+$(BUILD)/fuzz_formula: $(PROG_OBJS) $(DRIVER_OBJS) $(BUILD)/fuzz_formula.o
+	$(CXX) $(DEBUG_FLAGS) -o $(BUILD)/fuzz_formula $(PROG_OBJS) $(DRIVER_OBJS) $(BUILD)/fuzz_formula.o $(LDFLAGS) -lpthread
+
+$(BUILD)/fuzz_address: $(PROG_OBJS) $(DRIVER_OBJS) $(BUILD)/fuzz_address.o
+	$(CXX) $(DEBUG_FLAGS) -o $(BUILD)/fuzz_address $(PROG_OBJS) $(DRIVER_OBJS) $(BUILD)/fuzz_address.o $(LDFLAGS) -lpthread
 
 $(BUILD)/perf: $(PROG_OBJS) $(DRIVER_OBJS) $(BUILD)/perf.o
 	$(CXX) $(DEBUG_FLAGS) -o $(BUILD)/perf $(PROG_OBJS) $(DRIVER_OBJS) $(BUILD)/perf.o $(LDFLAGS) -lpthread
@@ -446,14 +452,22 @@ afl_prepared:  AFLplusplus/src/afl-cc.c
 	touch afl_prepared
 
 build_fuzz: afl_prepared
-	$(MAKE) AFL_HARDEN=1 CXX=$(AFL_HOME)/afl-g++-fast FUZZFLAGS=-DFUZZING=true $(BUILD)/fuzz
+	$(MAKE) AFL_HARDEN=1 CXX=$(AFL_HOME)/afl-g++-fast FUZZFLAGS=-DFUZZING=true $(BUILD)/fuzz_difvifparser
+	$(MAKE) AFL_HARDEN=1 CXX=$(AFL_HOME)/afl-g++-fast FUZZFLAGS=-DFUZZING=true $(BUILD)/fuzz_formula
+	$(MAKE) AFL_HARDEN=1 CXX=$(AFL_HOME)/afl-g++-fast FUZZFLAGS=-DFUZZING=true $(BUILD)/fuzz_address
 	$(MAKE) AFL_HARDEN=1 CXX=$(AFL_HOME)/afl-g++-fast FUZZFLAGS=-DFUZZING=true $(BUILD)/wmbusmeters
 
 run_fuzz_difvifparser:
-	${AFL_HOME}/afl-fuzz -i fuzz_testcases/difvifparser -o fuzz_findings_difvifparser/ build/fuzz
+	${AFL_HOME}/afl-fuzz -i fuzz_testcases/difvifparser -o fuzz_testcases/difvifparser/findings build/fuzz_difvifparser
+
+run_fuzz_formula:
+	${AFL_HOME}/afl-fuzz -i fuzz_testcases/formula -o fuzz_testcases/formula/findings build/fuzz_formula
+
+run_fuzz_address:
+	${AFL_HOME}/afl-fuzz -i fuzz_testcases/address -o fuzz_testcases/address/findings build/fuzz_address
 
 run_fuzz_telegrams: extract_fuzz_telegram_seeds
-	${AFL_HOME}/afl-fuzz -i fuzz_testcases/telegrams -o fuzz_findings_telegrams/ build/wmbusmeters --listento=any stdin
+	${AFL_HOME}/afl-fuzz -i fuzz_testcases/telegrams -o fuzz_testcases/telegrams/findings build/wmbusmeters --listento=any stdin
 
 extract_fuzz_telegram_seeds:
 	@cat drivers/src/*.xmq | grep ".*telegram.*=" | tr -d '_' | sed 's|.*telegram = ||' > $(BUILD)/seeds
