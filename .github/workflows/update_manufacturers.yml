@@ -11,6 +11,7 @@ permissions:
 
 jobs:
   update:
+    if: github.repository == 'wmbusmeters/wmbusmeters'
     runs-on: ubuntu-latest
 
     steps:

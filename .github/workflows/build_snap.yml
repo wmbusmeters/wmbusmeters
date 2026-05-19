@@ -10,6 +10,7 @@ on:
 
 jobs:
   build-and-release:
+    if: github.repository == 'wmbusmeters/wmbusmeters'
     runs-on: ubuntu-latest
     strategy:
       matrix:
