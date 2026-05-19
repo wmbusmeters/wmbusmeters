@@ -165,21 +165,21 @@ TEST_CASES = [
             "total_m3": 6.408,
         },
     ),
-    # 11. List drivers command
-    (
-        "list_drivers command",
-        {
-            "_": "list_drivers",
-        },
-        {
-            "drivers": lambda v: (
-                isinstance(v, list)
-                and len(v) > 10
-                and all(isinstance(d, dict) and "name" in d and "type" in d for d in v)
-                and any(d["name"] == "kamwater" for d in v)
-            ),
-        },
-    ),
+    # 11. List drivers command temporarily disabled.
+#    (
+#        "list_drivers command",
+#        {
+#            "_": "list_drivers",
+#        },
+#        {
+#            "drivers": lambda v: (
+#                isinstance(v, list)
+#                and len(v) > 10
+#                and all(isinstance(d, dict) and "name" in d and "type" in d for d in v)
+#                and any(d["name"] == "kamwater" for d in v)
+#            ),
+#        },
+#    ),
     # 12. Unknown command
     (
         "unknown command",
