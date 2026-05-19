@@ -1,4 +1,5 @@
-// Copyright (C) 2022-2026 Fredrik Öhrström, Alexander Streit (gpl-3.0-or-later)
+/* Copyright (C) 2022-2026 Fredrik Öhrström (gpl-3.0-or-later)
+   Copyright (C) 2022 Alexander Streit (gpl-3.0-or-later) */
 driver {
     name           = c5isf
     meter_type     = HeatMeter

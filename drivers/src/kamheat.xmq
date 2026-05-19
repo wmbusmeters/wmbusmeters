@@ -1,19 +1,6 @@
 /* Copyright (C) 2018-2025 Fredrik Öhrström (gpl-3.0-or-later)
    Copyright (C)      2020 Eric Bus (gpl-3.0-or-later)
-   Copyright (C)      2022 thecem (gpl-3.0-or-later)
-
-   This program is free software: you can redistribute it and/or modify
-   it under the terms of the GNU General Public License as published by
-   the Free Software Foundation, either version 3 of the License, or
-   (at your option) any later version.
-
-   This program is distributed in the hope that it will be useful,
-   but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-   GNU General Public License for more details.
-
-   You should have received a copy of the GNU General Public License
-   along with this program.  If not, see <http://www.gnu.org/licenses/>. */
+   Copyright (C)      2022 thecem (gpl-3.0-or-later) */
 driver {
     name           = kamheat
     aliases        = multical302,multical303,multical403,multical602,multical603,multical803
@@ -50,15 +37,6 @@ driver {
         // 603
         mvt = KAM,39,04
         // 803
-    }
-    compact_frame_formats {
-        // Kamstrup Multical 303
-        difvif = 0406041404FF0704FF080259025D023B02FF22026C44064414426C
-        // Unknown if KamHeat or KamWater
-        difvif = 02FF2004134413A1015B8101E7FF0F
-        difvif = 02FF2004134413615B5167
-        difvif = 02FF2004134413
-        difvif = 02FF200413523B
     }
     library {
         use = fabrication_no
@@ -723,11 +701,11 @@ driver {
             json     = '{"_":"telegram","media":"heat/cooling load","meter":"kamheat","name":"Kamstrup_MC303_Heat_AND_COOLING","id":"30303030","flow_return_temperature_difference_c":1.1,"forward_energy_m3c":1394,"max_flow_m3h":1.146,"max_power_kw":18,"on_time_h":2697,"on_time_at_error_h":0,"power_kw":1.4,"return_energy_m3c":1260,"t1_temperature_c":29.3,"t2_temperature_c":28.2,"target_energy_kwh":0,"target_volume_m3":0,"total_energy_backward_kwh":0,"total_energy_consumption_kwh":154,"total_volume_m3":39.49,"volume_flow_m3h":1.128,"status":"OK","target_date":"1999-11-30","timestamp":"1111-11-11T11:11:11Z"}'
             fields   = 'Kamstrup_MC303_Heat_AND_COOLING;30303030;154;39.49;OK;1111-11-11 11:11.11'
         }
-        test {
-            args     = '303_wrong_flow kamheat 83076912 NOKEY'
-            telegram = 52442d2c1269078340048d2067e08d1620d2ca7804060000000004140000000004ff070000000004ff080000000002592618025d2816023B000002ff220002026c393B440600000000441400000000426c213B
-            json     = '{"_":"telegram","media":"heat","meter":"kamheat","name":"303_wrong_flow","id":"83076912","forward_energy_m3c":0,"return_energy_m3c":0,"t1_temperature_c":61.82,"t2_temperature_c":56.72,"target_date":"2025-11-01","target_energy_kwh":0,"target_volume_m3":0,"total_energy_consumption_kwh":0,"total_volume_m3":0,"volume_flow_m3h":0,"meter_date":"2025-11-25","status":"WRONG_FLOW_DIRECTION","timestamp":"1111-11-11T11:11:11Z"}'
-            fields   = '303_wrong_flow;83076912;0;0;WRONG_FLOW_DIRECTION;1111-11-11 11:11.11'
-        }
+    }
+    test {
+        args     = '303_wrong_flow kamheat 83076912 NOKEY'
+        telegram = 52442d2c1269078340048d2067e08d1620d2ca7804060000000004140000000004ff070000000004ff080000000002592618025d2816023B000002ff220002026c393B440600000000441400000000426c213B
+        json     = '{"_":"telegram","media":"heat","meter":"kamheat","name":"303_wrong_flow","id":"83076912","forward_energy_m3c":0,"return_energy_m3c":0,"t1_temperature_c":61.82,"t2_temperature_c":56.72,"target_date":"2025-11-01","target_energy_kwh":0,"target_volume_m3":0,"total_energy_consumption_kwh":0,"total_volume_m3":0,"volume_flow_m3h":0,"meter_date":"2025-11-25","status":"WRONG_FLOW_DIRECTION","timestamp":"1111-11-11T11:11:11Z"
+                    }'
     }
 }

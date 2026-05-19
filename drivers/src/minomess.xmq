@@ -1,4 +1,6 @@
-// Copyright (C) 2021 Olli Salonen, 2022-2026 Fredrik Öhrström, Hynek Moravec (gpl-3.0-or-later)
+/* Copyright (C) 2021 Olli Salonen (gpl-3.0-or-later)
+   Copyright (C) 2022-2026 Fredrik Öhrström (gpl-3.0-or-later)
+   Copyright (C) 2026 Hynek Moravec (gpl-3.0-or-later) */
 driver {
     name           = minomess
     meter_type     = WaterMeter
