@@ -34,13 +34,6 @@ bool gotHupped();
 void wakeMeUpOnSigChld(pthread_t t);
 bool signalsInstalled();
 
-enum class TestBit
-{
-    Unknown,
-    Set,
-    NotSet
-};
-
 uchar bcd2bin(uchar c);
 uchar revbcd2bin(uchar c);
 uchar reverse(uchar c);
@@ -230,11 +223,6 @@ void checkIfMultipleWmbusMetersRunning();
 
 bool findBytes(std::vector<uchar> &v, uchar a, uchar b, uchar c, size_t *out);
 
-enum class OutputFormat
-{
-    NONE, PLAIN, TERMINAL, JSON, HTML
-};
-
 // Joing two status strings with a space, but merge OKs.
 // I.e. "OK" + "OK" --> "OK"
 //      "ERROR" + "OK"  --> "ERROR"
@@ -264,8 +252,6 @@ int strlen_utf8(const char *s);
 int toMfctCode(char a, char b, char c);
 
 bool is_lowercase_alpha_num_underscore(const char *text);
-
-TestBit toTestBit(const char *s);
 
 #ifndef FUZZING
 #define FUZZING false

@@ -82,6 +82,11 @@ enum class DeviceMode
 const char *toString(DeviceMode mode);
 DeviceMode toDeviceMode(const char *s);
 
+enum class OutputFormat
+{
+    NONE, PLAIN, TERMINAL, JSON, HTML
+};
+
 bool usesTTY(BusDeviceType t);
 bool usesRTLSDR(BusDeviceType t);
 const char *toString(BusDeviceType t);
