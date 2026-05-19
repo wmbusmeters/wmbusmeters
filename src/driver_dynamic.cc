@@ -35,7 +35,7 @@ void check_detection_triplets(DriverInfo *di, string file);
 
 string check_field_name(const char *name, DriverDynamic *dd);
 string check_field_ixml(const char *ixml, DriverDynamic *dd);
-bool check_field_match_entire_payload(const char *mep, DriverDynamic *dd);
+bool check_boolean_property(const char *value, const char *property, DriverDynamic *dd, bool default_value = false);
 string check_field_info(const char *info, DriverDynamic *dd);
 ReadableString check_field_readable_string(const char *rs_s, DriverDynamic *dd);
 Quantity check_field_quantity(const char *quantity_s, DriverDynamic *dd);
@@ -159,6 +159,12 @@ DriverDynamic::DriverDynamic(MeterInfo &mi, DriverInfo &di) :
                 di.name().str().c_str(),
                 fileName().c_str());
 
+        const char *transform_payload_s = xmqGetString(doc, "/driver/transform_payload");
+        if (transform_payload_s && string(transform_payload_s) == "diehl_prios")
+        {
+            setDiehlPriosDecode(true);
+        }
+
         xmqForeach(doc, "/driver/library/use", (XMQNodeCallback)add_use, this);
         xmqForeach(doc, "/driver/fields/field", (XMQNodeCallback)add_field, this);
 
@@ -251,7 +257,7 @@ XMQProceed DriverDynamic::add_detect(XMQDoc *doc, XMQNodePtr detect, DriverInfo 
     {
         warning("(driver) error in %s, bad version in mvt triplet: %02x\n"
                 "%s\n"
-                "The version must be a hex value from 00 to ff.\n"
+                "The version must be a hex value from 00 to ff, or * as a wildcard.\n"
                 "%s\n",
                 di->getDynamicFileName().c_str(),
                 version,
@@ -264,7 +270,7 @@ XMQProceed DriverDynamic::add_detect(XMQDoc *doc, XMQNodePtr detect, DriverInfo 
     {
         warning("(driver) error in %s, bad type in mvt triplet: %02x\n"
                 "%s\n"
-                "The type must be a hex value from 00 to ff.\n"
+                "The type must be a hex value from 00 to ff, or * as a wildcard.\n"
                 "%s\n",
                 di->getDynamicFileName().c_str(),
                 type,
@@ -332,7 +338,7 @@ XMQProceed DriverDynamic::add_field(XMQDoc *doc, XMQNodePtr field, DriverDynamic
     bool is_numeric = quantity != Quantity::Text;
 
     // For ixml parsing of mfct specific payloads, payloads that do not even bother with the 0x0f.
-    bool match_entire_payload = check_field_match_entire_payload(xmqGetStringRel(doc, "match_entire_payload", field), dd);
+    bool match_entire_payload = check_boolean_property(xmqGetStringRel(doc, "match_entire_payload", field), "match_entire_payload", dd, false);
 
     if (is_numeric && match_entire_payload)
     {
@@ -846,6 +852,19 @@ bool check_field_match_entire_payload(const char *mep, DriverDynamic *dd)
             dd->fileName().c_str(), mep);
 
     return false;
+}
+
+bool check_boolean_property(const char *value, const char *property, DriverDynamic *dd, bool default_value)
+{
+    if (!value) return default_value;
+
+    if (!strcmp(value, "true")) return true;
+    if (!strcmp(value, "false")) return false;
+
+    warning("(driver) error in %s, %s must be true/false not \"%s\"\n",
+            dd->fileName().c_str(), property, value);
+
+    return default_value;
 }
 
 Quantity check_field_quantity(const char *quantity_s, DriverDynamic *dd)

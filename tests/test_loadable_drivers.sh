@@ -74,3 +74,37 @@ EOF
 $PROG --format=json 1844AE4C4455223399077A55000000_041389E20100023B0000 Hej $TEST/driver.xmq 33225544 NOKEY > $TEST/test_output.txt 2>&1
 
 performCheck
+
+TESTNAME="Test loadable driver wildcard mvt"
+TESTRESULT="ERROR"
+cat > $TEST/driver.xmq <<EOF
+driver {
+    name           = iporlwild
+    meter_type     = WaterMeter
+    default_fields = name,id,total_m3,timestamp
+    detect {
+        mvt = SEN,*,07
+    }
+    fields {
+        field {
+            name     = totalitator
+            quantity = Volume
+            match {
+                measurement_type = Instantaneous
+                vif_range        = Volume
+            }
+            about {
+                en = 'The total water consumption recorded by this meter.'
+            }
+        }
+    }
+}
+EOF
+
+cat > $TEST/test_expected.txt <<EOF
+{"_":"telegram","media":"water","meter":"iporlwild","name":"Hej","id":"33225544","totalitator_m3":123.529,"timestamp":"1111-11-11T11:11:11Z"}
+EOF
+
+$PROG --format=json 1844AE4C4455223399077A55000000_041389E20100023B0000 Hej $TEST/driver.xmq 33225544 NOKEY > $TEST/test_output.txt 2>&1
+
+performCheck

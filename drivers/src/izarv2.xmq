@@ -1,0 +1,286 @@
+// Copyright (C) 2019 Jacek Tomasiak (gpl-3.0-or-later)
+// Copyright (C) 2020-2025 Fredrik Öhrström (gpl-3.0-or-later)
+// Copyright (C) 2021 Vincent Privat (gpl-3.0-or-later)
+driver {
+    name              = izarv2
+    meter_type        = WaterMeter
+    default_fields    = name,id,status,total_m3,target_m3,timestamp
+    manufacturer      = Diehl
+    transform_payload = diehl_prios
+    detect {
+        mvt = HYD,85,07
+        mvt = SAP,*,15
+        mvt = SAP,*,04
+        mvt = SAP,00,07
+        mvt = DME,78,07
+        mvt = DME,78,06
+        mvt = HYD,86,07
+    }
+    fields {
+        field {
+            name     = prefix
+            quantity = Text
+            info     = 'The alphanumeric prefix printed before serial number on device.'
+        }
+        field {
+            name     = serial_number
+            quantity = Text
+            info     = 'The meter serial number.'
+        }
+        field {
+            name     = manufacture_y
+            quantity = Text
+            info     = 'The year during which the meter was manufactured.'
+        }
+        field {
+            name                 = prios_decoder
+            quantity             = Text
+            attributes           = HIDE
+            match_entire_payload = true
+            ixml                 = "decode = with_billing | without_billing.
+                                    with_billing = alarms_hdr, -skip_byte, -check, volume, billing_block, -byte*.
+                                    without_billing = alarms_hdr, -skip_byte, -check, volume.
+                                    alarms_hdr  = byte, byte, byte, @DV_alarms.
+                                    -skip_byte  = byte.
+                                    -check      = byte.
+                                    volume      = byte, byte, byte, byte, @DV_total.
+                                    billing_block = last_month, date.
+                                    last_month  = byte, byte, byte, byte, @DV_last_month.
+                                    date        = byte, byte, @DV_date.
+                                    -hex  = ['A'-'F'; '0'-'9'].
+                                    -byte = hex, hex.
+                                    DV_alarms>dvk     = +'036C'.
+                                    DV_total>dvk      = +'0413'.
+                                    DV_last_month>dvk = +'4413'.
+                                    DV_date>dvk       = +'026C'."
+        }
+        field {
+            name     = total
+            quantity = Volume
+            info     = 'The total water consumption recorded by this meter.'
+            match {
+                difvifkey = 0413
+            }
+        }
+        field {
+            name     = target
+            quantity = Volume
+            info     = 'The total water consumption recorded at the end of last month.'
+            match {
+                difvifkey = 4413
+            }
+        }
+        field {
+            name       = status_raw
+            quantity   = Dimensionless
+            attributes = HIDE
+            match {
+                difvifkey = 036C
+            }
+        }
+        field {
+            name       = tx_raw
+            quantity   = Dimensionless
+            attributes = HIDE
+            calculate  = 'status_raw_counter & 15counter'
+        }
+        field {
+            name       = bat_raw
+            quantity   = Dimensionless
+            attributes = HIDE
+            calculate  = '(status_raw_counter >> 8counter) & 31counter'
+        }
+        field {
+            name       = target_date_raw
+            quantity   = Dimensionless
+            attributes = HIDE
+            match {
+                difvifkey = 026C
+            }
+        }
+        field {
+            name       = target_date_day
+            quantity   = Dimensionless
+            attributes = HIDE
+            calculate  = 'target_date_raw_counter % 32counter'
+            match {
+                difvifkey = 026C
+            }
+        }
+        field {
+            name       = target_date_month
+            quantity   = Dimensionless
+            attributes = HIDE
+            calculate  = '(target_date_raw_counter >> 8counter) % 16counter'
+            match {
+                difvifkey = 026C
+            }
+        }
+        field {
+            name       = target_date_year_offset
+            quantity   = Dimensionless
+            attributes = HIDE
+            calculate  = '((((target_date_raw_counter >> 8counter) & 240counter) >> 1counter) + ((target_date_raw_counter >> 5counter) % 8counter))'
+            match {
+                difvifkey = 026C
+            }
+        }
+        field {
+            name       = target_date_year_adjusted
+            quantity   = Dimensionless
+            attributes = HIDE
+            calculate  = 'target_date_year_offset_counter - ((target_date_year_offset_counter > 80counter) * 100counter)'
+            match {
+                difvifkey = 026C
+            }
+        }
+        field {
+            name       = target_date_month_offset
+            quantity   = Dimensionless
+            attributes = HIDE
+            calculate  = '(target_date_year_adjusted_counter * 12counter) + target_date_month_counter - 1counter'
+            match {
+                difvifkey = 026C
+            }
+        }
+        field {
+            name         = target
+            quantity     = PointInTime
+            display_unit = date
+            info         = 'The date when the meter recorded the most recent billing value.'
+            calculate    = "'2000-01-01' +
+                            (target_date_month_offset_counter * 1month) +
+                            ((target_date_day_counter - 1counter) * 24h)"
+            match {
+                difvifkey = 026C
+            }
+        }
+        field {
+            name         = battery
+            quantity     = Time
+            display_unit = y
+            info         = 'How many more years the battery is expected to last.'
+            calculate    = 'bat_raw_counter * 0.5y'
+        }
+        field {
+            name         = transmit_period
+            quantity     = Time
+            display_unit = s
+            info         = 'The period at which the meter transmits its data.'
+            calculate    = '(1counter << (tx_raw_counter + 2counter)) * 1s'
+        }
+        field {
+            name     = status
+            quantity = Text
+            info     = 'Current and previous alarms reported by the meter.'
+            match {
+                difvifkey = 036C
+            }
+            lookup {
+                name            = ALARMS
+                map_type        = BitToString
+                mask_bits       = 0xFFE000
+                default_message = OK
+                map {
+                    name  = LEAKAGE
+                    value = 0x008000
+                    test  = Set
+                }
+                map {
+                    name  = METER_BLOCKED
+                    value = 0x002000
+                    test  = Set
+                }
+                map {
+                    name  = BACK_FLOW
+                    value = 0x800000
+                    test  = Set
+                }
+                map {
+                    name  = UNDERFLOW
+                    value = 0x400000
+                    test  = Set
+                }
+                map {
+                    name  = OVERFLOW
+                    value = 0x200000
+                    test  = Set
+                }
+                map {
+                    name  = SUBMARINE
+                    value = 0x100000
+                    test  = Set
+                }
+                map {
+                    name  = SENSOR_FRAUD
+                    value = 0x080000
+                    test  = Set
+                }
+                map {
+                    name  = MECHANICAL_FRAUD
+                    value = 0x020000
+                    test  = Set
+                }
+                map {
+                    name  = PREV_LEAKAGE
+                    value = 0x004000
+                    test  = Set
+                }
+                map {
+                    name  = PREV_SENSOR_FRAUD
+                    value = 0x040000
+                    test  = Set
+                }
+                map {
+                    name  = PREV_MECHANICAL_FRAUD
+                    value = 0x010000
+                    test  = Set
+                }
+            }
+        }
+    }
+    tests {
+        test {
+            comment  = 'HYD meter with SAP_PRIOS encoding: prefix, serial, manufacture_y present'
+            args     = 'IzarWater izarv2 21242472 NOKEY'
+            telegram = 1944304C72242421D401A2_013D4013DD8B46A4999C1293E582CC
+            json     = '{"_":"telegram","media":"water","meter":"izarv2","name":"IzarWater","id":"21242472","prefix":"C19UA","serial_number":"145842","manufacture_y":"2019","total_m3":3.488,"target_m3":3.486,"target_date":"2019-09-30","battery_y":14.5,"transmit_period_s":8,"status":"METER_BLOCKED UNDERFLOW","timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'IzarWater;21242472;METER_BLOCKED UNDERFLOW;3.488;3.486;1111-11-11 11:11.11'
+        }
+        test {
+            comment  = 'SAP meter with PRIOS encoding: no prefix/serial/manufacture_y'
+            args     = 'IzarWater2 izarv2 66236629 NOKEY'
+            telegram = 2944A511780729662366A20118001378D3B3DB8CEDD77731F25832AAF3DA8CADF9774EA673172E8C61F2
+            json     = '{"_":"telegram","media":"water","meter":"izarv2","name":"IzarWater2","id":"66236629","total_m3":16.76,"target_m3":11.84,"target_date":"2019-11-30","battery_y":12,"transmit_period_s":8,"status":"OK","timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'IzarWater2;66236629;OK;16.76;11.84;1111-11-11 11:11.11'
+        }
+        test {
+            comment  = 'SAP meter version 0x78'
+            args     = 'IzarWater3 izarv2 20481979 NOKEY'
+            telegram = 1944A511780779194820A1_21170013355F8EDB2D03C6912B1E37
+            json     = '{"_":"telegram","media":"water","meter":"izarv2","name":"IzarWater3","id":"20481979","total_m3":4.366,"target_m3":0,"target_date":"2020-12-31","battery_y":11.5,"transmit_period_s":8,"status":"OK","timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'IzarWater3;20481979;OK;4.366;0;1111-11-11 11:11.11'
+        }
+        test {
+            comment  = 'HYD meter with mfct specific tpl ci field a3'
+            args     = 'IzarWater4 izarv2 2124589c NOKEY'
+            telegram = 1944304c9c5824210c04a363140013716577ec59e8663ab0d31c
+            json     = '{"_":"telegram","media":"water","meter":"izarv2","name":"IzarWater4","id":"2124589c","prefix":"H19CA","serial_number":"159196","manufacture_y":"2019","total_m3":38.944,"target_m3":38.691,"target_date":"2021-02-01","battery_y":10,"transmit_period_s":32,"status":"OK","timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'IzarWater4;2124589c;OK;38.944;38.691;1111-11-11 11:11.11'
+        }
+        test {
+            comment  = 'Ensure non-regression on manufacture year parsing'
+            args     = 'IzarWater5 izarv2 20e4ffde NOKEY'
+            telegram = 1944304CDEFFE420CC01A2_63120013258F907B0AFF12529AC33B
+            json     = '{"_":"telegram","media":"water","meter":"izarv2","name":"IzarWater5","id":"20e4ffde","prefix":"C15SA","serial_number":"007710","manufacture_y":"2015","total_m3":159.832,"target_m3":157.76,"target_date":"2021-02-01","battery_y":9,"transmit_period_s":32,"status":"OK","timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'IzarWater5;20e4ffde;OK;159.832;157.76;1111-11-11 11:11.11'
+        }
+        test {
+            comment  = 'SAP meter with previous leakage alarm'
+            args     = 'IzarWater6 izarv2 48500375 NOKEY'
+            telegram = 19442423860775035048A251520015BEB6B2E1ED623A18FC74A5
+            json     = '{"_":"telegram","media":"water","meter":"izarv2","name":"IzarWater6","id":"48500375","total_m3":521.602,"target_m3":519.147,"target_date":"2021-11-15","battery_y":9,"transmit_period_s":8,"status":"PREV_LEAKAGE","timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'IzarWater6;48500375;PREV_LEAKAGE;521.602;519.147;1111-11-11 11:11.11'
+        }
+    }
+}

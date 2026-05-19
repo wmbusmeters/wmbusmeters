@@ -1637,8 +1637,8 @@ void test_translate()
             },
         };
 
-   Translate::Lookup lookup3 =
-       {
+    Translate::Lookup lookup3 =
+        {
             {
                 {
                     "NO_FLAGS",
@@ -1655,6 +1655,33 @@ void test_translate()
                 },
             },
         };
+
+    Translate::Lookup lookup4 =
+        Translate::Lookup()
+        .add(Translate::Rule("CURRENT_ALARMS_GENERAL", Translate::MapType::BitToString)
+             .set(TriggerBits(0x000080))
+             .set(MaskBits(0xFAA000))
+             .add(Translate::Map(0x008000, "general_alarm"))
+             .add(Translate::Map(0x002000, "general_alarm"))
+             .add(Translate::Map(0x800000, "general_alarm"))
+             .add(Translate::Map(0x400000, "general_alarm"))
+             .add(Translate::Map(0x200000, "general_alarm"))
+             .add(Translate::Map(0x100000, "general_alarm"))
+             .add(Translate::Map(0x080000, "general_alarm"))
+             .add(Translate::Map(0x020000, "general_alarm"))
+            )
+        .add(Translate::Rule("CURRENT_ALARMS", Translate::MapType::BitToString)
+             .set(MaskBits(0xFAA000))
+             .set(DefaultMessage("no_alarm"))
+             .add(Translate::Map(0x008000, "leakage"))
+             .add(Translate::Map(0x002000, "meter_blocked"))
+             .add(Translate::Map(0x800000, "back_flow"))
+             .add(Translate::Map(0x400000, "underflow"))
+             .add(Translate::Map(0x200000, "overflow"))
+             .add(Translate::Map(0x100000, "submarine"))
+             .add(Translate::Map(0x080000, "sensor_fraud"))
+             .add(Translate::Map(0x020000, "mechanical_fraud"))
+            );
 
     string s, e;
     uint8_t bits;
@@ -1707,6 +1734,33 @@ void test_translate()
     if (s != e)
     {
         printf("ERROR lookup3 0x%02x expected \"%s\" but got \"%s\"\n", bits, e.c_str(), s.c_str());
+    }
+
+    uint64_t alarm_bits = 0x000080;
+    s = lookup4.translate(alarm_bits);
+    e = "no_alarm";
+    if (s != e)
+    {
+        printf("ERROR lookup4 0x%06llx expected \"%s\" but got \"%s\"\n",
+               (unsigned long long)alarm_bits, e.c_str(), s.c_str());
+    }
+
+    alarm_bits = 0x402000;
+    s = lookup4.translate(alarm_bits);
+    e = "meter_blocked underflow";
+    if (s != e)
+    {
+        printf("ERROR lookup4 0x%06llx expected \"%s\" but got \"%s\"\n",
+               (unsigned long long)alarm_bits, e.c_str(), s.c_str());
+    }
+
+    alarm_bits = 0x402080;
+    s = lookup4.translate(alarm_bits);
+    e = "general_alarm meter_blocked underflow";
+    if (s != e)
+    {
+        printf("ERROR lookup4 0x%06llx expected \"%s\" but got \"%s\"\n",
+               (unsigned long long)alarm_bits, e.c_str(), s.c_str());
     }
 
 }

@@ -109,6 +109,7 @@ protected:
     void setMeterType(MeterType mt);
     void addLinkMode(LinkMode lm);
     void setMfctTPLStatusBits(Translate::Lookup &lookup);
+    void setDiehlPriosDecode(bool v) { diehl_prios_decode_ = v; }
 
     void markLastFieldAsLibrary();
     FieldInfo *lastAddedField();
@@ -255,6 +256,8 @@ private:
     bool has_process_content_ = false;
     bool has_received_first_telegram_ = false;
     MeterManager *meter_manager_ {};
+    bool diehl_prios_decode_ = false;
+    std::string diehl_prios_combined_hex_; // frame[header_size..+4] + LFSR-decoded payload
 
 protected:
 
