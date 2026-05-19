@@ -180,7 +180,12 @@ static string makeSyntheticStorageKey(uchar dif_data_len_nibble, int storage_nr,
         key_bytes.push_back(dife);
     }
 
-    key_bytes.push_back(vif);
+    key_bytes.push_back(vif | 0x80);
+
+    // Add vif combinable Synthetic
+    key_bytes.push_back(0x7f);
+    key_bytes.push_back(0x77);
+
     return bin2hex(key_bytes);
 }
 
@@ -830,7 +835,8 @@ static void addSyntheticCompactProfileEntries(unordered_map<string,pair<int,DVEn
         }
 
         string value_hex = bin2hex(value_bytes);
-        set<VIFCombinable> no_combinable_vifs;
+        set<VIFCombinable> single_synthetic_combinable_vif;
+        single_synthetic_combinable_vif.insert(VIFCombinable::Synthetic);
         set<uint16_t> no_combinable_vifs_raw;
 
         auto insert_res = dv_entries->emplace(key,
@@ -839,14 +845,15 @@ static void addSyntheticCompactProfileEntries(unordered_map<string,pair<int,DVEn
                                          DifVifKey(key),
                                          entry.measurement_type,
                                          entry.vif,
-                                         std::move(no_combinable_vifs),
+                                         std::move(single_synthetic_combinable_vif),
                                          std::move(no_combinable_vifs_raw),
                                          StorageNr(storage_nr),
                                          entry.tariff_nr,
                                          entry.subunit_nr,
                                          value_hex)));
         assert(insert_res.second);
-                        insert_res.first->second.second.subunit_nr = SubUnitNr(synthetic_subunit);
+        insert_res.first->second.second.subunit_nr = SubUnitNr(synthetic_subunit);
+        debug("(dvparser) inserted 1 synthetic difvif %s\n", key.c_str());
 
         if (have_running_base_date)
         {
@@ -866,7 +873,8 @@ static void addSyntheticCompactProfileEntries(unordered_map<string,pair<int,DVEn
                         date_duplicate_nr++;
                     }
 
-                    set<VIFCombinable> no_date_combinable_vifs;
+                    set<VIFCombinable> single_synthetic_combinable_vif;
+                    single_synthetic_combinable_vif.insert(VIFCombinable::Synthetic);
                     set<uint16_t> no_date_combinable_vifs_raw;
 
                         auto date_insert_res = dv_entries->emplace(date_key,
@@ -875,13 +883,14 @@ static void addSyntheticCompactProfileEntries(unordered_map<string,pair<int,DVEn
                                                        DifVifKey(date_key),
                                                        date_measurement_type,
                                                        Vif(date_vif),
-                                                       std::move(no_date_combinable_vifs),
+                                                       std::move(single_synthetic_combinable_vif),
                                                        std::move(no_date_combinable_vifs_raw),
                                                        StorageNr(storage_nr),
                                                        entry.tariff_nr,
                                            SubUnitNr(synthetic_subunit),
                                            date_hex)));
                     assert(date_insert_res.second);
+                    debug("(dvparser) inserted 2 synthetic difvif %s\n", key.c_str());
 
                     running_base_date = next_date;
                 }
@@ -1019,7 +1028,7 @@ bool parseDV(Telegram *t,
 
             if (index >= force_mfct_index)
             {
-                DEBUG_PARSER("(dvparser) manufacturer specific data, parsing is done.\n", dif);
+                DEBUG_PARSER("(dvparser) manufacturer specific data, parsing is done.\n");
                 size_t datalen = std::distance(data, data_end);
                 string value = bin2hex(data, data_end, datalen);
                 t->addExplanationAndIncrementPos(data, datalen, KindOfData::CONTENT, Understanding::NONE, "manufacturer specific data %s", value.c_str());
@@ -1306,6 +1315,17 @@ bool parseDV(Telegram *t,
         } else {
             strprintf(&key, "%s", dv.c_str());
         }
+        // A synthetic compact-profile expansion should never generate keys that can
+        // exist in a normal telegra, since wmbusmeters adds the wmbusmeters specific Synthetic
+        // combinable 0x7ff7 to the synthetic entries.
+        // However, if a telegram encodes such combinables, it might, the emplace might fail.
+        // We skip past any such collision here.
+        while (dv_entries->count(key) != 0) {
+            ++count;
+            strprintf(&key, "%s_%d", dv.c_str(), count);
+            warning("(dvparser) conflict where telegram uses wmbusmeters specific combinable 0x7ff7\n");
+        }
+        dv_count[dv] = count;
         DEBUG_PARSER("(dvparser debug) DifVif key is %s\n", key.c_str());
 
         int remaining = std::distance(data, data_end);

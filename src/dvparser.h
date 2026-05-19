@@ -208,6 +208,11 @@ bool isInsideVIFRange(Vif vif, VIFRange range);
     X(Mfct08,0x7f08,0x7f08) \
     X(Mfct21,0x7f21,0x7f21) \
     X(Mfct72,0x7f72,0x7f72) \
+    X(Synthetic,0x7f77,0x7f77) \
+
+// Synthetic is a wmbusmeters specific combinable used
+// to mark generated difvifkeys from fields extracted from
+// Compact profile entries.
 
 enum class VIFCombinable
 {
