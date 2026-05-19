@@ -19,6 +19,7 @@
 #define DVPARSER_H
 
 #include"always.h"
+#include"drivers.h"
 #include"units.h"
 #include"xmq.h"
 
@@ -28,13 +29,6 @@
 #include<string>
 #include<vector>
 #include<unordered_map>
-
-struct MVT
-{
-    uint16_t mfct;
-    uchar version;
-    uchar type;
-};
 
 #define LIST_OF_VIF_RANGES \
     X(Volume,0x10,0x17,Quantity::Volume,Unit::M3) \
