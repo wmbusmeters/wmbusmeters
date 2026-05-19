@@ -180,7 +180,7 @@ static string makeSyntheticStorageKey(uchar dif_data_len_nibble, int storage_nr,
         key_bytes.push_back(dife);
     }
 
-    key_bytes.push_back(vif | 0x80);
+    key_bytes.push_back(vif);
 
     // Add vif combinable Synthetic
     key_bytes.push_back(0x7f);

@@ -15,6 +15,7 @@
  Copyright (C)      2020 Eric Bus (gpl-3.0-or-later)
  Copyright (C)      2020 Avandorp (gpl-3.0-or-later)
  Copyright (C) 2020-2022 Patrick Schwarz (gpl-3.0-or-later)
+ Copyright (C)      2019 Jacek Tomasiak (gpl-3.0-or-later)
  Copyright (C)      2018 David Mallon (gpl-3.0-or-later)
 
  This program is free software: you can redistribute it and/or modify
