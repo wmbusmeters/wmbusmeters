@@ -49,7 +49,7 @@ METERS="MyWarmWater supercom587 12345678 NOKEY
       Vatten      apator08    004444dd NOKEY
       Wasser      rfmtx1      74737271 NOKEY
       Woter       waterstarm  20096221 BEDB81B52C29B5C143388CBB0D15A051
-      Witer       topaseskr   78563412 NOKEY
+      Witer       hydrus_r4    78563412 NOKEY
       Heater      sensostar   12345679 NOKEY
       Voda        ev200       99993030 NOKEY
       Vodda       emerlin868  95949392 NOKEY
@@ -59,7 +59,7 @@ METERS="MyWarmWater supercom587 12345678 NOKEY
       Heating     compact5    62626262 NOKEY
       Heating2    compact5    66336633 NOKEY
       Hetta       elf         01885619 NOKEY
-      DigiWasser  dme_07      93929190 NOKEY
+      DigiWasser  izar_rcig4  93929190 NOKEY
       Votten      aventieswm  61070071 A004EB23329A477F1DD2D7820B56EB3D
       GasMeter    unismart    00043094 00000000000000000000000000000000
       HeatCool    hydrocalm3  71727374 NOKEY

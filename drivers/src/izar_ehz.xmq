@@ -1,0 +1,61 @@
+// Copyright (C) 2025 Fredrik Öhrström (gpl-3.0-or-later)
+// Diehl IZAR ZVEI electricity radio module.
+// Attaches to third-party electricity meters; all OEM variants share generation 0x8A.
+driver {
+    name           = izar_ehz
+    meter_type     = ElectricityMeter
+    default_fields = name,id,total_energy_consumption_kwh,timestamp
+    detect {
+        mvt = ABB,8a,02
+        mvt = CIR,8a,02
+        mvt = CWV,8a,02
+        mvt = EMH,8a,02
+        mvt = EMU,8a,02
+        mvt = HAG,8a,02
+        mvt = HYD,8a,02
+        mvt = ISK,8a,02
+        mvt = KAM,8a,02
+        mvt = LGZ,8a,02
+    }
+    fields {
+        field {
+            name       = status
+            quantity   = Text
+            info       = 'Status of meter.'
+            attributes = STATUS,INCLUDE_TPL_STATUS
+            match {
+                measurement_type = Instantaneous
+                vif_range        = ErrorFlags
+            }
+            lookup {
+                name            = ERROR_FLAGS
+                map_type        = BitToString
+                mask_bits       = 0xffff
+                default_message = OK
+            }
+        }
+        field {
+            name           = total_energy_consumption
+            quantity       = Energy
+            info           = 'The total electricity consumption recorded by this meter.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
+            match {
+                measurement_type = Instantaneous
+                vif_range        = AnyEnergyVIF
+            }
+        }
+        field {
+            name           = current_power_consumption
+            quantity       = Power
+            info           = 'The current power consumption.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
+            match {
+                measurement_type = Instantaneous
+                vif_range        = AnyPowerVIF
+            }
+        }
+    }
+    tests
+}

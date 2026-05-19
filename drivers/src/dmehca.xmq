@@ -1,0 +1,56 @@
+// Copyright (C) 2025 Fredrik Öhrström (gpl-3.0-or-later)
+// Diehl HCA (heat cost allocator).
+driver {
+    name           = dmehca
+    meter_type     = HeatCostAllocationMeter
+    default_fields = name,id,current_hca_hca,timestamp
+    detect {
+        mvt = DME,80,08
+        // HCA
+        mvt = DME,81,08
+        // HCA_81
+    }
+    fields {
+        field {
+            name       = status
+            quantity   = Text
+            info       = 'Status of meter.'
+            attributes = STATUS,INCLUDE_TPL_STATUS
+            match {
+                measurement_type = Instantaneous
+                vif_range        = ErrorFlags
+            }
+            lookup {
+                name            = ERROR_FLAGS
+                map_type        = BitToString
+                mask_bits       = 0xffff
+                default_message = OK
+            }
+        }
+        field {
+            name           = current_hca
+            quantity       = HCA
+            info           = 'The current heat cost allocation value.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
+            match {
+                measurement_type = Instantaneous
+                vif_range        = HeatCostAllocation
+                storage_nr       = 0
+            }
+        }
+        field {
+            name           = previous_hca
+            quantity       = HCA
+            info           = 'The previous period heat cost allocation value.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
+            match {
+                measurement_type = Instantaneous
+                vif_range        = HeatCostAllocation
+                storage_nr       = 1
+            }
+        }
+    }
+    tests
+}

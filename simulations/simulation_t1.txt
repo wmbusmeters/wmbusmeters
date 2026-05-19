@@ -196,10 +196,10 @@ telegram=|3944FA122162092002067A3600202567C94D48D00DC47B11213E23383DB51968A705AA
 {"_":"telegram","media":"warm water","meter":"waterstarm","name":"Woter","id":"20096221","meter_datetime":"2020-07-30 10:40","total_m3":0.106,"total_backwards_m3":0,"status":"OK","meter_version":"000008","parameter_set":"1100","timestamp":"1111-11-11T11:11:11Z"}
 |Woter;20096221;0.106;0;OK;1111-11-11 11:11.11
 
-# Test topaseskr water meter
+# Test hydrus_r4 water meter
 
 telegram=|4E44B40512345678F1077A310040052F2F_01FD08040C13991848004C1359423500CC101300000000CC201359423500426C7F2C0B3B00000002FD74DA10025AD300C4016D3B179F27CC011387124600|
-{"_":"telegram","media":"water","meter":"topaseskr","name":"Witer","id":"78563412","total_m3":481.899,"access_counter":4,"temperature_c":21.1,"current_flow_m3h":0,"volume_year_period_m3":354.259,"reverse_volume_year_period_m3":0,"meter_year_period_end_date":"2019-12-31","volume_month_period_m3":461.287,"meter_month_period_end_datetime":"2020-07-31 23:59","battery_y":11.811331,"timestamp":"1111-11-11T11:11:11Z"}
+{"_":"telegram","media":"water","meter":"hydrus_r4","name":"Witer","id":"78563412","total_m3":481.899,"access_counter":4,"temperature_c":21.1,"current_flow_m3h":0,"volume_year_period_m3":354.259,"forward_volume_year_period_m3": 354.259,"reverse_volume_year_period_m3":0,"meter_year_period_end_date":"2019-12-31","volume_month_period_m3":461.287,"meter_month_period_end_datetime":"2020-07-31 23:59","battery_y":11.811331,"status":"OK","timestamp":"1111-11-11T11:11:11Z"}
 |Witer;78563412;481.899;21.1;0;354.259;0;2019-12-31;461.287;2020-07-31 23:59;1111-11-11 11:11.11
 
 # Test Ultrimis water meter
@@ -265,7 +265,7 @@ telegram=|51440186010905001837721956880101064004DA000020026CA9220E01779924110300
 
 # Test Diehl IZAR RC I G4 water meter
 telegram=|1E44A511909192937B077A9F0010052F2F_04130347030002FD1700002F2F2F|
-{"_":"telegram","media":"water","meter":"dme_07","name":"DigiWasser","id":"93929190","status":"OK","total_m3":214.787,"timestamp":"1111-11-11T11:11:11Z"}
+{"_":"telegram","media":"water","meter":"izar_rcig4","name":"DigiWasser","id":"93929190","status":"OK","total_m3":214.787,"timestamp":"1111-11-11T11:11:11Z"}
 |DigiWasser;93929190;214.787;OK;1111-11-11 11:11.11
 
 # Test IZAR RS 868 water meter

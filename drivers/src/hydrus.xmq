@@ -5,17 +5,28 @@ driver {
     meter_type     = WaterMeter
     default_fields = name,id,total_m3,total_at_date_m3,status,timestamp
     detect {
+        mvt = DME,61,07
         mvt = DME,70,07
-        mvt = DME,76,07
-        mvt = HYD,24,07
-        mvt = HYD,8b,07
-        mvt = HYD,8b,06
         mvt = DME,70,06
         mvt = DME,70,16
+        mvt = DME,75,07
+        mvt = DME,76,07
+        mvt = DME,77,07
+        mvt = HYD,25,07
+        mvt = HYD,61,07
+        mvt = HYD,63,07
+        mvt = HYD,75,07
+        mvt = HYD,76,07
+        mvt = HYD,77,07
+        mvt = HYD,8b,06
+        mvt = HYD,8b,07
+        mvt = IMT,f2,07
+        mvt = SAP,25,07
     }
     library {
         use = operating_time_h,actuality_duration_s,meter_datetime,customer
         use = flow_temperature_c,external_temperature_c
+        use = access_counter
     }
     fields {
         field {
@@ -148,7 +159,7 @@ driver {
         test {
             args     = 'HydrusWater hydrus 64646464 NOKEY'
             telegram = 4E44A5116464646470077AED004005_2F2F01FD08300C13741100007C1300000000FC101300000000FC201300000000726C00000B3B00000002FD748713025A6800C4016D3B177F2ACC011300020000
-            json     = '{"_":"telegram","media":"water","meter":"hydrus","name":"HydrusWater","id":"64646464","total_m3":1.174,"flow_m3h":0,"flow_temperature_c":10.4,"remaining_battery_life_y":13.686797,"status":"OK","target_datetime":"2019-10-31 23:59","target_m3": 0.2,"timestamp":"1111-11-11T11:11:11Z"}'
+            json     = '{"_":"telegram","media":"water","meter":"hydrus","name":"HydrusWater","id":"64646464","access_counter":48,"total_m3":1.174,"flow_m3h":0,"flow_temperature_c":10.4,"remaining_battery_life_y":13.686797,"status":"OK","target_datetime":"2019-10-31 23:59","target_m3": 0.2,"timestamp":"1111-11-11T11:11:11Z"}'
             fields   = 'HydrusWater;64646464;1.174;null;OK;1111-11-11 11:11.11'
         }
         test {
@@ -181,7 +192,7 @@ driver {
             args     = 'HydrusFoo hydrus 64641820 NOKEY'
             comment  = 'Negative power values.'
             telegram = 6344A5112018646470078C00D7900F002C256AB59B00F0F13032019092DE7A6A004007102F2F0C13896729004C1323462400CC101300000000CC201323462400426CDF2C0B3B0200F002FD742F0D025AC100C4016D3B17FE29CC01132841290001FD089F
-            json     = '{"_":"telegram","at_date": "2022-12-31","target_datetime": "2023-09-30 23:59","flow_m3h": -0.002,"flow_temperature_c": 19.3,"id": "64641820","media": "water","meter": "hydrus","name": "HydrusFoo","remaining_battery_life_y": 9.240436,"status": "OK","timestamp": "1111-11-11T11:11:11Z","total_at_date_m3":244.623,"target_m3": 294.128,"total_m3": 296.789,"total_tariff1_at_date_m3": 0,"total_tariff2_at_date_m3": 244.623}'
+            json     = '{"_":"telegram","at_date": "2022-12-31","target_datetime": "2023-09-30 23:59","access_counter": 159,"flow_m3h": -0.002,"flow_temperature_c": 19.3,"id": "64641820","media": "water","meter": "hydrus","name": "HydrusFoo","remaining_battery_life_y": 9.240436,"status": "OK","timestamp": "1111-11-11T11:11:11Z","total_at_date_m3":244.623,"target_m3": 294.128,"total_m3": 296.789,"total_tariff1_at_date_m3": 0,"total_tariff2_at_date_m3": 244.623}'
             fields   = 'HydrusFoo;64641820;296.789;244.623;OK;1111-11-11 11:11.11'
         }
     }

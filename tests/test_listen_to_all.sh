@@ -219,7 +219,7 @@ Received telegram from: 78563412
           manufacturer: (AMT) INTEGRA METERING (0x5b4)
                   type: Water meter (0x07) encrypted
                    ver: 0xf1
-                driver: topaseskr
+                driver: hydrus_r4
 Received telegram from: 95969798
           manufacturer: (APA) Apator, Poland (0x601)
                   type: Cold water meter (0x16) encrypted
@@ -288,7 +288,7 @@ Received telegram from: 93929190
           manufacturer: (DME) DIEHL Metering, Germany (0x11a5)
                   type: Water meter (0x07) encrypted
                    ver: 0x7b
-                driver: dme_07
+                driver: izar_rcig4
 Received telegram from: 60897379
           manufacturer: (HYD) Diehl Metering, Germany (0x2324)
                   type: Water meter (0x07) encrypted

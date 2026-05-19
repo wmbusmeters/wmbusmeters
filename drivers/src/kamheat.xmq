@@ -37,6 +37,10 @@ driver {
         // 603
         mvt = KAM,39,04
         // 803
+        mvt = KAM,0b,04
+        // 402
+        mvt = KAM,32,04
+        // 801
     }
     library {
         use = fabrication_no

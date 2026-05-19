@@ -1,10 +1,20 @@
 // Copyright (C) 2021-2022 Fredrik Öhrström (gpl-3.0-or-later)
 driver {
-    name           = dme_07
+    name           = izar_rzig4
+    aliases        = dme_07
     meter_type     = WaterMeter
     default_fields = name,id,total_m3,status,timestamp
     detect {
+        mvt = DME,68,07
+        // IZAR_RC_I_G5
         mvt = DME,7b,07
+        // IZAR_RC_I_G4
+        mvt = DME,7c,07
+        // IZAR_RC_IW_G4
+        mvt = DME,7e,07
+        // RCI_G4_LIGHT
+        mvt = SPL,80,07
+        // IZAR_RC_IW_G4_M4M
     }
     fields {
         field {
@@ -35,9 +45,9 @@ driver {
     }
     tests {
         test {
-            args     = 'DigiWasser dme_07 93929190 NOKEY'
+            args     = 'DigiWasser izar_rcig4 93929190 NOKEY'
             telegram = 1E44A511909192937B077A9F0010052F2F_04130347030002FD1700002F2F2F
-            json     = '{"_":"telegram","media":"water","meter":"dme_07","name":"DigiWasser","id":"93929190","status":"OK","total_m3":214.787,"timestamp":"1111-11-11T11:11:11Z"}'
+            json     = '{"_":"telegram","media":"water","meter":"izar_rcig4","name":"DigiWasser","id":"93929190","status":"OK","total_m3":214.787,"timestamp":"1111-11-11T11:11:11Z"}'
             fields   = 'DigiWasser;93929190;214.787;OK;1111-11-11 11:11.11'
         }
     }

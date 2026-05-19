@@ -6,8 +6,16 @@ driver {
     meter_type     = HeatMeter
     default_fields = name,id,total_energy_consumption_kwh,total_energy_consumption_tariff1_kwh,total_volume_m3,total_volume_tariff2_m3,volume_flow_m3h,power_kw,flow_temperature_c,return_temperature_c,temperature_difference_c,timestamp
     detect {
-        mvt = HYD,20,04
+        mvt = AMT,2a,04
+        mvt = AMT,2e,04
+        mvt = AMT,2f,04
+        mvt = DFS,20,04
+        mvt = DFS,2f,04
         mvt = DME,40,04
+        mvt = HYD,20,04
+        mvt = HYD,52,04
+        mvt = HYD,53,04
+        mvt = RAM,40,04
     }
     library {
         use = operating_time_h

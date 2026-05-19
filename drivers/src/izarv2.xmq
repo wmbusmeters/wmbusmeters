@@ -8,13 +8,39 @@ driver {
     manufacturer      = Diehl
     transform_payload = diehl_prios
     detect {
+        mvt = HYD,00,07
+        // HYFUNK_R30
+        mvt = HYD,80,07
+        // HYFUNK_R30_CP
+        mvt = HYD,81,07
+        // HYFUNK_R30_DP
         mvt = HYD,85,07
+        // HYFUNK_R35_CP
+        mvt = HYD,86,07
+        // HYFUNK_R35_DP
+        mvt = HYD,87,07
+        // HYFUNK_R35_TI
+        mvt = HYD,8c,07
+        // HYFUNK_R35_TI_WATERBOX
         mvt = SAP,*,15
         mvt = SAP,*,04
         mvt = SAP,00,07
         mvt = DME,78,07
+        // IZAR_RC_I_R4_DME
         mvt = DME,78,06
-        mvt = HYD,86,07
+        // IZAR_RC_I_R4_DME
+        mvt = EWT,00,07
+        // EWTFUNK_R30
+        mvt = EWT,80,07
+        // EWTFUNK_R30_CP
+        mvt = EWT,81,07
+        // EWTFUNK_R30_DP
+        mvt = EWT,85,07
+        // EWTFUNK_R35_CP
+        mvt = EWT,86,07
+        // EWTFUNK_R35_DP
+        mvt = EWT,87,07
+        // HYFUNK_R35_TI
     }
     fields {
         field {
@@ -281,6 +307,13 @@ driver {
             telegram = 19442423860775035048A251520015BEB6B2E1ED623A18FC74A5
             json     = '{"_":"telegram","media":"water","meter":"izarv2","name":"IzarWater6","id":"48500375","total_m3":521.602,"target_m3":519.147,"target_date":"2021-11-15","battery_y":9,"transmit_period_s":8,"status":"PREV_LEAKAGE","timestamp":"1111-11-11T11:11:11Z"}'
             fields   = 'IzarWater6;48500375;PREV_LEAKAGE;521.602;519.147;1111-11-11 11:11.11'
+        }
+        test {
+            comment  = 'EWT,85,07 EWTFUNK_R35_CP meter (Issue #1607)'
+            args     = 'ElinTest izarv2 65000160 NOKEY'
+            telegram = 1944F416850760010065A2_110C00132438DA8F740BA64C72C447
+            json     = '{"_":"telegram","media":"water","meter":"izarv2","name":"ElinTest","id":"65000160","battery_y":6,"target_m3":722.3,"target_date":"2025-10-01","total_m3":729.755,"transmit_period_s":8,"status":"OK","timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'ElinTest;65000160;OK;729.755;722.3;1111-11-11 11:11.11'
         }
     }
 }

@@ -2,13 +2,16 @@
 // Copyright (C) 2022 Fredrik Öhrström (gpl-3.0-or-later)
 // Diehl Sharky 774 heat meter.
 driver {
-    name           = sharky774
+    name           = sharky3
+    aliases        = sharky774
     meter_type     = HeatMeter
     default_fields = name,id,total_energy_consumption_kwh,energy_at_set_date_kwh,set_date,timestamp
     detect {
+        mvt = DFS,41,04
         mvt = DME,41,04
-        mvt = DME,41,0d
         mvt = DME,41,0c
+        mvt = DME,41,0d
+        mvt = RAM,41,04
     }
     fields {
         field {

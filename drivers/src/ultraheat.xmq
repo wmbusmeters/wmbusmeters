@@ -5,7 +5,11 @@ driver {
     meter_type     = HeatMeter
     default_fields = name,id,heat_kwh,timestamp
     detect {
+        mvt = LUG,02,04
+        mvt = LUG,03,04
         mvt = LUG,04,04
+        mvt = SIE,01,04
+        mvt = SIE,02,04
     }
     library {
         use = meter_datetime
