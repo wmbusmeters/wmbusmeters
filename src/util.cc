@@ -1882,13 +1882,6 @@ bool endsWith(const std::string& str, const std::string& suffix)
     return str.size() >= suffix.size() && 0 == str.compare(str.size()-suffix.size(), suffix.size(), suffix);
 }
 
-TestBit toTestBit(const char *s)
-{
-    if (!strcmp(s, "Set")) return TestBit::Set;
-    if (!strcmp(s, "NotSet")) return TestBit::NotSet;
-    return TestBit::Unknown;
-}
-
 string basic_auth_cred_ {};
 
 void setBasicAuth(const std::string& cred)
