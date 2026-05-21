@@ -37,6 +37,7 @@ void check_detection_triplets(DriverInfo *di, string file);
 string check_field_name(const char *name, DriverDynamic *dd);
 string check_field_ixml(const char *ixml, DriverDynamic *dd);
 bool check_boolean_property(const char *value, const char *property, DriverDynamic *dd, bool default_value = false);
+long check_long_property(const char *value, const char *property, DriverDynamic *dd);
 bool check_field_match_entire_payload(const char *mep, DriverDynamic *dd);
 bool check_field_match_entire_frame(const char *mef, DriverDynamic *dd);
 string check_field_info(const char *info, DriverDynamic *dd);
@@ -622,7 +623,18 @@ XMQProceed DriverDynamic::add_combinable_raw(XMQDoc *doc, XMQNodePtr match, Driv
 XMQProceed DriverDynamic::add_map(XMQDoc *doc, XMQNodePtr map, DriverDynamic *dd)
 {
     const char *name = xmqGetStringRel(doc, "name", map);
-    uint64_t value = checked_value(xmqGetStringRel(doc, "value", map), dd);
+    uint64_t value = 0;
+    const char *bit_s = xmqGetStringRel(doc, "bit", map);
+    if (bit_s)
+    {
+        long v = check_long_property(bit_s, "bit", dd);
+        value = 1;
+        value <<= v;
+    }
+    else
+    {
+        value = checked_value(xmqGetStringRel(doc, "value", map), dd);
+    }
     TestBit test_type = checked_test_type(xmqGetStringRel(doc, "test", map), dd);
 
     dd->tmp_rule_->add(Translate::Map(value, name, test_type));
@@ -889,6 +901,24 @@ bool check_boolean_property(const char *value, const char *property, DriverDynam
             dd->fileName().c_str(), property, value);
 
     return default_value;
+}
+
+long check_long_property(const char *value, const char *property, DriverDynamic *dd)
+{
+    char *end;
+    errno = 0;
+
+    long val = strtol(value, &end, 10);
+
+    if (end == value || errno == ERANGE || *end != '\0')
+    {
+        warning("(driver) error in %s, bad integer: %s\n",
+                dd->fileName().c_str(),
+                value);
+        throw 1;
+    }
+
+    return val;
 }
 
 bool check_field_match_entire_frame(const char *mef, DriverDynamic *dd)
@@ -1461,6 +1491,7 @@ uint64_t checked_value(const char *value_s, DriverDynamic *dd)
         warning("(driver) error in %s, cannot find: driver/fields/field/lookup/map/value\n"
                 "%s\n"
                 "Remember to add for example: lookup { map { ... value = 0x01 ... }}\n"
+                "or a bit                     lookup { map { ... bit = 8 ... }}\n"
                 "%s\n",
                 dd->fileName().c_str(),
                 line,
