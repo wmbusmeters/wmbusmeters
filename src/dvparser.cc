@@ -2269,7 +2269,12 @@ bool extractDate(uchar hi, uchar lo, struct tm *date)
     date->tm_mon = month - 1;    /* Month (0-11) */
     date->tm_year = year - 1900; /* Year - 1900 */
 
-    if (month > 12) return false;
+    // EN 13757-3:2018 Annex A, Table A.6 (Type G / CP16):
+    // day 0 = every day, month 15 = every month, year 127 = every year.
+    // Keep returning true for these special values to preserve legacy behavior
+    // where callers normalize using mktime().
+    if (day > 31) return false;
+    if (month > 12 && month != 15) return false;
     return true;
 }
 
@@ -2286,6 +2291,11 @@ bool extractTime(uchar hi, uchar lo, struct tm *date)
     if (min > 59) return false;
     if (hour > 23) return false;
     return true;
+}
+
+static bool isLeapYearGregorian(int year)
+{
+    return (year % 4 == 0) && ((year % 100 != 0) || (year % 400 == 0));
 }
 
 bool extractDVdate(unordered_map<string,pair<int,DVEntry>> *dv_entries,
@@ -2321,17 +2331,91 @@ bool DVEntry::extractDate(struct tm *out)
     else if (v.size() == 4) {
         ok &= ::extractDate(v[3], v[2], out);
         ok &= ::extractTime(v[1], v[0], out);
+
+        // EN 13757-3:2018 Annex A, Table A.5 (Type F / CP32)
+        // UI1 [15]: invalid-time flag (bit 7 of byte 1).
+        bool time_invalid = (v[1] & 0x80) != 0;
+        if (time_invalid) {
+            verbose("(dvparser) warning: cp32 time invalid flag set\n");
+            ok = false;
+        }
+
+        // UI1 [7]: summer-time/DST flag (bit 7 of byte 0).
+        // CP32 stores local wall-clock time, so the SU bit is informational only —
+        // the hour field already carries the correct local value.  tm_isdst stays
+        // -1 (auto-detect) so mktime()/localtime_r() callers preserve that time
+        // as-is rather than subtracting a DST offset.
     }
     else if (v.size() == 6) {
-        ok &= ::extractDate(v[4], v[3], out);
-        ok &= ::extractTime(v[2], v[1], out);
-        // ..ss ssss
-        int sec  = (0x3f) & v[0];
-        out->tm_sec = sec;
-        // There are also bits for day of week, week of year.
-        // A bit for if daylight saving is in use or not and its offset.
-        // A bit if it is a leap year.
-        // I am unsure how to deal with this here..... TODO
+        // EN 13757-3:2018 Annex A, Table A.8 (Type I / CP48)
+        int sec = (0x3f) & v[0];
+        int min = (0x3f) & v[1];
+        int hour = (0x1f) & v[2];
+        int day = (0x1f) & v[3];
+        int month = (0x0f) & v[4];
+        int year_low = (v[3] >> 5) & 0x07;
+        int year_high = (v[4] >> 4) & 0x0f;
+        int year7 = (year_high << 3) | year_low;
+
+        // Wildcard/not-specified values are legal in CP48 but cannot be represented in struct tm.
+        // Map them to a stable baseline while still reporting success.
+        out->tm_sec = (sec == 63) ? 0 : sec;
+        out->tm_min = (min == 63) ? 0 : min;
+        out->tm_hour = (hour == 31) ? 0 : hour;
+        out->tm_mday = (day == 0) ? 1 : day;
+        out->tm_mon = ((month == 0) ? 1 : month) - 1;
+        out->tm_year = ((year7 == 127) ? 2000 : (2000 + year7)) - 1900;
+
+        if (sec > 59 && sec != 63) ok = false;
+        if (min > 59 && min != 63) ok = false;
+        if (hour > 23 && hour != 31) ok = false;
+        if (day > 31) ok = false;
+        if (month > 12) ok = false;
+
+        // UI1 [15]: invalid-time flag.
+        bool time_invalid = (v[1] & 0x80) != 0;
+        if (time_invalid) {
+            verbose("(dvparser) warning: cp48 time invalid flag set\n");
+            ok = false;
+        }
+
+        // UI3 [21..23]: day of week (1=Monday, 7=Sunday, 0=not specified).
+        int day_of_week = (v[2] >> 5) & 0x07;
+        if (day_of_week != 0) {
+            out->tm_wday = day_of_week % 7; // tm_wday uses 0=Sunday.
+        }
+
+        // UI1 [6]: daylight-saving active flag.
+        // CP48 stores local wall-clock time.  The DST bit is informational — the hour
+        // field already carries the correct local time, so we must not use this bit to
+        // adjust mktime's interpretation.  Setting tm_isdst=0 on a summer date would
+        // make mktime treat the time as winter (standard) time and produce a spurious
+        // +1-hour shift on DST-aware systems.  Only set it to 1 (explicit DST) when the
+        // flag is actually set; otherwise leave the initial -1 (auto-detect) in place.
+        bool daylight_saving = (v[0] & 0x40) != 0;
+        if (daylight_saving) out->tm_isdst = 1;
+
+        // UI1 [7]: leap-year marker; do not reject on mismatch because devices may set
+        // this independently from year wildcards, and tm has no explicit carrier bit.
+        bool leap_year_flag = (v[0] & 0x80) != 0;
+        int year = (year7 == 127) ? -1 : (out->tm_year + 1900);
+        if (year >= 0 && isLeapYearGregorian(year) != leap_year_flag) {
+            verbose("(dvparser) warning: cp48 leap-year flag mismatch for year %d\n", year);
+        }
+
+        // UI6 [40..45]: week number (0 means not specified).
+        int week = v[5] & 0x3f;
+        if (week > 53) {
+            verbose("(dvparser) warning: cp48 invalid week number %d\n", week);
+        }
+
+        // UI1 [14] + UI2 [46..47]: DST correction sign/hours.
+        // struct tm has no portable field for this; decode for validation/traceability.
+        int dst_sign = (v[1] & 0x40) ? 1 : -1;
+        int dst_hours = (v[5] >> 6) & 0x03;
+        if (dst_hours == 0) dst_sign = 0;
+        (void)dst_sign;
+        (void)dst_hours;
     }
 
     return ok;
