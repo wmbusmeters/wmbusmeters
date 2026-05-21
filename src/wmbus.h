@@ -352,6 +352,7 @@ struct MeterKeys
 {
     std::vector<uchar> confidentiality_key;
     std::vector<uchar> authentication_key;
+    std::vector<std::vector<uchar>> default_keys; // Driver-level fallback keys tried when no meter key is configured.
 
     bool hasConfidentialityKey() { return confidentiality_key.size() > 0; }
     bool hasAuthenticationKey() { return authentication_key.size() > 0; }

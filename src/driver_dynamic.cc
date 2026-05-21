@@ -135,6 +135,7 @@ bool DriverDynamic::load(DriverInfo *di, const string &file_name, const char *co
         xmqForeach(doc, "/driver/detect/mvt", (XMQNodeCallback)add_detect, di);
         xmqForeach(doc, "/driver/compact_frame_formats/difvif", (XMQNodeCallback)add_compact_frame_format, di);
         xmqForeach(doc, "/driver/mfct_tpl_status_bits", (XMQNodeCallback)add_mfct_tpl_status, di);
+        xmqForeach(doc, "/driver/default_keys/key", (XMQNodeCallback)add_default_key, di);
 
         check_detection_triplets(di, file);
 
@@ -690,6 +691,22 @@ XMQProceed DriverDynamic::add_mfct_tpl_status_map(XMQDoc *doc, XMQNodePtr map, T
 
     rule->add(Translate::Map(value, name, test));
 
+    return XMQ_CONTINUE;
+}
+
+XMQProceed DriverDynamic::add_default_key(XMQDoc *doc, XMQNodePtr node, DriverInfo *di)
+{
+    const char *key_s = xmqGetStringRel(doc, ".", node);
+    if (!key_s) return XMQ_CONTINUE;
+
+    vector<uchar> key;
+    if (!hex2bin(key_s, &key) || key.size() != 16)
+    {
+        warning("(driver) invalid default_key '%s' in %s (must be 32 hex chars)\n",
+                key_s, di->getDynamicFileName().c_str());
+        return XMQ_CONTINUE;
+    }
+    di->addDefaultKey(key);
     return XMQ_CONTINUE;
 }
 

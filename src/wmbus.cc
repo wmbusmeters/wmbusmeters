@@ -1589,9 +1589,42 @@ bool Telegram::potentiallyDecrypt(vector<uchar>::iterator &pos)
         }
         int num_encrypted_bytes = 0;
         int num_not_encrypted_at_end = 0;
+        bool ok = false;
 
-        bool ok = decrypt_TPL_AES_CBC_IV(this, frame, pos, meter_keys->confidentiality_key,
-                                         &num_encrypted_bytes, &num_not_encrypted_at_end);
+        if (!meter_keys->hasConfidentialityKey() &&
+            !meter_keys->default_keys.empty())
+        {
+            // No explicit meter key — try each driver-supplied default key in order.
+            for (const auto &candidate : meter_keys->default_keys)
+            {
+                vector<uchar> saved(pos, frame.end());
+                vector<uchar> trial_key = candidate;
+                int nenc = 0, ntrail = 0;
+                bool dec_ok = decrypt_TPL_AES_CBC_IV(this, frame, pos, trial_key, &nenc, &ntrail);
+                if (dec_ok && pos+1 < frame.end() && *(pos) == 0x2f && *(pos+1) == 0x2f)
+                {
+                    meter_keys->confidentiality_key = candidate;
+                    num_encrypted_bytes = nenc;
+                    num_not_encrypted_at_end = ntrail;
+                    ok = true;
+                    break;
+                }
+                // Wrong key — restore encrypted region and try the next one.
+                frame.erase(pos, frame.end());
+                frame.insert(frame.end(), saved.begin(), saved.end());
+            }
+            // Always clear: if a key matched it has been promoted to confidentiality_key
+            // so the remaining candidates are no longer needed. If all failed they
+            // should not be retried on the next telegram.
+            meter_keys->default_keys.clear();
+        }
+
+        if (!ok)
+        {
+            ok = decrypt_TPL_AES_CBC_IV(this, frame, pos, meter_keys->confidentiality_key,
+                                        &num_encrypted_bytes, &num_not_encrypted_at_end);
+        }
+
         if (!ok)
         {
             // No key supplied.
