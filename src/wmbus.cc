@@ -1959,25 +1959,22 @@ bool Telegram::parse_TPL_7B(vector<uchar>::iterator &pos)
     format_signature = ecrc1<<8 | ecrc0;
 
     vector<uchar> format_bytes;
-    ok = loadFormatBytesFromSignature(format_signature, &format_bytes);
-    if (!ok) {
-        ok = findFormatBytesFromKnownMeterSignatures(&format_bytes);
-        if (!ok)
-        {
-            addMoreExplanation(offset, " (unknown)");
-            int num_compressed_bytes = distance(pos, frame.end());
-            string info = bin2hex(pos, frame.end(), num_compressed_bytes);
-            info += " compressed and signature unknown";
-            addExplanationAndIncrementPos(pos, distance(pos, frame.end()),
-                                          KindOfData::CONTENT, Understanding::COMPRESSED,
-                                          info.c_str());
-            verbose("(wmbus) ignoring compressed telegram since format signature hash 0x%02x is yet unknown.\n"
-                    "     this is not a problem, since you only need wait for at most 8 telegrams\n"
-                    "     (8*16 seconds) until an full length telegram arrives and then we know\n"
-                    "     the format giving this hash and start decoding the telegrams properly.\n",
-                    format_signature);
-            return false;
-        }
+    ok = lookupCompactFormat(MVT{(uint16_t)tpl_mfct, tpl_version, tpl_type}, format_signature, format_bytes);
+    if (!ok)
+    {
+        addMoreExplanation(offset, " (unknown)");
+        int num_compressed_bytes = distance(pos, frame.end());
+        string info = bin2hex(pos, frame.end(), num_compressed_bytes);
+        info += " compressed and signature unknown";
+        addExplanationAndIncrementPos(pos, distance(pos, frame.end()),
+                                        KindOfData::CONTENT, Understanding::COMPRESSED,
+                                        info.c_str());
+        verbose("(wmbus) ignoring compressed telegram since format signature hash 0x%02x is yet unknown.\n"
+                "     this is not a problem, since you only need wait for at most 8 telegrams\n"
+                "     (8*16 seconds) until an full length telegram arrives and then we know\n"
+                "     the format giving this hash and start decoding the telegrams properly.\n",
+                format_signature);
+        return false;
     }
     vector<uchar>::iterator format = format_bytes.begin();
 
