@@ -191,7 +191,7 @@ driver {
             args     = 'MyElectricity2 amiplus 00254358 NOKEY'
             comment  = 'amiplus/apator electricity meter with three phase voltages'
             telegram = 5E44B6105843250000027A2A005005_2F2F0C7835221400066D404708AC2A400E032022650900000E833C0000000000001B2B9647000B2B5510000BAB3C0000000AFDC9FC0135020AFDC9FC0245020AFDC9FC0339020BABC8FC100000002F2F
-            json     = '{"_":"telegram","media":"electricity","meter":"amiplus","name":"MyElectricity2","id":"00254358","total_energy_consumption_kwh":9652.22,"current_power_consumption_kw":1.055,"total_energy_production_kwh":0,"current_power_production_kw":0,"voltage_at_phase_1_v":235,"voltage_at_phase_2_v":245,"voltage_at_phase_3_v":239,"max_power_consumption_kw":4.796,"device_datetime":"2021-10-12 08:07","timestamp":"1111-11-11T11:11:11Z"}'
+            json     = '{"_":"telegram","media":"electricity","meter":"amiplus","name":"MyElectricity2","id":"00254358","total_energy_consumption_kwh":9652.22,"current_power_consumption_kw":1.055,"total_energy_production_kwh":0,"current_power_production_kw":0,"voltage_at_phase_1_v":235,"voltage_at_phase_2_v":245,"voltage_at_phase_3_v":239,"max_power_consumption_kw":4.796,"device_datetime":"2021-10-12 07:07","timestamp":"1111-11-11T11:11:11Z"}'
             fields   = 'MyElectricity2;00254358;9652.22;1.055;0;0;235;245;239;null;null;null;null;null;null;1111-11-11 11:11.11'
         }
         test {
@@ -205,19 +205,19 @@ driver {
             args     = 'MyElectricity4 amiplus 55090884 NOKEY'
             comment  = 'amiplus/apator electricity meter with single phase voltage - Otus 1'
             telegram = 7E4401068408095501027A7C1070052F2F_066DDE5E150D39800C78840809550AFDC9FC0139028E30833C0000000000008E20833C0000000000008E10833C4301000000000BABC8FC100000008E10035336420200008E20030000000000008E30030000000000000B2B9502000BAB3C0000002F2F2F2F2F2F2F2F2F2F2F2F2F
-            json     = '{"_":"telegram","media":"electricity","meter":"amiplus","name":"MyElectricity4","id":"55090884","current_power_consumption_kw":0.295,"current_power_production_kw":0,"total_energy_consumption_tariff_1_kwh":2423.653,"total_energy_consumption_tariff_2_kwh":0,"total_energy_consumption_tariff_3_kwh":0,"total_energy_production_tariff_1_kwh":0.143,"total_energy_production_tariff_2_kwh":0,"total_energy_production_tariff_3_kwh":0,"voltage_at_phase_1_v":239,"device_datetime":"2024-09-13 21:30","timestamp":"1111-11-11T11:11:11Z"}'
+            json     = '{"_":"telegram","media":"electricity","meter":"amiplus","name":"MyElectricity4","id":"55090884","current_power_consumption_kw":0.295,"current_power_production_kw":0,"total_energy_consumption_tariff_1_kwh":2423.653,"total_energy_consumption_tariff_2_kwh":0,"total_energy_consumption_tariff_3_kwh":0,"total_energy_production_tariff_1_kwh":0.143,"total_energy_production_tariff_2_kwh":0,"total_energy_production_tariff_3_kwh":0,"voltage_at_phase_1_v":239,"device_datetime":"2024-09-13 20:30","timestamp":"1111-11-11T11:11:11Z"}'
             fields   = 'MyElectricity4;55090884;null;0.295;null;0;239;null;null;2423.653;0;0;0.143;0;0;1111-11-11 11:11.11'
         }
         test {
             args     = 'MyElectricity4 amiplus 00320787 NOKEY'
             telegram = 3e44b6108707320001027a380030052f2f0C7830253390066D6872141239400E031891690000000E833C9265010000000B2B2602000BAB3C0000002F2F2F2F
-            json     = '{"_":"telegram","current_power_consumption_kw": 0.226,"current_power_production_kw": 0,"device_datetime": "2024-09-18 20:50","id": "00320787","media": "electricity","meter": "amiplus","name": "MyElectricity4","timestamp": "1111-11-11T11:11:11Z","total_energy_consumption_kwh": 699.118,"total_energy_production_kwh": 16.592}'
+            json     = '{"_":"telegram","current_power_consumption_kw": 0.226,"current_power_production_kw": 0,"device_datetime": "2024-09-18 19:50","id": "00320787","media": "electricity","meter": "amiplus","name": "MyElectricity4","timestamp": "1111-11-11T11:11:11Z","total_energy_consumption_kwh": 699.118,"total_energy_production_kwh": 16.592}'
             fields   = 'MyElectricity4;00320787;699.118;0.226;16.592;0;null;null;null;null;null;null;null;null;null;1111-11-11 11:11.11'
         }
         test {
             args     = 'MyElectricity5 amiplus 56914504 NOKEY'
             telegram = 9e4401060445915601027a3d0390052f2f066dc076091935800c78044591560e032088300000008e10032088300000008e20030000000000008e30030000000000008e8010030000000000000e833c2702000000008e10833c2702000000008e20833c0000000000008e30833c0000000000008e8010833c0000000000000afdc8fc0136240afdc8fc0262240afdc8fc0389222f2f2f2f2f2f2f2f2f2f2f2f
-            json     = '{"_":"telegram","media":"electricity","meter":"amiplus","name":"MyElectricity5","id":"56914504","total_energy_consumption_kwh":308.82,"total_energy_consumption_tariff_1_kwh":308.82,"total_energy_consumption_tariff_2_kwh":0,"total_energy_consumption_tariff_3_kwh":0,"total_energy_production_kwh":0.227,"total_energy_production_tariff_1_kwh":0.227,"total_energy_production_tariff_2_kwh":0,"total_energy_production_tariff_3_kwh":0,"voltage_at_phase_1_v":243.6,"voltage_at_phase_2_v":246.2,"voltage_at_phase_3_v":228.9,"device_datetime":"2024-05-25 09:54","timestamp":"1111-11-11T11:11:11Z"}'
+            json     = '{"_":"telegram","media":"electricity","meter":"amiplus","name":"MyElectricity5","id":"56914504","total_energy_consumption_kwh":308.82,"total_energy_consumption_tariff_1_kwh":308.82,"total_energy_consumption_tariff_2_kwh":0,"total_energy_consumption_tariff_3_kwh":0,"total_energy_production_kwh":0.227,"total_energy_production_tariff_1_kwh":0.227,"total_energy_production_tariff_2_kwh":0,"total_energy_production_tariff_3_kwh":0,"voltage_at_phase_1_v":243.6,"voltage_at_phase_2_v":246.2,"voltage_at_phase_3_v":228.9,"device_datetime":"2024-05-25 08:54","timestamp":"1111-11-11T11:11:11Z"}'
             fields   = 'MyElectricity5;56914504;308.82;null;0.227;null;243.6;246.2;228.9;308.82;0;0;0.227;0;0;1111-11-11 11:11.11'
         }
         test {
