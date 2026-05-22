@@ -3,9 +3,10 @@
 driver {
     name           = hcae2
     meter_type     = HeatCostAllocationMeter
+    manufacturer   = Engelmann
     default_fields = name,id,consumption_hca,status,timestamp
     detect {
-        mvt = EFE,31,08
+        mvt = EFE,*,08
     }
     library {
         use = status-tpl-only

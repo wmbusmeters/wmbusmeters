@@ -6,9 +6,9 @@ driver {
     manufacturer   = Engelmann
     default_fields = name,id,status,reporting_date,consumption_at_reporting_date_m3,timestamp
     detect {
-        mvt = EFE,00,06
-        mvt = EFE,00,07
-        mvt = EFE,00,16
+        mvt = EFE,*,06
+        mvt = EFE,*,07
+        mvt = EFE,*,16
     }
     compact_frame_formats {
         difvif = 426C441301FD17840113C40113840213C40213840313C40313840413C40413840513C40513840613C40613840713C40713840813046D0413

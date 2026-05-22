@@ -5,6 +5,18 @@ driver {
     meter_type     = HeatCoolingMeter
     manufacturer   = Engelmann
     default_fields = name,id,status,total_kwh,total_water_m3,target_date,target_kwh,timestamp
+    detect {
+        // Heat (SensoStar2C wMBus native, SensoStar2U converted from wired)
+        mvt = EFE,*,04
+        // Cooling outlet
+        mvt = EFE,*,0a
+        // Cooling inlet
+        mvt = EFE,*,0b
+        // Heat inlet
+        mvt = EFE,*,0c
+        // Combined heat/cool
+        mvt = EFE,*,0d
+    }
     compact_frame_formats {
         // Engelmann SensoStar (short: energy, volume, temperatures, no monthly data)
         difvif = 046D040601FD170413043B042B025B025F026103FD0C02FD0B
@@ -12,22 +24,6 @@ driver {
         difvif = 046D0406041301FD17426C4406840106840206840306840406840506840606840706840806840906840A06840B06840C06840D06840E06840F0603FD0C02FD0B
         // Engelmann SensoStar (full with subunits, power, on-time, billing date)
         difvif = 047804060413042B142B043B143B025B025F02610223046D44064413426C01FD1703FD0C842006C42006843006C43006844013C4401384804013C480401384C04013C4C04013
-    }
-    detect {
-        // Heat (SensoStar2C wMBus native, SensoStar2U converted from wired)
-        mvt = EFE,00,04
-        // Cooling outlet
-        mvt = EFE,00,0a
-        // Cooling inlet
-        mvt = EFE,00,0b
-        // Heat inlet
-        mvt = EFE,00,0c
-        // Combined heat/cool
-        mvt = EFE,00,0d
-        // SensoStar2U MBus (version=3, wired M-Bus converted to compact wMBus)
-        mvt = EFE,03,04
-        // SensoStar2U MID (version=4, wired M-Bus converted to compact wMBus)
-        mvt = EFE,04,04
     }
     library {
         use = meter_datetime,fabrication_no,model_version,on_time_h,parameter_set
