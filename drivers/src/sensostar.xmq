@@ -1,5 +1,5 @@
 /* Copyright (C) 2020-2022 Patrick Schwarz (gpl-3.0-or-later)
-   Copyright (C) 2022-2025 Fredrik Öhrström (gpl-3.0-or-later) */
+   Copyright (C) 2022-2024 Fredrik Öhrström (gpl-3.0-or-later) */
 driver {
     name           = sensostar
     meter_type     = HeatCoolingMeter
