@@ -28,26 +28,6 @@ driver {
     library {
         use = meter_datetime,fabrication_no,model_version,on_time_h,parameter_set
     }
-    // Engelmann Default Keys
-    default_keys {
-        key = 554B4CA3DCDBD59302418363E49CAE86
-        key = D3347E3663EB0B771924753E89BE212B
-        key = EFACDFEACAECFEAAFCFEFEFACCEFCECF
-        key = 000102030405060708090A0B0C0D0E0F
-        key = 48C1A9B237A0FE7D30AF25B6CD29014C
-        key = 2A687141495A2A502F5D773E7E247C5E
-        key = 2F656E3C6D5E7321754E64563D57532B
-        key = 423D4B7365482B4B4047576927652725
-        key = 2B366E692E215D4F39317B6F21727B68
-        key = 283F214463275F3C4D7554764221613F
-        key = 306C6A2071292A20382229442B416948
-        key = 576D51393B56684044276B3527425F62
-        key = 312E5C2D42346A7A6870675250274E54
-        key = 7C6464235A31385D4028682022447C31
-        key = 198D231C956C34DA724F1BDE2A14B4AC
-        key = 01000805070374360F9F05ECBF3E44F4
-        key = EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE
-    }
     /* model_version (03 FD 0C, 3-byte LE) encodes three Engelmann sub-fields:
          byte 0 (LSB): internal model type — 5=SensoStarM, 6=SensoStarC_S3C, 8=WaterStar
          byte 1:       variant — 0=standard, 1=variant A, etc.
