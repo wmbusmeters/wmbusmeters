@@ -39,6 +39,8 @@ driver {
         // 803
     }
     compact_frame_formats {
+        // KAM,1c,04
+        difvif = 02F9FF15040604EEFF0704EEFF0804148440148480401402FD17026C426C44064414C44014C4804014043B0259025D
         // KAM,30,04
         difvif = 030643060314426C022D01FF21
         // KAM,30,0c
@@ -766,6 +768,20 @@ driver {
             telegram = 5B442D2C7764807939048D20870055322006F779A2E76FFD000000000000000000000000000000000000000000000000000000000000000000000000000000000000000060000100892B00000000000000000000000000000000812B
             json     = '{"_":"telegram","media":"heat","meter":"kamheat","name":"kamheat_39_04","id":"79806477","forward_energy_m3c":0,"max_power_kw":0,"return_energy_m3c":0,"t1_temperature_c":0,"t2_temperature_c":0,"target_date":"2020-11-01","target_energy_kwh":0,"target_volume_m3":0,"target_volume_subunit1_m3":0,"target_volume_subunit2_m3":0,"total_energy_consumption_kwh":0,"total_volume_m3":0,"total_volume_subunit1_m3":0,"total_volume_subunit2_m3":0,"volume_flow_m3h":0,"meter_date":"2020-11-09","status":"SENSOR_T1_BELOW_MEASURING_RANGE SENSOR_T2_BELOW_MEASURING_RANGE V1_COMMUNICATION_ERROR","timestamp":"1111-11-11T11:11:11Z"}'
             fields   = 'kamheat_39_04;79806477;0;0;SENSOR_T1_BELOW_MEASURING_RANGE SENSOR_T2_BELOW_MEASURING_RANGE V1_COMMUNICATION_ERROR;1111-11-11 11:11.11'
+        }
+        test {
+            comment  = 'KAM,1c,04 - Long Telegram'
+            args     = 'kamheat_1c_04 kamheat 78152801 NOKEY'
+            telegram = 7A442D2C012815781C048D206C70E7632234467802F9FF1511130406690B010004EEFF07C1BC020004EEFF0890D401000414A925040084401400000000848040140000000002FD170000026CB929426CBF284406100A01004414D81A0400C4401400000000C480401400000000043B3900000002592A17025D2912
+            json     = '{"_":"telegram","media":"heat","meter":"kamheat","name":"kamheat_1c_04","id":"78152801","t1_temperature_c":59.3,"t2_temperature_c":46.49,"target_date":"2021-08-31","target_energy_kwh":68112,"target_volume_m3":2690.16,"target_volume_subunit1_m3":0,"target_volume_subunit2_m3":0,"total_energy_consumption_kwh":68457,"total_volume_m3":2717.85,"total_volume_subunit1_m3":0,"total_volume_subunit2_m3":0,"va_counter":179393,"vb_counter":119952,"volume_flow_m3h":0.057,"enhanced_id":"1311","meter_date":"2021-09-25","status":"OK","timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'kamheat_1c_04;78152801;68457;2717.85;OK;1111-11-11 11:11.11'
+        }
+        test {
+            comment  = 'KAM,1c,04 - Compact Telegram'
+            args     = 'kamheat_1c_04 kamheat 78152801 NOKEY'
+            telegram = 4F442D2C012815781C048D207171E76322BE7679008430051113690B0100C1BC020090D40100A925040000000000000000000000B929BF28100A0100D81A04000000000000000000390000002A172912
+            json     = '{"_":"telegram","media":"heat","meter":"kamheat","name":"kamheat_1c_04","id":"78152801","t1_temperature_c":59.3,"t2_temperature_c":46.49,"target_date":"2021-08-31","target_energy_kwh":68112,"target_volume_m3":2690.16,"target_volume_subunit1_m3":0,"target_volume_subunit2_m3":0,"total_energy_consumption_kwh":68457,"total_volume_m3":2717.85,"total_volume_subunit1_m3":0,"total_volume_subunit2_m3":0,"va_counter":179393,"vb_counter":119952,"volume_flow_m3h":0.057,"enhanced_id":"1311","meter_date":"2021-09-25","status":"OK","timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'kamheat_1c_04;78152801;68457;2717.85;OK;1111-11-11 11:11.11'
         }
     }
     test {
