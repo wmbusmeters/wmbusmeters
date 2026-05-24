@@ -1793,18 +1793,16 @@ bool Telegram::parse_TPL_72(vector<uchar>::iterator &pos)
     if (!ok) return false;
 
     bool decrypt_ok = potentiallyDecrypt(pos);
+    if (!decrypt_ok)
+    {
+        decryption_failed = true;
+        return true;
+    }
 
     header_size = distance(frame.begin(), pos);
     int remaining = distance(pos, frame.end())-suffix_size;
 
-    if (decrypt_ok)
-    {
-        parseDV(this, frame, pos, remaining, &dv_entries);
-    }
-    else
-    {
-        decryption_failed = true;
-    }
+    parseDV(this, frame, pos, remaining, &dv_entries);
 
     return true;
 }
@@ -1928,18 +1926,17 @@ bool Telegram::parse_TPL_7A(vector<uchar>::iterator &pos)
     if (!ok) return false;
 
     bool decrypt_ok = potentiallyDecrypt(pos);
+    if (!decrypt_ok)
+    {
+        decryption_failed = true;
+        return true;
+    }
 
     header_size = distance(frame.begin(), pos);
     int remaining = distance(pos, frame.end())-suffix_size;
 
-    if (decrypt_ok)
-    {
-        parseDV(this, frame, pos, remaining, &dv_entries);
-    }
-    else
-    {
-        decryption_failed = true;
-    }
+    parseDV(this, frame, pos, remaining, &dv_entries);
+
     return true;
 }
 
