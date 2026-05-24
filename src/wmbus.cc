@@ -26,6 +26,9 @@
 #include"wmbus_utils.h"
 #include"dvparser.h"
 #include"manufacturer_specificities.h"
+
+#include"utils/alarm.h"
+
 #include<assert.h>
 #include<cmath>
 #include<semaphore.h>

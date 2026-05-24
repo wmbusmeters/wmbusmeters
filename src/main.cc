@@ -28,6 +28,8 @@
 #include"util.h"
 #include"wmbus.h"
 
+#include"utils/alarm.h"
+
 #include"authors.h"
 #include"license.h"
 #include"short_manual.h"

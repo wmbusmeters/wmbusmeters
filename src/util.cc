@@ -1194,44 +1194,6 @@ bool isInsideTimePeriod(time_t now, string periods)
     return false;
 }
 
-vector<string> alarm_shells_;
-
-const char* toString(Alarm type)
-{
-    switch (type)
-    {
-    case Alarm::DeviceFailure: return "DeviceFailure";
-    case Alarm::RegularResetFailure: return "RegularResetFailure";
-    case Alarm::DeviceInactivity: return "DeviceInactivity";
-    case Alarm::SpecifiedDeviceNotFound: return "SpecifiedDeviceNotFound";
-    }
-    return "?";
-}
-
-void logAlarm(Alarm type, string info)
-{
-    vector<string> envs;
-    string ts = toString(type);
-    envs.push_back("ALARM_TYPE="+ts);
-
-    string msg = tostrprintf("[ALARM %s] %s", ts.c_str(), info.c_str());
-    envs.push_back("ALARM_MESSAGE="+msg);
-
-    warning("%s\n", msg.c_str());
-
-    for (auto &s : alarm_shells_)
-    {
-        vector<string> args;
-        args.push_back("-c");
-        args.push_back(s);
-        invokeShell("/bin/sh", args, envs);
-    }
-}
-
-void setAlarmShells(vector<string> &alarm_shells)
-{
-    alarm_shells_ = alarm_shells;
-}
 
 bool stringFoundCaseIgnored(const string& h, const string& n)
 {
