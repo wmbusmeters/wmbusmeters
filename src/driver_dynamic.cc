@@ -17,11 +17,12 @@
 
 #include"driver_dynamic.h"
 #include"always.h"
-#include"crc16.h"
 #include"log.h"
 #include"meters_common_implementation.h"
 #include"translatebits.h"
 #include"xmq.h"
+
+#include"crypto/crc16.h"
 
 #include<assert.h>
 #include<string.h>

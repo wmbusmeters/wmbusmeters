@@ -15,11 +15,11 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef _AESCMAC_H_
-#define _AESCMAC_H_
+#ifndef CRYPTO_AESCMAC_H_
+#define CRYPTO_AESCMAC_H_
 
 #include "always.h"
 
 void AES_CMAC (uchar *key, uchar *input, int length, uchar *mac);
 
-#endif //_AESCMAC_H_
+#endif // CRYPTO_AESCMAC_H_
