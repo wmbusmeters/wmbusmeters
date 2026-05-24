@@ -22,6 +22,8 @@
 #include <cstdint>
 #include <cstddef>
 
+uint16_t crc16(uint16_t poly, uint16_t init, uchar *data, size_t len);
+
 uint16_t crc16_EN13757(uchar *data, size_t len);
 
 // This crc is used by im871a for its serial communication.

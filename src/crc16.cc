@@ -15,71 +15,64 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include"crc16.h"
-#include<cassert>
+#include "crc16.h"
 
-#define CRC16_EN_13757 0x3D65
+#include <cassert>
 
-static uint16_t crc16_EN13757_per_byte(uint16_t crc, uchar b)
+uint16_t crc16(uint16_t poly, uint16_t init, uchar *data, size_t len)
 {
-    unsigned char i;
-
-    for (i = 0; i < 8; i++) {
-
-        if (((crc & 0x8000) >> 8) ^ (b & 0x80)){
-            crc = (crc << 1)  ^ CRC16_EN_13757;
-        }else{
-            crc = (crc << 1);
-        }
-
-        b <<= 1;
-    }
-
-    return crc;
-}
-
-uint16_t crc16_EN13757(uchar *data, size_t len)
-{
-    uint16_t crc = 0x0000;
+    uint16_t crc = init;
 
     assert(len == 0 || data != NULL);
 
-    for (size_t i=0; i<len; ++i)
+    for (size_t i = 0; i < len; i++)
     {
-        crc = crc16_EN13757_per_byte(crc, data[i]);
+        uchar b = data[i];
+        for (int j = 0; j < 8; j++)
+        {
+            if (((crc & 0x8000) >> 8) ^ (b & 0x80))
+            {
+                crc = (crc << 1) ^ poly;
+            }
+            else
+            {
+                crc = (crc << 1);
+            }
+            b <<= 1;
+        }
     }
 
-    return (~crc);
+    return crc;
 }
 
-#define CRC16_INIT_VALUE 0xFFFF
-#define CRC16_GOOD_VALUE 0x0F47
-#define CRC16_POLYNOM    0x8408
+#define CRC16_EN_13757_INIT_VALUE 0x0000
+#define CRC16_EN_13757_POLYNOM    0x3D65
+
+uint16_t crc16_EN13757(uchar *data, size_t len)
+{
+    return ~crc16(CRC16_EN_13757_POLYNOM, CRC16_EN_13757_INIT_VALUE, data, len);
+}
+
+/*
+ CCITT stands for "Comité Consultatif International Télégraphique et
+ Téléphonique", also known as "International Telecommunication Union
+ Telecommunication Standardization Sector", or short "ITU-T".
+ 
+ This CRC16 variation is used by im871a for its serial communication.
+*/ 
+
+#define CRC16_CCITT_INIT_VALUE 0xFFFF
+#define CRC16_CCITT_POLYNOM    0x1021
+#define CRC16_CCITT_GOOD_VALUE 0x0F47
 
 uint16_t crc16_CCITT(uchar *data, uint16_t length)
 {
-    uint16_t initVal = CRC16_INIT_VALUE;
-    uint16_t crc = initVal;
-    while(length--)
-    {
-        int bits = 8;
-        uchar byte = *data++;
-        while(bits--)
-        {
-            if((byte & 1) ^ (crc & 1))
-            {
-                crc = (crc >> 1) ^ CRC16_POLYNOM;
-            }
-            else
-                crc >>= 1;
-            byte >>= 1;
-        }
-    }
-    return crc;
+    return crc16(CRC16_CCITT_POLYNOM, CRC16_CCITT_INIT_VALUE, data, length);
 }
 
 bool crc16_CCITT_check(uchar *data, uint16_t length)
 {
     uint16_t crc = ~crc16_CCITT(data, length);
-    return crc == CRC16_GOOD_VALUE;
+    return crc == CRC16_CCITT_GOOD_VALUE;
 }
+
