@@ -629,6 +629,7 @@ string mediaTypeJSON(int a_field_device_type, int m_field)
     X(0x78, TPL_78,  "TPL: no header APL follows", 0, CI_TYPE::TPL, "") \
     X(0x79, TPL_79,  "TPL: compact APL follows", 0, CI_TYPE::TPL, "") \
     X(0x7A, TPL_7A,  "TPL: short header APL follows", 0, CI_TYPE::TPL, "") \
+    X(0x7B, TPL_7B,  "TPL: short header compact APL follows", 0, CI_TYPE::TPL, "") \
     X(0x81, NWL_81,  "NWL: TPL or APL follows?", 0, CI_TYPE::NWL, "") \
     X(0x8C, ELL_I,   "ELL: I",    2, CI_TYPE::ELL, "CC, ACC") \
     X(0x8D, ELL_II,  "ELL: II",   8, CI_TYPE::ELL, "CC, ACC, SN, Payload CRC") \
@@ -1819,7 +1820,10 @@ bool Telegram::parse_TPL_78(vector<uchar>::iterator &pos)
 
 bool Telegram::parse_TPL_79(vector<uchar>::iterator &pos)
 {
-    // Compact frame
+    MVT mvt = {(uint16_t)dll_mfct, dll_version, dll_type};
+    
+    bool ok = false;
+
     CHECK(2);
     uchar ecrc0 = *(pos+0);
     uchar ecrc1 = *(pos+1);
@@ -1829,15 +1833,16 @@ bool Telegram::parse_TPL_79(vector<uchar>::iterator &pos)
     format_signature = ecrc1<<8 | ecrc0;
 
     vector<uchar> format_bytes;
-    bool ok = lookupCompactFormat(MVT{(uint16_t)dll_mfct, dll_version, dll_type}, format_signature, format_bytes);
+    ok = lookupCompactFormat(mvt, format_signature, format_bytes);
     if (!ok)
     {
         addMoreExplanation(offset, " (unknown)");
         int num_compressed_bytes = distance(pos, frame.end());
         string info = bin2hex(pos, frame.end(), num_compressed_bytes);
         info += " compressed and signature unknown";
-        addExplanationAndIncrementPos(pos, distance(pos, frame.end()), KindOfData::CONTENT, Understanding::COMPRESSED, info.c_str());
-
+        addExplanationAndIncrementPos(pos, distance(pos, frame.end()),
+                                      KindOfData::CONTENT, Understanding::COMPRESSED,
+                                      info.c_str());
         verbose("(wmbus) ignoring compressed telegram since format signature hash 0x%02x is yet unknown.\n"
                 "     this is not a problem, since you only need wait for at most 8 telegrams\n"
                 "     (8*16 seconds) until an full length telegram arrives and then we know\n"
@@ -1847,7 +1852,6 @@ bool Telegram::parse_TPL_79(vector<uchar>::iterator &pos)
     }
     vector<uchar>::iterator format = format_bytes.begin();
 
-    // 2,3 = crc for payload = hash over both DRH and data bytes. Or is it only over the data bytes?
     CHECK(2);
     int ecrc2 = *(pos+0);
     int ecrc3 = *(pos+1);
@@ -1864,6 +1868,8 @@ bool Telegram::parse_TPL_79(vector<uchar>::iterator &pos)
 
 bool Telegram::parse_TPL_73(vector<uchar>::iterator &pos)
 {
+    MVT mvt = {(uint16_t)tpl_mfct, tpl_version, tpl_type};
+
     bool ok = parseLongTPL(pos);
     if (!ok) return false;
 
@@ -1883,7 +1889,7 @@ bool Telegram::parse_TPL_73(vector<uchar>::iterator &pos)
     format_signature = ecrc1<<8 | ecrc0;
 
     vector<uchar> format_bytes;
-    ok = lookupCompactFormat(MVT{(uint16_t)tpl_mfct, tpl_version, tpl_type}, format_signature, format_bytes);
+    ok = lookupCompactFormat(mvt, format_signature, format_bytes);
     if (!ok)
     {
         addMoreExplanation(offset, " (unknown)");
@@ -1937,6 +1943,62 @@ bool Telegram::parse_TPL_7A(vector<uchar>::iterator &pos)
     return true;
 }
 
+bool Telegram::parse_TPL_7B(vector<uchar>::iterator &pos)
+{
+    MVT mvt = {(uint16_t)tpl_mfct, tpl_version, tpl_type};
+
+    bool ok = parseShortTPL(pos);
+    if (!ok) return false;
+
+    bool decrypt_ok = potentiallyDecrypt(pos);
+    if (!decrypt_ok)
+    {
+        decryption_failed = true;
+        return true;
+    }
+
+    CHECK(2);
+    uchar ecrc0 = *(pos+0);
+    uchar ecrc1 = *(pos+1);
+    size_t offset = distance(frame.begin(), pos);
+    addExplanationAndIncrementPos(pos, 2, KindOfData::PROTOCOL, Understanding::FULL,
+                                  "%02x%02x format signature", ecrc0, ecrc1);
+    format_signature = ecrc1<<8 | ecrc0;
+
+    vector<uchar> format_bytes;
+    ok = lookupCompactFormat(mvt, format_signature, format_bytes);
+    if (!ok)
+    {
+        addMoreExplanation(offset, " (unknown)");
+        int num_compressed_bytes = distance(pos, frame.end());
+        string info = bin2hex(pos, frame.end(), num_compressed_bytes);
+        info += " compressed and signature unknown";
+        addExplanationAndIncrementPos(pos, distance(pos, frame.end()),
+                                      KindOfData::CONTENT, Understanding::COMPRESSED,
+                                      info.c_str());
+        verbose("(wmbus) ignoring compressed telegram since format signature hash 0x%02x is yet unknown.\n"
+                "     this is not a problem, since you only need wait for at most 8 telegrams\n"
+                "     (8*16 seconds) until an full length telegram arrives and then we know\n"
+                "     the format giving this hash and start decoding the telegrams properly.\n",
+                format_signature);
+        return false;
+    }
+    vector<uchar>::iterator format = format_bytes.begin();
+
+    CHECK(2);
+    int ecrc2 = *(pos+0);
+    int ecrc3 = *(pos+1);
+    addExplanationAndIncrementPos(pos, 2, KindOfData::PROTOCOL, Understanding::FULL,
+                                  "%02x%02x full frame crc", ecrc2, ecrc3);
+
+    header_size = distance(frame.begin(), pos);
+    int remaining = distance(pos, frame.end())-suffix_size;
+
+    parseDV(this, frame, pos, remaining, &dv_entries, &format, format_bytes.size());
+
+    return true;
+}
+
 bool Telegram::parseTPL(vector<uchar>::iterator &pos)
 {
     int remaining = distance(pos, frame.end());
@@ -1975,6 +2037,7 @@ bool Telegram::parseTPL(vector<uchar>::iterator &pos)
         case CI_Field_Values::TPL_78: return parse_TPL_78(pos);
         case CI_Field_Values::TPL_79: return parse_TPL_79(pos);
         case CI_Field_Values::TPL_7A: return parse_TPL_7A(pos);
+        case CI_Field_Values::TPL_7B: return parse_TPL_7B(pos);
         default:
         {
             // A0 to B7 are manufacturer specific.
