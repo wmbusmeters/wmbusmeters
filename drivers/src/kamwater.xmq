@@ -59,22 +59,22 @@ driver {
                 default_message = OK
                 map {
                     name  = DRY
-                    value = 0x01
+                    bit   = 0
                     test  = Set
                 }
                 map {
                     name  = REVERSE
-                    value = 0x02
+                    bit   = 1
                     test  = Set
                 }
                 map {
                     name  = LEAK
-                    value = 0x04
+                    bit   = 2
                     test  = Set
                 }
                 map {
                     name  = BURST
-                    value = 0x08
+                    bit   = 3
                     test  = Set
                 }
             }
@@ -94,22 +94,22 @@ driver {
                 default_message = OK
                 map {
                     name  = DRY
-                    value = 0x01
+                    bit   = 0
                     test  = Set
                 }
                 map {
                     name  = REVERSE
-                    value = 0x02
+                    bit   = 1
                     test  = Set
                 }
                 map {
                     name  = LEAK
-                    value = 0x04
+                    bit   = 2
                     test  = Set
                 }
                 map {
                     name  = BURST
-                    value = 0x08
+                    bit   = 3
                     test  = Set
                 }
             }
@@ -128,22 +128,22 @@ driver {
                 mask_bits = 0x000f
                 map {
                     name  = DRY
-                    value = 0x01
+                    bit   = 0
                     test  = Set
                 }
                 map {
                     name  = REVERSE
-                    value = 0x02
+                    bit   = 1
                     test  = Set
                 }
                 map {
                     name  = LEAK
-                    value = 0x04
+                    bit   = 2
                     test  = Set
                 }
                 map {
                     name  = BURST
-                    value = 0x08
+                    bit   = 3
                     test  = Set
                 }
             }
