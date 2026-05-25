@@ -15,7 +15,7 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include"crc16.h"
+#include"crypto/crc16.h"
 #include<cassert>
 
 #define CRC16_EN_13757 0x3D65
