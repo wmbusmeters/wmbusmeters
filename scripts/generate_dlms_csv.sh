@@ -29,4 +29,8 @@ def f:
     + (if $r != "" then [$r] else [] end)
   | @tsv
 )
-' > "$OUT"
+' | python3 -c "
+import sys, re
+f = lambda m: bytes(ord(c) for c in m.group()).decode('utf-8', 'ignore') or m.group()
+sys.stdout.write(re.sub(r'[\xc0-\xdf][\x80-\xbf]|[\xe0-\xef][\x80-\xbf]{2}|[\xf0-\xf7][\x80-\xbf]{3}', f, sys.stdin.read()))
+" > "$OUT"

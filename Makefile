@@ -371,12 +371,12 @@ testdriverd: build/xmq
 
 update_manufacturers:
 	./scripts/generate_dlms_csv.sh ./DLMS_Flagids.tsv
-	iconv -f utf-8 -t ascii//TRANSLIT -c DLMS_Flagids.tsv -o tmp.flags
+	cp DLMS_Flagids.tsv tmp.flags
 	cat tmp.flags | grep -v ^# | cut -f 1 > list.flags
 	cat tmp.flags | grep -v ^# | cut -f 2 > names.flags
 	cat tmp.flags | grep -v ^# | cut -f 3 > countries.flags
 	cat countries.flags | sort -u | grep -v '^$$' > uniquec.flags
-	cat names.flags | tr -d "'" | tr -c 'a-zA-Z0-9\n' ' ' | tr -s ' ' | sed 's/^ //g' | sed 's/ $$//g' > ansi.flags
+	cat names.flags | tr -d "'" | python3 -c "import sys; d=sys.stdin.buffer.read().decode('utf-8'); sys.stdout.buffer.write(''.join(c if c.isalpha() or c.isdigit() or c=='\n' else ' ' for c in d).encode('utf-8'))" | tr -s ' ' | sed 's/^ //g' | sed 's/ $$//g' > ansi.flags
 	cat ansi.flags | sed 's/\(^.......[^0123456789]*\)[0123456789]\+.*/\1/g' > cleaned.flags
 	cat cleaned.flags | sed -e "$$(sed 's:.*:s/&//Ig:' uniquec.flags)" > cleanedc.flags
 	cat cleanedc.flags | sed \
@@ -419,6 +419,7 @@ update_manufacturers:
 	> trimmed.flags
 	cat trimmed.flags | tr -s ' ' | sed 's/^ //g' | sed 's/ $$//g' > done.flags
 	paste -d '|,' list.flags done.flags countries.flags | sed 's/,/, /g' | sed 's/ |/|/g' > manufacturers.txt
+	awk -F'|' 'NR==FNR{l=length($$0);if(l>mx[$$1]){mx[$$1]=l;best[$$1]=NR};next} FNR==best[$$1]' manufacturers.txt manufacturers.txt > deduped.txt && mv deduped.txt manufacturers.txt
 	echo "// Copyright (C) $$(date +%Y) Fredrik Öhrström (CC0)" > m.h
 	echo '#ifndef MANUFACTURERS_H' >> m.h
 	echo '#define MANUFACTURERS_H' >> m.h
