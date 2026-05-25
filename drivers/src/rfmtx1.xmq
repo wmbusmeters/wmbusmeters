@@ -14,11 +14,12 @@ driver {
             quantity           = Text
             attributes         = HIDE,REQUIRED
             match_entire_frame = true
-            ixml               = "decode = skip11, key_byte, skip3, skip2, data_raw_bytes, skip7, sec_bytes, min_bytes, hour_bytes, day_bytes, mon_bytes, year_bytes, rest.
+            ixml               = "decode = tpl, skip2, data_raw_bytes, skip7, sec_bytes, min_bytes, hour_bytes, day_bytes, mon_bytes, year_bytes, rest.
                                   -hex = ['A'-'F';'0'-'9'].
                                   -byte = hex, hex.
-                                  -skip11 = byte, byte, byte, byte, byte, byte, byte, byte, byte, byte, byte.
-                                  -skip3 = byte, byte, byte.
+                                  tpl = -dll_ci, key_byte, -status_cfg.
+                                  -dll_ci = byte, byte, byte, byte, byte, byte, byte, byte, byte, byte, byte.
+                                  -status_cfg = byte, byte, byte.
                                   -skip2 = byte, byte.
                                   -skip7 = byte, byte, byte, byte, byte, byte, byte.
                                   -rest = byte*.

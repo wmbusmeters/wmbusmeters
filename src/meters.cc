@@ -2913,6 +2913,31 @@ static bool ixmlReferencesTpl(const string &text)
     return false;
 }
 
+// Detect whether the grammar text defines its own `tpl` rule (e.g. `-tpl = ...`
+// or `tpl = ...`). When the driver provides its own definition we must NOT
+// inject the synthesised one - the grammar would otherwise have two competing
+// definitions of the same non-terminal.
+static bool ixmlDefinesTpl(const string &text)
+{
+    const string token = "tpl";
+    size_t pos = 0;
+    while ((pos = text.find(token, pos)) != string::npos)
+    {
+        bool ok_before = (pos == 0) || !(isalnum((unsigned char)text[pos-1]) || text[pos-1] == '_');
+        size_t after = pos + token.size();
+        bool ok_after_word = (after >= text.size()) || !(isalnum((unsigned char)text[after]) || text[after] == '_');
+        if (ok_before && ok_after_word)
+        {
+            // Skip whitespace, then check for `=` (rule definition marker).
+            size_t scan = after;
+            while (scan < text.size() && (text[scan] == ' ' || text[scan] == '\t')) scan++;
+            if (scan < text.size() && text[scan] == '=') return true;
+        }
+        pos = after;
+    }
+    return false;
+}
+
 void FieldInfo::useIXML(const string& ixml)
 {
     XMQDoc *g = xmqNewDoc();
@@ -2923,7 +2948,9 @@ void FieldInfo::useIXML(const string& ixml)
         return;
     }
     ixml_text_ = ixml;
-    ixml_uses_tpl_token_ = ixmlReferencesTpl(ixml);
+    // Inject our synthesised `-tpl` rule only when the grammar references `tpl`
+    // but does not define it itself.
+    ixml_uses_tpl_token_ = ixmlReferencesTpl(ixml) && !ixmlDefinesTpl(ixml);
     ixml_grammar_ = shared_ptr<XMQDoc>(g, [](XMQDoc* d) { if (d) xmqFreeDoc(d); } );
 }
 
