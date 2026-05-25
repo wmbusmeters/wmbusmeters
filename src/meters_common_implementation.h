@@ -154,8 +154,7 @@ protected:
         std::string help,
         PrintProperties print_properties,
         FieldMatcher matcher,
-        std::string ixml = "",
-        bool entire_payload = false);
+        std::string ixml = "");
 
     void addStringFieldWithExtractorAndLookup(
         std::string vname,
@@ -257,7 +256,10 @@ private:
     bool has_received_first_telegram_ = false;
     MeterManager *meter_manager_ {};
     bool diehl_prios_decode_ = false;
-    std::string diehl_prios_combined_hex_; // frame[header_size..+4] + LFSR-decoded payload
+    // LFSR-decoded bytes for Diehl PRIOS telegrams. When set, they replace
+    // frame[15..end] before the IXML grammar runs (the first 4 payload bytes
+    // remain raw, matching the historical "combined" layout).
+    std::vector<uchar> diehl_prios_decoded_;
 
 protected:
 

@@ -359,9 +359,6 @@ struct FieldInfo
     // Returns NULL on parse failure.
     XMQDoc *buildIXMLGrammarWithTpl(int header_size);
 
-    void matchEntirePayload(bool b) { match_entire_payload_ = b; }
-    bool matchEntirePayload() { return match_entire_payload_; }
-
     void matchEntireFrame(bool b) { match_entire_frame_ = b; }
     bool matchEntireFrame() { return match_entire_frame_; }
 
@@ -378,7 +375,7 @@ struct FieldInfo
         payload_length_ = payload_length;
         tpl_acc_offset_ = tpl_acc_offset;
     }
-    bool transformPayload(Telegram *t, std::vector<uchar> *content);
+    bool transformFrame(Telegram *t, std::vector<uchar> *frame);
 
 private:
 
@@ -422,9 +419,6 @@ private:
     std::string ixml_text_ {};
     // True when ixml_text_ references the magic `tpl` non-terminal.
     bool ixml_uses_tpl_token_ {};
-
-    // For ixml parsing, nab the entire payload, since it does not conform to the difvif structure.
-    bool match_entire_payload_ {};
 
     // For ixml parsing, nab the entire frame (including TPL header), to access bytes like tpl_acc.
     bool match_entire_frame_ {};

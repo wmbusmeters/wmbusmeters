@@ -781,8 +781,7 @@ void MeterCommonImplementation::addStringFieldWithExtractor(string vname,
                                                             string help,
                                                             PrintProperties print_properties,
                                                             FieldMatcher matcher,
-                                                            string ixml,
-                                                            bool match_entire_payload)
+                                                            string ixml)
 {
     size_t index = num_driver_fields_++;
     field_infos_.emplace_back(
@@ -807,10 +806,6 @@ void MeterCommonImplementation::addStringFieldWithExtractor(string vname,
     if (ixml != "")
     {
         field_infos_.back().useIXML(ixml);
-    }
-    if (match_entire_payload)
-    {
-        field_infos_.back().matchEntirePayload(true);
     }
 }
 
@@ -1581,7 +1576,7 @@ bool MeterCommonImplementation::handleTelegram(AboutTelegram &about, vector<ucha
     }
 
     // Decode Diehl PRIOS payload and inject SAP_PRIOS string fields before ixml runs.
-    diehl_prios_combined_hex_ = "";
+    diehl_prios_decoded_.clear();
     if (diehl_prios_decode_)
     {
         vector<uchar> frame;
@@ -1600,10 +1595,10 @@ bool MeterCommonImplementation::handleTelegram(AboutTelegram &about, vector<ucha
 
         if (!decoded.empty())
         {
-            int hs = t.header_size;
-            vector<uchar> combined(frame.begin()+hs, frame.begin()+min(hs+4, (int)frame.size()));
-            combined.insert(combined.end(), decoded.begin(), decoded.end());
-            diehl_prios_combined_hex_ = bin2hex(combined);
+            // Stash the decoded bytes; processFieldIXMLs will splice them into
+            // the frame so the match_entire_frame + tpl grammar can decode it
+            // like any other driver.
+            diehl_prios_decoded_ = decoded;
 
             if (detectDiehlFrameInterpretation(frame) == DiehlFrameInterpretation::SAP_PRIOS)
             {
@@ -1665,9 +1660,41 @@ void MeterCommonImplementation::processFieldIXMLs(Telegram *t)
         {
             if (fi.matchEntireFrame())
             {
-                // Pass the full frame (including TPL header) to ixml so grammars can access bytes like tpl_acc.
+                // Pass the full frame (including TPL header) to ixml so grammars can access
+                // bytes like tpl_acc. Apply driver-level (diehl_prios) and field-level
+                // (tpl_aes_cbc_iv) frame transforms before parsing so the grammar always
+                // sees decoded bytes spliced into the original frame layout.
                 vector<uchar> frame;
                 t->extractFrame(&frame);
+
+                if (diehl_prios_decode_ && !diehl_prios_decoded_.empty())
+                {
+                    // The LFSR-decoded bytes always replace frame[15..15+N) - this matches
+                    // the historical "combined" construction (4 raw payload bytes followed
+                    // by decoded payload) for mfct-specific Diehl CI bytes.
+                    size_t off = 15;
+                    if (off + diehl_prios_decoded_.size() <= frame.size())
+                    {
+                        std::copy(diehl_prios_decoded_.begin(), diehl_prios_decoded_.end(),
+                                  frame.begin() + off);
+                    }
+                }
+
+                if (!fi.transformFrame(t, &frame))
+                {
+                    if (!t->beingAnalyzed())
+                    {
+                        string hex = bin2hex(frame);
+                        warning("(meters) meter: %s failed to transform frame for ixml field: %s\n"
+                                "Please open an issue at https://github.com/wmbusmeters/wmbusmeters/\n"
+                                "and report this telegram: %s\n",
+                                name().c_str(),
+                                fi.vname().c_str(),
+                                hex.c_str());
+                    }
+                    continue;
+                }
+
                 string value = bin2hex(frame);
                 debug("(ixml) parsing entire frame %s\n", value.c_str());
                 // If the grammar uses the magic `tpl` non-terminal, build a per-telegram
@@ -1695,60 +1722,6 @@ void MeterCommonImplementation::processFieldIXMLs(Telegram *t)
                                     name().c_str(),
                                     fi.vname().c_str(),
                                     value.c_str());
-                        }
-                    }
-                }
-                continue;
-            }
-
-            if (fi.matchEntirePayload())
-            {
-                // Special case for mfct specific meters not compliant with difvif parsing.
-                string value;
-                if (diehl_prios_decode_ && !diehl_prios_combined_hex_.empty())
-                {
-                    value = diehl_prios_combined_hex_;
-                }
-                else
-                {
-                    vector<uchar> content;
-                    t->extractPayload(&content);
-                    if (!fi.transformPayload(t, &content))
-                    {
-                        vector<uchar> frame;
-                        t->extractFrame(&frame);
-                        string hex = bin2hex(frame);
-
-                        warning("(meters) meter: %s failed to transform entire payload for ixml field: %s\n"
-                                "Please open an issue at https://github.com/wmbusmeters/wmbusmeters/\n"
-                                "and report this telegram: %s\n",
-                                name().c_str(),
-                                fi.vname().c_str(),
-                                hex.c_str());
-                        continue;
-                    }
-                    value = bin2hex(content);
-                }
-
-                debug("(ixml) parsing entire payload %s\n", value.c_str());
-                bool ok = parseWithIXML(t, t->header_size, value, fi.ixmlGrammar(), &t->dv_entries);
-                if (!ok)
-                {
-                    vector<uchar> frame;
-                    t->extractFrame(&frame);
-                    string hex = bin2hex(frame);
-                    if (fi.printProperties().hasREQUIRED())
-                    {
-                        t->decoding_errors = joinStatusEmptyStrings(t->decoding_errors,
-                                                                    string("DECODING_ERROR_")+fi.vname());
-                        if (!t->beingAnalyzed())
-                        {
-                            warning("(meters) meter: %s failed to decode ixml field: %s over entire payload\n"
-                                    "Please open an issue at https://github.com/wmbusmeters/wmbusmeters/\n"
-                                    "and report this telegram: %s\n",
-                                    name().c_str(),
-                                    fi.vname().c_str(),
-                                    hex.c_str());
                         }
                     }
                 }
@@ -2241,7 +2214,7 @@ string FieldInfo::generateFieldNameWithUnit(Meter *m, DVEntry *dve)
     return var+"_"+display_unit_s;
 }
 
-bool FieldInfo::transformPayload(Telegram *t, vector<uchar> *content)
+bool FieldInfo::transformFrame(Telegram *t, vector<uchar> *frame)
 {
     if (!has_tpl_aes_cbc_iv_payload_transform_) return true;
 
@@ -2250,21 +2223,19 @@ bool FieldInfo::transformPayload(Telegram *t, vector<uchar> *content)
         warning("(field) invalid payload transform configuration for field %s\n", vname().c_str());
         return false;
     }
-    if ((size_t)tpl_acc_offset_ >= content->size() || (size_t)payload_offset_ >= content->size())
-    {
-        warning("(field) payload transform offset outside payload for field %s\n", vname().c_str());
-        return false;
-    }
 
-    size_t payload_end = content->size();
-    if (payload_length_ > 0)
+    // payload_offset_, payload_length_ and tpl_acc_offset_ are all expressed
+    // relative to the payload (i.e. after the TPL header). Convert to frame
+    // coordinates by adding t->header_size.
+    size_t hs = (size_t)t->header_size;
+    size_t enc_start = hs + (size_t)payload_offset_;
+    size_t enc_end   = enc_start + (size_t)payload_length_;
+    size_t acc_pos   = hs + (size_t)tpl_acc_offset_;
+
+    if (acc_pos >= frame->size() || enc_start >= frame->size() || enc_end > frame->size())
     {
-        payload_end = payload_offset_ + payload_length_;
-        if (payload_end > content->size())
-        {
-            warning("(field) payload transform length outside payload for field %s\n", vname().c_str());
-            return false;
-        }
+        warning("(field) payload transform offset outside frame for field %s\n", vname().c_str());
+        return false;
     }
 
     Meter *meter = t->meter;
@@ -2275,18 +2246,22 @@ bool FieldInfo::transformPayload(Telegram *t, vector<uchar> *content)
         return false;
     }
 
-    t->tpl_acc = (*content)[tpl_acc_offset_];
+    t->tpl_acc = (*frame)[acc_pos];
 
-    vector<uchar> frame(content->begin() + payload_offset_, content->begin() + payload_end);
-    vector<uchar>::iterator pos = frame.begin();
+    // Decrypt the encrypted sub-region into a temporary buffer.
+    vector<uchar> encrypted(frame->begin() + enc_start, frame->begin() + enc_end);
+    vector<uchar>::iterator pos = encrypted.begin();
     vector<uchar> aes_key = keys->confidentiality_key;
     int num_encrypted_bytes = 0;
     int num_not_encrypted_at_end = 0;
 
-    bool ok = decrypt_TPL_AES_CBC_IV(t, frame, pos, aes_key, &num_encrypted_bytes, &num_not_encrypted_at_end);
+    bool ok = decrypt_TPL_AES_CBC_IV(t, encrypted, pos, aes_key, &num_encrypted_bytes, &num_not_encrypted_at_end);
     if (!ok) return false;
 
-    *content = frame;
+    // Splice the decrypted bytes back into the frame at the same position,
+    // preserving the header and any bytes around the encrypted region.
+    frame->erase(frame->begin() + enc_start, frame->begin() + enc_end);
+    frame->insert(frame->begin() + enc_start, encrypted.begin(), encrypted.end());
     return true;
 }
 

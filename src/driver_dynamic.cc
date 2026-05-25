@@ -38,7 +38,6 @@ string check_field_name(const char *name, DriverDynamic *dd);
 string check_field_ixml(const char *ixml, DriverDynamic *dd);
 bool check_boolean_property(const char *value, const char *property, DriverDynamic *dd, bool default_value = false);
 long check_long_property(const char *value, const char *property, DriverDynamic *dd);
-bool check_field_match_entire_payload(const char *mep, DriverDynamic *dd);
 bool check_field_match_entire_frame(const char *mef, DriverDynamic *dd);
 string check_field_info(const char *info, DriverDynamic *dd);
 ReadableString check_field_readable_string(const char *rs_s, DriverDynamic *dd);
@@ -341,16 +340,6 @@ XMQProceed DriverDynamic::add_field(XMQDoc *doc, XMQNodePtr field, DriverDynamic
     // All other fields are numeric, ie they have a unit. This also includes date and datetime.
     bool is_numeric = quantity != Quantity::Text;
 
-    // For ixml parsing of mfct specific payloads, payloads that do not even bother with the 0x0f.
-    bool match_entire_payload = check_boolean_property(xmqGetStringRel(doc, "match_entire_payload", field), "match_entire_payload", dd, false);
-
-    if (is_numeric && match_entire_payload)
-    {
-        warning("(driver) error in %s, match_entire_payload can only be enabled for quantity=String.\n",
-                dd->fileName().c_str());
-        match_entire_payload = false;
-    }
-
     // For ixml parsing using the full frame (including TPL header bytes like tpl_acc).
     bool match_entire_frame = check_field_match_entire_frame(xmqGetStringRel(doc, "match_entire_frame", field), dd);
 
@@ -458,13 +447,6 @@ XMQProceed DriverDynamic::add_field(XMQDoc *doc, XMQNodePtr field, DriverDynamic
     // Check if there were any matches at all, if not, then disable the matcher.
     match.active = num_matches > 0;
 
-    if (match.active && match_entire_payload)
-    {
-        warning("(driver) error in %s, match_entire_payload cannot be combined with match { }.\n",
-                dd->fileName().c_str());
-        match_entire_payload = false;
-    }
-
     if (match.active && match_entire_frame)
     {
         warning("(driver) error in %s, match_entire_frame cannot be combined with match { }.\n",
@@ -472,9 +454,9 @@ XMQProceed DriverDynamic::add_field(XMQDoc *doc, XMQNodePtr field, DriverDynamic
         match_entire_frame = false;
     }
 
-    if (use_tpl_aes_cbc_iv_payload_transform && !match_entire_payload)
+    if (use_tpl_aes_cbc_iv_payload_transform && !match_entire_frame)
     {
-        warning("(driver) error in %s, transform_payload requires match_entire_payload = true.\n",
+        warning("(driver) error in %s, transform_payload requires match_entire_frame = true.\n",
                 dd->fileName().c_str());
         use_tpl_aes_cbc_iv_payload_transform = false;
     }
@@ -550,8 +532,7 @@ XMQProceed DriverDynamic::add_field(XMQDoc *doc, XMQNodePtr field, DriverDynamic
                 info,
                 properties,
                 match,
-                ixml,
-                match_entire_payload
+                ixml
                 );
             if (match_entire_frame)
             {
@@ -875,19 +856,6 @@ string check_field_ixml(const char *ixml, DriverDynamic *dd)
     if (!ixml) return "";
 
     return ixml;
-}
-
-bool check_field_match_entire_payload(const char *mep, DriverDynamic *dd)
-{
-    if (!mep) return false;
-
-    if (!strcmp(mep, "true")) return true;
-    if (!strcmp(mep, "false")) return false;
-
-    warning("(driver) error in %s, match_entire_payload must be true/false not \"%s\"\n",
-            dd->fileName().c_str(), mep);
-
-    return false;
 }
 
 bool check_boolean_property(const char *value, const char *property, DriverDynamic *dd, bool default_value)

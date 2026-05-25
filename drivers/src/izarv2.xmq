@@ -33,13 +33,13 @@ driver {
             info     = 'The year during which the meter was manufactured.'
         }
         field {
-            name                 = prios_decoder
-            quantity             = Text
-            attributes           = HIDE
-            match_entire_payload = true
-            ixml                 = "decode = with_billing | without_billing.
-                                    with_billing = alarms_hdr, -skip_byte, -check, volume, billing_block, -byte*.
-                                    without_billing = alarms_hdr, -skip_byte, -check, volume.
+            name               = prios_decoder
+            quantity           = Text
+            attributes         = HIDE
+            match_entire_frame = true
+            ixml               = "decode = tpl, (with_billing | without_billing).
+                                  with_billing = alarms_hdr, -skip_byte, -check, volume, billing_block, -byte*.
+                                  without_billing = alarms_hdr, -skip_byte, -check, volume.
                                     alarms_hdr  = byte, byte, byte, @DV_alarms.
                                     -skip_byte  = byte.
                                     -check      = byte.

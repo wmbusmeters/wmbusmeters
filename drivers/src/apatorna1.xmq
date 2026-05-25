@@ -350,27 +350,28 @@ driver {
             }
         }
         field {
-            name                 = mfct_header_data
-            quantity             = Text
-            attributes           = HIDE
-            match_entire_payload = true
-            ixml                 = "decode = tpl_acc, frame_status, rest.
-                                    tpl_acc = -byte.
-                                    frame_status = byte, @DV_frame_status_raw.
-                                    rest = byte*.
+            name               = mfct_header_data
+            quantity           = Text
+            attributes         = HIDE
+            match_entire_frame = true
+            ixml               = "decode = tpl, tpl_acc, frame_status, rest.
+                                  tpl_acc = -byte.
+                                  frame_status = byte, @DV_frame_status_raw.
+                                  rest = byte*.
 
-                                    -hex  = ['A'-'F';'0'-'9'].
-                                    -byte = hex, hex.
+                                  -hex  = ['A'-'F';'0'-'9'].
+                                  -byte = hex, hex.
 
-                                    DV_frame_status_raw>dvk = +'01FB10'."
+                                  DV_frame_status_raw>dvk = +'01FB10'."
         }
         field {
-            name                 = mfct_specific_data
-            quantity             = Text
-            attributes           = HIDE
-            match_entire_payload = true
-            transform_payload    = tpl_aes_cbc_iv,2,16,0
-            ixml                 = "decode = -pad, packed_total, meter_datetime, historic_payload, current_status, historic_status.
+            name               = mfct_specific_data
+            quantity           = Text
+            attributes         = HIDE
+            match_entire_frame = true
+            transform_payload  = tpl_aes_cbc_iv,2,16,0
+            ixml               = "decode = tpl, -pre_encrypted, -pad, packed_total, meter_datetime, historic_payload, current_status, historic_status.
+                                  -pre_encrypted = byte, byte.
                                     packed_total = quad, @DV_packed_total_raw.
                                     meter_datetime = dt_b0, dt_b1, dt_b2, dt_b3.
                                     dt_b0 = byte, @DV_meter_datetime_b0.
