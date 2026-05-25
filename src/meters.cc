@@ -1670,7 +1670,17 @@ void MeterCommonImplementation::processFieldIXMLs(Telegram *t)
                 t->extractFrame(&frame);
                 string value = bin2hex(frame);
                 debug("(ixml) parsing entire frame %s\n", value.c_str());
-                bool ok = parseWithIXML(t, 0, value, fi.ixmlGrammar(), &t->dv_entries);
+                // If the grammar uses the magic `tpl` non-terminal, build a per-telegram
+                // grammar with -tpl synthesized to consume t->header_size bytes.
+                XMQDoc *grammar = fi.ixmlGrammar();
+                XMQDoc *tpl_grammar = NULL;
+                if (fi.ixmlUsesTplToken())
+                {
+                    tpl_grammar = fi.buildIXMLGrammarWithTpl(t->header_size);
+                    if (tpl_grammar) grammar = tpl_grammar;
+                }
+                bool ok = parseWithIXML(t, 0, value, grammar, &t->dv_entries);
+                if (tpl_grammar) xmqFreeDoc(tpl_grammar);
                 if (!ok)
                 {
                     if (fi.printProperties().hasREQUIRED())
@@ -2885,6 +2895,24 @@ string FieldInfo::str()
                        help_.c_str());
 }
 
+// Detect whether the grammar text references the magic `tpl` non-terminal.
+// Matches `tpl` only when surrounded by non-identifier characters so we don't
+// false-positive on `tplFoo` or `mytpl`.
+static bool ixmlReferencesTpl(const string &text)
+{
+    const string token = "tpl";
+    size_t pos = 0;
+    while ((pos = text.find(token, pos)) != string::npos)
+    {
+        bool ok_before = (pos == 0) || !(isalnum((unsigned char)text[pos-1]) || text[pos-1] == '_');
+        size_t after = pos + token.size();
+        bool ok_after = (after >= text.size()) || !(isalnum((unsigned char)text[after]) || text[after] == '_');
+        if (ok_before && ok_after) return true;
+        pos = after;
+    }
+    return false;
+}
+
 void FieldInfo::useIXML(const string& ixml)
 {
     XMQDoc *g = xmqNewDoc();
@@ -2894,7 +2922,45 @@ void FieldInfo::useIXML(const string& ixml)
         xmqFreeDoc(g);
         return;
     }
+    ixml_text_ = ixml;
+    ixml_uses_tpl_token_ = ixmlReferencesTpl(ixml);
     ixml_grammar_ = shared_ptr<XMQDoc>(g, [](XMQDoc* d) { if (d) xmqFreeDoc(d); } );
+}
+
+XMQDoc *FieldInfo::buildIXMLGrammarWithTpl(int header_size)
+{
+    // Synthesise `-tpl = -__tpl_byte__, ..., -__tpl_byte__.` with header_size repetitions.
+    // The helper rule consumes two hex chars per byte and is self-contained so the
+    // grammar does not need to define its own `-byte` or `-hex`. The leading `-`
+    // marks both rules as hidden so they do not appear in the parse tree.
+    // For header_size == 0 we emit an empty production so a `tpl` reference is still
+    // satisfiable.
+    string text = ixml_text_;
+    text += "\n-tpl = ";
+    if (header_size <= 0)
+    {
+        // Empty production: just match nothing.
+        text += "\"\"";
+    }
+    else
+    {
+        for (int i = 0; i < header_size; i++)
+        {
+            if (i > 0) text += ", ";
+            text += "__tpl_byte__";
+        }
+    }
+    text += ".\n-__tpl_byte__ = ['A'-'F';'0'-'9';'a'-'f'], ['A'-'F';'0'-'9';'a'-'f'].\n";
+
+    XMQDoc *g = xmqNewDoc();
+    bool b = xmqParseBufferWithType(g, text.c_str(), NULL, NULL, XMQ_CONTENT_IXML, 0);
+    if (!b) {
+        warning("(field) field %s failed to parse tpl-augmented ixml grammar (header_size=%d):\n--------------\n%s\n--------------\n",
+                vname().c_str(), header_size, text.c_str());
+        xmqFreeDoc(g);
+        return NULL;
+    }
+    return g;
 }
 
 DriverName MeterInfo::driverName()

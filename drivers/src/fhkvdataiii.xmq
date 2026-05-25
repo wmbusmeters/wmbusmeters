@@ -9,32 +9,32 @@ driver {
     }
     fields {
         field {
-            name                 = mfct_specific
-            quantity             = Text
-            attributes           = HIDE
-            match_entire_payload = true
-            ixml                 = "decode = version_69 | version_94.
-                                    version_69 = '11', PrevDate, PrevHca, CurrDate, CurrHca, TempRoom, TempRad, byte*.
-                                    version_94 = '0F', PrevDate, PrevHca, CurrDate, CurrHca, Extra, TempRoom, TempRad, byte*.
+            name               = mfct_specific
+            quantity           = Text
+            attributes         = HIDE
+            match_entire_frame = true
+            ixml               = "decode = tpl, (version_69 | version_94).
+                                  version_69 = '11', PrevDate, PrevHca, CurrDate, CurrHca, TempRoom, TempRad, byte*.
+                                  version_94 = '0F', PrevDate, PrevHca, CurrDate, CurrHca, Extra, TempRoom, TempRad, byte*.
 
-                                    PrevDate = word, @DV_prev_date_raw.
-                                    PrevHca = word, @DV_prev_hca.
-                                    CurrDate = word, @DV_curr_date_raw.
-                                    CurrHca = word, @DV_curr_hca.
-                                    -Extra = byte.
-                                    TempRoom = word, @DV_temp_room.
-                                    TempRad = word, @DV_temp_rad.
+                                  PrevDate = word, @DV_prev_date_raw.
+                                  PrevHca = word, @DV_prev_hca.
+                                  CurrDate = word, @DV_curr_date_raw.
+                                  CurrHca = word, @DV_curr_hca.
+                                  -Extra = byte.
+                                  TempRoom = word, @DV_temp_room.
+                                  TempRad = word, @DV_temp_rad.
 
-                                    -hex = ['A'-'F';'0'-'9'].
-                                    -byte = hex, hex.
-                                    -word = byte, byte.
+                                  -hex = ['A'-'F';'0'-'9'].
+                                  -byte = hex, hex.
+                                  -word = byte, byte.
 
-                                    DV_prev_date_raw>dvk = +'02FD3A'.
-                                    DV_prev_hca>dvk = +'426E'.
-                                    DV_curr_date_raw>dvk = +'42FD3A'.
-                                    DV_curr_hca>dvk = +'026E'.
-                                    DV_temp_room>dvk = +'0265'.
-                                    DV_temp_rad>dvk = +'025D'."
+                                  DV_prev_date_raw>dvk = +'02FD3A'.
+                                  DV_prev_hca>dvk = +'426E'.
+                                  DV_curr_date_raw>dvk = +'42FD3A'.
+                                  DV_curr_hca>dvk = +'026E'.
+                                  DV_temp_room>dvk = +'0265'.
+                                  DV_temp_rad>dvk = +'025D'."
         }
         field {
             name     = current

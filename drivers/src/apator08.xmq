@@ -20,15 +20,15 @@ driver {
             }
         }
         field {
-            name                 = mfct_specific_data
-            quantity             = Text
-            match_entire_payload = true
-            ixml                 = "decode = total, byte*.
-                                    total = quad, @DV_0413.
-                                    -hex  = ['A'-'F';'0'-'9'].
-                                    -byte = hex, hex.
-                                    -quad = byte, byte, byte, byte.
-                                    DV_0413>dvk = +'0413'."
+            name               = mfct_specific_data
+            quantity           = Text
+            match_entire_frame = true
+            ixml               = "decode = tpl, total, byte*.
+                                  total = quad, @DV_0413.
+                                  -hex  = ['A'-'F';'0'-'9'].
+                                  -byte = hex, hex.
+                                  -quad = byte, byte, byte, byte.
+                                  DV_0413>dvk = +'0413'."
         }
     }
     tests {

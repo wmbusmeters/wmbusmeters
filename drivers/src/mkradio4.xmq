@@ -52,19 +52,19 @@ driver {
             calculate = 'prev_m3 + curr_m3'
         }
         field {
-            name                 = mfct_specific_data
-            quantity             = Text
-            attributes           = HIDE
-            match_entire_payload = true
-            ixml                 = "decode = frame.
-                                    frame = byte,
-                                            byte,
-                                            byte,
-                                            Prev,
-                                            byte,
-                                            byte,
-                                            Curr,
-                                            byte*.
+            name               = mfct_specific_data
+            quantity           = Text
+            attributes         = HIDE
+            match_entire_frame = true
+            ixml               = "decode = tpl, frame.
+                                  frame = byte,
+                                          byte,
+                                          byte,
+                                          Prev,
+                                          byte,
+                                          byte,
+                                          Curr,
+                                          byte*.
 
                                     Prev = word, @DV_prev.
                                     Curr = word, @DV_curr.

@@ -106,17 +106,17 @@ driver {
                             ((prev_day_counter - 1counter) * 24h)"
         }
         field {
-            name                 = mfct_specific_data
-            quantity             = Text
-            attributes           = HIDE
-            match_entire_payload = true
-            ixml                 = "decode = frame.
-                                    frame = byte,
-                                            PrevDate,
-                                            PrevVolume,
-                                            CurrDate,
-                                            CurrVolume,
-                                            byte*.
+            name               = mfct_specific_data
+            quantity           = Text
+            attributes         = HIDE
+            match_entire_frame = true
+            ixml               = "decode = tpl, frame.
+                                  frame = byte,
+                                          PrevDate,
+                                          PrevVolume,
+                                          CurrDate,
+                                          CurrVolume,
+                                          byte*.
 
                                     PrevDate = word, @DV_prev_date_raw.
                                     PrevVolume = word, @DV_target.

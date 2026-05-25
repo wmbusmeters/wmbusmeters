@@ -14,10 +14,10 @@ driver {
     }
     fields {
         field {
-            name                 = mfct_specific_data
-            quantity             = Text
-            attributes           = HIDE
-            match_entire_payload = true
+            name               = mfct_specific_data
+            quantity           = Text
+            attributes         = HIDE
+            match_entire_frame = true
             /* An IXML grammar for decoding apator telegrams.
                This grammar handles the overall structure but so far
                only extracts the total volume in liters.
@@ -25,7 +25,7 @@ driver {
                means mft specific data. Sometimes the apator payload (older meters?)
                lead with 0x80 and then we have a good crash test for the difvif parser. :-)
                (Hint it hasn't crashed so far.) */
-            ixml = "decode = -byte, status, field*, pad_FF?, checksum.
+            ixml = "decode = tpl, -byte, status, field*, pad_FF?, checksum.
                     -hex  = ['A'-'F';'0'-'9'].
                     -byte = hex, hex.
                     -word = byte, byte.

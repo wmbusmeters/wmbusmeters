@@ -352,6 +352,12 @@ struct FieldInfo
 
     void useIXML(const std::string& ixml);
     XMQDoc *ixmlGrammar() { return ixml_grammar_.get(); }
+    const std::string &ixmlText() { return ixml_text_; }
+    bool ixmlUsesTplToken() { return ixml_uses_tpl_token_; }
+    // Build a grammar with the synthetic -tpl rule injected so it consumes
+    // exactly header_size bytes. Caller owns and must xmqFreeDoc the result.
+    // Returns NULL on parse failure.
+    XMQDoc *buildIXMLGrammarWithTpl(int header_size);
 
     void matchEntirePayload(bool b) { match_entire_payload_ = b; }
     bool matchEntirePayload() { return match_entire_payload_; }
@@ -411,6 +417,11 @@ private:
 
     // If a field has a mfct specific decoder.
     std::shared_ptr<XMQDoc> ixml_grammar_ {};
+    // Raw IXML grammar text. Retained so we can rebuild a per-telegram grammar
+    // when the `tpl` magic non-terminal is referenced.
+    std::string ixml_text_ {};
+    // True when ixml_text_ references the magic `tpl` non-terminal.
+    bool ixml_uses_tpl_token_ {};
 
     // For ixml parsing, nab the entire payload, since it does not conform to the difvif structure.
     bool match_entire_payload_ {};

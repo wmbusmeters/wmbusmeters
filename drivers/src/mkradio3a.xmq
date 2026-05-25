@@ -460,13 +460,13 @@ driver {
             calculate = '((curr_month_counter == 1counter) * rel1_m3) + ((curr_month_counter == 2counter) * rel2_m3) + ((curr_month_counter == 3counter) * rel3_m3) + ((curr_month_counter == 4counter) * rel4_m3) + ((curr_month_counter == 5counter) * rel5_m3) + ((curr_month_counter == 6counter) * rel6_m3) + ((curr_month_counter == 7counter) * rel7_m3) + ((curr_month_counter == 8counter) * rel8_m3) + ((curr_month_counter == 9counter) * rel9_m3) + ((curr_month_counter == 10counter) * rel10_m3) + ((curr_month_counter == 11counter) * rel11_m3) + ((curr_month_counter == 12counter) * rel0_m3)'
         }
         field {
-            name                 = mfct_specific_data
-            quantity             = Text
-            attributes           = HIDE
-            match_entire_payload = true
-            ixml                 = "decode = frame.
-                                    frame = byte,
-                                            byte,
+            name               = mfct_specific_data
+            quantity           = Text
+            attributes         = HIDE
+            match_entire_frame = true
+            ixml               = "decode = tpl, frame.
+                                  frame = byte,
+                                          byte,
                                             CurrDate,
                                             Total,
                                             byte,

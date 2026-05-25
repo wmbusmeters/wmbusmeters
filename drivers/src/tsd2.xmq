@@ -9,17 +9,17 @@ driver {
     }
     fields {
         field {
-            name                 = payload
-            quantity             = Text
-            attributes           = REQUIRED
-            match_entire_payload = true
-            ixml                 = "decode = status_byte, date_word, -byte*.
-                                    status_byte = byte, @DV_status.
-                                    date_word = byte, byte, @DV_date_raw.
-                                    -hex = ['A'-'F'; '0'-'9'].
-                                    -byte = hex, hex.
-                                    DV_status>dvk = +'0101'.
-                                    DV_date_raw>dvk = +'02FD3A'."
+            name               = payload
+            quantity           = Text
+            attributes         = REQUIRED
+            match_entire_frame = true
+            ixml               = "decode = tpl, status_byte, date_word, -byte*.
+                                  status_byte = byte, @DV_status.
+                                  date_word = byte, byte, @DV_date_raw.
+                                  -hex = ['A'-'F'; '0'-'9'].
+                                  -byte = hex, hex.
+                                  DV_status>dvk = +'0101'.
+                                  DV_date_raw>dvk = +'02FD3A'."
         }
         field {
             name       = status

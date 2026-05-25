@@ -173,61 +173,61 @@ driver {
                             ((esb_day_counter - 1counter) * 24h)"
         }
         field {
-            name                 = mfct_specific_data
-            quantity             = Text
-            attributes           = HIDE
-            match_entire_payload = true
-            ixml                 = "decode = frame_direct | frame_direct_with_a0 | frame_b6.
-                                    frame_direct = SeasonStartDateLo,
-                                                   pad,
-                                                   PrevHCA,
-                                                   ESBDate,
-                                                   CurrHCA,
-                                                   CurrentDate,
-                                                   TempPrevAvg,
-                                                   TempAvg.
-                                    frame_direct_with_a0 = -'A0', frame_direct.
-                                    frame_b6 = frame_b6_00 | frame_b6_01 | frame_b6_02 | frame_b6_03 |
-                                               frame_b6_04 | frame_b6_05 | frame_b6_06 | frame_b6_07 |
-                                               frame_b6_08 | frame_b6_09 | frame_b6_0A | frame_b6_0B |
-                                               frame_b6_0C | frame_b6_0D | frame_b6_0E | frame_b6_0F.
-                                    frame_b6_00 = -'00', -'A0', frame_direct.
-                                    frame_b6_01 = -'01', byte, -'A0', frame_direct.
-                                    frame_b6_02 = -'02', byte, byte, -'A0', frame_direct.
-                                    frame_b6_03 = -'03', byte, byte, byte, -'A0', frame_direct.
-                                    frame_b6_04 = -'04', byte, byte, byte, byte, -'A0', frame_direct.
-                                    frame_b6_05 = -'05', byte, byte, byte, byte, byte, -'A0', frame_direct.
-                                    frame_b6_06 = -'06', byte, byte, byte, byte, byte, byte, -'A0', frame_direct.
-                                    frame_b6_07 = -'07', byte, byte, byte, byte, byte, byte, byte, -'A0', frame_direct.
-                                    frame_b6_08 = -'08', byte, byte, byte, byte, byte, byte, byte, byte, -'A0', frame_direct.
-                                    frame_b6_09 = -'09', byte, byte, byte, byte, byte, byte, byte, byte, byte, -'A0', frame_direct.
-                                    frame_b6_0A = -'0A', byte, byte, byte, byte, byte, byte, byte, byte, byte, byte, -'A0', frame_direct.
-                                    frame_b6_0B = -'0B', byte, byte, byte, byte, byte, byte, byte, byte, byte, byte, byte, -'A0', frame_direct.
-                                    frame_b6_0C = -'0C', byte, byte, byte, byte, byte, byte, byte, byte, byte, byte, byte, byte, -'A0', frame_direct.
-                                    frame_b6_0D = -'0D', byte, byte, byte, byte, byte, byte, byte, byte, byte, byte, byte, byte, byte, -'A0', frame_direct.
-                                    frame_b6_0E = -'0E', byte, byte, byte, byte, byte, byte, byte, byte, byte, byte, byte, byte, byte, byte, -'A0', frame_direct.
-                                    frame_b6_0F = -'0F', byte, byte, byte, byte, byte, byte, byte, byte, byte, byte, byte, byte, byte, byte, byte, -'A0', frame_direct.
+            name               = mfct_specific_data
+            quantity           = Text
+            attributes         = HIDE
+            match_entire_frame = true
+            ixml               = "decode = tpl, (frame_direct | frame_direct_with_a0 | frame_b6).
+                                  frame_direct = SeasonStartDateLo,
+                                                 pad,
+                                                 PrevHCA,
+                                                 ESBDate,
+                                                 CurrHCA,
+                                                 CurrentDate,
+                                                 TempPrevAvg,
+                                                 TempAvg.
+                                  frame_direct_with_a0 = -'A0', frame_direct.
+                                  frame_b6 = frame_b6_00 | frame_b6_01 | frame_b6_02 | frame_b6_03 |
+                                             frame_b6_04 | frame_b6_05 | frame_b6_06 | frame_b6_07 |
+                                             frame_b6_08 | frame_b6_09 | frame_b6_0A | frame_b6_0B |
+                                             frame_b6_0C | frame_b6_0D | frame_b6_0E | frame_b6_0F.
+                                  frame_b6_00 = -'00', -'A0', frame_direct.
+                                  frame_b6_01 = -'01', byte, -'A0', frame_direct.
+                                  frame_b6_02 = -'02', byte, byte, -'A0', frame_direct.
+                                  frame_b6_03 = -'03', byte, byte, byte, -'A0', frame_direct.
+                                  frame_b6_04 = -'04', byte, byte, byte, byte, -'A0', frame_direct.
+                                  frame_b6_05 = -'05', byte, byte, byte, byte, byte, -'A0', frame_direct.
+                                  frame_b6_06 = -'06', byte, byte, byte, byte, byte, byte, -'A0', frame_direct.
+                                  frame_b6_07 = -'07', byte, byte, byte, byte, byte, byte, byte, -'A0', frame_direct.
+                                  frame_b6_08 = -'08', byte, byte, byte, byte, byte, byte, byte, byte, -'A0', frame_direct.
+                                  frame_b6_09 = -'09', byte, byte, byte, byte, byte, byte, byte, byte, byte, -'A0', frame_direct.
+                                  frame_b6_0A = -'0A', byte, byte, byte, byte, byte, byte, byte, byte, byte, byte, -'A0', frame_direct.
+                                  frame_b6_0B = -'0B', byte, byte, byte, byte, byte, byte, byte, byte, byte, byte, byte, -'A0', frame_direct.
+                                  frame_b6_0C = -'0C', byte, byte, byte, byte, byte, byte, byte, byte, byte, byte, byte, byte, -'A0', frame_direct.
+                                  frame_b6_0D = -'0D', byte, byte, byte, byte, byte, byte, byte, byte, byte, byte, byte, byte, byte, -'A0', frame_direct.
+                                  frame_b6_0E = -'0E', byte, byte, byte, byte, byte, byte, byte, byte, byte, byte, byte, byte, byte, byte, -'A0', frame_direct.
+                                  frame_b6_0F = -'0F', byte, byte, byte, byte, byte, byte, byte, byte, byte, byte, byte, byte, byte, byte, byte, -'A0', frame_direct.
 
-                                    pad = byte, byte.
-                                    SeasonStartDateLo = byte, @DV_season_start_date_lo.
-                                    PrevHCA = word, @DV_previous_hca.
-                                    ESBDate = word, @DV_esb_date_raw.
-                                    CurrHCA = word, @DV_current_hca.
-                                    CurrentDate = word, @DV_current_date_raw.
-                                    TempPrevAvg = word, @DV_temp_room_prev_avg.
-                                    TempAvg = word, @DV_temp_room_avg.
+                                  pad = byte, byte.
+                                  SeasonStartDateLo = byte, @DV_season_start_date_lo.
+                                  PrevHCA = word, @DV_previous_hca.
+                                  ESBDate = word, @DV_esb_date_raw.
+                                  CurrHCA = word, @DV_current_hca.
+                                  CurrentDate = word, @DV_current_date_raw.
+                                  TempPrevAvg = word, @DV_temp_room_prev_avg.
+                                  TempAvg = word, @DV_temp_room_avg.
 
-                                    -hex  = ['A'-'F';'0'-'9'].
-                                    -byte = hex, hex.
-                                    -word = byte, byte.
+                                  -hex  = ['A'-'F';'0'-'9'].
+                                  -byte = hex, hex.
+                                  -word = byte, byte.
 
-                                    DV_current_hca>dvk = +'026E'.
-                                    DV_previous_hca>dvk = +'426E'.
-                                    DV_current_date_raw>dvk = +'02FD3A'.
-                                    DV_season_start_date_lo>dvk = +'01FB00'.
-                                    DV_esb_date_raw>dvk = +'8200FD3A'.
-                                    DV_temp_room_avg>dvk = +'02FB01'.
-                                    DV_temp_room_prev_avg>dvk = +'02FB02'."
+                                  DV_current_hca>dvk = +'026E'.
+                                  DV_previous_hca>dvk = +'426E'.
+                                  DV_current_date_raw>dvk = +'02FD3A'.
+                                  DV_season_start_date_lo>dvk = +'01FB00'.
+                                  DV_esb_date_raw>dvk = +'8200FD3A'.
+                                  DV_temp_room_avg>dvk = +'02FB01'.
+                                  DV_temp_room_prev_avg>dvk = +'02FB02'."
         }
     }
     tests {

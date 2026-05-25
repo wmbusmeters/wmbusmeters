@@ -21,52 +21,52 @@ driver {
     }
     fields {
         field {
-            name                 = payload
-            quantity             = Text
-            attributes           = HIDE,REQUIRED
-            match_entire_payload = true
-            ixml                 = "decode = byte, byte, byte, byte,
-                                            prev_bytes,
-                                            current_bytes,
-                                            byte, byte,
-                                            hist_18_17,
-                                            hist_16_15,
-                                            hist_14_13,
-                                            hist_12_11,
-                                            hist_10_09,
-                                            hist_08_07,
-                                            hist_06_05,
-                                            hist_04_03,
-                                            hist_02_01,
-                                            date_bytes.
-                                    -hex  = ['A'-'F';'0'-'9'].
-                                    -byte = hex, hex.
-                                    -word = byte, byte.
-                                    -triplet = byte, byte, byte.
-                                    prev_bytes = word, @DV_prev_raw.
-                                    current_bytes = word, @DV_current_raw.
-                                    hist_18_17 = triplet, @DV_hist_18_17_raw.
-                                    hist_16_15 = triplet, @DV_hist_16_15_raw.
-                                    hist_14_13 = triplet, @DV_hist_14_13_raw.
-                                    hist_12_11 = triplet, @DV_hist_12_11_raw.
-                                    hist_10_09 = triplet, @DV_hist_10_09_raw.
-                                    hist_08_07 = triplet, @DV_hist_08_07_raw.
-                                    hist_06_05 = triplet, @DV_hist_06_05_raw.
-                                    hist_04_03 = triplet, @DV_hist_04_03_raw.
-                                    hist_02_01 = triplet, @DV_hist_02_01_raw.
-                                    date_bytes = triplet, @DV_date_raw.
-                                    DV_prev_raw>dvk = +'02FD3A'.
-                                    DV_current_raw>dvk = +'42FD3A'.
-                                    DV_hist_18_17_raw>dvk = +'03FD3A'.
-                                    DV_hist_16_15_raw>dvk = +'43FD3A'.
-                                    DV_hist_14_13_raw>dvk = +'8300FD3A'.
-                                    DV_hist_12_11_raw>dvk = +'C300FD3A'.
-                                    DV_hist_10_09_raw>dvk = +'8301FD3A'.
-                                    DV_hist_08_07_raw>dvk = +'C301FD3A'.
-                                    DV_hist_06_05_raw>dvk = +'8302FD3A'.
-                                    DV_hist_04_03_raw>dvk = +'C302FD3A'.
-                                    DV_hist_02_01_raw>dvk = +'8303FD3A'.
-                                    DV_date_raw>dvk = +'C303FD3A'."
+            name               = payload
+            quantity           = Text
+            attributes         = HIDE,REQUIRED
+            match_entire_frame = true
+            ixml               = "decode = tpl, byte, byte, byte, byte,
+                                          prev_bytes,
+                                          current_bytes,
+                                          byte, byte,
+                                          hist_18_17,
+                                          hist_16_15,
+                                          hist_14_13,
+                                          hist_12_11,
+                                          hist_10_09,
+                                          hist_08_07,
+                                          hist_06_05,
+                                          hist_04_03,
+                                          hist_02_01,
+                                          date_bytes.
+                                  -hex  = ['A'-'F';'0'-'9'].
+                                  -byte = hex, hex.
+                                  -word = byte, byte.
+                                  -triplet = byte, byte, byte.
+                                  prev_bytes = word, @DV_prev_raw.
+                                  current_bytes = word, @DV_current_raw.
+                                  hist_18_17 = triplet, @DV_hist_18_17_raw.
+                                  hist_16_15 = triplet, @DV_hist_16_15_raw.
+                                  hist_14_13 = triplet, @DV_hist_14_13_raw.
+                                  hist_12_11 = triplet, @DV_hist_12_11_raw.
+                                  hist_10_09 = triplet, @DV_hist_10_09_raw.
+                                  hist_08_07 = triplet, @DV_hist_08_07_raw.
+                                  hist_06_05 = triplet, @DV_hist_06_05_raw.
+                                  hist_04_03 = triplet, @DV_hist_04_03_raw.
+                                  hist_02_01 = triplet, @DV_hist_02_01_raw.
+                                  date_bytes = triplet, @DV_date_raw.
+                                  DV_prev_raw>dvk = +'02FD3A'.
+                                  DV_current_raw>dvk = +'42FD3A'.
+                                  DV_hist_18_17_raw>dvk = +'03FD3A'.
+                                  DV_hist_16_15_raw>dvk = +'43FD3A'.
+                                  DV_hist_14_13_raw>dvk = +'8300FD3A'.
+                                  DV_hist_12_11_raw>dvk = +'C300FD3A'.
+                                  DV_hist_10_09_raw>dvk = +'8301FD3A'.
+                                  DV_hist_08_07_raw>dvk = +'C301FD3A'.
+                                  DV_hist_06_05_raw>dvk = +'8302FD3A'.
+                                  DV_hist_04_03_raw>dvk = +'C302FD3A'.
+                                  DV_hist_02_01_raw>dvk = +'8303FD3A'.
+                                  DV_date_raw>dvk = +'C303FD3A'."
         }
         field {
             name           = prev_raw

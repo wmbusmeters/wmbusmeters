@@ -8,20 +8,20 @@ driver {
     }
     fields {
         field {
-            name                 = mfct_specific_data
-            quantity             = Text
-            attributes           = HIDE
-            match_entire_payload = true
-            info                 = 'Decode manufacturer data after DIF 0x0F.'
-            ixml                 = "decode = -'0F', status, target, total, -byte?.
-                                    status = byte, byte, byte, byte, @DV_STATUS.
-                                    target = byte, byte, byte, byte, @DV_TARGET.
-                                    total  = byte, byte, byte, byte, @DV_TOTAL.
-                                    -hex   = ['A'-'F'; '0'-'9'].
-                                    -byte  = hex, hex.
-                                    DV_STATUS>dvk = +'04FF0B'.
-                                    DV_TARGET>dvk = +'04FF0C'.
-                                    DV_TOTAL>dvk  = +'04FF0D'."
+            name               = mfct_specific_data
+            quantity           = Text
+            attributes         = HIDE
+            match_entire_frame = true
+            info               = 'Decode manufacturer data after DIF 0x0F.'
+            ixml               = "decode = tpl, -'0F', status, target, total, -byte?.
+                                  status = byte, byte, byte, byte, @DV_STATUS.
+                                  target = byte, byte, byte, byte, @DV_TARGET.
+                                  total  = byte, byte, byte, byte, @DV_TOTAL.
+                                  -hex   = ['A'-'F'; '0'-'9'].
+                                  -byte  = hex, hex.
+                                  DV_STATUS>dvk = +'04FF0B'.
+                                  DV_TARGET>dvk = +'04FF0C'.
+                                  DV_TOTAL>dvk  = +'04FF0D'."
         }
         field {
             name            = status

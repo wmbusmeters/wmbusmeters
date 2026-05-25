@@ -9,20 +9,20 @@ driver {
     }
     fields {
         field {
-            name                 = payload_decoder
-            quantity             = Text
-            info                 = 'Decode mfct specific payload (CI=0xA2) into prev/curr billing values.'
-            attributes           = HIDE
-            match_entire_payload = true
-            ixml                 = "decode   = -hdr, prev_val, -two_bytes, curr_val, -rest.
-                                    -hdr       = hex, hex, hex, hex, hex, hex.
-                                    -two_bytes = hex, hex, hex, hex.
-                                    -rest      = hex*.
-                                    -hex       = ['A'-'F'; '0'-'9'].
-                                    prev_val   = hex, hex, hex, hex, @DV_PREV.
-                                    curr_val   = hex, hex, hex, hex, @DV_CURR.
-                                    DV_PREV>dvk = +'027E'.
-                                    DV_CURR>dvk = +'027F'."
+            name               = payload_decoder
+            quantity           = Text
+            info               = 'Decode mfct specific payload (CI=0xA2) into prev/curr billing values.'
+            attributes         = HIDE
+            match_entire_frame = true
+            ixml               = "decode   = tpl, -hdr, prev_val, -two_bytes, curr_val, -rest.
+                                  -hdr       = hex, hex, hex, hex, hex, hex.
+                                  -two_bytes = hex, hex, hex, hex.
+                                  -rest      = hex*.
+                                  -hex       = ['A'-'F'; '0'-'9'].
+                                  prev_val   = hex, hex, hex, hex, @DV_PREV.
+                                  curr_val   = hex, hex, hex, hex, @DV_CURR.
+                                  DV_PREV>dvk = +'027E'.
+                                  DV_CURR>dvk = +'027F'."
         }
         field {
             name           = prev_raw

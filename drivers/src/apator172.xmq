@@ -10,17 +10,17 @@ driver {
     }
     fields {
         field {
-            name                 = payload_decoder
-            quantity             = Text
-            info                 = 'Decode 4-byte counter from mfct specific payload. The counter stores 1/3 of a m3.'
-            attributes           = HIDE
-            match_entire_payload = true
-            ixml                 = "decode = total, byte*.
-                                    total = quad, @DV_0416.
-                                    -hex  = ['A'-'F';'0'-'9'].
-                                    -byte = hex, hex.
-                                    -quad = byte, byte, byte, byte.
-                                    DV_0416>dvk = +'0416'."
+            name               = payload_decoder
+            quantity           = Text
+            info               = 'Decode 4-byte counter from mfct specific payload. The counter stores 1/3 of a m3.'
+            attributes         = HIDE
+            match_entire_frame = true
+            ixml               = "decode = tpl, total, byte*.
+                                  total = quad, @DV_0416.
+                                  -hex  = ['A'-'F';'0'-'9'].
+                                  -byte = hex, hex.
+                                  -quad = byte, byte, byte, byte.
+                                  DV_0416>dvk = +'0416'."
         }
         field {
             name        = total
