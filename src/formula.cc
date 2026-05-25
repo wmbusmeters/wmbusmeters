@@ -1375,6 +1375,7 @@ void FormulaImplementation::handleSeconds(Token *number)
 
 void FormulaImplementation::handleAddition(Token *tok)
 {
+    if (!hasStackMinSizeOf(2)) return;
     SIUnit right_siunit = topOp()->siunit();
     SIUnit left_siunit = top2Op()->siunit();
     SIUnit to_siunit(Unit::COUNTER);
@@ -1398,6 +1399,7 @@ void FormulaImplementation::handleAddition(Token *tok)
 
 void FormulaImplementation::handleSubtraction(Token *tok)
 {
+    if (!hasStackMinSizeOf(2)) return;
     SIUnit right_siunit = topOp()->siunit();
     SIUnit left_siunit = top2Op()->siunit();
 
@@ -1434,6 +1436,7 @@ void FormulaImplementation::handleDivision(Token *tok)
 
 void FormulaImplementation::handleModulo(Token *tok)
 {
+    if (!hasStackMinSizeOf(2)) return;
     SIUnit cu(Unit::COUNTER);
     SIUnit right_siunit = topOp()->siunit();
     SIUnit left_siunit = top2Op()->siunit();
@@ -1453,6 +1456,7 @@ void FormulaImplementation::handleModulo(Token *tok)
 
 void FormulaImplementation::handleShiftLeft(Token *tok)
 {
+    if (!hasStackMinSizeOf(2)) return;
     SIUnit cu(Unit::COUNTER);
     SIUnit right_siunit = topOp()->siunit();
     SIUnit left_siunit = top2Op()->siunit();
@@ -1472,6 +1476,7 @@ void FormulaImplementation::handleShiftLeft(Token *tok)
 
 void FormulaImplementation::handleShiftRight(Token *tok)
 {
+    if (!hasStackMinSizeOf(2)) return;
     SIUnit cu(Unit::COUNTER);
     SIUnit right_siunit = topOp()->siunit();
     SIUnit left_siunit = top2Op()->siunit();
@@ -1602,6 +1607,13 @@ void FormulaImplementation::handleField(Token *field)
         debug("(formula) handle meter field %s into %s %s\n", field_name.c_str(), vname.c_str(),
               unitToStringLowerCase(named_unit).c_str());
 
+        if (meter_ == NULL)
+        {
+            errors_.push_back("No meter context available to resolve field \""+field_name+"\"\n"+field->withMarker(formula_));
+            valid_ = false;
+            return;
+        }
+
         Quantity q = toQuantity(named_unit);
         FieldInfo *f = meter_->findFieldInfo(vname, q);
 
@@ -1709,7 +1721,7 @@ void FormulaImplementation::doConstant(Unit u, double c)
 
 void FormulaImplementation::doAddition(const SIUnit &to_siunit)
 {
-    assert(op_stack_.size() >= 2);
+    if (!hasStackMinSizeOf(2)) return;
 
     unique_ptr<NumericFormula> right_node = popOp();
     unique_ptr<NumericFormula> left_node = popOp();
@@ -1719,7 +1731,7 @@ void FormulaImplementation::doAddition(const SIUnit &to_siunit)
 
 void FormulaImplementation::doSubtraction(const SIUnit &to_siunit)
 {
-    assert(op_stack_.size() >= 2);
+    if (!hasStackMinSizeOf(2)) return;
 
     unique_ptr<NumericFormula> right_node = popOp();
     unique_ptr<NumericFormula> left_node = popOp();
@@ -1729,7 +1741,7 @@ void FormulaImplementation::doSubtraction(const SIUnit &to_siunit)
 
 void FormulaImplementation::doMultiplication()
 {
-    assert(op_stack_.size() >= 2);
+    if (!hasStackMinSizeOf(2)) return;
 
     SIUnit right_siunit = topOp()->siunit();
 
@@ -1750,7 +1762,7 @@ void FormulaImplementation::doMultiplication()
 
 void FormulaImplementation::doDivision()
 {
-    assert(op_stack_.size() >= 2);
+    if (!hasStackMinSizeOf(2)) return;
 
     SIUnit right_siunit = topOp()->siunit();
 
@@ -1773,7 +1785,7 @@ void FormulaImplementation::doDivision()
 
 void FormulaImplementation::doExponentiation()
 {
-    assert(op_stack_.size() >= 2);
+    if (!hasStackMinSizeOf(2)) return;
 
     unique_ptr<NumericFormula> right_node = popOp();
 
@@ -1786,7 +1798,7 @@ void FormulaImplementation::doExponentiation()
 
 void FormulaImplementation::doSquareRoot()
 {
-    assert(op_stack_.size() >= 1);
+    if (!hasStackMinSizeOf(1)) return;
 
     SIUnit inner_siunit = topOp()->siunit();
 
@@ -1799,7 +1811,7 @@ void FormulaImplementation::doSquareRoot()
 
 void FormulaImplementation::doRound()
 {
-    assert(op_stack_.size() >= 1);
+    if (!hasStackMinSizeOf(1)) return;
 
     SIUnit siunit = topOp()->siunit();
 
@@ -1810,7 +1822,7 @@ void FormulaImplementation::doRound()
 
 void FormulaImplementation::doFloor()
 {
-    assert(op_stack_.size() >= 1);
+    if (!hasStackMinSizeOf(1)) return;
 
     SIUnit siunit = topOp()->siunit();
 
@@ -1821,7 +1833,7 @@ void FormulaImplementation::doFloor()
 
 void FormulaImplementation::doCeil()
 {
-    assert(op_stack_.size() >= 1);
+    if (!hasStackMinSizeOf(1)) return;
 
     SIUnit siunit = topOp()->siunit();
 
@@ -1832,7 +1844,7 @@ void FormulaImplementation::doCeil()
 
 void FormulaImplementation::doMkDate()
 {
-    assert(op_stack_.size() >= 3);
+    if (!hasStackMinSizeOf(3)) return;
 
     unique_ptr<NumericFormula> day_node   = popOp();
     unique_ptr<NumericFormula> month_node = popOp();
@@ -1844,7 +1856,7 @@ void FormulaImplementation::doMkDate()
 
 void FormulaImplementation::doModulo()
 {
-    assert(op_stack_.size() >= 2);
+    if (!hasStackMinSizeOf(2)) return;
 
     unique_ptr<NumericFormula> right_node = popOp();
     unique_ptr<NumericFormula> left_node = popOp();
@@ -1855,7 +1867,7 @@ void FormulaImplementation::doModulo()
 
 void FormulaImplementation::doShiftLeft()
 {
-    assert(op_stack_.size() >= 2);
+    if (!hasStackMinSizeOf(2)) return;
 
     unique_ptr<NumericFormula> right_node = popOp();
     unique_ptr<NumericFormula> left_node = popOp();
@@ -1866,7 +1878,7 @@ void FormulaImplementation::doShiftLeft()
 
 void FormulaImplementation::doShiftRight()
 {
-    assert(op_stack_.size() >= 2);
+    if (!hasStackMinSizeOf(2)) return;
 
     unique_ptr<NumericFormula> right_node = popOp();
     unique_ptr<NumericFormula> left_node = popOp();
@@ -1877,7 +1889,7 @@ void FormulaImplementation::doShiftRight()
 
 void FormulaImplementation::doEQ()
 {
-    assert(op_stack_.size() >= 2);
+    if (!hasStackMinSizeOf(2)) return;
     unique_ptr<NumericFormula> right_node = popOp();
     unique_ptr<NumericFormula> left_node = popOp();
     SIUnit siunit(Unit::COUNTER);
@@ -1886,7 +1898,7 @@ void FormulaImplementation::doEQ()
 
 void FormulaImplementation::doNEQ()
 {
-    assert(op_stack_.size() >= 2);
+    if (!hasStackMinSizeOf(2)) return;
     unique_ptr<NumericFormula> right_node = popOp();
     unique_ptr<NumericFormula> left_node = popOp();
     SIUnit siunit(Unit::COUNTER);
@@ -1895,7 +1907,7 @@ void FormulaImplementation::doNEQ()
 
 void FormulaImplementation::doLT()
 {
-    assert(op_stack_.size() >= 2);
+    if (!hasStackMinSizeOf(2)) return;
     unique_ptr<NumericFormula> right_node = popOp();
     unique_ptr<NumericFormula> left_node = popOp();
     SIUnit siunit(Unit::COUNTER);
@@ -1904,7 +1916,7 @@ void FormulaImplementation::doLT()
 
 void FormulaImplementation::doGT()
 {
-    assert(op_stack_.size() >= 2);
+    if (!hasStackMinSizeOf(2)) return;
     unique_ptr<NumericFormula> right_node = popOp();
     unique_ptr<NumericFormula> left_node = popOp();
     SIUnit siunit(Unit::COUNTER);
@@ -1913,7 +1925,7 @@ void FormulaImplementation::doGT()
 
 void FormulaImplementation::doLTE()
 {
-    assert(op_stack_.size() >= 2);
+    if (!hasStackMinSizeOf(2)) return;
     unique_ptr<NumericFormula> right_node = popOp();
     unique_ptr<NumericFormula> left_node = popOp();
     SIUnit siunit(Unit::COUNTER);
@@ -1922,7 +1934,7 @@ void FormulaImplementation::doLTE()
 
 void FormulaImplementation::doGTE()
 {
-    assert(op_stack_.size() >= 2);
+    if (!hasStackMinSizeOf(2)) return;
     unique_ptr<NumericFormula> right_node = popOp();
     unique_ptr<NumericFormula> left_node = popOp();
     SIUnit siunit(Unit::COUNTER);
@@ -1931,7 +1943,7 @@ void FormulaImplementation::doGTE()
 
 void FormulaImplementation::doBitwiseAnd()
 {
-    assert(op_stack_.size() >= 2);
+    if (!hasStackMinSizeOf(2)) return;
     unique_ptr<NumericFormula> right_node = popOp();
     unique_ptr<NumericFormula> left_node = popOp();
     SIUnit siunit(Unit::COUNTER);
@@ -1940,7 +1952,7 @@ void FormulaImplementation::doBitwiseAnd()
 
 void FormulaImplementation::doBitwiseOr()
 {
-    assert(op_stack_.size() >= 2);
+    if (!hasStackMinSizeOf(2)) return;
     unique_ptr<NumericFormula> right_node = popOp();
     unique_ptr<NumericFormula> left_node = popOp();
     SIUnit siunit(Unit::COUNTER);
@@ -1958,7 +1970,7 @@ void FormulaImplementation::doBitwiseXor()
 
 void FormulaImplementation::doLogicalAnd()
 {
-    assert(op_stack_.size() >= 2);
+    if (!hasStackMinSizeOf(2)) return;
     unique_ptr<NumericFormula> right_node = popOp();
     unique_ptr<NumericFormula> left_node = popOp();
     SIUnit siunit(Unit::COUNTER);
@@ -1967,7 +1979,7 @@ void FormulaImplementation::doLogicalAnd()
 
 void FormulaImplementation::doLogicalOr()
 {
-    assert(op_stack_.size() >= 2);
+    if (!hasStackMinSizeOf(2)) return;
     unique_ptr<NumericFormula> right_node = popOp();
     unique_ptr<NumericFormula> left_node = popOp();
     SIUnit siunit(Unit::COUNTER);
@@ -2144,6 +2156,14 @@ string NumericFormulaDVEntryField::tree()
 void FormulaImplementation::pushOp(NumericFormula *nf)
 {
     op_stack_.push_back(unique_ptr<NumericFormula>(nf));
+}
+
+bool FormulaImplementation::hasStackMinSizeOf(size_t n)
+{
+    if (op_stack_.size() >= n) return true;
+    errors_.push_back(tostrprintf("Formula stack underflow: need %zu operand(s), have %zu.", n, op_stack_.size()));
+    valid_ = false;
+    return false;
 }
 
 unique_ptr<NumericFormula> FormulaImplementation::popOp()
