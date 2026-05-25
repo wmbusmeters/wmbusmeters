@@ -1661,24 +1661,11 @@ void MeterCommonImplementation::processFieldIXMLs(Telegram *t)
             if (fi.matchEntireFrame())
             {
                 // Pass the full frame (including TPL header) to ixml so grammars can access
-                // bytes like tpl_acc. Apply driver-level (diehl_prios) and field-level
-                // (tpl_aes_cbc_iv) frame transforms before parsing so the grammar always
-                // sees decoded bytes spliced into the original frame layout.
+                // bytes like tpl_acc. Apply field-level frame transforms (diehl_prios,
+                // tpl_aes_cbc_iv) before parsing so the grammar always sees decoded bytes
+                // spliced into the original frame layout.
                 vector<uchar> frame;
                 t->extractFrame(&frame);
-
-                if (diehl_prios_decode_ && !diehl_prios_decoded_.empty())
-                {
-                    // The LFSR-decoded bytes always replace frame[15..15+N) - this matches
-                    // the historical "combined" construction (4 raw payload bytes followed
-                    // by decoded payload) for mfct-specific Diehl CI bytes.
-                    size_t off = 15;
-                    if (off + diehl_prios_decoded_.size() <= frame.size())
-                    {
-                        std::copy(diehl_prios_decoded_.begin(), diehl_prios_decoded_.end(),
-                                  frame.begin() + off);
-                    }
-                }
 
                 if (!fi.transformFrame(t, &frame))
                 {
@@ -2216,6 +2203,24 @@ string FieldInfo::generateFieldNameWithUnit(Meter *m, DVEntry *dve)
 
 bool FieldInfo::transformFrame(Telegram *t, vector<uchar> *frame)
 {
+    // diehl_prios: splice the LFSR-decoded bytes (computed once in processTelegram)
+    // into the frame at offset 15. The first 4 payload bytes (when CI is mfct-specific)
+    // remain raw, matching the historical "combined" layout the grammar parses.
+    if (has_diehl_prios_payload_transform_ && t->meter)
+    {
+        const vector<uchar> &decoded = t->meter->diehlPriosDecoded();
+        if (!decoded.empty())
+        {
+            size_t off = 15;
+            if (off + decoded.size() > frame->size())
+            {
+                warning("(field) diehl_prios decoded payload does not fit in frame for field %s\n", vname().c_str());
+                return false;
+            }
+            std::copy(decoded.begin(), decoded.end(), frame->begin() + off);
+        }
+    }
+
     if (!has_tpl_aes_cbc_iv_payload_transform_) return true;
 
     if (payload_offset_ < 0 || payload_length_ < 0 || tpl_acc_offset_ < 0)

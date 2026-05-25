@@ -162,12 +162,6 @@ DriverDynamic::DriverDynamic(MeterInfo &mi, DriverInfo &di) :
                 di.name().str().c_str(),
                 fileName().c_str());
 
-        const char *transform_payload_s = xmqGetString(doc, "/driver/transform_payload");
-        if (transform_payload_s && string(transform_payload_s) == "diehl_prios")
-        {
-            setDiehlPriosDecode(true);
-        }
-
         xmqForeach(doc, "/driver/library/use", (XMQNodeCallback)add_use, this);
         xmqForeach(doc, "/driver/fields/field", (XMQNodeCallback)add_field, this);
 
@@ -390,6 +384,7 @@ XMQProceed DriverDynamic::add_field(XMQDoc *doc, XMQNodePtr field, DriverDynamic
 
     const char *transform_payload_s = xmqGetStringRel(doc, "transform_payload", field);
     bool use_tpl_aes_cbc_iv_payload_transform = false;
+    bool use_diehl_prios_payload_transform = false;
     int payload_offset = 0;
     int payload_length = 0;
     int tpl_acc_offset = 0;
@@ -415,6 +410,13 @@ XMQProceed DriverDynamic::add_field(XMQDoc *doc, XMQNodePtr field, DriverDynamic
                         dd->fileName().c_str(), transform_payload_s);
                 use_tpl_aes_cbc_iv_payload_transform = false;
             }
+        }
+        else if (transform_payload_name == "diehl_prios")
+        {
+            use_diehl_prios_payload_transform = true;
+            // Trigger the once-per-telegram LFSR decode + SAP_PRIOS string-field
+            // extraction (the per-field transformFrame does the actual splice).
+            dd->setDiehlPriosDecode(true);
         }
         else
         {
@@ -454,11 +456,12 @@ XMQProceed DriverDynamic::add_field(XMQDoc *doc, XMQNodePtr field, DriverDynamic
         match_entire_frame = false;
     }
 
-    if (use_tpl_aes_cbc_iv_payload_transform && !match_entire_frame)
+    if ((use_tpl_aes_cbc_iv_payload_transform || use_diehl_prios_payload_transform) && !match_entire_frame)
     {
         warning("(driver) error in %s, transform_payload requires match_entire_frame = true.\n",
                 dd->fileName().c_str());
         use_tpl_aes_cbc_iv_payload_transform = false;
+        use_diehl_prios_payload_transform = false;
     }
 
     // Now find all matchers.
@@ -545,6 +548,10 @@ XMQProceed DriverDynamic::add_field(XMQDoc *doc, XMQNodePtr field, DriverDynamic
             if (use_tpl_aes_cbc_iv_payload_transform)
             {
                 dd->lastAddedField()->setTPLAESCBCIVPayloadTransform(payload_offset, payload_length, tpl_acc_offset);
+            }
+            if (use_diehl_prios_payload_transform)
+            {
+                dd->lastAddedField()->setDiehlPriosPayloadTransform();
             }
         }
     }

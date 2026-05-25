@@ -88,6 +88,7 @@ struct MeterCommonImplementation : public Meter
 
     static bool isTelegramForMeter(Telegram *t, Meter *meter, MeterInfo *mi);
     MeterKeys *meterKeys();
+    const std::vector<uchar> &diehlPriosDecoded() override { return diehl_prios_decoded_; }
     void setMeterManager(MeterManager *mm);
     MeterManager *meterManager();
 

@@ -2,11 +2,10 @@
 // Copyright (C) 2020-2025 Fredrik Öhrström (gpl-3.0-or-later)
 // Copyright (C) 2021 Vincent Privat (gpl-3.0-or-later)
 driver {
-    name              = izarv2
-    meter_type        = WaterMeter
-    default_fields    = name,id,status,total_m3,target_m3,timestamp
-    manufacturer      = Diehl
-    transform_payload = diehl_prios
+    name           = izarv2
+    meter_type     = WaterMeter
+    default_fields = name,id,status,total_m3,target_m3,timestamp
+    manufacturer   = Diehl
     detect {
         mvt = HYD,85,07
         mvt = SAP,*,15
@@ -37,6 +36,7 @@ driver {
             quantity           = Text
             attributes         = HIDE
             match_entire_frame = true
+            transform_payload  = diehl_prios
             ixml               = "decode = tpl, (with_billing | without_billing).
                                   with_billing = alarms_hdr, -skip_byte, -check, volume, billing_block, -byte*.
                                   without_billing = alarms_hdr, -skip_byte, -check, volume.

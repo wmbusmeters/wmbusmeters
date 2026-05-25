@@ -375,6 +375,7 @@ struct FieldInfo
         payload_length_ = payload_length;
         tpl_acc_offset_ = tpl_acc_offset;
     }
+    void setDiehlPriosPayloadTransform() { has_diehl_prios_payload_transform_ = true; }
     bool transformFrame(Telegram *t, std::vector<uchar> *frame);
 
 private:
@@ -434,6 +435,8 @@ private:
     int payload_offset_ {};
     int payload_length_ {};
     int tpl_acc_offset_ {};
+
+    bool has_diehl_prios_payload_transform_ {};
 };
 
 struct BusManager;
@@ -501,6 +504,9 @@ struct Meter
                                 bool simulated, std::vector<Address> *addresses,
                                 bool *id_match, Telegram *out_t = NULL) = 0;
     virtual MeterKeys *meterKeys() = 0;
+    // The LFSR-decoded payload bytes computed once per telegram for Diehl PRIOS
+    // meters. Empty when no diehl_prios field is configured or decoding failed.
+    virtual const std::vector<uchar> &diehlPriosDecoded() = 0;
     virtual void setMeterManager(MeterManager *mm) = 0;
     virtual MeterManager *meterManager() = 0;
 
