@@ -15,6 +15,8 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include<cctype>
+#include<cstring>
 #include<vector>
 #include<string>
 #include<map>
@@ -54,19 +56,24 @@ map<string,BuiltinDriver*> builtins_name_lookup_;
 
 bool loadBuiltinDriver(string driver_name)
 {
-    // Check that there is such a builtin driver.
-    if (builtins_name_lookup_.count(driver_name) == 0) return false;
+    // Resolve aliases via the DriverInfo stub registered by prepareBuiltinDrivers.
+    DriverInfo *existing = lookupDriver(driver_name);
+    if (existing == NULL) return false;
 
-    if (lookupDriver(driver_name))
+    if (!existing->isBuiltin())
     {
         // A driver has already been loaded! Skip loading the builtin driver.
         return true;
     }
 
-    BuiltinDriver *driver = builtins_name_lookup_[driver_name];
+    // The stub's primary name is what we use to find the xmq content.
+    auto it = builtins_name_lookup_.find(existing->name().str());
+    if (it == builtins_name_lookup_.end()) return false;
+
+    BuiltinDriver *driver = it->second;
     if (driver->loaded) return true;
 
-    string name = loadDriver("", driver->content);
+    loadDriver("", driver->content);
     driver->loaded = true;
 
     return true;
@@ -119,6 +126,44 @@ void removeBuiltinDriver(string name)
     }
 }
 
+// Register a builtin xmq driver: index it by name and add a lazy DriverInfo
+// stub so it shows up in allDrivers() (used by --list-meters, polling, etc.)
+// without paying for an xmq parse until the driver is actually needed.
+// Aliases are stored on the stub and resolved via lookupDriver, so
+// builtins_name_lookup_ only needs the primary name.
+static void addBuiltinDriver(BuiltinDriver *bd)
+{
+    builtins_name_lookup_[bd->name] = bd;
+    debug("(drivers) added builtin driver %s\n", bd->name);
+
+    // Do not shadow a driver that is already registered (e.g. a compiled-in c++
+    // driver or an xmq driver loaded from /etc/wmbusmeters.drivers.d).
+    if (lookupDriver(bd->name) != NULL) return;
+
+    DriverInfo di;
+    di.setName(bd->name);
+    di.setAliases(bd->aliases);
+    di.setBuiltin(true);
+    di.setDynamic("builtin", NULL); // So --listmeters shows "(builtin)" rather than "(c++)".
+    addRegisteredDriver(di);
+}
+
+string findBuiltinMeterType(const string &name)
+{
+    auto it = builtins_name_lookup_.find(name);
+    if (it == builtins_name_lookup_.end()) return "";
+
+    // Cheap scan over the embedded xmq content to find meter_type=...
+    // (avoids a full xmq parse just to discover the meter type).
+    const char *p = strstr(it->second->content, "meter_type=");
+    if (!p) return "";
+
+    p += strlen("meter_type=");
+    const char *end = p;
+    while (*end && !isspace((unsigned char)*end) && *end != '}') end++;
+    return string(p, end - p);
+}
+
 void prepareBuiltinDrivers()
 {
     size_t num_mvts = sizeof(builtins_mvts_) / sizeof(MapToDriver);
@@ -126,14 +171,7 @@ void prepareBuiltinDrivers()
 
     for (size_t i = 0; i < num_drivers; ++i)
     {
-        builtins_name_lookup_[builtins_[i].name] = &builtins_[i];
-        debug("(drivers) added builtin driver %s\n", builtins_[i].name);
-        vector<string> aliases = splitString(builtins_[i].aliases, ',');
-        for (string& a : aliases)
-        {
-            builtins_name_lookup_[a] = &builtins_[i];
-            debug("(drivers) added alias %s to driver %s\n", a.c_str(),builtins_[i].name);
-        }
+        addBuiltinDriver(&builtins_[i]);
     }
 
     for (size_t i = 0; i < num_mvts; ++i)

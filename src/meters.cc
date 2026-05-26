@@ -127,6 +127,22 @@ void addRegisteredDriver(DriverInfo di)
     (*registered_drivers_list_).push_back(lookupDriver(di.name().str()));
 }
 
+// Erase a builtin stub so a fully loaded driver can take its place.
+// Unlike removeDriver this does not touch builtins_*_lookup_ or record an
+// explanation string, since the replacement is a normal lazy-load event.
+static void eraseBuiltinDriver(const string &name)
+{
+    for (auto i = registered_drivers_list_->begin(); i != registered_drivers_list_->end(); i++)
+    {
+        if ((*i)->name().str() == name)
+        {
+            registered_drivers_list_->erase(i);
+            break;
+        }
+    }
+    registered_drivers_->erase(name);
+}
+
 bool DriverInfo::detect(uint16_t mfct, uchar version, uchar type)
 {
     for (auto &dd : mvts_)
@@ -278,7 +294,13 @@ string loadDriver(const string &file, const char *content)
     DriverInfo *existing = lookupDriver(di.name().str());
     if (existing != NULL)
     {
-        if (existing->getDynamicFileName() == file)
+        if (existing->isBuiltin())
+        {
+            // Replace the lazy builtin stub registered by prepareBuiltinDrivers.
+            eraseBuiltinDriver(di.name().str());
+            existing = NULL;
+        }
+        else if (existing->getDynamicFileName() == file)
         {
             // The driver has already been loaded, typically during analyze.
             return di.name().str();
@@ -396,13 +418,15 @@ bool lookupDriverInfo(const string& driver_name, DriverInfo *out_di)
 {
     // Lookup an already loaded driver, it might be compiled in as well.
     DriverInfo *di = lookupDriver(driver_name);
-    if (di)
+    if (di && !di->isBuiltin())
     {
         if (out_di) *out_di = *di;
         return true;
     }
 
-    // Lookup a dynamic text driver that can be loaded from memory.
+    // Lookup a dynamic text driver that can be loaded from memory. This also
+    // triggers when di is a builtin stub, replacing it with the fully loaded
+    // driver.
     if (loadBuiltinDriver(driver_name))
     {
         // It is loaded, lets fetch the DriverInfo.
@@ -2625,6 +2649,14 @@ shared_ptr<Meter> createMeter(MeterInfo *mi)
     DriverInfo *di = lookupDriver(mi->driver_name.str());
 
     assert(di != NULL);
+
+    if (di->isBuiltin())
+    {
+        // Lazy load the builtin xmq driver now that it is actually needed.
+        loadBuiltinDriver(mi->driver_name.str());
+        di = lookupDriver(mi->driver_name.str());
+        assert(di != NULL && !di->isBuiltin());
+    }
 
     shared_ptr<Meter> newm = di->construct(*mi);
     for (string &j : mi->extra_calculated_fields)

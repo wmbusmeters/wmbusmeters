@@ -185,7 +185,9 @@ void WMBusSocket::handleListDrivers()
         first = false;
 
         json += "{\"name\": \"" + escapeJsonString(di->name().str()) + "\"";
-        json += ", \"type\": \"" + string(toString(di->type())) + "\"";
+        string type_str = di->isBuiltin() ? findBuiltinMeterType(di->name().str()) : "";
+        if (type_str.empty()) type_str = toString(di->type());
+        json += ", \"type\": \"" + type_str + "\"";
 
         vector<DriverName> &aliases = di->nameAliases();
         if (!aliases.empty())

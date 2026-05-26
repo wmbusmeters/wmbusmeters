@@ -174,6 +174,8 @@ private:
 public:
     ~DriverInfo();
     DriverInfo() {};
+    void setBuiltin(bool b) { is_builtin_ = b; }
+    bool isBuiltin() { return is_builtin_; }
     void setName(std::string n) { name_ = n; }
     void addNameAlias(std::string n) { name_aliases_.push_back(n); }
     void setMeterType(MeterType t) { type_ = t; }
@@ -232,6 +234,8 @@ DriverInfo pickMeterDriver(Telegram *t);
 bool driverNeedsPolling(DriverName& dn);
 
 std::string loadDriver(const std::string &file, const char *content);
+
+void addRegisteredDriver(DriverInfo di);
 
 std::vector<DriverInfo*>& allDrivers();
 std::string removedDriverExplanation(const std::string &name);
