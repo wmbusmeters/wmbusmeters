@@ -77,6 +77,33 @@ driver {
                     bit  = 3
                     test = Set
                 }
+                map {
+                    name = TAMPER
+                    bit  = 4
+                    test = Set
+                }
+                map {
+                    name = LOW_BATTERY
+                    bit  = 5
+                    test = Set
+                }
+                map {
+                    name = LOW_ABIENT_TEMPERATURE
+                    bit  = 6
+                    test = Set
+                }
+                map {
+                    name = FLOW_ABOVE_Q4
+                    bit  = 7
+                    test = Set
+                }
+                // bit 8 is unused
+                map {
+                    name = NO_CONSUMPTION
+                    bit  = 9
+                    test = Set
+                }
+                // bit 10 is unused
             }
         }
         field {
