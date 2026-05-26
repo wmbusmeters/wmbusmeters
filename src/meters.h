@@ -168,10 +168,13 @@ private:
     std::string dynamic_file_name_; // Name of actual loaded driver file.
     std::string dynamic_source_xmq_ {}; // A copy of the xmq used to create a dynamic driver.
     std::vector<std::pair<uint16_t,std::vector<uchar>>> compact_frame_formats_;
+    bool is_builtin_ = false; // True for lazy stubs representing not-yet-loaded builtin xmq drivers.
 
 public:
     ~DriverInfo();
     DriverInfo() {};
+    void setBuiltin(bool b) { is_builtin_ = b; }
+    bool isBuiltin() { return is_builtin_; }
     void setName(std::string n) { name_ = n; }
     void addNameAlias(std::string n) { name_aliases_.push_back(n); }
     void setMeterType(MeterType t) { type_ = t; }
@@ -229,6 +232,8 @@ bool driverNeedsPolling(DriverName& dn);
 
 std::string loadDriver(const std::string &file, const char *content);
 void registerCompactFrameFormatsFromContent(const char *content);
+
+void addRegisteredDriver(DriverInfo di);
 
 std::vector<DriverInfo*>& allDrivers();
 std::string removedDriverExplanation(const std::string &name);

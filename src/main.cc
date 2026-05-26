@@ -331,7 +331,10 @@ void list_meters(Configuration *config, bool cli)
     for (DriverInfo *di : allDrivers())
     {
         string mname = di->name().str();
-        const char *infotxt = toString(di->type());
+        // For builtin stubs the type isn't populated yet, so extract it from
+        // the embedded xmq content on demand.
+        string type_str = di->isBuiltin() ? findBuiltinMeterType(mname) : "";
+        const char *infotxt = type_str.empty() ? toString(di->type()) : type_str.c_str();
         const char *where = "";
         const string f = di->getDynamicFileName();
         if (f != "")
@@ -363,7 +366,7 @@ void list_meters(Configuration *config, bool cli)
         {
             if (cli)
             {
-                printf("%-14s %s (%s)%s\n", mname.c_str(), infotxt, where, buf);
+                printf("%-14s\t%-26s\t(%s)%s\n", mname.c_str(), infotxt, where, buf);
             }
             else
             {
