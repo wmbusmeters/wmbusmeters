@@ -58,24 +58,24 @@ driver {
                 mask_bits       = 0xffffffff
                 default_message = OK
                 map {
-                    name  = DRY
-                    bit   = 0
-                    test  = Set
+                    name = DRY
+                    bit  = 0
+                    test = Set
                 }
                 map {
-                    name  = REVERSE
-                    bit   = 1
-                    test  = Set
+                    name = REVERSE
+                    bit  = 1
+                    test = Set
                 }
                 map {
-                    name  = LEAK
-                    bit   = 2
-                    test  = Set
+                    name = LEAK
+                    bit  = 2
+                    test = Set
                 }
                 map {
-                    name  = BURST
-                    bit   = 3
-                    test  = Set
+                    name = BURST
+                    bit  = 3
+                    test = Set
                 }
             }
         }
@@ -93,24 +93,24 @@ driver {
                 mask_bits       = 0x000f
                 default_message = OK
                 map {
-                    name  = DRY
-                    bit   = 0
-                    test  = Set
+                    name = DRY
+                    bit  = 0
+                    test = Set
                 }
                 map {
-                    name  = REVERSE
-                    bit   = 1
-                    test  = Set
+                    name = REVERSE
+                    bit  = 1
+                    test = Set
                 }
                 map {
-                    name  = LEAK
-                    bit   = 2
-                    test  = Set
+                    name = LEAK
+                    bit  = 2
+                    test = Set
                 }
                 map {
-                    name  = BURST
-                    bit   = 3
-                    test  = Set
+                    name = BURST
+                    bit  = 3
+                    test = Set
                 }
             }
         }
@@ -127,24 +127,24 @@ driver {
                 map_type  = BitToString
                 mask_bits = 0x000f
                 map {
-                    name  = DRY
-                    bit   = 0
-                    test  = Set
+                    name = DRY
+                    bit  = 0
+                    test = Set
                 }
                 map {
-                    name  = REVERSE
-                    bit   = 1
-                    test  = Set
+                    name = REVERSE
+                    bit  = 1
+                    test = Set
                 }
                 map {
-                    name  = LEAK
-                    bit   = 2
-                    test  = Set
+                    name = LEAK
+                    bit  = 2
+                    test = Set
                 }
                 map {
-                    name  = BURST
-                    bit   = 3
-                    test  = Set
+                    name = BURST
+                    bit  = 3
+                    test = Set
                 }
             }
         }
