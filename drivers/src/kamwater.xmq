@@ -5,16 +5,26 @@ driver {
     meter_type     = WaterMeter
     default_fields = name,id,status,total_m3,target_m3,timestamp
     detect {
+        // multical21
         mvt = KAM,1b,06
+
         // multical21
         mvt = KAM,1b,16
-        // multical21
+
+        // flowiq2200
         mvt = KAW,3a,16
+
         // flowiq2200
         mvt = KAW,3c,16
+
         // flowiq2200
         mvt = KAM,1d,16
-        // flowiq2200
+
+        // KWM2230 / 3230, warm
+        mvt = KAW,42,06
+
+        // KWM2230 / 3230, cold
+        mvt = KAW,42,16
     }
     compact_frame_formats {
         difvif = 02FF2004134413615B6167
@@ -48,25 +58,52 @@ driver {
                 mask_bits       = 0xffffffff
                 default_message = OK
                 map {
-                    name  = DRY
-                    value = 0x01
-                    test  = Set
+                    name = DRY
+                    bit  = 0
+                    test = Set
                 }
                 map {
-                    name  = REVERSE
-                    value = 0x02
-                    test  = Set
+                    name = REVERSE
+                    bit  = 1
+                    test = Set
                 }
                 map {
-                    name  = LEAK
-                    value = 0x04
-                    test  = Set
+                    name = LEAK
+                    bit  = 2
+                    test = Set
                 }
                 map {
-                    name  = BURST
-                    value = 0x08
-                    test  = Set
+                    name = BURST
+                    bit  = 3
+                    test = Set
                 }
+                map {
+                    name = TAMPER
+                    bit  = 4
+                    test = Set
+                }
+                map {
+                    name = LOW_BATTERY
+                    bit  = 5
+                    test = Set
+                }
+                map {
+                    name = LOW_ABIENT_TEMPERATURE
+                    bit  = 6
+                    test = Set
+                }
+                map {
+                    name = FLOW_ABOVE_Q4
+                    bit  = 7
+                    test = Set
+                }
+                // bit 8 is unused
+                map {
+                    name = NO_CONSUMPTION
+                    bit  = 9
+                    test = Set
+                }
+                // bit 10 is unused
             }
         }
         field {
@@ -83,24 +120,24 @@ driver {
                 mask_bits       = 0x000f
                 default_message = OK
                 map {
-                    name  = DRY
-                    value = 0x01
-                    test  = Set
+                    name = DRY
+                    bit  = 0
+                    test = Set
                 }
                 map {
-                    name  = REVERSE
-                    value = 0x02
-                    test  = Set
+                    name = REVERSE
+                    bit  = 1
+                    test = Set
                 }
                 map {
-                    name  = LEAK
-                    value = 0x04
-                    test  = Set
+                    name = LEAK
+                    bit  = 2
+                    test = Set
                 }
                 map {
-                    name  = BURST
-                    value = 0x08
-                    test  = Set
+                    name = BURST
+                    bit  = 3
+                    test = Set
                 }
             }
         }
@@ -117,24 +154,24 @@ driver {
                 map_type  = BitToString
                 mask_bits = 0x000f
                 map {
-                    name  = DRY
-                    value = 0x01
-                    test  = Set
+                    name = DRY
+                    bit  = 0
+                    test = Set
                 }
                 map {
-                    name  = REVERSE
-                    value = 0x02
-                    test  = Set
+                    name = REVERSE
+                    bit  = 1
+                    test = Set
                 }
                 map {
-                    name  = LEAK
-                    value = 0x04
-                    test  = Set
+                    name = LEAK
+                    bit  = 2
+                    test = Set
                 }
                 map {
-                    name  = BURST
-                    value = 0x08
-                    test  = Set
+                    name = BURST
+                    bit  = 3
+                    test = Set
                 }
             }
         }
