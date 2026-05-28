@@ -49,4 +49,6 @@ bool loadBuiltinDriver(std::string driver_name);
 const char *findBuiltinDriver(uint16_t mfct, uchar ver, uchar type);
 void removeBuiltinDriver(std::string driver_name);
 
+std::string findBuiltinMeterType(const std::string &name);
+
 #endif
