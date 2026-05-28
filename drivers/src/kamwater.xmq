@@ -7,22 +7,16 @@ driver {
     detect {
         // multical21
         mvt = KAM,1b,06
-
         // multical21
         mvt = KAM,1b,16
-
         // flowiq2200
         mvt = KAW,3a,16
-
         // flowiq2200
         mvt = KAW,3c,16
-
         // flowiq2200
         mvt = KAM,1d,16
-
         // KWM2230 / 3230, warm
         mvt = KAW,42,06
-
         // KWM2230 / 3230, cold
         mvt = KAW,42,16
     }
