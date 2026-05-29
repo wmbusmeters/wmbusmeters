@@ -30,4 +30,10 @@ bool decrypt_TPL_AES_CBC_NO_IV(Telegram *t,std::vector<uchar> &frame,std::vector
                                int *num_encrypted_bytes,
                                int *num_not_encrypted_at_end);
 
+// iv8 must be 8 bytes. Pass all-zeros for mode 2 (DES_NO_IV_DEPRECATED).
+bool decrypt_TPL_DES_CBC(Telegram *t,std::vector<uchar> &frame,std::vector<uchar>::iterator &pos,
+                         std::vector<uchar> &deskey, const uchar *iv8,
+                         int *num_encrypted_bytes,
+                         int *num_not_encrypted_at_end);
+
 #endif
