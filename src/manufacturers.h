@@ -1,4 +1,4 @@
-// Copyright (C) 2025 Fredrik Öhrström (CC0)
+// Copyright (C) 2026 Fredrik Öhrström (CC0)
 #ifndef MANUFACTURERS_H
 #define MANUFACTURERS_H
 #define MANFCODE(a,b,c) ((a-64)*1024+(b-64)*32+(c-64))
@@ -96,6 +96,7 @@ X(AQU,MANFCODE('A','Q','U'),"Aquamess, Germany")\
 X(ARA,MANFCODE('A','R','A'),"Aranha, United Kingdom")\
 X(ARC,MANFCODE('A','R','C'),"Arcelik, Turkey")\
 X(ARD,MANFCODE('A','R','D'),"Arad Group, Israel")\
+X(ARE,MANFCODE('A','R','E'),"Archai Electronics, South Korea")\
 X(ARF,MANFCODE('A','R','F'),"ADEUNIS RF, France")\
 X(ARG,MANFCODE('A','R','G'),"ARGO group of companies, Russian Federation")\
 X(ARH,MANFCODE('A','R','H'),"PT Armitec Electrical Systems, Indonesia")\
@@ -116,7 +117,7 @@ X(ASM,MANFCODE('A','S','M'),"Adya Wifi Metering, India")\
 X(ASR,MANFCODE('A','S','R'),"Erelsan Elektrik ve Elektronik, Turkey")\
 X(AST,MANFCODE('A','S','T'),"ASTINCO, Canada")\
 X(ASY,MANFCODE('A','S','Y'),"Arvato Systems Digital, Germany")\
-X(ATA,MANFCODE('A','T','A'),"Alcansar OElcum ve Otomasyon Sistemleri, Turkey")\
+X(ATA,MANFCODE('A','T','A'),"Alcansar Olcum ve Otomasyon Sistemleri, Turkey")\
 X(ATE,MANFCODE('A','T','E'),"ADVANCE TECHNOLOGY AND ELECTRICS COMPANY LIMTED, Thailand")\
 X(ATF,MANFCODE('A','T','F'),"AKTIF OTOMASYON STI, Turkey")\
 X(ATI,MANFCODE('A','T','I'),"Analogics Tech, India")\
@@ -133,7 +134,7 @@ X(AXS,MANFCODE('A','X','S'),"AXSEM, Switzerland")\
 X(AYS,MANFCODE('A','Y','S'),"Euromet Stl, Turkey")\
 X(AZE,MANFCODE('A','Z','E'),"AZEL Electronics, Turkey")\
 X(BAM,MANFCODE('B','A','M'),"Bachmann, Germany")\
-X(BAR,MANFCODE('B','A','R'),"Baer Industrie Elektronik, Germany")\
+X(BAR,MANFCODE('B','A','R'),"Bar Industrie Elektronik, Germany")\
 X(BAS,MANFCODE('B','A','S'),"BASIC INTELLIGENCE TECHNOLOGY, China")\
 X(BBE,MANFCODE('B','B','E'),"Bentec Bhartia Engineers, India")\
 X(BBS,MANFCODE('B','B','S'),"BBS Electronics, Singapore")\
@@ -155,17 +156,18 @@ X(BKO,MANFCODE('B','K','O'),"Beko Elektronik, Turkey")\
 X(BKT,MANFCODE('B','K','T'),"Bekto Precisa, Bosnia and Herzegovina")\
 X(BLM,MANFCODE('B','L','M'),"BELIMO Automation, Switzerland")\
 X(BLU,MANFCODE('B','L','U'),"Bluering, Italy")\
+X(BMA,MANFCODE('B','M','A'),"Byte Machine, Slovakia")\
 X(BME,MANFCODE('B','M','E'),"Beifeng, Germany")\
 X(BMI,MANFCODE('B','M','I'),"Badger Meter, United States of America")\
 X(BMP,MANFCODE('B','M','P'),"BMETERS Polska, Poland")\
 X(BMT,MANFCODE('B','M','T'),"BMETERS, Italy")\
 X(BNR,MANFCODE('B','N','R'),"Beijing Banner Electric, China")\
-X(BOV,MANFCODE('B','O','V'),"JiaXing Bove Intelligent Technology, China")\
+X(BOV,MANFCODE('B','O','V'),"Zhejiang Bove Intelligent Technology, China")\
 X(BPM,MANFCODE('B','P','M'),"Aadharshila Mobility Solutions, India")\
 X(BRA,MANFCODE('B','R','A'),"Brandes, Germany")\
 X(BRC,MANFCODE('B','R','C'),"BRICK4U, Germany")\
 X(BRN,MANFCODE('B','R','N'),"Bruntab Energy, Iran")\
-X(BRT,MANFCODE('B','R','T'),"BEREKET TEKNOLOJIK OELCUM SISTEMLERI BIL ELK INS ITH IHR SAN VE TIC STI, Turkey")\
+X(BRT,MANFCODE('B','R','T'),"BEREKET TEKNOLOJA K A LA A M STEMLERA BA L ELK A NA A TH A HR SAN VE TA C A TA, Turkey")\
 X(BRU,MANFCODE('B','R','U'),"Klaus Bruchmann, Germany")\
 X(BSC,MANFCODE('B','S','C'),"Sanaye Sanjesh Energy Behineh Sazan Toos, Iran")\
 X(BSD,MANFCODE('B','S','D'),"BSED, Germany")\
@@ -173,10 +175,10 @@ X(BSE,MANFCODE('B','S','E'),"Basari Elektronik, Turkey")\
 X(BSI,MANFCODE('B','S','I'),"Bundesamt fur Sicherheit in der Informationstechnik BSI, Germany")\
 X(BSM,MANFCODE('B','S','M'),"Bluestar Electrical Meter Research Institute, China")\
 X(BSP,MANFCODE('B','S','P'),"Byucksan Power, South Korea")\
-X(BSS,MANFCODE('B','S','S'),"Baylan Su Sayaclari, Turkey")\
+X(BSS,MANFCODE('B','S','S'),"Baylan Su SayaA larA, Turkey")\
 X(BST,MANFCODE('B','S','T'),"BESTAS Elektronik Optik, Turkey")\
 X(BSX,MANFCODE('B','S','X'),"BS Messtechnik, Germany")\
-X(BSY,MANFCODE('B','S','Y'),"Aktif Enerji AE nsaat Sanayi ve Ticaret Sirketi, Turkey")\
+X(BSY,MANFCODE('B','S','Y'),"Aktif Enerji A nsaat Sanayi ve Ticaret Sirketi, Turkey")\
 X(BTA,MANFCODE('B','T','A'),"Buta Elektromekanik, Turkey")\
 X(BTL,MANFCODE('B','T','L'),"BIT LAB")\
 X(BTM,MANFCODE('B','T','M'),"Bharatech Smart Industrial, India")\
@@ -212,6 +214,7 @@ X(CEH,MANFCODE('C','E','H'),"Tosee Garan Sanjesh Energy Hoshmand, Iran")\
 X(CEL,MANFCODE('C','E','L'),"Creative Electronics, Pakistan")\
 X(CEM,MANFCODE('C','E','M'),"YAVUZ METAL SANAYI VE TICARET, Turkey")\
 X(CET,MANFCODE('C','E','T'),"Cetinkaya Aydinlatma, Turkey")\
+X(CFL,MANFCODE('C','F','L'),"CF Smart Technologies, Pakistan")\
 X(CGC,MANFCODE('C','G','C'),"Contor Group, Romania")\
 X(CGO,MANFCODE('C','G','O'),"Cavagna Group, Italy")\
 X(CHA,MANFCODE('C','H','A'),"Charles Technology Research, Taiwan")\
@@ -227,9 +230,9 @@ X(CLA,MANFCODE('C','L','A'),"3g celllabs, India")\
 X(CLB,MANFCODE('C','L','B'),"CMC, Italy")\
 X(CLE,MANFCODE('C','L','E'),"Shen Zhen Clou Electronics, China")\
 X(CLO,MANFCODE('C','L','O'),"Clorius Raab Karcher Energi Service")\
-X(CLS,MANFCODE('C','L','S'),"Celsa Messgeraete, Germany")\
+X(CLS,MANFCODE('C','L','S'),"Celsa Messgerate, Germany")\
 X(CLT,MANFCODE('C','L','T'),"Zhuhai S E Z Calintech Electric, China")\
-X(CLX,MANFCODE('C','L','X'),"CLK IPEKYOLU LOJISTIK VE TICARET A AA, Turkey")\
+X(CLX,MANFCODE('C','L','X'),"CLK IPEKYOLU LOJISTIK VE TICARET A A, Turkey")\
 X(CLY,MANFCODE('C','L','Y'),"Clayster, Sweden")\
 X(CMC,MANFCODE('C','M','C'),"CMC EKOCON, Slovenia")\
 X(CMP,MANFCODE('C','M','P'),"CM Partner, South Korea")\
@@ -284,6 +287,7 @@ X(DCZ,MANFCODE('D','C','Z'),"decarbon, Germany")\
 X(DDE,MANFCODE('D','D','E'),"D D Elettronica, Italy")\
 X(DDI,MANFCODE('D','D','I'),"DD Infraventures, India")\
 X(DDL,MANFCODE('D','D','L'),"DONGDO LMS, South Korea")\
+X(DDM,MANFCODE('D','D','M'),"Delta Dore, France")\
 X(DEA,MANFCODE('D','E','A'),"Dea HT, Italy")\
 X(DEC,MANFCODE('D','E','C'),"DECODE Data Communications, Serbia")\
 X(DEI,MANFCODE('D','E','I'),"DevSys Embedded Technology, India")\
@@ -368,25 +372,30 @@ X(EFA,MANFCODE('E','F','A'),"EFACEC Engenharia e Sistemas, Portugal")\
 X(EFE,MANFCODE('E','F','E'),"Engelmann Sensor, Germany")\
 X(EFI,MANFCODE('E','F','I'),"Efimatic Iberica, Spain")\
 X(EFN,MANFCODE('E','F','N'),"EFEN, Germany")\
-X(EFR,MANFCODE('E','F','R'),"Europaeische Funk Rundsteuerung, Germany")\
+X(EFR,MANFCODE('E','F','R'),"Europaische Funk Rundsteuerung, Germany")\
 X(EFS,MANFCODE('E','F','S'),"EFSYS, France")\
+X(EFX,MANFCODE('E','F','X'),"Enerflux, India")\
 X(EGA,MANFCODE('E','G','A'),"eGain International, Sweden")\
 X(EGC,MANFCODE('E','G','C'),"Ekbatan Gas Control, Iran")\
 X(EGD,MANFCODE('E','G','D'),"EcoGuard, Sweden")\
 X(EGM,MANFCODE('E','G','M'),"Elgama Elektronika, Lithuania")\
+X(EGO,MANFCODE('E','G','O'),"EWE Go, Germany")\
+X(EGP,MANFCODE('E','G','P'),"Meters Company EMC, Egypt")\
 X(EGT,MANFCODE('E','G','T'),"Enegate, Japan")\
 X(EGW,MANFCODE('E','G','W'),"Enermess Energie Mess und Servicedienste, Germany")\
 X(EGY,MANFCODE('E','G','Y'),"ian Smart Meter Company, Egypt")\
 X(EHL,MANFCODE('E','H','L'),"Secure Meters")\
 X(EHS,MANFCODE('E','H','S'),"Endress Hauser SICK, Germany")\
+X(EIC,MANFCODE('E','I','C'),"Elite Experts Industry Company, Saudi Arabia")\
 X(EIE,MANFCODE('E','I','E'),"Ei Electronics, Ireland")\
 X(EIG,MANFCODE('E','I','G'),"Eigensonne, Germany")\
 X(EIP,MANFCODE('E','I','P'),"Elmeasure, India")\
+X(EIS,MANFCODE('E','I','S'),"ENERGY INTEGRATED TECH SOLUTIONS, Botswana")\
 X(EIT,MANFCODE('E','I','T'),"EnergyICT, Belgium")\
 X(EKA,MANFCODE('E','K','A'),"Eka Systems, United States of America")\
 X(EKF,MANFCODE('E','K','F'),"EKF, Russian Federation")\
 X(EKO,MANFCODE('E','K','O'),"EKOLIS, France")\
-X(EKS,MANFCODE('E','K','S'),"DICLE KOEK ENERJI YATIRIM")\
+X(EKS,MANFCODE('E','K','S'),"DA CLE KA K ENERJA YATIRIM A A")\
 X(EKT,MANFCODE('E','K','T'),"PA KVANT J S, Russian Federation")\
 X(ELC,MANFCODE('E','L','C'),"CJSC EMIS, Russian Federation")\
 X(ELD,MANFCODE('E','L','D'),"Elektromed Elektronik, Turkey")\
@@ -400,8 +409,9 @@ X(ELQ,MANFCODE('E','L','Q'),"ELEQ, Germany")\
 X(ELR,MANFCODE('E','L','R'),"Elster Metering, United Kingdom")\
 X(ELS,MANFCODE('E','L','S'),"Elster, Germany")\
 X(ELT,MANFCODE('E','L','T'),"ELTAKO, Germany")\
+X(ELU,MANFCODE('E','L','U'),"Elupi Elektronik Elektrik, Turkey")\
 X(ELV,MANFCODE('E','L','V'),"Elvaco, Sweden")\
-X(ELY,MANFCODE('E','L','Y'),"Elektroniksystem i Umeaa, Sweden")\
+X(ELY,MANFCODE('E','L','Y'),"Elektroniksystem i Umea, Sweden")\
 X(EMB,MANFCODE('E','M','B'),"Embit, Italy")\
 X(EMC,MANFCODE('E','M','C'),"Embedded Communication Systems, Switzerland")\
 X(EME,MANFCODE('E','M','E'),"SC Electromagnetica, Romania")\
@@ -422,6 +432,7 @@ X(ENG,MANFCODE('E','N','G'),"ENER G Switch, United Kingdom")\
 X(ENH,MANFCODE('E','N','H'),"ENMAS, Germany")\
 X(ENI,MANFCODE('E','N','I'),"entec innovations, Germany")\
 X(ENL,MANFCODE('E','N','L'),"ENEL, Serbia")\
+X(ENM,MANFCODE('E','N','M'),"ENLITE SMART SOLUTIONS, India")\
 X(ENN,MANFCODE('E','N','N'),"Enernet, South Korea")\
 X(ENO,MANFCODE('E','N','O'),"ennovatis, Germany")\
 X(ENP,MANFCODE('E','N','P'),"Kiev Polytechnical Scientific Research")\
@@ -474,11 +485,13 @@ X(EXS,MANFCODE('E','X','S'),"exceeding solutions, Germany")\
 X(EXT,MANFCODE('E','X','T'),"LOTRIC Metrology, Slovenia")\
 X(EYE,MANFCODE('E','Y','E'),"Eco eye, United Kingdom")\
 X(EYT,MANFCODE('E','Y','T'),"Enerlyt Potsdam")\
+X(EZL,MANFCODE('E','Z','L'),"Enerzolve Smart Energy Technologies, India")\
 X(FAC,MANFCODE('F','A','C'),"Fireangel Safety Technology, United Kingdom")\
 X(FAE,MANFCODE('F','A','E'),"Fae Technology Company, Brazil")\
 X(FAN,MANFCODE('F','A','N'),"Fantini Cosmi, Italy")\
 X(FAR,MANFCODE('F','A','R'),"FARAB, Iran")\
 X(FAS,MANFCODE('F','A','S'),"FAST, Italy")\
+X(FAT,MANFCODE('F','A','T'),"Fardad azma toos, Iran")\
 X(FED,MANFCODE('F','E','D'),"Federal Elektrik, Turkey")\
 X(FEI,MANFCODE('F','E','I'),"FUJI ELECTRIC, India")\
 X(FEM,MANFCODE('F','E','M'),"Fortune Electric, Taiwan")\
@@ -507,6 +520,7 @@ X(FPL,MANFCODE('F','P','L'),"fifthplay, Belgium")\
 X(FPR,MANFCODE('F','P','R'),"F Pribor, Belarus")\
 X(FRC,MANFCODE('F','R','C'),"Shenzhen Friendcom Technology")\
 X(FRE,MANFCODE('F','R','E'),"Frer, Italy")\
+X(FRT,MANFCODE('F','R','T'),"Foritec, Germany")\
 X(FRU,MANFCODE('F','R','U'),"OJSC NRPA FRUNZE, Russian Federation")\
 X(FSE,MANFCODE('F','S','E'),"Flecto Sense, South Africa")\
 X(FSP,MANFCODE('F','S','P'),"Finmek Space, Italy")\
@@ -524,6 +538,7 @@ X(GBJ,MANFCODE('G','B','J'),"Grundfoss")\
 X(GBX,MANFCODE('G','B','X'),"GRIDBLOX, United States of America")\
 X(GCE,MANFCODE('G','C','E'),"Genergica, Venezuela")\
 X(GCG,MANFCODE('G','C','G'),"Goldcard Smart Group, China")\
+X(GCT,MANFCODE('G','C','T'),"GridCrest Technologies, India")\
 X(GCX,MANFCODE('G','C','X'),"grandcentrix, Germany")\
 X(GDC,MANFCODE('G','D','C'),"GADICO TECNOLOGIAA")\
 X(GDS,MANFCODE('G','D','S'),"InnoSense, Switzerland")\
@@ -553,9 +568,10 @@ X(GNP,MANFCODE('G','N','P'),"GEPDEC ENERGY, India")\
 X(GNY,MANFCODE('G','N','Y'),"JiangSu GuoNeng Instrument Technology, China")\
 X(GOE,MANFCODE('G','O','E'),"Genus Power Infrastructures, India")\
 X(GOM,MANFCODE('G','O','M'),"Zhejiang Gomelong Meter, China")\
+X(GOT,MANFCODE('G','O','T'),"NetLand Spolka z ograniczona odpowiedzialnoscia, Poland")\
 X(GPM,MANFCODE('G','P','M'),"Polaris Smart Metering, India")\
 X(GPT,MANFCODE('G','P','T'),"GINTAI POWER TECHNOLOGY, China")\
-X(GRA,MANFCODE('G','R','A'),"Graesslin, Germany")\
+X(GRA,MANFCODE('G','R','A'),"Grasslin, Germany")\
 X(GRD,MANFCODE('G','R','D'),"Greenradio")\
 X(GRE,MANFCODE('G','R','E'),"GE2 Green Energy Electronics, Portugal")\
 X(GRI,MANFCODE('G','R','I'),"Grinpal Energy Management, South Africa")\
@@ -563,7 +579,7 @@ X(GRN,MANFCODE('G','R','N'),"GREEN ENS, South Korea")\
 X(GRP,MANFCODE('G','R','P'),"GlobalRnD, Poland")\
 X(GRS,MANFCODE('G','R','S'),"Garderos, Germany")\
 X(GRU,MANFCODE('G','R','U'),"G GURU, South Korea")\
-X(GRV,MANFCODE('G','R','V'),"Gridventure Arge ve Teknoloji Pazarlama A AA, Turkey")\
+X(GRV,MANFCODE('G','R','V'),"Gridventure Arge ve Teknoloji Pazarlama A A, Turkey")\
 X(GRX,MANFCODE('G','R','X'),"Gurux, Finland")\
 X(GSD,MANFCODE('G','S','D'),"Genesis Smart Devices, India")\
 X(GSE,MANFCODE('G','S','E'),"Gridspertise, Italy")\
@@ -609,6 +625,7 @@ X(HJM,MANFCODE('H','J','M'),"Huaihua Jiannan Machinery Factory, China")\
 X(HKK,MANFCODE('H','K','K'),"Hokuriku Instrumentation, Japan")\
 X(HKT,MANFCODE('H','K','T'),"Heklatech, Sweden")\
 X(HLD,MANFCODE('H','L','D'),"Hildebrand Technology, United Kingdom")\
+X(HLE,MANFCODE('H','L','E'),"Shenzhen Hopeland Technologies, China")\
 X(HLT,MANFCODE('H','L','T'),"Hangzhou Laison Technology, China")\
 X(HLY,MANFCODE('H','L','Y'),"Holley Metering")\
 X(HMI,MANFCODE('H','M','I'),"HMI Energy, Taiwan")\
@@ -622,6 +639,7 @@ X(HNN,MANFCODE('H','N','N'),"Houshmand Namayeh Afraz, Iran")\
 X(HOE,MANFCODE('H','O','E'),"HOENTZSCH, Germany")\
 X(HOL,MANFCODE('H','O','L'),"Holosys, Croatia")\
 X(HON,MANFCODE('H','O','N'),"Honeywell Technologies, Switzerland")\
+X(HOP,MANFCODE('H','O','P'),"Shenzhen Hopeland Technologies, China")\
 X(HOY,MANFCODE('H','O','Y'),"Holley Meters, India")\
 X(HPL,MANFCODE('H','P','L'),"HPL Socomec, India")\
 X(HPM,MANFCODE('H','P','M'),"HANGZHOU HPM COMPANY, China")\
@@ -637,6 +655,7 @@ X(HTE,MANFCODE('H','T','E'),"Hexing Technologies Europe, Romania")\
 X(HTI,MANFCODE('H','T','I'),"Shandong Hetong Information Technology, China")\
 X(HTL,MANFCODE('H','T','L'),"Ernst Heitland Erlenstr, Germany")\
 X(HTS,MANFCODE('H','T','S'),"HTS Elektronik")\
+X(HTY,MANFCODE('H','T','Y'),"HELIOTY, Italy")\
 X(HUK,MANFCODE('H','U','K'),"Helbeck Kusemann, Germany")\
 X(HUM,MANFCODE('H','U','M'),"Humanlitech, Ghana")\
 X(HVG,MANFCODE('H','V','G'),"Hekatron Vertriebs, Germany")\
@@ -684,13 +703,14 @@ X(IGM,MANFCODE('I','G','M'),"ITALGAS RETI, Italy")\
 X(IGR,MANFCODE('I','G','R'),"iGridS Hebelweg, Germany")\
 X(IGS,MANFCODE('I','G','S'),"I G S DATAFLOW, Italy")\
 X(IHM,MANFCODE('I','H','M'),"Shenzhen Inhemeter, China")\
+X(IID,MANFCODE('I','I','D'),"PT Industri Telekomunikasi Persero")\
 X(IID,MANFCODE('I','I','D'),"PT INDUSTRI TELEKOMUNIKASI Persero, Indonesia")\
 X(IIF,MANFCODE('I','I','F'),"Westenergie Metering, Germany")\
 X(IJE,MANFCODE('I','J','E'),"ILJIN Electric, South Korea")\
 X(IJK,MANFCODE('I','J','K'),"IJENKO, France")\
 X(IKE,MANFCODE('I','K','E'),"IK Elektronik Friedrichsgruener Str, Germany")\
 X(IKM,MANFCODE('I','K','M'),"Ikom, Croatia")\
-X(IKO,MANFCODE('I','K','O'),"AE KOM BiliAA im Teknolojileri A AA, Turkey")\
+X(IKO,MANFCODE('I','K','O'),"A KOM BiliA im Teknolojileri A A, Turkey")\
 X(IKS,MANFCODE('I','K','S'),"IKASIAN, Spain")\
 X(IMC,MANFCODE('I','M','C'),"madar, Iran")\
 X(IME,MANFCODE('I','M','E'),"Fellows, Poland")\
@@ -731,7 +751,7 @@ X(ITA,MANFCODE('I','T','A'),"iTrona, Switzerland")\
 X(ITB,MANFCODE('I','T','B'),"Itron Solucoes para Energia e Aguaa, Brazil")\
 X(ITC,MANFCODE('I','T','C'),"INTECH TUNISIE, Tunisia")\
 X(ITE,MANFCODE('I','T','E'),"ITRON Electricity, France")\
-X(ITF,MANFCODE('I','T','F'),"ITF Froeschl, Germany")\
+X(ITF,MANFCODE('I','T','F'),"ITF Froschl, Germany")\
 X(ITG,MANFCODE('I','T','G'),"ITRON Gas, France")\
 X(ITH,MANFCODE('I','T','H'),"INTELTEH, Croatia")\
 X(ITI,MANFCODE('I','T','I'),"ITRON Asia, Indonesia")\
@@ -765,18 +785,20 @@ X(JJN,MANFCODE('J','J','N'),"BeiJing Fine Clean Enery Technology, China")\
 X(JKW,MANFCODE('J','K','W'),"QingdaoJakewill Energy Technology, China")\
 X(JMA,MANFCODE('J','M','A'),"Huizhou JMAO Intelligent Technology, China")\
 X(JMT,MANFCODE('J','M','T'),"JM TRONIC, Poland")\
+X(JMV,MANFCODE('J','M','V'),"JMV LPS NOIDA, India")\
 X(JNC,MANFCODE('J','N','C'),"NINGBO JIANAN ELECTRONICS, China")\
 X(JND,MANFCODE('J','N','D'),"J D Electronics, South Korea")\
 X(JNJ,MANFCODE('J','N','J'),"JNJ POWERCOM SYSTEMS, India")\
 X(JOY,MANFCODE('J','O','Y'),"Zhejiang Joy Electronic Technology, China")\
 X(JPM,MANFCODE('J','P','M'),"JPM INDUSTRIES, India")\
 X(JSM,MANFCODE('J','S','M'),"Jining Goldwater Science Technology, China")\
-X(JSO,MANFCODE('J','S','O'),"Schloesser Armaturen, Germany")\
+X(JSO,MANFCODE('J','S','O'),"Schlosser Armaturen, Germany")\
 X(JST,MANFCODE('J','S','T'),"JSTech, South Korea")\
 X(JUM,MANFCODE('J','U','M'),"JUMO, Germany")\
 X(JWH,MANFCODE('J','W','H'),"TIANJIN WANHUA, China")\
 X(JWR,MANFCODE('J','W','R'),"Shandong jingwei telecommunications equipment, China")\
 X(JWS,MANFCODE('J','W','S'),"Wesson energy saving technology tianjin, China")\
+X(JXH,MANFCODE('J','X','H'),"Jiangyin Changyi Group, China")\
 X(JYS,MANFCODE('J','Y','S'),"Beijing Jingyuan instrument company, China")\
 X(KAA,MANFCODE('K','A','A'),"Kamstrup, Denmark")\
 X(KAC,MANFCODE('K','A','C'),", Russian Federation")\
@@ -792,13 +814,14 @@ X(KBL,MANFCODE('K','B','L'),"Kimbal, India")\
 X(KBN,MANFCODE('K','B','N'),"Alpamis IT, Turkey")\
 X(KDN,MANFCODE('K','D','N'),"KADEN VODOMERY, Czech Republic")\
 X(KDS,MANFCODE('K','D','S'),"Kedros, Slovakia")\
+X(KEA,MANFCODE('K','E','A'),"Kea Metering Ptd, Singapore")\
 X(KEE,MANFCODE('K','E','E'),"Keewe, Bulgaria")\
 X(KEL,MANFCODE('K','E','L'),"KELEMINIC, Croatia")\
-X(KER,MANFCODE('K','E','R'),"KERMS haftungsbeschraenkt, Germany")\
+X(KER,MANFCODE('K','E','R'),"KERMS haftungsbeschrankt, Germany")\
 X(KES,MANFCODE('K','E','S'),"Kavosh Electronic Sepahan, Iran")\
-X(KEY,MANFCODE('K','E','Y'),"KEYTECH ELEKTRONAE K ANONAE M AA AE RKETAE, Turkey")\
-X(KFM,MANFCODE('K','F','M'),"Shenzhen Kaifa Technology Chengdu, China")\
+X(KEY,MANFCODE('K','E','Y'),"KEYTECH ELEKTRONA K ANONA M A A RKETA, Turkey")\
 X(KFM,MANFCODE('K','F','M'),"Shenzhen Kaifa Technology, China")\
+X(KFM,MANFCODE('K','F','M'),"Shenzhen Kaifa Technology Chengdu, China")\
 X(KGE,MANFCODE('K','G','E'),"Guangzhou Keli General Electric, China")\
 X(KHL,MANFCODE('K','H','L'),"Kohler, Turkey")\
 X(KIG,MANFCODE('K','I','G'),"Kiwigrid Kleiststrasse, Germany")\
@@ -823,8 +846,10 @@ X(KSY,MANFCODE('K','S','Y'),"KUNDO SystemTechnik, Germany")\
 X(KTC,MANFCODE('K','T','C'),"Kerman Tablo, Iran")\
 X(KTL,MANFCODE('K','T','L'),"Korea Testing Laboratory, South Korea")\
 X(KUK,MANFCODE('K','U','K'),"KYRGYZ UNAA KURUUSH, Kyrgyzstan")\
-X(KVS,MANFCODE('K','V','S'),"Klepsan Klape Vana oelcu aletleri San Tic Sti, Turkey")\
+X(KUL,MANFCODE('K','U','L'),"Kultura IoT A A zA, Turkey")\
+X(KVS,MANFCODE('K','V','S'),"Klepsan Klape Vana olcu aletleri San Tic Sti, Turkey")\
 X(KWH,MANFCODE('K','W','H'),"Zhejiang Songxia Electric Meter, China")\
+X(KYN,MANFCODE('K','Y','N'),"Kayon, Poland")\
 X(KZK,MANFCODE('K','Z','K'),"KRIZIK, Czech Republic")\
 X(LAC,MANFCODE('L','A','C'),"Heinz Lackmann, Germany")\
 X(LAI,MANFCODE('L','A','I'),"Hangzhou LAISON Technology, China")\
@@ -840,7 +865,7 @@ X(LES,MANFCODE('L','E','S'),"Lakshmi Electrical Control Systems, India")\
 X(LET,MANFCODE('L','E','T'),"LAN ENGINEERING TECHNOLOGIES, India")\
 X(LFS,MANFCODE('L','F','S'),"Payolcer Metering Devices, Turkey")\
 X(LFX,MANFCODE('L','F','X'),"LoggerFlex Smart Devices, Canada")\
-X(LGA,MANFCODE('L','G','A'),"Landis Gyr")\
+X(LGA,MANFCODE('L','G','A'),"Landis Gyr, Switzerland")\
 X(LGB,MANFCODE('L','G','B'),"Landis Gyr, United Kingdom")\
 X(LGC,MANFCODE('L','G','C'),"Landis Gyr Equipamentos de Medicaoa Brasil, Brazil")\
 X(LGD,MANFCODE('L','G','D'),"Landis Gyr, Germany")\
@@ -850,7 +875,7 @@ X(LGG,MANFCODE('L','G','G'),"Ningxia LGG Instrument, China")\
 X(LGI,MANFCODE('L','G','I'),"Landis Gyr, India")\
 X(LGS,MANFCODE('L','G','S'),"Landis Gyr, South Africa")\
 X(LGU,MANFCODE('L','G','U'),"LG Uplus, South Korea")\
-X(LGZ,MANFCODE('L','G','Z'),"Landis Gyr, Switzerland")\
+X(LGZ,MANFCODE('L','G','Z'),"Landis Gyr")\
 X(LHA,MANFCODE('L','H','A'),"Atlantic Meters, South Africa")\
 X(LIN,MANFCODE('L','I','N'),"Ever Meter, Myanmar")\
 X(LIT,MANFCODE('L','I','T'),"Punos Electronic, Sweden")\
@@ -867,6 +892,8 @@ X(LNT,MANFCODE('L','N','T'),"Schneider Electric, India")\
 X(LOB,MANFCODE('L','O','B'),"Lobaro, Germany")\
 X(LOG,MANFCODE('L','O','G'),"LOGAREX Smart Metering, Czech Republic")\
 X(LOV,MANFCODE('L','O','V'),"Lovato Electric, Italy")\
+X(LQT,MANFCODE('L','Q','T'),"Lianqiao Technology, China")\
+X(LRS,MANFCODE('L','R','S'),"AMCJ, Poland")\
 X(LSC,MANFCODE('L','S','C'),"Lund Science, Sweden")\
 X(LSE,MANFCODE('L','S','E'),"Landis Staefa electronic")\
 X(LSK,MANFCODE('L','S','K'),"LS Industrial Systems, South Korea")\
@@ -876,9 +903,10 @@ X(LTO,MANFCODE('L','T','O'),"Labtrino, Sweden")\
 X(LUG,MANFCODE('L','U','G'),"Landis Gyr, Germany")\
 X(LUN,MANFCODE('L','U','N'),"LUNA Elektrik Elektronik, Turkey")\
 X(LUP,MANFCODE('L','U','P'),"LUPUS Electronics, Germany")\
+X(LUP,MANFCODE('L','U','P'),"LUPUS Electronics, Germany")\
 X(LWT,MANFCODE('L','W','T'),"Lotus Wireless Technologies, India")\
 X(LYE,MANFCODE('L','Y','E'),"Jiangsu Linyang Electronics, China")\
-X(LZG,MANFCODE('L','Z','G'),"Lackmann Zaehler Gesellschaft mbH, Germany")\
+X(LZG,MANFCODE('L','Z','G'),"Lackmann Zahler Gesellschaft mbH, Germany")\
 X(MAC,MANFCODE('M','A','C'),"RUDNAP Group Meter Control, Serbia")\
 X(MAD,MANFCODE('M','A','D'),"Maddalena, Italy")\
 X(MAE,MANFCODE('M','A','E'),"Mates Elektronik Metin Ates, Turkey")\
@@ -895,6 +923,7 @@ X(MCP,MANFCODE('M','C','P'),"MPSE, Germany")\
 X(MCR,MANFCODE('M','C','R'),"MICRORISC, Czech Republic")\
 X(MCS,MANFCODE('M','C','S'),"MetCom Solutions, Germany")\
 X(MCV,MANFCODE('M','C','V'),"SOCIETE MAROCAINE DES COMPTEURS SMCV, Morocco")\
+X(MCX,MANFCODE('M','C','X'),"MCX PRO Kft, Hungary")\
 X(MDA,MANFCODE('M','D','A'),"PT MELCOINDA, Indonesia")\
 X(MDE,MANFCODE('M','D','E'),"Diehl Metering, Germany")\
 X(MDL,MANFCODE('M','D','L'),"Maddalena, Italy")\
@@ -957,6 +986,7 @@ X(MSY,MANFCODE('M','S','Y'),"MAK SAY Elektrik Elektronik Malzemeleri, Turkey")\
 X(MTC,MANFCODE('M','T','C'),"Metering Technology Corporation")\
 X(MTD,MANFCODE('M','T','D'),"Removed November, United States of America")\
 X(MTE,MANFCODE('M','T','E'),"The ian German for Water Meter Manufacturing Metrotec, Egypt")\
+X(MTG,MANFCODE('M','T','G'),"Nanjing Meter Technology, China")\
 X(MTH,MANFCODE('M','T','H'),"njmeter, China")\
 X(MTI,MANFCODE('M','T','I'),"Microtech Industries, Pakistan")\
 X(MTL,MANFCODE('M','T','L'),"Advance Metering technology, India")\
@@ -986,7 +1016,7 @@ X(NEE,MANFCODE('N','E','E'),"Northern Electric Equipment Joint Stock Company, Vi
 X(NEI,MANFCODE('N','E','I'),"NEWLECTRIC INNOVATION, India")\
 X(NEO,MANFCODE('N','E','O'),"NeoVac, Switzerland")\
 X(NER,MANFCODE('N','E','R'),"Nero Electronics, Belarus")\
-X(NES,MANFCODE('N','E','S'),"NORA ELK MALZ SAN ve TIC, Turkey")\
+X(NES,MANFCODE('N','E','S'),"NORA ELK MALZ SAN ve TA C A A, Turkey")\
 X(NET,MANFCODE('N','E','T'),"Netatmo, France")\
 X(NEX,MANFCODE('N','E','X'),"Nexelec, France")\
 X(NGP,MANFCODE('N','G','P'),"Ngenic, Poland")\
@@ -1010,9 +1040,12 @@ X(NRM,MANFCODE('N','R','M'),"Norm Elektronik, Turkey")\
 X(NRN,MANFCODE('N','R','N'),"Neuron, Switzerland")\
 X(NRT,MANFCODE('N','R','T'),"Zavod Nartis, Russian Federation")\
 X(NSE,MANFCODE('N','S','E'),"North Smart Equipment, China")\
+X(NSN,MANFCODE('N','S','N'),"NARI TECH Sanneng Instrument Nanjing, China")\
 X(NSP,MANFCODE('N','S','P'),"M S N S Power, India")\
 X(NTC,MANFCODE('N','T','C'),"Nuri Telecom, South Korea")\
 X(NTM,MANFCODE('N','T','M'),"Netinium, Netherlands")\
+X(NTT,MANFCODE('N','T','T'),"NTT DATA Italia, Italy")\
+X(NUD,MANFCODE('N','U','D'),"Nudron IoT Solutions LLP, India")\
 X(NVD,MANFCODE('N','V','D'),"METER")\
 X(NVN,MANFCODE('N','V','N'),"NOVEN ENERGY AND ICT, Turkey")\
 X(NWG,MANFCODE('N','W','G'),"NINGBO WASSER GERAETE, China")\
@@ -1021,7 +1054,7 @@ X(NXG,MANFCODE('N','X','G'),"nexgen consultancy, India")\
 X(NXP,MANFCODE('N','X','P'),"NXP Semiconductors, Netherlands")\
 X(NYG,MANFCODE('N','Y','G'),"Ningbo Yonggang Instrument, China")\
 X(NYN,MANFCODE('N','Y','N'),"Nanjing Yuneng Instrument, China")\
-X(NZR,MANFCODE('N','Z','R'),"Nordwestdeutsche Zaehlerrevision Ing Aug Knemeyer, Germany")\
+X(NZR,MANFCODE('N','Z','R'),"Nordwestdeutsche Zahlerrevision Ing Aug Knemeyer, Germany")\
 X(OAS,MANFCODE('O','A','S'),"Omni Agate Systems, India")\
 X(OBC,MANFCODE('O','B','C'),"shandong oubiao information Technology, China")\
 X(OBE,MANFCODE('O','B','E'),"Obeo, Norway")\
@@ -1040,6 +1073,7 @@ X(ONS,MANFCODE('O','N','S'),"ONUR Elektroteknik, Turkey")\
 X(OPT,MANFCODE('O','P','T'),"Optec, Switzerland")\
 X(ORB,MANFCODE('O','R','B'),"ORBIS Tecnologia Electrica, Spain")\
 X(ORM,MANFCODE('O','R','M'),"Ormazabal, Spain")\
+X(ORN,MANFCODE('O','R','N'),"Orion System LLP, Kazakhstan")\
 X(OSA,MANFCODE('O','S','A'),"Osaki Electric Europe, Japan")\
 X(OSB,MANFCODE('O','S','B'),"Ocea Smart Building, France")\
 X(OSC,MANFCODE('O','S','C'),"Oriental Sales Corporation, India")\
@@ -1110,11 +1144,13 @@ X(PSE,MANFCODE('P','S','E'),"pSenso, Poland")\
 X(PSN,MANFCODE('P','S','N'),"PySENSE, Poland")\
 X(PSS,MANFCODE('P','S','S'),"Part Sanat Sanjesh, Iran")\
 X(PST,MANFCODE('P','S','T'),"PS Tec, South Korea")\
+X(PSY,MANFCODE('P','S','Y'),"PIKK Systems, Germany")\
+X(PTA,MANFCODE('P','T','A'),"PT Alinco, Indonesia")\
 X(PTI,MANFCODE('P','T','I'),"Prolific Technology, Taiwan")\
-X(PTR,MANFCODE('P','T','R'),"Pfiffner Transformatoer, Turkey")\
+X(PTR,MANFCODE('P','T','R'),"Pfiffner TransformatA r, Turkey")\
 X(PUK,MANFCODE('P','U','K'),"Paktim Consulting UK, United Kingdom")\
 X(PUL,MANFCODE('P','U','L'),"NPP Teplovodokhran")\
-X(PVT,MANFCODE('P','V','T'),"Pavo Tasarim Uretim Elektronik Tic, Turkey")\
+X(PVT,MANFCODE('P','V','T'),"Pavo TasarA m A retim Elektronik Tic A A, Turkey")\
 X(PWB,MANFCODE('P','W','B'),"Paul Wegener, Germany")\
 X(PWR,MANFCODE('P','W','R'),"Powrtec, United States of America")\
 X(PXC,MANFCODE('P','X','C'),"Phoenix Contact, Germany")\
@@ -1128,7 +1164,7 @@ X(QSD,MANFCODE('Q','S','D'),"Quicksand, Belgium")\
 X(QTS,MANFCODE('Q','T','S'),"QT systems, Sweden")\
 X(RAC,MANFCODE('R','A','C'),"Michael Rac, Germany")\
 X(RAD,MANFCODE('R','A','D'),"Radiocrafts, Norway")\
-X(RAM,MANFCODE('R','A','M'),"Rossweiner Armaturen und Messgeraete OHG, Germany")\
+X(RAM,MANFCODE('R','A','M'),"Rossweiner Armaturen und Messgerate OHG, Germany")\
 X(RAS,MANFCODE('R','A','S'),"Rubikon Apskaitos Sistemos, Lithuania")\
 X(RAY,MANFCODE('R','A','Y'),"Rayleigh Instruments, United Kingdom")\
 X(RBM,MANFCODE('R','B','M'),"R B M, Italy")\
@@ -1168,7 +1204,7 @@ X(SAC,MANFCODE('S','A','C'),"SACOFGAS, Italy")\
 X(SAE,MANFCODE('S','A','E'),"SAE IT systems, Germany")\
 X(SAG,MANFCODE('S','A','G'),"Sagemcom Energy Telecom, France")\
 X(SAL,MANFCODE('S','A','L'),"Salzer Electronics, India")\
-X(SAM,MANFCODE('S','A','M'),"Siemens OEsterreich AMIS Automated Metering and Information System, Austria")\
+X(SAM,MANFCODE('S','A','M'),"Siemens Osterreich AMIS Automated Metering and Information System, Austria")\
 X(SAN,MANFCODE('S','A','N'),"SANN Stockholm, Sweden")\
 X(SAP,MANFCODE('S','A','P'),"Diehl Metering, Germany")\
 X(SAT,MANFCODE('S','A','T'),"SATEC, Israel")\
@@ -1185,7 +1221,9 @@ X(SDC,MANFCODE('S','D','C'),"SdC Sistemas de Contagem")\
 X(SDM,MANFCODE('S','D','M'),"Shandong Delu Measurement, China")\
 X(SDS,MANFCODE('S','D','S'),"Sitec Elettronica industriale, Italy")\
 X(SEC,MANFCODE('S','E','C'),"Schneider Electric, Canada")\
+X(SED,MANFCODE('S','E','D'),"SenseMi DMCC, United Arab Emirates")\
 X(SEE,MANFCODE('S','E','E'),"El Sewedy Electrometer, Egypt")\
+X(SEG,MANFCODE('S','E','G'),"SenseMi DMCC, United Arab Emirates")\
 X(SEH,MANFCODE('S','E','H'),"SAMRAKSHANA ELECTRICALS, India")\
 X(SEI,MANFCODE('S','E','I'),"Sicom Electronics International, Chile")\
 X(SEK,MANFCODE('S','E','K'),"StroyEnergoKom, Russian Federation")\
@@ -1193,7 +1231,9 @@ X(SEL,MANFCODE('S','E','L'),"Selec Controls, India")\
 X(SEM,MANFCODE('S','E','M'),"Smart Meter Company, Myanmar")\
 X(SEN,MANFCODE('S','E','N'),"Sensus Metering Systems, Germany")\
 X(SEO,MANFCODE('S','E','O'),"SENSOCO Greatech, Germany")\
+X(SES,MANFCODE('S','E','S'),"SenseMi DMCC, United Arab Emirates")\
 X(SET,MANFCODE('S','E','T'),"Sagemcom Energy Telecom, France")\
+X(SEW,MANFCODE('S','E','W'),"SenseMi DMCC, United Arab Emirates")\
 X(SFE,MANFCODE('S','F','E'),"WUHAN SANFRAN ELECTRONICS, China")\
 X(SFI,MANFCODE('S','F','I'),"Siemens DI PA MI, Germany")\
 X(SFR,MANFCODE('S','F','R'),"WUHAN SANFRAN ELECTRONICS, China")\
@@ -1268,6 +1308,7 @@ X(SPX,MANFCODE('S','P','X'),"Sensus Metering Systems, Germany")\
 X(SPZ,MANFCODE('S','P','Z'),"SPowerZ Solutions, India")\
 X(SRE,MANFCODE('S','R','E'),"Guangzhou Sunrise Electronics Development, China")\
 X(SRF,MANFCODE('S','R','F'),"Saraf Industries, India")\
+X(SRI,MANFCODE('S','R','I'),"M K SRINIVASAN SYSTEMS, India")\
 X(SRN,MANFCODE('S','R','N'),"Shandong SARON Intelligent Technology, China")\
 X(SRV,MANFCODE('S','R','V'),"Servic, Ukraine")\
 X(SSE,MANFCODE('S','S','E'),"S T Smart Energy, Austria")\
@@ -1283,6 +1324,7 @@ X(STC,MANFCODE('S','T','C'),"Sunrise Technology, China")\
 X(STD,MANFCODE('S','T','D'),"Stedin, Netherlands")\
 X(STE,MANFCODE('S','T','E'),"Satera Elektrik Elektronik San ve Tic")\
 X(STF,MANFCODE('S','T','F'),"STACKFORCE, Germany")\
+X(STH,MANFCODE('S','T','H'),"Santech, Poland")\
 X(STL,MANFCODE('S','T','L'),"Saudi Technical Group, Saudi Arabia")\
 X(STM,MANFCODE('S','T','M'),"STELMEC, India")\
 X(STN,MANFCODE('S','T','N'),"Hunan Stron Smart, China")\
@@ -1298,7 +1340,7 @@ X(SUM,MANFCODE('S','U','M'),"Sumeru Verrdhe Technologies, India")\
 X(SUN,MANFCODE('S','U','N'),"TIAN JIN SUN ENERGY TECHNOLOGY, China")\
 X(SUP,MANFCODE('S','U','P'),"SUPERMAX COMPONENTS, India")\
 X(SUX,MANFCODE('S','U','X'),"Supermax Components, India")\
-X(SVM,MANFCODE('S','V','M'),"AB Svensk Vaermemaetning SVM")\
+X(SVM,MANFCODE('S','V','M'),"AB Svensk Varmematning SVM")\
 X(SVT,MANFCODE('S','V','T'),"SPUTNIK, Russian Federation")\
 X(SWI,MANFCODE('S','W','I'),"Swistec, Germany")\
 X(SWM,MANFCODE('S','W','M'),"Smart Water Metering, Canada")\
@@ -1307,7 +1349,7 @@ X(SWT,MANFCODE('S','W','T'),"Beijing Swirling Technology, China")\
 X(SYC,MANFCODE('S','Y','C'),"Sycous Leeds Innovation Centre, United Kingdom")\
 X(SYD,MANFCODE('S','Y','D'),"Sydler Electronics, India")\
 X(SYN,MANFCODE('S','Y','N'),"SMSISTEM, Turkey")\
-X(SYR,MANFCODE('S','Y','R'),"SAYRON GLOBAL ENERJAE A AA, Turkey")\
+X(SYR,MANFCODE('S','Y','R'),"SAYRON GLOBAL ENERJA A A, Turkey")\
 X(SYS,MANFCODE('S','Y','S'),"Softwareentwicklung Systemdesign, Austria")\
 X(SYX,MANFCODE('S','Y','X'),"SyxthSense, United Kingdom")\
 X(SZS,MANFCODE('S','Z','S'),"Szerver Szektor Kft, Hungary")\
@@ -1320,7 +1362,7 @@ X(TAU,MANFCODE('T','A','U'),"TARGUS TECHNOLOGIES, India")\
 X(TAY,MANFCODE('T','A','Y'),"Taytech Otomasyon ve Bilisim Teknolojileri Sti, Turkey")\
 X(TAZ,MANFCODE('T','A','Z'),"PoyeshGaran Sahandzaran Tabrizazma, Iran")\
 X(TBN,MANFCODE('T','B','N'),"TBEA Nanjing Intelligent Electric, China")\
-X(TBS,MANFCODE('T','B','S'),"TEBAS END ISI SIS INS TUR SAN VE TIC STI, Turkey")\
+X(TBS,MANFCODE('T','B','S'),"TEBAA END ISI S A NA TUR SAN VE TA C A TA, Turkey")\
 X(TCE,MANFCODE('T','C','E'),"Qingdao iTechene Technologies, China")\
 X(TCH,MANFCODE('T','C','H'),"Techem")\
 X(TCM,MANFCODE('T','C','M'),"TCOM, Serbia")\
@@ -1351,22 +1393,23 @@ X(TIC,MANFCODE('T','I','C'),"TOKYO KEISO, Japan")\
 X(TID,MANFCODE('T','I','D'),"TIDE, South Korea")\
 X(TIG,MANFCODE('T','I','G'),"ZHONGHUAN TIG, China")\
 X(TII,MANFCODE('T','I','I'),"TRIKALA INDUSTRIES, India")\
+X(TII,MANFCODE('T','I','I'),"Pal Mohan Electronics, India")\
 X(TIL,MANFCODE('T','I','L'),"Thermal Integration, United Kingdom")\
 X(TIP,MANFCODE('T','I','P'),"TIP, Germany")\
 X(TIS,MANFCODE('T','I','S'),"Texas Instruments, Hong Kong")\
 X(TIX,MANFCODE('T','I','X'),"Tixi Com")\
 X(TKN,MANFCODE('T','K','N'),"TECHKNAVE, India")\
-X(TKS,MANFCODE('T','K','S'),"Teksan Teknolojik OElcum Sistemleri, Turkey")\
+X(TKS,MANFCODE('T','K','S'),"Teksan Teknolojik Olcum Sistemleri, Turkey")\
 X(TLC,MANFCODE('T','L','C'),"TELECON GALICIA, Spain")\
-X(TLM,MANFCODE('T','L','M'),"Theodor Lange Messgeraete, Germany")\
+X(TLM,MANFCODE('T','L','M'),"Theodor Lange Messgerate, Germany")\
 X(TLR,MANFCODE('T','L','R'),"Telereading, Italy")\
-X(TLS,MANFCODE('T','L','S'),"TLS Energimaetning, Sweden")\
+X(TLS,MANFCODE('T','L','S'),"TLS Energimatning, Sweden")\
 X(TLT,MANFCODE('T','L','T'),"Telecommunication Technologies, Ukraine")\
 X(TLY,MANFCODE('T','L','Y'),"LLC SPE Telemetry, Ukraine")\
 X(TME,MANFCODE('T','M','E'),"TECHNO METERS ELECTRONICS, India")\
 X(TMK,MANFCODE('T','M','K'),"Timi Kosova Sh p k")\
 X(TMS,MANFCODE('T','M','S'),"TEMASS IMALAT, Turkey")\
-X(TMZ,MANFCODE('T','M','Z'),"TMZ Thuringer Mess und Zaehlerwesen Service, Germany")\
+X(TMZ,MANFCODE('T','M','Z'),"TMZ Thuringer Mess und Zahlerwesen Service, Germany")\
 X(TNT,MANFCODE('T','N','T'),"Deltamess DWWF, Germany")\
 X(TOE,MANFCODE('T','O','E'),"Top For Electrical Industries, Egypt")\
 X(TOP,MANFCODE('T','O','P'),"KMB systems, Czech Republic")\
@@ -1392,6 +1435,7 @@ X(TRZ,MANFCODE('T','R','Z'),"TR Group, South Africa")\
 X(TSD,MANFCODE('T','S','D'),"Theobroma Systems Design und Consulting, Austria")\
 X(TSE,MANFCODE('T','S','E'),"Nichi Manufacturing, India")\
 X(TSG,MANFCODE('T','S','G'),"Testo Sensor, Germany")\
+X(TSM,MANFCODE('T','S','M'),"Tatung Smart Meter, Taiwan")\
 X(TSW,MANFCODE('T','S','W'),"T7 WENMAX SDN BHD, Malaysia")\
 X(TTG,MANFCODE('T','T','G'),"Tatung, Taiwan")\
 X(TTM,MANFCODE('T','T','M'),"Toshiba Toko Meter Systems, Japan")\
@@ -1419,6 +1463,7 @@ X(UTI,MANFCODE('U','T','I'),"Utilia, Italy")\
 X(UTL,MANFCODE('U','T','L'),"United Telecoms, India")\
 X(UTS,MANFCODE('U','T','S'),"UNIQUE TECHNOSOLUTIONS, India")\
 X(UTT,MANFCODE('U','T','T'),"UtiliTools, Germany")\
+X(UZM,MANFCODE('U','Z','M'),"YANGI ASR INOVATSIYA, Uzbekistan")\
 X(VAI,MANFCODE('V','A','I'),"Shete Advanced Technologies, India")\
 X(VAL,MANFCODE('V','A','L'),"Valkoder, Bulgaria")\
 X(VAR,MANFCODE('V','A','R'),"VARAAHI ELECTROMECH, India")\
@@ -1433,7 +1478,7 @@ X(VFS,MANFCODE('V','F','S'),"Semas, Serbia")\
 X(VGO,MANFCODE('V','G','O'),"Vango Technologies, Taiwan")\
 X(VIE,MANFCODE('V','I','E'),"Vientech, France")\
 X(VIK,MANFCODE('V','I','K'),"VI KO ELEKTRIK, Turkey")\
-X(VIM,MANFCODE('V','I','M'),"VIEN ENERJI SISTEMLERI SANAYI VE TICARET SIRKETI, Turkey")\
+X(VIM,MANFCODE('V','I','M'),"VA EN ENERJA STEMLERA SANAYA VE TA CARET LA MA TED A A RKETA, Turkey")\
 X(VIN,MANFCODE('V','I','N'),"Vektor innovations, India")\
 X(VIP,MANFCODE('V','I','P'),"VIPA CZ, Czech Republic")\
 X(VIT,MANFCODE('V','I','T'),"Vitir, Norway")\
@@ -1461,7 +1506,7 @@ X(WEH,MANFCODE('W','E','H'),"E Wehrle, Germany")\
 X(WEL,MANFCODE('W','E','L'),"WELLTECH automation, China")\
 X(WEP,MANFCODE('W','E','P'),"Weptech elektronik, Germany")\
 X(WFT,MANFCODE('W','F','T'),"Waft Embedded Circuit Solutions, India")\
-X(WGN,MANFCODE('W','G','N'),"Wasser Geraete, Germany")\
+X(WGN,MANFCODE('W','G','N'),"Wasser Gerate, Germany")\
 X(WGP,MANFCODE('W','G','P'),"GreenPoint, Poland")\
 X(WHU,MANFCODE('W','H','U'),"Wasion Kft, Hungary")\
 X(WIG,MANFCODE('W','I','G'),"Wigersma Sikkema, Netherlands")\
@@ -1469,11 +1514,13 @@ X(WIK,MANFCODE('W','I','K'),"WIKON Kommunikationstechnik, Germany")\
 X(WIN,MANFCODE('W','I','N'),"Windmill Innovations, Netherlands")\
 X(WKL,MANFCODE('W','K','L'),"Shenyang jia DE lian yi energy technology, China")\
 X(WKX,MANFCODE('W','K','X'),"JINING WUKEXING METER, China")\
+X(WMI,MANFCODE('W','M','I'),"Weidmueller, Germany")\
 X(WMO,MANFCODE('W','M','O'),"Westermo Teleindustri, Sweden")\
 X(WNC,MANFCODE('W','N','C'),"wireless netcontrol, Germany")\
 X(WNW,MANFCODE('W','N','W'),"Wistron NeWeb Corporation Marketing Center, Taiwan")\
 X(WOW,MANFCODE('W','O','W'),"Sciknow Techno Solutions, India")\
 X(WPZ,MANFCODE('W','P','Z'),"Weepiez SaS, France")\
+X(WRE,MANFCODE('W','R','E'),"Waaree Smart Meters, India")\
 X(WSD,MANFCODE('W','S','D'),"Yantai Wisdom Electric, China")\
 X(WSE,MANFCODE('W','S','E'),"Wasion Group, China")\
 X(WSG,MANFCODE('W','S','G'),"ZHEJIANG WELLSUN INTELLIGENT TECHNOLOGY, China")\
@@ -1484,7 +1531,7 @@ X(WTL,MANFCODE('W','T','L'),"Wipro Technologies, India")\
 X(WTM,MANFCODE('W','T','M'),"Watertech, Italy")\
 X(WTT,MANFCODE('W','T','T'),"Watertech, Italy")\
 X(WUR,MANFCODE('W','U','R'),"Wurm Elektronische Systeme, Germany")\
-X(WZG,MANFCODE('W','Z','G'),"Neumann Wasserzaehler Glaubitz, Germany")\
+X(WZG,MANFCODE('W','Z','G'),"Neumann Wasserzahler Glaubitz, Germany")\
 X(WZT,MANFCODE('W','Z','T'),"Wizit, South Korea")\
 X(XAO,MANFCODE('X','A','O'),"Info Solution, Italy")\
 X(XEE,MANFCODE('X','E','E'),"XEE Technology, Germany")\
@@ -1499,6 +1546,8 @@ X(XTM,MANFCODE('X','T','M'),"Suntront Tech, China")\
 X(XTR,MANFCODE('X','T','R'),"HENAN SUNTRONT TECH, China")\
 X(XTY,MANFCODE('X','T','Y'),"LianYuanGang Tengyue Electronics Technology")\
 X(XYL,MANFCODE('X','Y','L'),"Sensus Ludwigshafen, Germany")\
+X(XYM,MANFCODE('X','Y','M'),"Ningbo Xingyuan Meter Technology, China")\
+X(YAW,MANFCODE('Y','A','W'),"Yawgi Smart Technology, Morocco")\
 X(YDD,MANFCODE('Y','D','D'),"Jilin Yongda Group")\
 X(YDS,MANFCODE('Y','D','S'),"YIDU Smart Technology Beijing, China")\
 X(YEM,MANFCODE('Y','E','M'),"KYENM TECH, India")\
@@ -1510,6 +1559,7 @@ X(YJZ,MANFCODE('Y','J','Z'),"Zhuhai Yujian Science Technology, China")\
 X(YNE,MANFCODE('Y','N','E'),"YOONO ENERGY TECHNOLOGY JIANGSU, China")\
 X(YNP,MANFCODE('Y','N','P'),"Ningbo Yong Neng Power Technology, China")\
 X(YPP,MANFCODE('Y','P','P'),"YPP, South Korea")\
+X(YPW,MANFCODE('Y','P','W'),"PT POWINT ELECTRIC, Indonesia")\
 X(YSS,MANFCODE('Y','S','S'),"Yellowstone Soft, Germany")\
 X(YTE,MANFCODE('Y','T','E'),"Yuksek Teknoloji, Turkey")\
 X(YTL,MANFCODE('Y','T','L'),"ZheJiang yongtailong electronic, China")\
@@ -1637,6 +1687,7 @@ X(ZZZ,MANFCODE('Z','Z','Z'),"Michael Rac, Germany")\
 #define MANUFACTURER_ARA MANFCODE('A','R','A')
 #define MANUFACTURER_ARC MANFCODE('A','R','C')
 #define MANUFACTURER_ARD MANFCODE('A','R','D')
+#define MANUFACTURER_ARE MANFCODE('A','R','E')
 #define MANUFACTURER_ARF MANFCODE('A','R','F')
 #define MANUFACTURER_ARG MANFCODE('A','R','G')
 #define MANUFACTURER_ARH MANFCODE('A','R','H')
@@ -1696,6 +1747,7 @@ X(ZZZ,MANFCODE('Z','Z','Z'),"Michael Rac, Germany")\
 #define MANUFACTURER_BKT MANFCODE('B','K','T')
 #define MANUFACTURER_BLM MANFCODE('B','L','M')
 #define MANUFACTURER_BLU MANFCODE('B','L','U')
+#define MANUFACTURER_BMA MANFCODE('B','M','A')
 #define MANUFACTURER_BME MANFCODE('B','M','E')
 #define MANUFACTURER_BMI MANFCODE('B','M','I')
 #define MANUFACTURER_BMP MANFCODE('B','M','P')
@@ -1753,6 +1805,7 @@ X(ZZZ,MANFCODE('Z','Z','Z'),"Michael Rac, Germany")\
 #define MANUFACTURER_CEL MANFCODE('C','E','L')
 #define MANUFACTURER_CEM MANFCODE('C','E','M')
 #define MANUFACTURER_CET MANFCODE('C','E','T')
+#define MANUFACTURER_CFL MANFCODE('C','F','L')
 #define MANUFACTURER_CGC MANFCODE('C','G','C')
 #define MANUFACTURER_CGO MANFCODE('C','G','O')
 #define MANUFACTURER_CHA MANFCODE('C','H','A')
@@ -1825,6 +1878,7 @@ X(ZZZ,MANFCODE('Z','Z','Z'),"Michael Rac, Germany")\
 #define MANUFACTURER_DDE MANFCODE('D','D','E')
 #define MANUFACTURER_DDI MANFCODE('D','D','I')
 #define MANUFACTURER_DDL MANFCODE('D','D','L')
+#define MANUFACTURER_DDM MANFCODE('D','D','M')
 #define MANUFACTURER_DEA MANFCODE('D','E','A')
 #define MANUFACTURER_DEC MANFCODE('D','E','C')
 #define MANUFACTURER_DEI MANFCODE('D','E','I')
@@ -1911,18 +1965,23 @@ X(ZZZ,MANFCODE('Z','Z','Z'),"Michael Rac, Germany")\
 #define MANUFACTURER_EFN MANFCODE('E','F','N')
 #define MANUFACTURER_EFR MANFCODE('E','F','R')
 #define MANUFACTURER_EFS MANFCODE('E','F','S')
+#define MANUFACTURER_EFX MANFCODE('E','F','X')
 #define MANUFACTURER_EGA MANFCODE('E','G','A')
 #define MANUFACTURER_EGC MANFCODE('E','G','C')
 #define MANUFACTURER_EGD MANFCODE('E','G','D')
 #define MANUFACTURER_EGM MANFCODE('E','G','M')
+#define MANUFACTURER_EGO MANFCODE('E','G','O')
+#define MANUFACTURER_EGP MANFCODE('E','G','P')
 #define MANUFACTURER_EGT MANFCODE('E','G','T')
 #define MANUFACTURER_EGW MANFCODE('E','G','W')
 #define MANUFACTURER_EGY MANFCODE('E','G','Y')
 #define MANUFACTURER_EHL MANFCODE('E','H','L')
 #define MANUFACTURER_EHS MANFCODE('E','H','S')
+#define MANUFACTURER_EIC MANFCODE('E','I','C')
 #define MANUFACTURER_EIE MANFCODE('E','I','E')
 #define MANUFACTURER_EIG MANFCODE('E','I','G')
 #define MANUFACTURER_EIP MANFCODE('E','I','P')
+#define MANUFACTURER_EIS MANFCODE('E','I','S')
 #define MANUFACTURER_EIT MANFCODE('E','I','T')
 #define MANUFACTURER_EKA MANFCODE('E','K','A')
 #define MANUFACTURER_EKF MANFCODE('E','K','F')
@@ -1941,6 +2000,7 @@ X(ZZZ,MANFCODE('Z','Z','Z'),"Michael Rac, Germany")\
 #define MANUFACTURER_ELR MANFCODE('E','L','R')
 #define MANUFACTURER_ELS MANFCODE('E','L','S')
 #define MANUFACTURER_ELT MANFCODE('E','L','T')
+#define MANUFACTURER_ELU MANFCODE('E','L','U')
 #define MANUFACTURER_ELV MANFCODE('E','L','V')
 #define MANUFACTURER_ELY MANFCODE('E','L','Y')
 #define MANUFACTURER_EMB MANFCODE('E','M','B')
@@ -1963,6 +2023,7 @@ X(ZZZ,MANFCODE('Z','Z','Z'),"Michael Rac, Germany")\
 #define MANUFACTURER_ENH MANFCODE('E','N','H')
 #define MANUFACTURER_ENI MANFCODE('E','N','I')
 #define MANUFACTURER_ENL MANFCODE('E','N','L')
+#define MANUFACTURER_ENM MANFCODE('E','N','M')
 #define MANUFACTURER_ENN MANFCODE('E','N','N')
 #define MANUFACTURER_ENO MANFCODE('E','N','O')
 #define MANUFACTURER_ENP MANFCODE('E','N','P')
@@ -2015,11 +2076,13 @@ X(ZZZ,MANFCODE('Z','Z','Z'),"Michael Rac, Germany")\
 #define MANUFACTURER_EXT MANFCODE('E','X','T')
 #define MANUFACTURER_EYE MANFCODE('E','Y','E')
 #define MANUFACTURER_EYT MANFCODE('E','Y','T')
+#define MANUFACTURER_EZL MANFCODE('E','Z','L')
 #define MANUFACTURER_FAC MANFCODE('F','A','C')
 #define MANUFACTURER_FAE MANFCODE('F','A','E')
 #define MANUFACTURER_FAN MANFCODE('F','A','N')
 #define MANUFACTURER_FAR MANFCODE('F','A','R')
 #define MANUFACTURER_FAS MANFCODE('F','A','S')
+#define MANUFACTURER_FAT MANFCODE('F','A','T')
 #define MANUFACTURER_FED MANFCODE('F','E','D')
 #define MANUFACTURER_FEI MANFCODE('F','E','I')
 #define MANUFACTURER_FEM MANFCODE('F','E','M')
@@ -2048,6 +2111,7 @@ X(ZZZ,MANFCODE('Z','Z','Z'),"Michael Rac, Germany")\
 #define MANUFACTURER_FPR MANFCODE('F','P','R')
 #define MANUFACTURER_FRC MANFCODE('F','R','C')
 #define MANUFACTURER_FRE MANFCODE('F','R','E')
+#define MANUFACTURER_FRT MANFCODE('F','R','T')
 #define MANUFACTURER_FRU MANFCODE('F','R','U')
 #define MANUFACTURER_FSE MANFCODE('F','S','E')
 #define MANUFACTURER_FSP MANFCODE('F','S','P')
@@ -2065,6 +2129,7 @@ X(ZZZ,MANFCODE('Z','Z','Z'),"Michael Rac, Germany")\
 #define MANUFACTURER_GBX MANFCODE('G','B','X')
 #define MANUFACTURER_GCE MANFCODE('G','C','E')
 #define MANUFACTURER_GCG MANFCODE('G','C','G')
+#define MANUFACTURER_GCT MANFCODE('G','C','T')
 #define MANUFACTURER_GCX MANFCODE('G','C','X')
 #define MANUFACTURER_GDC MANFCODE('G','D','C')
 #define MANUFACTURER_GDS MANFCODE('G','D','S')
@@ -2094,6 +2159,7 @@ X(ZZZ,MANFCODE('Z','Z','Z'),"Michael Rac, Germany")\
 #define MANUFACTURER_GNY MANFCODE('G','N','Y')
 #define MANUFACTURER_GOE MANFCODE('G','O','E')
 #define MANUFACTURER_GOM MANFCODE('G','O','M')
+#define MANUFACTURER_GOT MANFCODE('G','O','T')
 #define MANUFACTURER_GPM MANFCODE('G','P','M')
 #define MANUFACTURER_GPT MANFCODE('G','P','T')
 #define MANUFACTURER_GRA MANFCODE('G','R','A')
@@ -2150,6 +2216,7 @@ X(ZZZ,MANFCODE('Z','Z','Z'),"Michael Rac, Germany")\
 #define MANUFACTURER_HKK MANFCODE('H','K','K')
 #define MANUFACTURER_HKT MANFCODE('H','K','T')
 #define MANUFACTURER_HLD MANFCODE('H','L','D')
+#define MANUFACTURER_HLE MANFCODE('H','L','E')
 #define MANUFACTURER_HLT MANFCODE('H','L','T')
 #define MANUFACTURER_HLY MANFCODE('H','L','Y')
 #define MANUFACTURER_HMI MANFCODE('H','M','I')
@@ -2163,6 +2230,7 @@ X(ZZZ,MANFCODE('Z','Z','Z'),"Michael Rac, Germany")\
 #define MANUFACTURER_HOE MANFCODE('H','O','E')
 #define MANUFACTURER_HOL MANFCODE('H','O','L')
 #define MANUFACTURER_HON MANFCODE('H','O','N')
+#define MANUFACTURER_HOP MANFCODE('H','O','P')
 #define MANUFACTURER_HOY MANFCODE('H','O','Y')
 #define MANUFACTURER_HPL MANFCODE('H','P','L')
 #define MANUFACTURER_HPM MANFCODE('H','P','M')
@@ -2178,6 +2246,7 @@ X(ZZZ,MANFCODE('Z','Z','Z'),"Michael Rac, Germany")\
 #define MANUFACTURER_HTI MANFCODE('H','T','I')
 #define MANUFACTURER_HTL MANFCODE('H','T','L')
 #define MANUFACTURER_HTS MANFCODE('H','T','S')
+#define MANUFACTURER_HTY MANFCODE('H','T','Y')
 #define MANUFACTURER_HUK MANFCODE('H','U','K')
 #define MANUFACTURER_HUM MANFCODE('H','U','M')
 #define MANUFACTURER_HVG MANFCODE('H','V','G')
@@ -2225,6 +2294,7 @@ X(ZZZ,MANFCODE('Z','Z','Z'),"Michael Rac, Germany")\
 #define MANUFACTURER_IGR MANFCODE('I','G','R')
 #define MANUFACTURER_IGS MANFCODE('I','G','S')
 #define MANUFACTURER_IHM MANFCODE('I','H','M')
+#define MANUFACTURER_IID MANFCODE('I','I','D')
 #define MANUFACTURER_IID MANFCODE('I','I','D')
 #define MANUFACTURER_IIF MANFCODE('I','I','F')
 #define MANUFACTURER_IJE MANFCODE('I','J','E')
@@ -2306,6 +2376,7 @@ X(ZZZ,MANFCODE('Z','Z','Z'),"Michael Rac, Germany")\
 #define MANUFACTURER_JKW MANFCODE('J','K','W')
 #define MANUFACTURER_JMA MANFCODE('J','M','A')
 #define MANUFACTURER_JMT MANFCODE('J','M','T')
+#define MANUFACTURER_JMV MANFCODE('J','M','V')
 #define MANUFACTURER_JNC MANFCODE('J','N','C')
 #define MANUFACTURER_JND MANFCODE('J','N','D')
 #define MANUFACTURER_JNJ MANFCODE('J','N','J')
@@ -2318,6 +2389,7 @@ X(ZZZ,MANFCODE('Z','Z','Z'),"Michael Rac, Germany")\
 #define MANUFACTURER_JWH MANFCODE('J','W','H')
 #define MANUFACTURER_JWR MANFCODE('J','W','R')
 #define MANUFACTURER_JWS MANFCODE('J','W','S')
+#define MANUFACTURER_JXH MANFCODE('J','X','H')
 #define MANUFACTURER_JYS MANFCODE('J','Y','S')
 #define MANUFACTURER_KAA MANFCODE('K','A','A')
 #define MANUFACTURER_KAC MANFCODE('K','A','C')
@@ -2333,6 +2405,7 @@ X(ZZZ,MANFCODE('Z','Z','Z'),"Michael Rac, Germany")\
 #define MANUFACTURER_KBN MANFCODE('K','B','N')
 #define MANUFACTURER_KDN MANFCODE('K','D','N')
 #define MANUFACTURER_KDS MANFCODE('K','D','S')
+#define MANUFACTURER_KEA MANFCODE('K','E','A')
 #define MANUFACTURER_KEE MANFCODE('K','E','E')
 #define MANUFACTURER_KEL MANFCODE('K','E','L')
 #define MANUFACTURER_KER MANFCODE('K','E','R')
@@ -2364,8 +2437,10 @@ X(ZZZ,MANFCODE('Z','Z','Z'),"Michael Rac, Germany")\
 #define MANUFACTURER_KTC MANFCODE('K','T','C')
 #define MANUFACTURER_KTL MANFCODE('K','T','L')
 #define MANUFACTURER_KUK MANFCODE('K','U','K')
+#define MANUFACTURER_KUL MANFCODE('K','U','L')
 #define MANUFACTURER_KVS MANFCODE('K','V','S')
 #define MANUFACTURER_KWH MANFCODE('K','W','H')
+#define MANUFACTURER_KYN MANFCODE('K','Y','N')
 #define MANUFACTURER_KZK MANFCODE('K','Z','K')
 #define MANUFACTURER_LAC MANFCODE('L','A','C')
 #define MANUFACTURER_LAI MANFCODE('L','A','I')
@@ -2408,6 +2483,8 @@ X(ZZZ,MANFCODE('Z','Z','Z'),"Michael Rac, Germany")\
 #define MANUFACTURER_LOB MANFCODE('L','O','B')
 #define MANUFACTURER_LOG MANFCODE('L','O','G')
 #define MANUFACTURER_LOV MANFCODE('L','O','V')
+#define MANUFACTURER_LQT MANFCODE('L','Q','T')
+#define MANUFACTURER_LRS MANFCODE('L','R','S')
 #define MANUFACTURER_LSC MANFCODE('L','S','C')
 #define MANUFACTURER_LSE MANFCODE('L','S','E')
 #define MANUFACTURER_LSK MANFCODE('L','S','K')
@@ -2416,6 +2493,7 @@ X(ZZZ,MANFCODE('Z','Z','Z'),"Michael Rac, Germany")\
 #define MANUFACTURER_LTO MANFCODE('L','T','O')
 #define MANUFACTURER_LUG MANFCODE('L','U','G')
 #define MANUFACTURER_LUN MANFCODE('L','U','N')
+#define MANUFACTURER_LUP MANFCODE('L','U','P')
 #define MANUFACTURER_LUP MANFCODE('L','U','P')
 #define MANUFACTURER_LWT MANFCODE('L','W','T')
 #define MANUFACTURER_LYE MANFCODE('L','Y','E')
@@ -2436,6 +2514,7 @@ X(ZZZ,MANFCODE('Z','Z','Z'),"Michael Rac, Germany")\
 #define MANUFACTURER_MCR MANFCODE('M','C','R')
 #define MANUFACTURER_MCS MANFCODE('M','C','S')
 #define MANUFACTURER_MCV MANFCODE('M','C','V')
+#define MANUFACTURER_MCX MANFCODE('M','C','X')
 #define MANUFACTURER_MDA MANFCODE('M','D','A')
 #define MANUFACTURER_MDE MANFCODE('M','D','E')
 #define MANUFACTURER_MDL MANFCODE('M','D','L')
@@ -2498,6 +2577,7 @@ X(ZZZ,MANFCODE('Z','Z','Z'),"Michael Rac, Germany")\
 #define MANUFACTURER_MTC MANFCODE('M','T','C')
 #define MANUFACTURER_MTD MANFCODE('M','T','D')
 #define MANUFACTURER_MTE MANFCODE('M','T','E')
+#define MANUFACTURER_MTG MANFCODE('M','T','G')
 #define MANUFACTURER_MTH MANFCODE('M','T','H')
 #define MANUFACTURER_MTI MANFCODE('M','T','I')
 #define MANUFACTURER_MTL MANFCODE('M','T','L')
@@ -2551,9 +2631,12 @@ X(ZZZ,MANFCODE('Z','Z','Z'),"Michael Rac, Germany")\
 #define MANUFACTURER_NRN MANFCODE('N','R','N')
 #define MANUFACTURER_NRT MANFCODE('N','R','T')
 #define MANUFACTURER_NSE MANFCODE('N','S','E')
+#define MANUFACTURER_NSN MANFCODE('N','S','N')
 #define MANUFACTURER_NSP MANFCODE('N','S','P')
 #define MANUFACTURER_NTC MANFCODE('N','T','C')
 #define MANUFACTURER_NTM MANFCODE('N','T','M')
+#define MANUFACTURER_NTT MANFCODE('N','T','T')
+#define MANUFACTURER_NUD MANFCODE('N','U','D')
 #define MANUFACTURER_NVD MANFCODE('N','V','D')
 #define MANUFACTURER_NVN MANFCODE('N','V','N')
 #define MANUFACTURER_NWG MANFCODE('N','W','G')
@@ -2581,6 +2664,7 @@ X(ZZZ,MANFCODE('Z','Z','Z'),"Michael Rac, Germany")\
 #define MANUFACTURER_OPT MANFCODE('O','P','T')
 #define MANUFACTURER_ORB MANFCODE('O','R','B')
 #define MANUFACTURER_ORM MANFCODE('O','R','M')
+#define MANUFACTURER_ORN MANFCODE('O','R','N')
 #define MANUFACTURER_OSA MANFCODE('O','S','A')
 #define MANUFACTURER_OSB MANFCODE('O','S','B')
 #define MANUFACTURER_OSC MANFCODE('O','S','C')
@@ -2651,6 +2735,8 @@ X(ZZZ,MANFCODE('Z','Z','Z'),"Michael Rac, Germany")\
 #define MANUFACTURER_PSN MANFCODE('P','S','N')
 #define MANUFACTURER_PSS MANFCODE('P','S','S')
 #define MANUFACTURER_PST MANFCODE('P','S','T')
+#define MANUFACTURER_PSY MANFCODE('P','S','Y')
+#define MANUFACTURER_PTA MANFCODE('P','T','A')
 #define MANUFACTURER_PTI MANFCODE('P','T','I')
 #define MANUFACTURER_PTR MANFCODE('P','T','R')
 #define MANUFACTURER_PUK MANFCODE('P','U','K')
@@ -2726,7 +2812,9 @@ X(ZZZ,MANFCODE('Z','Z','Z'),"Michael Rac, Germany")\
 #define MANUFACTURER_SDM MANFCODE('S','D','M')
 #define MANUFACTURER_SDS MANFCODE('S','D','S')
 #define MANUFACTURER_SEC MANFCODE('S','E','C')
+#define MANUFACTURER_SED MANFCODE('S','E','D')
 #define MANUFACTURER_SEE MANFCODE('S','E','E')
+#define MANUFACTURER_SEG MANFCODE('S','E','G')
 #define MANUFACTURER_SEH MANFCODE('S','E','H')
 #define MANUFACTURER_SEI MANFCODE('S','E','I')
 #define MANUFACTURER_SEK MANFCODE('S','E','K')
@@ -2734,7 +2822,9 @@ X(ZZZ,MANFCODE('Z','Z','Z'),"Michael Rac, Germany")\
 #define MANUFACTURER_SEM MANFCODE('S','E','M')
 #define MANUFACTURER_SEN MANFCODE('S','E','N')
 #define MANUFACTURER_SEO MANFCODE('S','E','O')
+#define MANUFACTURER_SES MANFCODE('S','E','S')
 #define MANUFACTURER_SET MANFCODE('S','E','T')
+#define MANUFACTURER_SEW MANFCODE('S','E','W')
 #define MANUFACTURER_SFE MANFCODE('S','F','E')
 #define MANUFACTURER_SFI MANFCODE('S','F','I')
 #define MANUFACTURER_SFR MANFCODE('S','F','R')
@@ -2809,6 +2899,7 @@ X(ZZZ,MANFCODE('Z','Z','Z'),"Michael Rac, Germany")\
 #define MANUFACTURER_SPZ MANFCODE('S','P','Z')
 #define MANUFACTURER_SRE MANFCODE('S','R','E')
 #define MANUFACTURER_SRF MANFCODE('S','R','F')
+#define MANUFACTURER_SRI MANFCODE('S','R','I')
 #define MANUFACTURER_SRN MANFCODE('S','R','N')
 #define MANUFACTURER_SRV MANFCODE('S','R','V')
 #define MANUFACTURER_SSE MANFCODE('S','S','E')
@@ -2824,6 +2915,7 @@ X(ZZZ,MANFCODE('Z','Z','Z'),"Michael Rac, Germany")\
 #define MANUFACTURER_STD MANFCODE('S','T','D')
 #define MANUFACTURER_STE MANFCODE('S','T','E')
 #define MANUFACTURER_STF MANFCODE('S','T','F')
+#define MANUFACTURER_STH MANFCODE('S','T','H')
 #define MANUFACTURER_STL MANFCODE('S','T','L')
 #define MANUFACTURER_STM MANFCODE('S','T','M')
 #define MANUFACTURER_STN MANFCODE('S','T','N')
@@ -2892,6 +2984,7 @@ X(ZZZ,MANFCODE('Z','Z','Z'),"Michael Rac, Germany")\
 #define MANUFACTURER_TID MANFCODE('T','I','D')
 #define MANUFACTURER_TIG MANFCODE('T','I','G')
 #define MANUFACTURER_TII MANFCODE('T','I','I')
+#define MANUFACTURER_TII MANFCODE('T','I','I')
 #define MANUFACTURER_TIL MANFCODE('T','I','L')
 #define MANUFACTURER_TIP MANFCODE('T','I','P')
 #define MANUFACTURER_TIS MANFCODE('T','I','S')
@@ -2933,6 +3026,7 @@ X(ZZZ,MANFCODE('Z','Z','Z'),"Michael Rac, Germany")\
 #define MANUFACTURER_TSD MANFCODE('T','S','D')
 #define MANUFACTURER_TSE MANFCODE('T','S','E')
 #define MANUFACTURER_TSG MANFCODE('T','S','G')
+#define MANUFACTURER_TSM MANFCODE('T','S','M')
 #define MANUFACTURER_TSW MANFCODE('T','S','W')
 #define MANUFACTURER_TTG MANFCODE('T','T','G')
 #define MANUFACTURER_TTM MANFCODE('T','T','M')
@@ -2960,6 +3054,7 @@ X(ZZZ,MANFCODE('Z','Z','Z'),"Michael Rac, Germany")\
 #define MANUFACTURER_UTL MANFCODE('U','T','L')
 #define MANUFACTURER_UTS MANFCODE('U','T','S')
 #define MANUFACTURER_UTT MANFCODE('U','T','T')
+#define MANUFACTURER_UZM MANFCODE('U','Z','M')
 #define MANUFACTURER_VAI MANFCODE('V','A','I')
 #define MANUFACTURER_VAL MANFCODE('V','A','L')
 #define MANUFACTURER_VAR MANFCODE('V','A','R')
@@ -3010,11 +3105,13 @@ X(ZZZ,MANFCODE('Z','Z','Z'),"Michael Rac, Germany")\
 #define MANUFACTURER_WIN MANFCODE('W','I','N')
 #define MANUFACTURER_WKL MANFCODE('W','K','L')
 #define MANUFACTURER_WKX MANFCODE('W','K','X')
+#define MANUFACTURER_WMI MANFCODE('W','M','I')
 #define MANUFACTURER_WMO MANFCODE('W','M','O')
 #define MANUFACTURER_WNC MANFCODE('W','N','C')
 #define MANUFACTURER_WNW MANFCODE('W','N','W')
 #define MANUFACTURER_WOW MANFCODE('W','O','W')
 #define MANUFACTURER_WPZ MANFCODE('W','P','Z')
+#define MANUFACTURER_WRE MANFCODE('W','R','E')
 #define MANUFACTURER_WSD MANFCODE('W','S','D')
 #define MANUFACTURER_WSE MANFCODE('W','S','E')
 #define MANUFACTURER_WSG MANFCODE('W','S','G')
@@ -3040,6 +3137,8 @@ X(ZZZ,MANFCODE('Z','Z','Z'),"Michael Rac, Germany")\
 #define MANUFACTURER_XTR MANFCODE('X','T','R')
 #define MANUFACTURER_XTY MANFCODE('X','T','Y')
 #define MANUFACTURER_XYL MANFCODE('X','Y','L')
+#define MANUFACTURER_XYM MANFCODE('X','Y','M')
+#define MANUFACTURER_YAW MANFCODE('Y','A','W')
 #define MANUFACTURER_YDD MANFCODE('Y','D','D')
 #define MANUFACTURER_YDS MANFCODE('Y','D','S')
 #define MANUFACTURER_YEM MANFCODE('Y','E','M')
@@ -3051,6 +3150,7 @@ X(ZZZ,MANFCODE('Z','Z','Z'),"Michael Rac, Germany")\
 #define MANUFACTURER_YNE MANFCODE('Y','N','E')
 #define MANUFACTURER_YNP MANFCODE('Y','N','P')
 #define MANUFACTURER_YPP MANFCODE('Y','P','P')
+#define MANUFACTURER_YPW MANFCODE('Y','P','W')
 #define MANUFACTURER_YSS MANFCODE('Y','S','S')
 #define MANUFACTURER_YTE MANFCODE('Y','T','E')
 #define MANUFACTURER_YTL MANFCODE('Y','T','L')
