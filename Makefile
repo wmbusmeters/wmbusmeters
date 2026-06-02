@@ -152,7 +152,7 @@ CXXFLAGS +=\
 
 # Additional fedora rpm package build flags
 # -O2 -flto=auto -ffat-lto-objects -fexceptions -g -grecord-gcc-switches -pipe -Wall -Werror=format-security -Wp,-D_FORTIFY_SOURCE=2 -Wp,-D_GLIBCXX_ASSERTIONS -fstack-protector-strong -mtune=generic -fasynchronous-unwind-tables -fstack-clash-protection -fcf-protection
-CXXFLAGS += -I$(BUILD) $(LIBXML_CFLAGS) $(LIBRTLSDR_CFLAGS) $(LIBUSB_CFLAGS) $(COLLECT_FLAGS)
+CXXFLAGS += -I$(BUILD) -Isrc $(LIBXML_CFLAGS) $(LIBRTLSDR_CFLAGS) $(LIBUSB_CFLAGS) $(COLLECT_FLAGS)
 LDFLAGS  ?= $(DEBUG_LDFLAGS)
 LDFLAGS  += $(LIBXML_LIBS) $(LIBRTLSDR_LIBS) $(LIBUSB_LIBS)
 
@@ -166,6 +166,9 @@ $(BUILD)/%.o: src/%.cc $(wildcard src/%.h)
 
 $(BUILD)/%.o: src/%.c $(wildcard src/%.h)
 	$(CXX) -fpermissive $(CXXFLAGS) $< -MMD -c -o $@
+
+$(BUILD)/%.o: src/crypto/%.cc $(wildcard src/crypto/%.h)
+	$(CXX) $(CXXFLAGS) $< -MMD -c -o $@
 
 PROG_OBJS:=\
 	$(BUILD)/access_check.o \

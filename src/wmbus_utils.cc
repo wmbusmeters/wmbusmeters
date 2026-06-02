@@ -17,9 +17,10 @@
 
 #include"always.h"
 #include"log.h"
-#include"aes.h"
 #include"util.h"
 #include"wmbus.h"
+
+#include"crypto/aes.h"
 
 #include<assert.h>
 #include<memory.h>

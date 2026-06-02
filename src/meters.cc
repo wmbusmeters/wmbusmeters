@@ -17,7 +17,6 @@
 
 #include"bus.h"
 #include"config.h"
-#include"crc16.h"
 #include"drivers.h"
 #include"driver_dynamic.h"
 #include"manufacturer_specificities.h"
@@ -26,6 +25,8 @@
 #include"units.h"
 #include"wmbus.h"
 #include"wmbus_utils.h"
+
+#include"crypto/crc16.h"
 
 #include<assert.h>
 #include<algorithm>

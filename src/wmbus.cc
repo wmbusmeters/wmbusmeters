@@ -16,16 +16,18 @@
 */
 
 #include"always.h"
-#include"crc16.h"
 #include"log.h"
-#include"aescmac.h"
-#include"sha256.h"
 #include"timings.h"
 #include"wmbus.h"
 #include"wmbus_common_implementation.h"
 #include"wmbus_utils.h"
 #include"dvparser.h"
 #include"manufacturer_specificities.h"
+
+#include"crypto/crc16.h"
+#include"crypto/aescmac.h"
+#include"crypto/sha256.h"
+
 #include<assert.h>
 #include<cmath>
 #include<semaphore.h>
