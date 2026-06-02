@@ -16,11 +16,8 @@
 */
 
 #include"address.h"
-#include"aes.h"
-#include"aescmac.h"
 #include"cmdline.h"
 #include"config.h"
-#include"crc16.h"
 #include"drivers.h"
 #include"formula_implementation.h"
 #include"manufacturers.h"
@@ -32,6 +29,10 @@
 #include"wmbus.h"
 #include"dvparser.h"
 #include"xmq.h"
+
+#include"crypto/aes.h"
+#include"crypto/aescmac.h"
+#include"crypto/crc16.h"
 
 #include<assert.h>
 #include<string.h>

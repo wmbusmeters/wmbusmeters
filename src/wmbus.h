@@ -620,6 +620,7 @@ private:
     bool parse_TPL_78(std::vector<uchar>::iterator &pos);
     bool parse_TPL_79(std::vector<uchar>::iterator &pos);
     bool parse_TPL_7A(std::vector<uchar>::iterator &pos);
+    bool parse_TPL_7B(std::vector<uchar>::iterator &pos);
     bool alreadyDecryptedCBC(std::vector<uchar>::iterator &pos);
     bool potentiallyDecrypt(std::vector<uchar>::iterator &pos);
     bool parseTPLConfig(std::vector<uchar>::iterator &pos);

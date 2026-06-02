@@ -16,11 +16,12 @@
 */
 
 #include"always.h"
-#include"crc16.h"
 #include"log.h"
 #include"util.h"
 #include"dvparser.h"
 #include"wmbus.h"
+
+#include "crypto/crc16.h"
 
 #include<cassert>
 #include<cmath>
@@ -1384,12 +1385,16 @@ bool parseDV(Telegram *t,
         }
     }
 
-    uint16_t hash = crc16_EN13757(safeButUnsafeVectorPtr(format_bytes), format_bytes.size());
-
     if (data_has_difvifs) {
-        if (hash_to_format_.count(hash) == 0) {
-            hash_to_format_[hash] = format_bytes;
-            debug("(dvparser) found new format \"%s\" with hash %x, remembering!\n", bin2hex(format_bytes).c_str(), hash);
+        size_t format_bytes_len = format_bytes.size();
+
+        if (format_bytes_len != 0) {
+            uint16_t hash = crc16_EN13757(safeButUnsafeVectorPtr(format_bytes), format_bytes_len);
+                
+            if (hash_to_format_.count(hash) == 0) {
+                hash_to_format_[hash] = format_bytes;
+                debug("(dvparser) found new format \"%s\" with hash %x, remembering!\n", bin2hex(format_bytes).c_str(), hash);
+            }
         }
     }
 
