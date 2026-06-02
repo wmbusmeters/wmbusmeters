@@ -1112,6 +1112,76 @@ test {
     fields   = 'KadenD10;23800604;TAMPERING;0;1111-11-11 11:11.11'
 }
 test {
+    comment  = 'KAM,1c,04 - Compact Telegram'
+    args     = 'kamheat_1c_04 kamheat 78152801 NOKEY'
+    telegram = 4F442D2C012815781C048D207171E76322BE7679008430051113690B0100C1BC020090D40100A925040000000000000000000000B929BF28100A0100D81A04000000000000000000390000002A172912
+    json     = '{"_":"telegram","media":"heat","meter":"kamheat","name":"kamheat_1c_04","id":"78152801","t1_temperature_c":59.3,"t2_temperature_c":46.49,"target_date":"2021-08-31","target_energy_kwh":68112,"target_volume_m3":2690.16,"target_volume_subunit1_m3":0,"target_volume_subunit2_m3":0,"total_energy_consumption_kwh":68457,"total_volume_m3":2717.85,"total_volume_subunit1_m3":0,"total_volume_subunit2_m3":0,"va_counter":179393,"vb_counter":119952,"volume_flow_m3h":0.057,"enhanced_id":"1311","meter_date":"2021-09-25","status":"OK","timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'kamheat_1c_04;78152801;68457;2717.85;OK;1111-11-11 11:11.11'
+}
+test {
+    comment  = 'KAM,1c,04 - Long Telegram'
+    args     = 'kamheat_1c_04 kamheat 78152801 NOKEY'
+    telegram = 7A442D2C012815781C048D206C70E7632234467802F9FF1511130406690B010004EEFF07C1BC020004EEFF0890D401000414A925040084401400000000848040140000000002FD170000026CB929426CBF284406100A01004414D81A0400C4401400000000C480401400000000043B3900000002592A17025D2912
+    json     = '{"_":"telegram","media":"heat","meter":"kamheat","name":"kamheat_1c_04","id":"78152801","t1_temperature_c":59.3,"t2_temperature_c":46.49,"target_date":"2021-08-31","target_energy_kwh":68112,"target_volume_m3":2690.16,"target_volume_subunit1_m3":0,"target_volume_subunit2_m3":0,"total_energy_consumption_kwh":68457,"total_volume_m3":2717.85,"total_volume_subunit1_m3":0,"total_volume_subunit2_m3":0,"va_counter":179393,"vb_counter":119952,"volume_flow_m3h":0.057,"enhanced_id":"1311","meter_date":"2021-09-25","status":"OK","timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'kamheat_1c_04;78152801;68457;2717.85;OK;1111-11-11 11:11.11'
+}
+test {
+    comment  = 'KAM,39,04 - Compact Telegram'
+    args     = 'kamheat_39_04 kamheat 79806477 NOKEY'
+    telegram = 5B442D2C7764807939048D20870055322006F779A2E76FFD000000000000000000000000000000000000000000000000000000000000000000000000000000000000000060000100892B00000000000000000000000000000000812B
+    json     = '{"_":"telegram","media":"heat","meter":"kamheat","name":"kamheat_39_04","id":"79806477","forward_energy_m3c":0,"max_power_kw":0,"return_energy_m3c":0,"t1_temperature_c":0,"t2_temperature_c":0,"target_date":"2020-11-01","target_energy_kwh":0,"target_volume_m3":0,"target_volume_subunit1_m3":0,"target_volume_subunit2_m3":0,"total_energy_consumption_kwh":0,"total_volume_m3":0,"total_volume_subunit1_m3":0,"total_volume_subunit2_m3":0,"volume_flow_m3h":0,"meter_date":"2020-11-09","status":"SENSOR_T1_BELOW_MEASURING_RANGE SENSOR_T2_BELOW_MEASURING_RANGE V1_COMMUNICATION_ERROR","timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'kamheat_39_04;79806477;0;0;SENSOR_T1_BELOW_MEASURING_RANGE SENSOR_T2_BELOW_MEASURING_RANGE V1_COMMUNICATION_ERROR;1111-11-11 11:11.11'
+}
+test {
+    comment  = 'KAM,39,04 - Long Telegram'
+    args     = 'kamheat_39_04 kamheat 79806477 NOKEY'
+    telegram = 88442D2C7764807939048D20864051322084C178040F0000000004FF070000000004FF0800000000041400000000844014000000008480401400000000043B0000000002590000025D0000142D0000000084100F0000000084200F0000000004FF2260000100026C892B440F00000000441400000000C4401400000000C480401400000000426C812B
+    json     = '{"_":"telegram","media":"heat","meter":"kamheat","name":"kamheat_39_04","id":"79806477","forward_energy_m3c":0,"max_power_kw":0,"return_energy_m3c":0,"t1_temperature_c":0,"t2_temperature_c":0,"target_date":"2020-11-01","target_energy_kwh":0,"target_volume_m3":0,"target_volume_subunit1_m3":0,"target_volume_subunit2_m3":0,"total_energy_consumption_kwh":0,"total_volume_m3":0,"total_volume_subunit1_m3":0,"total_volume_subunit2_m3":0,"volume_flow_m3h":0,"meter_date":"2020-11-09","status":"SENSOR_T1_BELOW_MEASURING_RANGE SENSOR_T2_BELOW_MEASURING_RANGE V1_COMMUNICATION_ERROR","timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'kamheat_39_04;79806477;0;0;SENSOR_T1_BELOW_MEASURING_RANGE SENSOR_T2_BELOW_MEASURING_RANGE V1_COMMUNICATION_ERROR;1111-11-11 11:11.11'
+}
+test {
+    comment  = 'KAM,34,0c - Compact Telegram'
+    args     = 'kamheat_34_0c kamheat 71054899 NOKEY'
+    telegram = 3F442D2C99480571340C8D201B728C8322BE3D794DB3E88DAF7D000065560200D7E70100CC7A050000000000810C930D00000000DF21AF7D0000CC7A0500C121
+    json     = '{"_":"telegram","media":"heat volume at inlet","meter":"kamheat","name":"kamheat_34_0c","id":"71054899","forward_energy_m3c":153189,"return_energy_m3c":124887,"t1_temperature_c":32.01,"t2_temperature_c":34.75,"target_date":"2022-01-01","target_energy_kwh":32175,"target_volume_m3":3591.16,"total_energy_consumption_kwh":32175,"total_volume_m3":3591.16,"volume_flow_m3h":0,"meter_date":"2022-01-31","status":"OK","timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'kamheat_34_0c;71054899;32175;3591.16;OK;1111-11-11 11:11.11'
+}
+test {
+    comment  = 'KAM,34,0c - Long Telegram'
+    args     = 'kamheat_34_0c kamheat 71054899 NOKEY'
+    telegram = 56442D2C99480571340C8D2019708C8322C88F780406AF7D000004FF076556020004FF08D7E701000414CC7A0500043B0000000002598F0C025D920D04FF2200000000026CDF214406AF7D00004414CC7A0500426CC121
+    json     = '{"_":"telegram","media":"heat volume at inlet","meter":"kamheat","name":"kamheat_34_0c","id":"71054899","forward_energy_m3c":153189,"return_energy_m3c":124887,"t1_temperature_c":32.15,"t2_temperature_c":34.74,"target_date":"2022-01-01","target_energy_kwh":32175,"target_volume_m3":3591.16,"total_energy_consumption_kwh":32175,"total_volume_m3":3591.16,"volume_flow_m3h":0,"meter_date":"2022-01-31","status":"OK","timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'kamheat_34_0c;71054899;32175;3591.16;OK;1111-11-11 11:11.11'
+}
+test {
+    comment  = 'KAM,30,0c - Compact Telegram'
+    args     = 'kamheat_30_0c kamheat 67051653 NOKEY'
+    telegram = 25442D2C53160567300C8D2092C155F824389079C252C47190DE00E9DD0034EE171F33000000
+    json     = '{"_":"telegram","media":"heat volume at inlet","meter":"kamheat","name":"kamheat_30_0c","id":"67051653","power_kw":0,"target_date":"2024-03-31","target_energy_kwh":15780.277778,"total_energy_consumption_kwh":15826.666667,"total_volume_m3":1568.308,"status":"OK","timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'kamheat_30_0c;67051653;15826.666667;1568.308;OK;1111-11-11 11:11.11'
+}
+test {
+    comment  = 'KAM,30,0c - Long Telegram'
+    args     = 'kamheat_30_0c kamheat 67051653 NOKEY'
+    telegram = 2E442D2C53160567300C8D2093D055F824AD3A78030E90DE00430EE9DD00031334EE17426C1F33022D000001FF2100
+    json     = '{"_":"telegram","media":"heat volume at inlet","meter":"kamheat","name":"kamheat_30_0c","id":"67051653","power_kw":0,"target_date":"2024-03-31","target_energy_kwh":15780.277778,"total_energy_consumption_kwh":15826.666667,"total_volume_m3":1568.308,"status":"OK","timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'kamheat_30_0c;67051653;15826.666667;1568.308;OK;1111-11-11 11:11.11'
+}
+test {
+    comment  = 'KAM,30,04 - Compact Telegram'
+    args     = 'kamheat_30_04 kamheat 67947613 NOKEY'
+    telegram = 25442D2C1376946730048D20E9F1A70B20154D79E7F1887F8E0100000000CA0900FFFF010000
+    json     = '{"_":"telegram","media":"heat","meter":"kamheat","name":"kamheat_30_04","id":"67947613","power_kw":0.1,"target_date":"2128-03-31","target_energy_kwh":0,"total_energy_consumption_kwh":398,"total_volume_m3":25.06,"status":"OK","timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'kamheat_30_04;67947613;398;25.06;OK;1111-11-11 11:11.11'
+}
+test {
+    comment  = 'KAM,30,04 - Long Telegram'
+    args     = 'kamheat_30_04 kamheat 67947613 NOKEY'
+    telegram = 2E442D2C1376946730048D20EA00A80B20E1347803068E010043060000000314CA0900426CFFFF022D010001FF2100
+    json     = '{"_":"telegram","media":"heat","meter":"kamheat","name":"kamheat_30_04","id":"67947613","power_kw":0.1,"target_date":"2128-03-31","target_energy_kwh":0,"total_energy_consumption_kwh":398,"total_volume_m3":25.06,"status":"OK","timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'kamheat_30_04;67947613;398;25.06;OK;1111-11-11 11:11.11'
+}
+test {
     args     = 'Kamstrup_MC303_Heat_AND_COOLING kamheat 30303030 NOKEY'
     telegram = 68888868083072303030302d2c400d0000000004069a00000004863c0000000004146d0f000004ff077205000004ff08ec0400000322890a0033220000000259720b025d040b02616e00022d0e00122db400023b6804123b7a0402ff22000044060000000044863c0000000044140000000044ff070000000044ff0800000000522d0000523b0000426c00006C16
     json     = '{"_":"telegram","media":"heat/cooling load","meter":"kamheat","name":"Kamstrup_MC303_Heat_AND_COOLING","id":"30303030","flow_return_temperature_difference_c":1.1,"forward_energy_m3c":1394,"max_flow_m3h":1.146,"max_power_kw":18,"on_time_h":2697,"on_time_at_error_h":0,"power_kw":1.4,"return_energy_m3c":1260,"t1_temperature_c":29.3,"t2_temperature_c":28.2,"target_energy_kwh":0,"target_volume_m3":0,"total_energy_backward_kwh":0,"total_energy_consumption_kwh":154,"total_volume_m3":39.49,"volume_flow_m3h":1.128,"status":"OK","target_date":"1999-11-30","timestamp":"1111-11-11T11:11:11Z"}'
@@ -1520,12 +1590,14 @@ test {
     fields   = 'NZR1;17911459;OK;null;1111-11-11 11:11.11'
 }
 test {
+    comment  = 'Compact Frame'
     args     = 'myomnipower omnipower 32666857 NOKEY'
-    telegram = 2D442D2C5768663230028D20E4E2C81C20878C78_04041A03000004843C00000000042B0300000004AB3C00000000,27442D2C5768663230028D20E900C91C2011BA79138CCCFB_1A030000000000000300000000000000
+    telegram = 27442D2C5768663230028D20E900C91C2011BA79138CCCFB_1A030000000000000300000000000000
     json     = '{"_":"telegram","media":"electricity","meter":"omnipower","name":"myomnipower","id":"32666857","total_energy_consumption_kwh":7.94,"total_energy_production_kwh":0,"current_power_consumption_kw":0.003,"current_power_production_kw":0,"timestamp":"1111-11-11T11:11:11Z"}'
     fields   = 'myomnipower;32666857;7.94;0;0.003;0;1111-11-11 11:11.11'
 }
 test {
+    comment  = 'Long Frame'
     args     = 'myomnipower omnipower 32666857 NOKEY'
     telegram = 2D442D2C5768663230028D20E4E2C81C20878C78_04041A03000004843C00000000042B0300000004AB3C00000000
     json     = '{"_":"telegram","media":"electricity","meter":"omnipower","name":"myomnipower","id":"32666857","total_energy_consumption_kwh":7.94,"total_energy_production_kwh":0,"current_power_consumption_kw":0.003,"current_power_production_kw":0,"timestamp":"1111-11-11T11:11:11Z"}'
@@ -2014,6 +2086,12 @@ test {
     telegram = 294468506935639176F0A0_009F2782290060822900000401D6311AF93E1BF93E008DC3009ED4000FE500
     json     = '{"_":"telegram","media":"smoke detector","meter":"tsd2","name":"Smokey","id":"91633569","status":"OK","prev_date":"2019-12-31","timestamp":"1111-11-11T11:11:11Z"}'
     fields   = 'Smokey;91633569;OK;2019-12-31;1111-11-11 11:11.11'
+}
+test {
+    args     = 'ZW uiws 61330764 NOKEY'
+    telegram = 0E44496A6407336199077A361260252F2F_046D22484136041301000000441300000080820F6C4136840F13010000008D0F93132E34FE000000000000008000000080000000800000008000000080000000800000008000000080000000800000008002FD1728000259340702656C07
+    json     = '{"_": "telegram","external_temperature_c": 19,"flow_temperature_c": 18.44,"id": "61330764","media": "water","meter": "uiws","meter_datetime": "2026-06-01 08:34","name": "ZW","status": "ERROR ERROR_FLAGS_28 TEMPORARY_ERROR","target_10_date": "2025-08-01","target_10_m3": null,"target_1_date": "2026-05-01","target_1_m3": 0,"target_2_date": "2026-04-01","target_2_m3": null,"target_3_date": "2026-03-01","target_3_m3": null,"target_4_date": "2026-02-01","target_4_m3": null,"target_5_date": "2026-01-01","target_5_m3": null,"target_6_date": "2025-12-01","target_6_m3": null,"target_7_date": "2025-11-01","target_7_m3": null,"target_8_date": "2025-10-01","target_8_m3": null,"target_9_date": "2025-09-01","target_9_m3": null,"target_date": "2026-06-01","target_m3": 0.001,"timestamp": "1111-11-11T11:11:11Z","total_m3": 0.001,"unknown_m3": null}'
+    fields   = 'ZW;61330764;ERROR ERROR_FLAGS_28 TEMPORARY_ERROR;0.001;0.001;1111-11-11 11:11.11'
 }
 test {
     args     = 'MyUltra2 ultraheat 71635605 NOKEY'

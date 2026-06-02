@@ -16,11 +16,12 @@
 */
 
 #include"always.h"
-#include"crc16.h"
 #include"log.h"
 #include"util.h"
 #include"dvparser.h"
 #include"wmbus.h"
+
+#include "crypto/crc16.h"
 
 #include<cassert>
 #include<cmath>

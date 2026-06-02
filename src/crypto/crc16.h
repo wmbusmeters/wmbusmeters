@@ -15,10 +15,11 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef CRC16_H_
-#define CRC16_H_
+#ifndef CRYPTO_CRC16_H_
+#define CRYPTO_CRC16_H_
 
 #include "always.h"
+
 #include <cstdint>
 #include <cstddef>
 
@@ -28,4 +29,4 @@ uint16_t crc16_EN13757(uchar *data, size_t len);
 uint16_t crc16_CCITT(uchar *data, uint16_t length);
 bool     crc16_CCITT_check(uchar *data, uint16_t length);
 
-#endif
+#endif // CRYPTO_CRC16_H_

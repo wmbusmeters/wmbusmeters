@@ -16,7 +16,6 @@
 */
 
 #include"always.h"
-#include"crc16.h"
 #include"log.h"
 #include"wmbus.h"
 #include"wmbus_common_implementation.h"
@@ -24,6 +23,8 @@
 #include"lora_iu880b.h"
 #include"serial.h"
 #include"threads.h"
+
+#include"crypto/crc16.h"
 
 #include<assert.h>
 #include<pthread.h>
