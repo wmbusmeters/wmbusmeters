@@ -167,6 +167,9 @@ $(BUILD)/%.o: src/%.cc $(wildcard src/%.h)
 $(BUILD)/%.o: src/%.c $(wildcard src/%.h)
 	$(CXX) -fpermissive $(CXXFLAGS) $< -MMD -c -o $@
 
+$(BUILD)/%.o: src/utils/%.cc $(wildcard src/utils/%.h)
+	$(CXX) $(CXXFLAGS) $< -MMD -c -o $@
+
 $(BUILD)/%.o: src/crypto/%.cc $(wildcard src/crypto/%.h)
 	$(CXX) $(CXXFLAGS) $< -MMD -c -o $@
 
@@ -175,6 +178,7 @@ PROG_OBJS:=\
 	$(BUILD)/address.o \
 	$(BUILD)/aes.o \
 	$(BUILD)/aescmac.o \
+	$(BUILD)/alarm.o \
 	$(BUILD)/bus.o \
 	$(BUILD)/cmdline.o \
 	$(BUILD)/config.o \

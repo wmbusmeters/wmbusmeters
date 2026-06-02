@@ -98,18 +98,6 @@ const char *downloadDir();
 // Returns 200 or 404 or 304 etc...
 int download(const char *suffix, const char *file, const char *local_file);
 
-enum class Alarm
-{
-    DeviceFailure,
-    RegularResetFailure,
-    DeviceInactivity,
-    SpecifiedDeviceNotFound
-};
-
-const char* toString(Alarm type);
-void logAlarm(Alarm type, std::string info);
-void setAlarmShells(std::vector<std::string> &alarm_shells);
-
 bool isValidAlias(const std::string& alias);
 bool isValidBps(const std::string& b);
 

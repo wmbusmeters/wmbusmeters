@@ -24,6 +24,7 @@
 #include"dvparser.h"
 #include"manufacturer_specificities.h"
 
+#include"utils/alarm.h"
 #include"crypto/crc16.h"
 #include"crypto/aescmac.h"
 #include"crypto/sha256.h"
