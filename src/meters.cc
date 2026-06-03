@@ -28,6 +28,8 @@
 
 #include"crypto/crc16.h"
 
+#include"utils/download.h"
+
 #include<assert.h>
 #include<algorithm>
 #include<cmath>
