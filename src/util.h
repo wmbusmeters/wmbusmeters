@@ -89,15 +89,6 @@ void xorit(uchar *srca, uchar *srcb, uchar *dest, int len);
 void shiftLeft(uchar *srca, uchar *srcb, int len);
 std::string format3fdot3f(double v);
 
-void setNoNetwork(bool v);
-void setBasicAuth(const std::string& cred);
-
-void setDownloadDir(const char *dir);
-const char *downloadDir();
-
-// Returns 200 or 404 or 304 etc...
-int download(const char *suffix, const char *file, const char *local_file);
-
 bool isValidAlias(const std::string& alias);
 bool isValidBps(const std::string& b);
 
