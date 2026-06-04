@@ -13,7 +13,8 @@ driver {
             quantity             = Text
             attributes           = HIDE
             match_entire_payload = true
-            ixml                 = "decode = version_69 | version_94.
+            ixml                 = "decode = version_01 | version_69 | version_94.
+                                    version_01 = '01', PrevDate, PrevHca, CurrDate, CurrHca, TempRoom, TempRad, byte*.
                                     version_69 = '11', PrevDate, PrevHca, CurrDate, CurrHca, TempRoom, TempRad, byte*.
                                     version_94 = '0F', PrevDate, PrevHca, CurrDate, CurrHca, Extra, TempRoom, TempRad, byte*.
 
@@ -157,6 +158,13 @@ driver {
             telegram = 33446850341211119480A2_0F9F292D005024040011BD08380904000000070000000000000000000000000001000000000003140E
             json     = '{"_":"telegram","media":"heat cost allocator","meter":"fhkvdataiii","name":"Rooom","id":"11111234","current_hca":4,"current_date":"2021-02-05","previous_hca":45,"previous_date":"2020-12-31","temp_room_c":22.37,"temp_radiator_c":23.6,"timestamp":"1111-11-11T11:11:11Z"}'
             fields   = 'Rooom;11111234;4;2021-02-05;45;2020-12-31;22.37;23.6;1111-11-11 11:11.11'
+        }
+        test {
+            args     = 'Version01 fhkvdataiii 41059605 NOKEY'
+            comment  = 'Test another, perhaps older, telegram which starts with 01 instead of 11.'
+            telegram = 32446850059605416980A0_119F334805400CFE029808B1080000000000060F4F3467AEA9A88D7B8D503E000000000000000000
+            json     = '{"_": "telegram","current_date": "2026-06-04","current_hca": 766,"id": "41059605","media": "heat cost allocator","meter": "fhkvdataiii","name": "Version01","previous_date": "2025-12-31","previous_hca": 1352,"temp_radiator_c": 22.25,"temp_room_c": 22,"timestamp": "1111-11-11T11:11:11Z"}'
+            fields   = 'Version01;41059605;766;2026-06-04;1352;2025-12-31;22;22.25;1111-11-11 11:11.11'
         }
     }
 }
