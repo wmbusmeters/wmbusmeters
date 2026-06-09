@@ -170,6 +170,9 @@ $(BUILD)/%.o: src/%.c $(wildcard src/%.h)
 $(BUILD)/%.o: src/utils/%.cc $(wildcard src/utils/%.h)
 	$(CXX) $(CXXFLAGS) $< -MMD -c -o $@
 
+$(BUILD)/%.o: src/wmbus/%.cc $(wildcard src/wmbus/%.h)
+	$(CXX) $(CXXFLAGS) $< -MMD -c -o $@
+
 $(BUILD)/%.o: src/crypto/%.cc $(wildcard src/crypto/%.h)
 	$(CXX) $(CXXFLAGS) $< -MMD -c -o $@
 
@@ -216,6 +219,7 @@ PROG_OBJS:=\
 	$(BUILD)/wmbus_utils.o \
 	$(BUILD)/xmq.o \
 	$(BUILD)/lora_iu880b.o \
+	$(BUILD)/link_mode.o
 
 # If you run: "make DRIVER=minomess" then only driver_minomess.cc will be compiled into wmbusmeters.
 
