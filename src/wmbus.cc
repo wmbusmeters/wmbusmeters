@@ -23,6 +23,7 @@
 #include"wmbus_utils.h"
 #include"dvparser.h"
 #include"manufacturer_specificities.h"
+#include"util.h"
 
 #include"utils/alarm.h"
 #include"crypto/crc16.h"

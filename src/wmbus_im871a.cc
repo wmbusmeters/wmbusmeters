@@ -23,6 +23,7 @@
 #include"wmbus_im871a.h"
 #include"serial.h"
 #include"threads.h"
+#include"util.h"
 
 #include"crypto/crc16.h"
 

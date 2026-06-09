@@ -23,6 +23,7 @@
 #include"wmbus_amb8465.h"
 #include"serial.h"
 #include"threads.h"
+#include"util.h"
 
 #include<assert.h>
 #include<pthread.h>
