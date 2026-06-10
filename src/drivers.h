@@ -51,7 +51,8 @@ bool loadBuiltinDriver(std::string driver_name);
 const char *findBuiltinDriver(uint16_t mfct, uchar ver, uchar type);
 void removeBuiltinDriver(std::string driver_name);
 // Builtin drivers are normally loaded on demand when the first telegram arrives.
-// The function below wastes a lot of time, use it only for list_meters.
+// The function below wastes a lot of time, use it only for list_drivers and when
+// starting a long running socket server.
 void forceLoadAllDrivers(Configuration *config);
 
 #endif

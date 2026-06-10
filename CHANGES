@@ -2,6 +2,12 @@
 New amazing feature contributed by Aras Abbasi, you can run
 wmbusmeters inside your browser that supports serial ports
 (currently tested in Chrome/Chromium and Edge.)
+Try it here: https://wmbusmeters.org/inbrowser
+
+Aras Abbasi also contributed cleanups and refactoring of the source code.
+Aras also converted a ton of C++ drivers to xmq! Many many thanks Aras!
+
+The option --listmeters has been renamed to --listdrivers.
 
 ATTENTION! Change in iem3000 driver the field partial_reactive_energy_consumption_kwh
 has been corrected to be the unit partial_reactive_energy_consumption_kvarh
@@ -52,10 +58,6 @@ majherek fixed ssl/tls problems in alpine docker build. Thanks majherek!
 Jan Kundrát contributed compressed telegram signatures for kamwater meters.
 
 Amir Fuhrmann contributed socket support for wmbusmeters. Thanks Amir!
-
-Aras Abbasi contributed cleanups and refactoring of the source code. Aras also
-added the elf.xmq driver to replace the old c++ driver
-and added automatic linting of xmq files. Thanks Aras!
 
 Version 2.0.0 2026-03-01
 Version 2.0.0-RC1 2026-03-01

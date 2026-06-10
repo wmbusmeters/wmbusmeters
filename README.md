@@ -491,8 +491,8 @@ As {options} you can use:
     --listenvs=<meter_driver> list the env variables available for the given meter driver
     --listfields=<meter_driver> list the fields selectable for the given meter driver
     --printdriver=<meter_driver> print xmq driver source code
-    --listmeters list all meter drivers
-    --listmeters=<search> list all meter drivers containing the text <search>
+    --listdrivers list all meter drivers
+    --listdrivers=<search> list all meter drivers containing the text <search>
     --listunits list all unit suffixes that can be used for typing values
     --logfile=<file> use this file for logging or --logfile=syslog
     --logtelegrams log the contents of the telegrams for easy replay
@@ -830,9 +830,9 @@ wmbusmeters --format=fields --selectfields=id,total_m3,timestamp_ut,timestamp_ut
 
 You can list all available fields for a meter: `wmbusmeters --listfields=multical21`
 
-You can list all meters: `wmbusmeters --listmeters`
+You can list all meters: `wmbusmeters --listdrivers`
 
-You can search for meters: `wmbusmeters --listmeters=water` or `wmbusmeters --listmeters=q`
+You can search for meters: `wmbusmeters --listdrivers=water` or `wmbusmeters --listdrivers=q`
 
 Eaxmple of using the shell command to publish to MQTT:
 
