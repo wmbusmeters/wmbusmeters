@@ -567,7 +567,7 @@ void serial_on_data(int index, uint8_t* data, int len) {
 // ═══════════════════════════════════════════════════════
 // Factory
 // ═══════════════════════════════════════════════════════
-shared_ptr<SerialCommunicationManager> createSerialCommunicationManager(long long, bool)
+shared_ptr<SerialCommunicationManager> createSerialCommunicationManager(time_t, bool)
 {
     if (!g_web_serial_manager) {
         g_web_serial_manager = new SerialCommunicationManagerImp();
