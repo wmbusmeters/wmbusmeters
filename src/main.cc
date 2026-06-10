@@ -36,6 +36,8 @@
 #include"short_manual.h"
 #include"version.h"
 
+#include "utils/signal-handling.h"
+
 #include <algorithm>
 #include <errno.h>
 #include <fcntl.h>

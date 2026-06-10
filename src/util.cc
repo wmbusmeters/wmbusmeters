@@ -29,7 +29,6 @@
 #include<functional>
 #include<math.h>
 #include<set>
-#include<signal.h>
 #include<stdarg.h>
 #include<stddef.h>
 #include<string.h>
@@ -46,94 +45,6 @@
 #endif
 
 using namespace std;
-
-// Sigint, sigterm will call the exit handler.
-function<void()> exit_handler_;
-
-bool got_hupped_ {};
-
-bool internal_testing_enabled_ = false;
-
-void exitHandler(int signum)
-{
-    got_hupped_ = signum == SIGHUP;
-    if (exit_handler_) exit_handler_();
-}
-
-bool gotHupped()
-{
-    return got_hupped_;
-}
-
-pthread_t wake_me_up_on_sig_chld_ {};
-
-void wakeMeUpOnSigChld(pthread_t t)
-{
-    wake_me_up_on_sig_chld_ = t;
-}
-
-void doNothing(int signum)
-{
-}
-
-void signalMyself(int signum)
-{
-    if (wake_me_up_on_sig_chld_)
-    {
-        if (signalsInstalled())
-        {
-            pthread_kill(wake_me_up_on_sig_chld_, SIGUSR1);
-        }
-    }
-}
-
-struct sigaction old_int, old_hup, old_term, old_chld, old_usr1, old_usr2;
-
-void onExit(function<void()> cb)
-{
-    exit_handler_ = cb;
-    struct sigaction new_action;
-
-    new_action.sa_handler = exitHandler;
-    sigemptyset (&new_action.sa_mask);
-    new_action.sa_flags = 0;
-
-    sigaction(SIGINT, &new_action, &old_int);
-    sigaction(SIGHUP, &new_action, &old_hup);
-    sigaction(SIGTERM, &new_action, &old_term);
-
-    new_action.sa_handler = signalMyself;
-    sigemptyset (&new_action.sa_mask);
-    new_action.sa_flags = 0;
-    sigaction(SIGCHLD, &new_action, &old_chld);
-
-    new_action.sa_handler = doNothing;
-    sigemptyset (&new_action.sa_mask);
-    new_action.sa_flags = 0;
-    sigaction(SIGUSR1, &new_action, &old_usr1);
-
-    new_action.sa_handler = doNothing;
-    sigemptyset (&new_action.sa_mask);
-    new_action.sa_flags = 0;
-    sigaction(SIGUSR2, &new_action, &old_usr2);
-}
-
-bool signalsInstalled()
-{
-    return exit_handler_ != NULL;
-}
-
-void restoreSignalHandlers()
-{
-    exit_handler_ = NULL;
-
-    sigaction(SIGINT, &old_int, NULL);
-    sigaction(SIGHUP, &old_hup, NULL);
-    sigaction(SIGTERM, &old_term, NULL);
-    sigaction(SIGCHLD, &old_chld, NULL);
-    sigaction(SIGUSR1, &old_usr1, NULL);
-    sigaction(SIGUSR2, &old_usr2, NULL);
-}
 
 int char2int(char input)
 {
@@ -368,6 +279,8 @@ string format3fdot3f(double v)
     strprintf(&r, "%3.3f", v);
     return r;
 }
+
+bool internal_testing_enabled_ = false;
 
 void internalTestingEnabled(bool b)
 {
