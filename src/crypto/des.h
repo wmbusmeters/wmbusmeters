@@ -1,4 +1,5 @@
-// DES decryption (public domain)
+// This file is in the public domain.
+// DES decryption
 // EN 13757-7:2018 Table 47: security modes 2 and 3 use DES-CBC.
 //   Mode 2 (DES_NO_IV_DEPRECATED): DES-CBC, IV = 0
 //   Mode 3 (DES_IV_DEPRECATED):    DES-CBC, IV = ID[4] + mfct[2] + date-G[2]

@@ -17,8 +17,8 @@
 
 #include"always.h"
 #include"log.h"
-#include"aes.h"
-#include"des.h"
+#include"crypto/aes.h"
+#include"crypto/des.h"
 #include"util.h"
 #include"wmbus.h"
 

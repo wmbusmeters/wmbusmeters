@@ -1,4 +1,5 @@
-// DES-CBC implementation (public domain)
+// This file is in the public domain.
+// DES-CBC implementation
 // Standard FIPS 46-3 Data Encryption Standard, CBC mode only.
 // Sufficient for OMS TPL security mode 2 and 3.
 
