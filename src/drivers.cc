@@ -20,6 +20,7 @@
 #include<map>
 
 #include"always.h"
+#include"config.h"
 #include"drivers.h"
 #include"log.h"
 #include"meters.h"
@@ -143,4 +144,22 @@ void prepareBuiltinDrivers()
             builtins_mvts_[i].mvt.type;
         builtins_mvt_lookup_[key] = builtins_mvts_[i].name;
     }
+}
+
+void forceLoadAllDrivers(Configuration *config)
+{
+    for (auto &p : builtins_name_lookup_)
+    {
+        if (!p.second->loaded)
+        {
+            loadBuiltinDriver(p.first);
+            p.second->loaded = true;
+        }
+    }
+
+    // You can specify another drivers dir with --driversdir=/foo/bar/drivers
+    string dir = config->drivers_dir;
+    if (dir == "") dir = "/etc/wmbusmeters.drivers.d";
+    // This will load any xmq files from this dir and potentially override the builtin drivers.
+    loadDriversFromDir(dir);
 }

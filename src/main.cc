@@ -331,6 +331,8 @@ void print_driver(Configuration *config, string meter_driver)
 
 void list_meters(Configuration *config, bool cli)
 {
+    forceLoadAllDrivers(config);
+
     for (DriverInfo *di : allDrivers())
     {
         string mname = di->name().str();
