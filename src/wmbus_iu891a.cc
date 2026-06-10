@@ -295,6 +295,8 @@ struct WMBusIU891A : public BusDeviceCommonImplementation
 
     static void extractFrame(vector<uchar> &payload, int *rssi_dbm, vector<uchar> *frame);
 
+    bool enableStartupIndication();
+
 private:
 
     DeviceInfo_IU891A device_info_ {};
@@ -325,11 +327,13 @@ shared_ptr<BusDevice> openIU891A(BusDeviceType type, Detected detected, shared_p
     {
         WMBusIU891A *imp = new WMBusIU891A(type, bus_alias, serial_override, manager);
         imp->markAsNoLongerSerial();
+        imp->enableStartupIndication();
         return shared_ptr<BusDevice>(imp);
     }
 
     auto serial = manager->createSerialDeviceTTY(device_file.c_str(), 115200, PARITY::NONE, "iu891a");
     WMBusIU891A *imp = new WMBusIU891A(type, bus_alias, serial, manager);
+    imp->enableStartupIndication();
     return shared_ptr<BusDevice>(imp);
 }
 
@@ -424,10 +428,27 @@ LinkModeSet WMBusIU891A::getLinkModes()
 
 void WMBusIU891A::deviceReset()
 {
-    // No device specific settings needed right now.
-    // The common code in wmbus.cc reset()
-    // will open the serial device and potentially
-    // set the link modes properly.
+    if (serial()->readonly()) return; // Feeding from stdin or file.
+
+    LOCK_WMBUS_EXECUTING_COMMAND(restart);
+
+    // Send the restart command (DEVMGMT, 0x07) to perform a software reset
+    // of the dongle. The device returns the response immediately and then
+    // performs the actual restart after approx. 200 ms. See spec page 13.
+    vector<uchar> body;
+    vector<uchar> request;
+    buildRequest(SAP_DEVMGMT_ID, DEVMGMT_MSG_RESTART_REQ, body, request);
+
+    verbose("(iu891a) restart device\n");
+    bool sent = serial()->send(request);
+    if (!sent) return;
+
+    bool ok = waitForResponse(DEVMGMT_MSG_RESTART_RSP);
+    if (!ok) return; // timeout
+
+    // Wait for the Startup Indication that the device sends once the
+    // firmware has restarted and is ready to accept commands again.
+    waitForResponse(DEVMGMT_MSG_STARTUP_IND);
 }
 
 uchar setupIMSTBusDeviceToReceiveTelegrams(LinkModeSet lms)
@@ -704,6 +725,28 @@ bool WMBusIU891A::sendTelegram(LinkMode lm, TelegramFormat format, vector<uchar>
     return false;
 }
 
+bool WMBusIU891A::enableStartupIndication()
+{
+    if (serial()->readonly()) return true;
+
+    LOCK_WMBUS_EXECUTING_COMMAND(enable_startup_indication);
+
+    // Enable Bit 4 of System Options so the device emits a Startup
+    // Indication after each restart. The value is persisted in NVM
+    // (spec page 15-16), so this is a one-time setup per device.
+    vector<uchar> body(8);
+    vector<uchar> request;
+    body[0] = 0x10; body[1] = 0x00; body[2] = 0x00; body[3] = 0x00; // mask: bit 4
+    body[4] = 0x10; body[5] = 0x00; body[6] = 0x00; body[7] = 0x00; // value: bit 4 = 1
+    buildRequest(SAP_DEVMGMT_ID, DEVMGMT_MSG_SET_SYS_OPTIONS_REQ, body, request);
+
+    verbose("(iu891a) enable startup indication\n");
+    bool sent = serial()->send(request);
+    if (!sent) return false;
+
+    return waitForResponse(DEVMGMT_MSG_SET_SYS_OPTIONS_RSP);
+}
+
 AccessCheck detectIU891A(Detected *detected, shared_ptr<SerialCommunicationManager> manager)
 {
     assert(detected->found_file != "");
@@ -895,6 +938,9 @@ AccessCheck detectIU891A(Detected *detected, shared_ptr<SerialCommunicationManag
 void WMBusIU891A::handleDevMgmt(int msgid, vector<uchar> &payload)
 {
     switch (msgid) {
+        case DEVMGMT_MSG_STARTUP_IND:
+            debug("(iu891a) ind device startup\n");
+            break;
         case DEVMGMT_MSG_PING_RSP:
             debug("(iu891a) rsp pong\n");
             break;
@@ -903,6 +949,12 @@ void WMBusIU891A::handleDevMgmt(int msgid, vector<uchar> &payload)
             break;
         case DEVMGMT_MSG_GET_FW_INFO_RSP:
             debug("(iu891a) rsp got firmware\n");
+            break;
+        case DEVMGMT_MSG_RESTART_RSP:
+            debug("(iu891a) rsp device restarted\n");
+            break;
+        case DEVMGMT_MSG_SET_SYS_OPTIONS_RSP:
+            debug("(iu891a) rsp set sys options\n");
             break;
         default:
             warning("(iu891a) Unhandled device management message %d\n", msgid);
