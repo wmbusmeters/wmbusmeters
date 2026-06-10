@@ -2805,9 +2805,9 @@ bool isValidKey(const string& key, MeterInfo &mi)
     }
     else
     {
-        // OMS compliant meters have 128 bit AES keys (32 hex).
-        // There is a deprecated DES mode, but I have not yet
-        // seen any telegram using that mode.
+        // Deprecated DES length for key.
+        if (key.length() == 16) return true;
+        // Otherwise OMS compliant meters must have 128 bit AES keys (32 hex).
         if (key.length() != 32) return false;
     }
     vector<uchar> tmp;
