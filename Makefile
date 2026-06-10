@@ -323,8 +323,41 @@ $(BUILD)/testinternals: $(BUILD)/testinternals.o
 $(BUILD)/fuzz: $(PROG_OBJS) $(DRIVER_OBJS) $(BUILD)/fuzz.o
 	$(CXX) $(DEBUG_FLAGS) -o $(BUILD)/fuzz $(PROG_OBJS) $(DRIVER_OBJS) $(BUILD)/fuzz.o $(LDFLAGS) -lpthread
 
-$(BUILD)/perf: $(PROG_OBJS) $(DRIVER_OBJS) $(BUILD)/perf.o
-	$(CXX) $(DEBUG_FLAGS) -o $(BUILD)/perf $(PROG_OBJS) $(DRIVER_OBJS) $(BUILD)/perf.o $(LDFLAGS) -lpthread
+# Micro benchmarks for individual functions, one case per benchmarks/<name>.benchmark.cc
+# Usage: make benchmark <name>     e.g. make benchmark char2int
+#        make benchmark            lists the available cases
+BENCHMARK_SRCS  := $(wildcard benchmarks/*.benchmark.cc)
+BENCHMARK_NAMES := $(patsubst benchmarks/%.benchmark.cc,%,$(BENCHMARK_SRCS))
+
+# "make benchmark char2int" passes char2int (and any further args, e.g. an
+# iteration count) as extra goals; capture them and define do-nothing rules so
+# make does not error on them. The name is the 2nd word, anything after is
+# forwarded to the benchmark binary. Scoped to only when benchmark is the first
+# goal, so the no-op rules cannot leak into other builds.
+ifeq (benchmark,$(firstword $(MAKECMDGOALS)))
+  BENCH_NAME := $(word 2,$(MAKECMDGOALS))
+  BENCH_ARGS := $(wordlist 3,$(words $(MAKECMDGOALS)),$(MAKECMDGOALS))
+  ifneq ($(BENCH_NAME),)
+    $(eval $(wordlist 2,$(words $(MAKECMDGOALS)),$(MAKECMDGOALS)):;@:)
+  endif
+endif
+
+.PHONY: benchmark
+benchmark:
+ifeq ($(BENCH_NAME),)
+	@echo "Usage: make benchmark <name> [iterations]"
+	@echo "Available benchmarks:"
+	@for n in $(BENCHMARK_NAMES); do echo "  $$n"; done
+else
+	@$(MAKE) --no-print-directory $(BUILD)/$(BENCH_NAME).benchmark
+	@./$(BUILD)/$(BENCH_NAME).benchmark $(BENCH_ARGS)
+endif
+
+$(BUILD)/%.benchmark.o: benchmarks/%.benchmark.cc benchmarks/benchmark.h
+	$(CXX) $(CXXFLAGS) -Ibenchmarks $< -MMD -c -o $@
+
+$(BUILD)/%.benchmark: $(PROG_OBJS) $(DRIVER_OBJS) $(BUILD)/%.benchmark.o
+	$(CXX) $(DEBUG_FLAGS) -o $@ $(PROG_OBJS) $(DRIVER_OBJS) $(BUILD)/$*.benchmark.o $(LDFLAGS) -lpthread
 
 clean_executables:
 	rm -rf build/wmbusmeters* build_arm/wmbusmeters* build_debug/wmbusmeters* build_arm_debug/wmbusmeters* *~

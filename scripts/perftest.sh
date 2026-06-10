@@ -22,12 +22,12 @@ then
     sort /tmp/difvifexamples | uniq > perftest/difvifexamples
 fi
 
-if ! test -f perftest/perf
+if ! test -f perftest/parse_dv.benchmark
 then
     rm -rf build
     ./configure
-    make build/perf -j4
-    cp build/perf perftest/perf
+    make build/parse_dv.benchmark -j4
+    cp build/parse_dv.benchmark perftest/parse_dv.benchmark
 fi
 
-./perftest/perf perftest/difvifexamples 1000
+./perftest/parse_dv.benchmark perftest/difvifexamples 1000
