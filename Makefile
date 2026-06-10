@@ -220,7 +220,8 @@ PROG_OBJS:=\
 	$(BUILD)/wmbus_utils.o \
 	$(BUILD)/xmq.o \
 	$(BUILD)/lora_iu880b.o \
-	$(BUILD)/link_mode.o
+	$(BUILD)/link_mode.o \
+	$(BUILD)/signal-handling.o
 
 # If you run: "make DRIVER=minomess" then only driver_minomess.cc will be compiled into wmbusmeters.
 

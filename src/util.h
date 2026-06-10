@@ -20,20 +20,12 @@
 
 #include"always.h"
 
-#include<signal.h>
 #include<cstdint>
 #include<string>
 #include<functional>
 #include<map>
 #include<set>
 #include<vector>
-
-void onExit(std::function<void()> cb);
-void restoreSignalHandlers();
-bool gotHupped();
-void wakeMeUpOnSigChld(pthread_t t);
-bool signalsInstalled();
-void exitHandler(int signum);
 
 uchar bcd2bin(uchar c);
 uchar revbcd2bin(uchar c);

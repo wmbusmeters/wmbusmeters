@@ -19,6 +19,8 @@
 #include"version.h"
 #include"util.h"
 
+#include "utils/signal-handling.h"
+
 #include<assert.h>
 #include<stdarg.h>
 #include<string.h>
