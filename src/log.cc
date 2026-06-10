@@ -16,8 +16,8 @@
 */
 
 #include"log.h"
-#include"util.h"
 #include"version.h"
+#include"util.h"
 
 #include<assert.h>
 #include<stdarg.h>
@@ -26,9 +26,6 @@
 #include<time.h>
 
 using namespace std;
-
-// From util.c
-void exitHandler(int signum);
 
 bool syslog_enabled_ = false;
 bool logfile_enabled_ = false;

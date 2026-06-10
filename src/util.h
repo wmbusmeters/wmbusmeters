@@ -33,6 +33,7 @@ void restoreSignalHandlers();
 bool gotHupped();
 void wakeMeUpOnSigChld(pthread_t t);
 bool signalsInstalled();
+void exitHandler(int signum);
 
 uchar bcd2bin(uchar c);
 uchar revbcd2bin(uchar c);
