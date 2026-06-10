@@ -17,6 +17,8 @@
 
 #include"always.h"
 #include"log.h"
+#include"aes.h"
+#include"des.h"
 #include"util.h"
 #include"wmbus.h"
 
@@ -269,6 +271,50 @@ bool decrypt_TPL_AES_CBC_NO_IV(Telegram *t, vector<uchar> &frame, vector<uchar>:
         frame.insert(frame.end(), buffer.begin()+num_bytes_to_decrypt, buffer.end());
         debugPayload("(TPL) appended ", frame, pos);
     }
+
+    return true;
+}
+
+bool decrypt_TPL_DES_CBC(Telegram *t, vector<uchar> &frame, vector<uchar>::iterator &pos,
+                         vector<uchar> &deskey, const uchar *iv8,
+                         int *num_encrypted_bytes,
+                         int *num_not_encrypted_at_end)
+{
+    if (deskey.size() < 8) return false;
+
+    vector<uchar> buffer;
+    buffer.insert(buffer.end(), pos, frame.end());
+
+    // EN 13757-7:2018 Table 29: tpl_num_encr_blocks holds byte count for DES modes.
+    size_t claimed = (t->tpl_num_encr_blocks > 0)
+                     ? (size_t)t->tpl_num_encr_blocks
+                     : buffer.size();
+    size_t num_bytes_to_decrypt = (min(claimed, buffer.size()) / 8) * 8;
+
+    *num_encrypted_bytes      = (int)num_bytes_to_decrypt;
+    *num_not_encrypted_at_end = (int)(buffer.size() - num_bytes_to_decrypt);
+
+    if (num_bytes_to_decrypt == 0) return false;
+
+    vector<uchar> ivv(iv8, iv8 + 8);
+    debugPayload("(TPL) DES CBC IV", ivv);
+    debugPayload("(TPL) DES CBC decrypting", buffer);
+
+    uchar decrypted[num_bytes_to_decrypt];
+    bool ok = DES_CBC_decrypt(buffer.data(), deskey.data(), iv8, decrypted, num_bytes_to_decrypt);
+    if (!ok)
+    {
+        warning("(TPL) DES decryption failed.\n");
+        return false;
+    }
+
+    frame.erase(pos, frame.end());
+    frame.insert(frame.end(), decrypted, decrypted + num_bytes_to_decrypt);
+
+    debugPayload("(TPL) DES decrypted", frame, pos);
+
+    if (*num_not_encrypted_at_end > 0)
+        frame.insert(frame.end(), buffer.begin() + num_bytes_to_decrypt, buffer.end());
 
     return true;
 }

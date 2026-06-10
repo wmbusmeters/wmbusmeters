@@ -181,6 +181,7 @@ PROG_OBJS:=\
 	$(BUILD)/address.o \
 	$(BUILD)/aes.o \
 	$(BUILD)/aescmac.o \
+	$(BUILD)/des.o \
 	$(BUILD)/alarm.o \
 	$(BUILD)/bus.o \
 	$(BUILD)/cmdline.o \

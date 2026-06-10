@@ -32,6 +32,7 @@
 
 #include<assert.h>
 #include<cmath>
+#include<time.h>
 #include<semaphore.h>
 #include<stdarg.h>
 #include<string.h>
@@ -1587,6 +1588,173 @@ bool Telegram::potentiallyDecrypt(vector<uchar>::iterator &pos)
             }
             return false;
         }
+    }
+    else if (tpl_sec_mode == TPLSecurityMode::DES_NO_IV_DEPRECATED)
+    {
+        if (!meter_keys || !meter_keys->hasConfidentialityKey())
+        {
+            int num_encrypted_bytes = (int)distance(pos, frame.end());
+            string info = bin2hex(pos, frame.end(), num_encrypted_bytes);
+            info += " encrypted";
+            addExplanationAndIncrementPos(pos, num_encrypted_bytes, KindOfData::CONTENT, Understanding::ENCRYPTED, info.c_str());
+            if (parser_warns_)
+            {
+                if (!beingAnalyzed() && (isVerboseEnabled() || isDebugEnabled() || !warned_for_telegram_before(this, dll_a)))
+                {
+                    warning("(wmbus) WARNING! no key to decrypt DES payload! "
+                            "Permanently ignoring telegrams from id: %02x%02x%02x%02x mfct: (%s) %s (0x%02x) type: %s (0x%02x) ver: 0x%02x\n",
+                            dll_id_b[3], dll_id_b[2], dll_id_b[1], dll_id_b[0],
+                            manufacturerFlag(dll_mfct).c_str(),
+                            manufacturer(dll_mfct).c_str(),
+                            dll_mfct,
+                            mediaType(dll_type, dll_mfct).c_str(), dll_type,
+                            dll_version);
+                }
+            }
+            return false;
+        }
+        int num_encrypted_bytes = 0;
+        int num_not_encrypted_at_end = 0;
+        const uchar iv_zero[8] = {};
+        bool ok = decrypt_TPL_DES_CBC(this, frame, pos, meter_keys->confidentiality_key,
+                                      iv_zero, &num_encrypted_bytes, &num_not_encrypted_at_end);
+        if (!ok)
+        {
+            int num_bytes = (int)distance(pos, frame.end());
+            string info = bin2hex(pos, frame.end(), num_bytes);
+            info += " failed DES decryption";
+            addExplanationAndIncrementPos(pos, num_bytes, KindOfData::CONTENT, Understanding::ENCRYPTED, info.c_str());
+            return false;
+        }
+        // Decrypted plaintext starts with 2F 2F check bytes (same convention as AES mode 5).
+        // Reference: DES_CBC_DECRYPT in wMBus reference implementations.
+        CHECK(2);
+        uchar a = *(pos+0);
+        uchar b = *(pos+1);
+        addExplanationAndIncrementPos(pos, 2, KindOfData::PROTOCOL, Understanding::FULL,
+                                      "%02x%02x decrypt check bytes (%s)", a, b,
+                                      (a == 0x2f && b == 0x2f) ? "OK" : "ERROR should be 2f2f");
+        if ((a != 0x2f || b != 0x2f) && !FUZZING)
+        {
+            int num_bytes = (int)distance(pos, frame.end());
+            string info = bin2hex(pos, frame.end(), num_bytes);
+            info += " failed decryption. Wrong key?";
+            addExplanationAndIncrementPos(pos, num_bytes, KindOfData::CONTENT, Understanding::ENCRYPTED, info.c_str());
+            if (parser_warns_)
+            {
+                if (!beingAnalyzed() && (isVerboseEnabled() || isDebugEnabled() || !warned_for_telegram_before(this, dll_a)))
+                {
+                    warning("(wmbus) WARNING!! DES decrypted content failed check, did you use the correct decryption key? "
+                            "Permanently ignoring telegrams from id: %02x%02x%02x%02x mfct: (%s) %s (0x%02x) type: %s (0x%02x) ver: 0x%02x\n",
+                            dll_id_b[3], dll_id_b[2], dll_id_b[1], dll_id_b[0],
+                            manufacturerFlag(dll_mfct).c_str(),
+                            manufacturer(dll_mfct).c_str(),
+                            dll_mfct,
+                            mediaType(dll_type, dll_mfct).c_str(), dll_type,
+                            dll_version);
+                }
+            }
+            return false;
+        }
+    }
+    else if (tpl_sec_mode == TPLSecurityMode::DES_IV_DEPRECATED)
+    {
+        // EN 13757-7:2018 §9.4.3: mode 3 uses DES-CBC with a date-based IV.
+        // IV = ID[4 LE] + mfct[2] + date-type-G[2]
+        // The date is the meter's transmission date; try today and the last 2 days to handle drift.
+        if (!meter_keys || !meter_keys->hasConfidentialityKey())
+        {
+            int num_encrypted_bytes = (int)distance(pos, frame.end());
+            string info = bin2hex(pos, frame.end(), num_encrypted_bytes);
+            info += " encrypted";
+            addExplanationAndIncrementPos(pos, num_encrypted_bytes, KindOfData::CONTENT, Understanding::ENCRYPTED, info.c_str());
+            if (parser_warns_)
+            {
+                if (!beingAnalyzed() && (isVerboseEnabled() || isDebugEnabled() || !warned_for_telegram_before(this, dll_a)))
+                {
+                    warning("(wmbus) WARNING! no key to decrypt DES (mode 3) payload! "
+                            "Permanently ignoring telegrams from id: %02x%02x%02x%02x mfct: (%s) %s (0x%02x) type: %s (0x%02x) ver: 0x%02x\n",
+                            dll_id_b[3], dll_id_b[2], dll_id_b[1], dll_id_b[0],
+                            manufacturerFlag(dll_mfct).c_str(),
+                            manufacturer(dll_mfct).c_str(),
+                            dll_mfct,
+                            mediaType(dll_type, dll_mfct).c_str(), dll_type,
+                            dll_version);
+                }
+            }
+            return false;
+        }
+
+        // Try up to 3 days (today, yesterday, day before) to handle clock drift.
+        bool decrypted_ok = false;
+        for (int days_ago = 0; days_ago <= 2 && !decrypted_ok; days_ago++)
+        {
+            time_t t_time = time(NULL) - (time_t)(days_ago * 86400);
+            struct tm *tm_utc = gmtime(&t_time);
+            int year2 = tm_utc->tm_year - 100; // years since 2000
+            int month  = tm_utc->tm_mon + 1;
+            int day    = tm_utc->tm_mday;
+
+            // EN 13757-7 §9.4.3.1: IV = ID[4 LE] + mfct[2] + date-type-G[2]
+            // Type G: byte0 = month[2:0]<<5 | day[4:0], byte1 = year[6:0]<<1 | month[3]
+            uchar iv3[8];
+            iv3[0] = dll_id_b[0]; iv3[1] = dll_id_b[1];
+            iv3[2] = dll_id_b[2]; iv3[3] = dll_id_b[3];
+            iv3[4] = dll_mfct_b[0]; iv3[5] = dll_mfct_b[1];
+            iv3[6] = (uchar)(((month & 0x07) << 5) | (day & 0x1F));
+            iv3[7] = (uchar)(((year2 & 0x7F) << 1) | ((month >> 3) & 0x01));
+
+            // Save frame state so we can restore on wrong-date failure.
+            vector<uchar> saved_frame(pos, frame.end());
+
+            int num_encrypted_bytes = 0;
+            int num_not_encrypted_at_end = 0;
+            bool ok = decrypt_TPL_DES_CBC(this, frame, pos, meter_keys->confidentiality_key,
+                                          iv3, &num_encrypted_bytes, &num_not_encrypted_at_end);
+            if (!ok) continue;
+
+            if (*(pos+0) == 0x2f && *(pos+1) == 0x2f)
+            {
+                decrypted_ok = true;
+            }
+            else if (days_ago < 2)
+            {
+                // Wrong date — restore frame and try next day.
+                frame.erase(pos, frame.end());
+                frame.insert(frame.end(), saved_frame.begin(), saved_frame.end());
+            }
+        }
+
+        if (!decrypted_ok)
+        {
+            int num_bytes = (int)distance(pos, frame.end());
+            string info = bin2hex(pos, frame.end(), num_bytes);
+            info += " failed decryption. Wrong key?";
+            addExplanationAndIncrementPos(pos, num_bytes, KindOfData::CONTENT, Understanding::ENCRYPTED, info.c_str());
+            if (parser_warns_)
+            {
+                if (!beingAnalyzed() && (isVerboseEnabled() || isDebugEnabled() || !warned_for_telegram_before(this, dll_a)))
+                {
+                    warning("(wmbus) WARNING!! DES mode 3 decryption failed, wrong key or date? "
+                            "Permanently ignoring telegrams from id: %02x%02x%02x%02x mfct: (%s) %s (0x%02x) type: %s (0x%02x) ver: 0x%02x\n",
+                            dll_id_b[3], dll_id_b[2], dll_id_b[1], dll_id_b[0],
+                            manufacturerFlag(dll_mfct).c_str(),
+                            manufacturer(dll_mfct).c_str(),
+                            dll_mfct,
+                            mediaType(dll_type, dll_mfct).c_str(), dll_type,
+                            dll_version);
+                }
+            }
+            return false;
+        }
+
+        // 2F 2F check bytes — consume and verify.
+        CHECK(2);
+        uchar a = *(pos+0);
+        uchar b = *(pos+1);
+        addExplanationAndIncrementPos(pos, 2, KindOfData::PROTOCOL, Understanding::FULL,
+                                      "%02x%02x decrypt check bytes (%s)", a, b,
+                                      (a == 0x2f && b == 0x2f) ? "OK" : "ERROR should be 2f2f");
     }
     else if (tpl_sec_mode == TPLSecurityMode::SPECIFIC_16_31)
     {
