@@ -20,8 +20,8 @@
 #include"wmbus.h"
 #include"wmbus_common_implementation.h"
 #include"wmbus_utils.h"
-#include"wmbus_cul.h"
 #include"serial.h"
+#include"util.h"
 
 #include<assert.h>
 #include<fcntl.h>
@@ -429,7 +429,7 @@ AccessCheck detectCUL(Detected *detected, shared_ptr<SerialCommunicationManager>
 
         // get the version string: "V 1.67 nanoCUL868" or similar
         vector<uchar> msg(3);
-        msg[0] = CMD_GET_VERSION; // V
+        msg[0] = 0x56; // V
         msg[1] = 0x0d;
         msg[2] = 0x0a;
 

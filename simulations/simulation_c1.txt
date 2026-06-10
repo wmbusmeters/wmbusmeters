@@ -26,7 +26,7 @@ telegram=|314493441234567835087a740000200b6e2701004b6e450100426c5f2ccb086e790000
 
 # Test another pair of QCalric C1 telegrams
 telegram=|49449344939291903408780DFF5F350082180000800007B06EFFFF970000009F2C70020000BE26970000000000010018002E001F002E0023FF210008000500020000002F046D220FA227|
-{"_":"telegram","media":"heat cost allocation","meter":"qcaloric","name":"MyElement2","id":"90919293","status":"OK","device_datetime":"2021-07-02 15:34","timestamp":"1111-11-11T11:11:11Z"}
+{"_":"telegram","media":"heat cost allocation","meter":"qcaloric","name":"MyElement2","id":"90919293","status":"OK","current_consumption_hca":97,"set_date":"2020-12-31","consumption_at_set_date_hca":270,"set_date_1":"2020-12-31","consumption_at_set_date_1_hca":270,"set_date_17":"2021-06-30","consumption_at_set_date_17_hca":97,"device_datetime":"2021-07-02 15:34","timestamp":"1111-11-11T11:11:11Z"}
 
 telegram=|314493449392919034087a520000200b6e9700004b6e700200426c9f2ccb086e970000c2086cbe26326cffff046d2d16a227|
 {"_":"telegram","media":"heat cost allocation","meter":"qcaloric","name":"MyElement2","id":"90919293","status":"OK","current_consumption_hca":97,"set_date":"2020-12-31","consumption_at_set_date_hca":270,"set_date_1":"2020-12-31","consumption_at_set_date_1_hca":270,"set_date_17":"2021-06-30","consumption_at_set_date_17_hca":97,"error_date":"2127-15-31","device_datetime":"2021-07-02 22:45","timestamp":"1111-11-11T11:11:11Z"}
@@ -47,7 +47,7 @@ telegram=|27442D2C5768663230028D20E900C91C2011BA79138CCCFB_1A0300000000000003000
 
 # Test EI Electronics smoke detector
 telegram=|5E442515112801000C1A7A370050252F2F_0BFD0F060101046D300CAB2202FD17000082206CAB22426C01018440FF2C000F11008250FD61000082506C01018260FD6100008360FD3100000082606C01018270FD61010082706CAB222F2F2F2F|
-{"_":"telegram","media":"smoke detector","meter":"ei6500","name":"Smokey","id":"00012811","status":"OK","last_alarm_date":"2000-01-01","alarm_counter":0,"software_version":"010106","message_datetime":"2021-02-11 12:48","duration_removed_h":0,"last_remove_date":"2000-01-01","removed_counter":0,"test_button_last_date":"2021-02-11","test_button_counter":1,"installation_date":"2021-02-11","last_sound_check_date":"2000-01-01","dust_level":"DUST_0","battery_level":"3.00V","obstacle_distance":"","timestamp":"1111-11-11T11:11:11Z"}
+{"_":"telegram","media":"smoke detector","meter":"ei6500","name":"Smokey","id":"00012811","status":"OK","last_alarm_date":"2000-01-01","alarm_counter":0,"software_version":"010106","message_datetime":"2021-02-11 12:48","duration_removed_h":0,"last_remove_date":"2000-01-01","removed_counter":0,"test_button_last_date":"2021-02-11","test_button_counter":1,"installation_date":"2021-02-11","last_sound_check_date":"2000-01-01","dust_level":"DUST_0","dust_level_counter":0,"battery_level":"3.00V","obstacle_distance":"","timestamp":"1111-11-11T11:11:11Z"}
 
 # Test Techem radio convert + Wehrle water meter combo.
 telegram=|494468509494949495377286868686A85CFE07A90030052F2F_0413100000000F52FCF6A52A90A8D83CA8F7FEAE86990502323D0C70EFF49833C7C1696F75BCABC1E52E6305308D0F31FB|

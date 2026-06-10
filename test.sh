@@ -20,6 +20,8 @@ then
     exit 1
 fi
 
+export TZ=UTC
+
 $TESTINTERNAL
 if [ "$?" = "0" ]; then
     echo OK: test internals
@@ -37,6 +39,9 @@ if [ "$?" != "0" ]; then RC="1"; fi
 
 
 tests/test_non_existant_driver.sh $PROG
+if [ "$?" != "0" ]; then RC="1"; fi
+
+tests/test_download_drivers.sh $PROG
 if [ "$?" != "0" ]; then RC="1"; fi
 
 tests/test_mbus.sh $PROG
@@ -222,6 +227,7 @@ if [ "$?" != "0" ]; then RC="1"; fi
 
 ./tests/test_rtlwmbus_linkmodes.sh $PROG
 if [ "$?" != "0" ]; then RC="1"; fi
+
 
 if [ -s build/xmq ]
 then

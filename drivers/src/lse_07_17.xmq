@@ -45,9 +45,9 @@ driver {
             }
         }
         field {
-            name     = what
+            name     = consumption_at_set_date_8
             quantity = Volume
-            info     = 'The water consumption at the what date?'
+            info     = 'The water consumption at billing period date 8.'
             match {
                 measurement_type = Instantaneous
                 vif_range        = Volume
@@ -55,10 +55,9 @@ driver {
             }
         }
         field {
-            name         = what
-            quantity     = PointInTime
-            info         = 'The what date?'
-            display_unit = date
+            name     = set_date_8
+            quantity = Text
+            info     = 'Billing period date 8.'
             match {
                 measurement_type = Instantaneous
                 vif_range        = Date
@@ -104,13 +103,13 @@ driver {
         test {
             args     = 'Water lse_07_17 13963399 NOKEY'
             telegram = 244465329933961318067AE1000000_8C04130070000082046CBE2B01FD0C11046D010CA22C
-            json     = '{"_":"telegram","media":"warm water","meter":"lse_07_17","name":"Water","id":"13963399","what_m3":7,"what_date":"2021-11-30","device_datetime":"2021-12-02 12:01","model_version":"11","timestamp":"1111-11-11T11:11:11Z"}'
+            json     = '{"_":"telegram","media":"warm water","meter":"lse_07_17","name":"Water","id":"13963399","consumption_at_set_date_8_m3":7,"set_date_8":"2021-11-30","device_datetime":"2021-12-02 12:01","model_version":"11","timestamp":"1111-11-11T11:11:11Z"}'
             fields   = 'Water;13963399;null;null;null;null;null;2021-12-02 12:01;1111-11-11 11:11.11'
         }
         test {
             args     = 'Water lse_07_17 13963399 NOKEY'
             telegram = 2A4465329933961318067AD8800000_8C04130070000082046CBE2B01FD0C11046D1800A12C02FDAC7E9B2E
-            json     = '{"_":"telegram","media":"warm water","meter":"lse_07_17","name":"Water","id":"13963399","what_m3":7,"what_date":"2021-11-30","device_datetime":"2021-12-01 00:24","model_version":"11","timestamp":"1111-11-11T11:11:11Z"}'
+            json     = '{"_":"telegram","media":"warm water","meter":"lse_07_17","name":"Water","id":"13963399","consumption_at_set_date_8_m3":7,"set_date_8":"2021-11-30","device_datetime":"2021-12-01 00:24","model_version":"11","timestamp":"1111-11-11T11:11:11Z"}'
             fields   = 'Water;13963399;null;null;null;null;null;2021-12-01 00:24;1111-11-11 11:11.11'
         }
         test {

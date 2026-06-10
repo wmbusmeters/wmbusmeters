@@ -18,13 +18,14 @@
 #ifndef METER_H_
 #define METER_H_
 
+#include"drivers.h"
 #include"dvparser.h"
 #include"formula.h"
-#include"util.h"
 #include"units.h"
 #include"translatebits.h"
 #include"xmq.h"
 #include"wmbus.h"
+#include"util.h"
 
 #include<functional>
 #include<numeric>
@@ -149,13 +150,6 @@ struct MeterInfo
 //
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-struct MVT
-{
-    uint16_t mfct;
-    uchar version;
-    uchar type;
-};
-
 struct DriverInfo
 {
 private:
@@ -174,6 +168,8 @@ private:
     std::shared_ptr<XMQDoc> dynamic_driver_ {}; // Configuration loaded from driver file.
     std::string dynamic_file_name_; // Name of actual loaded driver file.
     std::string dynamic_source_xmq_ {}; // A copy of the xmq used to create a dynamic driver.
+    std::vector<std::pair<uint16_t,std::vector<uchar>>> compact_frame_formats_;
+    std::vector<std::vector<uchar>> default_keys_; // Default keys from driver XMQ; tried in order when no meter key is set.
 
 public:
     ~DriverInfo();
@@ -187,6 +183,10 @@ public:
     void forceMfctIndex(int i) { force_mfct_index_ = i; }
     void setConstructor(std::function<std::shared_ptr<Meter>(MeterInfo&,DriverInfo&)> c) { constructor_ = c; }
     void addMVT(uint16_t mfct, uchar type, uchar ver) { mvts_.push_back({ mfct, ver, type }); }
+    void addCompactFrameFormat(uint16_t sig, std::vector<uchar> difvif) { compact_frame_formats_.push_back({ sig, std::move(difvif) }); }
+    const std::vector<std::pair<uint16_t,std::vector<uchar>>> &compactFrameFormats() { return compact_frame_formats_; }
+    void addDefaultKey(const std::vector<uchar> &key) { default_keys_.push_back(key); }
+    const std::vector<std::vector<uchar>> &defaultKeys() const { return default_keys_; }
     void usesProcessContent() { has_process_content_ = true; }
     void setMediaType(std::string m) { media_type_ = m; }
     const std::string &mediaType() { return media_type_; }
@@ -359,6 +359,9 @@ struct FieldInfo
     void matchEntirePayload(bool b) { match_entire_payload_ = b; }
     bool matchEntirePayload() { return match_entire_payload_; }
 
+    void matchEntireFrame(bool b) { match_entire_frame_ = b; }
+    bool matchEntireFrame() { return match_entire_frame_; }
+
     void setReadableString(ReadableString rs) { readable_string_ = rs; }
     ReadableString readableString() { return readable_string_; }
 
@@ -414,6 +417,9 @@ private:
 
     // For ixml parsing, nab the entire payload, since it does not conform to the difvif structure.
     bool match_entire_payload_ {};
+
+    // For ixml parsing, nab the entire frame (including TPL header), to access bytes like tpl_acc.
+    bool match_entire_frame_ {};
 
     // If true, then force readable string extraction.
     ReadableString readable_string_ {};

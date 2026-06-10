@@ -19,7 +19,10 @@
 #include"always.h"
 #include"log.h"
 #include"meters_common_implementation.h"
+#include"translatebits.h"
 #include"xmq.h"
+
+#include"crypto/crc16.h"
 
 #include<assert.h>
 #include<string.h>
@@ -34,7 +37,10 @@ void check_detection_triplets(DriverInfo *di, string file);
 
 string check_field_name(const char *name, DriverDynamic *dd);
 string check_field_ixml(const char *ixml, DriverDynamic *dd);
+bool check_boolean_property(const char *value, const char *property, DriverDynamic *dd, bool default_value = false);
+long check_long_property(const char *value, const char *property, DriverDynamic *dd);
 bool check_field_match_entire_payload(const char *mep, DriverDynamic *dd);
+bool check_field_match_entire_frame(const char *mef, DriverDynamic *dd);
 string check_field_info(const char *info, DriverDynamic *dd);
 ReadableString check_field_readable_string(const char *rs_s, DriverDynamic *dd);
 Quantity check_field_quantity(const char *quantity_s, DriverDynamic *dd);
@@ -128,7 +134,9 @@ bool DriverDynamic::load(DriverInfo *di, const string &file_name, const char *co
         di->setDynamic(file, doc);
 
         xmqForeach(doc, "/driver/detect/mvt", (XMQNodeCallback)add_detect, di);
+        xmqForeach(doc, "/driver/compact_frame_formats/difvif", (XMQNodeCallback)add_compact_frame_format, di);
         xmqForeach(doc, "/driver/mfct_tpl_status_bits", (XMQNodeCallback)add_mfct_tpl_status, di);
+        xmqForeach(doc, "/driver/default_keys/key", (XMQNodeCallback)add_default_key, di);
 
         check_detection_triplets(di, file);
 
@@ -156,6 +164,12 @@ DriverDynamic::DriverDynamic(MeterInfo &mi, DriverInfo &di) :
         verbose("(driver) constructing driver %s from already loaded file %s\n",
                 di.name().str().c_str(),
                 fileName().c_str());
+
+        const char *transform_payload_s = xmqGetString(doc, "/driver/transform_payload");
+        if (transform_payload_s && string(transform_payload_s) == "diehl_prios")
+        {
+            setDiehlPriosDecode(true);
+        }
 
         xmqForeach(doc, "/driver/library/use", (XMQNodeCallback)add_use, this);
         xmqForeach(doc, "/driver/fields/field", (XMQNodeCallback)add_field, this);
@@ -249,7 +263,7 @@ XMQProceed DriverDynamic::add_detect(XMQDoc *doc, XMQNodePtr detect, DriverInfo 
     {
         warning("(driver) error in %s, bad version in mvt triplet: %02x\n"
                 "%s\n"
-                "The version must be a hex value from 00 to ff.\n"
+                "The version must be a hex value from 00 to ff, or * as a wildcard.\n"
                 "%s\n",
                 di->getDynamicFileName().c_str(),
                 version,
@@ -262,7 +276,7 @@ XMQProceed DriverDynamic::add_detect(XMQDoc *doc, XMQNodePtr detect, DriverInfo 
     {
         warning("(driver) error in %s, bad type in mvt triplet: %02x\n"
                 "%s\n"
-                "The type must be a hex value from 00 to ff.\n"
+                "The type must be a hex value from 00 to ff, or * as a wildcard.\n"
                 "%s\n",
                 di->getDynamicFileName().c_str(),
                 type,
@@ -280,6 +294,26 @@ XMQProceed DriverDynamic::add_detect(XMQDoc *doc, XMQNodePtr detect, DriverInfo 
           type);
 
     di->addMVT(mfct_code, type, version);
+    return XMQ_CONTINUE;
+}
+
+XMQProceed DriverDynamic::add_compact_frame_format(XMQDoc *doc, XMQNodePtr node, DriverInfo *di)
+{
+    const char *difvif_s = xmqGetStringRel(doc, ".", node);
+
+    if (!difvif_s)
+    {
+        warning("(driver) error in %s, compact_frame_format requires difvif\n"
+                "%s\n",
+                di->getDynamicFileName().c_str(),
+                line);
+        return XMQ_CONTINUE;
+    }
+
+    vector<uchar> difvif;
+    hex2bin(difvif_s, &difvif);
+    uint16_t sig = crc16_EN13757(difvif.data(), difvif.size());
+    di->addCompactFrameFormat(sig, std::move(difvif));
     return XMQ_CONTINUE;
 }
 
@@ -310,13 +344,23 @@ XMQProceed DriverDynamic::add_field(XMQDoc *doc, XMQNodePtr field, DriverDynamic
     bool is_numeric = quantity != Quantity::Text;
 
     // For ixml parsing of mfct specific payloads, payloads that do not even bother with the 0x0f.
-    bool match_entire_payload = check_field_match_entire_payload(xmqGetStringRel(doc, "match_entire_payload", field), dd);
+    bool match_entire_payload = check_boolean_property(xmqGetStringRel(doc, "match_entire_payload", field), "match_entire_payload", dd, false);
 
     if (is_numeric && match_entire_payload)
     {
         warning("(driver) error in %s, match_entire_payload can only be enabled for quantity=String.\n",
                 dd->fileName().c_str());
         match_entire_payload = false;
+    }
+
+    // For ixml parsing using the full frame (including TPL header bytes like tpl_acc).
+    bool match_entire_frame = check_field_match_entire_frame(xmqGetStringRel(doc, "match_entire_frame", field), dd);
+
+    if (is_numeric && match_entire_frame)
+    {
+        warning("(driver) error in %s, match_entire_frame can only be enabled for quantity=String.\n",
+                dd->fileName().c_str());
+        match_entire_frame = false;
     }
 
     // The vif scaling is by default Auto but can be overriden for pesky fields.
@@ -423,6 +467,13 @@ XMQProceed DriverDynamic::add_field(XMQDoc *doc, XMQNodePtr field, DriverDynamic
         match_entire_payload = false;
     }
 
+    if (match.active && match_entire_frame)
+    {
+        warning("(driver) error in %s, match_entire_frame cannot be combined with match { }.\n",
+                dd->fileName().c_str());
+        match_entire_frame = false;
+    }
+
     if (use_tpl_aes_cbc_iv_payload_transform && !match_entire_payload)
     {
         warning("(driver) error in %s, transform_payload requires match_entire_payload = true.\n",
@@ -504,6 +555,10 @@ XMQProceed DriverDynamic::add_field(XMQDoc *doc, XMQNodePtr field, DriverDynamic
                 ixml,
                 match_entire_payload
                 );
+            if (match_entire_frame)
+            {
+                dd->lastAddedField()->matchEntireFrame(true);
+            }
             if (rs != ReadableString::Unknown)
             {
                 dd->lastAddedField()->setReadableString(rs);
@@ -570,7 +625,18 @@ XMQProceed DriverDynamic::add_combinable_raw(XMQDoc *doc, XMQNodePtr match, Driv
 XMQProceed DriverDynamic::add_map(XMQDoc *doc, XMQNodePtr map, DriverDynamic *dd)
 {
     const char *name = xmqGetStringRel(doc, "name", map);
-    uint64_t value = checked_value(xmqGetStringRel(doc, "value", map), dd);
+    uint64_t value = 0;
+    const char *bit_s = xmqGetStringRel(doc, "bit", map);
+    if (bit_s)
+    {
+        long v = check_long_property(bit_s, "bit", dd);
+        value = 1;
+        value <<= v;
+    }
+    else
+    {
+        value = checked_value(xmqGetStringRel(doc, "value", map), dd);
+    }
     TestBit test_type = checked_test_type(xmqGetStringRel(doc, "test", map), dd);
 
     dd->tmp_rule_->add(Translate::Map(value, name, test_type));
@@ -647,6 +713,22 @@ XMQProceed DriverDynamic::add_mfct_tpl_status(XMQDoc *doc, XMQNodePtr node, Driv
     lookup.add(rule);
     di->mfctTPLStatusBits() = lookup;
 
+    return XMQ_CONTINUE;
+}
+
+XMQProceed DriverDynamic::add_default_key(XMQDoc *doc, XMQNodePtr node, DriverInfo *di)
+{
+    const char *key_s = xmqGetStringRel(doc, ".", node);
+    if (!key_s) return XMQ_CONTINUE;
+
+    vector<uchar> key;
+    if (!hex2bin(key_s, &key) || key.size() != 16)
+    {
+        warning("(driver) invalid default_key '%s' in %s (must be 32 hex chars)\n",
+                key_s, di->getDynamicFileName().c_str());
+        return XMQ_CONTINUE;
+    }
+    di->addDefaultKey(key);
     return XMQ_CONTINUE;
 }
 
@@ -822,6 +904,50 @@ bool check_field_match_entire_payload(const char *mep, DriverDynamic *dd)
 
     warning("(driver) error in %s, match_entire_payload must be true/false not \"%s\"\n",
             dd->fileName().c_str(), mep);
+
+    return false;
+}
+
+bool check_boolean_property(const char *value, const char *property, DriverDynamic *dd, bool default_value)
+{
+    if (!value) return default_value;
+
+    if (!strcmp(value, "true")) return true;
+    if (!strcmp(value, "false")) return false;
+
+    warning("(driver) error in %s, %s must be true/false not \"%s\"\n",
+            dd->fileName().c_str(), property, value);
+
+    return default_value;
+}
+
+long check_long_property(const char *value, const char *property, DriverDynamic *dd)
+{
+    char *end;
+    errno = 0;
+
+    long val = strtol(value, &end, 10);
+
+    if (end == value || errno == ERANGE || *end != '\0')
+    {
+        warning("(driver) error in %s, bad integer: %s\n",
+                dd->fileName().c_str(),
+                value);
+        throw 1;
+    }
+
+    return val;
+}
+
+bool check_field_match_entire_frame(const char *mef, DriverDynamic *dd)
+{
+    if (!mef) return false;
+
+    if (!strcmp(mef, "true")) return true;
+    if (!strcmp(mef, "false")) return false;
+
+    warning("(driver) error in %s, match_entire_frame must be true/false not \"%s\"\n",
+            dd->fileName().c_str(), mef);
 
     return false;
 }
@@ -1383,6 +1509,7 @@ uint64_t checked_value(const char *value_s, DriverDynamic *dd)
         warning("(driver) error in %s, cannot find: driver/fields/field/lookup/map/value\n"
                 "%s\n"
                 "Remember to add for example: lookup { map { ... value = 0x01 ... }}\n"
+                "or a bit                     lookup { map { ... bit = 8 ... }}\n"
                 "%s\n",
                 dd->fileName().c_str(),
                 line,

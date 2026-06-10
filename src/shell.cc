@@ -87,7 +87,8 @@ void invokeShell(string program, vector<string> args, vector<string> envs)
         restoreSignalHandlers();
         close(0); // Close stdin
 #if (defined(__APPLE__) && defined(__MACH__)) || defined(__FreeBSD__)
-        execve(program.c_str(), (char*const*)&argv[0], (char*const*)&env[0]);
+        environ = (char**)&env[0];
+        execvp(program.c_str(), (char*const*)&argv[0]);
 #else
         execvpe(program.c_str(), (char*const*)&argv[0], (char*const*)&env[0]);
 #endif
@@ -160,7 +161,8 @@ bool invokeBackgroundShell(string program, vector<string> args, vector<string> e
         close(0); // Close stdin
 
 #if (defined(__APPLE__) && defined(__MACH__)) || defined(__FreeBSD__)
-        execve(program.c_str(), (char*const*)&argv[0], (char*const*)&env[0]);
+        environ = (char**)&env[0];
+        execvp(program.c_str(), (char*const*)&argv[0]);
 #else
         execvpe(program.c_str(), (char*const*)&argv[0], (char*const*)&env[0]);
 #endif
@@ -292,7 +294,8 @@ int invokeShellCaptureOutput(string program, vector<string> args, vector<string>
         close(0); // Close stdin
 
 #if (defined(__APPLE__) && defined(__MACH__)) || defined(__FreeBSD__)
-        execve(program.c_str(), (char*const*)&argv[0], (char*const*)&env[0]);
+        environ = (char**)&env[0];
+        execvp(program.c_str(), (char*const*)&argv[0]);
 #else
         execvpe(program.c_str(), (char*const*)&argv[0], (char*const*)&env[0]);
 #endif

@@ -18,8 +18,8 @@
 #include"translatebits.h"
 #include"util.h"
 
-#include<assert.h>
-#include<string.h>
+#include<cassert>
+#include<cstring>
 
 using namespace Translate;
 using namespace std;
@@ -270,9 +270,9 @@ Translate::MapType toMapType(const char *s)
 
 Lookup NoLookup = {};
 
-
-Map m = { 123, "howdy" };
-vector<Map> vm = { { 123, "howdy" } };
-
-Rule r = { "name", Translate::MapType::IndexToString,
-    AlwaysTrigger, MaskBits(0xe000),  "", { } };
+TestBit toTestBit(const char *s)
+{
+    if (!strcmp(s, "Set")) return TestBit::Set;
+    if (!strcmp(s, "NotSet")) return TestBit::NotSet;
+    return TestBit::Unknown;
+}

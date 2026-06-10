@@ -19,6 +19,7 @@
 #define DVPARSER_H
 
 #include"always.h"
+#include"drivers.h"
 #include"units.h"
 #include"xmq.h"
 
@@ -207,6 +208,11 @@ bool isInsideVIFRange(Vif vif, VIFRange range);
     X(Mfct08,0x7f08,0x7f08) \
     X(Mfct21,0x7f21,0x7f21) \
     X(Mfct72,0x7f72,0x7f72) \
+    X(Synthetic,0x7f77,0x7f77) \
+
+// Synthetic is a wmbusmeters specific combinable used
+// to mark generated difvifkeys from fields extracted from
+// Compact profile entries.
 
 enum class VIFCombinable
 {
@@ -538,7 +544,9 @@ struct FieldMatcher
     std::string str();
 };
 
-bool loadFormatBytesFromSignature(uint16_t format_signature, std::vector<uchar> *format_bytes);
+
+void registerCompactFormatForMVT(MVT mvt, uint16_t sig, std::vector<uchar> difvif);
+bool lookupCompactFormat(MVT mvt, uint16_t sig, std::vector<uchar> &format_bytes);
 
 struct Telegram;
 

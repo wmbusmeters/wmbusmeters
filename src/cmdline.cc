@@ -20,6 +20,8 @@
 #include"meters.h"
 #include"util.h"
 
+#include "utils/download.h"
+
 #include<cstring>
 #include<string>
 #include<unistd.h>
@@ -100,8 +102,7 @@ void enableEarlyLoggingFromCommandLine(int argc, char **argv)
             continue;
         }
         if (!strncmp(argv[i], "--basicauth=", 12) && strlen(argv[i]) > 12) {
-            string ba = argv[i]+12;
-            setBasicAuth(ba);
+            setBasicAuth(argv[i]+12);
             i++;
             continue;
         }

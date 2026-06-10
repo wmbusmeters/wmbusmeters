@@ -16,11 +16,12 @@
 */
 
 #include"always.h"
-#include"crc16.h"
 #include"log.h"
 #include"util.h"
 #include"dvparser.h"
 #include"wmbus.h"
+
+#include "crypto/crc16.h"
 
 #include<cassert>
 #include<cmath>
@@ -154,7 +155,8 @@ LIST_OF_VIF_RANGES
     return false;
 }
 
-unordered_map<uint16_t,string> hash_to_format_;
+unordered_map<uint16_t,vector<uchar>> hash_to_format_;
+unordered_map<uint32_t,unordered_map<uint16_t,vector<uchar>>> mt_to_compact_formats_;
 
 static string makeSyntheticStorageKey(uchar dif_data_len_nibble, int storage_nr, uchar vif)
 {
@@ -180,6 +182,11 @@ static string makeSyntheticStorageKey(uchar dif_data_len_nibble, int storage_nr,
     }
 
     key_bytes.push_back(vif);
+
+    // Add vif combinable Synthetic
+    key_bytes.push_back(0x7f);
+    key_bytes.push_back(0x77);
+
     return bin2hex(key_bytes);
 }
 
@@ -829,7 +836,8 @@ static void addSyntheticCompactProfileEntries(unordered_map<string,pair<int,DVEn
         }
 
         string value_hex = bin2hex(value_bytes);
-        set<VIFCombinable> no_combinable_vifs;
+        set<VIFCombinable> single_synthetic_combinable_vif;
+        single_synthetic_combinable_vif.insert(VIFCombinable::Synthetic);
         set<uint16_t> no_combinable_vifs_raw;
 
         auto insert_res = dv_entries->emplace(key,
@@ -838,14 +846,15 @@ static void addSyntheticCompactProfileEntries(unordered_map<string,pair<int,DVEn
                                          DifVifKey(key),
                                          entry.measurement_type,
                                          entry.vif,
-                                         std::move(no_combinable_vifs),
+                                         std::move(single_synthetic_combinable_vif),
                                          std::move(no_combinable_vifs_raw),
                                          StorageNr(storage_nr),
                                          entry.tariff_nr,
                                          entry.subunit_nr,
                                          value_hex)));
         assert(insert_res.second);
-                        insert_res.first->second.second.subunit_nr = SubUnitNr(synthetic_subunit);
+        insert_res.first->second.second.subunit_nr = SubUnitNr(synthetic_subunit);
+        debug("(dvparser) inserted 1 synthetic difvif %s\n", key.c_str());
 
         if (have_running_base_date)
         {
@@ -865,7 +874,8 @@ static void addSyntheticCompactProfileEntries(unordered_map<string,pair<int,DVEn
                         date_duplicate_nr++;
                     }
 
-                    set<VIFCombinable> no_date_combinable_vifs;
+                    set<VIFCombinable> single_synthetic_combinable_vif;
+                    single_synthetic_combinable_vif.insert(VIFCombinable::Synthetic);
                     set<uint16_t> no_date_combinable_vifs_raw;
 
                         auto date_insert_res = dv_entries->emplace(date_key,
@@ -874,13 +884,14 @@ static void addSyntheticCompactProfileEntries(unordered_map<string,pair<int,DVEn
                                                        DifVifKey(date_key),
                                                        date_measurement_type,
                                                        Vif(date_vif),
-                                                       std::move(no_date_combinable_vifs),
+                                                       std::move(single_synthetic_combinable_vif),
                                                        std::move(no_date_combinable_vifs_raw),
                                                        StorageNr(storage_nr),
                                                        entry.tariff_nr,
                                            SubUnitNr(synthetic_subunit),
                                            date_hex)));
                     assert(date_insert_res.second);
+                    debug("(dvparser) inserted 2 synthetic difvif %s\n", key.c_str());
 
                     running_base_date = next_date;
                 }
@@ -902,16 +913,35 @@ static void addSyntheticCompactProfileEntries(unordered_map<string,pair<int,DVEn
     }
 }
 
-bool loadFormatBytesFromSignature(uint16_t format_signature, vector<uchar> *format_bytes)
+void registerCompactFormatForMVT(MVT mvt, uint16_t sig, vector<uchar> difvif)
 {
-    if (hash_to_format_.count(format_signature) > 0) {
-        debug("(dvparser) found remembered format for hash %x\n", format_signature);
-        // Return the proper hash!
-        hex2bin(hash_to_format_[format_signature], format_bytes);
-        return true;
+    uint32_t key = (uint32_t(mvt.mfct & 0x7fff) << 8) | uint32_t(mvt.type);
+    mt_to_compact_formats_[key][sig] = std::move(difvif);
+    debug("(dvparser) registered compact frame format sig=%04x for mfct=%04x type=%02x\n", sig, mvt.mfct, mvt.type);
+}
+
+bool lookupCompactFormat(MVT mvt, uint16_t sig, vector<uchar> &format_bytes)
+{
+    uint32_t key = (uint32_t(mvt.mfct & 0x7fff) << 8) | uint32_t(mvt.type);
+    auto it = mt_to_compact_formats_.find(key);
+    if (it != mt_to_compact_formats_.end())
+    {
+        auto jt = it->second.find(sig);
+        if (jt != it->second.end())
+        {
+            debug("(dvparser) found pre-declared format for sig=%04x mfct=%04x type=%02x\n", sig, mvt.mfct, mvt.type);
+            format_bytes = jt->second;
+            return true;
+        }
     }
-    // Unknown format signature.
-    return false;
+    if (hash_to_format_.count(sig) == 0)
+    {
+        debug("(dvparser) no compact frame format found for sig=%04x mfct=%04x type=%02x\n", sig, mvt.mfct, mvt.type);
+        return false;
+    }
+    debug("(dvparser) found runtime-learned format for sig=%04x\n", sig);
+    format_bytes = hash_to_format_[sig];
+    return true;
 }
 
 static const char hex_upper[] = "0123456789ABCDEF";
@@ -999,7 +1029,7 @@ bool parseDV(Telegram *t,
 
             if (index >= force_mfct_index)
             {
-                DEBUG_PARSER("(dvparser) manufacturer specific data, parsing is done.\n", dif);
+                DEBUG_PARSER("(dvparser) manufacturer specific data, parsing is done.\n");
                 size_t datalen = std::distance(data, data_end);
                 string value = bin2hex(data, data_end, datalen);
                 t->addExplanationAndIncrementPos(data, datalen, KindOfData::CONTENT, Understanding::NONE, "manufacturer specific data %s", value.c_str());
@@ -1286,6 +1316,17 @@ bool parseDV(Telegram *t,
         } else {
             strprintf(&key, "%s", dv.c_str());
         }
+        // A synthetic compact-profile expansion should never generate keys that can
+        // exist in a normal telegra, since wmbusmeters adds the wmbusmeters specific Synthetic
+        // combinable 0x7ff7 to the synthetic entries.
+        // However, if a telegram encodes such combinables, it might, the emplace might fail.
+        // We skip past any such collision here.
+        while (dv_entries->count(key) != 0) {
+            ++count;
+            strprintf(&key, "%s_%d", dv.c_str(), count);
+            warning("(dvparser) conflict where telegram uses wmbusmeters specific combinable 0x7ff7\n");
+        }
+        dv_count[dv] = count;
         DEBUG_PARSER("(dvparser debug) DifVif key is %s\n", key.c_str());
 
         int remaining = std::distance(data, data_end);
@@ -1344,13 +1385,16 @@ bool parseDV(Telegram *t,
         }
     }
 
-    string format_string = bin2hex(format_bytes);
-    uint16_t hash = crc16_EN13757(safeButUnsafeVectorPtr(format_bytes), format_bytes.size());
-
     if (data_has_difvifs) {
-        if (hash_to_format_.count(hash) == 0) {
-            hash_to_format_[hash] = format_string;
-            debug("(dvparser) found new format \"%s\" with hash %x, remembering!\n", format_string.c_str(), hash);
+        size_t format_bytes_len = format_bytes.size();
+
+        if (format_bytes_len != 0) {
+            uint16_t hash = crc16_EN13757(safeButUnsafeVectorPtr(format_bytes), format_bytes_len);
+                
+            if (hash_to_format_.count(hash) == 0) {
+                hash_to_format_[hash] = format_bytes;
+                debug("(dvparser) found new format \"%s\" with hash %x, remembering!\n", bin2hex(format_bytes).c_str(), hash);
+            }
         }
     }
 

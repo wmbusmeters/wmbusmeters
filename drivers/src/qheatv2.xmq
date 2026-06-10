@@ -15,6 +15,16 @@ driver {
         mvt = QDS,47,37
         mvt = QDS,48,04
         mvt = QDS,48,37
+        mvt = LSE,23,04
+        mvt = LSE,23,37
+        mvt = LSE,3e,04
+        mvt = LSE,3e,37
+        mvt = LSE,46,04
+        mvt = LSE,46,37
+        mvt = LSE,47,04
+        mvt = LSE,47,37
+        mvt = LSE,48,04
+        mvt = LSE,48,37
     }
     library {
         use = meter_datetime
@@ -164,16 +174,28 @@ driver {
             match {
                 difvifkey = 0DFF5F
             }
+            // Siemens/Qundis WalkByDataSet block: DIF=0D (variable-len), VIF=FF (mfct), VIFE=5F, 53 bytes.
+            // 9-byte proprietary header (skipped as quad, quad, byte):
+            //   [0]   0x00     reserved
+            //   [1]   0x82     wbdsId: Type 2 WalkByDataSet
+            //   [2]   counter  rolling transmission counter (increments each send)
+            //   [3]   0x00     reserved
+            //   [4]   0x00     reserved
+            //   [5]   flags    device-specific status/flags (format unknown)
+            //   [6]   0x00/01  extra flag
+            //   [7]   0x07     constant (possibly number of data records)
+            //   [8]   0xC0     meter type: 0xB0=HCA, 0xC0=heat, 0xC1=warm/cold water
+            // Byte [9] is the VIF (0x05/06/0D/0E = energy variants), which is matched below.
             ixml = "decode = quad, quad, byte,
                              (energy_100wh |
                               energy_1kwh |
                               energy_100kj |
                               energy_1mj).
 
-                    energy_100wh = '05', error_date, total_100wh, target_year_date, target_year_100wh, target_date, target_year_100wh, byte*.
-                    energy_1kwh  = '06', error_date, total_1kwh, target_year_date, target_year_1kwh, target_date, target_year_1kwh, byte*.
-                    energy_100kj = '0D', error_date, total_100kj, target_year_date, target_year_100kj, target_date, target_year_100kj, byte*.
-                    energy_1mj   = '0E', error_date, total_1mj, target_year_date, target_year_1mj, target_date, target_year_1mj, byte*.
+                    energy_100wh = '05', error_date, total_100wh, target_year_date, target_year_100wh, target_date, target_100wh, d05_1, d05_2, d05_3, d05_4, d05_5, d05_6, d05_7, d05_8, d05_9, d05_10, d05_11, d05_12, -pad.
+                    energy_1kwh  = '06', error_date, total_1kwh, target_year_date, target_year_1kwh, target_date, target_1kwh, d06_1, d06_2, d06_3, d06_4, d06_5, d06_6, d06_7, d06_8, d06_9, d06_10, d06_11, d06_12, -pad.
+                    energy_100kj = '0D', error_date, total_100kj, target_year_date, target_year_100kj, target_date, target_100kj, d0d_1, d0d_2, d0d_3, d0d_4, d0d_5, d0d_6, d0d_7, d0d_8, d0d_9, d0d_10, d0d_11, d0d_12, -pad.
+                    energy_1mj   = '0E', error_date, total_1mj, target_year_date, target_year_1mj, target_date, target_1mj, d0e_1, d0e_2, d0e_3, d0e_4, d0e_5, d0e_6, d0e_7, d0e_8, d0e_9, d0e_10, d0e_11, d0e_12, -pad.
 
                     error_date = word, @DV_426C.
                     target_year_date = word, @DV_426C.
@@ -193,6 +215,59 @@ driver {
                     target_1kwh  = quad, @DV_CC0806.
                     target_100kj = quad, @DV_CC080D.
                     target_1mj   = quad, @DV_CC080E.
+
+                    d05_1  = word, @DV_820105.
+                    d05_2  = word, @DV_C20105.
+                    d05_3  = word, @DV_820205.
+                    d05_4  = word, @DV_C20205.
+                    d05_5  = word, @DV_820305.
+                    d05_6  = word, @DV_C20305.
+                    d05_7  = word, @DV_820405.
+                    d05_8  = word, @DV_C20405.
+                    d05_9  = word, @DV_820505.
+                    d05_10 = word, @DV_C20505.
+                    d05_11 = word, @DV_820605.
+                    d05_12 = word, @DV_C20605.
+
+                    d06_1  = word, @DV_820106.
+                    d06_2  = word, @DV_C20106.
+                    d06_3  = word, @DV_820206.
+                    d06_4  = word, @DV_C20206.
+                    d06_5  = word, @DV_820306.
+                    d06_6  = word, @DV_C20306.
+                    d06_7  = word, @DV_820406.
+                    d06_8  = word, @DV_C20406.
+                    d06_9  = word, @DV_820506.
+                    d06_10 = word, @DV_C20506.
+                    d06_11 = word, @DV_820606.
+                    d06_12 = word, @DV_C20606.
+
+                    d0d_1  = word, @DV_82010D.
+                    d0d_2  = word, @DV_C2010D.
+                    d0d_3  = word, @DV_82020D.
+                    d0d_4  = word, @DV_C2020D.
+                    d0d_5  = word, @DV_82030D.
+                    d0d_6  = word, @DV_C2030D.
+                    d0d_7  = word, @DV_82040D.
+                    d0d_8  = word, @DV_C2040D.
+                    d0d_9  = word, @DV_82050D.
+                    d0d_10 = word, @DV_C2050D.
+                    d0d_11 = word, @DV_82060D.
+                    d0d_12 = word, @DV_C2060D.
+
+                    d0e_1  = word, @DV_82010E.
+                    d0e_2  = word, @DV_C2010E.
+                    d0e_3  = word, @DV_82020E.
+                    d0e_4  = word, @DV_C2020E.
+                    d0e_5  = word, @DV_82030E.
+                    d0e_6  = word, @DV_C2030E.
+                    d0e_7  = word, @DV_82040E.
+                    d0e_8  = word, @DV_C2040E.
+                    d0e_9  = word, @DV_82050E.
+                    d0e_10 = word, @DV_C2050E.
+                    d0e_11 = word, @DV_82060E.
+                    d0e_12 = word, @DV_C2060E.
+                    -pad = byte.
 
                     -hex  = ['A'-'F';'0'-'9'].
                     -byte = hex, hex.
@@ -218,7 +293,69 @@ driver {
                     DV_426C>dvk = +'426C'.
                     DV_C2086C>dvk = +'C2086C'.
 
-                   "
+                    DV_820105>dvk = +'820105'.
+                    DV_C20105>dvk = +'C20105'.
+                    DV_820205>dvk = +'820205'.
+                    DV_C20205>dvk = +'C20205'.
+                    DV_820305>dvk = +'820305'.
+                    DV_C20305>dvk = +'C20305'.
+                    DV_820405>dvk = +'820405'.
+                    DV_C20405>dvk = +'C20405'.
+                    DV_820505>dvk = +'820505'.
+                    DV_C20505>dvk = +'C20505'.
+                    DV_820605>dvk = +'820605'.
+                    DV_C20605>dvk = +'C20605'.
+
+                    DV_820106>dvk = +'820106'.
+                    DV_C20106>dvk = +'C20106'.
+                    DV_820206>dvk = +'820206'.
+                    DV_C20206>dvk = +'C20206'.
+                    DV_820306>dvk = +'820306'.
+                    DV_C20306>dvk = +'C20306'.
+                    DV_820406>dvk = +'820406'.
+                    DV_C20406>dvk = +'C20406'.
+                    DV_820506>dvk = +'820506'.
+                    DV_C20506>dvk = +'C20506'.
+                    DV_820606>dvk = +'820606'.
+                    DV_C20606>dvk = +'C20606'.
+
+                    DV_82010D>dvk = +'82010D'.
+                    DV_C2010D>dvk = +'C2010D'.
+                    DV_82020D>dvk = +'82020D'.
+                    DV_C2020D>dvk = +'C2020D'.
+                    DV_82030D>dvk = +'82030D'.
+                    DV_C2030D>dvk = +'C2030D'.
+                    DV_82040D>dvk = +'82040D'.
+                    DV_C2040D>dvk = +'C2040D'.
+                    DV_82050D>dvk = +'82050D'.
+                    DV_C2050D>dvk = +'C2050D'.
+                    DV_82060D>dvk = +'82060D'.
+                    DV_C2060D>dvk = +'C2060D'.
+
+                    DV_82010E>dvk = +'82010E'.
+                    DV_C2010E>dvk = +'C2010E'.
+                    DV_82020E>dvk = +'82020E'.
+                    DV_C2020E>dvk = +'C2020E'.
+                    DV_82030E>dvk = +'82030E'.
+                    DV_C2030E>dvk = +'C2030E'.
+                    DV_82040E>dvk = +'82040E'.
+                    DV_C2040E>dvk = +'C2040E'.
+                    DV_82050E>dvk = +'82050E'.
+                    DV_C2050E>dvk = +'C2050E'.
+                    DV_82060E>dvk = +'82060E'.
+                    DV_C2060E>dvk = +'C2060E'."
+        }
+        field {
+            name           = 'energy_delta_{storage_counter}'
+            quantity       = Energy
+            info           = 'Monthly energy delta.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
+            match {
+                measurement_type = Instantaneous
+                vif_range        = AnyEnergyVIF
+                storage_nr       = 2,13
+            }
         }
     }
     tests {
@@ -231,7 +368,7 @@ driver {
         test {
             args     = 'QQ1 qheatv2 68204641 NOKEY'
             telegram = 58449344414620684737780779414620689344470c0dff5f3500825a00000e0007c00dffff310803001f3c036800003e34310803000080008000800080008000800000931a92293128190c00002f02fd170000046d000f3235
-            json     = '{"_": "telegram","enhanced_id": "0C47449368204641","id": "68204641","media": "radio converter (meter side)","meter": "qheatv2","meter_datetime": "2025-05-18 15:00","name": "QQ1","status": "OK","target_date": "2025-04-30","target_year_date": "2024-12-31","target_year_kwh": 856.416667,"timestamp": "1111-11-11T11:11:11Z","total_kwh": 856.416667}'
+            json     = '{"_": "telegram","energy_delta_10_kwh":295.611111,"energy_delta_11_kwh":285.805556,"energy_delta_12_kwh":86.027778,"energy_delta_13_kwh":0,"energy_delta_2_kwh":-910.222222,"energy_delta_3_kwh":-910.222222,"energy_delta_4_kwh":-910.222222,"energy_delta_5_kwh":-910.222222,"energy_delta_6_kwh":-910.222222,"energy_delta_7_kwh":-910.222222,"energy_delta_8_kwh":0,"energy_delta_9_kwh":188.972222,"enhanced_id": "0C47449368204641","id": "68204641","media": "radio converter (meter side)","meter": "qheatv2","meter_datetime": "2025-05-18 15:00","name": "QQ1","status": "OK","target_date": "2025-04-30","target_kwh":856.416667,"target_year_date": "2024-12-31","target_year_kwh":188.972222,"timestamp": "1111-11-11T11:11:11Z","total_kwh": 856.416667}'
             fields   = 'QQ1;68204641;OK;856.416667;1111-11-11 11:11.11'
         }
         test {
@@ -246,13 +383,13 @@ driver {
             args     = 'QHeat55r qheatv2 68267443 NOKEY'
             comment  = 'Q Walk by telegram sent every 112 seconds'
             telegram = 5844934443742668483778_077943742668934448040DFF5F3500822A0000610107C006FFFF14000000FFFF000000003C32000000000080008000800080008000800080008000800080008000002F02FD170000046D1B0F3533
-            json     = '{"_": "telegram","enhanced_id": "0448449368267443","id": "68267443","media": "radio converter (meter side)","meter": "qheatv2","meter_datetime": "2025-03-21 15:27","name": "QHeat55r","status": "OK","target_date": "2025-02-28","target_year_date": "2128-03-31","target_year_kwh": 0,"timestamp": "1111-11-11T11:11:11Z","total_kwh": 14}'
+            json     = '{"_": "telegram","energy_delta_10_kwh":-32768,"energy_delta_11_kwh":-32768,"energy_delta_12_kwh":-32768,"energy_delta_13_kwh":0,"energy_delta_2_kwh":-32768,"energy_delta_3_kwh":-32768,"energy_delta_4_kwh":-32768,"energy_delta_5_kwh":-32768,"energy_delta_6_kwh":-32768,"energy_delta_7_kwh":-32768,"energy_delta_8_kwh":-32768,"energy_delta_9_kwh":-32768,"enhanced_id": "0448449368267443","id": "68267443","media": "radio converter (meter side)","meter": "qheatv2","meter_datetime": "2025-03-21 15:27","name": "QHeat55r","status": "OK","target_date": "2025-02-28","target_kwh": 0,"target_year_date": "2128-03-31","target_year_kwh": 0,"timestamp": "1111-11-11T11:11:11Z","total_kwh": 14}'
             fields   = 'QHeat55r;68267443;OK;14;1111-11-11 11:11.11'
         }
         test {
             args     = 'QQA qheatv2 67958979 NOKEY'
             telegram = 58449344798995673E377807797989956793443E040DFF5F3500827D0000810007C006FFFF531100003F3C490900005F318010000083003C0022000B0000000000000000000A002B00510083002F02FD170000046D16085832
-            json     = '{"_": "telegram","enhanced_id": "043E449367958979","id": "67958979","media": "radio converter (meter side)","meter": "qheatv2","meter_datetime": "2026-02-24 08:22","name": "QQA","status": "OK","target_date": "2026-01-31","target_year_date": "2025-12-31","target_year_kwh": 1080,"timestamp": "1111-11-11T11:11:11Z","total_kwh": 1153}'
+            json     = '{"_": "telegram","energy_delta_10_kwh":10,"energy_delta_11_kwh":43,"energy_delta_12_kwh":81,"energy_delta_13_kwh":131,"energy_delta_2_kwh":131,"energy_delta_3_kwh":60,"energy_delta_4_kwh":34,"energy_delta_5_kwh":11,"energy_delta_6_kwh":0,"energy_delta_7_kwh":0,"energy_delta_8_kwh":0,"energy_delta_9_kwh":0,"enhanced_id": "043E449367958979","id": "67958979","media": "radio converter (meter side)","meter": "qheatv2","meter_datetime": "2026-02-24 08:22","name": "QQA","status": "OK","target_date": "2026-01-31","target_kwh":1080,"target_year_date": "2025-12-31","target_year_kwh":949,"timestamp": "1111-11-11T11:11:11Z","total_kwh": 1153}'
             fields   = 'QQA;67958979;OK;1153;1111-11-11 11:11.11'
         }
         test {

@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2022 Fredrik Öhrström (gpl-3.0-or-later)
+ Copyright (C) 2017-2026 Fredrik Öhrström (gpl-3.0-or-later)
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -15,17 +15,16 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef CRC16_H_
-#define CRC16_H_
+#ifndef UTILS_DOWNLOAD_H
+#define UTILS_DOWNLOAD_H
 
-#include "always.h"
-#include <cstdint>
-#include <cstddef>
+void setNoNetwork(bool v);
+void setBasicAuth(const char *cred);
 
-uint16_t crc16_EN13757(uchar *data, size_t len);
+void setDownloadDir(const char *dir);
+const char *downloadDir();
 
-// This crc is used by im871a for its serial communication.
-uint16_t crc16_CCITT(uchar *data, uint16_t length);
-bool     crc16_CCITT_check(uchar *data, uint16_t length);
+// Returns 200 or 404 or 304 etc...
+int download(const char *suffix, const char *file, const char *local_file);
 
 #endif

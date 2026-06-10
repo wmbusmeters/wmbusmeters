@@ -19,7 +19,7 @@ EOF
 $PROG --format=fields --selectfields=id,current_consumption_hca,device_date_time --debug simulations/simulation_broken.txt \
       HCA auto 27293981 NOKEY \
       HEAT sensostar 22256495 859A9D0F5DC2BAD679644E4FB6F9CE29 \
-      2>&1 | grep 'ignoring\|dvparser' > $TEST/test_output.txt
+      2>&1 | grep 'ignoring\|dvparser' | grep -v compact > $TEST/test_output.txt
 
 if [ "$?" = "0" ]
 then

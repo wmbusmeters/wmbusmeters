@@ -10,7 +10,7 @@ jobs:
     steps:
     - uses: actions/checkout@v6
     - id: INSTALL_ADDITIONAL_BUILD_DEPENDENCIES
-      run: brew install librtlsdr libusb
+      run: brew install librtlsdr libusb curl
     - id: CONFIGURE
       run: ./configure
     - id: MAKE

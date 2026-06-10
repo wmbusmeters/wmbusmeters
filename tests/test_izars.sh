@@ -18,7 +18,7 @@ METERS="IzarWater   izar        21242472 NOKEY
         IzarWater3  izar        20481979 NOKEY
         IzarWater4  izar        2124589c NOKEY
         IzarWater5  izar        20e4ffde NOKEY
-        IzarWater6  auto        48500375 NOKEY
+        IzarWater6  izar        48500375 NOKEY
         IzarWater7  izar        208962f3 NOKEY"
 
 cat simulations/simulation_izars.txt | grep '^{' | jq --sort-keys . > $TEST/test_expected.txt
@@ -55,37 +55,37 @@ Received telegram from: 21242472
           manufacturer: (SAP) Diehl Metering, Germany (0x4c30)
                   type: Water meter (0x07)
                    ver: 0x00
-                driver: izar
+                driver: izarv2
 Received telegram from: 66236629
           manufacturer: (DME) DIEHL Metering, Germany (0x11a5)
                   type: Water meter (0x07)
                    ver: 0x78
-                driver: izar
+                driver: izarv2
 Received telegram from: 20481979
           manufacturer: (DME) DIEHL Metering, Germany (0x11a5)
                   type: Water meter (0x07)
                    ver: 0x78
-                driver: izar
+                driver: izarv2
 Received telegram from: 2124589c
           manufacturer: (SAP) Diehl Metering, Germany (0x4c30)
                   type: Water meter (0x07)
                    ver: 0x00
-                driver: izar
+                driver: izarv2
 Received telegram from: 20e4ffde
           manufacturer: (SAP) Diehl Metering, Germany (0x4c30)
                   type: Water meter (0x07)
                    ver: 0x00
-                driver: izar
+                driver: izarv2
 Received telegram from: 48500375
           manufacturer: (HYD) Diehl Metering, Germany (0x2324)
                   type: Water meter (0x07)
                    ver: 0x86
-                driver: izar
+                driver: izarv2
 Received telegram from: 208962f3
           manufacturer: (SAP) Diehl Metering, Germany (0x4c30)
                   type: Water meter (0x07)
                    ver: 0x00
-                driver: izar
+                driver: izarv2
 EOF
 
 RES=$($PROG --logfile=$LOGFILE --t1 simulations/simulation_izars.txt 2>&1)

@@ -9,6 +9,7 @@ on:
 
 jobs:
   trigger_ha_addon_build:
+    if: github.repository == 'wmbusmeters/wmbusmeters'
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository

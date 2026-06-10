@@ -23,6 +23,7 @@
 #include"rtlsdr.h"
 #include"serial.h"
 #include"shell.h"
+#include"util.h"
 
 #include<assert.h>
 #include<algorithm>

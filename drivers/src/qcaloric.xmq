@@ -120,6 +120,47 @@ driver {
             }
         }
         field {
+            name       = mfct_wbds
+            quantity   = Text
+            attributes = HIDE
+            match {
+                difvifkey = 0DFF5F
+            }
+            // Siemens/Qundis WalkByDataSet block: DIF=0D (variable-len), VIF=FF (mfct), VIFE=5F, 53 bytes.
+            // 9-byte proprietary header (skipped as quad, quad, byte):
+            //   [0]   0x00     reserved
+            //   [1]   0x82     wbdsId: Type 2 WalkByDataSet
+            //   [2]   counter  rolling transmission counter (increments each send)
+            //   [3]   0x00     reserved
+            //   [4]   0x00     reserved
+            //   [5]   flags    device-specific status/flags (format unknown)
+            //   [6]   0x00/01  extra flag
+            //   [7]   0x07     constant (possibly number of data records)
+            //   [8]   0xB0     meter type: 0xB0=HCA, 0xC0=heat, 0xC1=warm/cold water
+            // Byte [9] is the VIF (0x6E = HCA), which is matched below.
+            ixml = "decode = quad, quad, byte, hca.
+
+                    hca = '6E', error_date, current_hca, cutoff_date, cutoff_hca, last_date, last_hca, byte*.
+
+                    error_date  = word, @DV_426C.
+                    current_hca = quad, @DV_0C6E.
+                    cutoff_date = word, @DV_426C.
+                    cutoff_hca  = quad, @DV_4C6E.
+                    last_date   = word, @DV_C2086C.
+                    last_hca    = quad, @DV_CC086E.
+
+                    -hex  = ['A'-'F';'0'-'9'].
+                    -byte = hex, hex.
+                    -word = byte, byte.
+                    -quad = byte, byte, byte, byte.
+
+                    DV_426C>dvk   = +'426C'.
+                    DV_0C6E>dvk   = +'0C6E'.
+                    DV_4C6E>dvk   = +'4C6E'.
+                    DV_C2086C>dvk = +'C2086C'.
+                    DV_CC086E>dvk = +'CC086E'."
+        }
+        field {
             name         = device
             quantity     = PointInTime
             info         = 'Date and time when the meter sent the telegram.'
@@ -150,10 +191,10 @@ driver {
         }
         test {
             args     = 'MyElement2 qcaloric 90919293 NOKEY'
-            comment  = 'Test mostly proprietary telegram without values'
+            comment  = 'Walkby telegram with WalkByDataSet manufacturer block (Type2, Bcd6, VIF=HCA).'
             telegram = 49449344939291903408780DFF5F350082180000800007B06EFFFF970000009F2C70020000BE26970000000000010018002E001F002E0023FF210008000500020000002F046D220FA227
-            json     = '{"_":"telegram","media":"heat cost allocation","meter":"qcaloric","name":"MyElement2","id":"90919293","status":"OK","device_datetime":"2021-07-02 15:34","timestamp":"1111-11-11T11:11:11Z"}'
-            fields   = 'MyElement2;90919293;null;null;null;1111-11-11 11:11.11'
+            json     = '{"_":"telegram","media":"heat cost allocation","meter":"qcaloric","name":"MyElement2","id":"90919293","status":"OK","current_consumption_hca":97,"set_date":"2020-12-31","consumption_at_set_date_hca":270,"set_date_1":"2020-12-31","consumption_at_set_date_1_hca":270,"set_date_17":"2021-06-30","consumption_at_set_date_17_hca":97,"device_datetime":"2021-07-02 15:34","timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'MyElement2;90919293;97;2020-12-31;270;1111-11-11 11:11.11'
         }
         test {
             args     = 'zenner_heat qcaloric 25932395 NOKEY'
@@ -168,13 +209,13 @@ driver {
             json     = '{"_":"telegram","media":"heat cost allocation","meter":"qcaloric","name":"MyElement3","id":"90919293","status":"OK","current_consumption_hca":97,"set_date":"2020-12-31","consumption_at_set_date_hca":270,"set_date_1":"2020-12-31","consumption_at_set_date_1_hca":270,"set_date_17":"2021-06-30","consumption_at_set_date_17_hca":97,"error_date":"2127-15-31","device_datetime":"2021-07-02 22:45","timestamp":"1111-11-11T11:11:11Z"}'
             fields   = 'MyElement3;90919293;97;2020-12-31;270;1111-11-11 11:11.11'
         }
-        // test {
-        //     args     = 'MyElement4 qcaloric 90919293 NOKEY'
-        //     comment  = 'Another mostly empty telegram, but values are now valid.'
-        //     telegram = 49449344939291903408780DFF5F350082180000800007B06EFFFF970000009F2C70020000BE26970000000000010018002E001F002E0023FF210008000500020000002F046D220FA228
-        //     json     = '{"_":"telegram","media":"heat cost allocation","meter":"qcaloric","name":"MyElement4","id":"90919293","status":"OK","current_consumption_hca":97,"set_date":"2020-12-31","consumption_at_set_date_hca":270,"set_date_1":"2020-12-31","consumption_at_set_date_1_hca":270,"set_date_17":"2021-06-30","consumption_at_set_date_17_hca":97,"error_date":"2127-15-31","device_datetime":"2021-08-02 15:34","timestamp":"1111-11-11T11:11:11Z"}'
-        //     fields   = 'MyElement4;90919293;97;2020-12-31;270;1111-11-11 11:11.11'
-        // }
+        test {
+            args     = 'MyElement4 qcaloric 90919293 NOKEY'
+            comment  = 'Another mostly empty telegram, but values are now valid.'
+            telegram = 49449344939291903408780DFF5F350082180000800007B06EFFFF970000009F2C70020000BE26970000000000010018002E001F002E0023FF210008000500020000002F046D220FA228
+            json     = '{"_":"telegram","media":"heat cost allocation","meter":"qcaloric","name":"MyElement4","id":"90919293","status":"OK","current_consumption_hca":97,"set_date":"2020-12-31","consumption_at_set_date_hca":270,"set_date_1":"2020-12-31","consumption_at_set_date_1_hca":270,"set_date_17":"2021-06-30","consumption_at_set_date_17_hca":97,"device_datetime":"2021-08-02 15:34","timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'MyElement4;90919293;97;2020-12-31;270;1111-11-11 11:11.11'
+        }
         test {
             args     = 'HCA1 whe5x 91835132 NOKEY'
             comment  = 'Another version of the heat cost allocator. Was known as whe5x, so a name alias exist that maps to qcaloric.'

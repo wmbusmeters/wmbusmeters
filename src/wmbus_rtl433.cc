@@ -22,6 +22,7 @@
 #include"wmbus_utils.h"
 #include"rtlsdr.h"
 #include"serial.h"
+#include"util.h"
 
 #include<assert.h>
 #include<fcntl.h>

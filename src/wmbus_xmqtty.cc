@@ -22,6 +22,7 @@
 #include"meters.h"
 #include"drivers.h"
 #include"xmq.h"
+#include"util.h"
 
 #include<pthread.h>
 #include<semaphore.h>

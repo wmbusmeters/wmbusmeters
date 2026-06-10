@@ -19,11 +19,16 @@
 #include"config.h"
 #include"drivers.h"
 #include"driver_dynamic.h"
+#include"manufacturer_specificities.h"
 #include"meters.h"
 #include"meters_common_implementation.h"
 #include"units.h"
 #include"wmbus.h"
 #include"wmbus_utils.h"
+
+#include"crypto/crc16.h"
+
+#include"utils/download.h"
 
 #include<assert.h>
 #include<algorithm>
@@ -127,10 +132,12 @@ bool DriverInfo::detect(uint16_t mfct, uchar version, uchar type)
     for (auto &dd : mvts_)
     {
         if (dd.mfct == 0 && dd.type == 0 && dd.version == 0) continue; // Ignore drivers with no detection.
+        bool version_match = dd.version == 0xff || dd.version == version;
+        bool type_match = dd.type == 0xff || dd.type == type;
         // Some weird meters (aptor08 and itronheat) send a mfct where the first character is lower case,
         // which results in mfct which are bigger than 32767, therefore restrict mfct to correct range
         // and the normal check will work.
-        if ((dd.mfct & 0x7fff) == (mfct & 0x7fff) && dd.version == version && dd.type == type ) return true;
+        if ((dd.mfct & 0x7fff) == (mfct & 0x7fff) && version_match && type_match ) return true;
     }
     return false;
 }
@@ -150,7 +157,7 @@ bool DriverInfo::isValidMedia(uchar type)
 {
     for (auto &dd : mvts_)
     {
-        if (dd.type == type) return true;
+        if (dd.type == 0xff || dd.type == type) return true;
     }
     return false;
 }
@@ -163,7 +170,7 @@ bool DriverInfo::isCloseEnoughMedia(uchar type)
 {
     for (auto &dd : mvts_)
     {
-        if (isCloseEnough(dd.type, type)) return true;
+        if (dd.type == 0xff || isCloseEnough(dd.type, type)) return true;
     }
     return false;
 }
@@ -200,6 +207,44 @@ bool staticRegisterDriver(function<void(DriverInfo&)> setup)
     return true;
 }
 
+static XMQProceed collect_mvt_cb(XMQDoc *doc, XMQNodePtr node, vector<MVT> *mvts)
+{
+    string mvt_s = xmqGetStringRel(doc, ".", node);
+    auto fields = splitString(mvt_s, ',');
+    if (fields.size() != 3) return XMQ_CONTINUE;
+    uint16_t mfct = 0;
+    if (fields[0].length() == 3)
+    {
+        mfct = toMfctCode(fields[0][0], fields[0][1], fields[0][2]);
+    }
+    else
+    {
+        char *eptr;
+        mfct = (uint16_t)strtol(fields[0].c_str(), &eptr, 16);
+        if (*eptr) return XMQ_CONTINUE;
+    }
+    uchar version = (uchar)strtol(fields[1].c_str(), NULL, 16);
+    uchar type    = (uchar)strtol(fields[2].c_str(), NULL, 16);
+    mvts->push_back({ mfct, version, type });
+    return XMQ_CONTINUE;
+}
+
+struct RegisterCFFContext { vector<MVT> *mvts; };
+
+static XMQProceed register_compact_frame_format_cb(XMQDoc *doc, XMQNodePtr node, RegisterCFFContext *ctx)
+{
+    const char *difvif_s = xmqGetStringRel(doc, ".", node);
+    if (!difvif_s) return XMQ_CONTINUE;
+    vector<uchar> difvif;
+    hex2bin(difvif_s, &difvif);
+    uint16_t sig = crc16_EN13757(difvif.data(), difvif.size());
+    for (auto &mvt : *ctx->mvts)
+    {
+        registerCompactFormatForMVT(mvt, sig, difvif);
+    }
+    return XMQ_CONTINUE;
+}
+
 string loadDriver(const string &file, const char *content)
 {
     bool loading_builtin = false;
@@ -219,6 +264,14 @@ string loadDriver(const string &file, const char *content)
     if (!ok)
     {
         error(EXIT_DRIVER_ERROR, "Failed to load driver from file: %s\n", file.c_str());
+    }
+
+    for (auto &mvt : di.mvts())
+    {
+        for (auto &[sig, difvif] : di.compactFrameFormats())
+        {
+            registerCompactFormatForMVT(mvt, sig, difvif);
+        }
     }
 
     // Check if the driver name has been registered before....
@@ -436,6 +489,10 @@ MeterCommonImplementation::MeterCommonImplementation(MeterInfo &mi,
     if (mi.key.length() > 0)
     {
         hex2bin(mi.key, &meter_keys_.confidentiality_key);
+    }
+    if (!meter_keys_.hasConfidentialityKey())
+    {
+        meter_keys_.default_keys = di.defaultKeys();
     }
     for (auto s : mi.shells)
     {
@@ -1515,6 +1572,54 @@ bool MeterCommonImplementation::handleTelegram(AboutTelegram &about, vector<ucha
         waiting_for_poll_response_sem_.notify();
     }
 
+    // Decode Diehl PRIOS payload and inject SAP_PRIOS string fields before ixml runs.
+    diehl_prios_combined_hex_ = "";
+    if (diehl_prios_decode_)
+    {
+        vector<uchar> frame;
+        t.extractFrame(&frame);
+        vector<uchar> origin = t.original.empty() ? frame : t.original;
+
+        vector<uint32_t> keys;
+        initializeDiehlDefaultKeySupport(meterKeys()->confidentiality_key, keys);
+
+        vector<uchar> decoded;
+        for (auto& key : keys)
+        {
+            decoded = decodeDiehlLfsr(origin, frame, key, DiehlLfsrCheckMethod::HEADER_1_BYTE, 0x4B);
+            if (!decoded.empty()) break;
+        }
+
+        if (!decoded.empty())
+        {
+            int hs = t.header_size;
+            vector<uchar> combined(frame.begin()+hs, frame.begin()+min(hs+4, (int)frame.size()));
+            combined.insert(combined.end(), decoded.begin(), decoded.end());
+            diehl_prios_combined_hex_ = bin2hex(combined);
+
+            if (detectDiehlFrameInterpretation(frame) == DiehlFrameInterpretation::SAP_PRIOS)
+            {
+                string digits = to_string(((uint32_t)(origin[7] & 0x03) << 24) | ((uint32_t)origin[6] << 16) | ((uint32_t)origin[5] << 8) | (uint32_t)origin[4]);
+                digits = tostrprintf("%08d", atoi(digits.c_str()));
+                uint8_t yy = atoi(digits.substr(0, 2).c_str());
+                int manufacture_y = yy > 70 ? (1900 + yy) : (2000 + yy);
+                uint32_t serial_number = atoi(digits.substr(2, digits.size()).c_str());
+                uchar supplier_code = '@' + (((origin[9] & 0x0F) << 1) | (origin[8] >> 7));
+                uchar meter_type = '@' + ((origin[8] & 0x7C) >> 2);
+                uchar diameter = '@' + (((origin[8] & 0x03) << 3) | (origin[7] >> 5));
+                string prefix = tostrprintf("%c%02d%c%c", supplier_code, yy, meter_type, diameter);
+                setStringValue("prefix", prefix, NULL);
+                setStringValue("serial_number", tostrprintf("%06d", serial_number), NULL);
+                setStringValue("manufacture_y", tostrprintf("%d", manufacture_y), NULL);
+            }
+        }
+        else if (!t.beingAnalyzed())
+        {
+            warning("(izar) Decoding PRIOS data failed. Ignoring telegram.\n");
+            return false;
+        }
+    }
+
     // Invoke ixml extractors!
     processFieldIXMLs(&t);
 
@@ -1550,26 +1655,63 @@ void MeterCommonImplementation::processFieldIXMLs(Telegram *t)
     {
         if (fi.hasIXML())
         {
+            if (fi.matchEntireFrame())
+            {
+                // Pass the full frame (including TPL header) to ixml so grammars can access bytes like tpl_acc.
+                vector<uchar> frame;
+                t->extractFrame(&frame);
+                string value = bin2hex(frame);
+                debug("(ixml) parsing entire frame %s\n", value.c_str());
+                bool ok = parseWithIXML(t, 0, value, fi.ixmlGrammar(), &t->dv_entries);
+                if (!ok)
+                {
+                    if (fi.printProperties().hasREQUIRED())
+                    {
+                        t->decoding_errors = joinStatusEmptyStrings(t->decoding_errors,
+                                                                    string("DECODING_ERROR_")+fi.vname());
+                        if (!t->beingAnalyzed())
+                        {
+                            warning("(meters) meter: %s failed to decode ixml field: %s over entire frame\n"
+                                    "Please open an issue at https://github.com/wmbusmeters/wmbusmeters/\n"
+                                    "and report this telegram: %s\n",
+                                    name().c_str(),
+                                    fi.vname().c_str(),
+                                    value.c_str());
+                        }
+                    }
+                }
+                continue;
+            }
+
             if (fi.matchEntirePayload())
             {
                 // Special case for mfct specific meters not compliant with difvif parsing.
-                vector<uchar> content;
-                t->extractPayload(&content);
-                if (!fi.transformPayload(t, &content))
+                string value;
+                if (diehl_prios_decode_ && !diehl_prios_combined_hex_.empty())
                 {
-                    vector<uchar> frame;
-                    t->extractFrame(&frame);
-                    string hex = bin2hex(frame);
-
-                    warning("(meters) meter: %s failed to transform entire payload for ixml field: %s\n"
-                            "Please open an issue at https://github.com/wmbusmeters/wmbusmeters/\n"
-                            "and report this telegram: %s\n",
-                            name().c_str(),
-                            fi.vname().c_str(),
-                            hex.c_str());
-                    continue;
+                    value = diehl_prios_combined_hex_;
                 }
-                string value = bin2hex(content);
+                else
+                {
+                    vector<uchar> content;
+                    t->extractPayload(&content);
+                    if (!fi.transformPayload(t, &content))
+                    {
+                        vector<uchar> frame;
+                        t->extractFrame(&frame);
+                        string hex = bin2hex(frame);
+
+                        warning("(meters) meter: %s failed to transform entire payload for ixml field: %s\n"
+                                "Please open an issue at https://github.com/wmbusmeters/wmbusmeters/\n"
+                                "and report this telegram: %s\n",
+                                name().c_str(),
+                                fi.vname().c_str(),
+                                hex.c_str());
+                        continue;
+                    }
+                    value = bin2hex(content);
+                }
+
                 debug("(ixml) parsing entire payload %s\n", value.c_str());
                 bool ok = parseWithIXML(t, t->header_size, value, fi.ixmlGrammar(), &t->dv_entries);
                 if (!ok)
@@ -2655,8 +2797,11 @@ bool isValidKey(const string& key, MeterInfo &mi)
     if (key == "NOKEY") {
         return true;
     }
-    if (mi.driver_name.str() == "izar" ||
-        mi.driver_name.str() == "hydrus")
+    if (
+        mi.driver_name.str() == "izar" ||
+        mi.driver_name.str() == "izarv2" ||
+        mi.driver_name.str() == "hydrus"
+    )
     {
         // These meters can either be OMS compatible 128 bit key (32 hex).
         // Or using an older proprietary encryption with 64 bit keys (16 hex)
@@ -2664,9 +2809,9 @@ bool isValidKey(const string& key, MeterInfo &mi)
     }
     else
     {
-        // OMS compliant meters have 128 bit AES keys (32 hex).
-        // There is a deprecated DES mode, but I have not yet
-        // seen any telegram using that mode.
+        // Deprecated DES length for key.
+        if (key.length() == 16) return true;
+        // Otherwise OMS compliant meters must have 128 bit AES keys (32 hex).
         if (key.length() != 32) return false;
     }
     vector<uchar> tmp;

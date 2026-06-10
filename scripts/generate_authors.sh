@@ -18,9 +18,17 @@ CURRENT_YEAR=$(date +%Y)
 
 if [ -s "$TMP" ]
 then
-    echo "These files do not have a proper copyright notice:"
-    sed 's/:0//' "$TMP"
-    exit 1
+    OK=true
+    while IFS= read -r filename; do
+    filename=$(echo "$filename" | cut -f 1 -d ':')
+    if ! grep -q "This file is in the public domain." "$filename"; then
+        echo "No proper copyright notice in: $filename"
+        OK=false
+    fi
+    done < "$TMP"
+    if [ "$OK" = "false" ]; then
+        exit 1
+    fi
 fi
 
 (grep -rEo "Copyright \(C\) (....-)?.... [^\(]+ \(.+\)" src drivers/src \

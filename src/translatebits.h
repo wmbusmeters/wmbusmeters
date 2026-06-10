@@ -22,7 +22,14 @@
 #include<string>
 #include<vector>
 
-#include"util.h"
+enum class TestBit
+{
+    Unknown,
+    Set,
+    NotSet
+};
+
+TestBit toTestBit(const char *s);
 
 struct TriggerBits
 {

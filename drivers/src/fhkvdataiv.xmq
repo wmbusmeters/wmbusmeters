@@ -66,6 +66,7 @@ driver {
             match {
                 measurement_type = Instantaneous
                 vif_range        = HeatCostAllocation
+                add_combinable   = Synthetic
                 storage_nr       = 9,22
             }
         }
@@ -76,6 +77,7 @@ driver {
             match {
                 measurement_type = Instantaneous
                 vif_range        = Date
+                add_combinable   = Synthetic
                 storage_nr       = 9,22
             }
         }

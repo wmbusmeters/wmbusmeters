@@ -18,6 +18,8 @@
 #pragma once
 #ifdef __EMSCRIPTEN__
 
+#include "always.h"
+
 #include <vector>
 #include <string>
 #include <map>
