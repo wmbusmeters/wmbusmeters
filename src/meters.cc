@@ -17,7 +17,6 @@
 
 #include"bus.h"
 #include"config.h"
-#include"crc16.h"
 #include"drivers.h"
 #include"driver_dynamic.h"
 #include"manufacturer_specificities.h"
@@ -26,6 +25,10 @@
 #include"units.h"
 #include"wmbus.h"
 #include"wmbus_utils.h"
+
+#include"crypto/crc16.h"
+
+#include"utils/download.h"
 
 #include<assert.h>
 #include<algorithm>
@@ -240,21 +243,6 @@ static XMQProceed register_compact_frame_format_cb(XMQDoc *doc, XMQNodePtr node,
         registerCompactFormatForMVT(mvt, sig, difvif);
     }
     return XMQ_CONTINUE;
-}
-
-void registerCompactFrameFormatsFromContent(const char *content)
-{
-    XMQDoc *doc = xmqNewDoc();
-    bool ok = xmqParseBuffer(doc, content, content + strlen(content), NULL, 0);
-    if (ok)
-    {
-        vector<MVT> mvts;
-        xmqForeach(doc, "/driver/detect/mvt", (XMQNodeCallback)collect_mvt_cb, &mvts);
-        RegisterCFFContext ctx { &mvts };
-        xmqForeach(doc, "/driver/compact_frame_formats/difvif",
-                   (XMQNodeCallback)register_compact_frame_format_cb, &ctx);
-    }
-    xmqFreeDoc(doc);
 }
 
 string loadDriver(const string &file, const char *content)

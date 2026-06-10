@@ -9,6 +9,8 @@ HEX="$4"
 JSON="$5"
 FIELDS="$6"
 
+export TZ=UTC
+
 rm -f $TEST/test_output.txt $TEST/test_expected.txt $TEST/simulation_tmp.txt
 
 echo "$HEX" | sed 's/^/telegram=/g' | sed 's/,/\ntelegram=/g' > $TEST/simulation_tmp.txt

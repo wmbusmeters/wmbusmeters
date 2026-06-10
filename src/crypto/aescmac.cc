@@ -15,11 +15,13 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include"util.h"
+
+#include"crypto/aes.h"
+#include"crypto/aescmac.h"
+
 #include<stdio.h>
 #include<memory.h>
-#include"aes.h"
-#include"aescmac.h"
-#include"util.h"
 
 uchar vec87[16] = {
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,

@@ -22,6 +22,8 @@
 #include"util.h"
 #include"wmbus.h"
 
+#include"crypto/aes.h"
+
 #include<assert.h>
 #include<memory.h>
 

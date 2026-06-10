@@ -33,6 +33,7 @@ void restoreSignalHandlers();
 bool gotHupped();
 void wakeMeUpOnSigChld(pthread_t t);
 bool signalsInstalled();
+void exitHandler(int signum);
 
 uchar bcd2bin(uchar c);
 uchar revbcd2bin(uchar c);
@@ -88,27 +89,6 @@ bool stringFoundCaseIgnored(const std::string& haystack, const std::string& need
 void xorit(uchar *srca, uchar *srcb, uchar *dest, int len);
 void shiftLeft(uchar *srca, uchar *srcb, int len);
 std::string format3fdot3f(double v);
-
-void setNoNetwork(bool v);
-void setBasicAuth(const std::string& cred);
-
-void setDownloadDir(const char *dir);
-const char *downloadDir();
-
-// Returns 200 or 404 or 304 etc...
-int download(const char *suffix, const char *file, const char *local_file);
-
-enum class Alarm
-{
-    DeviceFailure,
-    RegularResetFailure,
-    DeviceInactivity,
-    SpecifiedDeviceNotFound
-};
-
-const char* toString(Alarm type);
-void logAlarm(Alarm type, std::string info);
-void setAlarmShells(std::vector<std::string> &alarm_shells);
 
 bool isValidAlias(const std::string& alias);
 bool isValidBps(const std::string& b);

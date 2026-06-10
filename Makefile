@@ -152,7 +152,7 @@ CXXFLAGS +=\
 
 # Additional fedora rpm package build flags
 # -O2 -flto=auto -ffat-lto-objects -fexceptions -g -grecord-gcc-switches -pipe -Wall -Werror=format-security -Wp,-D_FORTIFY_SOURCE=2 -Wp,-D_GLIBCXX_ASSERTIONS -fstack-protector-strong -mtune=generic -fasynchronous-unwind-tables -fstack-clash-protection -fcf-protection
-CXXFLAGS += -I$(BUILD) $(LIBXML_CFLAGS) $(LIBRTLSDR_CFLAGS) $(LIBUSB_CFLAGS) $(COLLECT_FLAGS)
+CXXFLAGS += -I$(BUILD) -Isrc $(LIBXML_CFLAGS) $(LIBRTLSDR_CFLAGS) $(LIBUSB_CFLAGS) $(COLLECT_FLAGS)
 LDFLAGS  ?= $(DEBUG_LDFLAGS)
 LDFLAGS  += $(LIBXML_LIBS) $(LIBRTLSDR_LIBS) $(LIBUSB_LIBS)
 
@@ -167,16 +167,27 @@ $(BUILD)/%.o: src/%.cc $(wildcard src/%.h)
 $(BUILD)/%.o: src/%.c $(wildcard src/%.h)
 	$(CXX) -fpermissive $(CXXFLAGS) $< -MMD -c -o $@
 
+$(BUILD)/%.o: src/utils/%.cc $(wildcard src/utils/%.h)
+	$(CXX) $(CXXFLAGS) $< -MMD -c -o $@
+
+$(BUILD)/%.o: src/wmbus/%.cc $(wildcard src/wmbus/%.h)
+	$(CXX) $(CXXFLAGS) $< -MMD -c -o $@
+
+$(BUILD)/%.o: src/crypto/%.cc $(wildcard src/crypto/%.h)
+	$(CXX) $(CXXFLAGS) $< -MMD -c -o $@
+
 PROG_OBJS:=\
 	$(BUILD)/access_check.o \
 	$(BUILD)/address.o \
 	$(BUILD)/aes.o \
 	$(BUILD)/aescmac.o \
 	$(BUILD)/des.o \
+	$(BUILD)/alarm.o \
 	$(BUILD)/bus.o \
 	$(BUILD)/cmdline.o \
 	$(BUILD)/config.o \
 	$(BUILD)/crc16.o \
+	$(BUILD)/download.o \
 	$(BUILD)/drivers.o \
 	$(BUILD)/dvparser.o \
 	$(BUILD)/formula.o \
@@ -209,6 +220,7 @@ PROG_OBJS:=\
 	$(BUILD)/wmbus_utils.o \
 	$(BUILD)/xmq.o \
 	$(BUILD)/lora_iu880b.o \
+	$(BUILD)/link_mode.o
 
 # If you run: "make DRIVER=minomess" then only driver_minomess.cc will be compiled into wmbusmeters.
 
@@ -371,68 +383,7 @@ testdriverd: build/xmq
 	@./tests/test_drivers.sh build_debug/wmbusmeters driver_${DRIVER}.cc
 
 update_manufacturers:
-	./scripts/generate_dlms_csv.sh ./DLMS_Flagids.tsv
-	iconv -f utf-8 -t ascii//TRANSLIT -c DLMS_Flagids.tsv -o tmp.flags
-	cat tmp.flags | grep -v ^# | cut -f 1 > list.flags
-	cat tmp.flags | grep -v ^# | cut -f 2 > names.flags
-	cat tmp.flags | grep -v ^# | cut -f 3 > countries.flags
-	cat countries.flags | sort -u | grep -v '^$$' > uniquec.flags
-	cat names.flags | tr -d "'" | tr -c 'a-zA-Z0-9\n' ' ' | tr -s ' ' | sed 's/^ //g' | sed 's/ $$//g' > ansi.flags
-	cat ansi.flags | sed 's/\(^.......[^0123456789]*\)[0123456789]\+.*/\1/g' > cleaned.flags
-	cat cleaned.flags | sed -e "$$(sed 's:.*:s/&//Ig:' uniquec.flags)" > cleanedc.flags
-	cat cleanedc.flags | sed \
-	-e 's/ ab\( \|$$\)/ /Ig' \
-	-e 's/ ag\( \|$$\)/ /Ig' \
-	-e 's/ a \?s\( \|$$\)/ /Ig' \
-	-e 's/ co\( \|$$\)/ /Ig' \
-	-e 's/ b \?v\( \|$$\)/ /Ig' \
-	-e 's/ bvba\( \|$$\)/ /Ig' \
-	-e 's/ corp\( \|$$\)/ /Ig' \
-	-e 's/ d \?o \?o\( \|$$\)/ /g' \
-	-e 's/ d \?d\( \|$$\)/ /g' \
-	-e 's/ gmbh//Ig' \
-	-e 's/ gbr//Ig' \
-	-e 's/ inc\( \|$$\)/ /Ig' \
-	-e 's/ kg\( \|$$\)/ /Ig' \
-	-e 's/ llc/ /Ig' \
-	-e 's/ ltd//Ig' \
-	-e 's/ limited//Ig' \
-	-e 's/ nv\( \|$$\)/ /Ig' \
-	-e 's/ oy//Ig' \
-	-e 's/ ood\( \|$$\)/ /Ig' \
-	-e 's/ooo\( \|$$\)/ /Ig' \
-	-e 's/ pvt\( \|$$\)/ /Ig' \
-	-e 's/ pte\( \|$$\)/ /Ig' \
-	-e 's/ pty\( \|$$\)/ /Ig' \
-	-e 's/ plc\( \|$$\)/ /Ig' \
-	-e 's/ private\( \|$$\)/ /Ig' \
-	-e 's/ s \?a\( \|$$\)/ /Ig' \
-	-e 's/ sarl\( \|$$\)/ /Ig' \
-	-e 's/ sagl\( \|$$\)/ /Ig' \
-	-e 's/ s c ul//Ig' \
-	-e 's/ s \?l\( \|$$\)/ /Ig' \
-	-e 's/ s \?p \?a\( \|$$\)/ /Ig' \
-	-e 's/ sp j\( \|$$\)/ /Ig' \
-	-e 's/ sp z o o//Ig' \
-	-e 's/ s r o//Ig' \
-	-e 's/ s \?r \?l//Ig' \
-	-e 's/ ug\( \|$$\)/ /Ig' \
-	> trimmed.flags
-	cat trimmed.flags | tr -s ' ' | sed 's/^ //g' | sed 's/ $$//g' > done.flags
-	paste -d '|,' list.flags done.flags countries.flags | sed 's/,/, /g' | sed 's/ |/|/g' > manufacturers.txt
-	echo "// Copyright (C) $$(date +%Y) Fredrik Öhrström (CC0)" > m.h
-	echo '#ifndef MANUFACTURERS_H' >> m.h
-	echo '#define MANUFACTURERS_H' >> m.h
-	echo '#define MANFCODE(a,b,c) ((a-64)*1024+(b-64)*32+(c-64))' >> m.h
-	echo "#define LIST_OF_MANUFACTURERS \\" >> m.h
-	cat manufacturers.txt | sed -e "s/\(.\)\(.\)\(.\).\(.*\)/X(\1\2\3,MANFCODE('\1','\2','\3'),\"\4\")\\\\/g" | sed 's/, ")/")/' >> m.h
-	echo >> m.h
-	cat manufacturers.txt | sed -e "s/\(.\)\(.\)\(.\).*/#define MANUFACTURER_\1\2\3 MANFCODE('\1','\2','\3')/g" >> m.h
-	echo >> m.h
-	echo '#endif' >> m.h
-	mv m.h src/manufacturers.h
-	rm *.flags manufacturers.txt
-
+	@./scripts/download_dlms.sh
 
 GCC_MAJOR_VERSION:=$(shell cc --version | head -n 1 | sed 's/.* \([0-9][0-9]*\)\.[0-9][0-9]*\.[0-9][0-9]*$$/\1/')
 AFL_HOME:=AFLplusplus

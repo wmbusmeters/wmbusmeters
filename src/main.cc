@@ -28,6 +28,9 @@
 #include"util.h"
 #include"wmbus.h"
 
+#include"utils/alarm.h"
+#include"utils/download.h"
+
 #include"authors.h"
 #include"license.h"
 #include"short_manual.h"
@@ -566,6 +569,7 @@ bool start(Configuration *config)
     traceEnabled(config->trace);
     logTelegramsEnabled(config->logtelegrams);
     setNoNetwork(config->no_net);
+    setBasicAuth(config->basic_auth_cred.c_str());
 
     if (config->addtimestamps == AddLogTimestamps::NotSet)
     {

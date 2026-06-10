@@ -25,6 +25,7 @@
 #include"translatebits.h"
 #include"xmq.h"
 #include"wmbus.h"
+#include"util.h"
 
 #include<functional>
 #include<numeric>
@@ -228,7 +229,6 @@ DriverInfo pickMeterDriver(Telegram *t);
 bool driverNeedsPolling(DriverName& dn);
 
 std::string loadDriver(const std::string &file, const char *content);
-void registerCompactFrameFormatsFromContent(const char *content);
 
 std::vector<DriverInfo*>& allDrivers();
 std::string removedDriverExplanation(const std::string &name);

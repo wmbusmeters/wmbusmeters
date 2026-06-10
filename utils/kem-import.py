@@ -161,6 +161,8 @@ def print_meter(meterName,meterType,meterNum,meterSerial,meterVendor,meterConfig
         wmbusmeters_driver = 'multical603'
     elif meterName.startswith('KWM'):
         wmbusmeters_driver = 'kamwater'
+    elif meterName.find('EM24') != -1:
+        wmbusmeters_driver = 'em24'
     else:
         wmbusmeters_driver = None
 
@@ -209,8 +211,8 @@ if xmldoc.documentElement.tagName == "MetersInOrder":
         meterNum    = e.getElementsByTagName('MeterNo')[0].firstChild.nodeValue
         meterSerial = e.getElementsByTagName('SerialNo')[0].firstChild.nodeValue
         meterVendor = e.getElementsByTagName('VendorId')[0].firstChild.nodeValue
-        meterConfig = e.getElementsByTagName('ConfigNo')[0].firstChild.nodeValue
-        meterModel  = e.getElementsByTagName('TypeNo')[0].firstChild.nodeValue
+        meterConfig = getattr(e.getElementsByTagName('ConfigNo')[0].firstChild, 'nodeValue', 'unspecified config')
+        meterModel  = getattr(e.getElementsByTagName('TypeNo')[0].firstChild, 'nodeValue', 'unspecified model')
         meterKey    = e.getElementsByTagName('DEK')[0].firstChild.nodeValue
         print_meter(meterName,meterType,meterNum,meterSerial,meterVendor,meterConfig,meterModel,meterKey)
 elif xmldoc.documentElement.tagName == "Devices":

@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2020 Fredrik Öhrström (gpl-3.0-or-later)
+ Copyright (C) 2017-2026 Fredrik Öhrström (gpl-3.0-or-later)
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -15,11 +15,22 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef _AESCMAC_H_
-#define _AESCMAC_H_
+#ifndef UTILS_ALARM_H
+#define UTILS_ALARM_H
 
-#include "always.h"
+#include <string>
+#include <vector>
 
-void AES_CMAC (uchar *key, uchar *input, int length, uchar *mac);
+enum class Alarm
+{
+    DeviceFailure,
+    RegularResetFailure,
+    DeviceInactivity,
+    SpecifiedDeviceNotFound
+};
 
-#endif //_AESCMAC_H_
+const char* toString(Alarm type);
+void logAlarm(Alarm type, std::string info);
+void setAlarmShells(std::vector<std::string> &alarm_shells);
+
+#endif
