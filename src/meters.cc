@@ -490,6 +490,10 @@ MeterCommonImplementation::MeterCommonImplementation(MeterInfo &mi,
     {
         hex2bin(mi.key, &meter_keys_.confidentiality_key);
     }
+    if (!meter_keys_.hasConfidentialityKey())
+    {
+        meter_keys_.default_keys = di.defaultKeys();
+    }
     for (auto s : mi.shells)
     {
         addShellMeterUpdated(s);
