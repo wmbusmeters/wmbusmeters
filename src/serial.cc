@@ -24,7 +24,7 @@
 #include"threads.h"
 #include"timings.h"
 
-#include "utils/signal-handling.h"
+#include "utils/signal_handling.h"
 
 #include <algorithm>
 #include <assert.h>

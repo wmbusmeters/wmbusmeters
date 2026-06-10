@@ -19,7 +19,7 @@
 #include"version.h"
 #include"util.h"
 
-#include "utils/signal-handling.h"
+#include "utils/signal_handling.h"
 
 #include<assert.h>
 #include<stdarg.h>

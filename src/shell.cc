@@ -20,7 +20,7 @@
 #include "shell.h"
 #include "util.h"
 
-#include "utils/signal-handling.h"
+#include "utils/signal_handling.h"
 
 #include <assert.h>
 #include <fcntl.h>

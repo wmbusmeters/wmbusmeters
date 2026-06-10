@@ -34,7 +34,7 @@
 #include"crypto/aescmac.h"
 #include"crypto/crc16.h"
 
-#include"utils/signal-handling.h"
+#include"utils/signal_handling.h"
 
 #include<assert.h>
 #include<string.h>
