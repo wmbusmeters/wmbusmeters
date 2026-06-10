@@ -23,6 +23,7 @@
 #include"lora_iu880b.h"
 #include"serial.h"
 #include"threads.h"
+#include"util.h"
 
 #include"crypto/crc16.h"
 

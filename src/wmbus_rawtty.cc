@@ -21,6 +21,7 @@
 #include"wmbus_common_implementation.h"
 #include"wmbus_utils.h"
 #include"serial.h"
+#include"util.h"
 
 #include<assert.h>
 #include<pthread.h>

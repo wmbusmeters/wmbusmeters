@@ -25,6 +25,7 @@
 #include"translatebits.h"
 #include"xmq.h"
 #include"wmbus.h"
+#include"util.h"
 
 #include<functional>
 #include<numeric>
