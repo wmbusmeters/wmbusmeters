@@ -75,7 +75,6 @@ bool checkIfSimulationFile(const char *file)
     } else {
         filename = file;
     }
-    if (filename < file) filename = file;
     if (strncmp(filename, "simulation", 10)) {
         return false;
     }
@@ -93,13 +92,7 @@ bool checkIfDirExists(const char *dir)
     if (!S_ISDIR(info.st_mode)) {
         return false;
     }
-    if (info.st_mode & S_IWUSR &&
-        info.st_mode & S_IRUSR &&
-        info.st_mode & S_IXUSR) {
-        // Check the directory is writeable.
-        return true;
-    }
-    return false;
+    return faccessat(AT_FDCWD, dir, W_OK | X_OK, AT_EACCESS) == 0;
 }
 
 bool listFiles(const std::string& dir, std::vector<std::string> *files)
@@ -111,6 +104,7 @@ bool listFiles(const std::string& dir, std::vector<std::string> *files)
     {
         return false;
     }
+    errno = 0;
     while(NULL != (dptr = ::readdir(dp)))
     {
         if (!strcmp(dptr->d_name,".") ||
@@ -126,8 +120,11 @@ bool listFiles(const std::string& dir, std::vector<std::string> *files)
             continue;
         }
         files->push_back(std::string(dptr->d_name));
+        errno = 0;
     }
+    bool read_error = (errno != 0);
     closedir(dp);
+    if (read_error) { files->clear(); return false; }
 
     return true;
 }
@@ -147,9 +144,8 @@ int loadFile(const std::string& file, std::vector<std::string> *lines)
             if (errno == EINTR) {
                 continue;
             }
-            error(EXIT_FILE_ERROR, "Could not read file %s errno=%d\n", file.c_str(), errno);
             close(fd);
-            return -1;
+            error(EXIT_FILE_ERROR, "Could not read file %s errno=%d\n", file.c_str(), errno);
         }
         buf.insert(buf.end(), block, block+n);
         if (n < (ssize_t)sizeof(block)) {
@@ -176,7 +172,7 @@ int loadFile(const std::string& file, std::vector<std::string> *lines)
 
 bool loadFile(const std::string& file, std::vector<char> *buf)
 {
-    int blocksize = 1024;
+    const int blocksize = 1024;
     char block[blocksize];
 
     int fd = open(file.c_str(), O_RDONLY);
@@ -210,9 +206,9 @@ bool appendFile(const std::string &file, const std::string &line)
     if (fd >= 0)
     {
         ssize_t l = write(fd, line.c_str(), line.length());
-        if (l != (ssize_t)line.length()) return false;
+        if (l != (ssize_t)line.length()) { close(fd); return false; }
         l = write(fd, "\n", 1);
-        if (l != 1) return false;
+        if (l != 1) { close(fd); return false; }
         close(fd);
         return true;
     }
