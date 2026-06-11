@@ -20,6 +20,8 @@
 #include"meters.h"
 #include"units.h"
 
+#include"utils/fs.h"
+
 #include<vector>
 #include<string>
 #include<string.h>
