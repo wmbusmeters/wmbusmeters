@@ -21,6 +21,7 @@
 #include"always.h"
 
 #include<cstdint>
+#include<ctime>
 #include<string>
 #include<functional>
 #include<map>
