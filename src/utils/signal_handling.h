@@ -18,8 +18,8 @@
 #ifndef UTILS_SIGNAL_HANDLING_H
 #define UTILS_SIGNAL_HANDLING_H
 
-#include<signal.h>
-#include<functional>
+#include <signal.h>
+#include <functional>
 
 void onExit(std::function<void()> cb);
 void restoreSignalHandlers();
