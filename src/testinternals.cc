@@ -36,6 +36,9 @@
 
 #include"utils/signal_handling.h"
 
+#include"test.h"
+#include"utils/slip.test.h"
+
 #include<assert.h>
 #include<string.h>
 #include<set>
@@ -64,7 +67,6 @@ bool verbose_ = false;
     X(sbc)            \
     X(hex)            \
     X(translate)                                \
-    X(slip)                                     \
     X(dvs)                                      \
     X(ascii_detection)                          \
     X(status_join)                              \
@@ -143,7 +145,7 @@ int main(int argc, char **argv)
 LIST_OF_TESTS
 #undef X
 
-    return 0;
+    return run_all_tests();
 }
 
 void test_crc()
@@ -1765,70 +1767,6 @@ void test_translate()
     {
         printf("ERROR lookup4 0x%06llx expected \"%s\" but got \"%s\"\n",
                (unsigned long long)alarm_bits, e.c_str(), s.c_str());
-    }
-
-}
-
-void test_slip()
-{
-    vector<uchar> from = { 1, 0xc0, 3, 4, 5, 0xdb };
-    vector<uchar> expected_to = { 0xc0, 1, 0xdb, 0xdc, 3, 4, 5, 0xdb, 0xdd, 0xc0 };
-    vector<uchar> to;
-    vector<uchar> back;
-
-    addSlipFraming(from, to);
-
-    if (expected_to != to)
-    {
-        printf("ERROR slip 1\n");
-    }
-
-    size_t frame_length = 0;
-    removeSlipFraming(to, &frame_length, back);
-
-    if (back != from)
-    {
-        printf("ERROR slip 2\n");
-    }
-
-    if (to.size() != frame_length)
-    {
-        printf("ERROR slip 3\n");
-    }
-
-    vector<uchar> more = { 0xc0, 0xc0, 0xc0, 1, 2, 3, 4, 5, 6, 7, 8 };
-    addSlipFraming(more, to);
-
-    frame_length = 0;
-    removeSlipFraming(to, &frame_length, back);
-
-    if (back != from)
-    {
-        printf("ERROR slip 4\n");
-    }
-
-    to.erase(to.begin(), to.begin()+frame_length);
-    removeSlipFraming(to, &frame_length, back);
-
-    if (back != more)
-    {
-        printf("ERROR slip 5\n");
-    }
-
-    vector<uchar> again = { 0xc0 };
-    removeSlipFraming(again, &frame_length, back);
-
-    if (frame_length != 0)
-    {
-        printf("ERROR slip 6\n");
-    }
-
-    vector<uchar> againn = { 0xc0, 1, 2, 3, 4, 5 };
-    removeSlipFraming(againn, &frame_length, back);
-
-    if (frame_length != 0)
-    {
-        printf("ERROR slip 7\n");
     }
 
 }

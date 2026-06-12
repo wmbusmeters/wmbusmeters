@@ -27,6 +27,8 @@
 
 #include"crypto/crc16.h"
 
+#include"utils/slip.h"
+
 #include<assert.h>
 #include<pthread.h>
 #include<errno.h>
@@ -529,11 +531,13 @@ FrameStatus WMBusIU891A::checkIU891AFrame(vector<uchar> &data,
 
     if (slipAllEND(data)) return ErrorInFrame; // Discard this part, since it is all C0.
 
-    removeSlipFraming(data, frame_length_out, msg);
+    SlipFrameResult slip_result = removeSlipFraming(data, frame_length_out, msg);
+
+    if (slip_result == SlipFrameResult::CORRUPT) return ErrorInFrame;
 
     // If frame_length_out is zero, then no END slip frame marker was found.
     // Collect some more.
-    if (*frame_length_out == 0) return PartialFrame;
+    if (slip_result == SlipFrameResult::PARTIAL) return PartialFrame;
     // If the msg is less than five bytes, discard this frame.
     if (msg.size() < 5) return ErrorInFrame;
 

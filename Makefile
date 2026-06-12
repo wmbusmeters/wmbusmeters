@@ -317,7 +317,7 @@ $(BUILD)/short_manual.h: README.md
 
 testinternals: $(BUILD)/testinternals
 
-$(BUILD)/testinternals.o: $(PROG_OBJS) $(DRIVER_OBJS) $(wildcard src/*.h)
+$(BUILD)/testinternals.o: $(PROG_OBJS) $(DRIVER_OBJS) $(wildcard src/*.h) $(shell find src -name '*.test.h' -type f)
 
 $(BUILD)/testinternals: $(BUILD)/testinternals.o
 	$(CXX) $(DEBUG_FLAGS) -o $(BUILD)/testinternals $(PROG_OBJS) $(DRIVER_OBJS) $(BUILD)/testinternals.o $(LDFLAGS)  -lpthread
