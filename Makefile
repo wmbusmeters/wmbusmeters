@@ -222,7 +222,8 @@ PROG_OBJS:=\
 	$(BUILD)/lora_iu880b.o \
 	$(BUILD)/link_mode.o \
 	$(BUILD)/signal_handling.o \
-	$(BUILD)/slip.o
+	$(BUILD)/slip.o \
+	$(BUILD)/fs.o
 
 # If you run: "make DRIVER=minomess" then only driver_minomess.cc will be compiled into wmbusmeters.
 

@@ -99,15 +99,6 @@ std::vector<std::string> splitDeviceString(const std::string &s);
 
 void incrementIV(uchar *iv, size_t len);
 
-bool checkCharacterDeviceExists(const char *tty, bool fail_if_not);
-bool checkFileExists(const char *file);
-bool checkIfSimulationFile(const char *file);
-bool checkIfDirExists(const char *dir);
-bool listFiles(const std::string& dir, std::vector<std::string> *files);
-int loadFile(const std::string& file, std::vector<std::string> *lines);
-bool loadFile(const std::string& file, std::vector<char> *buf);
-bool appendFile(const std::string& file, const std::string &line);
-
 std::string eatTo(std::vector<uchar> &v, std::vector<uchar>::iterator &i, int c, size_t max, bool *eof, bool *err);
 
 void padWithZeroesTo(std::vector<uchar> *content, size_t len, std::vector<uchar> *full_content);

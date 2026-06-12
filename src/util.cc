@@ -21,6 +21,8 @@
 #include"shell.h"
 #include"version.h"
 
+#include "utils/fs.h"
+
 #include<algorithm>
 #include<assert.h>
 #include<dirent.h>
@@ -358,81 +360,6 @@ void incrementIV(uchar *iv, size_t len) {
     }
 }
 
-bool checkCharacterDeviceExists(const char *tty, bool fail_if_not)
-{
-    struct stat info;
-
-    int rc = stat(tty, &info);
-    if (rc != 0) {
-        if (fail_if_not) {
-            error(EXIT_DEVICE_ERROR, "Device \"%s\" does not exist.\n", tty);
-        } else {
-            return false;
-        }
-    }
-    if (!S_ISCHR(info.st_mode)) {
-        if (fail_if_not) {
-            error(EXIT_DEVICE_ERROR, "Device %s is not a character device.\n", tty);
-        } else {
-            return false;
-        }
-    }
-    return true;
-}
-
-bool checkFileExists(const char *file)
-{
-    struct stat info;
-
-    int rc = stat(file, &info);
-    if (rc != 0) {
-        return false;
-    }
-    if (!S_ISREG(info.st_mode)) {
-        return false;
-    }
-    return true;
-}
-
-bool checkIfSimulationFile(const char *file)
-{
-    if (!checkFileExists(file))
-    {
-        return false;
-    }
-    const char *filename = strrchr(file, '/');
-    if (filename) {
-        filename++;
-    } else {
-        filename = file;
-    }
-    if (filename < file) filename = file;
-    if (strncmp(filename, "simulation", 10)) {
-        return false;
-    }
-    return true;
-}
-
-bool checkIfDirExists(const char *dir)
-{
-    struct stat info;
-
-    int rc = stat(dir, &info);
-    if (rc != 0) {
-        return false;
-    }
-    if (!S_ISDIR(info.st_mode)) {
-        return false;
-    }
-    if (info.st_mode & S_IWUSR &&
-        info.st_mode & S_IRUSR &&
-        info.st_mode & S_IXUSR) {
-        // Check the directory is writeable.
-        return true;
-    }
-    return false;
-}
-
 string eatTo(vector<uchar> &v, vector<uchar>::iterator &i, int c, size_t max, bool *eof, bool *err)
 {
     string s;
@@ -499,123 +426,6 @@ int parseTime(const string& s)
     }
     int n = atoi(time.c_str());
     return n*mul;
-}
-
-bool listFiles(const string& dir, vector<string> *files)
-{
-    DIR *dp = NULL;
-    struct dirent *dptr = NULL;
-
-    if (NULL == (dp = opendir(dir.c_str())))
-    {
-        return false;
-    }
-    while(NULL != (dptr = ::readdir(dp)))
-    {
-        if (!strcmp(dptr->d_name,".") ||
-            !strcmp(dptr->d_name,".."))
-        {
-            // Ignore . ..  dirs.
-            continue;
-        }
-        size_t len = strlen(dptr->d_name);
-        if (len > 0 && dptr->d_name[len-1] == '~')
-        {
-            // Ignore emacs backup files ending in ~
-            continue;
-        }
-        files->push_back(string(dptr->d_name));
-    }
-    closedir(dp);
-
-    return true;
-}
-
-int loadFile(const string& file, vector<string> *lines)
-{
-    char block[32768+1];
-    vector<uchar> buf;
-
-    int fd = open(file.c_str(), O_RDONLY);
-    if (fd == -1) {
-        return -1;
-    }
-    while (true) {
-        ssize_t n = read(fd, block, sizeof(block));
-        if (n == -1) {
-            if (errno == EINTR) {
-                continue;
-            }
-            error(EXIT_FILE_ERROR, "Could not read file %s errno=%d\n", file.c_str(), errno);
-            close(fd);
-            return -1;
-        }
-        buf.insert(buf.end(), block, block+n);
-        if (n < (ssize_t)sizeof(block)) {
-            break;
-        }
-    }
-    close(fd);
-
-    bool eof, err;
-    auto i = buf.begin();
-    for (;;) {
-        string line = eatTo(buf, i, '\n', 32768, &eof, &err);
-        if (err) {
-            error(EXIT_FILE_ERROR, "Error parsing simulation file.\n");
-        }
-        if (line.length() > 0) {
-            lines->push_back(line);
-        }
-        if (eof) break;
-    }
-
-    return 0;
-}
-
-bool loadFile(const string& file, vector<char> *buf)
-{
-    int blocksize = 1024;
-    char block[blocksize];
-
-    int fd = open(file.c_str(), O_RDONLY);
-    if (fd == -1) {
-        warning("Could not open file %s errno=%d\n", file.c_str(), errno);
-        return false;
-    }
-    while (true) {
-        ssize_t n = read(fd, block, sizeof(block));
-        if (n == -1) {
-            if (errno == EINTR) {
-                continue;
-            }
-            warning("Could not read file %s errno=%d\n", file.c_str(), errno);
-            close(fd);
-
-            return false;
-        }
-        buf->insert(buf->end(), block, block+n);
-        if (n < (ssize_t)sizeof(block)) {
-            break;
-        }
-    }
-    close(fd);
-    return true;
-}
-
-bool appendFile(const string &file, const string &line)
-{
-    int fd = open(file.c_str(), O_WRONLY|O_APPEND|O_CREAT, 0644);
-    if (fd >= 0)
-    {
-        ssize_t l = write(fd, line.c_str(), line.length());
-        if (l != (ssize_t)line.length()) return false;
-        l = write(fd, "\n", 1);
-        if (l != 1) return false;
-        close(fd);
-        return true;
-    }
-    return false;
 }
 
 string eatToSkipWhitespace(vector<char> &v, vector<char>::iterator &i, int c, size_t max, bool *eof, bool *err)

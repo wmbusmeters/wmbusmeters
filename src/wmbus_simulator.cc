@@ -23,6 +23,8 @@
 #include"wmbus_common_implementation.h"
 #include"wmbus_utils.h"
 
+#include"utils/fs.h"
+
 #include<assert.h>
 #include<errno.h>
 #include<fcntl.h>

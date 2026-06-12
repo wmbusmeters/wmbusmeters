@@ -27,6 +27,7 @@
 #include"wmbus.h"
 
 #include"utils/alarm.h"
+#include"utils/fs.h"
 
 #include <assert.h>
 #include <algorithm>
