@@ -317,6 +317,9 @@ $(BUILD)/short_manual.h: README.md
 
 testinternals: $(BUILD)/testinternals
 
+unit_tests: $(BUILD)/testinternals
+	TZ=UTC $(BUILD)/testinternals
+
 $(BUILD)/testinternals.o: $(PROG_OBJS) $(DRIVER_OBJS) $(wildcard src/*.h) $(shell find src -name '*.test.h' -type f)
 
 $(BUILD)/testinternals: $(BUILD)/testinternals.o
