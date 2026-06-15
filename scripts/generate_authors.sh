@@ -72,16 +72,14 @@ fi
     echo "#endif"
 } > "$NEWOUT"
 
-if [ ! -f $OUT ]
-then
-    # The new author files does not exist, write it.
-    cp $NEWOUT $OUT
+if [ ! -f "$OUT" ]; then
+    # First-time creation.
+    mv "$NEWOUT" "$OUT"
     echo "Wrote $OUT"
 else
-    if ! diff $OUT $NEWOUT > /dev/null 2>&1
-    then
-        # The author file exists and the new is different, write it.
-        cp $NEWOUT $OUT
+    if ! cmp -s "$OUT" "$NEWOUT"; then
+        # Only replace the file when the generated contents actually changed.
+        mv "$NEWOUT" "$OUT"
         echo "Wrote $OUT"
     fi
 fi
