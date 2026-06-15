@@ -123,24 +123,6 @@ int parseTime(const std::string& time);
 bool isInsideTimePeriod(time_t now, std::string periods);
 bool isValidTimePeriod(const std::string& periods);
 
-/*
-uint16_t crc16_EN13757(uchar *data, size_t len);
-
-// This crc is used by im871a for its serial communication.
-uint16_t crc16_CCITT(uchar *data, uint16_t length);
-bool     crc16_CCITT_check(uchar *data, uint16_t length);
-*/
-
-// Check if buffer is all SLIP END = 0xc0.
-bool slipAllEND(std::vector<uchar>& msg);
-// Scan the buffer after the byte SLIP END = 0xc0
-// return its index if exists, otherwise -1.
-ssize_t slipFrameSize(std::vector<uchar>& msg);
-// Add a SLIP_END and escape any 0xc0 with 0xdbdc and and 0xdb with 0xdbdd.
-void addSlipFraming(std::vector<uchar>& from, std::vector<uchar> &to);
-// Frame length is set to zero if no frame was found.
-void removeSlipFraming(std::vector<uchar>& from, size_t *frame_length, std::vector<uchar> &to);
-
 // Eat characters from the vector v, iterating using i, until the end char c is found.
 // If end char == -1, then do not expect any end char, get all until eof.
 // If the end char is not found, return error.

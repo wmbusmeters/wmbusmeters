@@ -27,6 +27,8 @@
 
 #include"crypto/crc16.h"
 
+#include"utils/slip.h"
+
 #include<assert.h>
 #include<pthread.h>
 #include<memory.h>
@@ -311,7 +313,7 @@ FrameStatus LoRaIU880B::checkIU880BFrame(vector<uchar> &data,
 {
     vector<uchar> msg;
 
-    removeSlipFraming(data, frame_length_out, msg);
+    if (removeSlipFraming(data, frame_length_out, msg) == SlipFrameResult::CORRUPT) return ErrorInFrame;
 
     if (msg.size() < 5) return PartialFrame;
 
