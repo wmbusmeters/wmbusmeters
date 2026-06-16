@@ -2136,8 +2136,8 @@ test {
 test {
     args     = 'WWW ultrimisv2 80024171 NOKEY'
     telegram = 434401067141028020168C008B900F002C257F53316ABC7526B6B75FEBC27AAD002007102F2F_04130E05000003FD1700400844135504000004933C540000002F2F2F2F2F
-    json     = '{"_": "telegram","id": "80024171","media": "cold water","meter": "ultrimisv2","name": "WWW","status": "NO_FLOW_PREV_MONTH REVERSE_CURRENT_MONTH","target_m3": 1.109,"timestamp": "1111-11-11T11:11:11Z","total_backward_m3": 0.084,"total_m3": 1.294}'
-    fields   = 'WWW;80024171;NO_FLOW_PREV_MONTH REVERSE_CURRENT_MONTH;1.294;1.109;1111-11-11 11:11.11'
+    json     = '{"_": "telegram","id": "80024171","media": "cold water","meter": "ultrimisv2","name": "WWW","status": "NO_FLOW_PREV_MONTH REVERSE_THIS_MONTH","target_m3": 1.109,"timestamp": "1111-11-11T11:11:11Z","total_backward_m3": 0.084,"total_m3": 1.294}'
+    fields   = 'WWW;80024171;NO_FLOW_PREV_MONTH REVERSE_THIS_MONTH;1.294;1.109;1111-11-11 11:11.11'
 }
 test {
     args     = 'WW ultrimisv2 80291792 NOKEY'
@@ -2149,8 +2149,8 @@ test {
     args     = 'Water2 ultrimisv2 95969798 NOKEY'
     comment  = 'Force set error flags to test historical states.'
     telegram = 2E4401069897969501167A4B0320052F2F_0413320C000003FD1708080144132109000004933C000000002F2F2F2F2F
-    json     = '{"_": "telegram","id": "95969798","media": "cold water","meter": "ultrimisv2","name": "Water2","status": "NO_FLOW NO_FLOW_CURRENT_MONTH TAMPER_PREV_MONTH","target_m3": 2.337,"timestamp": "1111-11-11T11:11:11Z","total_backward_m3": 0,"total_m3": 3.122}'
-    fields   = 'Water2;95969798;NO_FLOW NO_FLOW_CURRENT_MONTH TAMPER_PREV_MONTH;3.122;2.337;1111-11-11 11:11.11'
+    json     = '{"_": "telegram","id": "95969798","media": "cold water","meter": "ultrimisv2","name": "Water2","status": "NO_FLOW NO_FLOW_THIS_MONTH TAMPER_PREV_MONTH","target_m3": 2.337,"timestamp": "1111-11-11T11:11:11Z","total_backward_m3": 0,"total_m3": 3.122}'
+    fields   = 'Water2;95969798;NO_FLOW NO_FLOW_THIS_MONTH TAMPER_PREV_MONTH;3.122;2.337;1111-11-11 11:11.11'
 }
 test {
     args     = 'Water ultrimisv2 95969798 NOKEY'
