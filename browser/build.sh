@@ -41,6 +41,38 @@ compile_if_needed() {
     echo "$obj"
 }
 
+# ── 0. generate authors ────────────────────────────────────────
+
+(cd ..; ./scripts/generate_authors.sh browser/build/authors.h)
+cat <<EOF > build/authors.txt
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+EOF
+
+echo "" >> build/authors.txt
+echo "The website you are running this software from must provide the sources!" >> build/authors.txt
+echo "" >> build/authors.txt
+
+sed -n '/AUTHORS/,/AUTHORS/{//!p;}' build/authors.h >> build/authors.txt
+echo "<p>" >> build/authors.txt
+cat ../LICENSE | tr '`' "'" | sed 's/&/\&amp;/g' | sed 's/</\&lt;/g' | sed 's/>/\&gt;/g' >> build/authors.txt
+cat build/authors.txt | sed ':a;N;$!ba;s/\n/<br>/g' > build/authors.html
+sed '/INSERT_LICENSE/{
+r build/authors.html
+d
+}' wmbusmeters.html.template > wmbusmeters.html
+echo "==> Inserted authors into wmbusmeters.html"
+
 # ── 1. libxml2 ────────────────────────────────────────
 if [ ! -f "$LIBXML2_A" ]; then
   echo "==> Building libxml2 for WASM..."
@@ -83,11 +115,13 @@ fi
 echo "==> Compiling src/ (only changed files)..."
 
 CORE_SRCS="
-  $SRC/crypto/crc16.cc  $SRC/crypto/aes.cc  $SRC/crypto/aescmac.cc  $SRC/crypto/sha256.cc
+  $SRC/crypto/crc16.cc  $SRC/crypto/aes.cc  $SRC/crypto/aescmac.cc  $SRC/crypto/sha256.cc $SRC/crypto/des.cc
   $SRC/dvparser.cc  $SRC/wmbus.cc  $SRC/wmbus_utils.cc  $SRC/wmbus_simulator.cc
   $SRC/address.cc  $SRC/units.cc  $SRC/translatebits.cc  $SRC/formula.cc
   $SRC/meters.cc  $SRC/metermanager.cc  $SRC/printer.cc  $SRC/drivers.cc
   $SRC/manufacturer_specificities.cc  $SRC/log.cc $SRC/util.cc  $SRC/config.cc  $SRC/cmdline.cc
+  $SRC/utils/fs.cc $SRC/utils/signal_handling.cc $SRC/utils/slip.cc
+  $SRC/wmbus/link_mode.cc
   $SRC/wmbus_amb8465.cc  $SRC/wmbus_im871a.cc  $SRC/wmbus_iu891a.cc
   $SRC/wmbus_cul.cc  $SRC/wmbus_rc1180.cc  $SRC/wmbus_rawtty.cc
   $SRC/bus.cc
@@ -146,7 +180,7 @@ em++ \
   -s ASYNCIFY_STACK_SIZE=1048576 \
   -s ASYNCIFY_IMPORTS='["emscripten_sleep", "usleep"]' \
   -s EXPORT_NAME="WMBusMeters" \
-  -s EXPORTED_RUNTIME_METHODS='["ccall","cwrap","UTF8ToString","stringToUTF8","lengthBytesUTF8"]' \
+  -s EXPORTED_RUNTIME_METHODS='[HEAPU8,"ccall","cwrap","UTF8ToString","stringToUTF8","lengthBytesUTF8"]' \
   -s ALLOW_MEMORY_GROWTH=1 \
   -s NO_EXIT_RUNTIME=1 \
   -s EXPORTED_FUNCTIONS='[

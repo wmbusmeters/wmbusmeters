@@ -145,6 +145,7 @@ body{font-family:var(--mono);background:var(--bg);color:var(--text);height:100vh
             <div class="menu-sep"></div>
             <div class="menu-item" onclick="exportSetup()"><span class="mi-icon">↓</span>Export Setup</div>
             <div class="menu-item" onclick="importSetup()"><span class="mi-icon">↑</span>Import Setup</div>
+            <div class="menu-item" onclick="openDialog('license')"><span class="mi-icon"></span>License</div>
         </div>
     </div>
 </div>
@@ -165,7 +166,7 @@ body{font-family:var(--mono);background:var(--bg);color:var(--text);height:100vh
 
 <div class="prompt-wrap">
     <span class="ps">wmbusmeters$&nbsp;</span>
-    <input type="text" id="input" placeholder="raw CLI args — or click ▶ start to use active setup" autofocus />
+    <input type="text" id="input" placeholder="raw CLI args (eg auto:c1,t1) — or click ▶ start to use active setup" autofocus />
     <div class="prompt-btns">
         <button class="start-btn" id="btnStart" onclick="doStart()" title="Run with active setup (--useconfig=/etc)">▶ start</button>
         <button class="stop-btn" id="btnStop" onclick="doStop()" disabled>stop</button>
@@ -635,6 +636,7 @@ function openDialog(type) {
     if (type === 'config') renderConfigDialog();
     else if (type === 'meters') renderMetersList();
     else if (type === 'setups') renderSetupsDialog();
+    else if (type === 'license') renderLicenseDialog();
 }
 function closeDialog() { document.getElementById('dlgOverlay').classList.remove('open'); currentDialog = null; }
 function esc(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
@@ -909,6 +911,17 @@ function renderSetupsDialog() {
             </div><div class="item-actions">${act}</div></div>`;
     }).join('');
     document.getElementById('dlgFooter').innerHTML = '<button class="btn btn-green" onclick="newSetup()">+ New Setup</button>';
+}
+
+// ═══════════════════════════════════════════════════════
+// LICNSE DIALOG
+// ═══════════════════════════════════════════════════════
+function renderLicenseDialog() {
+    document.getElementById('dlgTitle').textContent = 'License';
+    document.getElementById('dlgBody').innerHTML = `<span style="font-size: 0.7rem">
+INSERT_LICENSE
+</span>
+`;
 }
 
 function switchSetupDlg(n) { switchSetup(n); renderSetupsDialog(); }
