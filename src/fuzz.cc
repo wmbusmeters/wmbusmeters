@@ -21,6 +21,7 @@
 #include"util.h"
 #include"wmbus.h"
 #include"dvparser.h"
+#include"utils/fs.h"
 
 #include<unistd.h>
 
