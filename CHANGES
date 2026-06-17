@@ -1,3 +1,6 @@
+Major release. All drivers have been converted to XMQ format with IXML
+decoding of manufacturer specific data. This might cause problems,
+see attention markers below for know changes.
 
 New amazing feature contributed by Aras Abbasi, you can run
 wmbusmeters inside your browser that supports serial ports
@@ -5,6 +8,9 @@ wmbusmeters inside your browser that supports serial ports
 Try it here: https://wmbusmeters.org/inbrowser
 
 Aras Abbasi also contributed cleanups and refactoring of the source code.
+Aras also added support for difvif fields with compact profiles inside a telegram.
+(Compact profiles are highly compressed fields for repeating historical values.
+See caltose.xmq for example.)
 Aras also converted a ton of C++ drivers to xmq! Many many thanks Aras!
 
 The option --listmeters has been renamed to --listdrivers.
@@ -34,10 +40,12 @@ was not properly detected when wmbusmeters was restarted.
 The buffer with received telegrams interfered with the detection logic.
 
 Added qheatus driver.
+Added ultrimisv2 driver.
 
 Improve apator162 driver to handle telegrams with no FF byte before checksum.
 
 Hynek Moravec contributed several drivers:
+Added kadenwater.xmq for Ecomess/Kaden water meters.
 Converted multical21 and flowiq2200 c++ drivers to a single kamwater.xmq driver.
 Converted Zenner Minomess/APZ from C++ to minomess.xmq driver.
 Added zennerhca.xmq driver for Zenner HCA meters.
@@ -49,13 +57,21 @@ ie a numeric value that signals no value, aka null in the json output.
 He also improved analyze parse.
 Thanks Hynek!
 
+Felix Hauptmann improved the hcae2 driver. Thanks Felix!
+
+Ingmar Stein implemented device=auto support on macOS and FreeBSD. Thanks Ingmar!
+
+Josef Eisl improved the amiplus driver. Thanks Josef!
+
 pepe82sh improved configure script and build support for FreeBSD. Thanks Pepe!
 
 icho911 added support for the new iU893A-XL wmbus dongle. Thanks icho911!
 
 majherek fixed ssl/tls problems in alpine docker build. Thanks majherek!
 
-Jan Kundrát contributed compressed telegram signatures for kamwater meters.
+Jan Kundrát contributed compressed telegram signatures for kamwater meters
+and added KEM file support for EM24 electricity meters.
+Jan also improved the kamwater driver a lot!
 
 Amir Fuhrmann contributed socket support for wmbusmeters. Thanks Amir!
 
