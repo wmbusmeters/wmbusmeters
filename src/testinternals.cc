@@ -305,6 +305,34 @@ void tst_subunit(unordered_map<string,pair<int,DVEntry>> &values, const char *ke
     }
 }
 
+void tst_date_meta(unordered_map<string,pair<int,DVEntry>> &values,
+                   const char *key,
+                   bool expected_ok,
+                   int expected_wday,
+                   int expected_isdst,
+                   int testnr)
+{
+    int offset;
+    struct tm value;
+    bool ok = extractDVdate(&values, key, &offset, &value);
+
+    if (ok != expected_ok) {
+        fprintf(stderr, "Error in dvparser testnr %d:\nexpected ok=%d but got ok=%d for key %s\n\n",
+                testnr, expected_ok, ok, key);
+        return;
+    }
+    if (!ok) return;
+
+    if (expected_wday >= 0 && value.tm_wday != expected_wday) {
+        fprintf(stderr, "Error in dvparser testnr %d:\nexpected wday=%d but got wday=%d for key %s\n\n",
+                testnr, expected_wday, value.tm_wday, key);
+    }
+    if (expected_isdst >= 0 && value.tm_isdst != expected_isdst) {
+        fprintf(stderr, "Error in dvparser testnr %d:\nexpected isdst=%d but got isdst=%d for key %s\n\n",
+                testnr, expected_isdst, value.tm_isdst, key);
+    }
+}
+
 void test_dvparser()
 {
     unordered_map<string,pair<int,DVEntry>> dv_entries;
@@ -445,6 +473,83 @@ void test_dvparser()
     tst_parse("0213E803 0D9313 04 12000500", &dv_entries, testnr);
     tst_double(dv_entries, "42137F77", 0.005, testnr);
     tst_subunit(dv_entries, "42137F77", 1, testnr);
+
+    // EN 13757-3:2018 Annex A, Table A.8 (Type I / CP48):
+    // day of week + daylight-saving/leap bits are encoded across the 6-byte datetime.
+    testnr++;
+    dv_entries.clear();
+    tst_parse("066D F7 6A 2D 11 36 99", &dv_entries, testnr);
+    tst_date(dv_entries, "066D", "2024-06-17 13:42:55", testnr);
+    tst_date_meta(dv_entries, "066D", true, 1, 1, testnr); // Monday, DST active.
+
+    // Same payload but with UI1[15]=1 (invalid time), extraction shall fail.
+    testnr++;
+    dv_entries.clear();
+    tst_parse("066D F7 EA 2D 11 36 99", &dv_entries, testnr);
+    tst_date_meta(dv_entries, "066D", false, -1, -1, testnr);
+
+    // CP48 wildcard/not-specified values are legal and should not fail extraction.
+    testnr++;
+    dv_entries.clear();
+    tst_parse("066D FF 7F 3F E0 F0 00", &dv_entries, testnr);
+    tst_date(dv_entries, "066D", "2000-01-01 00:00:00", testnr);
+    tst_date_meta(dv_entries, "066D", true, 1, 1, testnr);
+
+    // Leap flag mismatch should not be fatal (device quality issue, not parse failure).
+    testnr++;
+    dv_entries.clear();
+    tst_parse("066D 77 6A 2D 11 36 99", &dv_entries, testnr);
+    tst_date(dv_entries, "066D", "2024-06-17 13:42:55", testnr);
+    tst_date_meta(dv_entries, "066D", true, 1, 1, testnr);
+
+    // EN 13757-3:2018 Annex A, Table A.5 (Type F / CP32):
+    // Byte 0: bits 0-5 = MIN, bit 6 = reserved, bit 7 = SU (summer/DST time).
+    // Byte 1: bits 0-4 = HOD, bits 5-6 = reserved, bit 7 = IV (invalid time).
+
+    // Normal CP32 datetime (SU=0, IV=0): 2024-09-17 08:58.
+    testnr++;
+    dv_entries.clear();
+    tst_parse("046D 3A 08 11 39", &dv_entries, testnr);
+    tst_date(dv_entries, "046D", "2024-09-17 08:58:00", testnr);
+    tst_date_meta(dv_entries, "046D", true, -1, -1, testnr);
+
+    // CP32 with SU=1 (summer/DST time, bit 7 of byte 0 set): time value is
+    // unchanged (wall-clock time is already correct); tm_isdst stays -1 (auto)
+    // because setting it to 1 would cause mktime() to subtract the DST offset.
+    testnr++;
+    dv_entries.clear();
+    tst_parse("046D BA 08 11 39", &dv_entries, testnr); // 0xBA = 0x3A | 0x80
+    tst_date(dv_entries, "046D", "2024-09-17 08:58:00", testnr);
+    tst_date_meta(dv_entries, "046D", true, -1, -1, testnr);
+
+    // CP32 with IV=1 (invalid time, bit 7 of byte 1 set): extraction shall fail.
+    // Regression for GitHub issue #1364: the original reporter's fragment 3AA81139
+    // (046D 3A A8 11 39) has IV=1, so the code was silently outputting
+    // "2024-09-17 08:58" from a datetime the meter itself marked invalid.
+    testnr++;
+    dv_entries.clear();
+    tst_parse("046D 3A A8 11 39", &dv_entries, testnr); // 0xA8 = 0x08 | 0x80, IV=1
+    tst_date_meta(dv_entries, "046D", false, -1, -1, testnr);
+
+    // Valid CP32 datetimes from the full telegrams posted in issue #1364 (kzajac83):
+    // all have IV=0 and should parse correctly.
+    testnr++;
+    dv_entries.clear();
+    tst_parse("046D 17 10 11 39", &dv_entries, testnr); // 2024-09-17 16:23, IV=0, SU=0
+    tst_date(dv_entries, "046D", "2024-09-17 16:23:00", testnr);
+    tst_date_meta(dv_entries, "046D", true, -1, -1, testnr);
+
+    testnr++;
+    dv_entries.clear();
+    tst_parse("046D 24 00 12 39", &dv_entries, testnr); // 2024-09-18 00:36, IV=0, SU=0
+    tst_date(dv_entries, "046D", "2024-09-18 00:36:00", testnr);
+    tst_date_meta(dv_entries, "046D", true, -1, -1, testnr);
+
+    testnr++;
+    dv_entries.clear();
+    tst_parse("046D 27 00 12 39", &dv_entries, testnr); // 2024-09-18 00:39, IV=0, SU=0
+    tst_date(dv_entries, "046D", "2024-09-18 00:39:00", testnr);
+    tst_date_meta(dv_entries, "046D", true, -1, -1, testnr);
 }
 
 void test_ixmlparser()

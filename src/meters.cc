@@ -2939,17 +2939,18 @@ bool FieldInfo::extractNumeric(Meter *m, Telegram *t, DVEntry *dve)
         if (matcher_.vif_range == VIFRange::DateTime)
         {
             struct tm datetime;
-            dve->extractDate(&datetime);
-            time_t tmp = mktime(&datetime);
-            string bbb = strdatetime(tmp);
-            extracted_double_value = tmp;
+            if (!dve->extractDate(&datetime)) {
+                verbose("(meters) warning: cannot extract valid datetime from key %s\n", dve->dif_vif_key.str().c_str());
+            }
+            extracted_double_value = mktime(&datetime);
         }
         else if (matcher_.vif_range == VIFRange::Date)
         {
             struct tm date;
-            dve->extractDate(&date);
-            time_t tmp = mktime(&date);
-            extracted_double_value = tmp;
+            if (!dve->extractDate(&date)) {
+                verbose("(meters) warning: cannot extract valid date from key %s\n", dve->dif_vif_key.str().c_str());
+            }
+            extracted_double_value = mktime(&date);
         }
         else if (matcher_.vif_range == VIFRange::AnyEnergyVIF ||
                  matcher_.vif_range == VIFRange::AnyVolumeVIF ||
@@ -3112,7 +3113,9 @@ bool FieldInfo::extractString(Meter *m, Telegram *t, DVEntry *dve)
     else if (matcher_.vif_range == VIFRange::DateTime)
     {
         struct tm datetime;
-        dve->extractDate(&datetime);
+        if (!dve->extractDate(&datetime)) {
+            verbose("(meters) warning: cannot extract valid datetime from key %s\n", dve->dif_vif_key.str().c_str());
+        }
         string extracted_device_date_time;
 
         if (dve->value.size() == 12)
@@ -3131,7 +3134,9 @@ bool FieldInfo::extractString(Meter *m, Telegram *t, DVEntry *dve)
     else if (matcher_.vif_range == VIFRange::Date)
     {
         struct tm date;
-        dve->extractDate(&date);
+        if (!dve->extractDate(&date)) {
+            verbose("(meters) warning: cannot extract valid date from key %s\n", dve->dif_vif_key.str().c_str());
+        }
         string extracted_device_date = strdate(&date);
         m->setStringValue(this, extracted_device_date, dve);
         t->addMoreExplanation(dve->offset, renderJsonText(m, dve));
