@@ -1,0 +1,188 @@
+// Copyright (C) 2017-2026 Fredrik Öhrström (gpl-3.0-or-later)
+driver {
+    name           = ultrimisv2
+    meter_type     = WaterMeter
+    default_fields = name,id,status,total_m3,target_m3,timestamp
+    manufacturer   = Apator
+    detect {
+        mvt = APA,01,16
+        mvt = APA,20,16
+    }
+    library {
+        use = total_m3
+        use = target_m3
+        use = total_backward_m3
+    }
+    fields {
+        field {
+            name     = status
+            quantity = Text
+            info     = 'Status and error flags.'
+            match {
+                difvifkey = 03FD17
+            }
+            lookup {
+                name            = ERROR_FLAGS
+                map_type        = BitToString
+                mask_bits       = 0xffffff
+                default_message = OK
+                // Ongoing status, realtime status.
+                map {
+                    name  = TAMPER
+                    value = 0x01
+                    test  = Set
+                }
+                map {
+                    name  = LOW_BATTERY
+                    value = 0x02
+                    test  = Set
+                }
+                map {
+                    name  = DRY
+                    value = 0x04
+                    test  = Set
+                }
+                map {
+                    name  = NO_FLOW
+                    value = 0x08
+                    test  = Set
+                }
+                map {
+                    name  = HIGH_TEMPERATURE
+                    value = 0x10
+                    test  = Set
+                }
+                map {
+                    name  = BURST
+                    value = 0x20
+                    test  = Set
+                }
+                map {
+                    name  = REVERSE
+                    value = 0x40
+                    test  = Set
+                }
+                map {
+                    name  = LEAK
+                    value = 0x80
+                    test  = Set
+                }
+                // Status triggered at any time during this month.
+                map {
+                    name  = TAMPER_THIS_MONTH
+                    value = 0x0100
+                    test  = Set
+                }
+                map {
+                    name  = LOW_BATTERY_THIS_MONTH
+                    value = 0x0200
+                    test  = Set
+                }
+                map {
+                    name  = DRY_THIS_MONTH
+                    value = 0x0400
+                    test  = Set
+                }
+                map {
+                    name  = NO_FLOW_THIS_MONTH
+                    value = 0x0800
+                    test  = Set
+                }
+                map {
+                    name  = HIGH_TEMPERATURE_THIS_MONTH
+                    value = 0x1000
+                    test  = Set
+                }
+                map {
+                    name  = BURST_THIS_MONTH
+                    value = 0x2000
+                    test  = Set
+                }
+                map {
+                    name  = REVERSE_THIS_MONTH
+                    value = 0x4000
+                    test  = Set
+                }
+                map {
+                    name  = LEAK_THIS_MONTH
+                    value = 0x8000
+                    test  = Set
+                }
+                // Status triggered at any time during the previous month.
+                map {
+                    name  = TAMPER_PREV_MONTH
+                    value = 0x010000
+                    test  = Set
+                }
+                map {
+                    name  = LOW_BATTERY_PREV_MONTH
+                    value = 0x020000
+                    test  = Set
+                }
+                map {
+                    name  = DRY_PREV_MONTH
+                    value = 0x040000
+                    test  = Set
+                }
+                map {
+                    name  = NO_FLOW_PREV_MONTH
+                    value = 0x080000
+                    test  = Set
+                }
+                map {
+                    name  = HIGH_TEMPERATURE_PREV_MONTH
+                    value = 0x100000
+                    test  = Set
+                }
+                map {
+                    name  = BURST_PREV_MONTH
+                    value = 0x200000
+                    test  = Set
+                }
+                map {
+                    name  = REVERSE_PREV_MONTH
+                    value = 0x400000
+                    test  = Set
+                }
+                map {
+                    name  = LEAK_PREV_MONTH
+                    value = 0x800000
+                    test  = Set
+                }
+            }
+        }
+    }
+    tests {
+        test {
+            args     = 'Water ultrimisv2 95969798 NOKEY'
+            telegram = 2E4401069897969501167A4B0320052F2F_0413320C000003FD1700000044132109000004933C000000002F2F2F2F2F
+            json     = '{"_":"telegram","media":"cold water","meter":"ultrimisv2","name":"Water","id":"95969798","total_m3":3.122,"target_m3":2.337,"status":"OK","total_backward_m3":0,"timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'Water;95969798;OK;3.122;2.337;1111-11-11 11:11.11'
+        }
+        test {
+            args     = 'Water ultrimisv2 95969798 NOKEY'
+            telegram = 2E4401069897969501167A4B0320052F2F_0413320C000003FD1700000044132109000004933C000000002F2F2F2F2F
+            json     = '{"_":"telegram","media":"cold water","meter":"ultrimisv2","name":"Water","id":"95969798","total_m3":3.122,"target_m3":2.337,"status":"OK","total_backward_m3":0,"timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'Water;95969798;OK;3.122;2.337;1111-11-11 11:11.11'
+        }
+        test {
+            args     = 'Water2 ultrimisv2 95969798 NOKEY'
+            comment  = 'Force set error flags to test historical states.'
+            telegram = 2E4401069897969501167A4B0320052F2F_0413320C000003FD1708080144132109000004933C000000002F2F2F2F2F
+            json     = '{"_": "telegram","id": "95969798","media": "cold water","meter": "ultrimisv2","name": "Water2","status": "NO_FLOW NO_FLOW_THIS_MONTH TAMPER_PREV_MONTH","target_m3": 2.337,"timestamp": "1111-11-11T11:11:11Z","total_backward_m3": 0,"total_m3": 3.122}'
+            fields   = 'Water2;95969798;NO_FLOW NO_FLOW_THIS_MONTH TAMPER_PREV_MONTH;3.122;2.337;1111-11-11 11:11.11'
+        }
+        test {
+            args     = 'WW ultrimisv2 80291792 NOKEY'
+            telegram = 434401069217298020168C00B3900F002C252471316AA947CD928D1D6C377AC5002007102F2F_0413A001000003FD171400084413F500000004933C000000002F2F2F2F2F
+            json     = '{"_": "telegram","id": "80291792","media": "cold water","meter": "ultrimisv2","name": "WW","status": "DRY HIGH_TEMPERATURE NO_FLOW_PREV_MONTH","target_m3": 0.245,"timestamp": "1111-11-11T11:11:11Z","total_backward_m3": 0,"total_m3": 0.416}'
+            fields   = 'WW;80291792;DRY HIGH_TEMPERATURE NO_FLOW_PREV_MONTH;0.416;0.245;1111-11-11 11:11.11'
+        }
+        test {
+            args     = 'WWW ultrimisv2 80024171 NOKEY'
+            telegram = 434401067141028020168C008B900F002C257F53316ABC7526B6B75FEBC27AAD002007102F2F_04130E05000003FD1700400844135504000004933C540000002F2F2F2F2F
+            json     = '{"_": "telegram","id": "80024171","media": "cold water","meter": "ultrimisv2","name": "WWW","status": "NO_FLOW_PREV_MONTH REVERSE_THIS_MONTH","target_m3": 1.109,"timestamp": "1111-11-11T11:11:11Z","total_backward_m3": 0.084,"total_m3": 1.294}'
+            fields   = 'WWW;80024171;NO_FLOW_PREV_MONTH REVERSE_THIS_MONTH;1.294;1.109;1111-11-11 11:11.11'
+        }
+    }
+}
