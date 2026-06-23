@@ -87,6 +87,7 @@ bool verbose_ = false;
     X(formulas_stringinterpolation)             \
     X(formulas_rounding)                        \
     X(formulas_extended_ops)                    \
+    X(analyze_json)
 
 #define X(t) void test_##t();
 LIST_OF_TESTS
@@ -3188,4 +3189,25 @@ void test_dynamic_loading()
         printf("ERROR in dynamic loading got %s but expected %s!\n",
                toString(vr), toString(VIFRange::DateTime));
     }
+}
+
+void test_analyze_json()
+{
+    vector<Explanation> es;
+    es.push_back(Explanation(0, 4, "header", KindOfData::PROTOCOL, Understanding::NONE));
+    es.emplace_back(10, 3, "a\"b", KindOfData::CONTENT, Understanding::FULL);
+    es.back().ixml_parse = "p";
+
+    string j = renderAnalysisAsJson(es);
+
+    assert(j.find("TODO") == string::npos);
+    assert(j.front() == '[');
+    assert(j.find("\"pos\": 0") != string::npos);
+    assert(j.find("\"len\": 4") != string::npos);
+    assert(j.find("\"kind\": \"PROTOCOL\"") != string::npos);
+    assert(j.find("\"understanding\": \"NONE\"") != string::npos);
+    assert(j.find("\"pos\": 10") != string::npos);
+    assert(j.find("\"kind\": \"CONTENT\"") != string::npos);
+    assert(j.find("\"understanding\": \"FULL\"") != string::npos);
+    assert(j.find("a\\\"b") != string::npos);
 }
