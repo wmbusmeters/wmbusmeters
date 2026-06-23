@@ -174,6 +174,7 @@ shared_ptr<Printer> create_printer(Configuration *config)
 {
     return shared_ptr<Printer>(new Printer(config->json,
                                            config->pretty_print_json,
+                                           config->add_raw_field,
                                            config->fields,
                                            config->separator, config->meterfiles, config->meterfiles_dir,
                                            config->use_logfile, config->logfile,

@@ -186,7 +186,8 @@ protected:
                     std::vector<std::string> *envs,
                     std::vector<std::string> *more_json, // Add this json "key"="value" strings.
                     std::vector<std::string> *selected_fields, // Only print these fields.
-                    bool pretty_print); // Insert newlines and indentation.
+                    bool pretty_print, // Insert newlines and indentation.
+                    bool add_raw_field); // Include "_raw" hex frame in JSON output.
     // Json fields include all values except timestamp_ut, timestamp_utc, timestamp_lt
     // since Json is assumed to be decoded by a program and the current timestamp which is the
     // same as timestamp_utc, can always be decoded/recoded into local time or a unix timestamp.

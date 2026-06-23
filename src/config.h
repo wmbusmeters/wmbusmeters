@@ -100,6 +100,7 @@ struct Configuration
     std::string logfile;
     bool json {};
     bool pretty_print_json {};
+    bool add_raw_field {};
     int  pollinterval {}; // Time between polling of mbus meters.
     IdentityMode identity_mode {}; // How to group meters identities into state objects.
     bool fields {};
