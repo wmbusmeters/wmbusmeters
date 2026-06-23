@@ -202,9 +202,7 @@ driver {
         field {
             name     = half_month_history_start
             quantity = PointInTime
-            info     = 'EXPERIMENTAL: Date of the oldest half-monthly delta in the history series, anchors delta_30_half_months_ago_hca.'
-            // don't rely on this (yet), drop DEPRECATED once hcae2 is fully understood
-            attributes   = DEPRECATED
+            info     = 'Date of the oldest half-monthly delta in the history series, anchors delta_30_half_months_ago_hca.'
             display_unit = date
             match {
                 measurement_type = Instantaneous
@@ -215,9 +213,7 @@ driver {
         field {
             name     = 'delta_{32counter-storage_counter}_half_months_ago'
             quantity = HCA
-            // don't rely on this (yet), drop DEPRECATED once hcae2 is fully understood
-            attributes = DEPRECATED
-            info       = 'EXPERIMENTAL: Difference between two consecutive half-monthly snapshots (not an absolute reading).
+            info       = 'Difference between two consecutive half-monthly snapshots (not an absolute reading).
                           -- The fields delta_{1..30}_half_months_ago_hca together span >= 15 months.
                           -- delta_30_half_months_ago_hca may cover more than a half-month: its left edge anchors to the start of the billing cycle containing the oldest snapshot.
                           -- Sum from delta_30_half_months_ago_hca forward for the cumulative reading at any half-month.
