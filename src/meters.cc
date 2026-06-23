@@ -2939,17 +2939,28 @@ bool FieldInfo::extractNumeric(Meter *m, Telegram *t, DVEntry *dve)
         if (matcher_.vif_range == VIFRange::DateTime)
         {
             struct tm datetime;
-            dve->extractDate(&datetime);
-            time_t tmp = mktime(&datetime);
-            string bbb = strdatetime(tmp);
-            extracted_double_value = tmp;
+            if (dve->extractDate(&datetime))
+            {
+                time_t tmp = mktime(&datetime);
+                extracted_double_value = tmp;
+            }
+            else
+            {
+                extracted_double_value = NAN;
+            }
         }
         else if (matcher_.vif_range == VIFRange::Date)
         {
             struct tm date;
-            dve->extractDate(&date);
-            time_t tmp = mktime(&date);
-            extracted_double_value = tmp;
+            if (dve->extractDate(&date))
+            {
+                time_t tmp = mktime(&date);
+                extracted_double_value = tmp;
+            }
+            else
+            {
+                extracted_double_value = NAN;
+            }
         }
         else if (matcher_.vif_range == VIFRange::AnyEnergyVIF ||
                  matcher_.vif_range == VIFRange::AnyVolumeVIF ||
@@ -3112,17 +3123,22 @@ bool FieldInfo::extractString(Meter *m, Telegram *t, DVEntry *dve)
     else if (matcher_.vif_range == VIFRange::DateTime)
     {
         struct tm datetime;
-        dve->extractDate(&datetime);
         string extracted_device_date_time;
-
-        if (dve->value.size() == 12)
+        if (dve->extractDate(&datetime))
         {
-            // A long date time sec + timezone field. TODO add timezone data.
-            extracted_device_date_time = strdatetimesec(&datetime);
+            if (dve->value.size() == 12)
+            {
+                // A long date time sec + timezone field. TODO add timezone data.
+                extracted_device_date_time = strdatetimesec(&datetime);
+            }
+            else
+            {
+                extracted_device_date_time = strdatetime(&datetime);
+            }
         }
         else
         {
-            extracted_device_date_time = strdatetime(&datetime);
+            extracted_device_date_time = "";
         }
         m->setStringValue(this, extracted_device_date_time, dve);
         t->addMoreExplanation(dve->offset, renderJsonText(m, dve));
@@ -3131,8 +3147,15 @@ bool FieldInfo::extractString(Meter *m, Telegram *t, DVEntry *dve)
     else if (matcher_.vif_range == VIFRange::Date)
     {
         struct tm date;
-        dve->extractDate(&date);
-        string extracted_device_date = strdate(&date);
+        string extracted_device_date;
+        if (dve->extractDate(&date))
+        {
+            extracted_device_date = strdate(&date);
+        }
+        else
+        {
+            extracted_device_date = "";
+        }
         m->setStringValue(this, extracted_device_date, dve);
         t->addMoreExplanation(dve->offset, renderJsonText(m, dve));
         found = true;

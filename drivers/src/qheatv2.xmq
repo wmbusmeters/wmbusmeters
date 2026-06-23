@@ -362,7 +362,7 @@ driver {
         test {
             args     = 'QHeato qheatv2 67228058 NOKEY'
             telegram = 3C449344957002372337725880226793442304DC0000200C05043900004C0500000000426C9F2CCC080551070000C2086CBE29326CFFFF046D280DB62A
-            json     = '{"_": "telegram","device_error_date": "2128-03-31","id": "67228058","media": "heat","meter": "qheatv2","meter_datetime": "2021-10-22 13:40","name": "QHeato","status": "OK","target_date": "2021-09-30","target_kwh": 75.1,"target_year_date": "2020-12-31","target_year_kwh": 0,"timestamp": "1111-11-11T11:11:11Z","total_kwh": 390.4}'
+            json     = '{"_": "telegram","device_error_date":null,"id": "67228058","media": "heat","meter": "qheatv2","meter_datetime": "2021-10-22 13:40","name": "QHeato","status": "OK","target_date": "2021-09-30","target_kwh": 75.1,"target_year_date": "2020-12-31","target_year_kwh": 0,"timestamp": "1111-11-11T11:11:11Z","total_kwh": 390.4}'
             fields   = 'QHeato;67228058;OK;390.4;1111-11-11 11:11.11'
         }
         test {
@@ -376,14 +376,14 @@ driver {
             comment  = 'Q AMR telegram sent every 7.5 minutes'
             comment  = 'Q Walk by telegram sent every 112 seconds'
             telegram = 414493444374266848377243742668934448042A000020_0C06140000004C0600000000426CFFFFCC080600000000C2086C3C3202FD170000326CFFFF046D190F3533
-            json     = '{"_": "telegram","device_error_date": "2128-03-31","id": "68267443","media": "heat","meter": "qheatv2","meter_datetime": "2025-03-21 15:25","name": "QHeat55r","status": "OK","target_date": "2025-02-28","target_kwh": 0,"target_year_date": "2128-03-31","target_year_kwh": 0,"timestamp": "1111-11-11T11:11:11Z","total_kwh": 14}'
+            json     = '{"_": "telegram","device_error_date":null,"id": "68267443","media": "heat","meter": "qheatv2","meter_datetime": "2025-03-21 15:25","name": "QHeat55r","status": "OK","target_date": "2025-02-28","target_kwh": 0,"target_year_date":null,"target_year_kwh": 0,"timestamp": "1111-11-11T11:11:11Z","total_kwh": 14}'
             fields   = 'QHeat55r;68267443;OK;14;1111-11-11 11:11.11'
         }
         test {
             args     = 'QHeat55r qheatv2 68267443 NOKEY'
             comment  = 'Q Walk by telegram sent every 112 seconds'
             telegram = 5844934443742668483778_077943742668934448040DFF5F3500822A0000610107C006FFFF14000000FFFF000000003C32000000000080008000800080008000800080008000800080008000002F02FD170000046D1B0F3533
-            json     = '{"_": "telegram","energy_delta_10_kwh":-32768,"energy_delta_11_kwh":-32768,"energy_delta_12_kwh":-32768,"energy_delta_13_kwh":0,"energy_delta_2_kwh":-32768,"energy_delta_3_kwh":-32768,"energy_delta_4_kwh":-32768,"energy_delta_5_kwh":-32768,"energy_delta_6_kwh":-32768,"energy_delta_7_kwh":-32768,"energy_delta_8_kwh":-32768,"energy_delta_9_kwh":-32768,"enhanced_id": "0448449368267443","id": "68267443","media": "radio converter (meter side)","meter": "qheatv2","meter_datetime": "2025-03-21 15:27","name": "QHeat55r","status": "OK","target_date": "2025-02-28","target_kwh": 0,"target_year_date": "2128-03-31","target_year_kwh": 0,"timestamp": "1111-11-11T11:11:11Z","total_kwh": 14}'
+            json     = '{"_": "telegram","energy_delta_10_kwh":-32768,"energy_delta_11_kwh":-32768,"energy_delta_12_kwh":-32768,"energy_delta_13_kwh":0,"energy_delta_2_kwh":-32768,"energy_delta_3_kwh":-32768,"energy_delta_4_kwh":-32768,"energy_delta_5_kwh":-32768,"energy_delta_6_kwh":-32768,"energy_delta_7_kwh":-32768,"energy_delta_8_kwh":-32768,"energy_delta_9_kwh":-32768,"enhanced_id": "0448449368267443","id": "68267443","media": "radio converter (meter side)","meter": "qheatv2","meter_datetime": "2025-03-21 15:27","name": "QHeat55r","status": "OK","target_date": "2025-02-28","target_kwh": 0,"target_year_date":null,"target_year_kwh": 0,"timestamp": "1111-11-11T11:11:11Z","total_kwh": 14}'
             fields   = 'QHeat55r;68267443;OK;14;1111-11-11 11:11.11'
         }
         test {
@@ -395,7 +395,7 @@ driver {
         test {
             args     = 'QQB qheatv2 67985890 NOKEY'
             telegram = 41449344905898673e37729058986793443e04120000200c06809300004c0678820000426c3f3ccc080636900000c2086c5f3102fd170000326cffff046d1d095832
-            json     = '{"_": "telegram","device_error_date": "2128-03-31","id": "67985890","media": "heat","meter": "qheatv2","meter_datetime": "2026-02-24 09:29","name": "QQB","status": "OK","target_date": "2026-01-31","target_kwh": 9036,"target_year_date": "2025-12-31","target_year_kwh": 8278,"timestamp": "1111-11-11T11:11:11Z","total_kwh": 9380}'
+            json     = '{"_": "telegram","device_error_date":null,"id": "67985890","media": "heat","meter": "qheatv2","meter_datetime": "2026-02-24 09:29","name": "QQB","status": "OK","target_date": "2026-01-31","target_kwh": 9036,"target_year_date": "2025-12-31","target_year_kwh": 8278,"timestamp": "1111-11-11T11:11:11Z","total_kwh": 9380}'
             fields   = 'QQB;67985890;OK;9380;1111-11-11 11:11.11'
         }
     }

@@ -717,14 +717,14 @@ driver {
             comment  = 'KAM,30,04 - Long Telegram'
             args     = 'kamheat_30_04 kamheat 67947613 NOKEY'
             telegram = 2E442D2C1376946730048D20EA00A80B20E1347803068E010043060000000314CA0900426CFFFF022D010001FF2100
-            json     = '{"_":"telegram","media":"heat","meter":"kamheat","name":"kamheat_30_04","id":"67947613","power_kw":0.1,"target_date":"2128-03-31","target_energy_kwh":0,"total_energy_consumption_kwh":398,"total_volume_m3":25.06,"status":"OK","timestamp":"1111-11-11T11:11:11Z"}'
+            json     = '{"_":"telegram","media":"heat","meter":"kamheat","name":"kamheat_30_04","id":"67947613","power_kw":0.1,"target_date":null,"target_energy_kwh":0,"total_energy_consumption_kwh":398,"total_volume_m3":25.06,"status":"OK","timestamp":"1111-11-11T11:11:11Z"}'
             fields   = 'kamheat_30_04;67947613;398;25.06;OK;1111-11-11 11:11.11'
         }
         test {
             comment  = 'KAM,30,04 - Compact Telegram'
             args     = 'kamheat_30_04 kamheat 67947613 NOKEY'
             telegram = 25442D2C1376946730048D20E9F1A70B20154D79E7F1887F8E0100000000CA0900FFFF010000
-            json     = '{"_":"telegram","media":"heat","meter":"kamheat","name":"kamheat_30_04","id":"67947613","power_kw":0.1,"target_date":"2128-03-31","target_energy_kwh":0,"total_energy_consumption_kwh":398,"total_volume_m3":25.06,"status":"OK","timestamp":"1111-11-11T11:11:11Z"}'
+            json     = '{"_":"telegram","media":"heat","meter":"kamheat","name":"kamheat_30_04","id":"67947613","power_kw":0.1,"target_date":null,"target_energy_kwh":0,"total_energy_consumption_kwh":398,"total_volume_m3":25.06,"status":"OK","timestamp":"1111-11-11T11:11:11Z"}'
             fields   = 'kamheat_30_04;67947613;398;25.06;OK;1111-11-11 11:11.11'
         }
         test {
