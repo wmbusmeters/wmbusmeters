@@ -193,7 +193,6 @@ protected:
 
     FieldInfo *findFieldInfo(std::string vname, Quantity xuantity);
     std::string renderJsonOnlyDefaultUnit(std::string vname, Quantity xuantity);
-    std::set<uint16_t> getCombinableVifsRaw(std::string vname, Unit u) override;
     std::string debugValues();
 
     void processFieldIXMLs(Telegram *t);
