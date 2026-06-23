@@ -21,6 +21,7 @@
 struct Printer {
     Printer(bool json,
             bool pretty_print_json,
+            bool add_raw_field,
             bool fields,
             char separator,
             bool meterfiles, std::string &meterfiles_dir,
@@ -35,7 +36,7 @@ struct Printer {
 
     private:
 
-    bool json_, pretty_print_json_, fields_;
+    bool json_, pretty_print_json_, add_raw_field_, fields_;
     bool use_meterfiles_;
     std::string meterfiles_dir_;
     bool use_logfile_;
