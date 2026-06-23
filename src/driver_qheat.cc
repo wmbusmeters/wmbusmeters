@@ -206,18 +206,18 @@ namespace
 
 // Test: QHeato qheat 67228058 NOKEY
 // telegram=|3C449344957002372337725880226793442304DC0000200C05043900004C0500000000426C9F2CCC080551070000C2086CBE29326CFFFF046D280DB62A|
-// {"_":"telegram","media":"heat","meter":"qheat","name":"QHeato","id":"67228058","status":"OK","total_energy_consumption_kwh":390.4,"last_month_date":"2021-09-30","last_month_energy_consumption_kwh":75.1,"last_year_date":"2020-12-31","last_year_energy_consumption_kwh":0,"device_date_time":"2021-10-22 13:40","device_error_date":"2127-15-31","timestamp":"1111-11-11T11:11:11Z"}
+// {"_":"telegram","media":"heat","meter":"qheat","name":"QHeato","id":"67228058","status":"OK","total_energy_consumption_kwh":390.4,"last_month_date":"2021-09-30","last_month_energy_consumption_kwh":75.1,"last_year_date":"2020-12-31","last_year_energy_consumption_kwh":0,"device_date_time":"2021-10-22 13:40","device_error_date":"","timestamp":"1111-11-11T11:11:11Z"}
 // |QHeato;67228058;390.4;2021-09-30;75.1;1111-11-11 11:11.11
 
 
 // Test: Qheatoo qheat 67506579 NOKEY
 // telegram=|41449344796550674637727965506793444604dc0000200c0d000000004c0d00000000426cffffcc080d00000000c2086cdf2802fd170000326cffff046d3a0ddb29|
-// {"_":"telegram","media":"heat","meter":"qheat","name":"Qheatoo","id":"67506579","status":"OK","total_energy_consumption_kwh":0,"last_month_date":"2022-08-31","last_month_energy_consumption_kwh":0,"last_year_date":"2127-15-31","last_year_energy_consumption_kwh":0,"device_date_time":"2022-09-27 13:58","device_error_date":"2127-15-31","timestamp":"1111-11-11T11:11:11Z"}
+// {"_":"telegram","media":"heat","meter":"qheat","name":"Qheatoo","id":"67506579","status":"OK","total_energy_consumption_kwh":0,"last_month_date":"2022-08-31","last_month_energy_consumption_kwh":0,"last_year_date":"","last_year_energy_consumption_kwh":0,"device_date_time":"2022-09-27 13:58","device_error_date":"","timestamp":"1111-11-11T11:11:11Z"}
 // |Qheatoo;67506579;0;2022-08-31;0;1111-11-11 11:11.11
 
 // Test: Qheatoo qheat 78563412 NOKEY
 // telegram=|3C449344123456782337729876543293442304FE0000200C05682235004C0580253200426CDF2CCC080525153500C2086CFE24326CFFFF046D1811F225|
-// {"_":"telegram","media":"heat","meter":"qheat","name":"Qheatoo","id":"32547698","status":"OK","total_energy_consumption_kwh":35226.8,"last_month_date":"2023-04-30","last_month_energy_consumption_kwh":35152.5,"last_year_date":"2022-12-31","last_year_energy_consumption_kwh":32258,"device_date_time":"2023-05-18 17:24","device_error_date":"2127-15-31","timestamp":"1111-11-11T11:11:11Z"}
+// {"_":"telegram","media":"heat","meter":"qheat","name":"Qheatoo","id":"32547698","status":"OK","total_energy_consumption_kwh":35226.8,"last_month_date":"2023-04-30","last_month_energy_consumption_kwh":35152.5,"last_year_date":"2022-12-31","last_year_energy_consumption_kwh":32258,"device_date_time":"2023-05-18 17:24","device_error_date":"","timestamp":"1111-11-11T11:11:11Z"}
 // |Qheatoo;32547698;35226.8;2023-04-30;35152.5;1111-11-11 11:11.11
 
 // Test: Qheatoo qheat 78563411 NOKEY
@@ -233,5 +233,5 @@ namespace
 // |QQ1;68204641;3083.1;2025-04-30;3083.1;1111-11-11 11:11.11
 
 // telegram=|_4144934441462068473772414620689344470C5B0000200C0D310803004C0D03680000426C1F3CCC080D31080300C2086C3E3402FD170000326CFFFF046D000F3235|
-// {"_": "telegram","device_date_time": "2025-05-18 15:00","device_error_date": "2127-15-31","id": "68204641","last_month_date": "2025-04-30","last_month_energy_consumption_kwh": 856.416667,"last_year_date": "2024-12-31","last_year_energy_consumption_kwh": 188.972222,"media": "heat volume at inlet","meter": "qheat","name": "QQ1","status": "OK","timestamp": "1111-11-11T11:11:11Z","total_energy_consumption_kwh": 856.416667}
+// {"_": "telegram","device_date_time": "2025-05-18 15:00","device_error_date":"","id": "68204641","last_month_date": "2025-04-30","last_month_energy_consumption_kwh": 856.416667,"last_year_date": "2024-12-31","last_year_energy_consumption_kwh": 188.972222,"media": "heat volume at inlet","meter": "qheat","name": "QQ1","status": "OK","timestamp": "1111-11-11T11:11:11Z","total_energy_consumption_kwh": 856.416667}
 // |QQ1;68204641;856.416667;2025-04-30;856.416667;1111-11-11 11:11.11
