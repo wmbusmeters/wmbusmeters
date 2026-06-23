@@ -331,7 +331,17 @@ void test_dvparser()
     testnr++;
     dv_entries.clear();
     tst_parse("426C FE04", &dv_entries, testnr);
-    tst_date(dv_entries, "426C", "2007-04-30 00:00:00", testnr); // 2010-dec-31
+    tst_date(dv_entries, "426C", "2007-04-30 00:00:00", testnr);
+
+    testnr++;
+    dv_entries.clear();
+    tst_parse("446C 0C0DD62C", &dv_entries, testnr);
+    tst_date(dv_entries, "446C", "2022-12-22 13:12:00", testnr);
+
+    testnr++;
+    dv_entries.clear();
+    tst_parse("466C 2D0C0DD62C33", &dv_entries, testnr);
+    tst_date(dv_entries, "466C", "2022-12-22 13:12:45", testnr);
 
     testnr++;
     dv_entries.clear();
