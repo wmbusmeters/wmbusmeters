@@ -28,6 +28,7 @@
 #include"util.h"
 #include"wmbus.h"
 #include"dvparser.h"
+#include"manufacturer_specificities.h"
 #include"xmq.h"
 
 #include"crypto/aes.h"
@@ -87,6 +88,7 @@ bool verbose_ = false;
     X(formulas_stringinterpolation)             \
     X(formulas_rounding)                        \
     X(formulas_extended_ops)                    \
+    X(spec_compliance_extensions)
 
 #define X(t) void test_##t();
 LIST_OF_TESTS
@@ -3178,4 +3180,113 @@ void test_dynamic_loading()
         printf("ERROR in dynamic loading got %s but expected %s!\n",
                toString(vr), toString(VIFRange::DateTime));
     }
+}
+
+void test_spec_compliance_extensions()
+{
+    // 1. Test renderAnalysisAsJson
+    vector<Explanation> explanations;
+    Explanation exp1(0, 1, "test info 1", KindOfData::PROTOCOL, Understanding::FULL);
+    exp1.ixml_parse = "test ixml 1";
+    explanations.push_back(exp1);
+    Explanation exp2(5, 4, "test \"info\" \\ 2", KindOfData::CONTENT, Understanding::PARTIAL);
+    exp2.ixml_parse = "test ixml 2";
+    explanations.push_back(exp2);
+
+    string json_analysis = renderAnalysisAsJson(explanations);
+    assert(json_analysis.find("\"pos\": 0") != string::npos);
+    assert(json_analysis.find("\"len\": 1") != string::npos);
+    assert(json_analysis.find("\"info\": \"test info 1\"") != string::npos);
+    assert(json_analysis.find("\"ixml_parse\": \"test ixml 1\"") != string::npos);
+    assert(json_analysis.find("\"kind\": \"PROTOCOL\"") != string::npos);
+    assert(json_analysis.find("\"understanding\": \"FULL\"") != string::npos);
+    assert(json_analysis.find("\"info\": \"test \\\"info\\\" \\\\ 2\"") != string::npos);
+
+    // 2. Test transformDiehlAddress SAP_PRIOS_STANDARD
+    vector<uchar> frame = { 0x00, 0x00, 0x00, 0x00, 0x12, 0x34, 0x56, 0x78, 0x90, 0xAB };
+    transformDiehlAddress(frame, DiehlAddressTransformMethod::SAP_PRIOS_STANDARD);
+    assert(frame[9] == 0x07);
+    assert(frame[8] == 0x90); // version byte preserved
+
+    // 3. Test CP48 (Type I, 6-byte Date/Time) with leap year, DST, DOW, yday
+    unordered_map<string,pair<int,DVEntry>> dv_entries;
+    int testnr = 1;
+    // Date/Time: 2026-06-23 10:15:30 (Tuesday)
+    tst_parse("06 6D 5E 0F 4A 57 36 00", &dv_entries, testnr);
+    struct tm out_date {};
+    int offset = 0;
+    bool ok = extractDVdate(&dv_entries, "066D", &offset, &out_date);
+    assert(ok);
+    assert(out_date.tm_year == 2026 - 1900);
+    assert(out_date.tm_mon == 6 - 1);
+    assert(out_date.tm_mday == 23);
+    assert(out_date.tm_hour == 10);
+    assert(out_date.tm_min == 15);
+    assert(out_date.tm_sec == 30);
+    assert(out_date.tm_isdst == 1);
+    assert(out_date.tm_wday == 2);
+    assert(out_date.tm_yday == 173);
+
+    // 4. Test CP48 invalid flag
+    dv_entries.clear();
+    tst_parse("06 6D 5E 8F 4A 57 36 00", &dv_entries, testnr);
+    ok = extractDVdate(&dv_entries, "066D", &offset, &out_date);
+    assert(!ok);
+
+    // 5. Test CP48 Leap Year (2024-03-01 12:00:00 Friday)
+    dv_entries.clear();
+    tst_parse("06 6D 80 00 AC 01 33 00", &dv_entries, testnr);
+    ok = extractDVdate(&dv_entries, "066D", &offset, &out_date);
+    assert(ok);
+    assert(out_date.tm_year == 2024 - 1900);
+    assert(out_date.tm_mon == 3 - 1);
+    assert(out_date.tm_mday == 1);
+    assert(out_date.tm_hour == 12);
+    assert(out_date.tm_min == 0);
+    assert(out_date.tm_sec == 0);
+    assert(out_date.tm_isdst == 0);
+    assert(out_date.tm_wday == 5);
+    assert(out_date.tm_yday == 60);
+
+    // 6. Test CP80 (Type K, 8-byte/10-byte Date/Time)
+    dv_entries.clear();
+    tst_parse("07 6D 5E 0F 4A 57 36 00 00 00", &dv_entries, testnr);
+    ok = extractDVdate(&dv_entries, "076D", &offset, &out_date);
+    assert(ok);
+    assert(out_date.tm_year == 2026 - 1900);
+    assert(out_date.tm_mon == 6 - 1);
+    assert(out_date.tm_mday == 23);
+    assert(out_date.tm_hour == 10);
+    assert(out_date.tm_min == 15);
+    assert(out_date.tm_sec == 30);
+    assert(out_date.tm_isdst == 1);
+    assert(out_date.tm_wday == 2);
+    assert(out_date.tm_yday == 173);
+
+    // 7. Test Type M (10-digit BCD)
+    dv_entries.clear();
+    tst_parse("0D 13 05 90 78 56 34 12", &dv_entries, testnr);
+    double out_val = 0.0;
+    ok = extractDVdouble(&dv_entries, "0D13", &offset, &out_val);
+    assert(ok);
+    assert(out_val - 1234567.890 > -1e-5 && out_val - 1234567.890 < 1e-5);
+
+    // 8. Test dynamic orthogonal VIFE unit suffixing
+    MeterInfo mi;
+    assert(lookupDriverInfo("multical21"));
+    mi.parse("testur", "multical21", "12345678", "");
+    shared_ptr<Meter> meter = createMeter(&mi);
+    vector<uchar> frame_multical;
+    hex2bin("1D442D2C785634121B160000049322E803000000", &frame_multical);
+    Telegram t;
+    MeterKeys mk;
+    t.parse(frame_multical, &mk, true);
+    vector<Address> addresses;
+    bool match;
+    meter->handleTelegram(t.about, frame_multical, true, &addresses, &match, &t);
+    
+    string human_readable, fields, json;
+    vector<string> envs, extra_constant_fields, selected_fields;
+    meter->printMeter(&t, &human_readable, &fields, '\t', &json, &envs, &extra_constant_fields, &selected_fields, false);
+    assert(json.find("\"total_m3/h\":") != string::npos);
 }

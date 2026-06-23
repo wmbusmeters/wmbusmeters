@@ -163,7 +163,8 @@ void transformDiehlAddress(vector<uchar>& frame, DiehlAddressTransformMethod tra
     }
     else if (transform_method == DiehlAddressTransformMethod::SAP_PRIOS_STANDARD)
     {
-        warning("(diehl) Pre-processing: SAP PRIOS STANDARD transformation not implemented!\n"); // TODO
+        debug("(diehl) Pre-processing: setting device type to water meter for SAP PRIOS STANDARD\n");
+        frame[9] = 0x07; // water meter
     }
 }
 

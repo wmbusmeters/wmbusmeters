@@ -41,6 +41,8 @@
 #include<sys/stat.h>
 #include<sys/types.h>
 #include<unistd.h>
+#include<sstream>
+#include<iomanip>
 
 #include<deque>
 #include<algorithm>
@@ -2415,9 +2417,62 @@ string renderAnalysisAsText(vector<Explanation> &explanations, OutputFormat of)
     return s;
 }
 
+static string escapeJson(const string &input)
+{
+    ostringstream ss;
+    for (char c : input)
+    {
+        switch (c)
+        {
+        case '"':  ss << "\\\""; break;
+        case '\\': ss << "\\\\"; break;
+        case '\b': ss << "\\b"; break;
+        case '\f': ss << "\\f"; break;
+        case '\n': ss << "\\n"; break;
+        case '\r': ss << "\\r"; break;
+        case '\t': ss << "\\t"; break;
+        default:
+            if ('\x00' <= c && c <= '\x1f')
+            {
+                ss << "\\u" << hex << setw(4) << setfill('0') << (int)c;
+            }
+            else
+            {
+                ss << c;
+            }
+        }
+    }
+    return ss.str();
+}
+
 string renderAnalysisAsJson(vector<Explanation> &explanations)
 {
-    return "{ \"TODO\": true }\n";
+    string s = "[\n";
+    for (size_t i = 0; i < explanations.size(); i++)
+    {
+        const auto &p = explanations[i];
+        string kind_str = (p.kind == KindOfData::PROTOCOL) ? "PROTOCOL" : "CONTENT";
+        string under_str;
+        switch (p.understanding)
+        {
+            case Understanding::NONE: under_str = "NONE"; break;
+            case Understanding::ENCRYPTED: under_str = "ENCRYPTED"; break;
+            case Understanding::COMPRESSED: under_str = "COMPRESSED"; break;
+            case Understanding::PARTIAL: under_str = "PARTIAL"; break;
+            case Understanding::FULL: under_str = "FULL"; break;
+        }
+
+        s += "  {\n";
+        s += tostrprintf("    \"pos\": %d,\n", p.pos);
+        s += tostrprintf("    \"len\": %d,\n", p.len);
+        s += "    \"info\": \"" + escapeJson(p.info) + "\",\n";
+        s += "    \"ixml_parse\": \"" + escapeJson(p.ixml_parse) + "\",\n";
+        s += "    \"kind\": \"" + kind_str + "\",\n";
+        s += "    \"understanding\": \"" + under_str + "\"\n";
+        s += (i + 1 < explanations.size()) ? "  },\n" : "  }\n";
+    }
+    s += "]\n";
+    return s;
 }
 
 string Telegram::analyzeParse(OutputFormat format, int *content_length, int *understood_content_length)

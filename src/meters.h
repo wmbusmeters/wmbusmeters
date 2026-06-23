@@ -26,6 +26,7 @@
 #include"xmq.h"
 #include"wmbus.h"
 #include"util.h"
+#include<set>
 
 #include<functional>
 #include<numeric>
@@ -511,6 +512,7 @@ struct Meter
 
     virtual FieldInfo *findFieldInfo(std::string vname, Quantity xuantity) = 0;
     virtual std::string renderJsonOnlyDefaultUnit(std::string vname, Quantity xuantity) = 0;
+    virtual std::set<uint16_t> getCombinableVifsRaw(std::string vname, Unit u) = 0;
 
     virtual std::string debugValues() = 0;
 

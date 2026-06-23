@@ -1809,7 +1809,7 @@ bool DVEntry::extractDouble(double *out, bool auto_scale, bool force_unsigned)
     int t = dif_vif_key.dif() & 0xf;
     if (t == 0x0 ||
         t == 0x8 ||
-        t == 0xd ||
+        (t == 0xd && value.length() != 10) || // Allow 10-digit BCD (Type M) for variable length
         t == 0xf)
     {
         // Cannot extract from nothing, selection for readout, variable length or special.
@@ -1889,6 +1889,7 @@ bool DVEntry::extractDouble(double *out, bool auto_scale, bool force_unsigned)
         t == 0xA || // 4 digit BCD
         t == 0xB || // 6 digit BCD
         t == 0xC || // 8 digit BCD
+        t == 0xD || // 10 digit BCD (Type M)
         t == 0xE)   // 12 digit BCD
     {
         // Negative BCD values are always visible in bcd. I.e. they are always signed.
@@ -1925,6 +1926,14 @@ bool DVEntry::extractDouble(double *out, bool auto_scale, bool force_unsigned)
                 + (v[4]-'0')*10*10*10*10*10 + (v[5]-'0')*10*10*10*10
                 + (v[2]-'0')*10*10*10 + (v[3]-'0')*10*10
                 + (v[0]-'0')*10 + (v[1]-'0');
+        } else if (t ==  0xD) {
+            if (!checkSizeHex(10, dif_vif_key, v)) return false;
+            if (v[8] == 'F') { negate = true; v[8] = '0'; }
+            raw = (v[8]-'0')*1000000000ULL + (v[9]-'0')*100000000ULL
+                + (v[6]-'0')*10000000ULL + (v[7]-'0')*1000000ULL
+                + (v[4]-'0')*100000ULL + (v[5]-'0')*10000ULL
+                + (v[2]-'0')*1000ULL + (v[3]-'0')*100ULL
+                + (v[0]-'0')*10ULL + (v[1]-'0');
         } else if (t ==  0xE) {
             if (!checkSizeHex(12, dif_vif_key, v)) return false;
             if (v[10] == 'F') { negate = true; v[10] = '0'; }
@@ -2327,16 +2336,34 @@ bool DVEntry::extractDate(struct tm *out)
         ok &= ::extractDate(v[3], v[2], out);
         ok &= ::extractTime(v[1], v[0], out);
     }
-    else if (v.size() == 6) {
+    else if (v.size() == 6 || v.size() == 8 || v.size() == 10) {
         ok &= ::extractDate(v[4], v[3], out);
         ok &= ::extractTime(v[2], v[1], out);
-        // ..ss ssss
         int sec  = (0x3f) & v[0];
         out->tm_sec = sec;
-        // There are also bits for day of week, week of year.
-        // A bit for if daylight saving is in use or not and its offset.
-        // A bit if it is a leap year.
-        // I am unsure how to deal with this here..... TODO
+
+        bool is_leap = (v[0] & 0x80) != 0;
+        out->tm_isdst = (v[0] & 0x40) ? 1 : 0;
+
+        if (v[1] & 0x80) ok = false;
+
+        int dow = (v[2] & 0xE0) >> 5;
+        if (dow >= 1 && dow <= 7) {
+            out->tm_wday = (dow == 7) ? 0 : dow;
+        }
+
+        int yday = 0;
+        static const int days_in_months[2][12] = {
+            { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 },
+            { 31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 }
+        };
+        if (out->tm_mon >= 0 && out->tm_mon < 12) {
+            for (int m = 0; m < out->tm_mon; m++) {
+                yday += days_in_months[is_leap ? 1 : 0][m];
+            }
+            yday += out->tm_mday - 1;
+            out->tm_yday = yday;
+        }
     }
 
     return ok;

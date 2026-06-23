@@ -1386,7 +1386,18 @@ static bool tryExpandedTemplateField(string *buf,
         if (human_readable)
         {
             *buf += " ";
-            *buf += unitToStringHR(u);
+            string hr_unit = unitToStringHR(u);
+            for (uint16_t raw_vif : m->getCombinableVifsRaw(base, u))
+            {
+                if (raw_vif == 0x20) hr_unit += "/s";
+                else if (raw_vif == 0x21) hr_unit += "/min";
+                else if (raw_vif == 0x22) hr_unit += "/h";
+                else if (raw_vif == 0x23) hr_unit += "/d";
+                else if (raw_vif == 0x24) hr_unit += "/w";
+                else if (raw_vif == 0x25) hr_unit += "/mon";
+                else if (raw_vif == 0x26) hr_unit += "/year";
+            }
+            *buf += hr_unit;
         }
     }
     *buf += c;
@@ -1432,10 +1443,20 @@ bool checkPrintableField(string *buf, string desired_field, Meter *m, Telegram *
         else
         {
             string display_unit_s = unitToStringLowerCase(fi.displayUnit());
+            for (uint16_t raw_vif : m->getCombinableVifsRaw(fi.vname(), fi.displayUnit()))
+            {
+                if (raw_vif == 0x20) display_unit_s += "/s";
+                else if (raw_vif == 0x21) display_unit_s += "/min";
+                else if (raw_vif == 0x22) display_unit_s += "/h";
+                else if (raw_vif == 0x23) display_unit_s += "/d";
+                else if (raw_vif == 0x24) display_unit_s += "/w";
+                else if (raw_vif == 0x25) display_unit_s += "/mon";
+                else if (raw_vif == 0x26) display_unit_s += "/year";
+            }
             string var = fi.vname()+"_"+display_unit_s;
             if (desired_field != var) continue;
 
-            // We have the correc field.
+            // We have the correct field.
             if (fi.displayUnit() == Unit::DateLT)
             {
                 double d = m->getNumericValue(&fi, Unit::DateLT);
@@ -1464,7 +1485,18 @@ bool checkPrintableField(string *buf, string desired_field, Meter *m, Telegram *
                 if (human_readable)
                 {
                     *buf += " ";
-                    *buf += unitToStringHR(fi.displayUnit());
+                    string hr_unit = unitToStringHR(fi.displayUnit());
+                    for (uint16_t raw_vif : m->getCombinableVifsRaw(fi.vname(), fi.displayUnit()))
+                    {
+                        if (raw_vif == 0x20) hr_unit += "/s";
+                        else if (raw_vif == 0x21) hr_unit += "/min";
+                        else if (raw_vif == 0x22) hr_unit += "/h";
+                        else if (raw_vif == 0x23) hr_unit += "/d";
+                        else if (raw_vif == 0x24) hr_unit += "/w";
+                        else if (raw_vif == 0x25) hr_unit += "/mon";
+                        else if (raw_vif == 0x26) hr_unit += "/year";
+                    }
+                    *buf += hr_unit;
                 }
                 *buf += c;
                 return true;
@@ -2121,6 +2153,16 @@ string MeterCommonImplementation::renderJsonOnlyDefaultUnit(string vname, Quanti
     return fi->renderJsonOnlyDefaultUnit(this);
 }
 
+std::set<uint16_t> MeterCommonImplementation::getCombinableVifsRaw(string vname, Unit u)
+{
+    pair<string,Unit> key(vname, u);
+    if (numeric_values_.count(key) > 0)
+    {
+        return numeric_values_[key].dv_entry.combinable_vifs_raw;
+    }
+    return std::set<uint16_t>();
+}
+
 string MeterCommonImplementation::debugValues()
 {
     string s;
@@ -2219,6 +2261,19 @@ string FieldInfo::generateFieldNameWithUnit(Meter *m, DVEntry *dve)
     }
 
     string display_unit_s = unitToStringLowerCase(displayUnit());
+    if (dve != NULL)
+    {
+        for (uint16_t raw_vif : dve->combinable_vifs_raw)
+        {
+            if (raw_vif == 0x20) display_unit_s += "/s";
+            else if (raw_vif == 0x21) display_unit_s += "/min";
+            else if (raw_vif == 0x22) display_unit_s += "/h";
+            else if (raw_vif == 0x23) display_unit_s += "/d";
+            else if (raw_vif == 0x24) display_unit_s += "/w";
+            else if (raw_vif == 0x25) display_unit_s += "/mon";
+            else if (raw_vif == 0x26) display_unit_s += "/year";
+        }
+    }
     string var = field_name_->apply(m, dve);
 
     return var+"_"+display_unit_s;
@@ -2279,6 +2334,19 @@ string FieldInfo::renderJson(Meter *m, DVEntry *dve)
     string s;
 
     string display_unit_s = unitToStringLowerCase(displayUnit());
+    if (dve != NULL)
+    {
+        for (uint16_t raw_vif : dve->combinable_vifs_raw)
+        {
+            if (raw_vif == 0x20) display_unit_s += "/s";
+            else if (raw_vif == 0x21) display_unit_s += "/min";
+            else if (raw_vif == 0x22) display_unit_s += "/h";
+            else if (raw_vif == 0x23) display_unit_s += "/d";
+            else if (raw_vif == 0x24) display_unit_s += "/w";
+            else if (raw_vif == 0x25) display_unit_s += "/mon";
+            else if (raw_vif == 0x26) display_unit_s += "/year";
+        }
+    }
     string field_name = generateFieldNameNoUnit(m, dve);
 
     if (xuantity() == Quantity::Text)

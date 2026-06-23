@@ -534,6 +534,8 @@ private:
 
 };
 
+std::string renderAnalysisAsJson(std::vector<Explanation> &explanations);
+
 struct SendBusContent
 {
     LinkMode link_mode;
