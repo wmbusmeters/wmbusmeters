@@ -2164,9 +2164,12 @@ void MeterCommonImplementation::printMeter(Telegram *t,
     s += indent+"\"name\":\""+name()+"\","+newline;
     s += indent+"\"id\":\""+id+"\","+newline;
 
-    // Iterate over the meter field infos...
-    map<FieldInfo*,set<DVEntry*>> founds; // Multiple dventries can match to a single field info.
-    set<string> found_vnames;
+    // Build measurements array
+    string item_indent = indent+indent;
+
+    s += indent+"\"measurements\":["+newline;
+
+    bool first_measurement = true;
 
     for (auto &p : numeric_values_)
     {
@@ -2174,57 +2177,64 @@ void MeterCommonImplementation::printMeter(Telegram *t,
         NumericField& nf = p.second;
         if (nf.field_info->printProperties().hasHIDE()) continue;
 
-        string out = nf.field_info->renderJson(this, &nf.dv_entry);
-        s += indent+out+","+newline;
+        string field_name = nf.field_info->description() != ""
+            ? nf.field_info->description()
+            : nf.field_info->generateFieldNameNoUnit(this, &nf.dv_entry);
+        string unit_s = unitToStringLowerCase(nf.field_info->displayUnit());
+        int storage = nf.dv_entry.storage_nr.intValue();
 
-        if (first && getDetailedFirst())
-        {
-            size_t pos = out.find("\":");
-            if (pos != string::npos)
-            {
-                string rule = out.substr(0, pos)+"_field\":"+to_string(nf.field_info->index());
-                s += indent+rule+","+newline;
-            }
-        }
+        string value_s;
+        Unit disp = nf.field_info->displayUnit();
+        if (disp == Unit::DateLT)
+            value_s = "\""+strdate(getNumericValue(vname, Unit::DateLT))+"\"";
+        else if (disp == Unit::DateTimeLT)
+            value_s = "\""+strdatetime(getNumericValue(vname, Unit::DateTimeLT))+"\"";
+        else if (disp == Unit::DateTimeUTC)
+            value_s = "\""+strTimestampUTC(getNumericValue(vname, Unit::DateTimeUTC))+"\"";
+        else
+            value_s = valueToString(getNumericValue(vname, disp), disp);
+
+        string mobj = "{\"name\":\""+field_name+"\",\"value\":"+value_s+",\"unit\":\""+unit_s+"\",\"storage\":"+to_string(storage);
+        if (nf.field_info->timeUpdate() != "")
+            mobj += ",\"time_update\":\""+nf.field_info->timeUpdate()+"\"";
+        if (nf.field_info->hasTimeUpdateAmount())
+            mobj += ",\"time_update_amount\":"+to_string(nf.field_info->timeUpdateAmount());
+        if (nf.field_info->isDate())
+            mobj += ",\"is_date\":true";
+        mobj += "}";
+        if (!first_measurement) s += ","+newline;
+        s += item_indent+mobj;
+        first_measurement = false;
     }
 
     for (auto &p : string_values_)
     {
         string vname = p.first;
         StringField& sf = p.second;
-        string out;
-
         if (sf.field_info->printProperties().hasHIDE()) continue;
+
+        string value_s;
         if (sf.field_info->printProperties().hasSTATUS())
         {
             string in = getStatusField(sf.field_info);
-            out = tostrprintf("\"%s\":\"%s\"", vname.c_str(), in.c_str());
-            s += indent+out+","+newline;
+            value_s = "\""+in+"\"";
+        }
+        else if (sf.value == "null")
+        {
+            value_s = "null";
         }
         else
         {
-            if (sf.value == "null")
-            {
-                // The string "null" translates to actual json null.
-                out = tostrprintf("\"%s\":null", vname.c_str());
-                s += indent+out+","+newline;
-            }
-            else
-            {
-                out = tostrprintf("\"%s\":\"%s\"", vname.c_str(), sf.value.c_str());
-                s += indent+out+","+newline;
-            }
+            value_s = "\""+sf.value+"\"";
         }
-        if (first && getDetailedFirst())
-        {
-            size_t pos = out.find("\":");
-            if (pos != string::npos)
-            {
-                string rule = out.substr(0, pos)+"_field\":"+to_string(sf.field_info->index());
-                s += indent+rule+","+newline;
-            }
-        }
+
+        string output_name = sf.field_info->description() != "" ? sf.field_info->description() : vname;
+        if (!first_measurement) s += ","+newline;
+        s += item_indent+"{\"name\":\""+output_name+"\",\"value\":"+value_s+",\"unit\":\"\",\"storage\":0}";
+        first_measurement = false;
     }
+
+    s += newline+indent+"],"+newline;
     s += indent+"\"timestamp\":\""+datetimeOfUpdateRobot()+"\"";
 
     if (t->about.device != "")

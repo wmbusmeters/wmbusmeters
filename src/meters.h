@@ -366,6 +366,19 @@ struct FieldInfo
     bool hasNullValue() { return has_null_value_; }
     double nullValue() { return null_value_; }
 
+    void setDescription(const std::string &d) { description_ = d; }
+    std::string description() { return description_; }
+
+    void setTimeUpdate(const std::string &t) { time_update_ = t; }
+    std::string timeUpdate() { return time_update_; }
+
+    void setTimeUpdateAmount(int a) { time_update_amount_ = a; has_time_update_amount_ = true; }
+    bool hasTimeUpdateAmount() { return has_time_update_amount_; }
+    int timeUpdateAmount() { return time_update_amount_; }
+
+    void setIsDate(bool b) { is_date_ = b; }
+    bool isDate() { return is_date_; }
+
 private:
 
     int index_; // The field infos for a meter are ordered.
@@ -413,6 +426,17 @@ private:
     // If set, this extracted value is treated as null (no data).
     bool has_null_value_ {};
     double null_value_ {};
+
+    // Optional output name override for the measurements array.
+    std::string description_ {};
+
+    // Optional time update hint for post-processing.
+    std::string time_update_ {};
+    bool has_time_update_amount_ {};
+    int time_update_amount_ {};
+
+    // Optional flag indicating this measurement represents a date.
+    bool is_date_ {};
 };
 
 struct BusManager;

@@ -357,6 +357,22 @@ XMQProceed DriverDynamic::add_field(XMQDoc *doc, XMQNodePtr field, DriverDynamic
         has_null_value = true;
     }
 
+    // Optional description overrides the field name in the measurements array output.
+    const char *description_s = xmqGetStringRel(doc, "description", field);
+    string description = description_s ? description_s : "";
+
+    // Optional time update hint for post-processing.
+    const char *time_update_s = xmqGetStringRel(doc, "time_update", field);
+    string time_update = time_update_s ? time_update_s : "";
+
+    // Optional flag indicating this measurement represents a date.
+    const char *is_date_s = xmqGetStringRel(doc, "is_date", field);
+    bool is_date = is_date_s && (string(is_date_s) == "true" || string(is_date_s) == "True");
+
+    const char *time_update_amount_s = xmqGetStringRel(doc, "time_update_amount", field);
+    bool has_time_update_amount = time_update_amount_s != nullptr;
+    int time_update_amount = has_time_update_amount ? atoi(time_update_amount_s) : 0;
+
     // Now find all matchers.
     FieldMatcher match = FieldMatcher::build();
     dd->tmp_matcher_ = &match;
@@ -422,6 +438,10 @@ XMQProceed DriverDynamic::add_field(XMQDoc *doc, XMQNodePtr field, DriverDynamic
                     );
             }
         }
+        if (description != "") dd->lastAddedField()->setDescription(description);
+        if (time_update != "") dd->lastAddedField()->setTimeUpdate(time_update);
+        if (has_time_update_amount) dd->lastAddedField()->setTimeUpdateAmount(time_update_amount);
+        if (is_date) dd->lastAddedField()->setIsDate(true);
     }
     else
     {
@@ -450,6 +470,10 @@ XMQProceed DriverDynamic::add_field(XMQDoc *doc, XMQNodePtr field, DriverDynamic
                 dd->lastAddedField()->setReadableString(rs);
             }
         }
+        if (description != "") dd->lastAddedField()->setDescription(description);
+        if (time_update != "") dd->lastAddedField()->setTimeUpdate(time_update);
+        if (has_time_update_amount) dd->lastAddedField()->setTimeUpdateAmount(time_update_amount);
+        if (is_date) dd->lastAddedField()->setIsDate(true);
     }
     return XMQ_CONTINUE;
 }
