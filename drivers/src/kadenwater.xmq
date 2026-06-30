@@ -6,6 +6,7 @@ driver {
     manufacturer   = Ecomess
     detect {
         mvt = KDN,01,07
+        mvt = VIP,01,07
     }
     library {
         use = total_m3
@@ -78,6 +79,13 @@ driver {
             telegram = 4e448e2c6179221901077ab50040054d008a1ad5270d9cf92952500bd3938ea37fcac71a45d4349fb13c89cfa4aaebd6ecf9caaf1c0710c1d6b4d98f23109cef5fa6fec93fd6a148730ea51102dbcc
             json     = '{"_":"telegram","media":"water","meter":"kadenwater","name":"MyWater","id":"19227961","actuality_duration_s":0,"duration_b_s":0,"max_flow_m3h":1.496,"total_m3":22.761,"volume_b_m3":0.0013,"volume_flow_m3h":0,"fabrication_no":"19227961","meter_datetime":"2026-06-13 19:36","status":"OK","timestamp":"1111-11-11T11:11:11Z"}'
             fields   = 'MyWater;19227961;OK;22.761;1111-11-11 11:11.11'
+        }
+        test {
+            args     = 'MyWater kadenwater 19221000 82B0551191F51D66EFCDAB8967452301'
+            comment  = 'Same water meter under the Kaden VIP manufacturer code (VIP,01,07) instead of KDN,01,07'
+            telegram = 4e4430590010221901077a71004005f8c0d59e1536f306ffcd58075fda84b6f21fc0f33df92c8cf5fcab599bd1fe73b0db2e5d9e6d8a2e3363d67db2cdaf16c26d57886b70ee0f77fc116753809bb5
+            json     = '{"_":"telegram","media":"water","meter":"kadenwater","name":"MyWater","id":"19221000","actuality_duration_s":0,"duration_b_s":0,"max_flow_m3h":0.859,"total_m3":94.6123,"volume_b_m3":0.0088,"volume_flow_m3h":0,"fabrication_no":"19221000","meter_datetime":"2026-06-30 12:39","status":"OK","timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'MyWater;19221000;OK;94.6123;1111-11-11 11:11.11'
         }
     }
 }
