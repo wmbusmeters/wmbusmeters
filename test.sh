@@ -228,6 +228,8 @@ if [ "$?" != "0" ]; then RC="1"; fi
 ./tests/test_rtlwmbus_linkmodes.sh $PROG
 if [ "$?" != "0" ]; then RC="1"; fi
 
+./tests/test_bad_telegrams.sh $PROG
+if [ "$?" != "0" ]; then RC="1"; fi
 
 if [ -s build/xmq ]
 then
