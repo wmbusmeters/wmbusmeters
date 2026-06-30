@@ -8,6 +8,27 @@ driver {
         mvt = KDN,01,07
         mvt = VIP,01,07
     }
+    // Water-leak alarm is carried in the unencrypted TPL status byte
+    // (per the Kaden/Ecomess wM-Bus OMS spec, shared with the Picoflux AiR):
+    //   bits 0+1 (value 3) -> permanent water-leak alarm (decoded as ALARM by the
+    //                         standard OMS bits)
+    //   bit 5 (0x20) -> during the leak the flow stayed below 100 l/h
+    //   bit 6 (0x40) -> during the leak the flow exceeded 100 l/h
+    // (bits 5 and 6 may both be set if the flow varied across the limit)
+    mfct_tpl_status_bits {
+        mask_bits       = 0xe0
+        default_message = OK
+        map {
+            name  = LEAK_FLOW_LOW
+            value = 0x20
+            test  = set
+        }
+        map {
+            name  = LEAK_FLOW_HIGH
+            value = 0x40
+            test  = set
+        }
+    }
     library {
         use = total_m3
         use = volume_flow_m3h
@@ -86,6 +107,13 @@ driver {
             telegram = 4e4430590010221901077a71004005f8c0d59e1536f306ffcd58075fda84b6f21fc0f33df92c8cf5fcab599bd1fe73b0db2e5d9e6d8a2e3363d67db2cdaf16c26d57886b70ee0f77fc116753809bb5
             json     = '{"_":"telegram","media":"water","meter":"kadenwater","name":"MyWater","id":"19221000","actuality_duration_s":0,"duration_b_s":0,"max_flow_m3h":0.859,"total_m3":94.6123,"volume_b_m3":0.0088,"volume_flow_m3h":0,"fabrication_no":"19221000","meter_datetime":"2026-06-30 12:39","status":"OK","timestamp":"1111-11-11T11:11:11Z"}'
             fields   = 'MyWater;19221000;OK;94.6123;1111-11-11 11:11.11'
+        }
+        test {
+            comment  = 'Water-leak alarm: TPL status byte set to 0x63 (synthetic, from the VIP 94.6123 m3 telegram) = leak with flow both below and above the 100 l/h limit'
+            args     = 'MyWater kadenwater 19221000 82B0551191F51D66EFCDAB8967452301'
+            telegram = 4e4430590010221901077a71634005f8c0d59e1536f306ffcd58075fda84b6f21fc0f33df92c8cf5fcab599bd1fe73b0db2e5d9e6d8a2e3363d67db2cdaf16c26d57886b70ee0f77fc116753809bb5
+            json     = '{"_":"telegram","media":"water","meter":"kadenwater","name":"MyWater","id":"19221000","actuality_duration_s":0,"duration_b_s":0,"max_flow_m3h":0.859,"total_m3":94.6123,"volume_b_m3":0.0088,"volume_flow_m3h":0,"fabrication_no":"19221000","meter_datetime":"2026-06-30 12:39","status":"ALARM LEAK_FLOW_HIGH LEAK_FLOW_LOW","timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'MyWater;19221000;ALARM LEAK_FLOW_HIGH LEAK_FLOW_LOW;94.6123;1111-11-11 11:11.11'
         }
     }
 }
