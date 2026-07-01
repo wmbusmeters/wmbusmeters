@@ -157,7 +157,7 @@ fi
 TESTNAME="Test json on stdin with hydroclimav2 decode"
 
 cat > $TEST/test_expected_unsorted.txt <<EOF
-{"_":"telegram","media":"heat cost allocation","meter":"hydroclimav2","name":"","id":"68036198","consumption_hca":0,"average_ambient_temperature_c":18.66,"max_ambient_temperature_c":47.51,"average_ambient_temperature_last_month_c":15.78,"average_heater_temperature_last_month_c":17.47,"total_consumption_hca":33,"status":"OK","timestamp":"1111-11-11T11:11:11Z"}
+{"_":"telegram","media":"heat cost allocation","meter":"hydroclimav2","name":"","id":"68036198","consumption_hca":0,"average_ambient_temperature_c":18.66,"max_ambient_temperature_c":47.51,"average_ambient_temperature_last_month_c":15.78,"average_heater_temperature_last_month_c":17.47,"total_consumption_hca":33,"status":"ERROR_FLAGS_4300","timestamp":"1111-11-11T11:11:11Z"}
 EOF
 
 jq --sort-keys . $TEST/test_expected_unsorted.txt > $TEST/test_expected.txt
