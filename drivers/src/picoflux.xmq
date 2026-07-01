@@ -8,6 +8,27 @@ driver {
     detect {
         mvt = ECM,05,07
     }
+    // Water-leak alarm is carried in the unencrypted TPL status byte
+    // (per the Ecomess/Kaden wM-Bus OMS spec, shared by the Kaden water meters):
+    //   bits 0+1 (value 3) -> permanent water-leak alarm (decoded as ALARM by the
+    //                         standard OMS bits)
+    //   bit 5 (0x20) -> during the leak the flow stayed below 100 l/h
+    //   bit 6 (0x40) -> during the leak the flow exceeded 100 l/h
+    // (bits 5 and 6 may both be set if the flow varied across the limit)
+    mfct_tpl_status_bits {
+        mask_bits       = 0xe0
+        default_message = OK
+        map {
+            name  = LEAK_FLOW_LOW
+            value = 0x20
+            test  = set
+        }
+        map {
+            name  = LEAK_FLOW_HIGH
+            value = 0x40
+            test  = set
+        }
+    }
     library {
         use = total_m3
         use = total_backward_m3
@@ -47,6 +68,13 @@ driver {
             telegram = 6e446d141005535705077aa900600544f4d6e4edb113cdb888981db36355614215a48c813a08dea801b46bd5612fa0bea01763ceed5fa0e0f44b8b7f983f08f6cc6694d63c56a6edc6498978373f1c71430167bc360144f26cfa8d06fe41f05cbc1d2b463dfa696f7a36a85e964f4f
             json     = '{"_":"telegram","media":"water","meter":"picoflux","name":"MyWater","id":"57530510","actuality_duration_s":0,"total_backward_m3":0,"total_m3":10.617,"meter_datetime":"2026-02-09 08:57","status":"OK","timestamp":"1111-11-11T11:11:11Z"}'
             fields   = 'MyWater;57530510;OK;10.617;1111-11-11 11:11.11'
+        }
+        test {
+            comment  = 'Water-leak alarm: TPL status byte set to 0x63 (synthetic, from the 4.492 m3 telegram) = leak with flow both below and above the 100 l/h limit'
+            args     = 'MyWater picoflux 56544919 9F5213BC13841410BB1410141515E4D5'
+            telegram = 6e446d141949545605077adf6360055ad21c5cafec3a71c0720754f2ca777e238d0318d35a2de0f8fe592e9a0d0cacbd61dfd2815c21a7fa743d93b5e543847e3e67b5d80816a253db655d4354b1a06c1fb7bae99e0fa322bff37a05fd651c5e3c09968ae4df0d8d911fee33ef31b9
+            json     = '{"_":"telegram","media":"water","meter":"picoflux","name":"MyWater","id":"56544919","actuality_duration_s":0,"total_backward_m3":0,"total_m3":4.492,"meter_datetime":"2026-02-09 08:57","status":"ALARM LEAK_FLOW_HIGH LEAK_FLOW_LOW","timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'MyWater;56544919;ALARM LEAK_FLOW_HIGH LEAK_FLOW_LOW;4.492;1111-11-11 11:11.11'
         }
     }
 }
