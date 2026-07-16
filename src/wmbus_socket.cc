@@ -400,7 +400,7 @@ void WMBusSocket::handleDecode(XMQDoc *doc, const string &line)
 
     string hr, fields, json;
     vector<string> envs, more_json, selected_fields;
-    meter->printMeter(&out_telegram, &hr, &fields, '\t', &json, &envs, &more_json, &selected_fields, false);
+    meter->printMeter(&out_telegram, &hr, &fields, '\t', &json, &envs, &more_json, &selected_fields, false, false);
 
     int content_bytes = 0, understood_bytes = 0;
     out_telegram.analyzeParse(OutputFormat::NONE, &content_bytes, &understood_bytes);
