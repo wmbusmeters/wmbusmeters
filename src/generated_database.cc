@@ -277,6 +277,7 @@ MapToDriver builtins_mvts_[] =
     { { MANUFACTURER_KAM,0x30,0x0c }, "kamheat" },
     { { MANUFACTURER_KAM,0x40,0x04 }, "kamheat" },
     { { MANUFACTURER_KAM,0x40,0x0c }, "kamheat" },
+    { { MANUFACTURER_KAM,0x40,0x0d }, "kamheat" },
     { { MANUFACTURER_KAM,0x19,0x04 }, "kamheat" },
     { { MANUFACTURER_KAM,0x34,0x04 }, "kamheat" },
     { { MANUFACTURER_KAM,0x34,0x0a }, "kamheat" },

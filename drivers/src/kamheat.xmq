@@ -17,6 +17,8 @@ driver {
         // 303
         mvt = KAM,40,0c
         // 303
+        mvt = KAM,40,0d
+        // 303 heat&cool
         mvt = KAM,19,04
         // 402
         mvt = KAM,34,04
@@ -544,6 +546,17 @@ driver {
             }
         }
         field {
+            name     = target_energy_backward
+            quantity = Energy
+            info     = 'The cooling energy consumption recorded by this meter at the set date (63 Cooling energy E3).'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = AnyEnergyVIF
+                add_combinable   = BackwardFlow
+                storage_nr       = 1
+            }
+        }
+        field {
             name     = target_volume
             quantity = Volume
             info     = 'The amount of water that had passed through this meter at the set date (13/68/Volume V1).'
@@ -789,5 +802,10 @@ driver {
         telegram = 52442d2c1269078340048d2067e08d1620d2ca7804060000000004140000000004ff070000000004ff080000000002592618025d2816023B000002ff220002026c393B440600000000441400000000426c213B
         json     = '{"_":"telegram","media":"heat","meter":"kamheat","name":"303_wrong_flow","id":"83076912","forward_energy_m3c":0,"return_energy_m3c":0,"t1_temperature_c":61.82,"t2_temperature_c":56.72,"target_date":"2025-11-01","target_energy_kwh":0,"target_volume_m3":0,"total_energy_consumption_kwh":0,"total_volume_m3":0,"volume_flow_m3h":0,"meter_date":"2025-11-25","status":"WRONG_FLOW_DIRECTION","timestamp":"1111-11-11T11:11:11Z"
                     }'
+    }
+    test {
+        args     = '303_heat_cool kamheat 83010647 NOKEY'
+        telegram = 5e442d2c47060183400d7a160050252f2f0406772e000004863c8c01000004149585020004ff0797d9000004ff08B6B200000259190a025d270a023B000002ff220000026c4a374406772e000044863c6d0100004414de810200426c41372f
+        json     = '{"_":"telegram","media":"heat/cooling load","meter":"kamheat","name":"","id":"83010647","forward_energy_m3c":55703,"return_energy_m3c":45750,"t1_temperature_c":25.85,"t2_temperature_c":25.99,"target_date":"2026-07-01","target_energy_kwh":11895,"target_energy_backward_kwh":365,"target_volume_m3":1643.18,"total_energy_backward_kwh":396,"total_energy_consumption_kwh":11895,"total_volume_m3":1652.69,"volume_flow_m3h":0,"meter_date":"2026-07-10","status":"OK","timestamp":"2026-07-11T10:50:30Z"}'
     }
 }
