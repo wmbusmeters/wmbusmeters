@@ -13,6 +13,7 @@
 //   0x40 MODE_2F (commissioning/learning mode), 0x80 PRODUCT_SCALE.
 driver {
     name           = caltose
+    aliases        = zennerhca
     meter_type     = HeatCostAllocationMeter
     default_fields = name,id,status,consumption_hca,target_hca,target_date,timestamp
     detect {
