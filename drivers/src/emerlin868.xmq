@@ -6,6 +6,7 @@ driver {
     default_fields = name,id,total_m3,target_m3,timestamp
     detect {
         mvt = ELR,11,37
+        mvt = ELR,12,37
     }
     fields {
         field {
@@ -48,6 +49,12 @@ driver {
             telegram = 2E4492159293949511377ABE0020252F2F_04135515000004FD971D80800000441300000000426C000002FDFD02B300
             json     = '{"_":"telegram","media":"radio converter (meter side)","meter":"emerlin868","name":"Vodda","id":"95949392","total_m3":5.461,"target_m3":0,"target_date":"2000-00-00","timestamp":"1111-11-11T11:11:11Z"}'
             fields   = 'Vodda;95949392;5.461;0;1111-11-11 11:11.11'
+        }
+        test {
+            args     = 'Water emerlin868 00502420 NOKEY'
+            telegram = 434492152024500012378C60A8900F002C25A89D05001CFF60E32B67B46A7AA8002007102F2F_04132564000004FD971D80800000441300000080426C000002FDFD02B300
+            json     = '{"_":"telegram","media":"radio converter (meter side)","meter":"emerlin868","name":"Water","id":"00502420","total_m3":25.637,"target_m3":null,"target_date":"2000-00-00","timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'Water;00502420;25.637;null;1111-11-11 11:11.11'
         }
     }
 }
