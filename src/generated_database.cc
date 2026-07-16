@@ -11,10 +11,10 @@
  Copyright (C)      2022 Alexander Streit (gpl-3.0-or-later)
  Copyright (C)      2021 Vincent Privat (gpl-3.0-or-later)
  Copyright (C)      2021 Olli Salonen (gpl-3.0-or-later)
+ Copyright (C) 2020-2022 Patrick Schwarz (gpl-3.0-or-later)
  Copyright (C)      2020 Janus Bo Andersen (gpl-3.0-or-later)
  Copyright (C)      2020 Eric Bus (gpl-3.0-or-later)
  Copyright (C)      2020 Avandorp (gpl-3.0-or-later)
- Copyright (C) 2020-2022 Patrick Schwarz (gpl-3.0-or-later)
  Copyright (C)      2019 Jacek Tomasiak (gpl-3.0-or-later)
  Copyright (C)      2018 David Mallon (gpl-3.0-or-later)
 
