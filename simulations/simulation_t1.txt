@@ -310,7 +310,7 @@ telegram=|3C449344957002372337725880226793442304DC0000200C05043900004C0500000000
 
 # Test QSmoke smoke detector this one is not yet understood.
 telegram=|3E44934486707945211A7801FD08F081027C034955230082026CFFFF81037C034C41230082036CFFFF03FD17000000326CFFFF046D0F0ABC2B02FDAC7E1100|
-{"_":"telegram","media":"smoke detector","meter":"qsmoke","name":"QSmokeo","id":"45797086","status":"OK","last_alarm_date":null,"alarm_counter":0,"message_datetime":"2021-11-28 10:15","test_button_last_date":null,"test_button_counter":0,"transmission_counter":240,"at_error_date":null,"duration_removed_h":0.004722,"timestamp":"1111-11-11T11:11:11Z"}
+{"_":"telegram","media":"smoke detector","meter":"qsmoke","name":"QSmokeo","id":"45797086","status":"OK","last_alarm_date":null,"alarm_counter":0,"message_datetime":"2021-11-28 10:15","test_button_last_date":null,"test_button_counter":0,"transmission_counter":240,"at_error_date":null,"some_sort_of_duration_h":0.004722,"timestamp":"1111-11-11T11:11:11Z"}
 |QSmokeo;45797086;OK;null;0;1111-11-11 11:11.11
 
 # Test another QSmoke detector, not understood either.

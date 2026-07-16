@@ -12,7 +12,7 @@ web:
 
 tests:
 	@echo "// Generated" > build/generated_tests.xmq
-	@for i in $(wildcard src/*) ; do xmq $$i select /driver/tests/test to-xmq >> build/generated_tests.xmq; done
+	@SOURCES=$$(ls src | LC_ALL=C sort) ; for i in $$SOURCES ; do xmq src/$$i select /driver/tests/test to-xmq >> build/generated_tests.xmq; done
 
 install: database tests
 	@grep -v "// Generated " < build/generated_database.cc > build/a

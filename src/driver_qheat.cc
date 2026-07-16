@@ -158,6 +158,8 @@ namespace
         if (it != t->dv_entries.end()) {
             vector<uchar> v;
             auto entry = it->second.second;
+            if (entry.value.length() < 16) return;
+
             hex2bin(entry.value.substr(0, 8), &v);
             // FIXME PROBLEM
             Address a;

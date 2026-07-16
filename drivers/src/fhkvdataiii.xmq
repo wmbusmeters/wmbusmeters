@@ -149,7 +149,7 @@ driver {
     tests {
         test {
             args     = 'Room fhkvdataiii 11776622 NOKEY'
-            telegram = 31446850226677116980A0119F27020480048300C408F709143C003D341A2B0B2A0707000000000000062D114457563D71A1850000
+            telegram = 34446850226677116980A0119F27020480048300C408F709143C003D341A2B0B2A0707000000000000062D114457563D71A1850000
             json     = '{"_":"telegram","media":"heat cost allocator","meter":"fhkvdataiii","name":"Room","id":"11776622","current_hca":131,"current_date":"2020-02-08","previous_hca":1026,"previous_date":"2019-12-31","temp_room_c":22.44,"temp_radiator_c":25.51,"timestamp":"1111-11-11T11:11:11Z"}'
             fields   = 'Room;11776622;131;2020-02-08;1026;2019-12-31;22.44;25.51;1111-11-11 11:11.11'
         }
