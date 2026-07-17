@@ -179,6 +179,26 @@ driver {
             }
         }
         field {
+            name     = min_flow_last_day
+            quantity = Flow
+            info     = 'The minimum flow recorded during the last day.'
+            match {
+                measurement_type = Minimum
+                vif_range        = VolumeFlow
+                storage_nr       = 2
+            }
+        }
+        field {
+            name     = max_flow_last_day
+            quantity = Flow
+            info     = 'The maximum flow recorded during the last day.'
+            match {
+                measurement_type = Maximum
+                vif_range        = VolumeFlow
+                storage_nr       = 2
+            }
+        }
+        field {
             name     = min_flow_temperature_last_month
             quantity = Temperature
             info     = 'The lowest water temperature during the last month.'
@@ -186,6 +206,16 @@ driver {
                 measurement_type = Minimum
                 vif_range        = FlowTemperature
                 storage_nr       = 1
+            }
+        }
+        field {
+            name     = min_flow_temperature_last_day
+            quantity = Temperature
+            info     = 'The lowest water temperature during the last day.'
+            match {
+                measurement_type = Minimum
+                vif_range        = FlowTemperature
+                storage_nr       = 2
             }
         }
         field {
@@ -209,26 +239,6 @@ driver {
             }
         }
         field {
-            name     = max_flow_last_day
-            quantity = Flow
-            info     = 'The maximum flow recorded during the last day.'
-            match {
-                measurement_type = Maximum
-                vif_range        = VolumeFlow
-                storage_nr       = 2
-            }
-        }
-        field {
-            name     = min_flow_temperature_last_day
-            quantity = Temperature
-            info     = 'The lowest water temperature during the last day.'
-            match {
-                measurement_type = Minimum
-                vif_range        = FlowTemperature
-                storage_nr       = 2
-            }
-        }
-        field {
             // Kamstrup docs don't show this field explicitly, but hey, the values are supposed to be examples,
             // and the test suite actually checks for it explicitly
             name     = max_flow_temperature_last_day
@@ -248,16 +258,6 @@ driver {
                 measurement_type = Maximum
                 vif_range        = ExternalTemperature
                 storage_nr       = 1
-            }
-        }
-        field {
-            name     = min_flow_last_day
-            quantity = Flow
-            info     = 'The minimum flow recorded during the last day.'
-            match {
-                measurement_type = Minimum
-                vif_range        = VolumeFlow
-                storage_nr       = 2
             }
         }
         field {
