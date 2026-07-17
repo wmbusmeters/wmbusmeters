@@ -4,11 +4,11 @@ $(shell mkdir -p build/test)
 PROG?=../build/wmbusmeters
 
 database: pretty
-	@./generate.sh $(PROG)
+	@LC_ALL=C ./generate.sh $(PROG)
 
 web:
 	@mkdir -p ../build/web
-	@./generate_index.sh
+	@LC_ALL=C ./generate_index.sh
 
 tests:
 	@echo "// Generated" > build/generated_tests.xmq
