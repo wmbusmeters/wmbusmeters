@@ -179,6 +179,16 @@ driver {
             }
         }
         field {
+            name     = min_flow_last_month
+            quantity = Flow
+            info     = 'The minimum flow recorded during the last month.'
+            match {
+                measurement_type = Minimum
+                vif_range        = VolumeFlow
+                storage_nr       = 1
+            }
+        }
+        field {
             name     = min_flow_last_day
             quantity = Flow
             info     = 'The minimum flow recorded during the last day.'
@@ -186,6 +196,17 @@ driver {
                 measurement_type = Minimum
                 vif_range        = VolumeFlow
                 storage_nr       = 2
+            }
+        }
+        // there's no `min_flow_last_year` in the docs
+        field {
+            name     = max_flow_last_month
+            quantity = Flow
+            info     = 'The maximum flow recorded during the last month.'
+            match {
+                measurement_type = Maximum
+                vif_range        = VolumeFlow
+                storage_nr       = 1
             }
         }
         field {
@@ -196,6 +217,16 @@ driver {
                 measurement_type = Maximum
                 vif_range        = VolumeFlow
                 storage_nr       = 2
+            }
+        }
+        field {
+            name     = max_flow_last_year
+            quantity = Flow
+            info     = 'The maximum flow recorded during the last year.'
+            match {
+                measurement_type = Maximum
+                vif_range        = VolumeFlow
+                storage_nr       = 3
             }
         }
         field {
@@ -219,6 +250,16 @@ driver {
             }
         }
         field {
+            name     = min_flow_temperature_last_year
+            quantity = Temperature
+            info     = 'The lowest water temperature during the last year.'
+            match {
+                measurement_type = Minimum
+                vif_range        = FlowTemperature
+                storage_nr       = 3
+            }
+        }
+        field {
             name     = min_external_temperature_last_month
             quantity = Temperature
             info     = 'The lowest external temperature outside of the meter during the last month.'
@@ -239,6 +280,26 @@ driver {
             }
         }
         field {
+            name     = min_external_temperature_last_year
+            quantity = Temperature
+            info     = 'The lowest external temperature outside of the meter during the last year.'
+            match {
+                measurement_type = Minimum
+                vif_range        = ExternalTemperature
+                storage_nr       = 3
+            }
+        }
+        field {
+            name     = max_flow_temperature_last_month
+            quantity = Temperature
+            info     = 'The maximum water temperature during the last month.'
+            match {
+                measurement_type = Maximum
+                vif_range        = FlowTemperature
+                storage_nr       = 1
+            }
+        }
+        field {
             // Kamstrup docs don't show this field explicitly, but hey, the values are supposed to be examples,
             // and the test suite actually checks for it explicitly
             name     = max_flow_temperature_last_day
@@ -251,6 +312,16 @@ driver {
             }
         }
         field {
+            name     = max_flow_temperature_last_year
+            quantity = Temperature
+            info     = 'The maximum water temperature during the last year.'
+            match {
+                measurement_type = Maximum
+                vif_range        = FlowTemperature
+                storage_nr       = 3
+            }
+        }
+        field {
             name     = max_external_temperature_last_month
             quantity = Temperature
             info     = 'The maximum temperature recorded during previous month.'
@@ -258,6 +329,27 @@ driver {
                 measurement_type = Maximum
                 vif_range        = ExternalTemperature
                 storage_nr       = 1
+            }
+        }
+        field {
+            // Kamstrup docs don't show this field explicitly, but hey, the values are supposed to be examples, so let's include it
+            name     = max_external_temperature_last_day
+            quantity = Temperature
+            info     = 'The maximum temperature recorded during previous day.'
+            match {
+                measurement_type = Maximum
+                vif_range        = ExternalTemperature
+                storage_nr       = 2
+            }
+        }
+        field {
+            name     = max_external_temperature_last_year
+            quantity = Temperature
+            info     = 'The maximum temperature recorded during previous year.'
+            match {
+                measurement_type = Maximum
+                vif_range        = ExternalTemperature
+                storage_nr       = 3
             }
         }
         field {
