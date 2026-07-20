@@ -179,6 +179,13 @@ protected:
     void createMeterEnv(std::string id,
                         std::vector<std::string> *envs,
                         std::vector<std::string> *more_json); // Add this json "key"="value" strings.
+    std::string buildJSON(std::string id,
+                          std::string media,
+                          Telegram *t,
+                          std::vector<FieldInfo> &prints,
+                          std::vector<std::string> *extra_constant_fields,
+                          bool pretty_print_json,
+                          bool first);
     void printMeter(Telegram *t,
                     std::string *human_readable,
                     std::string *fields, char separator,

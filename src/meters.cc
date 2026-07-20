@@ -1519,6 +1519,119 @@ string concatFields(Meter *m, Telegram *t, char c, vector<FieldInfo> &prints, bo
     return buf;
 }
 
+string MeterCommonImplementation::buildJSON(string id,
+                                            string media,
+                                            Telegram *t,
+                                            vector<FieldInfo> &prints,
+                                            vector<string> *extra_constant_fields,
+                                            bool pretty_print_json,
+                                            bool first)
+{
+    string indent = "";
+    string newline = "";
+
+    if (pretty_print_json)
+    {
+        indent = "    ";
+        newline ="\n";
+    }
+
+    string s;
+    s += "{"+newline;
+    s += indent+"\"_\":\"telegram\","+newline;
+    s += indent+"\"media\":\""+media+"\","+newline;
+    s += indent+"\"meter\":\""+driverName().str()+"\","+newline;
+    s += indent+"\"name\":\""+name()+"\","+newline;
+    s += indent+"\"id\":\""+id+"\","+newline;
+
+    // Iterate over the meter field infos...
+    map<FieldInfo*,set<DVEntry*>> founds; // Multiple dventries can match to a single field info.
+    set<string> found_vnames;
+
+    for (auto &p : numeric_values_)
+    {
+        string vname = p.first.first;
+        NumericField& nf = p.second;
+        if (nf.field_info->printProperties().hasHIDE()) continue;
+
+        string out = nf.field_info->renderJson(this, &nf.dv_entry);
+        s += indent+out+","+newline;
+
+        if (first && getDetailedFirst())
+        {
+            size_t pos = out.find("\":");
+            if (pos != string::npos)
+            {
+                string rule = out.substr(0, pos)+"_field\":"+to_string(nf.field_info->index());
+                s += indent+rule+","+newline;
+            }
+        }
+    }
+
+    for (auto &p : string_values_)
+    {
+        string vname = p.first;
+        StringField& sf = p.second;
+        string out;
+
+        if (sf.field_info->printProperties().hasHIDE()) continue;
+        if (sf.field_info->printProperties().hasSTATUS())
+        {
+            string in = getStatusField(sf.field_info);
+            if (t->decoding_errors != "")
+            {
+                in = joinStatusOKStrings(in, t->decoding_errors);
+            }
+            out = tostrprintf("\"%s\":\"%s\"", vname.c_str(), in.c_str());
+            s += indent+out+","+newline;
+        }
+        else
+        {
+            if (sf.value == "null")
+            {
+                // The string "null" translates to actual json null.
+                out = tostrprintf("\"%s\":null", vname.c_str());
+                s += indent+out+","+newline;
+            }
+            else
+            {
+                out = tostrprintf("\"%s\":\"%s\"", vname.c_str(), sf.value.c_str());
+                s += indent+out+","+newline;
+            }
+        }
+        if (first && getDetailedFirst())
+        {
+            size_t pos = out.find("\":");
+            if (pos != string::npos)
+            {
+                string rule = out.substr(0, pos)+"_field\":"+to_string(sf.field_info->index());
+                s += indent+rule+","+newline;
+            }
+        }
+    }
+    s += indent+"\"timestamp\":\""+datetimeOfUpdateRobot()+"\"";
+
+    if (t->about.device != "")
+    {
+        s += ","+newline;
+        s += indent+"\"device\":\""+t->about.device+"\","+newline;
+        s += indent+"\"rssi_dbm\":"+to_string(t->about.rssi_dbm);
+    }
+    for (string extra_field : meterExtraConstantFields())
+    {
+        s += ","+newline;
+        s += indent+makeQuotedJson(extra_field);
+    }
+    for (string extra_field : *extra_constant_fields)
+    {
+        s += ","+newline;
+        s += indent+makeQuotedJson(extra_field);
+    }
+    s += newline;
+    s += "}";
+    return s;
+}
+
 bool MeterCommonImplementation::handleTelegram(AboutTelegram &about, vector<uchar> input_frame,
                                                bool simulated, vector<Address> *addresses,
                                                bool *id_match, Telegram *out_analyzed)
@@ -2353,7 +2466,8 @@ void MeterCommonImplementation::createMeterEnv(string id,
 
 void MeterCommonImplementation::printMeter(Telegram *t,
                                            string *human_readable,
-                                           string *fields, char separator,
+                                           string *fields,
+                                           char separator,
                                            string *json,
                                            vector<string> *envs,
                                            vector<string> *extra_constant_fields,
@@ -2361,10 +2475,16 @@ void MeterCommonImplementation::printMeter(Telegram *t,
                                            bool pretty_print_json)
 {
     bool first = !t->meter->hasReceivedFirstTelegram();
-
-   *human_readable = concatFields(this, t, '\t', field_infos_, true, selected_fields, extra_constant_fields);
-    *fields = concatFields(this, t, separator, field_infos_, false, selected_fields, extra_constant_fields);
-
+    string id = "";
+    if (t->addresses.size() > 0)
+    {
+        // Normally the id is just the number, but sometimes a meter
+        // needs to be discerned with the full mvt as well. The identity mode sets this.
+        // Only use the highest level id, at the end of the found addresses, this is
+        // makes us pick the tpl id over the dll id.
+        id = build_id(t->addresses.back(), identityMode());
+    }
+    // Now find the media for the highest level media type, pick tpl media over dll media.
     string media;
     if (driverInfo()->mediaType() != "")
     {
@@ -2383,115 +2503,9 @@ void MeterCommonImplementation::printMeter(Telegram *t,
         media = mediaTypeJSON(t->dll_type, t->dll_mfct);
     }
 
-    string id = "";
-    if (t->addresses.size() > 0)
-    {
-        id = build_id(t->addresses.back(), identityMode());
-    }
-
-    string indent = "";
-    string newline = "";
-
-    if (pretty_print_json)
-    {
-        indent = "    ";
-        newline ="\n";
-    }
-
-    string s;
-    s += "{"+newline;
-    s += indent+"\"_\":\"telegram\","+newline;
-    s += indent+"\"media\":\""+media+"\","+newline;
-    s += indent+"\"meter\":\""+driverName().str()+"\","+newline;
-    s += indent+"\"name\":\""+name()+"\","+newline;
-    s += indent+"\"id\":\""+id+"\","+newline;
-
-    // Iterate over the meter field infos...
-    map<FieldInfo*,set<DVEntry*>> founds; // Multiple dventries can match to a single field info.
-    set<string> found_vnames;
-
-    for (auto &p : numeric_values_)
-    {
-        string vname = p.first.first;
-        NumericField& nf = p.second;
-        if (nf.field_info->printProperties().hasHIDE()) continue;
-
-        string out = nf.field_info->renderJson(this, &nf.dv_entry);
-        s += indent+out+","+newline;
-
-        if (first && getDetailedFirst())
-        {
-            size_t pos = out.find("\":");
-            if (pos != string::npos)
-            {
-                string rule = out.substr(0, pos)+"_field\":"+to_string(nf.field_info->index());
-                s += indent+rule+","+newline;
-            }
-        }
-    }
-
-    for (auto &p : string_values_)
-    {
-        string vname = p.first;
-        StringField& sf = p.second;
-        string out;
-
-        if (sf.field_info->printProperties().hasHIDE()) continue;
-        if (sf.field_info->printProperties().hasSTATUS())
-        {
-            string in = getStatusField(sf.field_info);
-            if (t->decoding_errors != "")
-            {
-                in = joinStatusOKStrings(in, t->decoding_errors);
-            }
-            out = tostrprintf("\"%s\":\"%s\"", vname.c_str(), in.c_str());
-            s += indent+out+","+newline;
-        }
-        else
-        {
-            if (sf.value == "null")
-            {
-                // The string "null" translates to actual json null.
-                out = tostrprintf("\"%s\":null", vname.c_str());
-                s += indent+out+","+newline;
-            }
-            else
-            {
-                out = tostrprintf("\"%s\":\"%s\"", vname.c_str(), sf.value.c_str());
-                s += indent+out+","+newline;
-            }
-        }
-        if (first && getDetailedFirst())
-        {
-            size_t pos = out.find("\":");
-            if (pos != string::npos)
-            {
-                string rule = out.substr(0, pos)+"_field\":"+to_string(sf.field_info->index());
-                s += indent+rule+","+newline;
-            }
-        }
-    }
-    s += indent+"\"timestamp\":\""+datetimeOfUpdateRobot()+"\"";
-
-    if (t->about.device != "")
-    {
-        s += ","+newline;
-        s += indent+"\"device\":\""+t->about.device+"\","+newline;
-        s += indent+"\"rssi_dbm\":"+to_string(t->about.rssi_dbm);
-    }
-    for (string extra_field : meterExtraConstantFields())
-    {
-        s += ","+newline;
-        s += indent+makeQuotedJson(extra_field);
-    }
-    for (string extra_field : *extra_constant_fields)
-    {
-        s += ","+newline;
-        s += indent+makeQuotedJson(extra_field);
-    }
-    s += newline;
-    s += "}";
-    *json = s;
+    *human_readable = concatFields(this, t, '\t', field_infos_, true, selected_fields, extra_constant_fields);
+    *fields = concatFields(this, t, separator, field_infos_, false, selected_fields, extra_constant_fields);
+    *json = buildJSON(id, media, t, field_infos_, extra_constant_fields, pretty_print_json, first);
 
     createMeterEnv(id, envs, extra_constant_fields);
 
