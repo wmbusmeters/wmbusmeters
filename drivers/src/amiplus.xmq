@@ -12,6 +12,10 @@ driver {
         // Apator Otus 1/3 — frames with APA decoded here, frames with APT unknown.
         mvt = APA,01,02
         mvt = APT,01,02
+        // Sanxing S34U28 (Tauron/Poland deployment), same DV payload layout as the other
+        // amiplus-compatible meters above, but sends two non-2F2F bytes in place of the OMS
+        // decrypt check bytes; handled as a quirk in Telegram::potentiallyDecrypt.
+        mvt = KPL,01,02
     }
     fields {
         field {
