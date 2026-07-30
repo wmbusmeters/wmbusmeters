@@ -12,6 +12,8 @@ driver {
         // Apator Otus 1/3 — frames with APA decoded here, frames with APT unknown.
         mvt = APA,01,02
         mvt = APT,01,02
+        // Apator Gama 350.
+        mvt = EGM,01,02
     }
     fields {
         field {
@@ -179,6 +181,54 @@ driver {
                 vif_range        = AnyPowerVIF
             }
         }
+        field {
+            name           = total_reactive_energy_inductive
+            quantity       = Reactive_Energy
+            info           = 'The total inductive reactive energy recorded by this meter.'
+            vif_scaling    = None
+            dif_signedness = Signed
+            display_unit   = kvarh
+            force_scale    = 0.001
+            match {
+                difvifkey = 0EFB8273
+            }
+        }
+        field {
+            name           = total_reactive_energy_capacitive
+            quantity       = Reactive_Energy
+            info           = 'The total capacitive reactive energy recorded by this meter.'
+            vif_scaling    = None
+            dif_signedness = Signed
+            display_unit   = kvarh
+            force_scale    = 0.001
+            match {
+                difvifkey = 0EFB82F33C
+            }
+        }
+        field {
+            name           = current_reactive_power_inductive
+            quantity       = Reactive_Power
+            info           = 'Current inductive reactive power.'
+            vif_scaling    = None
+            dif_signedness = Signed
+            display_unit   = kvar
+            force_scale    = 0.001
+            match {
+                difvifkey = 0BFB14
+            }
+        }
+        field {
+            name           = current_reactive_power_capacitive
+            quantity       = Reactive_Power
+            info           = 'Current capacitive reactive power.'
+            vif_scaling    = None
+            dif_signedness = Signed
+            display_unit   = kvar
+            force_scale    = 0.001
+            match {
+                difvifkey = 0BFB943C
+            }
+        }
     }
     tests {
         test {
@@ -225,6 +275,20 @@ driver {
             telegram = 8F44B3382664080003027A090080052F2F_066D37090E2232050C78266408000AFDC9FC0142020AFDC9FC0240020AFDC9FC0338028E30833C0000000000008E20833C0000000000008E10833C0000000000000BABC8FC100000008E10030750030000008E20035379060000008E30030000000000000B2B1307000BAB3C0000002F2F2F2F2F2F2F2F2F2F2F2F2F2F2F2F
             json     = '{"_": "telegram","current_power_consumption_kw": 0.713,"current_power_production_kw": 0,"device_datetime": "2025-02-02 14:09","id": "00086426","media": "electricity","meter": "amiplus","name": "MyElectricity6","timestamp": "1111-11-11T11:11:11Z","total_energy_consumption_tariff_1_kwh": 35.007,"total_energy_consumption_tariff_2_kwh": 67.953,"total_energy_consumption_tariff_3_kwh": 0,"total_energy_production_tariff_1_kwh": 0,"total_energy_production_tariff_2_kwh": 0,"total_energy_production_tariff_3_kwh": 0,"voltage_at_phase_1_v": 242,"voltage_at_phase_2_v": 240,"voltage_at_phase_3_v": 238}'
             fields   = 'MyElectricity6;00086426;null;0.713;null;0;242;240;238;35.007;67.953;0;0;0;0;1111-11-11 11:11.11'
+        }
+        test {
+            args     = 'MyElectricity7 amiplus 56859196 NOKEY'
+            comment  = 'Apator Otus 3 reporting reactive energy and reactive power (registers under mfct specific FB VIFEs).'
+            telegram = CE4401069691855601027AC600C005_2F2F066D4073124234800C78969185560E032050260600008E10032050260600000E833C9299930700008E10833C9299930700000EFB82736461630100008E10FB82736461630100000EFB82F33C9248050500008E10FB82F33C9248050500000B2B6800000BAB3C0300000BFB142303000BFB943C1803000AFDC8FC0197220AFDC8FC0231230AFDC8FC035123146DADAA423414ED3C80AB42340BFDDAFC011400000BFDDAFC023401000BFDDAFC030302002F2F2F2F2F2F2F2F2F2F2F2F2F2F
+            json     = '{"_":"telegram","media":"electricity","meter":"amiplus","name":"MyElectricity7","id":"56859196","current_power_consumption_kw":0.068,"current_power_production_kw":0.003,"current_reactive_power_capacitive_kvar":0.318,"current_reactive_power_inductive_kvar":0.323,"device_datetime":"2026-04-02 18:51","total_energy_consumption_kwh":6265.02,"total_energy_consumption_tariff_1_kwh":6265.02,"total_energy_production_kwh":7939.992,"total_energy_production_tariff_1_kwh":7939.992,"total_reactive_energy_capacitive_kvarh":5054.892,"total_reactive_energy_inductive_kvarh":1636.164,"voltage_at_phase_1_v":229.7,"voltage_at_phase_2_v":233.1,"voltage_at_phase_3_v":235.1,"timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'MyElectricity7;56859196;6265.02;0.068;7939.992;0.003;229.7;233.1;235.1;6265.02;null;null;7939.992;null;null;1111-11-11 11:11.11'
+        }
+        test {
+            args     = 'MyElectricity8 amiplus 30584551 fba95687613b73604c320a16aa8892ea'
+            comment  = 'Apator Gama 350 (issue 2036) reporting reactive power. This meter does not send the reactive energy registers.'
+            telegram = be44ed145145583001027ae700b005_a3c60e5d52ab6b2c2cfdd8368f408830f50f6d698041d61a76fd4e01988dde5d601f0e425682c43566156c932fc9d5661d01832707d90236c6ea2fddd6579a1533fe1b637082c2458939e96cc2cbd46410e6880a7990f7219a4b2c546b21eb2cddfda202aaf448ba01ab92e07ac68dd339d860b483fecdbd25851d938c002a3fe654875a0e6d8fa6692de3a66afc2dc3cff669d6a581ae7903f299e037ea81a7ae842fd4fe4ba4c9f5f01b60277a6861
+            json     = '{"_":"telegram","media":"electricity","meter":"amiplus","name":"MyElectricity8","id":"30584551","current_power_consumption_kw":0.445,"current_power_production_kw":0,"current_reactive_power_capacitive_kvar":0.434,"current_reactive_power_inductive_kvar":0,"device_datetime":"2026-07-28 00:40","total_energy_consumption_kwh":15948.218,"total_energy_consumption_tariff_1_kwh":15948.218,"total_energy_consumption_tariff_2_kwh":0,"total_energy_consumption_tariff_3_kwh":0,"total_energy_production_kwh":0.023,"total_energy_production_tariff_1_kwh":0.023,"total_energy_production_tariff_2_kwh":0,"total_energy_production_tariff_3_kwh":0,"voltage_at_phase_1_v":236,"voltage_at_phase_2_v":235,"voltage_at_phase_3_v":238,"timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'MyElectricity8;30584551;15948.218;0.445;0.023;0;236;235;238;15948.218;0;0;0.023;0;0;1111-11-11 11:11.11'
         }
     }
 }
