@@ -1,0 +1,111 @@
+(wmbusmeters) version: 1.19.0-131-g1bd5f53 with local changes
+(config) using device: <686a6a6808fd720612210033300a37130000000c7878582600066d49332e4f363601fd71d58c4078000000008140fdf19474ff0dfd3b3736443330061221000a37720612210033302800e6002005d7dfae90e46bfbce5197edad630e9a73ef50b1bf082d0d64daa680af036288151d16>:any 
+(config) number of meters: 1
+(config) template lansenop 00211206 auto
+(lookup) with file/hex "686a6a6808fd720612210033300a37130000000c7878582600066d49332e4f363601fd71d58c4078000000008140fdf19474ff0dfd3b3736443330061221000a37720612210033302800e6002005d7dfae90e46bfbce5197edad630e9a73ef50b1bf082d0d64daa680af036288151d16" unknown
+(lookup) driver: simulation hex
+(main) opening <686a6a6808fd720612210033300a37130000000c7878582600066d49332e4f363601fd71d58c4078000000008140fdf19474ff0dfd3b3736443330061221000a37720612210033302800e6002005d7dfae90e46bfbce5197edad630e9a73ef50b1bf082d0d64daa680af036288151d16>:any
+Started config simulation listening on any
+(simulation) in 
+(main) regular reset of simulation  will happen every 82800 seconds
+(main) added  to files
+(wmbus) no alarm (expected activity) for simulation
+(serial) registered regular callback HOT_PLUG_DETECTOR(0) every 2 seconds
+(simulation) from file "686a6a6808fd720612210033300a37130000000c7878582600066d49332e4f363601fd71d58c4078000000008140fdf19474ff0dfd3b3736443330061221000a37720612210033302800e6002005d7dfae90e46bfbce5197edad630e9a73ef50b1bf082d0d64daa680af036288151d16"
+(mbus) checkMBUSFrame "686A6A6808FD720612210033300A37130000000C7878582600066D49332E4F363601FD71D58C4078000000008140FDF19474FF0DFD3B3736443330061221000A37720612210033302800E6002005D7DFAE90E46BFBCE5197EDAD630E9A73EF50B1BF082D0D64DAA680AF036288151D16"
+(wmbus) checkWMBUSFrame "686A6A6808FD720612210033300A37130000000C7878582600066D49332E4F363601FD71D58C4078000000008140FDF19474FF0DFD3B3736443330061221000A37720612210033302800E6002005D7DFAE90E46BFBCE5197EDAD630E9A73EF50B1BF082D0D64DAA680AF036288151D16"
+(simulator) is_mbus=true is_wmbus=false
+(simulator) is mbus telegram.
+(gateway) unwrapped embedded WMBus telegram (55 bytes) from gateway 00265878 (LAS)
+(meter) no meter handled  checking 1 templates.
+(wmbus) parseDLL @0 55
+(wmbus) parseELL @10 45
+(wmbus) parseNWL @10 45
+(wmbus) parseAFL @10 45
+(wmbus) parseTPL @10 45
+(meter) lansenop: for me? 00211206.M=LAS.V=0a.T=37,00211206.M=LAS.V=28.T=00 in 00211206
+(meter) lansenop: yes for me
+(driver) constructing driver lansenop from already loaded file builtin
+(meter) created lansenop lansenop 00211206 encrypted
+(meter) used meter template lansenop 00211206 auto to match 00211206.M=LAS.V=0a.T=37,00211206.M=LAS.V=28.T=00
+(meter) started meter 1 (lansenop 00211206 auto) identity mode: id R00211206
+(wmbus) parseDLL @0 55
+(wmbus) parseELL @10 45
+(wmbus) parseNWL @10 45
+(wmbus) parseAFL @10 45
+(wmbus) parseTPL @10 45
+(meter) lansenop: for me? 00211206.M=LAS.V=0a.T=37,00211206.M=LAS.V=28.T=00 in 00211206
+(meter) lansenop: yes for me
+(meter) lansenop(1) lansenop  handling telegram from 00211206.M=LAS.V=28.T=00
+(meter) lansenop 00211206.M=LAS.V=28.T=00 "36443330061221000A37720612210033302800E6002005D7DFAE90E46BFBCE5197EDAD630E9A73EF50B1BF082D0D64DAA680AF03628815"
+(wmbus) parseDLL @0 55
+(telegram) DLL L=36 C=44 (from meter SND_NR) M=3033 (LAS) A=00211206 VER=0a TYPE=37 (Radio converter (meter side)) (driver lansenop lansenop) DEV= RSSI=0
+(wmbus) parseELL @10 45
+(wmbus) parseNWL @10 45
+(wmbus) parseAFL @10 45
+(wmbus) parseTPL @10 45
+(TPL) num encrypted blocks 2 (32 bytes and remaining unencrypted 0 bytes)
+(TPL) AES CBC IV decrypting "D7DFAE90E46BFBCE5197EDAD630E9A73EF50B1BF082D0D64DAA680AF03628815"
+(TPL) IV 3330061221002800E6E6E6E6E6E6E6E6
+(TPL) decrypted  "2F2F046DA4271E0604FD3A0200000002FD0F3B002F2F2F2F2F2F2F2F2F2F2F2F"
+(dvparser) found new format "046D04FD3A02FD0F" with hash fdef, remembering!
+(telegram) TPL CI=72 ACC=e6 STS=00 CFG=0520 (AES_CBC_IV nb=2 cntn=0 ra=0 hc=0) ID=06122100 MFT=3330 VER=28 TYPE=00 (Other)
+(meters) trying field info meter_datetime(Text)[-1]...
+(meters) using field info meter_datetime(Text)[-1] to extract 046D at offset 27
+(meters) trying field info a(Dimensionless)[0]...
+(meters) using field info a(Dimensionless)[0] to extract 046D at offset 27
+(meter) Any a_counter decoded counter default counter value 1.0264e+08 (scale 1)
+(meters) trying field info error_flags(Text)[1]...
+(meters) trying field info a_at_due_date_0(Dimensionless)[2]...
+(meters) trying field info due_date_0(PointInTime)[3]...
+(meters) trying field info a_at_due_date_1(Dimensionless)[4]...
+(meters) trying field info due_date_1(PointInTime)[5]...
+(meters) trying field info a_at_due_date_2(Dimensionless)[6]...
+(meters) trying field info due_date_2(PointInTime)[7]...
+(meters) trying field info software_version(Text)[8]...
+(meters) using field info software_version(Text)[8] to extract 02FD0F at offset 41
+(meters) skipping field without matcher status(Text)[9]...
+(lansenop) 000   : 36 length (54 bytes)
+(lansenop) 001   : 44 dll-c (from meter SND_NR)
+(lansenop) 002   : 3330 dll-mfct (LAS)
+(lansenop) 004   : 06122100 dll-id (00211206)
+(lansenop) 008   : 0a dll-version
+(lansenop) 009   : 37 dll-type (Radio converter (meter side))
+(lansenop) 010   : 72 tpl-ci-field (EN 13757-3 Application Layer (long tplh))
+(lansenop) 011   : 06122100 tpl-id (00211206)
+(lansenop) 015   : 3330 tpl-mfct (LAS)
+(lansenop) 017   : 28 tpl-version
+(lansenop) 018   : 00 tpl-type (Other)
+(lansenop) 019   : e6 tpl-acc-field
+(lansenop) 020   : 00 tpl-sts-field (OK)(OK)
+(lansenop) 021   : 2005 tpl-cfg 0520 (AES_CBC_IV nb=2 cntn=0 ra=0 hc=0 )
+(lansenop) 023   : 2f2f decrypt check bytes (OK)
+(lansenop) 025   : 04 dif (32 Bit Integer/Binary Instantaneous value)
+(lansenop) 026   : 6D vif (Date and time type)
+(lansenop) 027 C!: A4271E06 ("meter_datetime":"2000-06-30 07:36") ("a_counter":102639524)
+(lansenop) 031   : 04 dif (32 Bit Integer/Binary Instantaneous value)
+(lansenop) 032   : FD vif (Second extension FD of VIF-codes)
+(lansenop) 033   : 3A vife (Dimensionless / no VIF)
+(lansenop) 034 C?: 02000000
+(lansenop) 038   : 02 dif (16 Bit Integer/Binary Instantaneous value)
+(lansenop) 039   : FD vif (Second extension FD of VIF-codes)
+(lansenop) 040   : 0F vife (Software version #)
+(lansenop) 041 C!: 3B00 ("software_version":"003B")
+(lansenop) 043   : 2F skip
+(lansenop) 044   : 2F skip
+(lansenop) 045   : 2F skip
+(lansenop) 046   : 2F skip
+(lansenop) 047   : 2F skip
+(lansenop) 048   : 2F skip
+(lansenop) 049   : 2F skip
+(lansenop) 050   : 2F skip
+(lansenop) 051   : 2F skip
+(lansenop) 052   : 2F skip
+(lansenop) 053   : 2F skip
+(lansenop) 054   : 2F skip
+(serial) stopping manager
+(serial) waiting for stop
+(serial) TIMER thread interrupted
+(serial) EVENT thread interrupted
+(serial) event loop stopped!
+(wmbus) deleted simulation
