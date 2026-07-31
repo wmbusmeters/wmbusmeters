@@ -1,5 +1,5 @@
 -n // Generated 
-2026-06-19_11:38
+2026-07-31_10:25
 test {
     args     = 'AqWater aquastream 05933237 NOKEY'
     telegram = 4644B42557920410050E7237329305B42501075B0030252F2F_04130342000084101300000000046D0D30F62B441349180000426CFF2A02FD17000002FD74DB152F2F2F2F2F2F2F
@@ -163,6 +163,12 @@ test {
     telegram = 444497268504342300047AD00030A52F2F_04062C0100000C1429270000066D2D130AE12B007406FEFEFEFE426C1F010D7FEB0E00000006040C995500372F2F0C7951622223
     json     = '{"_":"telegram","id": "23340485","last_year_date": "2000-01-31","media": "heat","meter": "itronheat","meter_datetime": "2023-11-01 10:19:45","name": "Heat","status": "OK","timestamp": "1111-11-11T11:11:11Z","total_kwh": 300,"total_m3": 27.29}'
     fields   = 'Heat;23340485;OK;300;1111-11-11 11:11.11'
+}
+test {
+    args     = 'itu itu80 00493066 8D186A468166FB289AB6DEBD18FC0A46'
+    telegram = 514495266630490050078C206C7A8B004025B0847452B2A78BF1A790C5E8408E5FB583315D5D80D268758694158DFE5837F7304A9ACA4A90F7FBFF59564EF1BB63C9852DDB5DAB96B88E650CEAB9639CA3C5E9030100
+    json     = '{"_":"telegram","media":"water","meter":"itu80","name":"itu","id":"00493066","flow_temperature_c":3276.7,"negative_volume_m3":0,"remaining_battery_lifetime_d":5526,"total_m3":0,"volume_flow_m3h":8388.607,"fabrication_no":"      I25VC000918","meter_datetime":"2026-07-30 18:12","status":"ITU_ERROR_FLAGS_2000","timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'itu;00493066;ITU_ERROR_FLAGS_2000;0;1111-11-11 11:11.11'
 }
 test {
     args     = 'Kamstrup_MC303_Heat_AND_COOLING kamheat 30303030 NOKEY'
