@@ -208,6 +208,9 @@ driver {
 **Key rules:**
 - Every file requires a copyright header comment — `drivers/generate.sh` validates this at generation time.
 - Field `name` must not include a unit suffix (write `total`, not `total_m3`). The unit suffix is appended automatically from `quantity` + `display_unit`.
+- Avoid the string "current" in field `name`. The word current is confusing since current can mean both the value at this moment in time, or it can mean amperage.
+- The string "target" is used for the measurement at the end of the previous billing period. Typically
+the end of the previous month. So `total` `Volume` defaults to `total_m3` and means the instantaneous/current meter value, whereas the `target` `Volume` defaults to `target_m3` and means the meter measurement when the previous month switch the to the current month. The target is used for billing and can be collected at any time during the next month.
 - `force_scale` overrides the scale factor normally derived from the VIF byte. Use it when a meter encodes a value with a non-standard scale (e.g. `force_scale = 0.001` when the meter sends milliwatts but the VIF says watts).
 - `null_value` specifies a raw numeric value that should be treated as missing/null in output (e.g. `null_value = -327.68` for a sensor that uses that sentinel when disconnected).
 - `mfct_tpl_status_bits` decodes manufacturer-specific error flags in the transport-layer header byte. The result is automatically merged into any `STATUS`/`INCLUDE_TPL_STATUS` field.
