@@ -23,7 +23,7 @@
 
 using namespace std;
 
-Printer::Printer(bool json, bool pretty_print_json, bool fields, char separator,
+Printer::Printer(bool json, bool pretty_print_json, bool add_raw_field, bool fields, char separator,
                  bool use_meterfiles, string &meterfiles_dir,
                  bool use_logfile, string &logfile,
                  vector<string> new_meter_shell_cmdlines,
@@ -33,6 +33,7 @@ Printer::Printer(bool json, bool pretty_print_json, bool fields, char separator,
 {
     json_ = json;
     pretty_print_json_ = pretty_print_json;
+    add_raw_field_ = add_raw_field;
     fields_ = fields;
     separator_ = separator;
     use_meterfiles_ = use_meterfiles;
@@ -54,7 +55,7 @@ void Printer::print(Telegram *t, Meter *meter,
     vector<string> envs;
     bool printed = false;
 
-    meter->printMeter(t, &human_readable, &fields, separator_, &json, &envs, more_json, selected_fields, pretty_print_json_);
+    meter->printMeter(t, &human_readable, &fields, separator_, &json, &envs, more_json, selected_fields, pretty_print_json_, add_raw_field_);
 
     if (!meter->hasReceivedFirstTelegram())
     {

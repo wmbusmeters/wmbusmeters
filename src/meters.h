@@ -100,6 +100,7 @@ struct MeterInfo
     std::vector<std::string> extra_constant_fields; // Additional static fields that are added to each message.
     std::vector<std::string> extra_calculated_fields; // Additional field calculated using formulas.
     std::vector<std::string> selected_fields; // Usually set to the default fields, but can be override in meter config.
+    bool add_raw_field {}; // When true, include "_raw" (raw hex frame) in JSON output.
 
     // If this is a meter that needs to be polled.
     int    poll_interval; // Poll every x seconds.
@@ -490,7 +491,8 @@ struct Meter
                             std::vector<std::string> *envs,
                             std::vector<std::string> *more_json,
                             std::vector<std::string> *selected_fields,
-                            bool pretty_print_json) = 0;
+                            bool pretty_print_json,
+                            bool add_raw_field) = 0;
 
     // The handleTelegram expects an input_frame where the DLL crcs have been removed.
     // Returns true of this meter handled this telegram!

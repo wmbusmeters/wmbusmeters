@@ -488,7 +488,7 @@ public:
                 vector<string> envs, more_json, selected_fields;
 
                 meter->printMeter(&t, &hr, &fields, '\t', &json,
-                                  &envs, &more_json, &selected_fields, true);
+                                  &envs, &more_json, &selected_fields, true, false);
                 if (k % 100 == 0) fprintf(stderr, ".");
             }
 
@@ -522,7 +522,7 @@ public:
         vector<string> envs, more_json, selected_fields;
 
         meter->printMeter(&t, &hr, &fields, '\t', &json,
-                          &envs, &more_json, &selected_fields, true);
+                          &envs, &more_json, &selected_fields, true, false);
 
         if (auto_driver == "")
         {

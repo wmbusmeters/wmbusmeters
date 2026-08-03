@@ -2358,7 +2358,8 @@ void MeterCommonImplementation::printMeter(Telegram *t,
                                            vector<string> *envs,
                                            vector<string> *extra_constant_fields,
                                            vector<string> *selected_fields,
-                                           bool pretty_print_json)
+                                           bool pretty_print_json,
+                                           bool add_raw_field)
 {
     bool first = !t->meter->hasReceivedFirstTelegram();
 
@@ -2401,6 +2402,13 @@ void MeterCommonImplementation::printMeter(Telegram *t,
     string s;
     s += "{"+newline;
     s += indent+"\"_\":\"telegram\","+newline;
+    if (add_raw_field)
+    {
+        vector<uchar> raw_frame;
+        t->extractFrame(&raw_frame);
+        if (!t->original.empty()) raw_frame = t->original;
+        s += indent+"\"_raw\":\""+bin2hex(raw_frame)+"\","+newline;
+    }
     s += indent+"\"media\":\""+media+"\","+newline;
     s += indent+"\"meter\":\""+driverName().str()+"\","+newline;
     s += indent+"\"name\":\""+name()+"\","+newline;

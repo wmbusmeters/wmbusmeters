@@ -95,6 +95,7 @@ void parseMeterConfig(Configuration *c, vector<char> &buf, string file)
     vector<string> extra_constant_fields;
     vector<string> extra_calculated_fields;
     vector<string> selected_fields;
+    bool meter_add_raw_field = false;
 
     debug("(config) loading meter file %s\n", file.c_str());
 
@@ -195,6 +196,12 @@ void parseMeterConfig(Configuration *c, vector<char> &buf, string file)
             }
             selected_fields = splitString(p.second, ',');
         }
+        else if (p.first == "addrawfield")
+        {
+            if (p.second == "true") meter_add_raw_field = true;
+            else if (p.second == "false") meter_add_raw_field = false;
+            else warning("addrawfield should be true or false, not \"%s\"\n", p.second.c_str());
+        }
         else if (startsWith(p.first, "json_") ||
                 startsWith(p.first, "field_"))
         {
@@ -256,6 +263,7 @@ void parseMeterConfig(Configuration *c, vector<char> &buf, string file)
             mi.shells = telegram_shells;
             mi.new_meter_shells = new_meter_shells;
             mi.selected_fields = selected_fields;
+            mi.add_raw_field = meter_add_raw_field;
             c->meters.push_back(mi);
         }
     }
@@ -359,6 +367,21 @@ void handleIgnoreDuplicateTelegrams(Configuration *c, string value)
     }
     else {
         warning("ignoreduplicates should be either true or false, not \"%s\"\n", value.c_str());
+    }
+}
+
+void handleAddRawField(Configuration *c, string value)
+{
+    if (value == "true")
+    {
+        c->add_raw_field = true;
+    }
+    else if (value == "false")
+    {
+        c->add_raw_field = false;
+    }
+    else {
+        warning("addrawfield should be either true or false, not \"%s\"\n", value.c_str());
     }
 }
 
@@ -816,6 +839,7 @@ shared_ptr<Configuration> loadConfiguration(string root, ConfigOverrides overrid
         else if (p.first == "separator") handleSeparator(c, p.second);
         else if (p.first == "logtimestamps") handleLogTimestamps(c, p.second);
         else if (p.first == "selectfields") handleSelectedFields(c, p.second);
+        else if (p.first == "addrawfield") handleAddRawField(c, p.second);
         else if (p.first == "shell") handleShell(c, p.second);
         else if (p.first == "resetafter") handleResetAfter(c, p.second);
         else if (p.first == "metershell") handleMeterShell(c, p.second);

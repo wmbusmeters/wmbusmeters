@@ -335,6 +335,12 @@ static shared_ptr<Configuration> parseNormalCommandLine(Configuration *c, int ar
             i++;
             continue;
         }
+        if (!strcmp(argv[i], "--addrawfield"))
+        {
+            c->add_raw_field = true;
+            i++;
+            continue;
+        }
         if (!strncmp(argv[i], "--format=", 9))
         {
             if (!strcmp(argv[i]+9, "json"))

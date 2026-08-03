@@ -17,7 +17,7 @@ into human readable:
 or into csv:
 `MyTapWater;33225544;123.529;0;2024-03-03 19:36:45`
 
-or into json:
+or into json (with `--addrawfield` the raw hex frame is also included):
 ```json
 {
     "_":"telegram",
@@ -27,7 +27,8 @@ or into json:
     "id":"33225544",
     "max_flow_m3h":0,
     "total_m3":123.529,
-    "timestamp":"2024-03-03T18:37:00Z"
+    "timestamp":"2024-03-03T18:37:00Z",
+    "_raw":"2e44931578563412330389a2000000"
 }
 ```
 
@@ -285,6 +286,34 @@ printed by libmbus after doing a bus scan, ie `100002842941011B` which is equiva
 
 When matching all meters from the command line you can use `ANYID` instead of `*` to avoid shell quotes.
 
+# Add the raw hex telegram field to JSON output
+
+You can include the full raw telegram as a hexadecimal string in
+every JSON output by setting `addrawfield=true` in either the
+global config file, the meter config file, or using `--addrawfield`
+on the command line.
+
+Meter config file:
+```ini
+name=MyTapWater
+id=12345678
+key=00112233445566778899AABBCCDDEEFF
+driver=multical21
+addrawfield=true
+```
+
+Global config file (`wmbusmeters.conf`):
+```ini
+addrawfield=true
+```
+
+Command line:
+```shell
+wmbusmeters --addrawfield ...
+```
+
+When enabled, a `"_raw":"<hex>"` field is appended to the JSON object.
+
 # Add static and calculated fields to the output
 
 You can add the static json data `"address":"RoadenRd 456","city":"Stockholm"` to every json message with the
@@ -508,6 +537,7 @@ As {options} you can use:
     --oneshot wait for an update from each meter, then quit
     --overridedevice=<device> override device in config files. Use only in combination with --useconfig= option
     --ppjson pretty print the json
+    --addrawfield add the raw hex telegram as "_raw" field in every JSON output
     --pollinterval=<time> time between polling of meters, must be set to get polling.
     --resetafter=<time> reset the wmbus dongle regularly, default is 23h
     --selectfields=id,timestamp,total_m3 select only these fields to be printed (--listfields=<meter> to list available fields)
@@ -849,6 +879,8 @@ wmbusmeters --shell="psql waterreadings -c \"insert into readings values ('\$MET
 (It is much easier to add shell commands in the conf file since you do not need to quote the quotes.)
 
 You can have multiple shell commands and they will be executed in the order you gave them on the command line.
+
+
 
 To list the shell env variables available for a meter, run `wmbusmeters --listenvs=multical21` which outputs:
 
