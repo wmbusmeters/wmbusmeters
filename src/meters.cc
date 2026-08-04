@@ -2894,7 +2894,9 @@ string FieldInfo::str()
 
 void FieldInfo::useIXML(const string& ixml)
 {
-    XMQDoc *g = xmqNewDoc();
+    XMQReturnDoc rd = xmqNewDoc();
+    assert(rd.status == XMQ_OK);
+    XMQDoc *g = rd.doc;
     bool b = xmqParseBufferWithType(g, ixml.c_str(), NULL, NULL, XMQ_CONTENT_IXML, 0);
     if (!b) {
         warning("(field) field %s failed to parse ixml grammar:\n--------------\n %s\n--------------\n", vname().c_str(), ixml.c_str());

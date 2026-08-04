@@ -79,7 +79,9 @@ bool DriverDynamic::load(DriverInfo *di, const string &file_name, const char *co
     }
 
     string file = file_name;
-    XMQDoc *doc = xmqNewDoc();
+    XMQReturnDoc rd = xmqNewDoc();
+    assert(rd.status == XMQ_OK);
+    XMQDoc *doc = rd.doc;
 
     bool ok = false;
 

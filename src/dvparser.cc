@@ -1390,7 +1390,7 @@ bool parseDV(Telegram *t,
 
         if (format_bytes_len != 0) {
             uint16_t hash = crc16_EN13757(safeButUnsafeVectorPtr(format_bytes), format_bytes_len);
-                
+
             if (hash_to_format_.count(hash) == 0) {
                 hash_to_format_[hash] = format_bytes;
                 debug("(dvparser) found new format \"%s\" with hash %x, remembering!\n", bin2hex(format_bytes).c_str(), hash);
@@ -1518,7 +1518,9 @@ bool parseWithIXML(Telegram *t,
                    XMQDoc *ixml_grammar,
                    std::unordered_map<std::string,std::pair<int,DVEntry>> *dv_entries)
 {
-    XMQDoc *decode = xmqNewDoc();
+    XMQReturnDoc rd = xmqNewDoc();
+    assert(rd.status == XMQ_OK);
+    XMQDoc *decode = rd.doc;
     bool b = xmqParseBufferWithIXML(decode,
                                     hex.c_str(),
                                     NULL,

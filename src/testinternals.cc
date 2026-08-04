@@ -218,7 +218,9 @@ bool tst_ixmlparse(const char *hex, const char *grammar, std::unordered_map<std:
 {
     debug("\n\nTest ixml parse nr %d......\n\n", testnr);
     bool b;
-    XMQDoc *ixml = xmqNewDoc();
+    XMQReturnDoc rd = xmqNewDoc();
+    assert(rd.status == XMQ_OK);
+    XMQDoc *ixml = rd.doc;
     b = xmqParseBufferWithType(ixml, grammar, NULL, NULL, XMQ_CONTENT_IXML, 0);
     if (!b) {
         fprintf(stderr, "Failed to parse IXML grammar: %s\n", grammar);

@@ -209,7 +209,9 @@ void WMBusSocket::handleListDrivers()
 void WMBusSocket::processLine(const string &line)
 {
     // Parse JSON/XMQ/XML input
-    XMQDoc *doc = xmqNewDoc();
+    XMQReturnDoc rd = xmqNewDoc();
+    assert(rd.status == XMQ_OK);
+    XMQDoc *doc = rd.doc;
     bool ok = xmqParseBufferWithType(doc, line.c_str(), line.c_str()+line.length(), NULL, XMQ_CONTENT_DETECT, 0);
 
     if (!ok)

@@ -192,7 +192,9 @@ void WMBusXmqTTY::processLine(const string &line)
     // Parse JSON input: {"_": "decode", "telegram": "HEX", "key": "HEX", "driver": "auto", "format": "wmbus"}
     // Parse XMQ  input: decode{telegram=HEX key=HEX driver=auto format=wmbus}
     // Parse XML  input: <decode><telegram>HEX</telegram><key>HEX</key><driver>auto</driver><format>wmbus</format></decode>
-    XMQDoc *doc = xmqNewDoc();
+    XMQReturnDoc rd = xmqNewDoc();
+    assert(rd.status == XMQ_OK);
+    XMQDoc *doc = rd.doc;
     bool ok = xmqParseBufferWithType(doc, line.c_str(), line.c_str()+line.length(), NULL, XMQ_CONTENT_DETECT, 0);
 
     if (!ok)
