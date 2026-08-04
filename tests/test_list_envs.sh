@@ -40,8 +40,8 @@ METER_TOTAL_ENERGY_PRODUCTION_TARIFF_3_KWH
 METER_MAX_POWER_CONSUMPTION_KW
 METER_TOTAL_REACTIVE_ENERGY_INDUCTIVE_KVARH
 METER_TOTAL_REACTIVE_ENERGY_CAPACITIVE_KVARH
-METER_CURRENT_REACTIVE_POWER_INDUCTIVE_KVAR
-METER_CURRENT_REACTIVE_POWER_CAPACITIVE_KVAR
+METER_REACTIVE_POWER_INDUCTIVE_KVAR
+METER_REACTIVE_POWER_CAPACITIVE_KVAR
 EOF
 
 if [ "$?" = "0" ]
@@ -95,8 +95,8 @@ cat <<EOF | sort > $TEST/test_expected.txt
               max_power_consumption_kw  The maximum demand indicator (maximum 15-min average power consumption recorded this month).
  total_reactive_energy_inductive_kvarh  The total inductive reactive energy recorded by this meter.
 total_reactive_energy_capacitive_kvarh  The total capacitive reactive energy recorded by this meter.
- current_reactive_power_inductive_kvar  Current inductive reactive power.
-current_reactive_power_capacitive_kvar  Current capacitive reactive power.
+ reactive_power_inductive_kvar  Current inductive reactive power.
+reactive_power_capacitive_kvar  Current capacitive reactive power.
 EOF
 
 if [ "$?" = "0" ]
