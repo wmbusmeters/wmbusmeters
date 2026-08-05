@@ -30,9 +30,13 @@
 
 #define LIST_OF_VIF_RANGES \
     X(Volume,0x10,0x17,Quantity::Volume,Unit::M3) \
+    X(Mass,0x18,0x1F,Quantity::Mass,Unit::KG) \
     X(OnTime,0x20,0x23, Quantity::Time, Unit::Hour)  \
     X(OperatingTime,0x24,0x27, Quantity::Time, Unit::Hour)  \
     X(VolumeFlow,0x38,0x3F, Quantity::Flow, Unit::M3H) \
+    X(VolumeFlowMin,0x40,0x47, Quantity::Flow, Unit::M3H) \
+    X(VolumeFlowSec,0x48,0x4F, Quantity::Flow, Unit::M3H) \
+    X(MassFlow,0x50,0x57, Quantity::Mass, Unit::KG) \
     X(FlowTemperature,0x58,0x5B, Quantity::Temperature, Unit::C) \
     X(ReturnTemperature,0x5C,0x5F, Quantity::Temperature, Unit::C) \
     X(TemperatureDifference,0x60,0x63, Quantity::Temperature, Unit::C) \
