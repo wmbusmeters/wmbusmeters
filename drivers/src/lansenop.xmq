@@ -3,7 +3,7 @@
 driver {
     name           = lansenop
     meter_type     = PulseCounter
-    default_fields = name,id,status,meter_datetime,a_counter,software_version,timestamp
+    default_fields = name,id,status,meter_datetime,a_counter,a_volume_m3,software_version,timestamp
 
     detect {
         mvt = LAS,0A,37
@@ -24,6 +24,177 @@ driver {
             match {
                 measurement_type = Instantaneous
                 vif_range        = Dimensionless
+                storage_nr       = 0
+            }
+        }
+
+        field {
+            name         = a_energy_wh
+            quantity     = Energy
+            vif_scaling  = Auto
+            match {
+                measurement_type = Instantaneous
+                vif_range        = EnergyWh
+                storage_nr       = 0
+            }
+        }
+        field {
+            name         = a_energy_j
+            quantity     = Energy
+            vif_scaling  = Auto
+            match {
+                measurement_type = Instantaneous
+                vif_range        = EnergyMJ
+                storage_nr       = 0
+            }
+        }
+        field {
+            name         = a_volume
+            quantity     = Volume
+            vif_scaling  = Auto
+            match {
+                measurement_type = Instantaneous
+                vif_range        = Volume
+                storage_nr       = 0
+            }
+        }
+        field {
+            name         = a_mass
+            quantity     = Mass
+            vif_scaling  = Auto
+            match {
+                measurement_type = Instantaneous
+                vif_range        = Mass
+                storage_nr       = 0
+            }
+        }
+        field {
+            name         = a_on_time
+            quantity     = Time
+            vif_scaling  = Auto
+            match {
+                measurement_type = Instantaneous
+                vif_range        = OnTime
+                storage_nr       = 0
+            }
+        }
+        field {
+            name         = a_operating_time
+            quantity     = Time
+            vif_scaling  = Auto
+            match {
+                measurement_type = Instantaneous
+                vif_range        = OperatingTime
+                storage_nr       = 0
+            }
+        }
+        field {
+            name         = a_power_w
+            quantity     = Power
+            vif_scaling  = Auto
+            match {
+                measurement_type = Instantaneous
+                vif_range        = PowerW
+                storage_nr       = 0
+            }
+        }
+        field {
+            name         = a_power_jh
+            quantity     = Power
+            vif_scaling  = Auto
+            match {
+                measurement_type = Instantaneous
+                vif_range        = PowerJh
+                storage_nr       = 0
+            }
+        }
+        field {
+            name         = a_volume_flow
+            quantity     = Flow
+            vif_scaling  = Auto
+            match {
+                measurement_type = Instantaneous
+                vif_range        = VolumeFlow
+                storage_nr       = 0
+            }
+        }
+        field {
+            name         = a_volume_flow_min
+            quantity     = Flow
+            vif_scaling  = Auto
+            match {
+                measurement_type = Instantaneous
+                vif_range        = VolumeFlowMin
+                storage_nr       = 0
+            }
+        }
+        field {
+            name         = a_volume_flow_sec
+            quantity     = Flow
+            vif_scaling  = Auto
+            match {
+                measurement_type = Instantaneous
+                vif_range        = VolumeFlowSec
+                storage_nr       = 0
+            }
+        }
+        field {
+            name         = a_mass_flow
+            quantity     = Mass
+            vif_scaling  = Auto
+            match {
+                measurement_type = Instantaneous
+                vif_range        = MassFlow
+                storage_nr       = 0
+            }
+        }
+        field {
+            name         = a_flow_temp
+            quantity     = Temperature
+            vif_scaling  = Auto
+            match {
+                measurement_type = Instantaneous
+                vif_range        = FlowTemperature
+                storage_nr       = 0
+            }
+        }
+        field {
+            name         = a_return_temp
+            quantity     = Temperature
+            vif_scaling  = Auto
+            match {
+                measurement_type = Instantaneous
+                vif_range        = ReturnTemperature
+                storage_nr       = 0
+            }
+        }
+        field {
+            name         = a_temp_diff
+            quantity     = Temperature
+            vif_scaling  = Auto
+            match {
+                measurement_type = Instantaneous
+                vif_range        = TemperatureDifference
+                storage_nr       = 0
+            }
+        }
+        field {
+            name         = a_ext_temp
+            quantity     = Temperature
+            vif_scaling  = Auto
+            match {
+                measurement_type = Instantaneous
+                vif_range        = ExternalTemperature
+                storage_nr       = 0
+            }
+        }
+        field {
+            name         = a_pressure
+            quantity     = Pressure
+            vif_scaling  = Auto
+            match {
+                measurement_type = Instantaneous
+                vif_range        = Pressure
                 storage_nr       = 0
             }
         }
@@ -66,6 +237,177 @@ driver {
             }
         }
 
+        field {
+            name         = a_energy_wh_at_due_date_0
+            quantity     = Energy
+            vif_scaling  = Auto
+            match {
+                measurement_type = Instantaneous
+                vif_range        = EnergyWh
+                storage_nr       = 1
+            }
+        }
+        field {
+            name         = a_energy_j_at_due_date_0
+            quantity     = Energy
+            vif_scaling  = Auto
+            match {
+                measurement_type = Instantaneous
+                vif_range        = EnergyMJ
+                storage_nr       = 1
+            }
+        }
+        field {
+            name         = a_volume_at_due_date_0
+            quantity     = Volume
+            vif_scaling  = Auto
+            match {
+                measurement_type = Instantaneous
+                vif_range        = Volume
+                storage_nr       = 1
+            }
+        }
+        field {
+            name         = a_mass_at_due_date_0
+            quantity     = Mass
+            vif_scaling  = Auto
+            match {
+                measurement_type = Instantaneous
+                vif_range        = Mass
+                storage_nr       = 1
+            }
+        }
+        field {
+            name         = a_on_time_at_due_date_0
+            quantity     = Time
+            vif_scaling  = Auto
+            match {
+                measurement_type = Instantaneous
+                vif_range        = OnTime
+                storage_nr       = 1
+            }
+        }
+        field {
+            name         = a_operating_time_at_due_date_0
+            quantity     = Time
+            vif_scaling  = Auto
+            match {
+                measurement_type = Instantaneous
+                vif_range        = OperatingTime
+                storage_nr       = 1
+            }
+        }
+        field {
+            name         = a_power_w_at_due_date_0
+            quantity     = Power
+            vif_scaling  = Auto
+            match {
+                measurement_type = Instantaneous
+                vif_range        = PowerW
+                storage_nr       = 1
+            }
+        }
+        field {
+            name         = a_power_jh_at_due_date_0
+            quantity     = Power
+            vif_scaling  = Auto
+            match {
+                measurement_type = Instantaneous
+                vif_range        = PowerJh
+                storage_nr       = 1
+            }
+        }
+        field {
+            name         = a_volume_flow_at_due_date_0
+            quantity     = Flow
+            vif_scaling  = Auto
+            match {
+                measurement_type = Instantaneous
+                vif_range        = VolumeFlow
+                storage_nr       = 1
+            }
+        }
+        field {
+            name         = a_volume_flow_min_at_due_date_0
+            quantity     = Flow
+            vif_scaling  = Auto
+            match {
+                measurement_type = Instantaneous
+                vif_range        = VolumeFlowMin
+                storage_nr       = 1
+            }
+        }
+        field {
+            name         = a_volume_flow_sec_at_due_date_0
+            quantity     = Flow
+            vif_scaling  = Auto
+            match {
+                measurement_type = Instantaneous
+                vif_range        = VolumeFlowSec
+                storage_nr       = 1
+            }
+        }
+        field {
+            name         = a_mass_flow_at_due_date_0
+            quantity     = Mass
+            vif_scaling  = Auto
+            match {
+                measurement_type = Instantaneous
+                vif_range        = MassFlow
+                storage_nr       = 1
+            }
+        }
+        field {
+            name         = a_flow_temp_at_due_date_0
+            quantity     = Temperature
+            vif_scaling  = Auto
+            match {
+                measurement_type = Instantaneous
+                vif_range        = FlowTemperature
+                storage_nr       = 1
+            }
+        }
+        field {
+            name         = a_return_temp_at_due_date_0
+            quantity     = Temperature
+            vif_scaling  = Auto
+            match {
+                measurement_type = Instantaneous
+                vif_range        = ReturnTemperature
+                storage_nr       = 1
+            }
+        }
+        field {
+            name         = a_temp_diff_at_due_date_0
+            quantity     = Temperature
+            vif_scaling  = Auto
+            match {
+                measurement_type = Instantaneous
+                vif_range        = TemperatureDifference
+                storage_nr       = 1
+            }
+        }
+        field {
+            name         = a_ext_temp_at_due_date_0
+            quantity     = Temperature
+            vif_scaling  = Auto
+            match {
+                measurement_type = Instantaneous
+                vif_range        = ExternalTemperature
+                storage_nr       = 1
+            }
+        }
+        field {
+            name         = a_pressure_at_due_date_0
+            quantity     = Pressure
+            vif_scaling  = Auto
+            match {
+                measurement_type = Instantaneous
+                vif_range        = Pressure
+                storage_nr       = 1
+            }
+        }
+
         // DR5: Time storage 1 - Due date and time #0
         // Note: Only included if Due date 0 parameter is active
         field {
@@ -94,6 +436,177 @@ driver {
             }
         }
 
+        field {
+            name         = a_energy_wh_at_due_date_1
+            quantity     = Energy
+            vif_scaling  = Auto
+            match {
+                measurement_type = Instantaneous
+                vif_range        = EnergyWh
+                storage_nr       = 2
+            }
+        }
+        field {
+            name         = a_energy_j_at_due_date_1
+            quantity     = Energy
+            vif_scaling  = Auto
+            match {
+                measurement_type = Instantaneous
+                vif_range        = EnergyMJ
+                storage_nr       = 2
+            }
+        }
+        field {
+            name         = a_volume_at_due_date_1
+            quantity     = Volume
+            vif_scaling  = Auto
+            match {
+                measurement_type = Instantaneous
+                vif_range        = Volume
+                storage_nr       = 2
+            }
+        }
+        field {
+            name         = a_mass_at_due_date_1
+            quantity     = Mass
+            vif_scaling  = Auto
+            match {
+                measurement_type = Instantaneous
+                vif_range        = Mass
+                storage_nr       = 2
+            }
+        }
+        field {
+            name         = a_on_time_at_due_date_1
+            quantity     = Time
+            vif_scaling  = Auto
+            match {
+                measurement_type = Instantaneous
+                vif_range        = OnTime
+                storage_nr       = 2
+            }
+        }
+        field {
+            name         = a_operating_time_at_due_date_1
+            quantity     = Time
+            vif_scaling  = Auto
+            match {
+                measurement_type = Instantaneous
+                vif_range        = OperatingTime
+                storage_nr       = 2
+            }
+        }
+        field {
+            name         = a_power_w_at_due_date_1
+            quantity     = Power
+            vif_scaling  = Auto
+            match {
+                measurement_type = Instantaneous
+                vif_range        = PowerW
+                storage_nr       = 2
+            }
+        }
+        field {
+            name         = a_power_jh_at_due_date_1
+            quantity     = Power
+            vif_scaling  = Auto
+            match {
+                measurement_type = Instantaneous
+                vif_range        = PowerJh
+                storage_nr       = 2
+            }
+        }
+        field {
+            name         = a_volume_flow_at_due_date_1
+            quantity     = Flow
+            vif_scaling  = Auto
+            match {
+                measurement_type = Instantaneous
+                vif_range        = VolumeFlow
+                storage_nr       = 2
+            }
+        }
+        field {
+            name         = a_volume_flow_min_at_due_date_1
+            quantity     = Flow
+            vif_scaling  = Auto
+            match {
+                measurement_type = Instantaneous
+                vif_range        = VolumeFlowMin
+                storage_nr       = 2
+            }
+        }
+        field {
+            name         = a_volume_flow_sec_at_due_date_1
+            quantity     = Flow
+            vif_scaling  = Auto
+            match {
+                measurement_type = Instantaneous
+                vif_range        = VolumeFlowSec
+                storage_nr       = 2
+            }
+        }
+        field {
+            name         = a_mass_flow_at_due_date_1
+            quantity     = Mass
+            vif_scaling  = Auto
+            match {
+                measurement_type = Instantaneous
+                vif_range        = MassFlow
+                storage_nr       = 2
+            }
+        }
+        field {
+            name         = a_flow_temp_at_due_date_1
+            quantity     = Temperature
+            vif_scaling  = Auto
+            match {
+                measurement_type = Instantaneous
+                vif_range        = FlowTemperature
+                storage_nr       = 2
+            }
+        }
+        field {
+            name         = a_return_temp_at_due_date_1
+            quantity     = Temperature
+            vif_scaling  = Auto
+            match {
+                measurement_type = Instantaneous
+                vif_range        = ReturnTemperature
+                storage_nr       = 2
+            }
+        }
+        field {
+            name         = a_temp_diff_at_due_date_1
+            quantity     = Temperature
+            vif_scaling  = Auto
+            match {
+                measurement_type = Instantaneous
+                vif_range        = TemperatureDifference
+                storage_nr       = 2
+            }
+        }
+        field {
+            name         = a_ext_temp_at_due_date_1
+            quantity     = Temperature
+            vif_scaling  = Auto
+            match {
+                measurement_type = Instantaneous
+                vif_range        = ExternalTemperature
+                storage_nr       = 2
+            }
+        }
+        field {
+            name         = a_pressure_at_due_date_1
+            quantity     = Pressure
+            vif_scaling  = Auto
+            match {
+                measurement_type = Instantaneous
+                vif_range        = Pressure
+                storage_nr       = 2
+            }
+        }
+
         // DR7: Time storage 2 - Due date and time #1
         // Note: Only included if Due data 1 parameter is active
         field {
@@ -118,6 +631,177 @@ driver {
             match {
                 measurement_type = Instantaneous
                 vif_range        = Dimensionless
+                storage_nr       = 3
+            }
+        }
+
+        field {
+            name         = a_energy_wh_at_due_date_2
+            quantity     = Energy
+            vif_scaling  = Auto
+            match {
+                measurement_type = Instantaneous
+                vif_range        = EnergyWh
+                storage_nr       = 3
+            }
+        }
+        field {
+            name         = a_energy_j_at_due_date_2
+            quantity     = Energy
+            vif_scaling  = Auto
+            match {
+                measurement_type = Instantaneous
+                vif_range        = EnergyMJ
+                storage_nr       = 3
+            }
+        }
+        field {
+            name         = a_volume_at_due_date_2
+            quantity     = Volume
+            vif_scaling  = Auto
+            match {
+                measurement_type = Instantaneous
+                vif_range        = Volume
+                storage_nr       = 3
+            }
+        }
+        field {
+            name         = a_mass_at_due_date_2
+            quantity     = Mass
+            vif_scaling  = Auto
+            match {
+                measurement_type = Instantaneous
+                vif_range        = Mass
+                storage_nr       = 3
+            }
+        }
+        field {
+            name         = a_on_time_at_due_date_2
+            quantity     = Time
+            vif_scaling  = Auto
+            match {
+                measurement_type = Instantaneous
+                vif_range        = OnTime
+                storage_nr       = 3
+            }
+        }
+        field {
+            name         = a_operating_time_at_due_date_2
+            quantity     = Time
+            vif_scaling  = Auto
+            match {
+                measurement_type = Instantaneous
+                vif_range        = OperatingTime
+                storage_nr       = 3
+            }
+        }
+        field {
+            name         = a_power_w_at_due_date_2
+            quantity     = Power
+            vif_scaling  = Auto
+            match {
+                measurement_type = Instantaneous
+                vif_range        = PowerW
+                storage_nr       = 3
+            }
+        }
+        field {
+            name         = a_power_jh_at_due_date_2
+            quantity     = Power
+            vif_scaling  = Auto
+            match {
+                measurement_type = Instantaneous
+                vif_range        = PowerJh
+                storage_nr       = 3
+            }
+        }
+        field {
+            name         = a_volume_flow_at_due_date_2
+            quantity     = Flow
+            vif_scaling  = Auto
+            match {
+                measurement_type = Instantaneous
+                vif_range        = VolumeFlow
+                storage_nr       = 3
+            }
+        }
+        field {
+            name         = a_volume_flow_min_at_due_date_2
+            quantity     = Flow
+            vif_scaling  = Auto
+            match {
+                measurement_type = Instantaneous
+                vif_range        = VolumeFlowMin
+                storage_nr       = 3
+            }
+        }
+        field {
+            name         = a_volume_flow_sec_at_due_date_2
+            quantity     = Flow
+            vif_scaling  = Auto
+            match {
+                measurement_type = Instantaneous
+                vif_range        = VolumeFlowSec
+                storage_nr       = 3
+            }
+        }
+        field {
+            name         = a_mass_flow_at_due_date_2
+            quantity     = Mass
+            vif_scaling  = Auto
+            match {
+                measurement_type = Instantaneous
+                vif_range        = MassFlow
+                storage_nr       = 3
+            }
+        }
+        field {
+            name         = a_flow_temp_at_due_date_2
+            quantity     = Temperature
+            vif_scaling  = Auto
+            match {
+                measurement_type = Instantaneous
+                vif_range        = FlowTemperature
+                storage_nr       = 3
+            }
+        }
+        field {
+            name         = a_return_temp_at_due_date_2
+            quantity     = Temperature
+            vif_scaling  = Auto
+            match {
+                measurement_type = Instantaneous
+                vif_range        = ReturnTemperature
+                storage_nr       = 3
+            }
+        }
+        field {
+            name         = a_temp_diff_at_due_date_2
+            quantity     = Temperature
+            vif_scaling  = Auto
+            match {
+                measurement_type = Instantaneous
+                vif_range        = TemperatureDifference
+                storage_nr       = 3
+            }
+        }
+        field {
+            name         = a_ext_temp_at_due_date_2
+            quantity     = Temperature
+            vif_scaling  = Auto
+            match {
+                measurement_type = Instantaneous
+                vif_range        = ExternalTemperature
+                storage_nr       = 3
+            }
+        }
+        field {
+            name         = a_pressure_at_due_date_2
+            quantity     = Pressure
+            vif_scaling  = Auto
+            match {
+                measurement_type = Instantaneous
+                vif_range        = Pressure
                 storage_nr       = 3
             }
         }
@@ -160,8 +844,9 @@ driver {
             args     = 'MyPulseCounter lansenop 00211206 4164B599F0C39587B449CC920C59BCA8'
             comment  = 'Test Lansen outdoor pulse counter with AES-CBC encrypted telegram'
             telegram = 686a6a6808fd720612210033300a37130000000c7878582600066d49332e4f363601fd71d58c4078000000008140fdf19474ff0dfd3b3736443330061221000a37720612210033302800e6002005d7dfae90e46bfbce5197edad630e9a73ef50b1bf082d0d64daa680af036288151d16
-            json     = '{"_":"telegram","media":"other","meter":"lansenop","name":"MyPulseCounter","id":"00211206","meter_datetime":"2000-06-30 07:36","a_counter":2,"software_version":"003B","status":"OK","timestamp":"1111-11-11T11:11:11Z"}'
+            json     = '{"_":"telegram","media":"other","meter":"lansenop","name":"MyPulseCounter","id":"00211206","meter_datetime":"2000-06-30 07:36","a_counter,a_volume_m3":2,"software_version":"003B","status":"OK","timestamp":"1111-11-11T11:11:11Z"}'
             fields   = 'MyPulseCounter;00211206;OK;2000-06-30 07:36;2;003B;1111-11-11 11:11.11'
         }
     }
 }
+
