@@ -7,7 +7,13 @@ driver {
 
     detect {
         mvt = LAS,0A,37
-        mvt = LAS,28,00
+        mvt = LAS,28,00 // Other
+        mvt = LAS,28,02 // Electricity
+        mvt = LAS,28,03 // Gas
+        mvt = LAS,28,04 // Heat
+        mvt = LAS,28,07 // Water
+        mvt = LAS,28,15 // Hot Water
+        mvt = LAS,28,16 // Cooling
     }
 
     library {
