@@ -1493,12 +1493,30 @@ bool Telegram::potentiallyDecrypt(vector<uchar>::iterator &pos)
         CHECK(2);
         uchar a = *(pos+0);
         uchar b = *(pos+1);
+        bool decrypt_check_ok = (a == 0x2f && b == 0x2f);
+
+        // Sanxing S34U28 electricity meters do not put the OMS 2F2F verification bytes
+        // first: this device instead emits a fixed 0x609B marker here (observed identical
+        // across multiple captures with different access counters/IVs, so it is a fixed
+        // marker, not noise), and the normal DV record stream (starting with its usual
+        // date-and-time record) follows right after, same as any other amiplus-compatible
+        // meter. The 2F2F filler at the very end of the decrypted content (ordinary
+        // telegram-end padding, present on every meter in this family) is used instead to
+        // confirm the key was correct. Only meters using a driver with
+        // transform_payload=sanxing_609B (see setSanxing609BDecode) permit this.
+        bool sanxing_609b_quirk =
+            permit_sanxing_609b_quirk &&
+            a == 0x60 && b == 0x9b &&
+            distance(pos, frame.end()) >= 2 &&
+            *(frame.end()-2) == 0x2f && *(frame.end()-1) == 0x2f;
 
         addExplanationAndIncrementPos(pos, 2, KindOfData::PROTOCOL, Understanding::FULL,
-                                      "%02x%02x decrypt check bytes (%s)", *(pos+0), *(pos+1),
-                                      (*(pos+0) == 0x2f && *(pos+1) == 0x2f) ? "OK":"ERROR should be 2f2f");
+                                      "%02x%02x decrypt check bytes (%s)", a, b,
+                                      decrypt_check_ok ? "OK" :
+                                      sanxing_609b_quirk ? "OK (sanxing 0x609b marker, verified via trailing 2f2f)" :
+                                      "ERROR should be 2f2f");
 
-        if ((a != 0x2f || b != 0x2f) && !FUZZING)
+        if (!decrypt_check_ok && !sanxing_609b_quirk && !FUZZING)
         {
             // Wrong key supplied.
             int num_bytes = distance(pos, frame.end());
