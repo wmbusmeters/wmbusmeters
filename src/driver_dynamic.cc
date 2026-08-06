@@ -172,6 +172,10 @@ DriverDynamic::DriverDynamic(MeterInfo &mi, DriverInfo &di) :
         {
             setDiehlPriosDecode(true);
         }
+        else if (transform_payload_s && string(transform_payload_s) == "sanxing_609B")
+        {
+            setSanxing609BDecode(true);
+        }
 
         xmqForeach(doc, "/driver/library/use", (XMQNodeCallback)add_use, this);
         xmqForeach(doc, "/driver/fields/field", (XMQNodeCallback)add_field, this);

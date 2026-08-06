@@ -110,6 +110,7 @@ protected:
     void addLinkMode(LinkMode lm);
     void setMfctTPLStatusBits(Translate::Lookup &lookup);
     void setDiehlPriosDecode(bool v) { diehl_prios_decode_ = v; }
+    void setSanxing609BDecode(bool v) { sanxing_609b_decode_ = v; }
 
     void markLastFieldAsLibrary();
     FieldInfo *lastAddedField();
@@ -258,6 +259,7 @@ private:
     MeterManager *meter_manager_ {};
     bool diehl_prios_decode_ = false;
     std::string diehl_prios_combined_hex_; // frame[header_size..+4] + LFSR-decoded payload
+    bool sanxing_609b_decode_ = false;
 
 protected:
 

@@ -1,0 +1,193 @@
+// Copyright (C) 2019-2025 Fredrik Öhrström (gpl-3.0-or-later)
+// Copyright (C) 2026 Brychu (gpl-3.0-or-later)
+driver {
+    name           = sanxing
+    meter_type     = ElectricityMeter
+    default_fields = name,id,total_energy_consumption_kwh,current_power_consumption_kw,total_energy_production_kwh,current_power_production_kw,voltage_at_phase_1_v,voltage_at_phase_2_v,voltage_at_phase_3_v,total_energy_consumption_tariff_1_kwh,total_energy_consumption_tariff_2_kwh,total_energy_consumption_tariff_3_kwh,total_energy_production_tariff_1_kwh,total_energy_production_tariff_2_kwh,total_energy_production_tariff_3_kwh,timestamp
+    manufacturer   = Sanxing
+    aliases        = s34u28
+    // Sanxing S34U28 (Tauron/Poland deployment) is byte-for-byte identical to the
+    // amiplus/Apator electricity meter family, except it sends two non-2F2F bytes in
+    // place of the OMS decrypt-verification bytes: see transform_payload below and
+    // Telegram::potentiallyDecrypt in wmbus.cc.
+    transform_payload = sanxing_609B
+    detect {
+        mvt = KPL,01,02
+    }
+    fields {
+        field {
+            name           = total_energy_consumption
+            quantity       = Energy
+            info           = 'The total energy consumption recorded by this meter.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
+            match {
+                measurement_type = Instantaneous
+                vif_range        = AnyEnergyVIF
+            }
+        }
+        field {
+            name           = current_power_consumption
+            quantity       = Power
+            info           = 'Current power consumption.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
+            match {
+                measurement_type = Instantaneous
+                vif_range        = PowerW
+            }
+        }
+        field {
+            name           = total_energy_production
+            quantity       = Energy
+            info           = 'The total energy production recorded by this meter.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
+            match {
+                difvifkey = 0E833C
+            }
+        }
+        field {
+            name           = current_power_production
+            quantity       = Power
+            info           = 'Current power production.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
+            match {
+                difvifkey = 0BAB3C
+            }
+        }
+        field {
+            name           = voltage_at_phase_1
+            quantity       = Voltage
+            info           = 'Voltage at phase L1.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
+            match {
+                measurement_type = Instantaneous
+                vif_range        = Voltage
+                add_combinable   = AtPhase1
+            }
+        }
+        field {
+            name           = voltage_at_phase_2
+            quantity       = Voltage
+            info           = 'Voltage at phase L2.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
+            match {
+                measurement_type = Instantaneous
+                vif_range        = Voltage
+                add_combinable   = AtPhase2
+            }
+        }
+        field {
+            name           = voltage_at_phase_3
+            quantity       = Voltage
+            info           = 'Voltage at phase L3.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
+            match {
+                measurement_type = Instantaneous
+                vif_range        = Voltage
+                add_combinable   = AtPhase3
+            }
+        }
+        field {
+            name         = device
+            quantity     = PointInTime
+            info         = 'Device date time.'
+            display_unit = datetime
+            match {
+                measurement_type = Instantaneous
+                vif_range        = DateTime
+            }
+        }
+        field {
+            name           = total_energy_consumption_tariff_1
+            quantity       = Energy
+            info           = 'The total energy consumption recorded by this meter on tariff 1.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
+            match {
+                measurement_type = Instantaneous
+                vif_range        = AnyEnergyVIF
+                tariff_nr        = 1
+            }
+        }
+        field {
+            name           = total_energy_consumption_tariff_2
+            quantity       = Energy
+            info           = 'The total energy consumption recorded by this meter on tariff 2.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
+            match {
+                measurement_type = Instantaneous
+                vif_range        = AnyEnergyVIF
+                tariff_nr        = 2
+            }
+        }
+        field {
+            name           = total_energy_consumption_tariff_3
+            quantity       = Energy
+            info           = 'The total energy consumption recorded by this meter on tariff 3.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
+            match {
+                measurement_type = Instantaneous
+                vif_range        = AnyEnergyVIF
+                tariff_nr        = 3
+            }
+        }
+        field {
+            name           = total_energy_production_tariff_1
+            quantity       = Energy
+            info           = 'The total energy production recorded by this meter on tariff 1.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
+            match {
+                difvifkey = 8E10833C
+            }
+        }
+        field {
+            name           = total_energy_production_tariff_2
+            quantity       = Energy
+            info           = 'The total energy production recorded by this meter on tariff 2.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
+            match {
+                difvifkey = 8E20833C
+            }
+        }
+        field {
+            name           = total_energy_production_tariff_3
+            quantity       = Energy
+            info           = 'The total energy production recorded by this meter on tariff 3.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
+            match {
+                difvifkey = 8E30833C
+            }
+        }
+        field {
+            name           = max_power_consumption
+            quantity       = Power
+            info           = 'The maximum demand indicator (maximum 15-min average power consumption recorded this month).'
+            vif_scaling    = Auto
+            dif_signedness = Signed
+            match {
+                measurement_type = Maximum
+                vif_range        = AnyPowerVIF
+            }
+        }
+    }
+    tests {
+        test {
+            args     = 'MyElectricity7 sanxing 11223344 38852fe01b9427ffcdf549b50190721a'
+            comment  = 'Sanxing S34U28 (mfct=KPL): this device puts two non-2F2F bytes where OMS expects the decrypt-check marker; verified instead via the trailing 2F2F padding, see Telegram::potentiallyDecrypt in wmbus.cc. Synthetic telegram: real DV records re-encrypted under a fabricated key with the id changed, see https://github.com/wmbusmeters/wmbusmeters/issues/2042 for the original captures.'
+            telegram = 5E440CAE4433221101027A01005005C86FBE60C581F909A1C76C4ADB96896111C7629254158644F874083D105C737F6F56812CE5E4F9B60CDFBE01CDB2A76E38FA17D0EF61F683FE189A57BF35D23C7B8631F22FB5DD64E41ACAC3DF2476A0
+            json     = '{"_":"telegram","media":"electricity","meter":"sanxing","name":"MyElectricity7","id":"11223344","current_power_consumption_kw":0.259,"current_power_production_kw":0,"device_datetime":"2026-07-28 13:02","max_power_consumption_kw":3.492,"total_energy_consumption_kwh":2469.595,"total_energy_production_kwh":0,"voltage_at_phase_1_v":230,"voltage_at_phase_2_v":230,"voltage_at_phase_3_v":230,"timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'MyElectricity7;11223344;2469.595;0.259;0;0;230;230;230;null;null;null;null;null;null;1111-11-11 11:11.11'
+        }
+    }
+}

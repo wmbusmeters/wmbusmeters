@@ -434,6 +434,7 @@ public:
     int mfct_0f_index = -1; // -1 if not found, else index of the 0f byte, if found, inside the difvif data after the header.
     int mfct_1f_index = -1; // -1 if not found, else index of the 1f byte, if found, then there are more records in the next telegram.
     int force_mfct_index = -1; // Force all data after this offset to be mfct specific. Used for meters not using 0f.
+    bool permit_sanxing_609b_quirk = false; // Set by the driver's transform_payload=sanxing_609B when this meter is used.
     void extractFrame(std::vector<uchar> *fr); // Extract to full frame.
     void extractPayload(std::vector<uchar> *pl); // Extract frame data containing the measurements, after the header and not the suffix.
     void extractMfctData(std::vector<uchar> *pl); // Extract frame data after the DIF 0x0F.
