@@ -1,5 +1,5 @@
 -n // Generated 
-2026-07-31_11:40
+2026-08-07_12:24
 test {
     args     = 'AqWater aquastream 05933237 NOKEY'
     telegram = 4644B42557920410050E7237329305B42501075B0030252F2F_04130342000084101300000000046D0D30F62B441349180000426CFF2A02FD17000002FD74DB152F2F2F2F2F2F2F
@@ -319,7 +319,7 @@ test {
     args     = 'MyPulseCounter lansenop 00211206 4164B599F0C39587B449CC920C59BCA8'
     comment  = 'Test Lansen outdoor pulse counter with AES-CBC encrypted telegram'
     telegram = 686a6a6808fd720612210033300a37130000000c7878582600066d49332e4f363601fd71d58c4078000000008140fdf19474ff0dfd3b3736443330061221000a37720612210033302800e6002005d7dfae90e46bfbce5197edad630e9a73ef50b1bf082d0d64daa680af036288151d16
-    json     = '{"_":"telegram","media":"other","meter":"lansenop","name":"MyPulseCounter","id":"00211206","meter_datetime":"2000-06-30 07:36","a_counter":2,"software_version":"003B","status":"OK","timestamp":"1111-11-11T11:11:11Z"}'
+    json     = '{"_":"telegram","media":"other","meter":"lansenop","name":"MyPulseCounter","id":"00211206","meter_datetime":"2000-06-30 07:36","a_counter,a_volume_m3":2,"software_version":"003B","status":"OK","timestamp":"1111-11-11T11:11:11Z"}'
     fields   = 'MyPulseCounter;00211206;OK;2000-06-30 07:36;2;003B;1111-11-11 11:11.11'
 }
 test {
