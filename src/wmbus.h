@@ -308,6 +308,8 @@ struct Explanation
         pos(p), len(l), info(i), kind(k), understanding(u) {}
 };
 
+std::string renderAnalysisAsJson(std::vector<Explanation> &explanations);
+
 struct Meter;
 
 struct Telegram
