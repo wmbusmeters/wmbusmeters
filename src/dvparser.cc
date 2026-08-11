@@ -306,20 +306,40 @@ static bool decodeCompactProfileHeader(uchar spacing_control,
     return false;
 }
 
+// Combinable vifs of a data record, without the markers that make it a compact profile.
+static set<VIFCombinable> combinableVifsWithoutProfileMarkers(const DVEntry &e)
+{
+    set<VIFCombinable> s = e.combinable_vifs;
+    s.erase(VIFCombinable::CompactProfile);
+    s.erase(VIFCombinable::CompactProfileWithRegister);
+    s.erase(VIFCombinable::InverseCompactProfile);
+    return s;
+}
+
+// Find the data record holding the base value that the compact profile refers to.
+// Base value and profile elements do not have to share the data field coding: OMS Spec Vol.2
+// Annex G, Table G.4 combines an 8 digit BCD base value with 4 digit BCD increments, since a
+// reading needs more range than an increment. The coding is therefore not compared here, but
+// is reported back so that reconstructed readings can be stored with it.
 static bool findCompactProfileBaseValue(unordered_map<string,pair<int,DVEntry>> *dv_entries,
                                         DVEntry &entry,
-                                        uchar slot_dif_nibble,
+                                        uchar *base_dif_nibble,
                                         uint64_t *base_value)
 {
     int base_storage = entry.storage_nr.intValue();
     int target_vif = entry.vif.intValue() & 0xff;
     int target_tariff = entry.tariff_nr.intValue();
     int target_subunit = entry.subunit_nr.intValue();
+    set<VIFCombinable> target_combinables = combinableVifsWithoutProfileMarkers(entry);
 
     for (auto &kv : *dv_entries)
     {
         DVEntry &cand = kv.second.second;
-        if ((cand.dif_vif_key.dif() & 0x0f) != slot_dif_nibble) continue;
+        // Variable length records are the compact profiles themselves, never a base value.
+        if ((cand.dif_vif_key.dif() & 0x0f) == 0x0d) continue;
+        // A telegram can carry several profiles for the same quantity, told apart only by a
+        // combinable vif such as BackwardFlow. Each needs its own base value.
+        if (combinableVifsWithoutProfileMarkers(cand) != target_combinables) continue;
         if (cand.storage_nr.intValue() != base_storage) continue;
         if ((cand.vif.intValue() & 0xff) != target_vif) continue;
         if (cand.tariff_nr.intValue() != target_tariff) continue;
@@ -328,6 +348,7 @@ static bool findCompactProfileBaseValue(unordered_map<string,pair<int,DVEntry>> 
         uint64_t v;
         if (cand.extractLong(&v))
         {
+            *base_dif_nibble = cand.dif_vif_key.dif() & 0x0f;
             *base_value = v;
             return true;
         }
@@ -728,8 +749,15 @@ static void addSyntheticCompactProfileEntries(unordered_map<string,pair<int,DVEn
     int base_storage = entry.storage_nr.intValue();
     int synthetic_index = 0;
     uint64_t running_base_value_u = 0;
-    bool have_running_base_value = findCompactProfileBaseValue(dv_entries, entry, slot_dif_nibble, &running_base_value_u);
+    uchar base_dif_nibble = slot_dif_nibble;
+    bool have_running_base_value = findCompactProfileBaseValue(dv_entries, entry, &base_dif_nibble, &running_base_value_u);
     int64_t running_base_value = (int64_t)running_base_value_u;
+
+    // A reconstructed reading is stored with the coding of the base value record, not with the
+    // coding of the increment. OMS Spec Vol.2 Annex N, N.13 sends a base value of 1995 Wh with
+    // 1 byte increments; the readings derived from it do not fit into one byte.
+    int base_value_bytes = difLenBytes(base_dif_nibble);
+    if (base_value_bytes <= 0) have_running_base_value = false;
 
     uchar date_dif_nibble = 0;
     uchar date_vif = 0;
@@ -781,6 +809,9 @@ static void addSyntheticCompactProfileEntries(unordered_map<string,pair<int,DVEn
             return;
         }
 
+        bool reconstruct_reading = has_inverse_compact && is_incremental_mode && have_running_base_value;
+        uchar value_dif_nibble = reconstruct_reading ? base_dif_nibble : slot_dif_nibble;
+
         int storage_nr = base_storage + 1 + synthetic_index;
         int synthetic_subunit = entry.subunit_nr.intValue();
         if (distance == CompactProfileDistance::NotSpacedInTime && array_column > 0)
@@ -788,7 +819,7 @@ static void addSyntheticCompactProfileEntries(unordered_map<string,pair<int,DVEn
             // Use column index to separate parallel array columns.
             synthetic_subunit += array_column - 1;
         }
-        string base_key = makeSyntheticStorageKey(slot_dif_nibble, storage_nr, entry.vif.intValue() & 0xff);
+        string base_key = makeSyntheticStorageKey(value_dif_nibble, storage_nr, entry.vif.intValue() & 0xff);
         string key = base_key;
         int duplicate_nr = 2;
         while (dv_entries->count(key) > 0)
@@ -797,9 +828,7 @@ static void addSyntheticCompactProfileEntries(unordered_map<string,pair<int,DVEn
             duplicate_nr++;
         }
 
-        if (has_inverse_compact &&
-            is_incremental_mode &&
-            have_running_base_value)
+        if (reconstruct_reading)
         {
             int64_t delta = 0;
             if (!decodeCompactSlotSigned(slot_dif_nibble, value_bytes, binary_value_is_unsigned, &delta))
@@ -824,7 +853,7 @@ static void addSyntheticCompactProfileEntries(unordered_map<string,pair<int,DVEn
             }
 
             vector<uchar> encoded_absolute;
-            if (!encodeCompactSlotSigned(slot_dif_nibble, slot_bytes, absolute, false, &encoded_absolute))
+            if (!encodeCompactSlotSigned(value_dif_nibble, base_value_bytes, absolute, false, &encoded_absolute))
             {
                 // Overflow or unsupported conversion: terminate this profile from here.
                 stop_iteration = true;
