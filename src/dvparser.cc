@@ -332,25 +332,31 @@ static bool findCompactProfileBaseValue(unordered_map<string,pair<int,DVEntry>> 
     int target_subunit = entry.subunit_nr.intValue();
     set<VIFCombinable> target_combinables = combinableVifsWithoutProfileMarkers(entry);
 
-    for (auto &kv : *dv_entries)
+    // A telegram can carry several profiles for the same quantity, told apart only by a
+    // combinable vif such as BackwardFlow, and each of them needs its own base value. Prefer a
+    // candidate whose combinable vifs match exactly; only when there is none, accept one that
+    // differs, so that a base value is never lost that would have been found before.
+    for (int require_matching_combinables = 1; require_matching_combinables >= 0; require_matching_combinables--)
     {
-        DVEntry &cand = kv.second.second;
-        // Variable length records are the compact profiles themselves, never a base value.
-        if ((cand.dif_vif_key.dif() & 0x0f) == 0x0d) continue;
-        // A telegram can carry several profiles for the same quantity, told apart only by a
-        // combinable vif such as BackwardFlow. Each needs its own base value.
-        if (combinableVifsWithoutProfileMarkers(cand) != target_combinables) continue;
-        if (cand.storage_nr.intValue() != base_storage) continue;
-        if ((cand.vif.intValue() & 0xff) != target_vif) continue;
-        if (cand.tariff_nr.intValue() != target_tariff) continue;
-        if (cand.subunit_nr.intValue() != target_subunit) continue;
-
-        uint64_t v;
-        if (cand.extractLong(&v))
+        for (auto &kv : *dv_entries)
         {
-            *base_dif_nibble = cand.dif_vif_key.dif() & 0x0f;
-            *base_value = v;
-            return true;
+            DVEntry &cand = kv.second.second;
+            // Variable length records are the compact profiles themselves, never a base value.
+            if ((cand.dif_vif_key.dif() & 0x0f) == 0x0d) continue;
+            if (require_matching_combinables &&
+                combinableVifsWithoutProfileMarkers(cand) != target_combinables) continue;
+            if (cand.storage_nr.intValue() != base_storage) continue;
+            if ((cand.vif.intValue() & 0xff) != target_vif) continue;
+            if (cand.tariff_nr.intValue() != target_tariff) continue;
+            if (cand.subunit_nr.intValue() != target_subunit) continue;
+
+            uint64_t v;
+            if (cand.extractLong(&v))
+            {
+                *base_dif_nibble = cand.dif_vif_key.dif() & 0x0f;
+                *base_value = v;
+                return true;
+            }
         }
     }
 
