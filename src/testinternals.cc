@@ -307,6 +307,22 @@ void tst_subunit(unordered_map<string,pair<int,DVEntry>> &values, const char *ke
     }
 }
 
+void tst_combinable(unordered_map<string,pair<int,DVEntry>> &values, const char *key, VIFCombinable vc, bool expected, int testnr)
+{
+    if (!hasKey(&values, key))
+    {
+        fprintf(stderr, "Error in dvparser testnr %d: key %s does not exist\n", testnr, key);
+        return;
+    }
+
+    bool got = values[key].second.combinable_vifs.count(vc) > 0;
+    if (got != expected)
+    {
+        fprintf(stderr, "Error in dvparser testnr %d: key %s %s combinable %s\n",
+                testnr, key, got ? "has unexpected" : "is missing", toString(vc));
+    }
+}
+
 void test_dvparser()
 {
     unordered_map<string,pair<int,DVEntry>> dv_entries;
@@ -498,6 +514,10 @@ void test_dvparser()
     // The backward flow profile keeps its own base value of 2 Wh, it must not pick up the import one.
     tst_double(dv_entries, "C701833C", 0.002, testnr);
     tst_double(dv_entries, "8702037F77_2", 0.002, testnr);
+    // Both profiles land on the same storage numbers and differ only by the combinable vif they
+    // were sent with. A field matcher compares that set exactly, so the points have to keep it.
+    tst_combinable(dv_entries, "8702037F77", VIFCombinable::BackwardFlow, false, testnr);
+    tst_combinable(dv_entries, "8702037F77_2", VIFCombinable::BackwardFlow, true, testnr);
 }
 
 void test_ixmlparser()

@@ -871,7 +871,11 @@ static void addSyntheticCompactProfileEntries(unordered_map<string,pair<int,DVEn
         }
 
         string value_hex = bin2hex(value_bytes);
-        set<VIFCombinable> single_synthetic_combinable_vif;
+        // Carry over the combinable vifs of the profile the point came from. A telegram can hold
+        // two profiles for the same quantity, told apart only by a combinable such as BackwardFlow,
+        // and a field matcher compares that set exactly. Without this the generated points of both
+        // profiles look identical and a driver receives whichever the hash map happens to yield.
+        set<VIFCombinable> single_synthetic_combinable_vif = combinableVifsWithoutProfileMarkers(entry);
         single_synthetic_combinable_vif.insert(VIFCombinable::Synthetic);
         set<uint16_t> no_combinable_vifs_raw;
 
