@@ -1922,6 +1922,13 @@ test {
     fields   = 'qualco;03016408;OK;0;220;-3.706;2021-05-31 23:59;0;11;1111-11-11 11:11.11'
 }
 test {
+    args     = 'MyQWater19 qwaterv2 51341234 NOKEY'
+    comment  = 'Version 19 warm water meter, walk by telegram with mfct data.'
+    telegram = 49449344341234511906780dff5f3500822d0000600107c113ffff748702003f3c215102005f374386020031003600330033003600360031003600320037002e002c002f046d0f114b38
+    json     = '{"_":"telegram","media":"warm water","driver":"qwaterv2","name":"MyQWater19","id":"51341234","target_m3":28.643,"target_date":"2026-07-31","target_year_m3":25.121,"target_year_date":"2025-12-31","total_m3":28.774,"volume_delta_2_m3":0.049,"volume_delta_3_m3":0.054,"volume_delta_4_m3":0.051,"volume_delta_5_m3":0.051,"volume_delta_6_m3":0.054,"volume_delta_7_m3":0.054,"volume_delta_8_m3":0.049,"volume_delta_9_m3":0.054,"volume_delta_10_m3":0.05,"volume_delta_11_m3":0.055,"volume_delta_12_m3":0.046,"volume_delta_13_m3":0.044,"meter_datetime":"2026-08-11 17:15","status":"OK","timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'MyQWater19;51341234;OK;28.774;1111-11-11 11:11.11'
+}
+test {
     args     = 'QQ5 qwater 61193115 NOKEY'
     telegram = 49449344153119611D06780DFF5F350082EC0000F10007C113FFFF69000000FFFF000000005F31680000000080008000800080008000800080008000800080008006002F046D1C0A4132
     json     = '{"_": "telegram","due_17_date": "2026-01-31","due_17_date_m3": 0.068,"due_date":null,"due_date_m3": 0,"id": "61193115","media": "warm water","driver": "qwater","meter_datetime": "2026-02-01 10:28","name": "QQ5","status": "OK","timestamp": "1111-11-11T11:11:11Z","total_m3": 0.069}'
