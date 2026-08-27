@@ -1,0 +1,29 @@
+// Copyright (C) 2026 taufderl (gpl-3.0-or-later)
+driver {
+    name           = elstergas
+    meter_type     = GasMeter
+    default_fields = name,id,status,timestamp
+    manufacturer   = Elster
+
+    detect {
+        mvt = ELS,50,03
+    }
+
+    fields {
+        field {
+            name       = status
+            quantity   = Text
+            info       = 'Status and error flags.'
+            attributes = STATUS,INCLUDE_TPL_STATUS
+        }
+    }
+
+    tests {
+        test {
+            args     = 'GasMeter elstergas 11223344 NOKEY'
+            telegram = 264493154433221150037A79330129_060000028E0D6A47FF4F26DF16D17F1BF94C0A22359DB80E
+            json     = '{"_":"telegram","media":"gas","meter":"elstergas","name":"GasMeter","id":"11223344","status":"ALARM TEMPORARY_ERROR UNKNOWN_20","timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'GasMeter;11223344;ALARM TEMPORARY_ERROR UNKNOWN_20;1111-11-11 11:11.11'
+        }
+    }
+}
