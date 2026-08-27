@@ -4,11 +4,9 @@ driver {
     meter_type     = GasMeter
     default_fields = name,id,status,timestamp
     manufacturer   = 'Landis Gyr'
-
     detect {
         mvt = LGB,50,03
     }
-
     fields {
         field {
             name       = status
@@ -17,7 +15,6 @@ driver {
             attributes = STATUS,INCLUDE_TPL_STATUS
         }
     }
-
     tests {
         test {
             args     = 'GasMeter landisgyrgas 87654321 NOKEY'
