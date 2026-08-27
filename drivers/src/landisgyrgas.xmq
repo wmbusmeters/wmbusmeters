@@ -1,0 +1,29 @@
+// Copyright (C) 2026 taufderl (gpl-3.0-or-later)
+driver {
+    name           = landisgyrgas
+    meter_type     = GasMeter
+    default_fields = name,id,status,timestamp
+    manufacturer   = 'Landis Gyr'
+
+    detect {
+        mvt = LGB,50,03
+    }
+
+    fields {
+        field {
+            name       = status
+            quantity   = Text
+            info       = 'Status and error flags.'
+            attributes = STATUS,INCLUDE_TPL_STATUS
+        }
+    }
+
+    tests {
+        test {
+            args     = 'GasMeter landisgyrgas 87654321 NOKEY'
+            telegram = 2644E2302143658750037AE6230129_06000009844C61E7C0B85EDBE2D6769DC348EE1391DF1404
+            json     = '{"_":"telegram","media":"gas","meter":"landisgyrgas","name":"GasMeter","id":"87654321","status":"ALARM UNKNOWN_20","timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'GasMeter;87654321;ALARM UNKNOWN_20;1111-11-11 11:11.11'
+        }
+    }
+}
