@@ -1,0 +1,142 @@
+driver {
+    name           = aquauni
+    meter_type     = WaterMeter
+    default_fields = name,id,status,valve_state,total_m3,total_backward_m3,total_forward_m3,flow_temperature_c,meter_datetime,timestamp
+    detect {
+        mvt = ADX,00,07
+    }
+    library {
+        use = meter_datetime,total_m3,total_forward_m3,total_backward_m3,flow_temperature_c
+    }
+    fields {
+        field {
+            name       = status
+            quantity   = Text
+            info       = 'Meter status from tpl field.'
+            attributes = INCLUDE_TPL_STATUS
+            match {
+                measurement_type = Instantaneous
+                vif_range        = ErrorFlags
+            }
+            lookup {
+                name            = ERROR_FLAGS
+                map_type        = BitToString
+                mask_bits       = 0xfffffc
+                default_message = OK
+                map {
+                    name  = WV_COMM_ERROR
+                    value = 0x80
+                    test  = Set
+                }
+                map {
+                    name  = WV_TAMPER
+                    value = 0x40
+                    test  = Set
+                }
+                map {
+                    name  = WV_MAGNETIC_FIELD
+                    value = 0x20
+                    test  = Set
+                }
+                map {
+                    name  = CLOCK_INVALID
+                    value = 0x8000
+                    test  = Set
+                }
+                map {
+                    name  = TAMPER
+                    value = 0x4000
+                    test  = Set
+                }
+                map {
+                    name  = MAGNETIC_FIELD
+                    value = 0x2000
+                    test  = Set
+                }
+                map {
+                    name  = LOW_BAT
+                    value = 0x0400
+                    test  = Set
+                }
+                map {
+                    name  = FIRMWARE_CHANGED
+                    value = 0x0200
+                    test  = Set
+                }
+                map {
+                    name  = HARDWARE_FAULT
+                    value = 0x0100
+                    test  = Set
+                }
+                map {
+                    name  = LEAKAGE
+                    value = 0x800000
+                    test  = Set
+                }
+                map {
+                    name  = DRY
+                    value = 0x400000
+                    test  = Set
+                }
+                map {
+                    name  = BACKFLOW
+                    value = 0x200000
+                    test  = Set
+                }
+                map {
+                    name  = BURST
+                    value = 0x100000
+                    test  = Set
+                }
+                map {
+                    name  = LOW_TEMP
+                    value = 0x040000
+                    test  = Set
+                }
+            }
+        }
+        field {
+            name       = valve_state
+            quantity   = Text
+            info       = 'Valve state'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = ErrorFlags
+            }
+            lookup {
+                name            = VALVE_STATE
+                map_type        = IndexToString
+                mask_bits       = 0x03
+                default_message = UNKNOWN
+                map {
+                    name  = CLOSED
+                    value = 0
+                    test  = Set
+                }
+                map {
+                    name  = OPENED_100
+                    value = 1
+                    test  = Set
+                }
+                map {
+                    name  = OPENED_10
+                    value = 2
+                    test  = Set
+                }
+                map {
+                    name  = OPENED_50
+                    value = 3
+                    test  = Set
+                }
+            }
+        }
+    }
+    tests {
+        test {
+            args     = 'aquauni_test aquauni 14164474 NOKEY'
+            telegram = 3B4498047444161400078C207F7A73000020046D1B110137041303D9000004933B9CAD000004933C672B000003FD1701000002FDFD026500025B1900
+            json     = '{"_":"telegram","flow_temperature_c": 25,"id": "14164474","media": "water","meter": "aquauni","meter_datetime": "2024-07-01 17:27","name": "aquauni_test","status": "OK","valve_state": "OPENED_100","timestamp": "1111-11-11T11:11:11Z","total_backward_m3": 11.111,"total_forward_m3": 44.444,"total_m3": 55.555}'
+            fields   = 'aquauni_test;14164474;OK;OPENED_100;55.555;11.111;44.444;25;2024-07-01 17:27;1111-11-11 11:11.11'
+        }
+    }
+}
