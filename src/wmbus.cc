@@ -4551,6 +4551,43 @@ bool BusDeviceCommonImplementation::handleTelegram(AboutTelegram &about, vector<
         }
     }
 
+    // LSE bridge format frames (C-field 0xc4, manufacturer LSE) encapsulate a
+    // complete wMBus telegram in their payload, starting at offset 18 with its
+    // own length byte and no CRC. Decapsulate and re-inject the inner telegram
+    // so it reaches the regular meter matching instead of being swallowed by
+    // the bridge's own driver=unknown meter.
+    if (about.type == FrameType::WMBUS &&
+        frame.size() >= 22 &&
+        frame[1] == 0xc4 &&
+        frame[2] == 0x65 &&                       // mfct LSE (the bridge),
+        (frame[3] == 0xb2 || frame[3] == 0x32) && // ... arrives as 65b2 and 6532
+        frame[19] == 0x44 &&                      // inner telegram C-field
+        frame[20] == 0x65 &&                      // inner telegram mfct LSE:
+        (frame[21] == 0x32 || frame[21] == 0xb2)) // ... comes as 6532 and 65b2
+    {
+        uchar ilen = frame[18];
+        if (ilen >= 9 && frame.size() >= 18u + ilen + 1u)
+        {
+            vector<uchar> inner(frame.begin() + 18, frame.begin() + 18 + ilen + 1);
+            notice("(wmbus) LSE bridge %02x%02x%02x%02x: decapsulating inner telegram id %02x%02x%02x%02x (%u bytes).\n",
+                   frame[7], frame[6], frame[5], frame[4],
+                   inner[7], inner[6], inner[5], inner[4], ilen + 1);
+            // Log the full inner telegram even when no meter handles it, so new
+            // inner devices can be identified from the journal at normal loglevel.
+            logTelegram(inner, inner, 0, 0);
+            // The dedup marks frames as seen even when no meter handled them,
+            // and inner telegrams repeat near-identically — so bypass dedup for
+            // the re-injection to give a newly registered meter a chance.
+            bool saved_dedup = ignore_duplicate_telegrams_;
+            ignore_duplicate_telegrams_ = false;
+            bool handled = handleTelegram(about, inner);
+            ignore_duplicate_telegrams_ = saved_dedup;
+            notice("(wmbus) LSE bridge inner telegram was %s.\n",
+                   handled ? "handled" : "not handled");
+            return handled;
+        }
+    }
+
     for (auto f : telegram_listeners_)
     {
         if (f)
