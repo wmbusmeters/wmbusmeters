@@ -1,0 +1,152 @@
+// Copyright (C) 2019-2026 Fredrik Öhrström & Magnus Friskytt (gpl-3.0-or-later)
+driver {
+    name           = hydrus
+    meter_type     = WaterMeter
+    default_fields = name,id,total_m3,flow_m3h,flow_temperature_c,external_temperature_c,status,timestamp
+    detect {
+        mvt = DME,70,07
+        mvt = DME,76,07
+        mvt = HYD,24,07
+        mvt = HYD,8b,07
+        mvt = HYD,8b,06
+        mvt = DME,70,06
+        mvt = DME,70,16
+    }
+    library {
+        use = operating_time_h,actuality_duration_s,meter_datetime,customer
+        use = flow_temperature_c,external_temperature_c
+    }
+    fields {
+        field {
+            name       = status
+            quantity   = Text
+            info       = 'Status of meter.'
+            attributes = STATUS,INCLUDE_TPL_STATUS
+            match {
+                measurement_type = Instantaneous
+                vif_range        = ErrorFlags
+            }
+            lookup {
+                name            = ERROR_FLAGS
+                map_type        = BitToString
+                mask_bits       = 0xffff
+                default_message = OK
+            }
+        }
+        field {
+            name           = total
+            quantity       = Volume
+            info           = 'The total water consumption recorded by this meter.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
+            match {
+                measurement_type = Instantaneous
+                vif_range        = Volume
+            }
+        }
+        field {
+            name           = backward
+            quantity       = Volume
+            info           = 'Total reverse / backward water volume.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
+            match {
+                measurement_type = Instantaneous
+                difvifkey        = 0C933C
+            }
+        }
+        field {
+            name           = flow
+            quantity       = Flow
+            info           = 'The current water flow.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
+            match {
+                measurement_type = Instantaneous
+                vif_range        = VolumeFlow
+            }
+        }
+        field {
+            name           = min_flow
+            quantity       = Flow
+            info           = 'Minimum recorded water flow during period.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
+            match {
+                measurement_type = Minimum
+                vif_range        = VolumeFlow
+                storage_nr       = 8
+            }
+        }
+        field {
+            name           = max_flow
+            quantity       = Flow
+            info           = 'Maximum recorded water flow during period.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
+            match {
+                measurement_type = Maximum
+                vif_range        = VolumeFlow
+                storage_nr       = 8
+            }
+        }
+        field {
+            name           = target
+            quantity       = PointInTime
+            info           = 'Historical billing/target date.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
+            display_unit   = datetime
+            match {
+                measurement_type = Instantaneous
+                vif_range        = DateTime
+                storage_nr       = 8
+            }
+        }
+        field {
+            name           = target
+            quantity       = Volume
+            info           = 'Total water consumption recorded at target date.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
+            match {
+                measurement_type = Instantaneous
+                vif_range        = Volume
+                storage_nr       = 8
+            }
+        }
+        field {
+            name           = total_at_date
+            quantity       = Volume
+            info           = 'The total water consumption recorded at date.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
+            match {
+                measurement_type = Instantaneous
+                vif_range        = Volume
+                storage_nr       = 1
+            }
+        }
+        field {
+            name           = remaining_battery_life
+            quantity       = Time
+            info           = 'Remaining battery life in years.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
+            display_unit   = y
+            match {
+                measurement_type = Instantaneous
+                vif_range        = RemainingBattery
+            }
+        }
+    }
+    tests {
+        test {
+            args     = 'Hydrus20 hydrus 86715606 NOKEY'
+            comment  = 'Diehl Hydrus 2.0 full telegram'
+            telegram = 6344A5110656718676078C00AE900F002C2593B30F00610CCB29615532257A99004107102F2F_0C13921920000B3B0000000A5A96010A6622020C933C0000000084046D3B375F388C041341102000AB043B0000009B043B72170004FD17000000002F2F2F
+            json     = '{"_":"telegram","media":"water","driver":"hydrus","name":"Hydrus20","id":"86715606","backward_m3":0,"external_temperature_c":22.2,"flow_m3h":0,"flow_temperature_c":19.6,"max_flow_m3h":0.1772,"min_flow_m3h":0,"status":"OK","target_datetime":"2026-08-31 23:59","target_m3":201.041,"timestamp":"1111-11-11T11:11:11Z","total_m3":201.992}'
+            fields   = 'Hydrus20;86715606;201.992;0;19.6;22.2;OK;1111-11-11 11:11.11'
+        }
+    }
+}
