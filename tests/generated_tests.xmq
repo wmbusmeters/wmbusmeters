@@ -1172,6 +1172,20 @@ test {
     fields   = 'IzarWater;21242472;METER_BLOCKED UNDERFLOW;3.488;3.486;1111-11-11 11:11.11'
 }
 test {
+    args     = 'MyHCA joyh100 91796365 00112233445566778899AABBCCDDEEFF'
+    comment  = 'JOYH100 short frame (no history section), device firmware version 0C instead of 0B'
+    telegram = 3e44f9a9656379910c087a71003025e52e9375d18368e6f3fa74b2b5f3ecfe9f7994ea68ed09abfdc77e99ca82ceee7d8a7a69db3a26773ddf6c1196f3f743
+    json     = '{"_": "telegram","consumption_hca": 0,"flow_temperature_c": 28.86,"id": "91796365","media": "heat cost allocation","meter": "joyh100","meter_datetime": "2026-08-10 12:06:42","name": "MyHCA","open_cover_alarm_date": "1999-11-30","return_temperature_c": 28.99,"status": "OK","target_date": "2025-01-01","target_hca": 0,"temp_sensor_alarm_date": "1999-11-30","timestamp": "1111-11-11T11:11:11Z"}'
+    fields   = 'MyHCA;91796365;OK;0;1111-11-11 11:11.11'
+}
+test {
+    args     = 'MyHCA joyh100 44332211 00112233445566778899AABBCCDDEEFF'
+    comment  = 'JOYH100 long frame with full monthly/yearly history'
+    telegram = 8e44f9a9112233440b087a020080252b2e855912aefbbd4ad91b8fc0fea6c2e4d28ae2c87523d2aefb7f67f953e419c9696c1b91be82607c289d8952b2377ec158bf46ae9df4a9fd0d593ee8fd0ddcc8c58f5efc4f88ab70d5fd65dcb1375e041748595ab514dd4710d26ec4e71f9669af1a9f481279257b85a70659ee0adee900910622bbff4dbf2b4b652bef8db3
+    json     = '{"_": "telegram","consumption_hca": 0,"flow_temperature_c": 20.37,"historic_10_hca": 0,"historic_11_hca": 0,"historic_12_hca": 0,"historic_1_hca": 0,"historic_1_year_hca": 0,"historic_2_hca": 0,"historic_2_year_hca": 0,"historic_3_hca": 0,"historic_3_year_hca": 0,"historic_4_hca": 0,"historic_5_hca": 0,"historic_6_hca": 0,"historic_7_hca": 0,"historic_8_hca": 0,"historic_9_hca": 0,"id": "44332211","media": "heat cost allocation","meter": "joyh100","meter_datetime": "2024-01-01 08:06:16","name": "MyHCA","open_cover_alarm_date": "1999-11-30","return_temperature_c": 21.55,"status": "MEMORY_ERROR","target_date": "2023-01-01","target_hca": 0,"temp_sensor_alarm_date": "1999-11-30","timestamp": "1111-11-11T11:11:11Z"}'
+    fields   = 'MyHCA;44332211;MEMORY_ERROR;0;1111-11-11 11:11.11'
+}
+test {
     args     = 'KadenC10 kaden 23701267 82B0551191F51D66EFCDAB8967452301'
     telegram = 4e443059671270231e087a6f0040051183e178afb952391c01f78104bc3fd33a5232ba7e70f514a062dac99059a7c74a55227dfae9d9590145f685f4ae6a62288bbba6eaf92d86797254644a2cdf46
     json     = '{"_": "telegram","consumption_hca": 859,"external_temperature_c": 32,"fabrication_no": "23701267","flow_temperature_c": 39.3,"id": "23701267","media": "heat cost allocation","driver": "kaden","meter_datetime": "2026-02-09 09:41","name": "KadenC10","no_measurement_duration_h": 2.266667,"no_measurement_duration_last_year_h": 1234.483333,"status": "OK","tampering_duration_h": 0,"target_date": "2127-01-01","target_hca": 2264,"timestamp": "1111-11-11T11:11:11Z"}'

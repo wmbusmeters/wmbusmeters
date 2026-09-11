@@ -1,0 +1,257 @@
+// Copyright (C) 2026 Hynek Moravec (gpl-3.0-or-later)
+driver {
+    name           = joyh100
+    meter_type     = HeatCostAllocationMeter
+    default_fields = name,id,status,consumption_hca,timestamp
+    manufacturer   = 'Joy Technology'
+    detect {
+        mvt = JOY,0B,08
+        mvt = JOY,0C,08
+    }
+    // The TPL status byte's bits 0-1 are the standard OMS error code (handled
+    // automatically by INCLUDE_TPL_STATUS). Bit 2 is manufacturer-specific.
+    mfct_tpl_status_bits {
+        mask_bits       = 0x04
+        default_message = OK
+        map {
+            name  = RADIO_MODULE_BATTERY_LOW
+            value = 0x04
+            test  = Set
+        }
+    }
+    library {
+        use = consumption_hca
+        use = target_hca
+        use = meter_datetime
+        use = target_date
+        use = flow_temperature_c
+        use = return_temperature_c
+    }
+    fields {
+        field {
+            name       = status
+            quantity   = Text
+            info       = 'Status and error flags.'
+            attributes = STATUS,INCLUDE_TPL_STATUS
+            match {
+                measurement_type = Instantaneous
+                vif_range        = ErrorFlags
+                storage_nr       = 4
+            }
+            lookup {
+                name            = ERROR_FLAGS
+                map_type        = BitToString
+                mask_bits       = 0xff
+                default_message = OK
+                map {
+                    name  = OPEN_COVER
+                    value = 0x01
+                    test  = Set
+                }
+                map {
+                    name  = MEMORY_ERROR
+                    value = 0x02
+                    test  = Set
+                }
+                map {
+                    name  = TEMP_SENSOR_ERROR
+                    value = 0x04
+                    test  = Set
+                }
+                map {
+                    name  = BATTERY_LOW
+                    value = 0x08
+                    test  = Set
+                }
+            }
+        }
+        field {
+            name         = open_cover_alarm
+            quantity     = PointInTime
+            display_unit = DateLT
+            info         = 'Date the cover was last removed. Default (no alarm): current time.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = Date
+                storage_nr       = 2
+            }
+        }
+        field {
+            name         = temp_sensor_alarm
+            quantity     = PointInTime
+            display_unit = DateLT
+            info         = 'Date a temperature sensor alarm last triggered. Default (no alarm): current time.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = Date
+                storage_nr       = 3
+            }
+        }
+        field {
+            name     = historic_1
+            quantity = HCA
+            info     = 'HCA units accumulated during the 1st previous month.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = HeatCostAllocation
+                storage_nr       = 7
+            }
+        }
+        field {
+            name     = historic_2
+            quantity = HCA
+            info     = 'HCA units accumulated during the 2nd previous month.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = HeatCostAllocation
+                storage_nr       = 8
+            }
+        }
+        field {
+            name     = historic_3
+            quantity = HCA
+            info     = 'HCA units accumulated during the 3rd previous month.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = HeatCostAllocation
+                storage_nr       = 9
+            }
+        }
+        field {
+            name     = historic_4
+            quantity = HCA
+            info     = 'HCA units accumulated during the 4th previous month.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = HeatCostAllocation
+                storage_nr       = 10
+            }
+        }
+        field {
+            name     = historic_5
+            quantity = HCA
+            info     = 'HCA units accumulated during the 5th previous month.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = HeatCostAllocation
+                storage_nr       = 11
+            }
+        }
+        field {
+            name     = historic_6
+            quantity = HCA
+            info     = 'HCA units accumulated during the 6th previous month.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = HeatCostAllocation
+                storage_nr       = 12
+            }
+        }
+        field {
+            name     = historic_7
+            quantity = HCA
+            info     = 'HCA units accumulated during the 7th previous month.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = HeatCostAllocation
+                storage_nr       = 13
+            }
+        }
+        field {
+            name     = historic_8
+            quantity = HCA
+            info     = 'HCA units accumulated during the 8th previous month.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = HeatCostAllocation
+                storage_nr       = 14
+            }
+        }
+        field {
+            name     = historic_9
+            quantity = HCA
+            info     = 'HCA units accumulated during the 9th previous month.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = HeatCostAllocation
+                storage_nr       = 15
+            }
+        }
+        field {
+            name     = historic_10
+            quantity = HCA
+            info     = 'HCA units accumulated during the 10th previous month.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = HeatCostAllocation
+                storage_nr       = 16
+            }
+        }
+        field {
+            name     = historic_11
+            quantity = HCA
+            info     = 'HCA units accumulated during the 11th previous month.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = HeatCostAllocation
+                storage_nr       = 17
+            }
+        }
+        field {
+            name     = historic_12
+            quantity = HCA
+            info     = 'HCA units accumulated during the 12th previous month.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = HeatCostAllocation
+                storage_nr       = 18
+            }
+        }
+        field {
+            name     = historic_1_year
+            quantity = HCA
+            info     = 'HCA units accumulated during the 1st previous billing year.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = HeatCostAllocation
+                storage_nr       = 19
+            }
+        }
+        field {
+            name     = historic_2_year
+            quantity = HCA
+            info     = 'HCA units accumulated during the 2nd previous billing year.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = HeatCostAllocation
+                storage_nr       = 20
+            }
+        }
+        field {
+            name     = historic_3_year
+            quantity = HCA
+            info     = 'HCA units accumulated during the 3rd previous billing year.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = HeatCostAllocation
+                storage_nr       = 21
+            }
+        }
+    }
+    tests {
+        test {
+            args     = 'MyHCA joyh100 44332211 00112233445566778899AABBCCDDEEFF'
+            comment  = 'JOYH100 long frame with full monthly/yearly history'
+            telegram = 8e44f9a9112233440b087a020080252b2e855912aefbbd4ad91b8fc0fea6c2e4d28ae2c87523d2aefb7f67f953e419c9696c1b91be82607c289d8952b2377ec158bf46ae9df4a9fd0d593ee8fd0ddcc8c58f5efc4f88ab70d5fd65dcb1375e041748595ab514dd4710d26ec4e71f9669af1a9f481279257b85a70659ee0adee900910622bbff4dbf2b4b652bef8db3
+            json     = '{"_": "telegram","consumption_hca": 0,"flow_temperature_c": 20.37,"historic_10_hca": 0,"historic_11_hca": 0,"historic_12_hca": 0,"historic_1_hca": 0,"historic_1_year_hca": 0,"historic_2_hca": 0,"historic_2_year_hca": 0,"historic_3_hca": 0,"historic_3_year_hca": 0,"historic_4_hca": 0,"historic_5_hca": 0,"historic_6_hca": 0,"historic_7_hca": 0,"historic_8_hca": 0,"historic_9_hca": 0,"id": "44332211","media": "heat cost allocation","meter": "joyh100","meter_datetime": "2024-01-01 08:06:16","name": "MyHCA","open_cover_alarm_date": "1999-11-30","return_temperature_c": 21.55,"status": "MEMORY_ERROR","target_date": "2023-01-01","target_hca": 0,"temp_sensor_alarm_date": "1999-11-30","timestamp": "1111-11-11T11:11:11Z"}'
+            fields   = 'MyHCA;44332211;MEMORY_ERROR;0;1111-11-11 11:11.11'
+        }
+        test {
+            args     = 'MyHCA joyh100 91796365 00112233445566778899AABBCCDDEEFF'
+            comment  = 'JOYH100 short frame (no history section), device firmware version 0C instead of 0B'
+            telegram = 3e44f9a9656379910c087a71003025e52e9375d18368e6f3fa74b2b5f3ecfe9f7994ea68ed09abfdc77e99ca82ceee7d8a7a69db3a26773ddf6c1196f3f743
+            json     = '{"_": "telegram","consumption_hca": 0,"flow_temperature_c": 28.86,"id": "91796365","media": "heat cost allocation","meter": "joyh100","meter_datetime": "2026-08-10 12:06:42","name": "MyHCA","open_cover_alarm_date": "1999-11-30","return_temperature_c": 28.99,"status": "OK","target_date": "2025-01-01","target_hca": 0,"temp_sensor_alarm_date": "1999-11-30","timestamp": "1111-11-11T11:11:11Z"}'
+            fields   = 'MyHCA;91796365;OK;0;1111-11-11 11:11.11'
+        }
+    }
+}
