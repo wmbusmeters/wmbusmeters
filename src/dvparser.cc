@@ -440,6 +440,36 @@ static bool findCompactProfileBaseDate(unordered_map<string,pair<int,DVEntry>> *
     return false;
 }
 
+// Find the actuality duration that belongs to the base value of a compact profile, i.e. the
+// time between creating the base value and sending the telegram. OMS Spec Vol.2 Annex R, R.3.2
+// makes it the time reference of TAF7 profiles, which usually carry no valid base time.
+static bool findCompactProfileBaseActuality(unordered_map<string,pair<int,DVEntry>> *dv_entries,
+                                            DVEntry &entry,
+                                            double *actuality_s)
+{
+    int base_storage = entry.storage_nr.intValue();
+    int target_tariff = entry.tariff_nr.intValue();
+    int target_subunit = entry.subunit_nr.intValue();
+
+    for (auto &kv : *dv_entries)
+    {
+        DVEntry &cand = kv.second.second;
+        if (cand.storage_nr.intValue() != base_storage) continue;
+        if (cand.tariff_nr.intValue() != target_tariff) continue;
+        if (cand.subunit_nr.intValue() != target_subunit) continue;
+        if (!isInsideVIFRange(cand.vif, VIFRange::ActualityDuration)) continue;
+        if (cand.combinable_vifs.count(VIFCombinable::Synthetic) > 0) continue;
+
+        // Auto scaling brings seconds, minutes, hours and days alike to hours.
+        double hours = 0;
+        if (!cand.extractDouble(&hours, true, true)) continue;
+        *actuality_s = hours * 3600.0;
+        return true;
+    }
+
+    return false;
+}
+
 static bool decodeCompactSlotUnsigned(uchar slot_dif_nibble,
                                       const vector<uchar> &bytes,
                                       uint64_t *out)
@@ -765,6 +795,21 @@ static void addSyntheticCompactProfileEntries(unordered_map<string,pair<int,DVEn
     int base_value_bytes = difLenBytes(base_dif_nibble);
     if (base_value_bytes <= 0) have_running_base_value = false;
 
+    // Spacing expressed in seconds, for the profiles that are spaced by a fixed amount of time.
+    // Half month and month spacing is left out, there the calendar based dates are the answer.
+    int spacing_seconds = 0;
+    switch (distance)
+    {
+        case CompactProfileDistance::Seconds: spacing_seconds = spacing_step; break;
+        case CompactProfileDistance::Minutes: spacing_seconds = spacing_step * 60; break;
+        case CompactProfileDistance::Hours:   spacing_seconds = spacing_step * 3600; break;
+        case CompactProfileDistance::Days:    spacing_seconds = spacing_step * 86400; break;
+        default: break;
+    }
+
+    double base_actuality_s = 0;
+    bool have_base_actuality = findCompactProfileBaseActuality(dv_entries, entry, &base_actuality_s);
+
     uchar date_dif_nibble = 0;
     uchar date_vif = 0;
     MeasurementType date_measurement_type = MeasurementType::Instantaneous;
@@ -935,6 +980,48 @@ static void addSyntheticCompactProfileEntries(unordered_map<string,pair<int,DVEn
                     running_base_date = next_date;
                 }
             }
+        }
+        else if (spacing_seconds > 0 && have_base_actuality)
+        {
+            // Without a base time the profile has no absolute time reference, which is the normal
+            // case for TAF7 profiles: the meter has no clock and the receiving system timestamps
+            // the telegram. Each point then gets its own actuality duration, the one of the base
+            // value plus one spacing per step, so that a receiver with a clock can place it.
+            uint32_t age = (uint32_t)lround(base_actuality_s) + (uint32_t)spacing_seconds * (uint32_t)(synthetic_index + 1);
+            vector<uchar> age_bytes = { (uchar)(age & 0xff),
+                                        (uchar)((age >> 8) & 0xff),
+                                        (uchar)((age >> 16) & 0xff),
+                                        (uchar)((age >> 24) & 0xff) };
+            string age_hex = bin2hex(age_bytes);
+
+            string age_base_key = makeSyntheticStorageKey(0x4, storage_nr, 0x74);
+            string age_key = age_base_key;
+            int age_duplicate_nr = 2;
+            while (dv_entries->count(age_key) > 0)
+            {
+                strprintf(&age_key, "%s_%d", age_base_key.c_str(), age_duplicate_nr);
+                age_duplicate_nr++;
+            }
+
+            // Same combinables as the reading itself, so import and export stay apart here too.
+            set<VIFCombinable> age_combinable_vifs = combinableVifsWithoutProfileMarkers(entry);
+            age_combinable_vifs.insert(VIFCombinable::Synthetic);
+            set<uint16_t> no_age_combinable_vifs_raw;
+
+            auto age_insert_res = dv_entries->emplace(age_key,
+                                  std::make_pair(offset,
+                                         DVEntry(offset,
+                                                 DifVifKey(age_key),
+                                                 entry.measurement_type,
+                                                 Vif(0x74),
+                                                 std::move(age_combinable_vifs),
+                                                 std::move(no_age_combinable_vifs_raw),
+                                                 StorageNr(storage_nr),
+                                                 entry.tariff_nr,
+                                                 SubUnitNr(synthetic_subunit),
+                                                 age_hex)));
+            assert(age_insert_res.second);
+            debug("(dvparser) inserted synthetic actuality duration %s\n", age_key.c_str());
         }
 
         synthetic_index++;

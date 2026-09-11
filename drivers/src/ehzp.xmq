@@ -117,6 +117,20 @@ driver {
             }
         }
         field {
+            name         = 'actuality_duration_at_{storage_counter-2counter}'
+            quantity     = Time
+            info         = 'How long before the transmission this point of the compact profile was measured.'
+            display_unit = s
+            match {
+                measurement_type = Instantaneous
+                vif_range        = ActualityDuration
+                add_combinable   = Synthetic
+                storage_nr       = 4,10
+                /*  The telegram carries no base time. wmbusmeters derives the actuality duration of
+                   each profile point from the one of storage 3 plus the spacing of the profile. */
+            }
+        }
+        field {
             name         = on_time_at_1
             quantity     = Time
             info         = 'The on time at the previous point in time.'
@@ -138,7 +152,7 @@ driver {
         test {
             args     = 'Elen4 ehzp 13711234 NOKEY'
             telegram = AE44a8153412711300027a010000002F2F0700285EB5050000000007803C34080000000000000728905F01000000000004208F84160101FD971D00C1017402C401208D841601C701031C76010000000000CD01831324410800010000000001000000000100000001000000000100000000010000000001000000C701833C0200000000000000CD0183933C244108000000000000000000000000000000000000000000000000000000000000000000
-            json     = '{"_": "telegram","actuality_duration_at_1_s": 2,"current_power_consumption_kw": 0.09,"driver": "ehzp","id": "13711234","media": "electricity","name": "Elen4","on_time_at_1_h": 5070.261389,"on_time_h": 5070.261944,"status": "OK","timestamp": "1111-11-11T11:11:11Z","total_energy_consumption_at_1_kwh": 95.772,"total_energy_consumption_at_2_kwh": 95.772,"total_energy_consumption_at_3_kwh": 95.771,"total_energy_consumption_at_4_kwh": 95.771,"total_energy_consumption_at_5_kwh": 95.771,"total_energy_consumption_at_6_kwh": 95.771,"total_energy_consumption_at_7_kwh": 95.771,"total_energy_consumption_at_8_kwh": 95.77,"total_energy_consumption_kwh": 95.7722,"total_energy_production_at_1_kwh": 0.002,"total_energy_production_at_2_kwh": 0.002,"total_energy_production_at_3_kwh": 0.002,"total_energy_production_at_4_kwh": 0.002,"total_energy_production_at_5_kwh": 0.002,"total_energy_production_at_6_kwh": 0.002,"total_energy_production_at_7_kwh": 0.002,"total_energy_production_at_8_kwh": 0.002,"total_energy_production_kwh": 0.0021}'
+            json     = '{"_": "telegram","actuality_duration_at_1_s": 2,"actuality_duration_at_2_s": 10,"actuality_duration_at_3_s": 18,"actuality_duration_at_4_s": 26,"actuality_duration_at_5_s": 34,"actuality_duration_at_6_s": 42,"actuality_duration_at_7_s": 50,"actuality_duration_at_8_s": 58,"current_power_consumption_kw": 0.09,"driver": "ehzp","id": "13711234","media": "electricity","name": "Elen4","on_time_at_1_h": 5070.261389,"on_time_h": 5070.261944,"status": "OK","timestamp": "1111-11-11T11:11:11Z","total_energy_consumption_at_1_kwh": 95.772,"total_energy_consumption_at_2_kwh": 95.772,"total_energy_consumption_at_3_kwh": 95.771,"total_energy_consumption_at_4_kwh": 95.771,"total_energy_consumption_at_5_kwh": 95.771,"total_energy_consumption_at_6_kwh": 95.771,"total_energy_consumption_at_7_kwh": 95.771,"total_energy_consumption_at_8_kwh": 95.77,"total_energy_consumption_kwh": 95.7722,"total_energy_production_at_1_kwh": 0.002,"total_energy_production_at_2_kwh": 0.002,"total_energy_production_at_3_kwh": 0.002,"total_energy_production_at_4_kwh": 0.002,"total_energy_production_at_5_kwh": 0.002,"total_energy_production_at_6_kwh": 0.002,"total_energy_production_at_7_kwh": 0.002,"total_energy_production_at_8_kwh": 0.002,"total_energy_production_kwh": 0.0021}'
             fields   = 'Elen4;13711234;95.7722;0.09;0.0021;1111-11-11 11:11.11'
         }
     }
