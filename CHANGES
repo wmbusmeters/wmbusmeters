@@ -1,4 +1,9 @@
 
+ATTENTION! Breaking changes to the kamwater driver. There were a lot of bugs
+on how the flow_temperature_c was picked up. These are now fixed
+so instead of the old field, expect to see min_flow_temperature_last_month_c
+or min_flow_temperature_last_day_c. These meters are very configurable.
+
 ATTENTION! Breaking change the field "meter":"kamwater" is now renamed to
 "driver":"kamwater". The meter field name is just confusing since it has not been
 correlated to the meter type since 2019. Hopefully very few users actually

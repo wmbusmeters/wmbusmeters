@@ -175,7 +175,7 @@ Using driver   : kamwater 00/00
 033 C!: 08190000 ("target_m3":6.408)
 037   : 61 dif (8 Bit Integer/Binary Minimum value storagenr=1)
 038   : 5B vif (Flow temperature °C)
-039 C!: 7F ("flow_temperature_c":127)
+039 C!: 7F ("min_flow_temperature_last_month_c":127)
 040   : 61 dif (8 Bit Integer/Binary Minimum value storagenr=1)
 041   : 67 vif (External temperature °C)
 042 C!: 13 ("min_external_temperature_last_month_c":19)
@@ -186,8 +186,8 @@ Using driver   : kamwater 00/00
     "driver": "kamwater",
     "name": "",
     "id": "76348799",
-    "flow_temperature_c": 127,
     "min_external_temperature_last_month_c": 19,
+    "min_flow_temperature_last_month_c": 127,
     "target_m3": 6.408,
     "total_m3": 6.408,
     "current_status": "DRY",
@@ -232,7 +232,7 @@ Using driver   : kamwater 00/00
 024 C!: 7100 ("status16":"DRY") ("current_status":"DRY") ("time_dry":"22-31 days") ("time_reversed":"") ("time_leaking":"") ("time_bursting":"")
 026 C!: 09190000 ("total_m3":6.409)
 030 C!: 09190000 ("target_m3":6.409)
-034 C!: 7F ("flow_temperature_c":127)
+034 C!: 7F ("min_flow_temperature_last_month_c":127)
 035 C!: 16 ("min_external_temperature_last_month_c":22)
 
 {
@@ -241,8 +241,8 @@ Using driver   : kamwater 00/00
     "driver": "kamwater",
     "name": "",
     "id": "76348799",
-    "flow_temperature_c": 127,
     "min_external_temperature_last_month_c": 22,
+    "min_flow_temperature_last_month_c": 127,
     "target_m3": 6.409,
     "total_m3": 6.409,
     "current_status": "DRY",
