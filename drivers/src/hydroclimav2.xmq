@@ -8,6 +8,33 @@ driver {
         mvt = BMP,53,08
         mvt = BMP,85,08
     }
+    // The manufacturer bits of the TPL status byte mirror the event groups of
+    // the STS status word (the user manual labels events A0, A1, B8, C9-C15
+    // by group): 0x40 = group B (tamper), 0x80 = group C (device errors),
+    // 0x20 = group A (configuration, presumed by the same scheme). Verified
+    // against decrypted telegrams: TPL 0x40 <-> word bit 8, TPL 0x80 <-> word
+    // bit 9, TPL 0xC0 <-> bits 8+9. The detailed event is in the STS word
+    // below; the group flags still matter because the TPL byte travels
+    // unencrypted.
+    mfct_tpl_status_bits {
+        mask_bits       = 0xe0
+        default_message = OK
+        map {
+            name  = EVENT_GROUP_A
+            value = 0x20
+            test  = set
+        }
+        map {
+            name  = EVENT_GROUP_B
+            value = 0x40
+            test  = set
+        }
+        map {
+            name  = EVENT_GROUP_C
+            value = 0x80
+            test  = set
+        }
+    }
     library {
         use = consumption_hca
         use = target_hca
@@ -27,9 +54,53 @@ driver {
                 map_type        = BitToString
                 mask_bits       = 0xffff
                 default_message = OK
-                // The STS status word bits are not documented by BMeters.
-                // Surface the raw value so faults are visible; name the bits later.
-                // Help needed: what do the STS bits mean?
+                // STS status word bits per the Hydroclima 2 user manual v1.1
+                // (Alarms table): events A0, A1, B8, C9, C10, C11, C13 and
+                // C15 are bit positions in this word. Bits 2-7, 12 and 14 are
+                // not documented and stay unnamed. TAMPERING latches until a
+                // seal is applied after configuration; NOT_CONFIGURED clears
+                // after configuration; OSCILLATOR_ERROR clears after a
+                // date/time update.
+                map {
+                    name  = NOT_CONFIGURED
+                    value = 0x0001
+                    test  = Set
+                }
+                map {
+                    name  = VERIFICATION_PENDING
+                    value = 0x0002
+                    test  = Set
+                }
+                map {
+                    name  = TAMPERING
+                    value = 0x0100
+                    test  = Set
+                }
+                map {
+                    name  = HEATER_TEMPERATURE_OUT_OF_RANGE
+                    value = 0x0200
+                    test  = Set
+                }
+                map {
+                    name  = HEATER_TEMPERATURE_LOW
+                    value = 0x0400
+                    test  = Set
+                }
+                map {
+                    name  = CONSUMPTION_OVERFLOW
+                    value = 0x0800
+                    test  = Set
+                }
+                map {
+                    name  = OSCILLATOR_ERROR
+                    value = 0x2000
+                    test  = Set
+                }
+                map {
+                    name  = POWER_FAILURE
+                    value = 0x8000
+                    test  = Set
+                }
             }
         }
         field {
@@ -239,8 +310,8 @@ driver {
             comment  = 'Version 0x53 frame_v10 NOKEY'
             args     = 'HCA hydroclimav2 68036198 NOKEY'
             telegram = 2e44b0099861036853087a000020002F2F036E0000000F100043106A7D2C4A078F12202CB1242A06D3062100210000
-            json     = '{"_":"telegram","media":"heat cost allocation","driver":"hydroclimav2","name":"HCA","id":"68036198","average_ambient_temperature_c":18.66,"average_ambient_temperature_last_month_c":15.78,"average_heater_temperature_last_month_c":17.47,"consumption_hca":0,"max_ambient_temperature_c":47.51,"total_consumption_hca":33,"status":"ERROR_FLAGS_4300","timestamp":"1111-11-11T11:11:11Z"}'
-            fields   = 'HCA;68036198;ERROR_FLAGS_4300;0;18.66;1111-11-11 11:11.11'
+            json     = '{"_":"telegram","media":"heat cost allocation","driver":"hydroclimav2","name":"HCA","id":"68036198","average_ambient_temperature_c":18.66,"average_ambient_temperature_last_month_c":15.78,"average_heater_temperature_last_month_c":17.47,"consumption_hca":0,"max_ambient_temperature_c":47.51,"total_consumption_hca":33,"status":"ERROR_FLAGS_4000 HEATER_TEMPERATURE_OUT_OF_RANGE TAMPERING","timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'HCA;68036198;ERROR_FLAGS_4000 HEATER_TEMPERATURE_OUT_OF_RANGE TAMPERING;0;18.66;1111-11-11 11:11.11'
         }
         test {
             comment  = 'Version 0x85 frame_v11 encrypted'
@@ -253,8 +324,8 @@ driver {
             comment  = 'Version 0x85 frame_v11 with TONI null sentinel 0x8000'
             args     = 'HC3 hydroclimav2 93001021 NOKEY'
             telegram = 5144b0092110009385088c20fb7afb4040252F2F_036E000000436E000000426C3F350F110001B9604734CE2E2708FD071B088832940766070000000000000000C407260800802DD400000000000000220000
-            json     = '{"_":"telegram","media":"heat cost allocation","driver":"hydroclimav2","name":"HC3","id":"93001021","ambient_temperature_at_set_date_1_c":19.88,"ambient_temperature_at_set_date_2_c":20.86,"ambient_temperature_at_set_date_3_c":null,"average_ambient_temperature_c":20.45,"average_ambient_temperature_last_month_c":18.94,"average_heater_temperature_c":20.87,"average_heater_temperature_last_month_c":19.4,"consumption_at_set_date_1_hca":0,"consumption_at_set_date_2_hca":0,"consumption_at_set_date_3_hca":0,"consumption_at_set_date_4_hca":0,"consumption_hca":0,"max_ambient_temperature_c":20.75,"target_date":"2025-05-31","target_hca":0,"total_consumption_hca":34,"status":"ERROR_FLAGS_100 UNKNOWN_40","timestamp":"1111-11-11T11:11:11Z"}'
-            fields   = 'HC3;93001021;ERROR_FLAGS_100 UNKNOWN_40;0;20.45;1111-11-11 11:11.11'
+            json     = '{"_":"telegram","media":"heat cost allocation","driver":"hydroclimav2","name":"HC3","id":"93001021","ambient_temperature_at_set_date_1_c":19.88,"ambient_temperature_at_set_date_2_c":20.86,"ambient_temperature_at_set_date_3_c":null,"average_ambient_temperature_c":20.45,"average_ambient_temperature_last_month_c":18.94,"average_heater_temperature_c":20.87,"average_heater_temperature_last_month_c":19.4,"consumption_at_set_date_1_hca":0,"consumption_at_set_date_2_hca":0,"consumption_at_set_date_3_hca":0,"consumption_at_set_date_4_hca":0,"consumption_hca":0,"max_ambient_temperature_c":20.75,"target_date":"2025-05-31","target_hca":0,"total_consumption_hca":34,"status":"EVENT_GROUP_B TAMPERING","timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'HC3;93001021;EVENT_GROUP_B TAMPERING;0;20.45;1111-11-11 11:11.11'
         }
     }
 }

@@ -4,6 +4,10 @@ ATTENTION! Breaking change the field "meter":"kamwater" is now renamed to
 correlated to the meter type since 2019. Hopefully very few users actually
 make use of this field.
 
+ATTENTION! The auto-detect of the emh meter was moved from the nzr driver
+to the ehzp driver. Not sure what it was doing in the nzr driver since
+there ware no test cases in that driver for an emh meter.
+
 Added --telegramdetails=[never|first||always]
 this option will in the json add details about the quantity, unit and info(help) information
 for each field. This will be used to automatically generate the discovery messages

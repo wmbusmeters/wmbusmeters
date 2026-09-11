@@ -1663,6 +1663,11 @@ bool MeterCommonImplementation::handleTelegram(AboutTelegram &about, vector<ucha
         t.force_mfct_index = force_mfct_index_;
     }
 
+    if (buggy_sanxing_609b_decode_)
+    {
+        t.permit_sanxing_609b_bug = true;
+    }
+
     ok = t.parse(input_frame, &meter_keys_, true);
     if (!ok)
     {
@@ -1879,7 +1884,21 @@ void MeterCommonImplementation::processFieldIXMLs(Telegram *t)
                     dve->addFieldInfo(&fi);
                     fi.performExtraction(this, t, dve);
                     string value = getStringValue(&fi);
-                    debug("(ixml) parsing field content at offset %d: %s\n", dve->offset, value.c_str());
+                    bool extra_decode = false;
+                    if (try_qundis_decode_)
+                    {
+                        // The Qundis WalkByDataSet block (difvifkey 0DFF5F) is AES-128-CBC
+                        // encrypted on the 2026 Q water/heat/caloric 5.5 when header byte[4]
+                        // == 0x35 (plaintext frames have 0x00 there, see issue #1916/#2025).
+                        // The cipher is standard EN 13757-7 Mode 5 with the configured meter
+                        // key and the Mode-5 IV (M-field + A-field + ACC*8). CI=0x78 frames
+                        // have no TPL header, so the ACC is the block's own rolling counter
+                        // (header byte[2]), not the TPL access number. Decode bytes[5..]
+                        // here so the existing ixml grammar parses the plaintext layout.
+                        extra_decode = tryDecodeQundisWalkByAes(t, &value);
+                    }
+                    debug("(ixml) parsing field content at offset %d: %s%s\n", dve->offset, value.c_str(),
+                          extra_decode ? " (mfct-aes-decoded)" : "");
                     bool ok = parseWithIXML(t, dve->offset, value, fi.ixmlGrammar(), &t->dv_entries);
                     if (!ok)
                     {

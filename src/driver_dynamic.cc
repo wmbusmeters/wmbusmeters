@@ -171,9 +171,31 @@ DriverDynamic::DriverDynamic(MeterInfo &mi, DriverInfo &di) :
                 fileName().c_str());
 
         const char *transform_payload_s = xmqGetString(doc, "/driver/transform_payload");
-        if (transform_payload_s && string(transform_payload_s) == "diehl_prios")
+        if (transform_payload_s)
         {
-            setDiehlPriosDecode(true);
+            if (string(transform_payload_s) == "diehl_prios")
+            {
+                setDiehlPriosDecode(true);
+            }
+            else if (string(transform_payload_s) == "try_qundis_decode")
+            {
+                setTryQundisDecode(true);
+            }
+            else if (transform_payload_s && string(transform_payload_s) == "buggy_sanxing_609B")
+            {
+                // Opt-in only: permits the non-standard 0x609B decrypt-check marker (see
+                // Telegram::potentiallyDecrypt in wmbus.cc) for meters using this driver,
+                // same shape as the diehl_prios hook above.
+                setBuggySanxing609BDecode(true);
+            }
+            else
+            {
+                warning("(driver) error in %s, transform_payload cannot be %s\n"
+                        "Allowed values are diehl_prios, try_qundis_decode and sanxing_6098.\n",
+                        file_name_.c_str(),
+                        transform_payload_s);
+                throw 1;
+            }
         }
 
         xmqForeach(doc, "/driver/library/use", (XMQNodeCallback)add_use, this);

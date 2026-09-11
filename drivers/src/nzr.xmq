@@ -5,7 +5,6 @@ driver {
     meter_type     = ElectricityMeter
     detect {
         mvt = NZR,00,02
-        mvt = EMH,00,02
     }
     fields {
         field {
