@@ -1580,8 +1580,8 @@ test {
 test {
     args     = 'MO metronahca 00381428 NOKEY'
     telegram = 3E44F5362814380002087A430020252F2F_046E3C030000026C5C38426C3F3C446E080300002F2F2F2F2F2F2F2F2F2F0F800C000109003DBF0100209A1E0603
-    json     = '{"_": "telegram","consumption_hca": 828,"driver": "metronahca","id": "00381428","media": "heat cost allocation","meter_date": "2026-08-28","name": "MO","target_date": "2025-12-31","target_hca": 776,"timestamp": "1111-11-11T11:11:11Z"}'
-    fields   = 'MO;00381428;?status?;828;1111-11-11 11:11.11'
+    json     = '{"_": "telegram","status":"OK","consumption_hca": 828,"driver": "metronahca","id": "00381428","media": "heat cost allocation","meter_date": "2026-08-28","name": "MO","target_date": "2025-12-31","target_hca": 776,"timestamp": "1111-11-11T11:11:11Z"}'
+    fields   = 'MO;00381428;OK;828;1111-11-11 11:11.11'
 }
 test {
     args     = 'Heat microclima 93573086 NOKEY'
