@@ -18,9 +18,9 @@ TESTRESULT="ERROR"
 
 $PROG --useconfig=tests/config15 | jq . --sort-keys > $TEST/test_output.txt
 
-METER=$(cat $TEST/test_output.txt | grep -o '"meter": "foo"')
+METER=$(cat $TEST/test_output.txt | grep -o '"driver": "foo"')
 
-if ! grep -q '"meter": "foo"' $TEST/test_output.txt
+if ! grep -q '"driver": "foo"' $TEST/test_output.txt
 then
     echo "ERROR: $TESTNAME ($0)"
     cat $TEST/test_output.txt

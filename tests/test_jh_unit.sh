@@ -14,10 +14,10 @@ cat <<EOF > $TEST/test_expected.txt
 {
   "_": "telegram",
   "device_datetime": "2025-01-06 17:13",
+  "driver": "hydrocalm4",
   "gurka_jh": 1,
   "id": "05128041",
   "media": "heat/cooling load",
-  "meter": "hydrocalm4",
   "name": "Watter",
   "power_kw": 0,
   "return_temperature_c": 23.94,

@@ -84,4 +84,10 @@ bool decryptDielhRealData(Telegram *t,std::vector<uchar> &frame,std::vector<ucha
 
 void qdsExtractWalkByField(Telegram *t, Meter *driver, DVEntry &mfctEntry, int pos, int n, const std::string &key_s, const std::string &fieldName, Quantity quantity);
 
+// If the Qundis WalkByDataSet (0DFF5F) block in `value` is the AES-128-CBC
+// encrypted variant (header byte[4]==0x35), decode its body in place using
+// the configured meter key and the EN 13757-7 Mode-5 IV (ACC=block byte[2]).
+// Returns true if decoded; false (leaving `value` untouched) otherwise.
+bool tryDecodeQundisWalkByAes(Telegram *t, std::string *value);
+
 #endif

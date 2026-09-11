@@ -17,7 +17,7 @@ driver {
             args     = 'W op041a 11337834 NOKEY'
             comment  = ''
             telegram = 41440106347833111A078CC0A27AAB0030852F2F_04132F010000046D332E46320F60000000000869970743F13B375F3124000000240000002F2F2F2F2F2F2F2F2F2F
-            json     = '{"_":"telegram","media":"water","meter":"op041a","name":"W","id":"11337834","total_m3":0.303,"meter_datetime":"2026-02-06 14:51","timestamp":"1111-11-11T11:11:11Z"}'
+            json     = '{"_":"telegram","media":"water","driver":"op041a","name":"W","id":"11337834","total_m3":0.303,"meter_datetime":"2026-02-06 14:51","timestamp":"1111-11-11T11:11:11Z"}'
             fields   = 'W;11337834;0.303;2026-02-06 14:51;1111-11-11 11:11.11'
         }
     }

@@ -72,3 +72,5 @@ AC_CONFIG_FILES([$OUTPUT_ROOT/spec.gmk:$SRC_ROOT/autoconf/spec.gmk.in])
 CONFIG_STATUS="$OUTPUT_ROOT/config.status"
 # Write out spec.gmk and build/Makefile
 AC_OUTPUT
+
+echo "version: $($CXX --version | head -1)"

@@ -27,6 +27,7 @@
 #include"translatebits.h"
 #include"util.h"
 #include"wmbus.h"
+#include"wmbus_iu891a.h"
 #include"dvparser.h"
 #include"xmq.h"
 
@@ -218,7 +219,9 @@ bool tst_ixmlparse(const char *hex, const char *grammar, std::unordered_map<std:
 {
     debug("\n\nTest ixml parse nr %d......\n\n", testnr);
     bool b;
-    XMQDoc *ixml = xmqNewDoc();
+    XMQReturnDoc rd = xmqNewDoc();
+    assert(rd.status == XMQ_OK);
+    XMQDoc *ixml = rd.doc;
     b = xmqParseBufferWithType(ixml, grammar, NULL, NULL, XMQ_CONTENT_IXML, 0);
     if (!b) {
         fprintf(stderr, "Failed to parse IXML grammar: %s\n", grammar);
@@ -302,6 +305,22 @@ void tst_subunit(unordered_map<string,pair<int,DVEntry>> &values, const char *ke
     {
         fprintf(stderr, "Error in dvparser testnr %d: key %s subunit %d but expected %d\n",
                 testnr, key, got, expected_subunit);
+    }
+}
+
+void tst_combinable(unordered_map<string,pair<int,DVEntry>> &values, const char *key, VIFCombinable vc, bool expected, int testnr)
+{
+    if (!hasKey(&values, key))
+    {
+        fprintf(stderr, "Error in dvparser testnr %d: key %s does not exist\n", testnr, key);
+        return;
+    }
+
+    bool got = values[key].second.combinable_vifs.count(vc) > 0;
+    if (got != expected)
+    {
+        fprintf(stderr, "Error in dvparser testnr %d: key %s %s combinable %s\n",
+                testnr, key, got ? "has unexpected" : "is missing", toString(vc));
     }
 }
 
@@ -455,6 +474,51 @@ void test_dvparser()
     tst_parse("0213E803 0D9313 04 12000500", &dv_entries, testnr);
     tst_double(dv_entries, "42137F77", 0.005, testnr);
     tst_subunit(dv_entries, "42137F77", 1, testnr);
+
+    testnr++;
+    dv_entries.clear();
+    // OMS Spec Vol.2 (Issue 5.0.1) Annex G, Table G.6: inverse compact profile of a water meter.
+    // Base value 1013 l and base time 2008-05-31 on storage 8, spacing control 7Ah (increments,
+    // full month, 4 digit BCD), spacing value FEh (one month), elements 258, 332, 214, 144.
+    // Note that the base value is coded as 8 digit BCD while the increments are 4 digit BCD.
+    // Table G.7 prints the expected single data points: storage 9..12 carry 755, 423, 209 and
+    // 65 litres at 2008-04-30, 2008-03-31, 2008-02-29 and 2008-01-31. The keys below are the
+    // data information blocks from that table, CC 04 13 and so on.
+    tst_parse("8C041313100000 82046C1F15 8D0493130A7AFE58023203140244 01", &dv_entries, testnr);
+    tst_double(dv_entries, "CC04137F77", 0.755, testnr);
+    tst_double(dv_entries, "8C05137F77", 0.423, testnr);
+    tst_double(dv_entries, "CC05137F77", 0.209, testnr);
+    tst_double(dv_entries, "8C06137F77", 0.065, testnr);
+    tst_date(dv_entries, "C2046C7F77", "2008-04-30 00:00:00", testnr);
+    tst_date(dv_entries, "82056C7F77", "2008-03-31 00:00:00", testnr);
+    tst_date(dv_entries, "C2056C7F77", "2008-02-29 00:00:00", testnr);
+    tst_date(dv_entries, "82066C7F77", "2008-01-31 00:00:00", testnr);
+
+    testnr++;
+    dv_entries.clear();
+    // Application layer of an EMH electricity meter (EMH 00/02) sending TAF7 data as described
+    // by OMS Spec Vol.2 Annex R. Two inverse compact profiles on storage 3, spacing control 41h
+    // (increments, 1 byte) and spacing value 08h (8 seconds), 34 elements each.
+    // The import base value is a 64 bit binary 95772 Wh, so the readings derived from the 1 byte
+    // increments are stored as 64 bit binary as well. Increments are 0 Wh and 1 Wh here, which
+    // matches the 90 W reported as current power in the same telegram.
+    tst_parse("2F2F 0700285EB50500000000 07803C3408000000000000 0728905F010000000000 04208F841601"
+              "01FD971D00 C1017402 C401208D841601 C701031C76010000000000"
+              "CD01831324410800010000000001000000000100000001000000000100000000010000000001000000"
+              "C701833C0200000000000000"
+              "CD0183933C244108000000000000000000000000000000000000000000000000000000000000000000",
+              &dv_entries, testnr);
+    tst_double(dv_entries, "C70103", 95.772, testnr);
+    tst_double(dv_entries, "8702037F77", 95.772, testnr);
+    tst_double(dv_entries, "C702037F77", 95.771, testnr);
+    tst_double(dv_entries, "8703037F77", 95.771, testnr);
+    // The backward flow profile keeps its own base value of 2 Wh, it must not pick up the import one.
+    tst_double(dv_entries, "C701833C", 0.002, testnr);
+    tst_double(dv_entries, "8702037F77_2", 0.002, testnr);
+    // Both profiles land on the same storage numbers and differ only by the combinable vif they
+    // were sent with. A field matcher compares that set exactly, so the points have to keep it.
+    tst_combinable(dv_entries, "8702037F77", VIFCombinable::BackwardFlow, false, testnr);
+    tst_combinable(dv_entries, "8702037F77_2", VIFCombinable::BackwardFlow, true, testnr);
 }
 
 void test_ixmlparser()
@@ -482,6 +546,23 @@ void test_devices()
 
 void test_linkmodes()
 {
+    LinkModeSet cct = parseLinkModes("cct");
+    assert(cct.has(LinkMode::CCT));
+    assert(cct.hr() == "cct");
+    assert(toLinkMode("cct") == LinkMode::CCT);
+    assert(isLinkModeOption("--cct") == LinkMode::CCT);
+    assert(!strcmp(toString(LinkMode::CCT), "cct"));
+    assert(cct.asBits() == CCT_bit);
+    assert(countSetBits(cct.asBits()) == 1);
+    assert(setupIMSTBusDeviceToReceiveTelegrams(cct) == LINK_MODE_CUSTOM_CT);
+
+    LinkModeSet all;
+    all.setAll();
+    assert(all.has(LinkMode::CCT));
+
+    LinkModeSet ct = parseLinkModes("c1,t1");
+    assert(setupIMSTBusDeviceToReceiveTelegrams(ct) == LINK_MODE_CT);
+
     /*
     LinkModeCalculationResult lmcr;
     auto manager = createSerialCommunicationManager(0, false);

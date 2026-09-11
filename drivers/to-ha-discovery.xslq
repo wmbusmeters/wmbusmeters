@@ -2,64 +2,117 @@ xsl:stylesheet(version                 = 1.0
                xml:space               = preserve
                exclude-result-prefixes = my
                xmlns:xsl               = http://www.w3.org/1999/XSL/Transform
-               xmlns:my                = https://wmbusmeters.org)
+               xmlns:my                = urn:my)
 {
-    xsl:param(name = file)
-    xsl:variable(name   = telegram
-                 select = 'document($file)')
+    xsl:param(name = drv)
+    xsl:variable(name   = drvx
+                 select = 'document($drv)')
     xsl:variable(name = meter_id
-                 select = $telegram/telegram/id)
+                 select = /telegram/id)
     xsl:variable(name = meter_name
-                 select = $telegram/telegram/name)
-    my:tounit {
-        entry(key = Volume) = m3
-        entry(key = Flow) = m3h
-    }
+                 select = /telegram/name)
     my:tohrunit {
+        entry(key = pct) = %
         entry(key = m3) = m³
         entry(key = m3h) = m³/h
-    }
-    my:todeviceclass {
-        entry(key = WaterMeter) = water
-        entry(key = ElectricityMeter) = electricity
+        entry(key = c) = °C
+        entry(key = dbm) = dBm
+        entry(key = h) = h
+        entry(key = hca) = hca
+        entry(key = kw) = kW
+        entry(key = kwh) = kWh
+        entry(key = v) = V
+        entry(key = y) = years
     }
     my:tostateclass {
-        entry(key = Volume) = total_increasing
-        entry(key = Flow) = measurement
+        entry(key = Instant) = measurement
+        entry(key = Net) = total
+        entry(key = Increasing) = total_increasing
+    }
+    my:todeviceclass {
+    // battery
+    // gas
+    // problem
+    // signal_strength
+    // smoke
+    // water
+        entry(key = Volume) = volume
+        entry(key = Flow) = volume_flow_rate
+        entry(key = Temperature) = temperature
+        entry(key = TemperatureDifference) = temperature_delta
+        entry(key = Energy) = energy
+        entry(key = Power) = power
+        entry(key = Reactive_Power) = power
+        entry(key = Apparent_Power) = power
+        entry(key = Voltage) = voltage
+        entry(key = Time) = duration
+        entry(key = Reactive_Energy) = energy
+        entry(key = Apparent_Energy) = energy
+        entry(key = PonitInTime) = timestamp
+        entry(key = RelativeHumidity) = humidity
+
+        /*
+    X(Length,M)               \
+    X(Mass,KG)                \
+    X(Amperage,Ampere)        \
+    X(AmountOfSubstance,MOL)  \
+    X(LuminousIntensity,CD)   \
+    \
+    X(Frequency,HZ)           \
+    X(Pressure,BAR)           \
+    \
+    X(PointInTime,DateTimeLT) \
+    \
+    X(RelativeHumidity,RH)    \
+    X(HCA,HCA)                \
+    X(Text,TXT)               \
+    X(Angle,DEGREE)           \
+    X(Dimensionless,COUNTER)  \
+    */
     }
     xsl:template(match = /)
     {
         _ {
             xsl:variable(name   = manufacturer
-                         select = driver/manufacturer)
+                         select = $drvx/driver/manufacturer)
             xsl:variable(name   = model
-                         select = driver/model)
+                         select = $drvx/driver/model)
             xsl:variable(name   = metertype
-                         select = driver/meter_type)
-            xsl:for-each(select = driver/fields/field)
+                         select = $drvx/driver/meter_type)
+            xsl:for-each(select = telegram/details/*)
             {
-                xsl:variable(name   = nameb
-                             select = name)
-                xsl:variable(name   = spacedname
-                             value-of = name) // ''' translate($nameb,'_',' ') ''')
-                xsl:variable(name   = quantityb
-                             select = quantity)
-                xsl:variable(name   = unito
-                             select = 'document("")/*/my:tounit/entry[@key=$quantityb]')
+                xsl:variable(name   = field_name
+                             select = 'name()')
+                xsl:variable(name   = unit
+                             select = ./unit)
+                xsl:variable(name   = change
+                             select = ./change)
+                xsl:variable(name   = quantity
+                             select = ./quantity)
+                xsl:variable(name   = base
+                             select = "substring-before($field_name, concat('_', $unit))")
                 xsl:variable(name   = hrunit
-                             select = 'document("")/*/my:tohrunit/entry[@key=$unito]')
-                xsl:variable(name   = deviceclass
-                             select = 'document("")/*/my:todeviceclass/entry[@key=$metertype]')
+                             select = "document('')/*/my:tohrunit/entry[@key = $unit]")
                 xsl:variable(name   = stateclass
-                             select = 'document("")/*/my:tostateclass/entry[@key=$quantityb]')
-                xsl:element(name = '{name}_{$unito}')
+                             select = "document('')/*/my:tostateclass/entry[@key=$change]")
+                xsl:variable(name   = deviceclass
+                             select = "document('')/*/my:todeviceclass/entry[@key=$quantity]")
+                xsl:variable(name = fixdeviceclass) {
+                    xsl:choose {
+                        xsl:when(test = "$metertype = 'WaterMeter' and $deviceclass = 'volume'") {
+                            xsl:text = water
+                        }
+                        xsl:when(test = "$metertype = 'GasMeter' and $deviceclass = 'volume'") {
+                            xsl:text = gas
+                        }
+                        xsl:otherwise {
+                            xsl:value-of(select = $deviceclass)
+                        }
+                    }
+                }
+                xsl:element(name = '{$field_name}')
                 {
                     component = sensor
-                    meter_name_id {
-                        xsl:value-of(select = $meter_name)
-                        '_'
-                        xsl:value-of(select = $meter_id)
-                    }
                     discovery_payload {
                         device {
                             identifiers(A)
@@ -76,7 +129,7 @@ xsl:stylesheet(version                 = 1.0
                             hw_version = '{id}'
                         }
                         name {
-                            xsl:value-of(select = 'translate($nameb, "_", " ")')
+                            xsl:value-of(select = 'translate($base, "_", " ")')
                         }
                         unique_id             = 'wmbusmeters_{id}_{attribute}'
                         state_topic           = 'wmbusmeters/{name}'
@@ -90,12 +143,13 @@ xsl:stylesheet(version                 = 1.0
                             xsl:value-of(select = $stateclass)
                         }
                         device_class  {
-                            xsl:value-of(select = $deviceclass)
+                            xsl:value-of(select = $fixdeviceclass)
                         }
                         enabled_by_default = true
                     }
                 }
             }
+            // We are done with the dynamic fields, now fix the static fields.
             timestamp {
                 component = sensor
                 discovery_payload {
@@ -146,8 +200,8 @@ xsl:stylesheet(version                 = 1.0
                     value_template      = '{{ value_json.{attribute} }}'
                     icon                = mdi:signal
                     unit_of_measurement = dBm
-                    device_class        = signal_strength
                     state_class         = measurement
+                    device_class        = signal_strength
                     enabled_by_default  = false
                 }
             }

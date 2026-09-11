@@ -1,12 +1,15 @@
 // Copyright (C) 2026 Fredrik Öhrström (gpl-3.0-or-later)
 driver {
-    name           = qheatv2
-    meter_type     = HeatMeter
-    default_fields = name,id,status,total_kwh,timestamp
-    manufacturer   = Qundis
+    name              = qheatv2
+    meter_type        = HeatMeter
+    default_fields    = name,id,status,total_kwh,timestamp
+    manufacturer      = Qundis
+    transform_payload = try_qundis_decode
     detect {
         mvt = QDS,23,04
         mvt = QDS,23,37
+        mvt = QDS,3c,04
+        mvt = QDS,3c,37
         mvt = QDS,3e,04
         mvt = QDS,3e,37
         mvt = QDS,46,04
@@ -186,7 +189,14 @@ driver {
             //   [7]   0x07     constant (possibly number of data records)
             //   [8]   0xC0     meter type: 0xB0=HCA, 0xC0=heat, 0xC1=warm/cold water
             // Byte [9] is the VIF (0x05/06/0D/0E = energy variants), which is matched below.
-            ixml = "decode = quad, quad, byte,
+            // The 9-byte header is validated against its fixed bytes ([0]=00, [1]=82,
+            // [3]=00, [4]=00, [7]=07, [8]=C0 heat) so that a block with an
+            // unexpected layout (e.g. an encrypted/non-walk-by payload that merely
+            // happens to carry the 0DFF5F difvifkey) fails closed instead of having
+            // total_*/target_*/energy_delta_* invented from the wrong offsets.
+            // Encrypted 2026 5.5-series blocks ([4]=0x35) are AES-128-CBC decrypted in
+            // the C++ layer before this grammar runs; see issue #1916 and #2025.
+            ixml = "decode = -'00', -'82', byte, -'00', -'00', byte, byte, -'07', -'C0',
                              (energy_100wh |
                               energy_1kwh |
                               energy_100kj |
@@ -362,13 +372,13 @@ driver {
         test {
             args     = 'QHeato qheatv2 67228058 NOKEY'
             telegram = 3C449344957002372337725880226793442304DC0000200C05043900004C0500000000426C9F2CCC080551070000C2086CBE29326CFFFF046D280DB62A
-            json     = '{"_": "telegram","device_error_date":null,"id": "67228058","media": "heat","meter": "qheatv2","meter_datetime": "2021-10-22 13:40","name": "QHeato","status": "OK","target_date": "2021-09-30","target_kwh": 75.1,"target_year_date": "2020-12-31","target_year_kwh": 0,"timestamp": "1111-11-11T11:11:11Z","total_kwh": 390.4}'
+            json     = '{"_": "telegram","device_error_date":null,"id": "67228058","media": "heat","driver": "qheatv2","meter_datetime": "2021-10-22 13:40","name": "QHeato","status": "OK","target_date": "2021-09-30","target_kwh": 75.1,"target_year_date": "2020-12-31","target_year_kwh": 0,"timestamp": "1111-11-11T11:11:11Z","total_kwh": 390.4}'
             fields   = 'QHeato;67228058;OK;390.4;1111-11-11 11:11.11'
         }
         test {
             args     = 'QQ1 qheatv2 68204641 NOKEY'
             telegram = 58449344414620684737780779414620689344470c0dff5f3500825a00000e0007c00dffff310803001f3c036800003e34310803000080008000800080008000800000931a92293128190c00002f02fd170000046d000f3235
-            json     = '{"_": "telegram","energy_delta_10_kwh":295.611111,"energy_delta_11_kwh":285.805556,"energy_delta_12_kwh":86.027778,"energy_delta_13_kwh":0,"energy_delta_2_kwh":-910.222222,"energy_delta_3_kwh":-910.222222,"energy_delta_4_kwh":-910.222222,"energy_delta_5_kwh":-910.222222,"energy_delta_6_kwh":-910.222222,"energy_delta_7_kwh":-910.222222,"energy_delta_8_kwh":0,"energy_delta_9_kwh":188.972222,"enhanced_id": "0C47449368204641","id": "68204641","media": "radio converter (meter side)","meter": "qheatv2","meter_datetime": "2025-05-18 15:00","name": "QQ1","status": "OK","target_date": "2025-04-30","target_kwh":856.416667,"target_year_date": "2024-12-31","target_year_kwh":188.972222,"timestamp": "1111-11-11T11:11:11Z","total_kwh": 856.416667}'
+            json     = '{"_": "telegram","energy_delta_10_kwh":295.611111,"energy_delta_11_kwh":285.805556,"energy_delta_12_kwh":86.027778,"energy_delta_13_kwh":0,"energy_delta_2_kwh":-910.222222,"energy_delta_3_kwh":-910.222222,"energy_delta_4_kwh":-910.222222,"energy_delta_5_kwh":-910.222222,"energy_delta_6_kwh":-910.222222,"energy_delta_7_kwh":-910.222222,"energy_delta_8_kwh":0,"energy_delta_9_kwh":188.972222,"enhanced_id": "0C47449368204641","id": "68204641","media": "radio converter (meter side)","driver": "qheatv2","meter_datetime": "2025-05-18 15:00","name": "QQ1","status": "OK","target_date": "2025-04-30","target_kwh":856.416667,"target_year_date": "2024-12-31","target_year_kwh":188.972222,"timestamp": "1111-11-11T11:11:11Z","total_kwh": 856.416667}'
             fields   = 'QQ1;68204641;OK;856.416667;1111-11-11 11:11.11'
         }
         test {
@@ -376,27 +386,34 @@ driver {
             comment  = 'Q AMR telegram sent every 7.5 minutes'
             comment  = 'Q Walk by telegram sent every 112 seconds'
             telegram = 414493444374266848377243742668934448042A000020_0C06140000004C0600000000426CFFFFCC080600000000C2086C3C3202FD170000326CFFFF046D190F3533
-            json     = '{"_": "telegram","device_error_date":null,"id": "68267443","media": "heat","meter": "qheatv2","meter_datetime": "2025-03-21 15:25","name": "QHeat55r","status": "OK","target_date": "2025-02-28","target_kwh": 0,"target_year_date":null,"target_year_kwh": 0,"timestamp": "1111-11-11T11:11:11Z","total_kwh": 14}'
+            json     = '{"_": "telegram","device_error_date":null,"id": "68267443","media": "heat","driver": "qheatv2","meter_datetime": "2025-03-21 15:25","name": "QHeat55r","status": "OK","target_date": "2025-02-28","target_kwh": 0,"target_year_date":null,"target_year_kwh": 0,"timestamp": "1111-11-11T11:11:11Z","total_kwh": 14}'
             fields   = 'QHeat55r;68267443;OK;14;1111-11-11 11:11.11'
         }
         test {
             args     = 'QHeat55r qheatv2 68267443 NOKEY'
             comment  = 'Q Walk by telegram sent every 112 seconds'
             telegram = 5844934443742668483778_077943742668934448040DFF5F3500822A0000610107C006FFFF14000000FFFF000000003C32000000000080008000800080008000800080008000800080008000002F02FD170000046D1B0F3533
-            json     = '{"_": "telegram","energy_delta_10_kwh":-32768,"energy_delta_11_kwh":-32768,"energy_delta_12_kwh":-32768,"energy_delta_13_kwh":0,"energy_delta_2_kwh":-32768,"energy_delta_3_kwh":-32768,"energy_delta_4_kwh":-32768,"energy_delta_5_kwh":-32768,"energy_delta_6_kwh":-32768,"energy_delta_7_kwh":-32768,"energy_delta_8_kwh":-32768,"energy_delta_9_kwh":-32768,"enhanced_id": "0448449368267443","id": "68267443","media": "radio converter (meter side)","meter": "qheatv2","meter_datetime": "2025-03-21 15:27","name": "QHeat55r","status": "OK","target_date": "2025-02-28","target_kwh": 0,"target_year_date":null,"target_year_kwh": 0,"timestamp": "1111-11-11T11:11:11Z","total_kwh": 14}'
+            json     = '{"_": "telegram","energy_delta_10_kwh":-32768,"energy_delta_11_kwh":-32768,"energy_delta_12_kwh":-32768,"energy_delta_13_kwh":0,"energy_delta_2_kwh":-32768,"energy_delta_3_kwh":-32768,"energy_delta_4_kwh":-32768,"energy_delta_5_kwh":-32768,"energy_delta_6_kwh":-32768,"energy_delta_7_kwh":-32768,"energy_delta_8_kwh":-32768,"energy_delta_9_kwh":-32768,"enhanced_id": "0448449368267443","id": "68267443","media": "radio converter (meter side)","driver": "qheatv2","meter_datetime": "2025-03-21 15:27","name": "QHeat55r","status": "OK","target_date": "2025-02-28","target_kwh": 0,"target_year_date":null,"target_year_kwh": 0,"timestamp": "1111-11-11T11:11:11Z","total_kwh": 14}'
             fields   = 'QHeat55r;68267443;OK;14;1111-11-11 11:11.11'
         }
         test {
             args     = 'QQA qheatv2 67958979 NOKEY'
             telegram = 58449344798995673E377807797989956793443E040DFF5F3500827D0000810007C006FFFF531100003F3C490900005F318010000083003C0022000B0000000000000000000A002B00510083002F02FD170000046D16085832
-            json     = '{"_": "telegram","energy_delta_10_kwh":10,"energy_delta_11_kwh":43,"energy_delta_12_kwh":81,"energy_delta_13_kwh":131,"energy_delta_2_kwh":131,"energy_delta_3_kwh":60,"energy_delta_4_kwh":34,"energy_delta_5_kwh":11,"energy_delta_6_kwh":0,"energy_delta_7_kwh":0,"energy_delta_8_kwh":0,"energy_delta_9_kwh":0,"enhanced_id": "043E449367958979","id": "67958979","media": "radio converter (meter side)","meter": "qheatv2","meter_datetime": "2026-02-24 08:22","name": "QQA","status": "OK","target_date": "2026-01-31","target_kwh":1080,"target_year_date": "2025-12-31","target_year_kwh":949,"timestamp": "1111-11-11T11:11:11Z","total_kwh": 1153}'
+            json     = '{"_": "telegram","energy_delta_10_kwh":10,"energy_delta_11_kwh":43,"energy_delta_12_kwh":81,"energy_delta_13_kwh":131,"energy_delta_2_kwh":131,"energy_delta_3_kwh":60,"energy_delta_4_kwh":34,"energy_delta_5_kwh":11,"energy_delta_6_kwh":0,"energy_delta_7_kwh":0,"energy_delta_8_kwh":0,"energy_delta_9_kwh":0,"enhanced_id": "043E449367958979","id": "67958979","media": "radio converter (meter side)","driver": "qheatv2","meter_datetime": "2026-02-24 08:22","name": "QQA","status": "OK","target_date": "2026-01-31","target_kwh":1080,"target_year_date": "2025-12-31","target_year_kwh":949,"timestamp": "1111-11-11T11:11:11Z","total_kwh": 1153}'
             fields   = 'QQA;67958979;OK;1153;1111-11-11 11:11.11'
         }
         test {
             args     = 'QQB qheatv2 67985890 NOKEY'
             telegram = 41449344905898673e37729058986793443e04120000200c06809300004c0678820000426c3f3ccc080636900000c2086c5f3102fd170000326cffff046d1d095832
-            json     = '{"_": "telegram","device_error_date":null,"id": "67985890","media": "heat","meter": "qheatv2","meter_datetime": "2026-02-24 09:29","name": "QQB","status": "OK","target_date": "2026-01-31","target_kwh": 9036,"target_year_date": "2025-12-31","target_year_kwh": 8278,"timestamp": "1111-11-11T11:11:11Z","total_kwh": 9380}'
+            json     = '{"_": "telegram","device_error_date":null,"id": "67985890","media": "heat","driver": "qheatv2","meter_datetime": "2026-02-24 09:29","name": "QQB","status": "OK","target_date": "2026-01-31","target_kwh": 9036,"target_year_date": "2025-12-31","target_year_kwh": 8278,"timestamp": "1111-11-11T11:11:11Z","total_kwh": 9380}'
             fields   = 'QQB;67985890;OK;9380;1111-11-11 11:11.11'
+        }
+        test {
+            args     = 'HeatEnc55 qheatv2 67918447 NOKEY'
+            comment  = 'Real encrypted Q heat 5.5 walk-by block (header byte[4]=0x35, from issue #1588) without a configured key: the grammar must fail closed and must not invent total_*/target_*/energy_delta_* values from the ciphertext. Only the trailing 046D meter_datetime record is real. See issues #1588/#2025.'
+            telegram = 58449344478491673C377807794784916793443C040DFF5F350082B40035F4E5CF5874D4A45106F8435DDA926DE66FE62E8ECCB25B199CCAE33C6B679AD69AC8629398ECDCB1DDB263EDA12137EA02FD170000046D080F4333
+            json     = '{"_": "telegram","enhanced_id": "043C449367918447","id": "67918447","media": "radio converter (meter side)","driver": "qheatv2","meter_datetime": "2026-03-03 15:08","name": "HeatEnc55","status": "OK","timestamp": "1111-11-11T11:11:11Z"}'
+            fields   = 'HeatEnc55;67918447;OK;null;1111-11-11 11:11.11'
         }
     }
 }

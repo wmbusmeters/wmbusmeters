@@ -23,6 +23,7 @@
 #include"manufacturers.h"
 #include"manufacturer_specificities.h"
 #include"meters.h"
+#include"wmbus_utils.h"
 
 using namespace std;
 
@@ -381,4 +382,72 @@ void qdsExtractWalkByField(Telegram *t, Meter *driver, DVEntry &mfctEntry, int p
     string info = "*** " + bytes + " (" + fieldInfo->renderJson(driver, &fieldEntry) + ")";
 
     t->addSpecialExplanation(mfctEntry.offset + pos / 2, n / 2, KindOfData::CONTENT, Understanding::FULL, info.c_str());
+}
+
+// Decode the AES-128-CBC encrypted Qundis WalkByDataSet body in-place inside
+// the hex string `value` (the 0DFF5F mfct block content as a hex string).
+// The 9-byte proprietary header is plaintext; bytes[5..] are cipher.
+// Returns true if the body was decrypted, false if the block is not an
+// encrypted WalkByDataSet (no key, not 0x82/0x35, or too short) — in which
+// case `value` is left untouched and the caller parses it as-is.
+bool tryDecodeQundisWalkByAes(Telegram *t, string *value)
+{
+    // `value` is a hex string; byte N occupies string positions 2*N..2*N+1.
+    // The WalkByDataSet block starts with
+    //   [0]=00 [1]=82(magic) [2]=access [3]=00 [4]=00(plaintext)|0x35(encrypted) ...
+    if (value->size() < 18) return false;             // need at least the 5-byte header
+    if ((*value)[0] != '0' || (*value)[1] != '0') return false;   // [0] != 00
+    if ((*value)[2] != '8' || (*value)[3] != '2') return false;   // [1] != 82 magic
+    if ((*value)[8] != '3' || (*value)[9] != '5') return false;   // [4] != 0x35 encrypted marker
+
+    Meter *meter = t->meter;
+    MeterKeys *keys = meter ? meter->meterKeys() : NULL;
+    if (keys == NULL || keys->confidentiality_key.size() != 16)
+    {
+        // No meter key configured: leave the encrypted block untouched. The ixml
+        // grammar's header guard (PR #2070) then fails closed on the encrypted
+        // header, so no garbage values are published.
+        return false;
+    }
+
+    // Header byte[2] (string positions 4..5) is the rolling access counter;
+    // CI=0x78 frames have no TPL header, so it is the Mode-5 IV's ACC.
+    string acc_hex = value->substr(4, 2);
+    vector<uchar> acc_bytes;
+    if (!hex2bin(acc_hex, &acc_bytes) || acc_bytes.size() != 1) return false;
+    t->tpl_acc = acc_bytes[0];
+
+    // The cipher is bytes[5..] of the block = chars 10.. of the hex string.
+    string cipher_hex = value->substr(10);
+    vector<uchar> frame;
+    if (!hex2bin(cipher_hex, &frame)) return false;
+    if (frame.empty() || (frame.size() % 16) != 0)
+    {
+        // AES-128-CBC requires a whole number of 16-byte blocks.
+        return false;
+    }
+
+    vector<uchar>::iterator pos = frame.begin();
+    vector<uchar> aes_key = keys->confidentiality_key;
+    int num_encrypted_bytes = 0;
+    int num_not_encrypted_at_end = 0;
+
+    bool ok = decrypt_TPL_AES_CBC_IV(t, frame, pos, aes_key,
+                                     &num_encrypted_bytes, &num_not_encrypted_at_end);
+    if (!ok) return false;
+
+    // Reassemble: keep the 9-byte plaintext header (chars 0..9) + the decrypted
+    // body, dropping any trailing unencrypted bytes that decrypt_TPL_AES_CBC_IV
+    // reported at the end (none expected for a full 48-byte body, but be safe).
+    string decrypted_hex = bin2hex(frame);
+    if (num_not_encrypted_at_end > 0)
+    {
+        size_t keep = decrypted_hex.size() - (size_t)num_not_encrypted_at_end * 2;
+        decrypted_hex = decrypted_hex.substr(0, keep);
+    }
+    // After a successful decrypt the block follows the legacy plaintext layout,
+    // where content byte[4] is 0x00. Keep the header but normalize the encrypted
+    // marker (0x35) to 0x00 so the (guarded) ixml grammar accepts the value.
+    *value = value->substr(0, 8) + "00" + decrypted_hex;
+    return true;
 }

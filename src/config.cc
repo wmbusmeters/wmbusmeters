@@ -362,18 +362,37 @@ void handleIgnoreDuplicateTelegrams(Configuration *c, string value)
     }
 }
 
-void handleDetailedFirst(Configuration *c, string value)
+void handleTelegramDetails(Configuration *c, string value)
+{
+    if (value == "never")
+    {
+        c->telegram_details = TelegramDetails::NEVER;
+    }
+    else if (value == "first")
+    {
+        c->telegram_details = TelegramDetails::FIRST;
+    }
+    else if (value == "always")
+    {
+        c->telegram_details = TelegramDetails::ALWAYS;
+    }
+    else {
+        warning("telegramdetails should be either never,first or always, not \"%s\"\n", value.c_str());
+    }
+}
+
+void handleAddTelegramHex(Configuration *c, string value)
 {
     if (value == "true")
     {
-        c->detailed_first = true;
+        c->add_telegram_hex = true;
     }
     else if (value == "false")
     {
-        c->detailed_first = false;
+        c->add_telegram_hex = false;
     }
     else {
-        warning("detailedfirst should be either true or false, not \"%s\"\n", value.c_str());
+        warning("addtelegramhex should be either true or false, not \"%s\"\n", value.c_str());
     }
 }
 
@@ -636,21 +655,31 @@ void handleLogfile(Configuration *c, string logfile)
 
 void handleFormat(Configuration *c, string format)
 {
+    c->output_format = XMQ_CONTENT_UNKNOWN;
+    c->fields = false;
     if (format == "hr")
     {
-        c->json = false;
-        c->fields = false;
-    } else if (format == "json")
+        c->separator = '\t';
+    }
+    else if (format == "json")
     {
-        c->json = true;
-        c->fields = false;
+        c->output_format = XMQ_CONTENT_JSON;
+    }
+    else if (format == "xml")
+    {
+        c->output_format = XMQ_CONTENT_XML;
+    }
+    else if (format == "xmq")
+    {
+        c->output_format = XMQ_CONTENT_XMQ;
     }
     else if (format == "fields")
     {
-        c->json = false;
         c->fields = true;
         c->separator = ';';
-    } else {
+    }
+    else
+    {
         warning("Unknown output format: \"%s\"\n", format.c_str());
     }
 }
@@ -753,7 +782,7 @@ shared_ptr<Configuration> loadConfiguration(string root, ConfigOverrides overrid
     Configuration *c = new Configuration;
 
     // JSon is default when configuring from config files.
-    c->json = true;
+    c->output_format = XMQ_CONTENT_JSON;
 
     vector<char> global_conf;
 
@@ -797,7 +826,8 @@ shared_ptr<Configuration> loadConfiguration(string root, ConfigOverrides overrid
         else if (p.first == "nonet") handleNoNet(c, p.second);
         else if (p.first == "basicauth") handleBasicAuth(c, p.second);
         else if (p.first == "ignoreduplicates") handleIgnoreDuplicateTelegrams(c, p.second);
-        else if (p.first == "detailedfirst") handleDetailedFirst(c, p.second);
+        else if (p.first == "telegramdetails") handleTelegramDetails(c, p.second);
+        else if (p.first == "addtelegramhex") handleAddTelegramHex(c, p.second);
         else if (p.first == "device") handleDeviceOrHex(c, p.second);
         else if (p.first == "donotprobe") handleDoNotProbe(c, p.second);
         else if (p.first == "listento") handleListenTo(c, p.second);

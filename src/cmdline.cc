@@ -329,9 +329,17 @@ static shared_ptr<Configuration> parseNormalCommandLine(Configuration *c, int ar
             i++;
             continue;
         }
-        if (!strcmp(argv[i], "--ppjson"))
+        if (!strcmp(argv[i], "--ppjson") ||
+            !strcmp(argv[i], "-p"))
         {
-            c->pretty_print_json = true;
+            c->pretty_print_output = true;
+            i++;
+            continue;
+        }
+        if (!strcmp(argv[i], "--colorize") ||
+            !strcmp(argv[i], "-c"))
+        {
+            c->colorize_output = true;
             i++;
             continue;
         }
@@ -339,20 +347,29 @@ static shared_ptr<Configuration> parseNormalCommandLine(Configuration *c, int ar
         {
             if (!strcmp(argv[i]+9, "json"))
             {
-                c->json = true;
+                c->output_format = XMQ_CONTENT_JSON;
                 c->fields = false;
             }
-            else
-            if (!strcmp(argv[i]+9, "fields"))
+            else if (!strcmp(argv[i]+9, "xml"))
             {
-                c->json = false;
+                c->output_format = XMQ_CONTENT_XML;
+                c->fields = false;
+            }
+            else if (!strcmp(argv[i]+9, "xmq"))
+            {
+                c->output_format = XMQ_CONTENT_XMQ;
+                c->fields = false;
+            }
+            else if (!strcmp(argv[i]+9, "fields"))
+            {
+                c->output_format = XMQ_CONTENT_UNKNOWN;
                 c->fields = true;
                 c->separator = ';';
             }
             else
             if (!strcmp(argv[i]+9, "hr"))
             {
-                c->json = false;
+                c->output_format = XMQ_CONTENT_UNKNOWN;
                 c->fields = false;
                 c->separator = '\t';
             }
@@ -517,13 +534,46 @@ static shared_ptr<Configuration> parseNormalCommandLine(Configuration *c, int ar
             i++;
             continue;
         }
-        if (!strncmp(argv[i], "--usestdoutforlogging", 13)) {
+        if (!strcmp(argv[i], "--usestdoutforlogging")) {
             c->use_stderr_for_log = false;
             i++;
             continue;
         }
-        if (!strcmp(argv[i], "--detailedfirst")) {
-            c->detailed_first = true;
+        if (!strncmp(argv[i], "--telegramdetails=", 18)) {
+            if (!strcmp(argv[i]+18, "never")) {
+                c->telegram_details = TelegramDetails::NEVER;
+            }
+            else if (!strcmp(argv[i]+18, "first")) {
+                c->telegram_details = TelegramDetails::FIRST;
+            }
+            else if (!strcmp(argv[i]+18, "always")) {
+                c->telegram_details = TelegramDetails::ALWAYS;
+            } else {
+                error(EXIT_USAGE_ERROR, "No such telegramdetails %s\n", argv[i]+18);
+            }
+            i++;
+            continue;
+        }
+        if (!strncmp(argv[i], "--addtelegramhex", 16)) {
+            if (argv[i][16] == 0)
+            {
+                c->add_telegram_hex = true;
+            }
+            else
+            {
+                if (!strcmp(argv[i]+16, "=true"))
+                {
+                    c->add_telegram_hex = true;
+                }
+                else if (!strcmp(argv[i]+16, "=false"))
+                {
+                    c->add_telegram_hex = false;
+                }
+                else
+                {
+                    error(EXIT_USAGE_ERROR, "You must specify true or false after --addtelegramhex=\n");
+                }
+            }
             i++;
             continue;
         }

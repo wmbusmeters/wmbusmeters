@@ -1,3 +1,38 @@
+
+ATTENTION! Breaking change the field "meter":"kamwater" is now renamed to
+"driver":"kamwater". The meter field name is just confusing since it has not been
+correlated to the meter type since 2019. Hopefully very few users actually
+make use of this field.
+
+ATTENTION! The auto-detect of the emh meter was moved from the nzr driver
+to the ehzp driver. Not sure what it was doing in the nzr driver since
+there ware no test cases in that driver for an emh meter.
+
+Added --telegramdetails=[never|first||always]
+this option will in the json add details about the quantity, unit and info(help) information
+for each field. This will be used to automatically generate the discovery messages
+for HA.
+
+Added --addtelegramhex=[true|false]
+add "hex": "...." with the (decrypted) telegram received.
+Useful for debugging.
+
+Cleaned up some AI generated code that duplicated functionality over
+wmbus_xmqtty.cc and wmbus_socket.cc Common code for these are now
+in command_handler.cc
+
+Improved aquastream driver.
+Handle too short qheat telegram when forced analyzed=qheat.
+Detect too short izar telegrams and fail gracefull instead of allocation exception.
+
+Hynek Moravec improved the drivers: kadenwater, q400, hydroclimav2, caltose, picoflux. Thanks Hynek!
+Bartosz Bbiegun improved the ista driver. Thanks Bartosz!
+Christoph Gommel improved the ultraheat driver. Thanks Christoph!
+Jan Kundrát improved the kamheat and kamwater drivers. Thanks Jan!
+Aras Abbasi created a great AGENTS.md which deserves to be read by human developers too! Thanks Aras!
+Timur Saitov improved the emerlin868 driver. Thanks Timur!
+bartman081523 fixed type G date decoding where 0xffff decodes to null. Thanks!
+
 Version 3.0.0 2026-06-17
 Version 3.0.0-RC1 2026-06-17
 

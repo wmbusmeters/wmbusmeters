@@ -1,0 +1,95 @@
+{
+  "max_flow_m3h": {
+    "component": "sensor",
+    "discovery_payload": {
+      "device": {
+        "identifiers": [
+          "wmbusmeters_{id}"
+        ],
+        "manufacturer": "Sensus",
+        "model": "Sensus iPERL",
+        "name": "{name}",
+        "hw_version": "{id}"
+      },
+      "name": "max flow",
+      "unique_id": "wmbusmeters_{id}_{attribute}",
+      "state_topic": "wmbusmeters/{name}",
+      "value_template": "{{ value_json.{attribute} }}",
+      "json_attributes_topic": "wmbusmeters/{name}",
+      "icon": "mdi:gauge",
+      "unit_of_measurement": "m³/h",
+      "state_class": "measurement",
+      "device_class": "volume_flow_rate",
+      "enabled_by_default": true
+    }
+  },
+  "total_m3": {
+    "component": "sensor",
+    "discovery_payload": {
+      "device": {
+        "identifiers": [
+          "wmbusmeters_{id}"
+        ],
+        "manufacturer": "Sensus",
+        "model": "Sensus iPERL",
+        "name": "{name}",
+        "hw_version": "{id}"
+      },
+      "name": "total",
+      "unique_id": "wmbusmeters_{id}_{attribute}",
+      "state_topic": "wmbusmeters/{name}",
+      "value_template": "{{ value_json.{attribute} }}",
+      "json_attributes_topic": "wmbusmeters/{name}",
+      "icon": "mdi:gauge",
+      "unit_of_measurement": "m³",
+      "state_class": "total_increasing",
+      "device_class": "water",
+      "enabled_by_default": true
+    }
+  },
+  "timestamp": {
+    "component": "sensor",
+    "discovery_payload": {
+      "device": {
+        "identifiers": [
+          "wmbusmeters_{id}"
+        ],
+        "manufacturer": "Sensus",
+        "model": "Sensus iPERL",
+        "name": "{name}",
+        "hw_version": "{id}"
+      },
+      "entity_category": "diagnostic",
+      "name": "timestamp",
+      "unique_id": "wmbusmeters_{id}_{attribute}",
+      "state_topic": "wmbusmeters/{name}",
+      "value_template": "{{ value_json.{attribute} }}",
+      "icon": "mdi:calendar-clock",
+      "enabled_by_default": false
+    }
+  },
+  "rssi_dbm": {
+    "component": "sensor",
+    "discovery_payload": {
+      "device": {
+        "identifiers": [
+          "wmbusmeters_{id}"
+        ],
+        "manufacturer": "Sensus",
+        "model": "Sensus iPERL",
+        "name": "{name}",
+        "hw_version": "{id}"
+      },
+      "entity_category": "diagnostic",
+      "name": "rssi",
+      "unique_id": "wmbusmeters_{id}_{attribute}",
+      "state_topic": "wmbusmeters/{name}",
+      "value_template": "{{ value_json.{attribute} }}",
+      "icon": "mdi:signal",
+      "unit_of_measurement": "dBm",
+      "state_class": "measurement",
+      "device_class": "signal_strength",
+      "enabled_by_default": false
+    }
+  }
+}

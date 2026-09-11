@@ -10,6 +10,9 @@
 #define LINK_MODE_CT 3
 #define LINK_MODE_C 5
 #define LINK_MODE_ENHANCED_T 6
+#define LINK_MODE_CUSTOM_CT 7
+
+uchar setupIMSTBusDeviceToReceiveTelegrams(LinkModeSet lms);
 
 #define DEVMGMT_MSG_PING_REQ 0x01
 #define DEVMGMT_MSG_PING_RSP 0x02
