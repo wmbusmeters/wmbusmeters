@@ -95,8 +95,8 @@ cat <<EOF | sort > $TEST/test_expected.txt
               max_power_consumption_kw  The maximum demand indicator (maximum 15-min average power consumption recorded this month).
  total_reactive_energy_inductive_kvarh  The total inductive reactive energy recorded by this meter.
 total_reactive_energy_capacitive_kvarh  The total capacitive reactive energy recorded by this meter.
- reactive_power_inductive_kvar  Current inductive reactive power.
-reactive_power_capacitive_kvar  Current capacitive reactive power.
+         reactive_power_inductive_kvar  Current inductive reactive power.
+        reactive_power_capacitive_kvar  Current capacitive reactive power.
 EOF
 
 if [ "$?" = "0" ]
