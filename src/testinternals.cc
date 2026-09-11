@@ -2748,7 +2748,7 @@ void test_formulas_building_meters()
         assert(lookupDriverInfo("multical21"));
         mi.parse("testur", "multical21", "12345678", "");
         shared_ptr<Meter> meter = createMeter(&mi);
-        FieldInfo *fi_flow = meter->findFieldInfo("min_flow_temperature_last_month_", Quantity::Temperature);
+        FieldInfo *fi_flow = meter->findFieldInfo("min_flow_temperature_last_month", Quantity::Temperature);
         FieldInfo *fi_ext = meter->findFieldInfo("min_external_temperature_last_month", Quantity::Temperature);
         assert(fi_flow != NULL);
         assert(fi_ext != NULL);
