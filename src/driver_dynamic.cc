@@ -24,6 +24,8 @@
 
 #include"crypto/crc16.h"
 
+#include"utils/fs.h"
+
 #include<assert.h>
 #include<string.h>
 
@@ -44,10 +46,11 @@ bool check_field_match_entire_frame(const char *mef, DriverDynamic *dd);
 string check_field_info(const char *info, DriverDynamic *dd);
 ReadableString check_field_readable_string(const char *rs_s, DriverDynamic *dd);
 Quantity check_field_quantity(const char *quantity_s, DriverDynamic *dd);
+Change check_field_change(const char *change_s, DriverDynamic *dd);
 VifScaling check_vif_scaling(const char *vif_scaling_s, DriverDynamic *dd);
 DifSignedness check_dif_signedness(const char *dif_signedness_s, DriverDynamic *dd);
 PrintProperties check_print_properties(const char *print_properties_s, DriverDynamic *dd);
-string get_translation(XMQDoc *doc, XMQNodePtr node, string name, string lang);
+string get_translation(XMQDoc *doc, XMQNode *node, string name, string lang);
 string check_calculate(const char *formula, DriverDynamic *dd);
 Unit check_display_unit(const char *display_unit, DriverDynamic *dd);
 double check_force_scale(const char *force_scale, DriverDynamic *dd);
@@ -77,7 +80,9 @@ bool DriverDynamic::load(DriverInfo *di, const string &file_name, const char *co
     }
 
     string file = file_name;
-    XMQDoc *doc = xmqNewDoc();
+    XMQReturnDoc rd = xmqNewDoc();
+    assert(rd.status == XMQ_OK);
+    XMQDoc *doc = rd.doc;
 
     bool ok = false;
 
@@ -166,9 +171,31 @@ DriverDynamic::DriverDynamic(MeterInfo &mi, DriverInfo &di) :
                 fileName().c_str());
 
         const char *transform_payload_s = xmqGetString(doc, "/driver/transform_payload");
-        if (transform_payload_s && string(transform_payload_s) == "diehl_prios")
+        if (transform_payload_s)
         {
-            setDiehlPriosDecode(true);
+            if (string(transform_payload_s) == "diehl_prios")
+            {
+                setDiehlPriosDecode(true);
+            }
+            else if (string(transform_payload_s) == "try_qundis_decode")
+            {
+                setTryQundisDecode(true);
+            }
+            else if (transform_payload_s && string(transform_payload_s) == "buggy_sanxing_609B")
+            {
+                // Opt-in only: permits the non-standard 0x609B decrypt-check marker (see
+                // Telegram::potentiallyDecrypt in wmbus.cc) for meters using this driver,
+                // same shape as the diehl_prios hook above.
+                setBuggySanxing609BDecode(true);
+            }
+            else
+            {
+                warning("(driver) error in %s, transform_payload cannot be %s\n"
+                        "Allowed values are diehl_prios, try_qundis_decode and sanxing_6098.\n",
+                        file_name_.c_str(),
+                        transform_payload_s);
+                throw 1;
+            }
         }
 
         xmqForeach(doc, "/driver/library/use", (XMQNodeCallback)add_use, this);
@@ -197,7 +224,7 @@ DriverDynamic::~DriverDynamic()
 {
 }
 
-XMQProceed DriverDynamic::add_detect(XMQDoc *doc, XMQNodePtr detect, DriverInfo *di)
+XMQProceed DriverDynamic::add_detect(XMQDoc *doc, XMQNode *detect, DriverInfo *di)
 {
     string mvt = xmqGetStringRel(doc, ".", detect);
 
@@ -297,7 +324,7 @@ XMQProceed DriverDynamic::add_detect(XMQDoc *doc, XMQNodePtr detect, DriverInfo 
     return XMQ_CONTINUE;
 }
 
-XMQProceed DriverDynamic::add_compact_frame_format(XMQDoc *doc, XMQNodePtr node, DriverInfo *di)
+XMQProceed DriverDynamic::add_compact_frame_format(XMQDoc *doc, XMQNode *node, DriverInfo *di)
 {
     const char *difvif_s = xmqGetStringRel(doc, ".", node);
 
@@ -317,7 +344,7 @@ XMQProceed DriverDynamic::add_compact_frame_format(XMQDoc *doc, XMQNodePtr node,
     return XMQ_CONTINUE;
 }
 
-XMQProceed DriverDynamic::add_use(XMQDoc *doc, XMQNodePtr field, DriverDynamic *dd)
+XMQProceed DriverDynamic::add_use(XMQDoc *doc, XMQNode *field, DriverDynamic *dd)
 {
     string name = xmqGetStringRel(doc, ".", field);
     bool ok = dd->addOptionalLibraryFields(name);
@@ -331,13 +358,17 @@ XMQProceed DriverDynamic::add_use(XMQDoc *doc, XMQNodePtr field, DriverDynamic *
     return XMQ_CONTINUE;
 }
 
-XMQProceed DriverDynamic::add_field(XMQDoc *doc, XMQNodePtr field, DriverDynamic *dd)
+XMQProceed DriverDynamic::add_field(XMQDoc *doc, XMQNode *field, DriverDynamic *dd)
 {
     // The field name must be supplied without a unit ie total (not total_m3) since units are managed by wmbusmeters.
     string name = check_field_name(xmqGetStringRel(doc, "name", field), dd);
 
     // The quantity ie Volume, gives the default unit (m3) for the field. The unit can be overriden with display_unit.
     Quantity quantity = check_field_quantity(xmqGetStringRel(doc, "quantity", field), dd);
+
+    // The change is instant, cumulative or increasing. This setting provides extra knowledge about the field
+    // which cannot be deduced from the difvif keys.
+    Change change = check_field_change(xmqGetStringRel(doc, "change", field), dd);
 
     // Text fields are either version strings or lookups from status bits.
     // All other fields are numeric, ie they have a unit. This also includes date and datetime.
@@ -532,6 +563,7 @@ XMQProceed DriverDynamic::add_field(XMQDoc *doc, XMQNodePtr field, DriverDynamic
                     );
             }
         }
+        dd->lastAddedField()->setChange(change);
     }
     else
     {
@@ -572,7 +604,7 @@ XMQProceed DriverDynamic::add_field(XMQDoc *doc, XMQNodePtr field, DriverDynamic
     return XMQ_CONTINUE;
 }
 
-XMQProceed DriverDynamic::add_match(XMQDoc *doc, XMQNodePtr match, DriverDynamic *dd)
+XMQProceed DriverDynamic::add_match(XMQDoc *doc, XMQNode *match, DriverDynamic *dd)
 {
     FieldMatcher *fm = dd->tmp_matcher_;
 
@@ -593,7 +625,7 @@ XMQProceed DriverDynamic::add_match(XMQDoc *doc, XMQNodePtr match, DriverDynamic
     return XMQ_CONTINUE;
 }
 
-XMQProceed DriverDynamic::add_combinable(XMQDoc *doc, XMQNodePtr match, DriverDynamic *dd)
+XMQProceed DriverDynamic::add_combinable(XMQDoc *doc, XMQNode *match, DriverDynamic *dd)
 {
     FieldMatcher *fm = dd->tmp_matcher_;
 
@@ -602,7 +634,7 @@ XMQProceed DriverDynamic::add_combinable(XMQDoc *doc, XMQNodePtr match, DriverDy
     return XMQ_CONTINUE;
 }
 
-XMQProceed DriverDynamic::add_combinable_raw(XMQDoc *doc, XMQNodePtr match, DriverDynamic *dd)
+XMQProceed DriverDynamic::add_combinable_raw(XMQDoc *doc, XMQNode *match, DriverDynamic *dd)
 {
     FieldMatcher *fm = dd->tmp_matcher_;
 
@@ -622,7 +654,7 @@ XMQProceed DriverDynamic::add_combinable_raw(XMQDoc *doc, XMQNodePtr match, Driv
        test  = set
    }
 */
-XMQProceed DriverDynamic::add_map(XMQDoc *doc, XMQNodePtr map, DriverDynamic *dd)
+XMQProceed DriverDynamic::add_map(XMQDoc *doc, XMQNode *map, DriverDynamic *dd)
 {
     const char *name = xmqGetStringRel(doc, "name", map);
     uint64_t value = 0;
@@ -657,7 +689,7 @@ XMQProceed DriverDynamic::add_map(XMQDoc *doc, XMQNodePtr map, DriverDynamic *dd
         map { } map {}
     }
 */
-XMQProceed DriverDynamic::add_lookup(XMQDoc *doc, XMQNodePtr lookup, DriverDynamic *dd)
+XMQProceed DriverDynamic::add_lookup(XMQDoc *doc, XMQNode *lookup, DriverDynamic *dd)
 {
     const char *name = xmqGetStringRel(doc, "name", lookup);
     Translate::MapType map_type = checked_map_type(xmqGetStringRel(doc, "map_type", lookup), dd);
@@ -679,7 +711,7 @@ XMQProceed DriverDynamic::add_lookup(XMQDoc *doc, XMQNodePtr lookup, DriverDynam
     return XMQ_CONTINUE;
 }
 
-XMQProceed DriverDynamic::add_mfct_tpl_status_map(XMQDoc *doc, XMQNodePtr map, Translate::Rule *rule)
+XMQProceed DriverDynamic::add_mfct_tpl_status_map(XMQDoc *doc, XMQNode *map, Translate::Rule *rule)
 {
     const char *name = xmqGetStringRel(doc, "name", map);
     const char *value_s = xmqGetStringRel(doc, "value", map);
@@ -695,7 +727,7 @@ XMQProceed DriverDynamic::add_mfct_tpl_status_map(XMQDoc *doc, XMQNodePtr map, T
     return XMQ_CONTINUE;
 }
 
-XMQProceed DriverDynamic::add_mfct_tpl_status(XMQDoc *doc, XMQNodePtr node, DriverInfo *di)
+XMQProceed DriverDynamic::add_mfct_tpl_status(XMQDoc *doc, XMQNode *node, DriverInfo *di)
 {
     const char *mask_bits_s = xmqGetStringRel(doc, "mask_bits", node);
     const char *default_message = xmqGetStringRel(doc, "default_message", node);
@@ -716,7 +748,7 @@ XMQProceed DriverDynamic::add_mfct_tpl_status(XMQDoc *doc, XMQNodePtr node, Driv
     return XMQ_CONTINUE;
 }
 
-XMQProceed DriverDynamic::add_default_key(XMQDoc *doc, XMQNodePtr node, DriverInfo *di)
+XMQProceed DriverDynamic::add_default_key(XMQDoc *doc, XMQNode *node, DriverInfo *di)
 {
     const char *key_s = xmqGetStringRel(doc, ".", node);
     if (!key_s) return XMQ_CONTINUE;
@@ -988,6 +1020,32 @@ Quantity check_field_quantity(const char *quantity_s, DriverDynamic *dd)
     return quantity;
 }
 
+Change check_field_change(const char *change_s, DriverDynamic *dd)
+{
+    if (!change_s)
+    {
+        // It is permitted not to have a change setting for backwards compatibility reasons.
+        return Change::Instant;
+    }
+
+    Change change = toChange(change_s);
+
+    if (change == Change::Unknown)
+    {
+        warning("(driver) error in %s, bad change: %s\n"
+                "%s\n"
+                "Available change:\n"
+                "Instant    (Sample of the current value, eg temperature or power.)\n"
+                "Net        (Net balance of imported/exported energy.)\n"
+                "Increasing (Total water consumption always increasing unless reset.\n",
+                dd->fileName().c_str(),
+                change_s);
+        throw 1;
+    }
+
+    return change;
+}
+
 ReadableString check_field_readable_string(const char *rs_s, DriverDynamic *dd)
 {
     if (!rs_s) return ReadableString::Unknown;
@@ -1081,7 +1139,7 @@ PrintProperties check_print_properties(const char *print_properties_s, DriverDyn
     return print_properties;
 }
 
-string get_translation(XMQDoc *doc, XMQNodePtr node, string name, string lang)
+string get_translation(XMQDoc *doc, XMQNode *node, string name, string lang)
 {
     string xpath = name+"/"+lang;
     const char *txt = xmqGetStringRel(doc, xpath.c_str(), node);

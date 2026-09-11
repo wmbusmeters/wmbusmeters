@@ -902,3 +902,19 @@ LIST_OF_UNITS
     available_units_[strlen(available_units_)-1] = 0;
     return available_units_;
 }
+
+Change toChange(string s)
+{
+    if (s == "Instant") return Change::Instant;
+    if (s == "Net") return Change::Net;
+    if (s == "Increasing") return Change::Increasing;
+    return Change::Unknown;
+}
+
+const char *toString(Change c)
+{
+    if (c == Change::Instant) return "Instant";
+    if (c == Change::Net) return "Net";
+    if (c == Change::Increasing) return "Increasing";
+    return "?";
+}

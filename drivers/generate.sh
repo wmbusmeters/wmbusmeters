@@ -29,7 +29,7 @@ EOF
         s/\(([0-9]{4})-\1\)/(\1)/
     ' \
     | grep -v Öhrström \
-    | sort -ru \
+    | LC_ALL=C sort -ru \
     | sed 's/^/ /' \
 | sed -E '
     s/^( *Copyright \(C\)) ([0-9]{4}-[0-9]{4}) /\1 \2 /

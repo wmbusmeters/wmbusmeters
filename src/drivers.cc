@@ -26,6 +26,8 @@
 #include"meters.h"
 #include"util.h"
 
+#include "utils/fs.h"
+
 using namespace std;
 
 void loadDriversFromDir(std::string dir)

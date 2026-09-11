@@ -338,6 +338,8 @@ struct FieldInfo
     std::string renderJsonOnlyDefaultUnit(Meter *m);
     std::string renderJson(Meter *m, DVEntry *dve);
     std::string renderJsonText(Meter *m, DVEntry *dve);
+    void insertNumericValuesIntoDoc(Meter *m, DVEntry *dve, XMQDoc *doc, XMQNode *telegram, XMQNode *details);
+    void insertStringValuesIntoDoc(Meter *m, Telegram *t, DVEntry *dve, XMQDoc *doc, XMQNode *telegram, XMQNode *details);
     // Render the field name based on the actual field from the telegram.
     // A FieldInfo can be declared to handle any number of storage fields of a certain range.
     // The vname is then a pattern total_at_month_{storage_counter} that gets translated into
@@ -368,6 +370,8 @@ struct FieldInfo
     void setNullValue(double nv) { has_null_value_ = true; null_value_ = nv; }
     bool hasNullValue() { return has_null_value_; }
     double nullValue() { return null_value_; }
+    void setChange(Change c) { change_ = c; }
+    Change getChange() { return change_; }
     void setTPLAESCBCIVPayloadTransform(int payload_offset, int payload_length, int tpl_acc_offset)
     {
         has_tpl_aes_cbc_iv_payload_transform_ = true;
@@ -382,6 +386,7 @@ private:
     int index_; // The field infos for a meter are ordered.
     std::string vname_; // Value name, like: total current previous target, ie no unit suffix.
     Quantity xuantity_; // Quantity: Energy, Volume
+    Change  change_ {}; // Instant, Net, Increasing defaults to Instant.
     Unit display_unit_; // Selected display unit for above quantity: KWH, M3
     VifScaling vif_scaling_;
     DifSignedness dif_signedness_;
@@ -476,6 +481,7 @@ struct Meter
     virtual void setStringValue(std::string vname, std::string v, DVEntry *dve = NULL) = 0;
     virtual std::string getStringValue(FieldInfo *fi) = 0;
     virtual std::string decodeTPLStatusByte(uchar sts) = 0;
+    virtual std::string getStatusField(FieldInfo *fi) = 0;
 
     virtual void onUpdate(std::function<void(Telegram*t,Meter*)> cb) = 0;
     virtual int numUpdates() = 0;
@@ -485,12 +491,12 @@ struct Meter
                                 std::vector<std::string> *more_json) = 0;
     virtual void printMeter(Telegram *t,
                             std::string *human_readable,
-                            std::string *fields, char separator,
-                            std::string *json,
+                            std::string *fields,
+                            char separator,
                             std::vector<std::string> *envs,
                             std::vector<std::string> *more_json,
                             std::vector<std::string> *selected_fields,
-                            bool pretty_print_json) = 0;
+                            XMQDoc *doc) = 0;
 
     // The handleTelegram expects an input_frame where the DLL crcs have been removed.
     // Returns true of this meter handled this telegram!

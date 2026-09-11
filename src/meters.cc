@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2017-2023 Fredrik Öhrström (gpl-3.0-or-later)
+ Copyright (C) 2017-2026 Fredrik Öhrström (gpl-3.0-or-later)
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -23,12 +23,14 @@
 #include"meters.h"
 #include"meters_common_implementation.h"
 #include"units.h"
+#include"utils/doc.h"
 #include"wmbus.h"
 #include"wmbus_utils.h"
 
 #include"crypto/crc16.h"
 
 #include"utils/download.h"
+#include"utils/fs.h"
 
 #include<assert.h>
 #include<algorithm>
@@ -207,7 +209,7 @@ bool staticRegisterDriver(function<void(DriverInfo&)> setup)
     return true;
 }
 
-static XMQProceed collect_mvt_cb(XMQDoc *doc, XMQNodePtr node, vector<MVT> *mvts)
+static XMQProceed collect_mvt_cb(XMQDoc *doc, XMQNode *node, vector<MVT> *mvts)
 {
     string mvt_s = xmqGetStringRel(doc, ".", node);
     auto fields = splitString(mvt_s, ',');
@@ -231,7 +233,7 @@ static XMQProceed collect_mvt_cb(XMQDoc *doc, XMQNodePtr node, vector<MVT> *mvts
 
 struct RegisterCFFContext { vector<MVT> *mvts; };
 
-static XMQProceed register_compact_frame_format_cb(XMQDoc *doc, XMQNodePtr node, RegisterCFFContext *ctx)
+static XMQProceed register_compact_frame_format_cb(XMQDoc *doc, XMQNode *node, RegisterCFFContext *ctx)
 {
     const char *difvif_s = xmqGetStringRel(doc, ".", node);
     if (!difvif_s) return XMQ_CONTINUE;
@@ -616,6 +618,7 @@ void MeterCommonImplementation::markLastFieldAsLibrary()
     field_infos_.back().markAsLibrary();
     num_driver_fields_--;
 }
+
 
 FieldInfo *MeterCommonImplementation::lastAddedField()
 {
@@ -1518,6 +1521,114 @@ string concatFields(Meter *m, Telegram *t, char c, vector<FieldInfo> &prints, bo
     return buf;
 }
 
+void MeterCommonImplementation::buildOutputDoc(XMQDoc *doc,
+                                               string id,
+                                               string media,
+                                               Telegram *t,
+                                               vector<FieldInfo> &prints,
+                                               vector<string> *extra_constant_fields,
+                                               bool first)
+{
+    XMQReturnNode rn = xmqAddRootElement(doc, "telegram", NS_NONE);
+    assert(rn.status == XMQ_OK);
+    XMQNode *telegram = rn.node;
+
+    xmqAddKeyValue(doc, telegram, "media", media.c_str(), NS_PARENT);
+    xmqAddKeyValue(doc, telegram, "driver", driverName().str().c_str(), NS_PARENT);
+    xmqAddKeyValue(doc, telegram, "name", name().c_str(), NS_PARENT);
+    xmqAddKeyValueWithAttrs(doc, telegram, "id", id.c_str(), NS_PARENT,
+                            XMQ_ATTRS( {"S", "" }) ); // S means id will be a string in json, even though
+                                                      // it looks like a number.
+    XMQNode *details = NULL;
+
+    if (getTelegramDetails() == TelegramDetails::ALWAYS ||
+        (first && getTelegramDetails() == TelegramDetails::FIRST))
+    {
+        rn = xmqAddElement(doc, telegram, "details", NS_PARENT);
+        details = rn.node;
+
+    }
+
+    if (getAddTelegramHex())
+    {
+        string hex = bin2hex(t->frame);
+        xmqAddKeyValue(doc, telegram, "hex", hex.c_str(), NS_PARENT);
+    }
+
+    // Iterate over the meter field infos...
+    map<FieldInfo*,set<DVEntry*>> founds; // Multiple dventries can match to a single field info.
+    set<string> found_vnames;
+
+    for (auto &p : numeric_values_)
+    {
+        string vname = p.first.first;
+        NumericField& nf = p.second;
+        if (nf.field_info->printProperties().hasHIDE()) continue;
+
+        nf.field_info->insertNumericValuesIntoDoc(this, &nf.dv_entry, doc, telegram, details);
+    }
+
+    for (auto &p : string_values_)
+    {
+        string vname = p.first;
+        StringField& sf = p.second;
+        string out;
+
+        if (sf.field_info->printProperties().hasHIDE()) continue;
+        if (sf.field_info->printProperties().hasSTATUS())
+        {
+            string in = getStatusField(sf.field_info);
+            if (t->decoding_errors != "")
+            {
+                in = joinStatusOKStrings(in, t->decoding_errors);
+            }
+            xmqAddKeyValueWithAttrs(doc, telegram, vname.c_str(), in.c_str(), NS_PARENT,
+                                    XMQ_ATTRS( { "S", "" } )); // S marks this as a json string.
+        }
+        else
+        {
+            if (sf.value == "null")
+            {
+                // The string "null" translates to actual json null.
+                xmqAddKeyValue(doc, telegram, vname.c_str(), "null", NS_PARENT);
+            }
+            else
+            {
+                xmqAddKeyValueWithAttrs(doc, telegram, vname.c_str(), sf.value.c_str(), NS_PARENT,
+                                        XMQ_ATTRS( { "S", "" } )); // S marks this as a json string.
+            }
+        }
+        if (details)
+        {
+            auto rn = xmqAddElement(doc, details, vname.c_str(), NS_PARENT);
+            XMQNode *info = rn.node;
+            xmqAddKeyValue(doc, info, "quantity", "Text", NS_PARENT);
+            xmqAddKeyValue(doc, info, "info", sf.field_info->help().c_str(), NS_PARENT);
+        }
+    }
+    xmqAddKeyValue(doc, telegram, "timestamp", datetimeOfUpdateRobot().c_str(), NS_PARENT);
+
+    if (t->about.device != "")
+    {
+        xmqAddKeyValue(doc, telegram, "device", t->about.device.c_str(), NS_PARENT);
+        xmqAddKeyValue(doc, telegram, "rssi_dbm", to_string(t->about.rssi_dbm).c_str(), NS_PARENT);
+    }
+    for (string extra_field : meterExtraConstantFields())
+    {
+        string k, v;
+        extractKeyValue(extra_field, &k, &v);
+        xmqAddKeyValueWithAttrs(doc, telegram, k.c_str(), v.c_str(), NS_PARENT,
+                                XMQ_ATTRS( { "S", "" } )); // S marks this as a json string.
+    }
+    for (string extra_field : *extra_constant_fields)
+    {
+        string k, v;
+        extractKeyValue(extra_field, &k, &v);
+        xmqAddKeyValueWithAttrs(doc, telegram, k.c_str(), v.c_str(), NS_PARENT,
+                                XMQ_ATTRS( { "S", "" } )); // S marks this as a json string.
+    }
+}
+
 bool MeterCommonImplementation::handleTelegram(AboutTelegram &about, vector<uchar> input_frame,
                                                bool simulated, vector<Address> *addresses,
                                                bool *id_match, Telegram *out_analyzed)
@@ -1550,6 +1661,11 @@ bool MeterCommonImplementation::handleTelegram(AboutTelegram &about, vector<ucha
     if (force_mfct_index_ != -1)
     {
         t.force_mfct_index = force_mfct_index_;
+    }
+
+    if (buggy_sanxing_609b_decode_)
+    {
+        t.permit_sanxing_609b_bug = true;
     }
 
     ok = t.parse(input_frame, &meter_keys_, true);
@@ -1768,7 +1884,21 @@ void MeterCommonImplementation::processFieldIXMLs(Telegram *t)
                     dve->addFieldInfo(&fi);
                     fi.performExtraction(this, t, dve);
                     string value = getStringValue(&fi);
-                    debug("(ixml) parsing field content at offset %d: %s\n", dve->offset, value.c_str());
+                    bool extra_decode = false;
+                    if (try_qundis_decode_)
+                    {
+                        // The Qundis WalkByDataSet block (difvifkey 0DFF5F) is AES-128-CBC
+                        // encrypted on the 2026 Q water/heat/caloric 5.5 when header byte[4]
+                        // == 0x35 (plaintext frames have 0x00 there, see issue #1916/#2025).
+                        // The cipher is standard EN 13757-7 Mode 5 with the configured meter
+                        // key and the Mode-5 IV (M-field + A-field + ACC*8). CI=0x78 frames
+                        // have no TPL header, so the ACC is the block's own rolling counter
+                        // (header byte[2]), not the TPL access number. Decode bytes[5..]
+                        // here so the existing ixml grammar parses the plaintext layout.
+                        extra_decode = tryDecodeQundisWalkByAes(t, &value);
+                    }
+                    debug("(ixml) parsing field content at offset %d: %s%s\n", dve->offset, value.c_str(),
+                          extra_decode ? " (mfct-aes-decoded)" : "");
                     bool ok = parseWithIXML(t, dve->offset, value, fi.ixmlGrammar(), &t->dv_entries);
                     if (!ok)
                     {
@@ -2035,12 +2165,12 @@ void MeterCommonImplementation::setStringValue(FieldInfo *fi, string v, DVEntry 
     if (dve == NULL)
     {
         string field_name_no_unit = fi->vname();
-        string_values_[field_name_no_unit] = StringField(v, fi);
+        string_values_[field_name_no_unit] = StringField(v, fi, dve);
     }
     else
     {
         field_name_no_unit = fi->generateFieldNameNoUnit(this, dve);
-        string_values_[field_name_no_unit] = StringField(v, fi);
+        string_values_[field_name_no_unit] = StringField(v, fi, dve);
     }
 }
 
@@ -2272,7 +2402,6 @@ bool FieldInfo::transformPayload(Telegram *t, vector<uchar> *content)
     return true;
 }
 
-
 string FieldInfo::renderJson(Meter *m, DVEntry *dve)
 {
     string s;
@@ -2329,6 +2458,117 @@ string FieldInfo::renderJson(Meter *m, DVEntry *dve)
     return s;
 }
 
+void FieldInfo::insertNumericValuesIntoDoc(Meter *m, DVEntry *dve, XMQDoc *doc, XMQNode *telegram, XMQNode *details)
+{
+    string display_unit_s = unitToStringLowerCase(displayUnit());
+    string field_name = generateFieldNameNoUnit(m, dve);
+
+    if (xuantity() == Quantity::Text)
+    {
+        // Should we even get here? A numerical value cannot be text right?
+        string v = m->getStringValue(this);
+        if (v == "null")
+        {
+            // Yes, right now a meter cannot send a string value "something":"null" it will
+            // be translated into "something":null in the json, indicating that there is no value.
+            // This should not be a problem for now. Lets deal with it when a meter decides to send "null"
+            // as its version string for example.
+            xmqAddKeyValue(doc, telegram, field_name.c_str(), "null", NS_PARENT);
+        }
+        else
+        {
+            // Normally the string values are quoted in json. TODO quote the value properly.
+            // A well crafted meter could send a version string with " and break the json format.
+            xmqAddKeyValue(doc, telegram, field_name.c_str(), v.c_str(), NS_PARENT);
+        }
+    }
+    else
+    {
+        string key = field_name+"_"+display_unit_s;
+        string val = "";
+
+        if (displayUnit() == Unit::DateLT)
+        {
+            double t = m->getNumericValue(field_name, Unit::DateLT);
+            if (isnan(t)) val = "null";
+            else val = strdate(t);
+        }
+        else if (displayUnit() == Unit::DateTimeLT)
+        {
+            double t = m->getNumericValue(field_name, Unit::DateTimeLT);
+            if (isnan(t)) val = "null";
+            else val = strdatetime(t);
+        }
+        else if (displayUnit() == Unit::DateTimeUTC)
+        {
+            double t = m->getNumericValue(field_name, Unit::DateTimeUTC);
+            if (isnan(t)) val = "null";
+            else val = strTimestampUTC(t);
+        }
+        else
+        {
+            // All numeric values.
+            val = valueToString(m->getNumericValue(field_name, displayUnit()), displayUnit());
+        }
+        xmqAddKeyValue(doc, telegram, key.c_str(), val.c_str(), NS_PARENT);
+        if (details)
+        {
+            auto rn = xmqAddElement(doc, details, key.c_str(), NS_PARENT);
+            XMQNode *info = rn.node;
+            xmqAddKeyValue(doc, info, "quantity", toString(xuantity()), NS_PARENT);
+            xmqAddKeyValue(doc, info, "unit", display_unit_s.c_str(), NS_PARENT);
+            xmqAddKeyValue(doc, info, "change", toString(getChange()), NS_PARENT);
+            xmqAddKeyValue(doc, info, "info", help().c_str(), NS_PARENT);
+        }
+    }
+}
+
+void FieldInfo::insertStringValuesIntoDoc(Meter *m, Telegram *t, DVEntry *dve, XMQDoc *doc, XMQNode *telegram, XMQNode *details)
+{
+    /*
+    string display_unit_s = unitToStringLowerCase(displayUnit());
+    string field_name = generateFieldNameNoUnit(m, dve);
+//    string val = m->getStringValue(field_name, displayUnit()), displayUnit());
+
+    if (printProperties().hasSTATUS())
+    {
+        string in = m->getStatusField(this);
+        if (t->decoding_errors != "")
+        {
+            in = joinStatusOKStrings(in, t->decoding_errors);
+        }
+        xmqAddKeyValueWithAttrs(doc, telegram, vname().c_str(), in.c_str(), NS_PARENT,
+                                XMQ_ATTRS( { "S", "" } )); // S marks this as a json string.
+    }
+    else
+    {
+        if (value() == "null")
+        {
+            // The string "null" translates to actual json null.
+            xmqAddKeyValue(doc, telegram, vname.c_str(), "null", NS_PARENT);
+        }
+        else
+        {
+            xmqAddKeyValueWithAttrs(doc, telegram, vname.c_str(), sf.value.c_str(), NS_PARENT,
+                                    XMQ_ATTRS( { "S", "" } )); // S marks this as a json string.
+        }
+    }
+    if (details)
+    {
+        auto rn = xmqAddElement(doc, details, vname.c_str(), NS_PARENT);
+        XMQNode *info = rn.node;
+        xmqAddKeyValue(doc, info, "quantity", toString(xuantity()), NS_PARENT);
+        xmqAddKeyValue(doc, info, "unit", display_unit_s.c_str(), NS_PARENT);
+        DVEntry *dve = &sf.dv_entry;
+        assert(dve);
+        string o = to_string(dve->offset);
+        xmqAddKeyValueWithAttrs(doc, info, "dv", dve->dif_vif_key.str().c_str(), NS_PARENT, XMQ_ATTRS({"S",""}));
+        xmqAddKeyValue(doc, info, "off", o.c_str(), NS_PARENT);
+        xmqAddKeyValueWithAttrs(doc, info, "hex", dve->value.c_str(), NS_PARENT, XMQ_ATTRS({"S",""}));
+    }
+    */
+}
+
 void MeterCommonImplementation::createMeterEnv(string id,
                                                vector<string> *envs,
                                                vector<string> *extra_constant_fields)
@@ -2352,18 +2592,24 @@ void MeterCommonImplementation::createMeterEnv(string id,
 
 void MeterCommonImplementation::printMeter(Telegram *t,
                                            string *human_readable,
-                                           string *fields, char separator,
-                                           string *json,
+                                           string *fields,
+                                           char separator,
                                            vector<string> *envs,
                                            vector<string> *extra_constant_fields,
                                            vector<string> *selected_fields,
-                                           bool pretty_print_json)
+                                           XMQDoc *doc)
 {
     bool first = !t->meter->hasReceivedFirstTelegram();
-
-   *human_readable = concatFields(this, t, '\t', field_infos_, true, selected_fields, extra_constant_fields);
-    *fields = concatFields(this, t, separator, field_infos_, false, selected_fields, extra_constant_fields);
-
+    string id = "";
+    if (t->addresses.size() > 0)
+    {
+        // Normally the id is just the number, but sometimes a meter
+        // needs to be discerned with the full mvt as well. The identity mode sets this.
+        // Only use the highest level id, at the end of the found addresses, this is
+        // makes us pick the tpl id over the dll id.
+        id = build_id(t->addresses.back(), identityMode());
+    }
+    // Now find the media for the highest level media type, pick tpl media over dll media.
     string media;
     if (driverInfo()->mediaType() != "")
     {
@@ -2382,119 +2628,16 @@ void MeterCommonImplementation::printMeter(Telegram *t,
         media = mediaTypeJSON(t->dll_type, t->dll_mfct);
     }
 
-    string id = "";
-    if (t->addresses.size() > 0)
-    {
-        id = build_id(t->addresses.back(), identityMode());
-    }
+    *human_readable = concatFields(this, t, '\t', field_infos_, true, selected_fields, extra_constant_fields);
+    *fields = concatFields(this, t, separator, field_infos_, false, selected_fields, extra_constant_fields);
 
-    string indent = "";
-    string newline = "";
-
-    if (pretty_print_json)
-    {
-        indent = "    ";
-        newline ="\n";
-    }
-
-    string s;
-    s += "{"+newline;
-    s += indent+"\"_\":\"telegram\","+newline;
-    s += indent+"\"media\":\""+media+"\","+newline;
-    s += indent+"\"meter\":\""+driverName().str()+"\","+newline;
-    s += indent+"\"name\":\""+name()+"\","+newline;
-    s += indent+"\"id\":\""+id+"\","+newline;
-
-    // Iterate over the meter field infos...
-    map<FieldInfo*,set<DVEntry*>> founds; // Multiple dventries can match to a single field info.
-    set<string> found_vnames;
-
-    for (auto &p : numeric_values_)
-    {
-        string vname = p.first.first;
-        NumericField& nf = p.second;
-        if (nf.field_info->printProperties().hasHIDE()) continue;
-
-        string out = nf.field_info->renderJson(this, &nf.dv_entry);
-        s += indent+out+","+newline;
-
-        if (first && getDetailedFirst())
-        {
-            size_t pos = out.find("\":");
-            if (pos != string::npos)
-            {
-                string rule = out.substr(0, pos)+"_field\":"+to_string(nf.field_info->index());
-                s += indent+rule+","+newline;
-            }
-        }
-    }
-
-    for (auto &p : string_values_)
-    {
-        string vname = p.first;
-        StringField& sf = p.second;
-        string out;
-
-        if (sf.field_info->printProperties().hasHIDE()) continue;
-        if (sf.field_info->printProperties().hasSTATUS())
-        {
-            string in = getStatusField(sf.field_info);
-            if (t->decoding_errors != "")
-            {
-                in = joinStatusOKStrings(in, t->decoding_errors);
-            }
-            out = tostrprintf("\"%s\":\"%s\"", vname.c_str(), in.c_str());
-            s += indent+out+","+newline;
-        }
-        else
-        {
-            if (sf.value == "null")
-            {
-                // The string "null" translates to actual json null.
-                out = tostrprintf("\"%s\":null", vname.c_str());
-                s += indent+out+","+newline;
-            }
-            else
-            {
-                out = tostrprintf("\"%s\":\"%s\"", vname.c_str(), sf.value.c_str());
-                s += indent+out+","+newline;
-            }
-        }
-        if (first && getDetailedFirst())
-        {
-            size_t pos = out.find("\":");
-            if (pos != string::npos)
-            {
-                string rule = out.substr(0, pos)+"_field\":"+to_string(sf.field_info->index());
-                s += indent+rule+","+newline;
-            }
-        }
-    }
-    s += indent+"\"timestamp\":\""+datetimeOfUpdateRobot()+"\"";
-
-    if (t->about.device != "")
-    {
-        s += ","+newline;
-        s += indent+"\"device\":\""+t->about.device+"\","+newline;
-        s += indent+"\"rssi_dbm\":"+to_string(t->about.rssi_dbm);
-    }
-    for (string extra_field : meterExtraConstantFields())
-    {
-        s += ","+newline;
-        s += indent+makeQuotedJson(extra_field);
-    }
-    for (string extra_field : *extra_constant_fields)
-    {
-        s += ","+newline;
-        s += indent+makeQuotedJson(extra_field);
-    }
-    s += newline;
-    s += "}";
-    *json = s;
+    buildOutputDoc(doc, id, media, t, field_infos_, extra_constant_fields, first);
 
     createMeterEnv(id, envs, extra_constant_fields);
 
-    envs->push_back(string("METER_JSON=")+*json);
+    string json = docToString(doc, XMQ_CONTENT_JSON, false);
+
+    envs->push_back(string("METER_JSON=")+json);
     envs->push_back(string("METER_MEDIA=")+media);
     envs->push_back(string("METER_TIMESTAMP=")+datetimeOfUpdateRobot());
     envs->push_back(string("METER_TIMESTAMP_UTC=")+datetimeOfUpdateRobot());
@@ -2879,7 +3022,9 @@ string FieldInfo::str()
 
 void FieldInfo::useIXML(const string& ixml)
 {
-    XMQDoc *g = xmqNewDoc();
+    XMQReturnDoc rd = xmqNewDoc();
+    assert(rd.status == XMQ_OK);
+    XMQDoc *g = rd.doc;
     bool b = xmqParseBufferWithType(g, ixml.c_str(), NULL, NULL, XMQ_CONTENT_IXML, 0);
     if (!b) {
         warning("(field) field %s failed to parse ixml grammar:\n--------------\n %s\n--------------\n", vname().c_str(), ixml.c_str());
@@ -2938,17 +3083,28 @@ bool FieldInfo::extractNumeric(Meter *m, Telegram *t, DVEntry *dve)
         if (matcher_.vif_range == VIFRange::DateTime)
         {
             struct tm datetime;
-            dve->extractDate(&datetime);
-            time_t tmp = mktime(&datetime);
-            string bbb = strdatetime(tmp);
-            extracted_double_value = tmp;
+            if (dve->extractDate(&datetime))
+            {
+                time_t tmp = mktime(&datetime);
+                extracted_double_value = tmp;
+            }
+            else
+            {
+                extracted_double_value = NAN;
+            }
         }
         else if (matcher_.vif_range == VIFRange::Date)
         {
             struct tm date;
-            dve->extractDate(&date);
-            time_t tmp = mktime(&date);
-            extracted_double_value = tmp;
+            if (dve->extractDate(&date))
+            {
+                time_t tmp = mktime(&date);
+                extracted_double_value = tmp;
+            }
+            else
+            {
+                extracted_double_value = NAN;
+            }
         }
         else if (matcher_.vif_range == VIFRange::AnyEnergyVIF ||
                  matcher_.vif_range == VIFRange::AnyVolumeVIF ||
@@ -3111,17 +3267,22 @@ bool FieldInfo::extractString(Meter *m, Telegram *t, DVEntry *dve)
     else if (matcher_.vif_range == VIFRange::DateTime)
     {
         struct tm datetime;
-        dve->extractDate(&datetime);
         string extracted_device_date_time;
-
-        if (dve->value.size() == 12)
+        if (dve->extractDate(&datetime))
         {
-            // A long date time sec + timezone field. TODO add timezone data.
-            extracted_device_date_time = strdatetimesec(&datetime);
+            if (dve->value.size() == 12)
+            {
+                // A long date time sec + timezone field. TODO add timezone data.
+                extracted_device_date_time = strdatetimesec(&datetime);
+            }
+            else
+            {
+                extracted_device_date_time = strdatetime(&datetime);
+            }
         }
         else
         {
-            extracted_device_date_time = strdatetime(&datetime);
+            extracted_device_date_time = "";
         }
         m->setStringValue(this, extracted_device_date_time, dve);
         t->addMoreExplanation(dve->offset, renderJsonText(m, dve));
@@ -3130,8 +3291,15 @@ bool FieldInfo::extractString(Meter *m, Telegram *t, DVEntry *dve)
     else if (matcher_.vif_range == VIFRange::Date)
     {
         struct tm date;
-        dve->extractDate(&date);
-        string extracted_device_date = strdate(&date);
+        string extracted_device_date;
+        if (dve->extractDate(&date))
+        {
+            extracted_device_date = strdate(&date);
+        }
+        else
+        {
+            extracted_device_date = "";
+        }
         m->setStringValue(this, extracted_device_date, dve);
         t->addMoreExplanation(dve->offset, renderJsonText(m, dve));
         found = true;
@@ -3508,6 +3676,7 @@ bool MeterCommonImplementation::addOptionalLibraryFields(string field_names)
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::Volume)
             );
+        lastAddedField()->setChange(Change::Increasing);
         markLastFieldAsLibrary();
     }
 
@@ -3541,6 +3710,7 @@ bool MeterCommonImplementation::addOptionalLibraryFields(string field_names)
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::AnyEnergyVIF)
             );
+        lastAddedField()->setChange(Change::Increasing);
         markLastFieldAsLibrary();
     }
 
@@ -3593,6 +3763,7 @@ bool MeterCommonImplementation::addOptionalLibraryFields(string field_names)
             .set(VIFRange::Volume)
             .add(VIFCombinable::ForwardFlow)
             );
+        lastAddedField()->setChange(Change::Increasing);
         markLastFieldAsLibrary();
     }
 
@@ -3610,6 +3781,7 @@ bool MeterCommonImplementation::addOptionalLibraryFields(string field_names)
             .set(VIFRange::Volume)
             .add(VIFCombinable::BackwardFlow)
             );
+        lastAddedField()->setChange(Change::Increasing);
         markLastFieldAsLibrary();
     }
 
@@ -3722,6 +3894,7 @@ bool MeterCommonImplementation::addOptionalLibraryFields(string field_names)
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::HeatCostAllocation)
             );
+        lastAddedField()->setChange(Change::Increasing);
         markLastFieldAsLibrary();
     }
 

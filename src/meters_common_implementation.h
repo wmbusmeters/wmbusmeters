@@ -52,9 +52,13 @@ struct StringField
 {
     std::string value;
     FieldInfo *field_info {};
+    DVEntry dv_entry {};
 
     StringField() {}
-    StringField(std::string v, FieldInfo *f) : value(v), field_info(f) {}
+    StringField(std::string v, FieldInfo *f, DVEntry *dve) : value(v), field_info(f)
+    {
+        if (dve) dv_entry = *dve;
+    }
 };
 
 struct MeterCommonImplementation : public Meter
@@ -110,6 +114,8 @@ protected:
     void addLinkMode(LinkMode lm);
     void setMfctTPLStatusBits(Translate::Lookup &lookup);
     void setDiehlPriosDecode(bool v) { diehl_prios_decode_ = v; }
+    void setBuggySanxing609BDecode(bool v) { buggy_sanxing_609b_decode_ = v; }
+    void setTryQundisDecode(bool v) { try_qundis_decode_ = v; }
 
     void markLastFieldAsLibrary();
     FieldInfo *lastAddedField();
@@ -179,14 +185,22 @@ protected:
     void createMeterEnv(std::string id,
                         std::vector<std::string> *envs,
                         std::vector<std::string> *more_json); // Add this json "key"="value" strings.
+    void buildOutputDoc(XMQDoc *doc,
+                        std::string id,
+                        std::string media,
+                        Telegram *t,
+                        std::vector<FieldInfo> &prints,
+                        std::vector<std::string> *extra_constant_fields,
+                        bool first);
     void printMeter(Telegram *t,
                     std::string *human_readable,
-                    std::string *fields, char separator,
-                    std::string *json,
+                    std::string *fields,
+                    char separator,
                     std::vector<std::string> *envs,
                     std::vector<std::string> *more_json, // Add this json "key"="value" strings.
                     std::vector<std::string> *selected_fields, // Only print these fields.
-                    bool pretty_print); // Insert newlines and indentation.
+                    XMQDoc *doc); // Write the content into this document.
+
     // Json fields include all values except timestamp_ut, timestamp_utc, timestamp_lt
     // since Json is assumed to be decoded by a program and the current timestamp which is the
     // same as timestamp_utc, can always be decoded/recoded into local time or a unix timestamp.
@@ -258,6 +272,8 @@ private:
     MeterManager *meter_manager_ {};
     bool diehl_prios_decode_ = false;
     std::string diehl_prios_combined_hex_; // frame[header_size..+4] + LFSR-decoded payload
+    bool buggy_sanxing_609b_decode_ = false;
+    bool try_qundis_decode_ = false;
 
 protected:
 

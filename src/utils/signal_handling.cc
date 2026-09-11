@@ -15,36 +15,13 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include"always.h"
-#include"log.h"
-#include"util.h"
-#include"shell.h"
-#include"version.h"
+#include "always.h"
 
-#include<algorithm>
-#include<assert.h>
-#include<dirent.h>
-#include<errno.h>
-#include<fcntl.h>
-#include<functional>
-#include<math.h>
-#include<set>
-#include<signal.h>
-#include<stdarg.h>
-#include<stddef.h>
-#include<string.h>
-#include<string>
-#include<sys/stat.h>
-#include<sys/time.h>
-#include<sys/types.h>
-#include<syslog.h>
-#include<time.h>
-#include<unistd.h>
-
-using namespace std;
+#include <csignal>
+#include <functional>
 
 // Sigint, sigterm will call the exit handler.
-function<void()> exit_handler_;
+std::function<void()> exit_handler_;
 
 bool signalsInstalled()
 {
@@ -88,7 +65,7 @@ void signalMyself(int signum)
 
 struct sigaction old_int, old_hup, old_term, old_chld, old_usr1, old_usr2;
 
-void onExit(function<void()> cb)
+void onExit(std::function<void()> cb)
 {
     exit_handler_ = cb;
     struct sigaction new_action;

@@ -5,6 +5,7 @@ driver {
     default_fields = name,id,total_energy_consumption_kwh,current_power_consumption_kw,total_energy_production_kwh,timestamp
     detect {
         mvt = EMH,02,02
+        mvt = EMH,00,02
     }
     library {
         use = on_time_h
@@ -15,6 +16,16 @@ driver {
             quantity   = Text
             info       = 'Meter status. Includes both meter error field and tpl status field.'
             attributes = STATUS,INCLUDE_TPL_STATUS
+            match {
+                measurement_type = Instantaneous
+                difvifkey        = 01FD971D
+            }
+            lookup {
+                name            = ERROR_FLAGS
+                map_type        = BitToString
+                mask_bits       = 0xff
+                default_message = OK
+            }
         }
         field {
             name     = total_energy_consumption
@@ -44,13 +55,91 @@ driver {
                 add_combinable   = BackwardFlow
             }
         }
+        field {
+            name     = total_energy_consumption_at_1
+            quantity = Energy
+            info     = 'The base total energy consumption recorded by this meter.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = AnyEnergyVIF
+                storage_nr       = 3
+                // This storage 3 is the base for the following compact values.
+            }
+        }
+        field {
+            name     = 'total_energy_consumption_at_{storage_counter-2counter}'
+            quantity = Energy
+            info     = 'The total energy consumption at given point in time.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = AnyEnergyVIF
+                add_combinable   = Synthetic
+                storage_nr       = 4,10
+                /*  This storage 4 follows 3 and is marked synthetic, wmbusmeters will look
+                   for a compact profile to fill these values. */
+            }
+        }
+        field {
+            name     = total_energy_production_at_1
+            quantity = Energy
+            info     = 'The total energy production at previous point in time.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = AnyEnergyVIF
+                add_combinable   = BackwardFlow
+                storage_nr       = 3
+                // This storage 3 is the base for the following compact values.
+            }
+        }
+        field {
+            name     = 'total_energy_production_at_{storage_counter-2counter}'
+            quantity = Energy
+            info     = 'The total energy production at previous point in time.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = AnyEnergyVIF
+                add_combinable   = Synthetic
+                add_combinable   = BackwardFlow
+                storage_nr       = 4,10
+                /*  This storage 4 follows 3 and is marked synthetic, wmbusmeters will look
+                   for a compact profile to fill these values, and match BackwardFlow. */
+            }
+        }
+        field {
+            name         = actuality_duration_at_1
+            quantity     = Time
+            info         = 'The actuality duration at the previous point in time.'
+            display_unit = s
+            match {
+                measurement_type = Instantaneous
+                vif_range        = ActualityDuration
+                storage_nr       = 3
+            }
+        }
+        field {
+            name         = on_time_at_1
+            quantity     = Time
+            info         = 'The on time at the previous point in time.'
+            display_unit = h
+            match {
+                measurement_type = Instantaneous
+                vif_range        = OnTime
+                storage_nr       = 3
+            }
+        }
     }
     tests {
         test {
             args     = 'Elen3 ehzp 55995599 NOKEY'
             telegram = 5344A8159955995502028C201D900F002C250C390000ED176BBBB1591ADB7A1D003007102F2F_0700583B74020000000007803CBCD70200000000000728B070200000000000042092A406002F2F2F2F2F2F2F2F2F
-            json     = '{"_":"telegram","media":"electricity","meter":"ehzp","name":"Elen3","id":"55995599","status":"OK","on_time_h":120.929444,"total_energy_consumption_kwh":41.1718,"current_power_consumption_kw":2.126,"total_energy_production_kwh":0.1863,"timestamp":"1111-11-11T11:11:11Z"}'
+            json     = '{"_":"telegram","media":"electricity","driver":"ehzp","name":"Elen3","id":"55995599","status":"OK","on_time_h":120.929444,"total_energy_consumption_kwh":41.1718,"current_power_consumption_kw":2.126,"total_energy_production_kwh":0.1863,"timestamp":"1111-11-11T11:11:11Z"}'
             fields   = 'Elen3;55995599;41.1718;2.126;0.1863;1111-11-11 11:11.11'
+        }
+        test {
+            args     = 'Elen4 ehzp 13711234 NOKEY'
+            telegram = AE44a8153412711300027a010000002F2F0700285EB5050000000007803C34080000000000000728905F01000000000004208F84160101FD971D00C1017402C401208D841601C701031C76010000000000CD01831324410800010000000001000000000100000001000000000100000000010000000001000000C701833C0200000000000000CD0183933C244108000000000000000000000000000000000000000000000000000000000000000000
+            json     = '{"_": "telegram","actuality_duration_at_1_s": 2,"current_power_consumption_kw": 0.09,"driver": "ehzp","id": "13711234","media": "electricity","name": "Elen4","on_time_at_1_h": 5070.261389,"on_time_h": 5070.261944,"status": "OK","timestamp": "1111-11-11T11:11:11Z","total_energy_consumption_at_1_kwh": 95.772,"total_energy_consumption_at_2_kwh": 95.772,"total_energy_consumption_at_3_kwh": 95.771,"total_energy_consumption_at_4_kwh": 95.771,"total_energy_consumption_at_5_kwh": 95.771,"total_energy_consumption_at_6_kwh": 95.771,"total_energy_consumption_at_7_kwh": 95.771,"total_energy_consumption_at_8_kwh": 95.77,"total_energy_consumption_kwh": 95.7722,"total_energy_production_at_1_kwh": 0.002,"total_energy_production_at_2_kwh": 0.002,"total_energy_production_at_3_kwh": 0.002,"total_energy_production_at_4_kwh": 0.002,"total_energy_production_at_5_kwh": 0.002,"total_energy_production_at_6_kwh": 0.002,"total_energy_production_at_7_kwh": 0.002,"total_energy_production_at_8_kwh": 0.002,"total_energy_production_kwh": 0.0021}'
+            fields   = 'Elen4;13711234;95.7722;0.09;0.0021;1111-11-11 11:11.11'
         }
     }
 }

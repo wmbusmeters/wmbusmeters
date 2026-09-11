@@ -4,15 +4,15 @@ $(shell mkdir -p build/test)
 PROG?=../build/wmbusmeters
 
 database: pretty
-	@./generate.sh $(PROG)
+	@LC_ALL=C ./generate.sh $(PROG)
 
 web:
 	@mkdir -p ../build/web
-	@./generate_index.sh
+	@LC_ALL=C ./generate_index.sh
 
 tests:
 	@echo "// Generated" > build/generated_tests.xmq
-	@for i in $(wildcard src/*) ; do xmq $$i select /driver/tests/test to-xmq >> build/generated_tests.xmq; done
+	@SOURCES=$$(ls src | LC_ALL=C sort) ; for i in $$SOURCES ; do xmq src/$$i select /driver/tests/test to-xmq >> build/generated_tests.xmq; done
 
 install: database tests
 	@grep -v "// Generated " < build/generated_database.cc > build/a
@@ -25,8 +25,14 @@ install: database tests
             cp build/generated_tests.xmq ../tests/generated_tests.xmq ; echo "Installed tests." ; else echo "No changes test." ; fi
 
 generate_ha_discovery:
+# This is not working yet....
 	@mkdir -p build/ha_mqtt_discovery
 	@for i in $(wildcard src/*) ; do echo $$i ; xmq $$i transform to-ha-discovery.xslq to-json | jq . > build/ha_mqtt_discovery/$$(basename $${i%%.xmq}.json); done
+
+test_ha_discovery:
+	xmq test/telegram.json transform --stringparam=drv=src/iperl.xmq to-ha-discovery.xslq to-json | jq . > generated.test.json
+	diff generated.test.json test/iperl.json
+	@echo "generated.test.json is a newly created mqtt HA discovery json message. Identical to the manuall created one."
 
 pretty:
 	@for i in $(wildcard src/*.xmq) ; do xmq $$i > tmp ; mv tmp $$i ; done
@@ -38,4 +44,7 @@ testonly:
 	@if [ -z "$(DRIVER)" ]; then echo "Usage: make testonly DRIVER=abc"; exit 1; fi
 	@./test.sh $(PROG) src/$(DRIVER).xmq
 
-.PHONY: database web tests install test
+clean:
+	rm -f generated.test.json
+
+.PHONY: database web tests install test clean

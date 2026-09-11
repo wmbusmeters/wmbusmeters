@@ -34,7 +34,7 @@ TEST_CASES = [
             "key": "28F64A24988064A079AA2C807D6102AE",
         },
         {
-            "meter": "kamwater",
+            "driver": "kamwater",
             "id": "76348799",
             "media": "cold water",
             "total_m3": 6.408,
@@ -63,7 +63,7 @@ TEST_CASES = [
             "telegram": "234433300602010014007a8e0000002f2f0efd3a1147000000008e40fd3a341200000000",
         },
         {
-            "meter": "lansenpu",
+            "driver": "lansenpu",
             "id": "00010206",
             "media": "other",
             "a_counter": 4711,
@@ -78,7 +78,7 @@ TEST_CASES = [
             "telegram": "A244EE4D785634123C067A8F0000000C1348550000426CE1F14C130000000082046C21298C0413330000008D04931E3A3CFE3300000033000000330000003300000033000000330000003300000033000000330000003300000033000000330000004300000034180000046D0D0B5C2B03FD6C5E150082206C5C290BFD0F0200018C4079678885238310FD3100000082106C01018110FD610002FD66020002FD170000",
         },
         {
-            "meter": "supercom587",
+            "driver": "supercom587",
             "id": "12345678",
             "media": "warm water",
             "total_m3": 5.548,
@@ -92,7 +92,7 @@ TEST_CASES = [
             "telegram": "68383868080072840200102941011B0D0000000265FE0842653009820165E70802FB1A480142FB1A45018201FB1A4E010C788402001002FD0F21000F0316",
         },
         {
-            "meter": "piigth",
+            "driver": "piigth",
             "id": "10000284",
             "media": "room sensor",
             "temperature_c": 23.02,
@@ -109,7 +109,7 @@ TEST_CASES = [
             "driver": "multical21",
         },
         {
-            "meter": "kamwater",
+            "driver": "kamwater",
             "id": "76348799",
             "total_m3": 6.408,
         },
@@ -145,7 +145,7 @@ TEST_CASES = [
             "format": "mbus",
         },
         {
-            "meter": "piigth",
+            "driver": "piigth",
             "id": "10000284",
             "temperature_c": 23.02,
         },
@@ -160,7 +160,7 @@ TEST_CASES = [
             "format": "wmbus",
         },
         {
-            "meter": "kamwater",
+            "driver": "kamwater",
             "id": "76348799",
             "total_m3": 6.408,
         },

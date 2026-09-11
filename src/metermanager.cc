@@ -21,6 +21,7 @@
 #include"meters.h"
 #include"meters_common_implementation.h"
 #include"units.h"
+#include"utils/doc.h"
 #include"wmbus.h"
 #include"wmbus_utils.h"
 
@@ -487,8 +488,12 @@ public:
                 string hr, fields, json;
                 vector<string> envs, more_json, selected_fields;
 
-                meter->printMeter(&t, &hr, &fields, '\t', &json,
-                                  &envs, &more_json, &selected_fields, true);
+                auto rd = xmqNewDoc();
+                assert(rd.status == XMQ_OK);
+                XMQDoc *doc = rd.doc;
+                meter->printMeter(&t, &hr, &fields, '\t', &envs, &more_json, &selected_fields, doc);
+                json = docToString(doc, XMQ_CONTENT_JSON, true);
+                xmqFreeDoc(doc);
                 if (k % 100 == 0) fprintf(stderr, ".");
             }
 
@@ -520,9 +525,12 @@ public:
 
         string hr, fields, json;
         vector<string> envs, more_json, selected_fields;
-
-        meter->printMeter(&t, &hr, &fields, '\t', &json,
-                          &envs, &more_json, &selected_fields, true);
+        auto rd = xmqNewDoc();
+        assert(rd.status == XMQ_OK);
+        XMQDoc *doc = rd.doc;
+        meter->printMeter(&t, &hr, &fields, '\t', &envs, &more_json, &selected_fields, doc);
+        json = docToString(doc, XMQ_CONTENT_JSON, true);
+        xmqFreeDoc(doc);
 
         if (auto_driver == "")
         {

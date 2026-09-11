@@ -52,7 +52,7 @@ fi
 
 if [ "$OK" = "true" ]
 then
-    echo "OK: db test $(echo "$ARGS" | cut -f 1,2 -d ' ')"
+    echo "OK: db test $(echo "$ARGS" | cut -f 2 -d ' ') $(echo "$ARGS" | cut -f 1 -d ' ')"
 else
     echo "ERROR: $ARGS $TELEGRAM"
 fi

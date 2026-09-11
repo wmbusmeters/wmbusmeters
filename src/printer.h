@@ -19,8 +19,8 @@
 #include"wmbus.h"
 
 struct Printer {
-    Printer(bool json,
-            bool pretty_print_json,
+    Printer(XMQContentType output_format,
+            bool pretty_print,
             bool fields,
             char separator,
             bool meterfiles, std::string &meterfiles_dir,
@@ -35,7 +35,9 @@ struct Printer {
 
     private:
 
-    bool json_, pretty_print_json_, fields_;
+    XMQContentType output_format_;
+    bool pretty_print_;
+    bool fields_;
     bool use_meterfiles_;
     std::string meterfiles_dir_;
     bool use_logfile_;

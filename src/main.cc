@@ -172,8 +172,8 @@ int main(int argc, char **argv)
 
 shared_ptr<Printer> create_printer(Configuration *config)
 {
-    return shared_ptr<Printer>(new Printer(config->json,
-                                           config->pretty_print_json,
+    return shared_ptr<Printer>(new Printer(config->output_format,
+                                           config->pretty_print_output,
                                            config->fields,
                                            config->separator, config->meterfiles, config->meterfiles_dir,
                                            config->use_logfile, config->logfile,
@@ -586,11 +586,12 @@ bool start(Configuration *config)
     stderrEnabled(config->use_stderr_for_log);
     setAlarmShells(config->alarm_shells);
     setIgnoreDuplicateTelegrams(config->ignore_duplicate_telegrams);
-    setDetailedFirst(config->detailed_first);
+    setAddTelegramHex(config->add_telegram_hex);
+    setTelegramDetails(config->telegram_details);
     if (config->new_meter_shells.size() > 0)
     {
         // We have metershells, force detailed first telegram.
-        setDetailedFirst(true);
+        setTelegramDetails(TelegramDetails::FIRST);
     }
     log_start_information(config);
 

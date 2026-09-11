@@ -76,20 +76,20 @@ driver {
         test {
             args     = 'ES1 elvsense 80008957 NOKEY'
             telegram = 1844961557890080501B7aea00012002656f0802fd46610e0f
-            json     = '{"_": "telegram","battery_v": 3.681,"id": "80008957","media": "room sensor","meter": "elvsense","name": "ES1","status": "OK","temperature_c": 21.59,"timestamp": "1111-11-11T11:11:11Z"}'
+            json     = '{"_": "telegram","battery_v": 3.681,"id": "80008957","media": "room sensor","driver": "elvsense","name": "ES1","status": "OK","temperature_c": 21.59,"timestamp": "1111-11-11T11:11:11Z"}'
             fields   = 'ES1;80008957;21.59;null;null;3.681;OK;1111-11-11 11:11.11'
         }
         test {
             args     = 'ES2 elvsense 80008957 NOKEY'
             telegram = 1e44961557890080501B7aff0010252f2f0265680802fd46630e0f2f2f2f2f
-            json     = '{"_": "telegram","battery_v": 3.683,"id": "80008957","media": "room sensor","meter": "elvsense","name": "ES2","status": "OK","temperature_c": 21.52,"timestamp": "1111-11-11T11:11:11Z"}'
+            json     = '{"_": "telegram","battery_v": 3.683,"id": "80008957","media": "room sensor","driver": "elvsense","name": "ES2","status": "OK","temperature_c": 21.52,"timestamp": "1111-11-11T11:11:11Z"}'
             fields   = 'ES2;80008957;21.52;null;null;3.683;OK;1111-11-11 11:11.11'
         }
         test {
             args     = 'FAKE elvsense 80008958 NOKEY'
             comment  = 'This is a fake meter to test ppm and named vif CO2. But 300W probably looks similar.'
             telegram = 2b44961558890080501B7aff0010252f2f_02656808_02fd46630e_02fb1a0700_027c03324f430001_0f2f2f2f2f
-            json     = '{"_": "telegram","battery_v": 3.683,"co2_ppm": 256,"humidity_rh": 0.7,"id": "80008958","media": "room sensor","meter": "elvsense","name": "FAKE","status": "OK","temperature_c": 21.52,"timestamp": "1111-11-11T11:11:11Z"}'
+            json     = '{"_": "telegram","battery_v": 3.683,"co2_ppm": 256,"humidity_rh": 0.7,"id": "80008958","media": "room sensor","driver": "elvsense","name": "FAKE","status": "OK","temperature_c": 21.52,"timestamp": "1111-11-11T11:11:11Z"}'
             fields   = 'FAKE;80008958;21.52;0.7;256;3.683;OK;1111-11-11 11:11.11'
         }
     }

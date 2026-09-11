@@ -99,15 +99,6 @@ std::vector<std::string> splitDeviceString(const std::string &s);
 
 void incrementIV(uchar *iv, size_t len);
 
-bool checkCharacterDeviceExists(const char *tty, bool fail_if_not);
-bool checkFileExists(const char *file);
-bool checkIfSimulationFile(const char *file);
-bool checkIfDirExists(const char *dir);
-bool listFiles(const std::string& dir, std::vector<std::string> *files);
-int loadFile(const std::string& file, std::vector<std::string> *lines);
-bool loadFile(const std::string& file, std::vector<char> *buf);
-bool appendFile(const std::string& file, const std::string &line);
-
 std::string eatTo(std::vector<uchar> &v, std::vector<uchar>::iterator &i, int c, size_t max, bool *eof, bool *err);
 
 void padWithZeroesTo(std::vector<uchar> *content, size_t len, std::vector<uchar> *full_content);
@@ -136,13 +127,15 @@ std::string eatToSkipWhitespace(std::vector<char> &v, std::vector<char>::iterato
 void trimWhitespace(std::string *s);
 
 // Count the number of 1:s in the binary number v.
-int countSetBits(int v);
+int countSetBits(uint64_t v);
 
 bool startsWith(const std::string &s, const char *prefix);
 bool startsWith(const std::string &s, std::string &prefix);
 
 // Given alfa=beta it returns "alfa":"beta"
 std::string makeQuotedJson(const std::string &s);
+// Given alfa=beta extract alfa and beta
+void extractKeyValue(const std::string &s, std::string *key, std::string *val);
 
 std::string currentYear();
 std::string currentYearMonth();

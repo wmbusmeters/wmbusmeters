@@ -89,6 +89,11 @@ enum class OutputFormat
     NONE, PLAIN, TERMINAL, JSON, HTML
 };
 
+enum class TelegramDetails
+{
+    NEVER, FIRST, ALWAYS
+};
+
 bool usesTTY(BusDeviceType t);
 bool usesRTLSDR(BusDeviceType t);
 const char *toString(BusDeviceType t);
@@ -96,8 +101,10 @@ const char *toLowerCaseString(BusDeviceType t);
 BusDeviceType toBusDeviceType(std::string &t);
 
 void setIgnoreDuplicateTelegrams(bool idt);
-void setDetailedFirst(bool df);
-bool getDetailedFirst();
+void setTelegramDetails(TelegramDetails td);
+TelegramDetails getTelegramDetails();
+void setAddTelegramHex(bool b);
+bool getAddTelegramHex();
 
 // A specified bus device is supplied on the command line or in the config file.
 // It has this format "alias=file:type[id](extras):fq:bps:linkmods:CMD(command)"
@@ -247,7 +254,7 @@ struct MeterKeys
     std::vector<uchar> confidentiality_key;
     std::vector<uchar> authentication_key;
     std::vector<std::vector<uchar>> default_keys; // Driver-level fallback keys tried when no meter key is configured.
-    
+
     bool hasConfidentialityKey() { return confidentiality_key.size() > 0; }
     bool hasAuthenticationKey() { return authentication_key.size() > 0; }
 };
@@ -434,6 +441,7 @@ public:
     int mfct_0f_index = -1; // -1 if not found, else index of the 0f byte, if found, inside the difvif data after the header.
     int mfct_1f_index = -1; // -1 if not found, else index of the 1f byte, if found, then there are more records in the next telegram.
     int force_mfct_index = -1; // Force all data after this offset to be mfct specific. Used for meters not using 0f.
+    bool permit_sanxing_609b_bug = false; // Set by the driver's transform_payload=buggy_sanxing_609B when this meter is used.
     void extractFrame(std::vector<uchar> *fr); // Extract to full frame.
     void extractPayload(std::vector<uchar> *pl); // Extract frame data containing the measurements, after the header and not the suffix.
     void extractMfctData(std::vector<uchar> *pl); // Extract frame data after the DIF 0x0F.
@@ -757,5 +765,6 @@ const char *mbusCiField(uchar ci_field);
 
 int genericifyMedia(int media);
 bool isCloseEnough(int media1, int media2);
+
 
 #endif

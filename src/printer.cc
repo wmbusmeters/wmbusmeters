@@ -20,19 +20,26 @@
 #include"cmdline.h"
 #include"printer.h"
 #include"shell.h"
+#include"utils/doc.h"
 
 using namespace std;
 
-Printer::Printer(bool json, bool pretty_print_json, bool fields, char separator,
-                 bool use_meterfiles, string &meterfiles_dir,
-                 bool use_logfile, string &logfile,
+Printer::Printer(XMQContentType output_format,
+                 bool pretty_print,
+                 bool fields,
+                 char separator,
+                 bool use_meterfiles,
+                 string &meterfiles_dir,
+                 bool use_logfile,
+                 string &logfile,
                  vector<string> new_meter_shell_cmdlines,
-                 vector<string> shell_cmdlines, bool overwrite,
+                 vector<string> shell_cmdlines,
+                 bool overwrite,
                  MeterFileNaming naming,
                  MeterFileTimestamp timestamp)
 {
-    json_ = json;
-    pretty_print_json_ = pretty_print_json;
+    output_format_ = output_format;
+    pretty_print_ = pretty_print;
     fields_ = fields;
     separator_ = separator;
     use_meterfiles_ = use_meterfiles;
@@ -46,15 +53,22 @@ Printer::Printer(bool json, bool pretty_print_json, bool fields, char separator,
     timestamp_ = timestamp;
 }
 
-void Printer::print(Telegram *t, Meter *meter,
+void Printer::print(Telegram *t,
+                    Meter *meter,
                     vector<string> *more_json,
                     vector<string> *selected_fields)
 {
-    string human_readable, fields, json;
+    string human_readable, fields;
     vector<string> envs;
     bool printed = false;
 
-    meter->printMeter(t, &human_readable, &fields, separator_, &json, &envs, more_json, selected_fields, pretty_print_json_);
+    auto rd = xmqNewDoc();
+    assert(rd.status == XMQ_OK);
+    XMQDoc *doc = rd.doc;
+
+    meter->printMeter(t, &human_readable, &fields, separator_, &envs, more_json, selected_fields, doc);
+
+    string output_string = docToString(doc, output_format_, pretty_print_);
 
     if (!meter->hasReceivedFirstTelegram())
     {
@@ -74,14 +88,16 @@ void Printer::print(Telegram *t, Meter *meter,
         printed = true;
     }
     if (use_meterfiles_) {
-        printFiles(meter, t, human_readable, fields, json);
+        printFiles(meter, t, human_readable, fields, output_string);
         printed = true;
     }
     if (!printed) {
         // This will print on stdout or in the logfile.
-        printFiles(meter, t, human_readable, fields, json);
+        printFiles(meter, t, human_readable, fields, output_string);
         fflush(stdout);
     }
+
+    xmqFreeDoc(doc);
 }
 
 void Printer::printNewMeterShells(Meter *meter, vector<string> &envs)
@@ -116,7 +132,8 @@ void Printer::printFiles(Meter *meter, Telegram *t, string &human_readable, stri
 {
     FILE *output = stdout;
 
-    if (use_meterfiles_) {
+    if (use_meterfiles_)
+    {
         char filename[256];
         memset(filename, 0, sizeof(filename));
         switch (naming_) {
@@ -173,7 +190,7 @@ void Printer::printFiles(Meter *meter, Telegram *t, string &human_readable, stri
             return;
         }
     }
-    if (json_) {
+    if (output_format_ != XMQ_CONTENT_UNKNOWN) {
         if (output) {
             fprintf(output, "%s\n", json.c_str());
         } else {

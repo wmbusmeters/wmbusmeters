@@ -180,6 +180,10 @@ struct Config_IU891A
         {
             link_modes.addLinkMode(LinkMode::C1);
         }
+        else if (c == LINK_MODE_CUSTOM_CT)
+        {
+            link_modes.addLinkMode(LinkMode::CCT);
+        }
         option_bits = bytes[i+1]<<8 | bytes[i+0];
         i += 2;
         ui_option_bits = bytes[i+1]<<8 | bytes[i+0];
@@ -255,7 +259,8 @@ struct WMBusIU891A : public BusDeviceCommonImplementation
             S1_bit |
             S1m_bit |
             T1_bit |
-            T2_bit;
+            T2_bit |
+            CCT_bit;
     }
 
     int numConcurrentLinkModes()
@@ -434,7 +439,11 @@ void WMBusIU891A::deviceReset()
 
 uchar setupIMSTBusDeviceToReceiveTelegrams(LinkModeSet lms)
 {
-    if (lms.has(LinkMode::C1) && lms.has(LinkMode::T1))
+    if (lms.has(LinkMode::CCT))
+    {
+        return LINK_MODE_CUSTOM_CT;
+    }
+    else if (lms.has(LinkMode::C1) && lms.has(LinkMode::T1))
     {
         return LINK_MODE_CT;
     }

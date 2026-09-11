@@ -142,7 +142,7 @@ endif
 $(info Building $(VERSION))
 
 FUZZFLAGS ?= -DFUZZING=false
-CXXFLAGS ?= $(EXTRA_CXXFLAGS) $(DEBUG_FLAGS) $(FUZZFLAGS) -fPIC -std=c++17 -Wall -Werror=format-security -Wno-unused-function
+CXXFLAGS ?= $(EXTRA_CXXFLAGS) $(DEBUG_FLAGS) $(FUZZFLAGS) -fPIC -Wall -Werror=format-security -Wno-unused-function
 
 # Inject default paths
 CXXFLAGS +=\
@@ -187,6 +187,7 @@ PROG_OBJS:=\
 	$(BUILD)/cmdline.o \
 	$(BUILD)/config.o \
 	$(BUILD)/crc16.o \
+	$(BUILD)/doc.o \
 	$(BUILD)/download.o \
 	$(BUILD)/drivers.o \
 	$(BUILD)/dvparser.o \
@@ -222,7 +223,9 @@ PROG_OBJS:=\
 	$(BUILD)/lora_iu880b.o \
 	$(BUILD)/link_mode.o \
 	$(BUILD)/signal_handling.o \
-	$(BUILD)/slip.o
+	$(BUILD)/slip.o \
+	$(BUILD)/fs.o \
+	$(BUILD)/command_handler.o
 
 # If you run: "make DRIVER=minomess" then only driver_minomess.cc will be compiled into wmbusmeters.
 

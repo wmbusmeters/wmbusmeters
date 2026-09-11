@@ -62,6 +62,9 @@ if [ "$?" != "0" ]; then RC="1"; fi
 ./tests/test_detailed_first.sh $PROG
 if [ "$?" != "0" ]; then RC="1"; fi
 
+./tests/test_add_telegram_hex.sh $PROG
+if [ "$?" != "0" ]; then RC="1"; fi
+
 tests/test_config_xmq_mvt_override.sh $PROG
 if [ "$?" != "0" ]; then RC="1"; fi
 
@@ -117,6 +120,9 @@ tests/test_conversions.sh $PROG
 if [ "$?" != "0" ]; then RC="1"; fi
 
 tests/test_conversions_more.sh $PROG
+if [ "$?" != "0" ]; then RC="1"; fi
+
+tests/test_inverse_compact_profile.sh $PROG
 if [ "$?" != "0" ]; then RC="1"; fi
 
 tests/test_dbm.sh $PROG
@@ -228,6 +234,8 @@ if [ "$?" != "0" ]; then RC="1"; fi
 ./tests/test_rtlwmbus_linkmodes.sh $PROG
 if [ "$?" != "0" ]; then RC="1"; fi
 
+./tests/test_bad_telegrams.sh $PROG
+if [ "$?" != "0" ]; then RC="1"; fi
 
 if [ -s build/xmq ]
 then
