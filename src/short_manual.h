@@ -46,7 +46,7 @@ As {options} you can use:
     --ignoreduplicates=<bool> ignore duplicate telegrams, remember the last 10 telegrams
     --field_xxx=yyy always add "xxx"="yyy" to the json output and add shell env METER_xxx=yyy (--json_xxx=yyy also works)
     --license print GPLv3+ license
-    --listento=<mode> listen to one of the c1,t1,s1,s1m,n1a-n1f link modes
+    --listento=<mode> listen to one of the c1,t1,s1,s1m,n1a-n1f link modes, or cct for iU891A Custom C/T mode
     --listento=<mode>,<mode> listen to more than one link mode at the same time, assuming the dongle supports it
     --listenvs=<meter_driver> list the env variables available for the given meter driver
     --listfields=<meter_driver> list the fields selectable for the given meter driver

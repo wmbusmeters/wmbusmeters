@@ -617,7 +617,7 @@ void addYears(struct tm *date, int y)
     return addMonths(date, 12*y);
 }
 
-int countSetBits(int v)
+int countSetBits(uint64_t v)
 {
     int n = 0;
     while (v)

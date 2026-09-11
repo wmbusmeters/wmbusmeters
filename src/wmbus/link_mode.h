@@ -67,7 +67,8 @@
     X(R2h,r2h,--r2h,   (1UL<<28))    \
     X(R2i,r2i,--r2i,   (1UL<<29))    \
     X(R2j,r2j,--r2j,   (1UL<<30))    \
-    X(LORA,lora,--lora,   (1UL<<31))    \
+    X(LORA,lora,--lora,   (UINT64_C(1)<<31))    \
+    X(CCT,cct,--cct,      (UINT64_C(1)<<32))    \
     X(UNKNOWN,unknown,----,0x0UL)
 
 enum class LinkMode {
@@ -112,9 +113,9 @@ struct LinkModeSet
     // Clear the set to empty.
     void clear() { set_ = 0; }
     // Mark set as all linkmodes!
-    void setAll() { set_ = (int)LinkMode::Any; }
+    void setAll() { set_ = Any_bit; }
     // For bit counting etc.
-    int asBits() { return set_; }
+    uint64_t asBits() { return set_; }
 
     // Return a human readable string.
     std::string hr();

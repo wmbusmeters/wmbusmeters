@@ -27,6 +27,7 @@
 #include"translatebits.h"
 #include"util.h"
 #include"wmbus.h"
+#include"wmbus_iu891a.h"
 #include"dvparser.h"
 #include"xmq.h"
 
@@ -545,6 +546,23 @@ void test_devices()
 
 void test_linkmodes()
 {
+    LinkModeSet cct = parseLinkModes("cct");
+    assert(cct.has(LinkMode::CCT));
+    assert(cct.hr() == "cct");
+    assert(toLinkMode("cct") == LinkMode::CCT);
+    assert(isLinkModeOption("--cct") == LinkMode::CCT);
+    assert(!strcmp(toString(LinkMode::CCT), "cct"));
+    assert(cct.asBits() == CCT_bit);
+    assert(countSetBits(cct.asBits()) == 1);
+    assert(setupIMSTBusDeviceToReceiveTelegrams(cct) == LINK_MODE_CUSTOM_CT);
+
+    LinkModeSet all;
+    all.setAll();
+    assert(all.has(LinkMode::CCT));
+
+    LinkModeSet ct = parseLinkModes("c1,t1");
+    assert(setupIMSTBusDeviceToReceiveTelegrams(ct) == LINK_MODE_CT);
+
     /*
     LinkModeCalculationResult lmcr;
     auto manager = createSerialCommunicationManager(0, false);

@@ -122,6 +122,9 @@ if [ "$?" != "0" ]; then RC="1"; fi
 tests/test_conversions_more.sh $PROG
 if [ "$?" != "0" ]; then RC="1"; fi
 
+tests/test_inverse_compact_profile.sh $PROG
+if [ "$?" != "0" ]; then RC="1"; fi
+
 tests/test_dbm.sh $PROG
 if [ "$?" != "0" ]; then RC="1"; fi
 

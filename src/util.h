@@ -145,7 +145,7 @@ std::string eatToSkipWhitespace(std::vector<char> &v, std::vector<char>::iterato
 void trimWhitespace(std::string *s);
 
 // Count the number of 1:s in the binary number v.
-int countSetBits(int v);
+int countSetBits(uint64_t v);
 
 bool startsWith(const std::string &s, const char *prefix);
 bool startsWith(const std::string &s, std::string &prefix);
