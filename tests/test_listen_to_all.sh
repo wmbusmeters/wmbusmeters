@@ -1,5 +1,7 @@
 #!/bin/sh
 
+. tests/include.sh
+
 PROG="$1"
 
 if [ "$PROG" = "" ]
@@ -353,7 +355,7 @@ RES=$($PROG --logfile=$LOGFILE --t1 simulations/simulation_t1.txt 2>&1)
 
 if [ ! "$RES" = "" ]
 then
-    echo ERROR: $TESTNAME
+    printERROR "$TESTNAME"
     echo Expected no output on stdout and stderr
     echo but got------------------
     echo $RES
@@ -365,13 +367,13 @@ RES=$(diff $LOGFILE $LOGFILE_EXPECTED)
 
 if [ ! -z "$RES" ]
 then
-    echo ERROR: $TESTNAME
+    printERROR "$TESTNAME"
     echo -----------------
     diff $LOGFILE $LOGFILE_EXPECTED
     echo -----------------
     exit 1
 else
-    echo OK: $TESTNAME
+    printOK "$TESTNAME"
 fi
 
 TESTNAME="Test listen and print any meter heard on stdout"
@@ -383,11 +385,11 @@ RES=$(diff $LOGFILE $LOGFILE_EXPECTED)
 
 if [ ! -z "$RES"  ]
 then
-    echo ERROR: $TESTNAME
+    printERROR "$TESTNAME"
     echo -----------------
     diff $LOGFILE $LOGFILE_EXPECTED
     echo -----------------
     exit 1
 else
-    echo OK: $TESTNAME
+    printOK "$TESTNAME"
 fi

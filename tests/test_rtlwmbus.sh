@@ -1,5 +1,7 @@
 #!/bin/sh
 
+. tests/include.sh
+
 PROG="$1"
 
 TEST=testoutput
@@ -20,8 +22,8 @@ cat $TEST/test_output.txt | sed 's/"timestamp":"....-..-..T..:..:..Z"/"timestamp
 diff $TEST/test_expected.txt $TEST/test_response.txt
 if [ "$?" = "0" ]
 then
-    echo "OK: $TESTNAME"
+    printOK "$TESTNAME"
     TESTRESULT="OK"
 fi
 
-if [ "$TESTRESULT" = "ERROR" ]; then echo ERROR: $TESTNAME;  exit 1; fi
+if [ "$TESTRESULT" = "ERROR" ]; then printERROR "$TESTNAME";  exit 1; fi

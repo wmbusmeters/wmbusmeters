@@ -1,5 +1,7 @@
 #!/bin/sh
 
+. tests/include.sh
+
 PROG="$1"
 
 mkdir -p testoutput
@@ -64,7 +66,7 @@ then
     diff $TEST/test_expected.txt $TEST/test_output.txt
     if [ "$?" = "0" ]
     then
-        echo OK: $TESTNAME
+        printOK "$TESTNAME"
         TESTRESULT="OK"
     else
         if [ "$USE_MELD" = "true" ]
@@ -76,6 +78,6 @@ fi
 
 if [ "$TESTRESULT" = "ERROR" ]
 then
-    echo ERROR: $TESTNAME
+    printERROR "$TESTNAME"
     exit 1
 fi

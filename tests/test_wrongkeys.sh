@@ -1,5 +1,7 @@
 #!/bin/sh
 
+. tests/include.sh
+
 PROG="$1"
 
 TEST=testoutput
@@ -20,7 +22,7 @@ cat $TEST/test_input.txt | $PROG --format=json "stdin:rtlwmbus" \
 if [ -s $TEST/test_output.txt ]
 then
     echo "Bad no stdout expected! But got bytes anyway!"
-    echo "ERROR: $TESTNAME"
+    printERROR "$TESTNAME"
     TESTRESULT="ERROR"
     exit 1
 fi
@@ -36,8 +38,8 @@ EOF
 diff $TEST/test_expected.txt $TEST/test_stderr.txt
 if [ "$?" = "0" ]
 then
-    echo "OK: $TESTNAME"
+    printOK "$TESTNAME"
     TESTRESULT="OK"
 fi
 
-if [ "$TESTRESULT" = "ERROR" ]; then echo ERROR: $TESTNAME;  exit 1; fi
+if [ "$TESTRESULT" = "ERROR" ]; then printERROR "$TESTNAME";  exit 1; fi

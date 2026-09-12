@@ -1,5 +1,7 @@
 #!/bin/sh
 
+. tests/include.sh
+
 PROG="$1"
 
 TEST=testaes
@@ -16,7 +18,7 @@ cat $TEST/test_input.txt | $PROG --format=json --logtimestamps=always --verbose 
 if ! grep -q "] Started config" $TEST/test_stderr.txt || \
    ! grep -q "] (config) number" $TEST/test_stderr.txt
 then
-    echo "ERROR: failed --logtimestamps=always"
+    printERROR "failed --logtimestamps=always"
     exit 1
 fi
 
@@ -26,7 +28,7 @@ cat $TEST/test_input.txt | $PROG --format=json --logtimestamps=important --verbo
 if ! grep -q "] Started config" $TEST/test_stderr.txt || \
    ! grep -q "^(config) number" $TEST/test_stderr.txt
 then
-    echo "ERROR: failed --logtimestamps=important"
+    printERROR "failed --logtimestamps=important"
     exit 1
 fi
 
@@ -36,8 +38,8 @@ cat $TEST/test_input.txt | $PROG --format=json --logtimestamps=never --verbose "
 if ! grep -q "^Started config" $TEST/test_stderr.txt || \
    ! grep -q "^(config) number" $TEST/test_stderr.txt
 then
-    echo "ERROR: failed --logtimestamps=never"
+    printERROR "failed --logtimestamps=never"
     exit 1
 fi
 
-echo "OK: $TESTNAME"
+printOK "$TESTNAME"

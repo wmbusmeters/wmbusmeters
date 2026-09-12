@@ -1,5 +1,7 @@
 #!/bin/sh
 
+. tests/include.sh
+
 PROG="$1"
 
 mkdir -p testoutput
@@ -38,4 +40,9 @@ then
     TESTRESULT="ERROR"
 fi
 
-echo ${TESTRESULT}: $TESTNAME
+if [ "$TESTRESULT" = "ERROR" ]
+then
+    printERROR "$TESTNAME"
+    exit 1
+fi
+printOK "$TESTNAME"

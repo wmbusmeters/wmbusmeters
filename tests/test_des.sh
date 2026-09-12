@@ -1,4 +1,6 @@
 #!/bin/sh
+
+. tests/include.sh
 # Tests for DES-CBC decryption (EN 13757-7:2018 security modes 2 and 3).
 # Uses --analyze so no driver is required.
 
@@ -11,22 +13,22 @@ KEY=0102030405060708
 # ---------------------------------------------------------------------------
 TESTNAME="DES mode 2: correct key — 2F2F check bytes OK"
 $PROG --analyze=$KEY $TELEGRAM 2>&1 | grep -q "2f2f decrypt check bytes (OK)"
-if [ "$?" = "0" ]; then echo "OK: $TESTNAME"; else echo "ERROR: $TESTNAME"; exit 1; fi
+if [ "$?" = "0" ]; then printOK "$TESTNAME"; else printERROR "$TESTNAME"; exit 1; fi
 
 # ---------------------------------------------------------------------------
 TESTNAME="DES mode 2: correct key — volume decoded"
 $PROG --analyze=$KEY $TELEGRAM 2>&1 | grep -q "E8030000"
-if [ "$?" = "0" ]; then echo "OK: $TESTNAME"; else echo "ERROR: $TESTNAME"; exit 1; fi
+if [ "$?" = "0" ]; then printOK "$TESTNAME"; else printERROR "$TESTNAME"; exit 1; fi
 
 # ---------------------------------------------------------------------------
 TESTNAME="DES mode 2: no key — CE: encrypted marker present"
 $PROG --analyze $TELEGRAM 2>&1 | grep -qE "CE:"
-if [ "$?" = "0" ]; then echo "OK: $TESTNAME"; else echo "ERROR: $TESTNAME"; exit 1; fi
+if [ "$?" = "0" ]; then printOK "$TESTNAME"; else printERROR "$TESTNAME"; exit 1; fi
 
 # ---------------------------------------------------------------------------
 TESTNAME="DES mode 2: wrong key — check bytes fail"
 $PROG --analyze=FFFFFFFFFFFFFFFF $TELEGRAM 2>&1 | grep -q "ERROR should be 2f2f"
-if [ "$?" = "0" ]; then echo "OK: $TESTNAME"; else echo "ERROR: $TESTNAME"; exit 1; fi
+if [ "$?" = "0" ]; then printOK "$TESTNAME"; else printERROR "$TESTNAME"; exit 1; fi
 
 # ---------------------------------------------------------------------------
 # Mode 3: IV = ID + mfct + date-type-G (today's date)
@@ -64,14 +66,14 @@ PYEOF
 )
 
 $PROG --analyze=$KEY $MODE3_TELEGRAM 2>&1 | grep -q "2f2f decrypt check bytes (OK)"
-if [ "$?" = "0" ]; then echo "OK: $TESTNAME"; else echo "ERROR: $TESTNAME"; exit 1; fi
+if [ "$?" = "0" ]; then printOK "$TESTNAME"; else printERROR "$TESTNAME"; exit 1; fi
 
 # ---------------------------------------------------------------------------
 TESTNAME="DES mode 3: no key — CE: encrypted marker present"
 $PROG --analyze $MODE3_TELEGRAM 2>&1 | grep -qE "CE:"
-if [ "$?" = "0" ]; then echo "OK: $TESTNAME"; else echo "ERROR: $TESTNAME"; exit 1; fi
+if [ "$?" = "0" ]; then printOK "$TESTNAME"; else printERROR "$TESTNAME"; exit 1; fi
 
 # ---------------------------------------------------------------------------
 TESTNAME="DES mode 3: wrong key — check bytes fail"
 $PROG --analyze=FFFFFFFFFFFFFFFF $MODE3_TELEGRAM 2>&1 | grep -q "ERROR should be 2f2f\|failed"
-if [ "$?" = "0" ]; then echo "OK: $TESTNAME"; else echo "ERROR: $TESTNAME"; exit 1; fi
+if [ "$?" = "0" ]; then printOK "$TESTNAME"; else printERROR "$TESTNAME"; exit 1; fi

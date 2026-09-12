@@ -1,5 +1,7 @@
 #!/bin/sh
 
+. tests/include.sh
+
 PROG="$1"
 
 mkdir -p testoutput
@@ -16,12 +18,12 @@ cat /tmp/MyTapWater | jq --sort-keys .  | sed 's/"timestamp": "....-..-..T..:..:
 diff $TEST/test_expected.txt $TEST/test_response.txt
 if [ "$?" = "0" ]
 then
-    echo OK: $TESTNAME
+    printOK "$TESTNAME"
     TESTRESULT="OK"
     rm /tmp/MyTapWater
 fi
 
-if [ "$TESTRESULT" = "ERROR" ]; then echo ERROR: $TESTNAME; exit 1; fi
+if [ "$TESTRESULT" = "ERROR" ]; then printERROR "$TESTNAME"; exit 1; fi
 
 TESTNAME="Test that meterfiles with name-id are written"
 TESTRESULT="ERROR"
@@ -36,12 +38,12 @@ cat /tmp/testmeters/MyTapWater-76348799 | jq --sort-keys . | sed 's/"timestamp":
 diff $TEST/test_expected.txt $TEST/test_response.txt
 if [ "$?" = "0" ]
 then
-    echo OK: $TESTNAME
+    printOK "$TESTNAME"
     TESTRESULT="OK"
     rm -rf /tmp/testmeters
 fi
 
-if [ "$TESTRESULT" = "ERROR" ]; then echo ERROR: $TESTNAME; exit 1; fi
+if [ "$TESTRESULT" = "ERROR" ]; then printERROR "$TESTNAME"; exit 1; fi
 
 TESTNAME="Test that meterfiles with id are written"
 TESTRESULT="ERROR"
@@ -56,12 +58,12 @@ cat /tmp/testmeters/76348799 | jq --sort-keys . | sed 's/"timestamp": "....-..-.
 diff $TEST/test_expected.txt $TEST/test_response.txt
 if [ "$?" = "0" ]
 then
-    echo OK: $TESTNAME
+    printOK "$TESTNAME"
     TESTRESULT="OK"
     rm -rf /tmp/testmeters
 fi
 
-if [ "$TESTRESULT" = "ERROR" ]; then echo ERROR: $TESTNAME; exit 1; fi
+if [ "$TESTRESULT" = "ERROR" ]; then printERROR "$TESTNAME"; exit 1; fi
 
 
 TESTNAME="Test that meterfiles with timestamps are written"
@@ -77,12 +79,12 @@ cat /tmp/testmeters/76348799_$(date +%Y-%m) | jq --sort-keys . | sed 's/"timesta
 diff $TEST/test_expected.txt $TEST/test_response.txt
 if [ "$?" = "0" ]
 then
-    echo OK: $TESTNAME
+    printOK "$TESTNAME"
     TESTRESULT="OK"
     rm -rf /tmp/testmeters
 fi
 
-if [ "$TESTRESULT" = "ERROR" ]; then echo ERROR: $TESTNAME; exit 1; fi
+if [ "$TESTRESULT" = "ERROR" ]; then printERROR "$TESTNAME"; exit 1; fi
 
 rm -rf /tmp/testmeters
 mkdir /tmp/testmeters
@@ -94,12 +96,12 @@ cat /tmp/testmeters/76348799_$(date +%Y-%m-%d) | jq --sort-keys . | sed 's/"time
 diff $TEST/test_expected.txt $TEST/test_response.txt
 if [ "$?" = "0" ]
 then
-    echo OK: $TESTNAME
+    printOK "$TESTNAME"
     TESTRESULT="OK"
     rm -rf /tmp/testmeters
 fi
 
-if [ "$TESTRESULT" = "ERROR" ]; then echo ERROR: $TESTNAME; exit 1; fi
+if [ "$TESTRESULT" = "ERROR" ]; then printERROR "$TESTNAME"; exit 1; fi
 
 rm -rf /tmp/testmeters
 mkdir /tmp/testmeters
@@ -111,9 +113,9 @@ cat /tmp/testmeters/76348799_$(date +%Y-%m-%d_%H:%M) | jq --sort-keys . | sed 's
 diff $TEST/test_expected.txt $TEST/test_response.txt
 if [ "$?" = "0" ]
 then
-    echo OK: $TESTNAME
+    printOK "$TESTNAME"
     TESTRESULT="OK"
     rm -rf /tmp/testmeters
 fi
 
-if [ "$TESTRESULT" = "ERROR" ]; then echo ERROR: $TESTNAME; exit 1; fi
+if [ "$TESTRESULT" = "ERROR" ]; then printERROR "$TESTNAME"; exit 1; fi

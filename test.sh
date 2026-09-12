@@ -1,4 +1,6 @@
-#!/bin/sh
+#!/bin/bash
+
+. tests/include.sh
 
 PROG="$1"
 TESTINTERNAL=$(dirname $PROG)/testinternals
@@ -21,12 +23,14 @@ then
 fi
 
 export TZ=UTC
+RC="0"
 
 $TESTINTERNAL
 if [ "$?" = "0" ]; then
-    echo OK: test internals
+    printOK "test internals"
+else
+    RC="1"
 fi
-RC="0"
 
 tests/test_c1_meters.sh $PROG
 if [ "$?" != "0" ]; then RC="1"; fi
@@ -36,7 +40,6 @@ if [ "$?" != "0" ]; then RC="1"; fi
 
 tests/test_s1_meters.sh $PROG
 if [ "$?" != "0" ]; then RC="1"; fi
-
 
 tests/test_non_existant_driver.sh $PROG
 if [ "$?" != "0" ]; then RC="1"; fi
@@ -301,7 +304,7 @@ then
     (cd ..; ./additional_tests.sh $PROG)
 fi
 
-echo Slower tests...
+echo "Slower tests..."
 
 tests/test_pipe.sh $PROG
 if [ "$?" != "0" ]; then RC="1"; fi
@@ -320,9 +323,9 @@ fi
 
 if [ "$RC" = "0" ]
 then
-    echo "All tests ok!"
+    printOK "All tests ok!"
 else
-    echo "Some tests failed!"
+    printERROR "Some tests failed!"
 fi
 
 exit $RC

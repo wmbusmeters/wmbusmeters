@@ -1,5 +1,7 @@
 #!/bin/sh
 
+. tests/include.sh
+
 PROG="$1"
 
 mkdir -p testoutput
@@ -29,7 +31,7 @@ then
     diff $TEST/test_expected.txt $TEST/test_responses.txt
     if [ "$?" = "0" ]
     then
-        echo OK json: $TESTNAME
+        printOK "$TESTNAME"
         TESTRESULT="OK"
     else
         TESTRESULT="ERROR"
@@ -42,7 +44,7 @@ fi
 
 if [ "$TESTRESULT" = "ERROR" ]
 then
-    echo ERROR: $TESTNAME
+    printERROR "$TESTNAME"
     exit 1
 fi
 
@@ -92,7 +94,7 @@ RES=$($PROG --logfile=$LOGFILE --t1 simulations/simulation_izars.txt 2>&1)
 
 if [ ! "$RES" = "" ]
 then
-    echo ERROR: $TESTNAME
+    printERROR "$TESTNAME"
     echo Expected no output on stdout and stderr
     echo but got------------------
     echo $RES
@@ -104,11 +106,11 @@ RES=$(diff $LOGFILE $LOGFILE_EXPECTED)
 
 if [ ! -z "$RES" ]
 then
-    echo ERROR: $TESTNAME
+    printERROR "$TESTNAME"
     echo -----------------
     diff $LOGFILE $LOGFILE_EXPECTED
     echo -----------------
     exit 1
 else
-    echo OK: $TESTNAME
+    printOK "$TESTNAME"
 fi

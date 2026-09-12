@@ -1,5 +1,7 @@
 #!/bin/bash
 
+. tests/include.sh
+
 if ! command -v nc > /dev/null 2> /dev/null
 then
     echo "Skipping nc test, not installed."
@@ -46,10 +48,10 @@ EXPECTED="123.529"
 
 if [ "$GOT" = "$EXPECTED" ]
 then
-    echo "OK: $TESTNAME"
+    printOK "$TESTNAME"
     TESTRESULT="OK"
 else
-    echo "ERROR: GOT $GOT but expected $EXPECTED"
+    printERROR "GOT $GOT but expected $EXPECTED"
 fi
 
-if [ "$TESTRESULT" = "ERROR" ]; then echo ERROR: $TESTNAME;  exit 1; fi
+if [ "$TESTRESULT" = "ERROR" ]; then printERROR "$TESTNAME";  exit 1; fi

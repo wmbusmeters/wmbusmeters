@@ -1,5 +1,7 @@
 #!/bin/sh
 
+. tests/include.sh
+
 PROG="$1"
 
 if [ "$PROG" = "" ]
@@ -23,7 +25,7 @@ cat $TEST/test_input.txt | $PROG --useconfig=tests/config9 --overridedevice=stdi
 
 if ! grep -q "(main) all meters have received at least one update, stopping." $TEST/test_stderr.txt
 then
-    echo "ERROR: $TESTNAME ($0)"
+    printERROR "$TESTNAME ($0)"
     echo "Expected stderr to print \"all meters have received at least one update\""
     exit 1
 fi
@@ -32,14 +34,14 @@ cat $TEST/test_output.txt | sed 's/"timestamp": "....-..-..T..:..:..Z"/"timestam
 diff $TEST/test_expected.txt $TEST/test_response.txt
 if [ "$?" = "0" ]
 then
-    echo "OK: $TESTNAME"
+    printOK "$TESTNAME"
     TESTRESULT="OK"
 else
     if [ "$USE_MELD" = "true" ]
     then
         meld $TEST/test_expected.txt $TEST/test_response.txt
     fi
-    echo "ERROR: $TESTNAME"
+    printERROR "$TESTNAME"
     exit 1
 fi
 
@@ -54,16 +56,16 @@ cat simulations/serial_aes.msg | grep '^[CT]' | tr -d '#' > $TEST/test_input.txt
 
 if ! grep -q "(serial) exit after " $TEST/test_stderr.txt
 then
-    echo "ERROR: $TESTNAME ($0)"
+    printERROR "$TESTNAME ($0)"
     echo "Expected stderr to print \"(serial) exit after\""
     exit 1
 else
-    echo "OK: $TESTNAME"
+    printOK "$TESTNAME"
     TESTRESULT=OK
 fi
 
 if [ "$TESTRESULT" = "ERROR" ]
 then
-    echo "ERROR: $TESTNAME ($0)"
+    printERROR "$TESTNAME ($0)"
     exit 1
 fi

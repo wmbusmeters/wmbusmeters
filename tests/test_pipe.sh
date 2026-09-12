@@ -1,5 +1,7 @@
 #!/bin/sh
 
+. tests/include.sh
+
 PROG="$1"
 
 if [ "$PROG" = "" ]
@@ -18,11 +20,11 @@ done)
 
 if [ -n "$OUTPUT" ]
 then
-    echo ERROR: reading all stdin before closing down
+    printERROR "reading all stdin before closing down"
     echo $OUTPUT
     exit 1
 else
-    echo OK: reading all stdin before closing down
+    printOK "reading all stdin before closing down"
 fi
 
 exit 0

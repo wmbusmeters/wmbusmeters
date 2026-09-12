@@ -1,5 +1,7 @@
 #!/bin/sh
 
+. tests/include.sh
+
 # Test generating a key that contains a calculated date.
 # I.e. we have a target_date in the telegram, then calculate a previous month date like this:
 #    name     = 'target_{storage_counter}_{target_date - (storage_counter * 1month)}'
@@ -18,7 +20,7 @@ then
     diff $TEST/test_expected.txt $TEST/test_response.txt
     if [ "$?" = "0" ]
     then
-        echo "OK: $TESTNAME"
+        printOK "$TESTNAME"
         TESTRESULT="OK"
     else
         if [ "$USE_MELD" = "true" ]
@@ -27,7 +29,7 @@ then
         fi
     fi
 else
-    echo "ERROR: $TESTNAME $0"
+    printERROR "$TESTNAME $0"
     echo "wmbusmeters returned error code: $?"
     cat $TEST/test_output.txt
 fi

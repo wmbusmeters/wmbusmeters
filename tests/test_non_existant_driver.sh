@@ -1,5 +1,7 @@
 #!/bin/sh
 
+. tests/include.sh
+
 PROG="$1"
 
 rm -rf testoutput
@@ -14,9 +16,9 @@ RES=$(cat $TEST/test_output.txt | grep -o "$EXPECT" | tail -n 1)
 
 if [ "$RES" = "$EXPECT" ]
 then
-    echo OK: Test non-existant driver
+    printOK "Test non-existant driver"
 else
     cat $TEST/test_output.txt
-    echo ERROR Failed non-existant driver check!
+    printERROR "Failed non-existant driver check!"
     exit 1
 fi

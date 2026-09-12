@@ -1,5 +1,7 @@
 #!/bin/sh
 
+. tests/include.sh
+
 PROG="$1"
 
 if [ "$PROG" = "" ]
@@ -20,10 +22,10 @@ $PROG --useconfig=tests/config18 --listfields=iperl | grep total_m3 > $TEST/test
 
 if ! grep -q 'Extra help!' $TEST/test_output.txt
 then
-    echo "ERROR: $TESTNAME ($0)"
+    printERROR "$TESTNAME ($0)"
     cat $TEST/test_output.txt
     echo "Expected \"Extra help!\" to be appended to total_m3 field"
     exit 1
 fi
 
-echo "OK: $TESTNAME"
+printOK "$TESTNAME"

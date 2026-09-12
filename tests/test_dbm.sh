@@ -1,5 +1,7 @@
 #!/bin/sh
 
+. tests/include.sh
+
 PROG="$1"
 
 rm -rf testoutput
@@ -24,7 +26,7 @@ if [ "$?" = "0" ]
 then
     if [ "$EXPECTED" = "$OUTPUT" ]
     then
-        echo "OK: $TESTNAME"
+        printOK "$TESTNAME"
         exit 0
     else
         echo "Expected $EXPECTED"
@@ -32,4 +34,4 @@ then
     fi
 fi
 
-if [ "$TESTRESULT" = "ERROR" ]; then echo ERROR: $TESTNAME;  exit 1; fi
+if [ "$TESTRESULT" = "ERROR" ]; then printERROR "$TESTNAME";  exit 1; fi

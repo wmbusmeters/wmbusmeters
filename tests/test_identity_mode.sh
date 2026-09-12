@@ -1,5 +1,7 @@
 #!/bin/sh
 
+. tests/include.sh
+
 PROG="$1"
 
 mkdir -p testoutput
@@ -32,7 +34,7 @@ then
     then
         meld $TEST/test_expected.txt $TEST/test_responses.txt
     fi
-    echo "ERROR: $TESTNAME"
+    printERROR "$TESTNAME"
 else
-    echo OK: $TESTNAME
+    printOK "$TESTNAME"
 fi

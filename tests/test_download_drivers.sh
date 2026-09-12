@@ -1,5 +1,7 @@
 #!/bin/sh
 
+. tests/include.sh
+
 PROG="$1"
 export TZ=UTC
 
@@ -37,7 +39,7 @@ run_basicauth() {
 }
 
 fail_case() {
-    echo "ERROR $1"
+    printERROR "$1"
     cat "$OUTFILE"
     RC=1
 }
@@ -185,7 +187,7 @@ if assert_exit_zero &&
    [ -f "$CACHEDIR/iporl.xmq" ] &&
    [ -s "$CURLLOG" ]
 then
-    echo "OK: Test downloaded driver (200, no auth)"
+    printOK "Test downloaded driver (200, no auth)"
 else
     fail_case "Failed downloaded driver (200, no auth)!"
 fi
@@ -197,7 +199,7 @@ if assert_exit_zero &&
     assert_total_value &&
     grep -F -- '-z ' "$CURLLOG" > /dev/null
 then
-    echo "OK: Test driver cache validation (304)"
+    printOK "Test driver cache validation (304)"
 else
     fail_case "Failed driver cache validation (304)!"
 fi
@@ -210,7 +212,7 @@ if assert_exit_zero &&
    assert_total_value &&
    [ ! -s "$CURLLOG" ]
 then
-    echo "OK: Test --nonet uses cache without curl"
+    printOK "Test --nonet uses cache without curl"
 else
     fail_case "Failed --nonet cache check!"
 fi
@@ -223,7 +225,7 @@ if assert_exit_nonzero &&
     assert_no_such_driver &&
    [ ! -s "$CURLLOG" ]
 then
-    echo "OK: Test --nonet without cache"
+    printOK "Test --nonet without cache"
 else
     fail_case "Failed --nonet without cache check!"
 fi
@@ -235,7 +237,7 @@ run_normal
 if assert_exit_nonzero &&
    assert_no_such_driver
 then
-    echo "OK: Test download 404 not found"
+    printOK "Test download 404 not found"
 else
     fail_case "Failed 404 not found check!"
 fi
@@ -247,7 +249,7 @@ run_normal
 if assert_exit_nonzero &&
    assert_no_such_driver
 then
-    echo "OK: Test download 500 server error"
+    printOK "Test download 500 server error"
 else
     fail_case "Failed 500 server error check!"
 fi
@@ -260,7 +262,7 @@ if assert_exit_nonzero &&
    grep -F 'failed to fetch .xmq using this command' "$OUTFILE" > /dev/null &&
    assert_no_such_driver
 then
-    echo "OK: Test download command failure without status output"
+    printOK "Test download command failure without status output"
 else
     fail_case "Failed download command failure check!"
 fi
@@ -274,7 +276,7 @@ if assert_exit_zero &&
     assert_total_value &&
     grep -F -- '-u user:pass' "$CURLLOG" > /dev/null
 then
-    echo "OK: Test basicauth passthrough"
+    printOK "Test basicauth passthrough"
 else
     fail_case "Failed basicauth passthrough check!"
 fi

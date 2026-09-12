@@ -1,5 +1,7 @@
 #!/bin/sh
 
+. tests/include.sh
+
 PROG="$1"
 TEST=testoutput
 mkdir -p $TEST
@@ -15,7 +17,7 @@ then
     EXPECTED='TESTING SHELL {"_":"telegram","driver":"supercom587","id":"12345678","media":"warm water","name":"Vatten","software_version":"010002","status":"OK","timestamp":"1111-11-11T11:11:11Z","total_m3":5.548}'
     if [ "$INFO" = "$EXPECTED" ]
     then
-        echo OK: $TESTNAME
+        printOK "$TESTNAME"
         TESTRESULT="OK"
     else
         echo "Expected: $EXPECTED"
@@ -25,6 +27,6 @@ fi
 
 if [ "$TESTRESULT" = "ERROR" ]
 then
-    echo ERROR: $TESTNAME
+    printERROR "$TESTNAME"
     exit 1
 fi

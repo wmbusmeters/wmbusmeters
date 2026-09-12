@@ -1,5 +1,7 @@
 #!/bin/sh
 
+. tests/include.sh
+
 PROG="$1"
 
 rm -rf testoutput
@@ -19,10 +21,10 @@ VALUE=$(echo "$VALUE" | tr '\n' ' ')
 
 if [ "$VALUE" = "289.68 289680 0.98 980 " ]
 then
-    echo "OK: $TESTNAME"
+    printOK "$TESTNAME"
     exit 0
 else
     echo ">${VALUE}<"
-    echo ERROR: $TESTNAME
+    printERROR "$TESTNAME"
     exit 1
 fi

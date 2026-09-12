@@ -1,5 +1,7 @@
 #!/bin/sh
 
+. tests/include.sh
+
 # Testing of link modes compatibility is temporarily disabled
 # until all drivers have been refactored.
 
@@ -29,16 +31,16 @@ then
     diff $TEST/test_expected.txt $TEST/test_responses.txt
     if [ "$?" = "0" ]
     then
-        echo "OK: $TESTNAME"
+        printOK "$TESTNAME"
         TESTRESULT="OK"
     else
-        echo ERROR: $TESTNAME
+        printERROR "$TESTNAME"
         diff $TEST/test_expected.txt $TEST/test_responses.txt
         exit 1
     fi
 fi
 
-if [ "$TESTRESULT" = "ERROR" ]; then echo ERROR: $TESTNAME;  exit 1; fi
+if [ "$TESTRESULT" = "ERROR" ]; then printERROR "$TESTNAME";  exit 1; fi
 
 MSG=$($PROG --listento=c1,t1 simulations/simulation_t1_and_c1.txt \
       MyTapWater multical21:c1 76348799 "" \
@@ -46,11 +48,11 @@ MSG=$($PROG --listento=c1,t1 simulations/simulation_t1_and_c1.txt \
 
 if [ "$MSG" != "(cmdline) cannot set link modes to: c1 because meter supercom587 only transmits on: t1" ]
 then
-    echo ERROR: $TESTNAME
+    printERROR "$TESTNAME"
     echo Did not expect: $MSG
     exit 1
 else
-    echo "OK: $TESTNAME"
+    printOK "$TESTNAME"
 fi
 
 TESTNAME="Test that setting supercom587 to c1 fails"
@@ -62,11 +64,11 @@ MSG=$($PROG --listento=c1,t1 --usestdoutforlog simulations/simulation_t1_and_c1.
 
 if [ "$MSG" != "(cmdline) cannot set link modes to: c1 because meter supercom587 only transmits on: t1" ]
 then
-    echo ERROR: $TESTNAME
+    printERROR "$TESTNAME"
     echo Did not expect: $MSG
     exit 1
 else
-    echo "OK: $TESTNAME"
+    printOK "$TESTNAME"
 fi
 
 #TESTNAME="Test that the warning for missed telegrams work"
@@ -79,10 +81,10 @@ fi
 #CORRECT="(config)Youhavespecifiedtolistentothelinkmodes:s1butthemetersmighttransmiton:c1,t1(config)Thereforeyoumightmisstelegrams!Pleasespecifytheexpectedtransmitmodeforthemeters,eg:apator162:t1(config)Oruseadonglethatcanlistentoalltherequiredlinkmodesatthesametime."
 #if [ "$MSG" != "$CORRECT" ]
 #then
-#    echo ERROR: $TESTNAME
+#    printERROR "$TESTNAME"
 #    echo Did not expect:
 #    echo $MSG
 #    exit 1
 #else
-#    echo "OK: $TESTNAME"
+#    printOK "$TESTNAME"
 #fi

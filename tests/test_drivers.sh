@@ -1,12 +1,12 @@
 #!/bin/sh
 
+. tests/include.sh
+
 PROG="$1"
 DRIVERS="$2"
 
 mkdir -p testoutput
 TEST=testoutput
-
-echo "Testing drivers"
 
 TESTNAME="Test driver tests"
 TESTRESULT="ERROR"
@@ -39,7 +39,7 @@ do
         diff $TEST/test_expected_json.txt $TEST/test_response_json.txt
         if [ "$?" = "0" ]
         then
-            echo OK json: $TESTNAME
+            printOK "$TESTNAME"
             TESTRESULT="OK"
         else
             TESTRESULT="ERROR"
@@ -66,7 +66,7 @@ do
         diff $TEST/test_expected_fields.txt $TEST/test_response_fields.txt
         if [ "$?" = "0" ]
         then
-            echo OK fields: $TESTNAME
+            printOK "$TESTNAME"
             TESTRESULT="OK"
         else
             TESTRESULT="ERROR"
@@ -87,7 +87,7 @@ do
 
     if [ "$TESTRESULT" = "ERROR" ] || "$FAILED" = "true"
     then
-        echo ERROR: $TESTNAME
+        printERROR "$TESTNAME"
         exit 1
     fi
 

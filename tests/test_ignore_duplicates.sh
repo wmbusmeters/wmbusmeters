@@ -1,5 +1,7 @@
 #!/bin/sh
 
+. tests/include.sh
+
 PROG="$1"
 
 mkdir -p testoutput
@@ -26,7 +28,7 @@ then
     diff $TEST/test_expected.txt $TEST/test_responses.txt
     if [ "$?" = "0" ]
     then
-        echo "OK: $TESTNAME"
+        printOK "$TESTNAME"
         TESTRESULT="OK"
     else
         if [ "$USE_MELD" = "true" ]
@@ -36,7 +38,7 @@ then
     fi
 fi
 
-if [ "$TESTRESULT" = "ERROR" ]; then echo ERROR: $TESTNAME;  exit 1; fi
+if [ "$TESTRESULT" = "ERROR" ]; then printERROR "$TESTNAME";  exit 1; fi
 
 ####################################################
 TESTNAME="Test duplicates are left alone"
@@ -62,7 +64,7 @@ then
     diff $TEST/test_expected.txt $TEST/test_responses.txt
     if [ "$?" = "0" ]
     then
-        echo "OK: $TESTNAME"
+        printOK "$TESTNAME"
         TESTRESULT="OK"
     else
         if [ "$USE_MELD" = "true" ]
@@ -72,4 +74,4 @@ then
     fi
 fi
 
-if [ "$TESTRESULT" = "ERROR" ]; then echo ERROR: $TESTNAME;  exit 1; fi
+if [ "$TESTRESULT" = "ERROR" ]; then printERROR "$TESTNAME";  exit 1; fi

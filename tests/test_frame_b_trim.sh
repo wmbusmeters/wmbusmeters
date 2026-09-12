@@ -1,5 +1,7 @@
 #!/bin/sh
 
+. tests/include.sh
+
 PROG="$1"
 TEST=testoutput
 mkdir -p $TEST
@@ -13,10 +15,10 @@ if [ "$?" = "0" ]
 then
     if [ "$OUTPUT" = "9341;1348.631" ]
     then
-        echo OK: $TESTNAME
+        printOK "$TESTNAME"
         TESTRESULT="OK"
     else
-        echo ERROR: $TESTNAME
+        printERROR "$TESTNAME"
         echo "Expected 9341;1348.631 but got $OUTPUT"
         exit 1
     fi

@@ -1,5 +1,7 @@
 #!/bin/bash
 
+. tests/include.sh
+
 TEST=build/test
 mkdir -p $TEST
 
@@ -52,7 +54,7 @@ fi
 
 if [ "$OK" = "true" ]
 then
-    echo "OK: db test $(echo "$ARGS" | cut -f 2 -d ' ') $(echo "$ARGS" | cut -f 1 -d ' ')"
+    printOK "db test $(echo "$ARGS" | cut -f 2 -d ' ') $(echo "$ARGS" | cut -f 1 -d ' ')"
 else
-    echo "ERROR: $ARGS $TELEGRAM"
+    printERROR "$ARGS $TELEGRAM"
 fi

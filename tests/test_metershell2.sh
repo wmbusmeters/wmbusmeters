@@ -1,5 +1,7 @@
 #!/bin/sh
 
+. tests/include.sh
+
 PROG="$1"
 TEST=testoutput
 mkdir -p $TEST
@@ -15,7 +17,7 @@ then
     EXPECTED='TESTING METERSHELL 12345678'
     if [ "$INFO" = "$EXPECTED" ]
     then
-        echo "OK: $TESTNAME (--metershell output)"
+        printOK "$TESTNAME (--metershell output)"
         TESTRESULT="OK"
     else
         echo "Expected: $EXPECTED"
@@ -26,7 +28,7 @@ then
     EXPECTED='TESTING SHELL 12345678'
     if [ "$INFO" = "$EXPECTED" ]
     then
-        echo "OK: $TESTNAME (--shell output)"
+        printOK "$TESTNAME (--shell output)"
         TESTRESULT="OK"
     else
         echo "Expected: $EXPECTED"
@@ -36,6 +38,6 @@ fi
 
 if [ "$TESTRESULT" = "ERROR" ]
 then
-    echo ERROR: $TESTNAME
+    printERROR "$TESTNAME"
     exit 1
 fi

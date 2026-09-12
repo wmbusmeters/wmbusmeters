@@ -1,5 +1,7 @@
 #!/bin/sh
 
+. tests/include.sh
+
 PROG="$1"
 TEST=testoutput
 rm -f $TEST/thelog2.txt
@@ -13,7 +15,7 @@ RES=$($PROG --useconfig=tests/config2 2>&1)
 
 if [ ! "$RES" = "" ]
 then
-    echo ERROR: $TESTNAME
+    printERROR "$TESTNAME"
     echo Expected no output on stdout and stderr
     echo but got------------------
     echo $RES
@@ -26,7 +28,7 @@ cat $TEST/meter_readings2/MoreWater | jq --sort-keys . | sed 's/"timestamp": "..
 diff $TEST/test_expected.txt $TEST/test_response.txt
 if [ ! "$?" = "0" ]
 then
-    echo ERROR: $TESTNAME
+    printERROR "$TESTNAME"
     echo Expected to find meter MoreWater in readings, but did not.
     exit 1
 fi
@@ -36,7 +38,7 @@ cat $TEST/meter_readings2/MyWarmWater | jq --sort-keys . | sed 's/"timestamp": "
 diff $TEST/test_expected.txt $TEST/test_response.txt
 if [ ! "$?" = "0" ]
 then
-    echo ERROR: $TESTNAME
+    printERROR "$TESTNAME"
     echo Expected to find meter MyWarmWater in readings, but did not.
     exit 1
 fi
@@ -46,7 +48,7 @@ cat $TEST/meter_readings2/MyColdWater | jq --sort-keys . | sed 's/"timestamp": "
 diff $TEST/test_expected.txt $TEST/test_response.txt
 if [ ! "$?" = "0" ]
 then
-    echo ERROR: $TESTNAME
+    printERROR "$TESTNAME"
     echo Expected to find meter MyColdWater in readings, but did not.
     exit 1
 fi
@@ -59,7 +61,7 @@ EXP=$(printf 'telegram=|A244EE4D785634123C067A8F000000_0C1348550000426CE1F14C130
 
 if [ "$RES" != "$EXP" ]
 then
-    echo ERROR: $TESTNAME
+    printERROR "$TESTNAME"
     echo Expected:
     echo $EXP
     echo But got:
@@ -67,4 +69,4 @@ then
     exit 1
 fi
 
-echo OK: $TESTNAME
+printOK "$TESTNAME"

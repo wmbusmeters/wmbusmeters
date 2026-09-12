@@ -1,5 +1,7 @@
 #!/bin/sh
 
+. tests/include.sh
+
 PROG="$1"
 
 mkdir -p testoutput
@@ -21,12 +23,12 @@ then
     diff $TEST/test_expected.txt $TEST/test_responses.txt
     if [ "$?" = "0" ]
     then
-        echo "OK: $TESTNAME"
+        printOK "$TESTNAME"
         TESTRESULT="OK"
     fi
 fi
 
-if [ "$TESTRESULT" = "ERROR" ]; then echo ERROR: $TESTNAME;  exit 1; fi
+if [ "$TESTRESULT" = "ERROR" ]; then printERROR "$TESTNAME";  exit 1; fi
 
 TESTNAME="Test listen to wildcard suffix 8856* id"
 TESTRESULT="ERROR"
@@ -44,12 +46,12 @@ then
     diff $TEST/test_expected.txt $TEST/test_responses.txt
     if [ "$?" = "0" ]
     then
-        echo "OK: $TESTNAME"
+        printOK "$TESTNAME"
         TESTRESULT="OK"
     fi
 fi
 
-if [ "$TESTRESULT" = "ERROR" ]; then echo ERROR: $TESTNAME;  exit 1; fi
+if [ "$TESTRESULT" = "ERROR" ]; then printERROR "$TESTNAME";  exit 1; fi
 
 TESTNAME="Test listen to two comma separted ids"
 TESTRESULT="ERROR"
@@ -66,12 +68,12 @@ then
     diff $TEST/test_expected.txt $TEST/test_responses.txt
     if [ "$?" = "0" ]
     then
-        echo "OK: $TESTNAME"
+        printOK "$TESTNAME"
         TESTRESULT="OK"
     fi
 fi
 
-if [ "$TESTRESULT" = "ERROR" ]; then echo ERROR: $TESTNAME;  exit 1; fi
+if [ "$TESTRESULT" = "ERROR" ]; then printERROR "$TESTNAME";  exit 1; fi
 
 TESTNAME="Test listen to three comma separted ids"
 TESTRESULT="ERROR"
@@ -88,12 +90,12 @@ then
     diff $TEST/test_expected.txt $TEST/test_responses.txt
     if [ "$?" = "0" ]
     then
-        echo "OK: $TESTNAME"
+        printOK "$TESTNAME"
         TESTRESULT="OK"
     fi
 fi
 
-if [ "$TESTRESULT" = "ERROR" ]; then echo ERROR: $TESTNAME;  exit 1; fi
+if [ "$TESTRESULT" = "ERROR" ]; then printERROR "$TESTNAME";  exit 1; fi
 
 TESTNAME="Test listen with negated ids"
 TESTRESULT="ERROR"
@@ -110,12 +112,12 @@ then
     diff $TEST/test_expected.txt $TEST/test_responses.txt
     if [ "$?" = "0" ]
     then
-        echo "OK: $TESTNAME"
+        printOK "$TESTNAME"
         TESTRESULT="OK"
     fi
 fi
 
-if [ "$TESTRESULT" = "ERROR" ]; then echo ERROR: $TESTNAME;  exit 1; fi
+if [ "$TESTRESULT" = "ERROR" ]; then printERROR "$TESTNAME";  exit 1; fi
 
 exit 0
 
@@ -139,9 +141,9 @@ then
     diff $TEST/test_expected.txt $TEST/test_output.txt
     if [ "$?" = "0" ]
     then
-        echo "OK: $TESTNAME"
+        printOK "$TESTNAME"
         TESTRESULT="OK"
     fi
 fi
 
-if [ "$TESTRESULT" = "ERROR" ]; then echo ERROR: $TESTNAME;  exit 1; fi
+if [ "$TESTRESULT" = "ERROR" ]; then printERROR "$TESTNAME";  exit 1; fi

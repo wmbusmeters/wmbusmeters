@@ -1,5 +1,7 @@
 #!/bin/sh
 
+. tests/include.sh
+
 PROG="$1"
 TEST=testoutput
 mkdir -p $TEST
@@ -22,10 +24,10 @@ then
     diff $TEST/test_expected.txt $TEST/test_responses.txt
     if [ "$?" = "0" ]
     then
-        echo OK: $TESTNAME
+        printOK "$TESTNAME"
         TESTRESULT="OK"
     else
-        echo "ERROR: $TESTNAME"
+        printERROR "$TESTNAME"
         echo "Expected:"
         cat $TEST/test_expected.txt
         echo "Got:"
@@ -33,7 +35,7 @@ then
         exit 1
     fi
 else
-    echo "ERROR: $TESTNAME"
+    printERROR "$TESTNAME"
     echo "wmbusmeters returned error code: $?"
     cat $TEST/test_output.txt
     cat $TEST/test_stderr.txt
@@ -63,10 +65,10 @@ then
     diff $TEST/test_expected.txt $TEST/test_responses.txt
     if [ "$?" = "0" ]
     then
-        echo OK: $TESTNAME
+        printOK "$TESTNAME"
         TESTRESULT="OK"
     else
-        echo "ERROR: $TESTNAME"
+        printERROR "$TESTNAME"
         echo "Expected:"
         cat $TEST/test_expected.txt
         echo "Got:"
@@ -74,7 +76,7 @@ then
         exit 1
     fi
 else
-    echo "ERROR: $TESTNAME"
+    printERROR "$TESTNAME"
     echo "wmbusmeters returned error code: $?"
     cat $TEST/test_output.txt
     cat $TEST/test_stderr.txt
@@ -99,10 +101,10 @@ then
     diff $TEST/test_expected.txt $TEST/test_responses.txt
     if [ "$?" = "0" ]
     then
-        echo OK: $TESTNAME
+        printOK "$TESTNAME"
         TESTRESULT="OK"
     else
-        echo "ERROR: $TESTNAME"
+        printERROR "$TESTNAME"
         echo "Expected:"
         cat $TEST/test_expected.txt
         echo "Got:"
@@ -110,7 +112,7 @@ then
         exit 1
     fi
 else
-    echo "ERROR: $TESTNAME"
+    printERROR "$TESTNAME"
     echo "wmbusmeters returned error code: $?"
     cat $TEST/test_output.txt
     cat $TEST/test_stderr.txt
@@ -136,10 +138,10 @@ then
     diff $TEST/test_expected.txt $TEST/test_responses.txt
     if [ "$?" = "0" ]
     then
-        echo OK: $TESTNAME
+        printOK "$TESTNAME"
         TESTRESULT="OK"
     else
-        echo "ERROR: $TESTNAME"
+        printERROR "$TESTNAME"
         echo "Expected:"
         cat $TEST/test_expected.txt
         echo "Got:"
@@ -147,7 +149,7 @@ then
         exit 1
     fi
 else
-    echo "ERROR: $TESTNAME"
+    printERROR "$TESTNAME"
     echo "wmbusmeters returned error code: $?"
     cat $TEST/test_output.txt
     cat $TEST/test_stderr.txt
@@ -172,10 +174,10 @@ then
     diff $TEST/test_expected.txt $TEST/test_responses.txt
     if [ "$?" = "0" ]
     then
-        echo OK: $TESTNAME
+        printOK "$TESTNAME"
         TESTRESULT="OK"
     else
-        echo "ERROR: $TESTNAME"
+        printERROR "$TESTNAME"
         echo "Expected:"
         cat $TEST/test_expected.txt
         echo "Got:"
@@ -183,7 +185,7 @@ then
         exit 1
     fi
 else
-    echo "ERROR: $TESTNAME"
+    printERROR "$TESTNAME"
     echo "wmbusmeters returned error code: $?"
     cat $TEST/test_output.txt
     cat $TEST/test_stderr.txt
@@ -208,10 +210,10 @@ then
     diff $TEST/test_expected.txt $TEST/test_responses.txt
     if [ "$?" = "0" ]
     then
-        echo OK: $TESTNAME
+        printOK "$TESTNAME"
         TESTRESULT="OK"
     else
-        echo "ERROR: $TESTNAME"
+        printERROR "$TESTNAME"
         echo "Expected:"
         cat $TEST/test_expected.txt
         echo "Got:"
@@ -219,7 +221,7 @@ then
         exit 1
     fi
 else
-    echo "ERROR: $TESTNAME"
+    printERROR "$TESTNAME"
     echo "wmbusmeters returned error code: $?"
     cat $TEST/test_output.txt
     cat $TEST/test_stderr.txt
@@ -237,10 +239,10 @@ then
     diff $TEST/test_expected.txt $TEST/test_responses.txt
     if [ "$TOTAL_M3" = "123.529" ]
     then
-        echo OK: $TESTNAME
+        printOK "$TESTNAME"
         TESTRESULT="OK"
     else
-        echo "ERROR: $TESTNAME"
+        printERROR "$TESTNAME"
         echo "Expected:"
         cat $TEST/test_expected.txt
         echo "Got:"
@@ -248,7 +250,7 @@ then
         exit 1
     fi
 else
-    echo "ERROR: $TESTNAME"
+    printERROR "$TESTNAME"
     echo "wmbusmeters returned error code: $?"
     cat $TEST/test_output.txt
     cat $TEST/test_stderr.txt
@@ -265,10 +267,10 @@ then
     diff $TEST/test_expected.txt $TEST/test_responses.txt
     if [ "$TOTAL_M3" = "123.529" ]
     then
-        echo OK: $TESTNAME
+        printOK "$TESTNAME"
         TESTRESULT="OK"
     else
-        echo "ERROR: $TESTNAME"
+        printERROR "$TESTNAME"
         echo "Expected:"
         cat $TEST/test_expected.txt
         echo "Got:"
@@ -276,7 +278,7 @@ then
         exit 1
     fi
 else
-    echo "ERROR: $TESTNAME"
+    printERROR "$TESTNAME"
     echo "wmbusmeters returned error code: $?"
     cat $TEST/test_output.txt
     cat $TEST/test_stderr.txt

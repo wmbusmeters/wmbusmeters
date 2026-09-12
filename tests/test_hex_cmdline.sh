@@ -1,5 +1,7 @@
 #!/bin/sh
 
+. tests/include.sh
+
 PROG="$1"
 TEST=testoutput
 mkdir -p $TEST
@@ -23,7 +25,7 @@ then
     diff $TEST/test_expected.txt $TEST/test_output.txt
     if [ "$?" = "0" ]
     then
-        echo OK: $TESTNAME
+        printOK "$TESTNAME"
         TESTRESULT="OK"
     else
         if [ "$USE_MELD" = "true" ]
@@ -32,7 +34,7 @@ then
         fi
     fi
 else
-    echo "ERROR: $TESTNAME"
+    printERROR "$TESTNAME"
     echo "wmbusmeters returned error code: $?"
     cat $TEST/test_output.txt
     exit 1
@@ -55,14 +57,14 @@ then
     diff $TEST/test_expected.txt $TEST/test_responses.txt
     if [ "$?" = "0" ]
     then
-        echo OK: $TESTNAME
+        printOK "$TESTNAME"
         TESTRESULT="OK"
     else
-        echo "ERROR: $TESTNAME"
+        printERROR "$TESTNAME"
         exit 1
     fi
 else
-    echo "ERROR: $TESTNAME"
+    printERROR "$TESTNAME"
     echo "wmbusmeters returned error code: $?"
     cat $TEST/test_output.txt
     cat $TEST/test_stderr.txt
@@ -83,10 +85,10 @@ then
     diff $TEST/test_expected.txt $TEST/test_output.txt
     if [ "$?" = "0" ]
     then
-        echo OK: $TESTNAME
+        printOK "$TESTNAME"
         TESTRESULT="OK"
     else
-        echo "ERROR: $TESTNAME"
+        printERROR "$TESTNAME"
         exit 1
     fi
 else
@@ -117,14 +119,14 @@ then
     diff $TEST/test_expected.txt $TEST/test_responses.txt
     if [ "$?" = "0" ]
     then
-        echo OK: $TESTNAME
+        printOK "$TESTNAME"
         TESTRESULT="OK"
     else
-        echo "ERROR: $TESTNAME"
+        printERROR "$TESTNAME"
         exit 1
     fi
 else
-    echo "ERROR: $TESTNAME"
+    printERROR "$TESTNAME"
     echo "wmbusmeters returned error code: $?"
     cat $TEST/test_output.txt
     cat $TEST/test_stderr.txt

@@ -1,5 +1,7 @@
 #!/bin/sh
 
+. tests/include.sh
+
 PROG="$1"
 TEST=testoutput
 mkdir -p $TEST
@@ -11,7 +13,7 @@ then
     diff $TEST/test_expected.txt $TEST/test_response.txt
     if [ "$?" = "0" ]
     then
-        echo "OK: $TESTNAME"
+        printOK "$TESTNAME"
         TESTRESULT="OK"
     else
         if [ "$USE_MELD" = "true" ]
@@ -20,7 +22,7 @@ then
         fi
     fi
 else
-    echo "ERROR: $TESTNAME $0"
+    printERROR "$TESTNAME $0"
     echo "wmbusmeters returned error code: $?"
     cat $TEST/test_output.txt
 fi

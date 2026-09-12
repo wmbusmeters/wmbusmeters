@@ -1,5 +1,7 @@
 #!/bin/sh
 
+. tests/include.sh
+
 PROG="$1"
 
 mkdir -p testoutput
@@ -81,4 +83,9 @@ expectEmpty
 E=7788*.T=37,!7799*.T=02
 expectEmpty
 
-echo "$TESTRESULT: $TESTNAME"
+if [ "$TESTRESULT" = "OK" ]
+then
+    printOK "$TESTNAME"
+else
+    printERROR "$TESTNAME"
+fi

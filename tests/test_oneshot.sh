@@ -1,5 +1,7 @@
 #!/bin/sh
 
+. tests/include.sh
+
 PROG="$1"
 
 rm -rf testoutput
@@ -14,8 +16,8 @@ RES=$(cat $TEST/test_stderr.txt | grep -o "(main) all meters have received at le
 
 if [ "$RES" = "(main) all meters have received at least one update, stopping." ]
 then
-    echo OK: Test oneshot
+    printOK "Test oneshot"
 else
-    echo ERROR Fail oneshot check!
+    printERROR "Fail oneshot check!"
     exit 1
 fi

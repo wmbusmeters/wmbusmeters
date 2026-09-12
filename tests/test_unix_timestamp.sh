@@ -1,5 +1,7 @@
 #!/bin/sh
 
+. tests/include.sh
+
 PROG="$1"
 
 mkdir -p testoutput
@@ -26,7 +28,7 @@ then
     diff $TEST/test_expected.txt $TEST/test_responses.txt
     if [ "$?" = "0" ]
     then
-        echo OK fields: $TESTNAME
+        printOK "$TESTNAME"
         TESTRESULT="OK"
     else
         diff $TEST/test_expected.txt $TEST/test_responses.txt
@@ -41,6 +43,6 @@ fi
 
 if [ "$TESTRESULT" = "ERROR" ]
 then
-    echo ERROR: $TESTNAME
+    printERROR "$TESTNAME"
     exit 1
 fi

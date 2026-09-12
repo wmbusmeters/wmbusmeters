@@ -1,5 +1,7 @@
 #!/bin/sh
 
+. tests/include.sh
+
 PROG="$1"
 
 mkdir -p testoutput
@@ -14,7 +16,7 @@ OUT=$($PROG --pollinterval=1s --format=fields --selectfields=temperature_c 68383
 
 if [ "$OUT" != "23.02" ]
 then
-    echo "ERROR: Test 1 $TESTNAME"
+    printERROR "Test 1 $TESTNAME"
     echo "Expected answer 23.02"
     exit 1
 fi
@@ -23,7 +25,7 @@ OUT=$($PROG --pollinterval=1s --format=fields --selectfields=temperature_c 68383
 
 if [ "$OUT" != "23.02" ]
 then
-    echo "ERROR: Test 2 $TESTNAME"
+    printERROR "Test 2 $TESTNAME"
     echo "Expected answer 23.02"
     exit 1
 fi
@@ -32,9 +34,9 @@ OUT=$($PROG --pollinterval=1s --format=fields --selectfields=temperature_c 68383
 
 if [ "$OUT" != "" ]
 then
-    echo "ERROR: Test 3 $TESTNAME"
+    printERROR "Test 3 $TESTNAME"
     echo "Did not expect answer! $OUT"
     exit 1
 fi
 
-echo "OK: $TESTNAME"
+printOK "$TESTNAME"

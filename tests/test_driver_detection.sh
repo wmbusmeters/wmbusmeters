@@ -1,5 +1,7 @@
 #!/bin/sh
 
+. tests/include.sh
+
 PROG="$1"
 
 if [ "$PROG" = "" ]
@@ -21,7 +23,7 @@ $PROG simulations/simulation_driver_detection.txt 2> $LOGFILE
 
 if [ "$?" != "0" ]
 then
-    echo "ERROR: $TESTNAME"
+    printERROR "$TESTNAME"
     exit 1
 fi
 
@@ -29,12 +31,12 @@ RES=$(grep unknown $LOGFILE)
 
 if [ ! -z "$RES"  ]
 then
-    echo "ERROR: $TESTNAME"
+    printERROR "$TESTNAME"
     echo "Found unknown driver!"
     echo -----------------
     cat $LOGFILE
     echo -----------------
     exit 1
 else
-    echo OK: $TESTNAME
+    printOK "$TESTNAME"
 fi

@@ -1,5 +1,7 @@
 #!/bin/sh
 
+. tests/include.sh
+
 PROG="$1"
 TEST=testoutput
 mkdir -p $TEST
@@ -49,7 +51,7 @@ REST=$(diff $TEST/test_responses.txt $TEST/test_expected.txt)
 
 if [ ! -z "$REST" ]
 then
-    echo ERROR STDERR: $TESTNAME
+    printERROR "STDERR check failed: $TESTNAME"
     echo -----------------
     diff $TEST/test_responses.txt $TEST/test_expected.txt
     echo -----------------
@@ -62,7 +64,7 @@ REST=$(diff /tmp/wmbusmeters_telegram_expected /tmp/wmbusmeters_telegram_output)
 
 if [ ! -z "$REST" ]
 then
-    echo ERROR TELEGRAMS: $TESTNAME
+    printERROR "TELEGRAMS check failed: $TESTNAME"
     echo -----------------
     diff /tmp/wmbusmeters_telegram_expected /tmp/wmbusmeters_telegram_output
     echo -----------------
@@ -75,11 +77,11 @@ REST=$(diff /tmp/wmbusmeters_alarm_expected /tmp/wmbusmeters_alarm_output)
 
 if [ ! -z "$REST" ]
 then
-    echo ERROR ALARM SHELLS: $TESTNAME
+    printERROR "ALARM SHELLS check failed: $TESTNAME"
     echo -----------------
     diff /tmp/wmbusmeters_alarm_expected /tmp/wmbusmeters_alarm_output
     echo -----------------
     TESTRESULT="ERROR"
 fi
 
-if [ "$TESTRESULT" = "ERROR" ]; then echo ERROR: $TESTNAME;  exit 1; else echo "OK: $TESTNAME"; fi
+if [ "$TESTRESULT" = "ERROR" ]; then printERROR "$TESTNAME"; exit 1; else printOK "$TESTNAME"; fi

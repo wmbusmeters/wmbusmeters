@@ -1,5 +1,7 @@
 #!/bin/sh
 
+. tests/include.sh
+
 PROG="$1"
 TEST=testoutput
 mkdir -p $TEST
@@ -18,7 +20,7 @@ then
 
     if [ "$?" = "0" ]
     then
-        echo "OK: $TESTNAME"
+        printOK "$TESTNAME"
         TESTRESULT="OK"
     else
         if [ "$USE_MELD" = "true" ]
@@ -28,7 +30,7 @@ then
     fi
 fi
 
-if [ "$TESTRESULT" = "ERROR" ]; then echo ERROR: $TESTNAME;  exit 1; fi
+if [ "$TESTRESULT" = "ERROR" ]; then printERROR "$TESTNAME";  exit 1; fi
 
 exit 0
 
@@ -68,7 +70,7 @@ EOF
 diff $TEST/test_expected.txt $TEST/test_output.txt
 if [ "$?" = "0" ]
 then
-    echo "OK: $TESTNAME"
+    printOK "$TESTNAME"
     TESTRESULT="OK"
 else
     if [ "$USE_MELD" = "true" ]
@@ -77,7 +79,7 @@ else
     fi
 fi
 
-if [ "$TESTRESULT" = "ERROR" ]; then echo ERROR: $TESTNAME;  exit 1; fi
+if [ "$TESTRESULT" = "ERROR" ]; then printERROR "$TESTNAME";  exit 1; fi
 
 TESTNAME="Test additional json from wmbusmeters.conf and from meter file"
 TESTRESULT="ERROR"
@@ -90,7 +92,7 @@ then
     EXPECTED=$(echo 'METER =={"media":"warm water","driver":"supercom587","name":"Water","id":"12345678","software_version":"010002","total_m3":5.548,"status":"OK","timestamp":"1111-11-11T11:11:11Z","floor":"5","elevator":"ABC","address":"RoodRd 42","city":"Stockholm"}== ==RoodRd 42== ==Stockholm== ==5== ==ABC==')
     if [ "$INFO" = "$EXPECTED" ]
     then
-        echo "OK: $TESTNAME"
+        printOK "$TESTNAME"
         TESTRESULT="OK"
     else
         echo "INFO    =>$INFO<"
@@ -98,4 +100,4 @@ then
     fi
 fi
 
-if [ "$TESTRESULT" = "ERROR" ]; then echo ERROR: $TESTNAME;  exit 1; fi
+if [ "$TESTRESULT" = "ERROR" ]; then printERROR "$TESTNAME";  exit 1; fi
