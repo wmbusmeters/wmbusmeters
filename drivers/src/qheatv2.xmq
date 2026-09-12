@@ -18,6 +18,7 @@ driver {
         mvt = QDS,47,37
         mvt = QDS,48,04
         mvt = QDS,48,37
+        mvt = QDS,3f,37
         mvt = LSE,23,04
         mvt = LSE,23,37
         mvt = LSE,3e,04
@@ -414,6 +415,13 @@ driver {
             telegram = 58449344478491673C377807794784916793443C040DFF5F350082B40035F4E5CF5874D4A45106F8435DDA926DE66FE62E8ECCB25B199CCAE33C6B679AD69AC8629398ECDCB1DDB263EDA12137EA02FD170000046D080F4333
             json     = '{"_": "telegram","enhanced_id": "043C449367918447","id": "67918447","media": "radio converter (meter side)","driver": "qheatv2","meter_datetime": "2026-03-03 15:08","name": "HeatEnc55","status": "OK","timestamp": "1111-11-11T11:11:11Z"}'
             fields   = 'HeatEnc55;67918447;OK;null;1111-11-11 11:11.11'
+        }
+        test {
+            args     = 'RealKeyHeat qheatv2 68369440 31E7AEDAE4B659172F4D4ED99DD7AA52'
+            comment  = 'Real encrypted Q Heat 5.5 walk-by block with the real key that the meter owner published in issue #1497, module version 0x3f: proves the AES path end-to-end with genuine key material. The fail-closed counterpart without a key is covered by HeatEnc55.'
+            telegram = 58449344409436683F377807794094366893443F040DFF5F350082110035D3B5EA13344D42345FD6C9B468DC8A7FC0A56DCECD9861481F7C87A367564D55E1576B5A9B00E00CF10466C038D6393902FD170000046D00135832
+            json     = '{"_":"telegram","driver":"qheatv2","energy_delta_10_kwh":364,"energy_delta_11_kwh":370,"energy_delta_12_kwh":354,"energy_delta_13_kwh":334,"energy_delta_2_kwh":-32768,"energy_delta_3_kwh":-32768,"energy_delta_4_kwh":-32768,"energy_delta_5_kwh":0,"energy_delta_6_kwh":0,"energy_delta_7_kwh":517,"energy_delta_8_kwh":457,"energy_delta_9_kwh":375,"enhanced_id":"043F449368369440","id":"68369440","media":"radio converter (meter side)","meter_datetime":"2026-02-24 19:00","name":"RealKeyHeat","status":"OK","target_date":"2026-01-31","target_kwh":2771,"target_year_date":"2025-12-31","target_year_kwh":2437,"timestamp":"1111-11-11T11:11:11Z","total_kwh":3052}'
+            fields   = 'RealKeyHeat;68369440;OK;3052;1111-11-11 11:11.11'
         }
     }
 }

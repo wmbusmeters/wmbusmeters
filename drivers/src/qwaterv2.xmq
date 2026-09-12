@@ -398,5 +398,12 @@ driver {
             json     = '{"_": "telegram","id": "14356101","media": "water","driver": "qwaterv2","meter_datetime": "2026-08-15 10:22","name": "Kaltwasser","status": "OK","timestamp": "1111-11-11T11:11:11Z"}'
             fields   = 'Kaltwasser;14356101;OK;null;1111-11-11 11:11.11'
         }
+        test {
+            args     = 'RealKeyWater qwaterv2 60170138 5787C5961E48C039A225D4DB4F8ECF06'
+            comment  = 'Real encrypted Q Water 5.5 walk-by block with the real key that the meter owner published in issue #1497: proves the AES path end-to-end with genuine key material (the AESTest above uses a synthetic key). The expected values match what the owner posted in #1497. The fail-closed counterpart without a key is covered by Kaltwasser.'
+            telegram = 49449344380117601A07780DFF5F350082B50035512F79A321C70F8FD90041D03F7633718457556C82E3A6CB5A20617A9523867033C80F9D21054140A90BC438C04F1E9D046D3B125832
+            json     = '{"_":"telegram","driver":"qwaterv2","id":"60170138","media":"water","meter_datetime":"2026-02-24 18:59","name":"RealKeyWater","status":"OK","target_date":"2026-01-31","target_m3":24.086,"target_year_date":"2025-12-31","target_year_m3":20.552,"timestamp":"1111-11-11T11:11:11Z","total_m3":26.546,"volume_delta_10_m3":0.338,"volume_delta_11_m3":0.338,"volume_delta_12_m3":0.363,"volume_delta_13_m3":0.353,"volume_delta_2_m3":-32.768,"volume_delta_3_m3":-32.768,"volume_delta_4_m3":-32.768,"volume_delta_5_m3":-32.768,"volume_delta_6_m3":0.003,"volume_delta_7_m3":0.334,"volume_delta_8_m3":0.343,"volume_delta_9_m3":0.336}'
+            fields   = 'RealKeyWater;60170138;OK;26.546;1111-11-11 11:11.11'
+        }
     }
 }
