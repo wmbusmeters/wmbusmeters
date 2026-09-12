@@ -19,6 +19,19 @@ import subprocess
 import sys
 import time
 
+# ANSI colors matching printOK/printERROR in tests/include.sh
+GREEN = "\033[37;1;42m"
+RED = "\033[31;1;41m"
+NC = "\033[0m"
+
+
+def print_ok(msg):
+    print("%s OK %s %s" % (GREEN, NC, msg))
+
+
+def print_error(msg):
+    print("%s ERROR %s %s" % (RED, NC, msg))
+
 SOCKET_PATH = "/tmp/test_wmbusmeters_py.sock"
 
 # --- Test cases: (description, request, expected_checks) ---
@@ -214,7 +227,7 @@ def start_wmbusmeters(binary):
     # If we get here, something went wrong
     proc.kill()
     stdout, _ = proc.communicate(timeout=5)
-    print("FAIL: wmbusmeters did not create socket within 5 seconds")
+    print_error("wmbusmeters did not create socket within 5 seconds")
     print("Output:", stdout.decode(errors="replace"))
     sys.exit(1)
 
@@ -323,16 +336,15 @@ def main():
             response = send_request(request)
             ok, msg = check_response(description, response, expected_checks)
             if ok:
-                print("  OK: %s" % description)
+                print_ok("%s" % description)
                 passed += 1
             else:
-                print("FAIL: %s" % description)
+                print_error("%s - %s" % (description, msg))
                 print("      %s" % msg)
                 print("      response: %s" % json.dumps(response, indent=None))
                 failed += 1
         except Exception as e:
-            print("FAIL: %s" % description)
-            print("      exception: %s" % e)
+            print_error("%s - exception: %s" % (description, e))
             failed += 1
 
     # --- Multi-request on single connection test ---
@@ -352,7 +364,7 @@ def main():
 
         responses = send_multiple_requests(multi_requests)
         if len(responses) != 3:
-            print("FAIL: expected 3 responses, got %d" % len(responses))
+            print_error("expected 3 responses, got %d" % len(responses))
             failed += 1
         else:
             all_ok = True
@@ -360,15 +372,15 @@ def main():
                 desc = "multi[%d]" % i
                 ok, msg = check_response(desc, resp, exp)
                 if not ok:
-                    print("FAIL: %s - %s" % (desc, msg))
+                    print_error("%s - %s" % (desc, msg))
                     all_ok = False
             if all_ok:
-                print("  OK: 3 telegrams decoded on single connection")
+                print_ok("3 telegrams decoded on single connection")
                 passed += 1
             else:
                 failed += 1
     except Exception as e:
-        print("FAIL: multi-request test: %s" % e)
+        print_error("multi-request test: %s" % e)
         failed += 1
 
     # --- Reconnection test ---
@@ -387,13 +399,13 @@ def main():
         ok2, _ = check_response("reconnect-2", r2, TEST_CASES[2][2])
 
         if ok1 and ok2:
-            print("  OK: reconnection works")
+            print_ok("reconnection works")
             passed += 1
         else:
-            print("FAIL: reconnection failed")
+            print_error("reconnection failed")
             failed += 1
     except Exception as e:
-        print("FAIL: reconnection test: %s" % e)
+        print_error("reconnection test: %s" % e)
         failed += 1
 
     # --- Summary ---
