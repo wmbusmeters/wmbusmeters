@@ -40,6 +40,9 @@ METER_TOTAL_ENERGY_PRODUCTION_TARIFF_1_KWH
 METER_TOTAL_ENERGY_PRODUCTION_TARIFF_2_KWH
 METER_TOTAL_ENERGY_PRODUCTION_TARIFF_3_KWH
 METER_MAX_POWER_CONSUMPTION_KW
+METER_POWER_UPPER_LIMIT_KW
+METER_TOTAL_ENERGY_CONSUMPTION_TARIFF_4_KWH
+METER_TOTAL_ENERGY_PRODUCTION_TARIFF_4_KWH
 METER_TOTAL_REACTIVE_ENERGY_INDUCTIVE_KVARH
 METER_TOTAL_REACTIVE_ENERGY_CAPACITIVE_KVARH
 METER_REACTIVE_POWER_INDUCTIVE_KVAR
@@ -95,6 +98,9 @@ cat <<EOF | sort > $TEST/test_expected.txt
   total_energy_production_tariff_2_kwh  The total energy production recorded by this meter on tariff 2.
   total_energy_production_tariff_3_kwh  The total energy production recorded by this meter on tariff 3.
               max_power_consumption_kw  The maximum demand indicator (maximum 15-min average power consumption recorded this month).
+                  power_upper_limit_kw  Power upper limit, most likely the configured contractual power limit.
+ total_energy_consumption_tariff_4_kwh  The total energy consumption recorded by this meter on tariff 4.
+  total_energy_production_tariff_4_kwh  The total energy production recorded by this meter on tariff 4.
  total_reactive_energy_inductive_kvarh  The total inductive reactive energy recorded by this meter.
 total_reactive_energy_capacitive_kvarh  The total capacitive reactive energy recorded by this meter.
          reactive_power_inductive_kvar  Current inductive reactive power.
