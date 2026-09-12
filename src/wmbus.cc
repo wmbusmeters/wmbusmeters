@@ -30,6 +30,7 @@
 #include"crypto/sha256.h"
 
 #include"utils/alarm.h"
+#include"utils/doc.h"
 #include"utils/fs.h"
 
 #include<assert.h>
@@ -2444,7 +2445,49 @@ string renderAnalysisAsText(vector<Explanation> &explanations, OutputFormat of)
 
 string renderAnalysisAsJson(vector<Explanation> &explanations)
 {
-    return "{ \"TODO\": true }\n";
+    auto rd = xmqNewDoc();
+    assert(rd.status == XMQ_OK);
+    XMQDoc *doc = rd.doc;
+
+    auto rn = xmqAddRootElement(doc, "analysis", NS_NONE);
+    assert(rn.status == XMQ_OK);
+    XMQNode *analysis = rn.node;
+
+    rn = xmqAddElementWithAttrs(doc, analysis, "explanations", NS_PARENT, XMQ_ATTRS( { "A", "" } ));
+    assert(rn.status == XMQ_OK);
+    XMQNode *items = rn.node;
+
+    for (auto &p : explanations)
+    {
+        rn = xmqAddElement(doc, items, "range", NS_PARENT);
+        assert(rn.status == XMQ_OK);
+        XMQNode *item = rn.node;
+
+        xmqAddKeyValue(doc, item, "pos", to_string(p.pos).c_str(), NS_PARENT);
+        xmqAddKeyValue(doc, item, "len", to_string(p.len).c_str(), NS_PARENT);
+        xmqAddKeyValue(doc, item, "info", p.info.c_str(), NS_PARENT);
+        if (p.ixml_parse.length() > 0)
+        {
+            xmqAddKeyValue(doc, item, "ixml_parse", p.ixml_parse.c_str(), NS_PARENT);
+        }
+        xmqAddKeyValue(doc, item, "kind", p.kind == KindOfData::PROTOCOL ? "PROTOCOL" : "CONTENT", NS_PARENT);
+
+        const char *u;
+        switch (p.understanding)
+        {
+            case Understanding::FULL:      u = "FULL"; break;
+            case Understanding::PARTIAL:   u = "PARTIAL"; break;
+            case Understanding::ENCRYPTED: u = "ENCRYPTED"; break;
+            case Understanding::COMPRESSED: u = "COMPRESSED"; break;
+            case Understanding::NONE:      u = "NONE"; break;
+            default:                       u = "NONE"; break;
+        }
+        xmqAddKeyValue(doc, item, "understanding", u, NS_PARENT);
+    }
+
+    string result = docToString(doc, XMQ_CONTENT_JSON, false);
+    xmqFreeDoc(doc);
+    return result;
 }
 
 string Telegram::analyzeParse(OutputFormat format, int *content_length, int *understood_content_length)

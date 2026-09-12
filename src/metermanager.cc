@@ -537,13 +537,17 @@ public:
             auto_driver = "not found!";
         }
 
-        printf("Auto driver    : %s\n", auto_driver.c_str());
-        printf("Similar driver : %s %02d/%02d\n", best_driver.c_str(), best_understood, best_length);
-        printf("Using driver   : %s %02d/%02d\n", using_driver.c_str(), using_understood, using_length);
-
+        if (analyze_format_ != OutputFormat::JSON)
+        {
+            printf("Auto driver    : %s\n", auto_driver.c_str());
+            printf("Similar driver : %s %02d/%02d\n", best_driver.c_str(), best_understood, best_length);
+            printf("Using driver   : %s %02d/%02d\n", using_driver.c_str(), using_understood, using_length);
+        }
         printf("%s\n", output.c_str());
-
-        printf("%s\n", json.c_str());
+        if (analyze_format_ != OutputFormat::JSON)
+        {
+            printf("%s\n", json.c_str());
+        }
     }
 
     MeterManagerImplementation(bool daemon) : is_daemon_(daemon) {}

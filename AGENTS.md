@@ -42,6 +42,17 @@ cd drivers && make testonly DRIVER=dme173
 # Debug a specific telegram
 build/wmbusmeters --debug simulation/serial_rtlwmbus_ok.msg
 # --trace for even more verbose output
+
+# Debug a specific telegram passed as hex on the command line, underscores are ok in the hex.
+./build/wmbusmeters --debug --format=json 1844AE4C4455223368077A55000000_041389E20100023B0000 MyMeter iperl 33225544 NOKEY
+
+# Analyze a specific telegram passed as hex on the command line
+./build/wmbusmeters --analyze 1844AE4C4455223368077A55000000_041389E20100023B0000
+
+# Use a new driver xmq being developed
+./build/wmbusmeters --analyze=newdriver.xmq 1844AE4C4455223368077A55000000_041389E20100023B0000
+
+
 ```
 
 ## Linting / Formatting
