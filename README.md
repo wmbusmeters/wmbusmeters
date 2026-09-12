@@ -716,7 +716,7 @@ Supported electricity meters:
 Easy Meter ESYS-WM20 (esyswm)
 eBZ wMB-E01 (ebzwmbe)
 EMH Metering (ehzp)
-Tauron Amiplus (amiplus) (includes vendor apator and echelon)
+Tauron Amiplus (amiplus) (includes vendors apator, echelon and elgama gama 350)
 Gavazzi EM24 (em24)
 Gransystems 301 and 303 (gransystems)
 Kamstrup Omnipower (omnipower)
