@@ -23,14 +23,32 @@
 #include<unistd.h>
 #include<vector>
 
+enum class SlipFrameResult
+{
+    OK,      // Complete frame decoded. frame_length > 0; to holds decoded bytes.
+    PARTIAL, // No trailing END seen yet; collect more data and retry. frame_length == 0.
+    CORRUPT, // Invalid escape sequence. Output cleared. frame_length == bytes consumed
+             // up to and including the bad byte, so the caller can resynchronise.
+};
+
 // Check if buffer is all SLIP END = 0xc0.
+// Returns true for an empty vector (vacuous truth); callers that need to
+// distinguish an empty buffer should check msg.size() first.
 bool slipAllEND(std::vector<uchar>& msg);
-// Scan the buffer after the byte SLIP END = 0xc0
-// return its index if exists, otherwise -1.
+
+// Return the encoded (wire) byte count of the next frame, excluding the trailing
+// SLIP_END. Escape pairs (e.g. 0xDB 0xDC) count as two wire bytes even though
+// they decode to one payload byte. Returns -1 if no frame terminator is found.
 ssize_t slipFrameSize(std::vector<uchar>& msg);
-// Add a SLIP_END and escape any 0xc0 with 0xdbdc and and 0xdb with 0xdbdd.
+
+// Add a SLIP_END and escape any 0xc0 with 0xdbdc and 0xdb with 0xdbdd.
 void addSlipFraming(std::vector<uchar>& from, std::vector<uchar> &to);
-// Frame length is set to zero if no frame was found.
-void removeSlipFraming(std::vector<uchar>& from, size_t *frame_length, std::vector<uchar> &to);
+
+// Decode one SLIP frame from `from` into `to`.
+//   OK      – frame decoded; frame_length = wire bytes consumed (including terminators).
+//   PARTIAL – no trailing END yet; frame_length = 0; caller should collect more data.
+//   CORRUPT – invalid escape sequence; output cleared; frame_length = wire bytes consumed
+//             up to the bad byte so the caller can skip past the corrupt frame.
+SlipFrameResult removeSlipFraming(std::vector<uchar>& from, size_t *frame_length, std::vector<uchar> &to);
 
 #endif

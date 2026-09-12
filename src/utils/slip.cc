@@ -25,6 +25,8 @@
 
 bool slipAllEND(std::vector<uchar>& msg)
 {
+    // Returns true for an empty vector (vacuous truth). Callers that need to
+    // treat an empty buffer differently should check msg.size() first.
     for (size_t i = 0; i < msg.size(); ++i)
     {
         uchar c = msg[i];
@@ -44,6 +46,7 @@ ssize_t slipFrameSize(std::vector<uchar>& msg)
         if (c != SLIP_END) break;
     }
 
+    // Returns the encoded (wire) byte count — escape pairs count as two bytes.
     size_t from = i;
     for (; i < msg.size(); ++i)
     {
@@ -76,7 +79,7 @@ void addSlipFraming(std::vector<uchar>& from, std::vector<uchar> &to)
     to.push_back(SLIP_END);
 }
 
-void removeSlipFraming(std::vector<uchar>& from, size_t *frame_length, std::vector<uchar> &to)
+SlipFrameResult removeSlipFraming(std::vector<uchar>& from, size_t *frame_length, std::vector<uchar> &to)
 {
     *frame_length = 0;
     to.clear();
@@ -95,7 +98,23 @@ void removeSlipFraming(std::vector<uchar>& from, size_t *frame_length, std::vect
     for (; i < from.size(); ++i)
     {
         uchar c = from[i];
-        if (c == SLIP_END)
+        if (esc)
+        {
+            // esc is checked before SLIP_END so that ESC+SLIP_END (0xDB 0xC0) is
+            // caught as a framing error, not silently accepted as a frame terminator.
+            esc = false;
+            if (c == SLIP_ESC_END) to.push_back(SLIP_END);
+            else if (c == SLIP_ESC_ESC) to.push_back(SLIP_ESC);
+            else
+            {
+                // Invalid escape sequence (includes SLIP_END after ESC): corrupt frame.
+                // Report bytes consumed so the caller can resync by scanning forward.
+                to.clear();
+                *frame_length = i + 1;
+                return SlipFrameResult::CORRUPT;
+            }
+        }
+        else if (c == SLIP_END)
         {
             found_end = true;
             i++;
@@ -105,26 +124,21 @@ void removeSlipFraming(std::vector<uchar>& from, size_t *frame_length, std::vect
         {
             esc = true;
         }
-        else if (esc)
-        {
-            esc = false;
-            if (c == SLIP_ESC_END) to.push_back(SLIP_END);
-            else if (c == SLIP_ESC_ESC) to.push_back(SLIP_ESC);
-            else to.push_back(c); // This is an error......
-        }
         else
         {
             to.push_back(c);
         }
     }
 
-    if (found_end)
+    if (!found_end)
     {
-        *frame_length = i;
-    }
-    else
-    {
-        *frame_length = 0;
+        // No frame terminator yet, including the case where a trailing ESC byte has
+        // arrived but its second byte has not. Treat as partial — the caller should
+        // accumulate more data. frame_length stays 0.
         to.clear();
+        return SlipFrameResult::PARTIAL;
     }
+
+    *frame_length = i;
+    return SlipFrameResult::OK;
 }
