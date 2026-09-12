@@ -98,7 +98,7 @@ cat <<EOF | sort > $TEST/test_expected.txt
   total_energy_production_tariff_2_kwh  The total energy production recorded by this meter on tariff 2.
   total_energy_production_tariff_3_kwh  The total energy production recorded by this meter on tariff 3.
               max_power_consumption_kw  The maximum demand indicator (maximum 15-min average power consumption recorded this month).
-                  power_upper_limit_kw  Power upper limit, most likely the configured contractual power limit.
+                  power_upper_limit_kw  Power upper limit register, constant per meter (70 kW on Gama 350, 0 on Apator meters). Meaning not confirmed, possibly the rated maximum power of the meter.
  total_energy_consumption_tariff_4_kwh  The total energy consumption recorded by this meter on tariff 4.
   total_energy_production_tariff_4_kwh  The total energy production recorded by this meter on tariff 4.
  total_reactive_energy_inductive_kvarh  The total inductive reactive energy recorded by this meter.

@@ -207,7 +207,7 @@ driver {
         field {
             name           = power_upper_limit
             quantity       = Power
-            info           = 'Power upper limit, most likely the configured contractual power limit.'
+            info           = 'Power upper limit register, constant per meter (70 kW on Gama 350, 0 on Apator meters). Meaning not confirmed, possibly the rated maximum power of the meter.'
             vif_scaling    = Auto
             dif_signedness = Signed
             match {
