@@ -4,8 +4,8 @@ on how the flow_temperature_c was picked up. These are now fixed
 so instead of the old field, expect to see min_flow_temperature_last_month_c
 or min_flow_temperature_last_day_c. These meters are very configurable.
 
-ATTENTION! Breaking change the field "meter":"kamwater" is now renamed to
-"driver":"kamwater". The meter field name is just confusing since it has not been
+ATTENTION! Breaking change the field "meter":"..." is now renamed to
+"driver":"...". The meter field name is just confusing since it has not been
 correlated to the meter type since 2019. Hopefully very few users actually
 make use of this field.
 
@@ -36,7 +36,8 @@ Christoph Gommel improved the ultraheat driver. Thanks Christoph!
 Jan Kundrát improved the kamheat and kamwater drivers. Thanks Jan!
 Aras Abbasi created a great AGENTS.md which deserves to be read by human developers too! Thanks Aras!
 Timur Saitov improved the emerlin868 driver. Thanks Timur!
-bartman081523 fixed type G date decoding where 0xffff decodes to null. Thanks!
+bartman081523 fixed type G date decoding where 0xffff decodes to null
+and added decoding of mfct specific walk-by datasets for qundis meters. Thanks!
 Michal Strnad improved the hydroclimav2 driver. Thanks Michal!
 Christoph Gommel improved the qwaterv2 and qheatv2 drivers. Christoph also added support
 for inverse compact profiles with multiple bases, like energy consumption and production.

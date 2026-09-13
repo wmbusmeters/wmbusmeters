@@ -1,6 +1,5 @@
 # AGENTS.md
 
-
 This file provides guidance to AI coding agents when working with code in this repository.
 
 ## Build Commands
@@ -42,6 +41,16 @@ cd drivers && make testonly DRIVER=dme173
 # Debug a specific telegram
 build/wmbusmeters --debug simulation/serial_rtlwmbus_ok.msg
 # --trace for even more verbose output
+
+# Debug a specific telegram passed as hex on the command line, underscores are ok in the hex.
+./build/wmbusmeters --debug --format=json 1844AE4C4455223368077A55000000_041389E20100023B0000 MyMeter iperl 33225544 NOKEY
+
+# Analyze a specific telegram passed as hex on the command line
+./build/wmbusmeters --analyze 1844AE4C4455223368077A55000000_041389E20100023B0000
+
+# Use a new driver xmq being developed
+./build/wmbusmeters --analyze=newdriver.xmq 1844AE4C4455223368077A55000000_041389E20100023B0000
+
 ```
 
 ## Linting / Formatting
@@ -398,10 +407,17 @@ To reproduce CI locally: `./configure && make && make test` plus `cd drivers && 
 
 ## Writing pull requests
 
-A pull request description should be short and concise.
+A pull request description should be short and concise. Do not write
+multiple sections with formatted headers for each section in the PR.
+If you need mutiple sections, it is already too long.
+
+Fredrik gets angry with too long PR:s that takes time for him to read
+since nobody pays him to read AI generated texts. Keep them short and
+Fredrik will be happy and you get better help!
 
 A decrypted telegram hex should always be part of the pull request.
 (Unless the PR is completely unrelated to decoding telegrams.)
+A telegram hex with the corresponding decryption key is also acceptable.
 
 The decrypted telegram should demonstrate what the problem is, which can be: value that is not extracted at all,
 extracted value is wrong, missing decoding of status bits, failing to understand OMS standard, etc.
@@ -417,6 +433,7 @@ There is no point in adding empty drivers when you lack a decrypted telegram.
 
 An issue should short and concise. A decrypted telegram hex should always be part of the issue
 (Unless the issue is completely unrelated to decoding telegrams.)
+A telegram hex with the corresponding decryption key is also acceptable.
 
 The decrypted telegram should demonstrate what the problem is, which can be: value that is not extracted at all,
 extracted value is wrong, missing decoding of status bits, failing to understand OMS standard, etc.
@@ -424,3 +441,9 @@ extracted value is wrong, missing decoding of status bits, failing to understand
 Also very brielfy describe the setup you are using, HA-addon, standalone docker, packaged version (deb/rpm/snap).
 
 Provide the wmbusmeters version.
+
+Remember Fredrik gets angry with too long AI generated texts that takes time for
+him to read since nobody pays him to read AI generated texts. Keep them short and
+Fredrik will be happy and you get better help!
+
+Always mention that an issue, pull request (PR) or other comment is co-authored with an AI agent.
