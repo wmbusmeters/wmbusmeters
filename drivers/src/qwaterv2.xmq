@@ -395,8 +395,8 @@ driver {
             args     = 'Kaltwasser qwaterv2 14356101 NOKEY'
             comment  = 'Q Water 5.5 walk-by block with an unsupported layout: no 13FFFF volume marker after the 9-byte header. The ixml grammar must fail closed and must not invent total_m3/target_*/volume_delta_* values from a block it cannot decode. Only the trailing 046D meter_datetime record is real. See issue #1916.'
             telegram = 49449344016135141907780DFF5F350082C100352CAA738213487EAF84ED6BFD4DA668870285651771A8D3CFB7DE5ECC22081CDD1A3FFBA6506F901027DB29B4672708D9046D160A4F38
-            json     = '{"_": "telegram","id": "14356101","media": "water","driver": "qwaterv2","meter_datetime": "2026-08-15 10:22","name": "Kaltwasser","status": "OK","timestamp": "1111-11-11T11:11:11Z"}'
-            fields   = 'Kaltwasser;14356101;OK;null;1111-11-11 11:11.11'
+            json     = '{"_": "telegram","id": "14356101","media": "water","driver": "qwaterv2","meter_datetime": "2026-08-15 10:22","name": "Kaltwasser","status": "MISSING_KEY","timestamp": "1111-11-11T11:11:11Z"}'
+            fields   = 'Kaltwasser;14356101;MISSING_KEY;null;1111-11-11 11:11.11'
         }
         test {
             args     = 'RealKeyWater qwaterv2 60170138 5787C5961E48C039A225D4DB4F8ECF06'

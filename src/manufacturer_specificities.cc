@@ -409,6 +409,7 @@ bool tryDecodeQundisWalkByAes(Telegram *t, string *value)
         // header, so no garbage values are published. Warn once per meter
         // (unless verbose, debug or analyze) so users get a hint that values
         // are missing due to encryption, see issue #2051.
+        t->decoding_errors = joinStatusOKStrings(t->decoding_errors, "MISSING_KEY");
         if (isVerboseEnabled() || isDebugEnabled() ||
             t->dll_a.size() != 6 ||
             !warned_for_telegram_before(t, t->dll_a))
