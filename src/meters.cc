@@ -1909,6 +1909,7 @@ void MeterCommonImplementation::processFieldIXMLs(Telegram *t)
                             // "decrypts" the block, but into garbage that the grammar
                             // rejects. Warn once per meter (unless verbose, debug or
                             // analyze), like the no key warning, see issue #2051.
+                            t->decoding_errors = joinStatusOKStrings(t->decoding_errors, "FAILED_DECODE");
                             if (isVerboseEnabled() || isDebugEnabled() ||
                                 t->dll_a.size() != 6 ||
                                 !warned_for_telegram_before(t, t->dll_a))
