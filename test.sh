@@ -89,6 +89,9 @@ if [ "$?" != "0" ]; then RC="1"; fi
 tests/test_key_warnings.sh $PROG
 if [ "$?" != "0" ]; then RC="1"; fi
 
+tests/test_qwds_walkby_nokey.sh $PROG
+if [ "$?" != "0" ]; then RC="1"; fi
+
 tests/test_shell.sh $PROG
 if [ "$?" != "0" ]; then RC="1"; fi
 
