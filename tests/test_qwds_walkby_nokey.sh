@@ -7,16 +7,22 @@ PROG="$1"
 mkdir -p testoutput
 TEST=testoutput
 
-TESTNAME="Test that the encrypted Qundis walk-by block warns once when no key is supplied."
+TESTNAME="Test that the encrypted Qundis walk-by block warns when no key or a wrong key is supplied."
 TESTRESULT="OK"
 
 # Without a meter key the encrypted WalkByDataSet (header byte[4]=0x35) cannot
-# be decoded and the walk by values are left out, fail closed. The warning must
-# print exactly once, even though the simulation sends the same telegram twice
-# (see issue #2051).
+# be decoded and the walk by values are left out, fail closed. With a wrong
+# meter key the AES-CBC decryption still "succeeds" (no integrity check) but
+# the garbage body is rejected by the ixml grammar, fail closed. In both cases
+# the warning must print exactly once, even though the simulation sends the
+# same telegram twice (see issue #2051).
 
 $PROG --format=json simulations/simulation_qwds_walkby.txt water qwaterv2 14356101 NOKEY \
       2> $TEST/test_stderr.txt | jq --sort-keys . > $TEST/test_output.txt
+
+# The wrong key case below must produce the same output: fail closed,
+# no walk by values.
+cp $TEST/test_output.txt $TEST/expected_output_nokey.txt
 
 cat > $TEST/expected_err.txt <<EOF
 (qds) WARNING! no key to decrypt the encrypted WalkByDataSet! Walk by values are not decoded for id: 14356101
@@ -38,6 +44,31 @@ cat > $TEST/expected_err.txt <<EOF
 EOF
 
 diff $TEST/test_stderr.txt $TEST/expected_err.txt
+
+if [ "$?" != "0" ]
+then
+    TESTRESULT="ERROR"
+fi
+
+# With a wrong meter key the AES-CBC decryption still "succeeds" but the body
+# becomes garbage that the ixml grammar rejects. The warning must print exactly
+# once and the output must stay fail closed, like the no key case.
+
+$PROG --format=json simulations/simulation_qwds_walkby.txt water qwaterv2 14356101 FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF \
+      2> $TEST/test_stderr.txt | jq --sort-keys . > $TEST/test_output.txt
+
+cat > $TEST/expected_err.txt <<EOF
+(qds) WARNING! failed to decode the encrypted WalkByDataSet! Did you use the correct decryption key for id: 14356101
+EOF
+
+diff $TEST/test_stderr.txt $TEST/expected_err.txt
+
+if [ "$?" != "0" ]
+then
+    TESTRESULT="ERROR"
+fi
+
+diff $TEST/test_output.txt $TEST/expected_output_nokey.txt
 
 if [ "$?" != "0" ]
 then

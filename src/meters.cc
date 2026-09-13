@@ -1902,6 +1902,23 @@ void MeterCommonImplementation::processFieldIXMLs(Telegram *t)
                     bool ok = parseWithIXML(t, dve->offset, value, fi.ixmlGrammar(), &t->dv_entries);
                     if (!ok)
                     {
+                        if (extra_decode)
+                        {
+                            // The decrypted WalkByDataSet did not match the ixml grammar.
+                            // AES-CBC has no integrity check, so a wrong meter key still
+                            // "decrypts" the block, but into garbage that the grammar
+                            // rejects. Warn once per meter (unless verbose, debug or
+                            // analyze), like the no key warning, see issue #2051.
+                            if (isVerboseEnabled() || isDebugEnabled() ||
+                                t->dll_a.size() != 6 ||
+                                !warned_for_telegram_before(t, t->dll_a))
+                            {
+                                // Print this warning only once! Unless you are using verbose or debug.
+                                warning("(qds) WARNING! failed to decode the encrypted WalkByDataSet! "
+                                        "Did you use the correct decryption key for id: %02x%02x%02x%02x\n",
+                                        t->dll_id_b[3], t->dll_id_b[2], t->dll_id_b[1], t->dll_id_b[0]);
+                            }
+                        }
                         vector<uchar> frame;
                         t->extractFrame(&frame);
                         string hex = bin2hex(frame);
