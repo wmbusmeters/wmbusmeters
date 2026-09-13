@@ -406,7 +406,18 @@ bool tryDecodeQundisWalkByAes(Telegram *t, string *value)
     {
         // No meter key configured: leave the encrypted block untouched. The ixml
         // grammar's header guard (PR #2070) then fails closed on the encrypted
-        // header, so no garbage values are published.
+        // header, so no garbage values are published. Warn once per meter
+        // (unless verbose, debug or analyze) so users get a hint that values
+        // are missing due to encryption, see issue #2051.
+        if (isVerboseEnabled() || isDebugEnabled() ||
+            t->dll_a.size() != 6 ||
+            !warned_for_telegram_before(t, t->dll_a))
+        {
+            // Print this warning only once! Unless you are using verbose or debug.
+            warning("(qds) WARNING! no key to decrypt the encrypted WalkByDataSet! "
+                    "Walk by values are not decoded for id: %02x%02x%02x%02x\n",
+                    t->dll_id_b[3], t->dll_id_b[2], t->dll_id_b[1], t->dll_id_b[0]);
+        }
         return false;
     }
 
