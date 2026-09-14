@@ -519,6 +519,11 @@ void test_dvparser()
     // were sent with. A field matcher compares that set exactly, so the points have to keep it.
     tst_combinable(dv_entries, "8702037F77", VIFCombinable::BackwardFlow, false, testnr);
     tst_combinable(dv_entries, "8702037F77_2", VIFCombinable::BackwardFlow, true, testnr);
+    // No base time in this telegram, so every point carries an actuality duration instead:
+    // the 2 s of the base value plus 8 s per step, i.e. 10, 18, 26 seconds, held as hours here.
+    tst_double(dv_entries, "8402747F77", 10.0/3600.0, testnr);
+    tst_double(dv_entries, "C402747F77", 18.0/3600.0, testnr);
+    tst_double(dv_entries, "8403747F77", 26.0/3600.0, testnr);
 }
 
 void test_ixmlparser()
