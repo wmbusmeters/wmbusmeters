@@ -14,6 +14,7 @@
 
 uchar setupIMSTBusDeviceToReceiveTelegrams(LinkModeSet lms);
 
+#define DEVMGMT_MSG_STARTUP_IND 0x00
 #define DEVMGMT_MSG_PING_REQ 0x01
 #define DEVMGMT_MSG_PING_RSP 0x02
 #define DEVMGMT_MSG_GET_DEVICE_INFO_REQ 0x03
