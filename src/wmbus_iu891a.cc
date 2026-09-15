@@ -654,29 +654,38 @@ void WMBusIU891A::processSerialData()
 
         if (status == PartialFrame)
         {
-            if (read_buffer_.size() > 0)
+            // Incomplete frame: keep the buffer and wait for more bytes next pass.
+            if (!read_buffer_.empty())
             {
                 debugPayload("(iu891a) partial frame, expecting more.", read_buffer_);
             }
             break;
         }
+
+        // Both a complete (FullFrame) and an invalid (ErrorInFrame) message consume
+        // exactly frame_length bytes (guaranteed > 0 here), so advance past just those.
+        // Never clear the whole buffer: a valid frame that followed in the same
+        // read_buffer_ must still be seen even if a short/bad-crc frame sits in front
+        // of it, e.g. 'C0 55 C0 <realframe> C0'.
+        read_buffer_.erase(read_buffer_.begin(), read_buffer_.begin()+frame_length);
+
         if (status == ErrorInFrame)
         {
-            debugPayload("(iu891a) bad frame, clearing.", read_buffer_);
-            read_buffer_.clear();
-            break;
+            debugPayload("(iu891a) bad frame, skipping past it.", read_buffer_);
+            continue;   // a good frame can still follow, so keep parsing the remainder
         }
+
         if (status == FullFrame)
         {
-            read_buffer_.erase(read_buffer_.begin(), read_buffer_.begin()+frame_length);
-
             // We now have a proper message in payload. Let us trigger actions based on it.
             // It can be wmbus receiver-dongle messages or wmbus remote meter messages received over the radio.
             switch (endpoint_id) {
             case SAP_DEVMGMT_ID: handleDevMgmt(msg_id, payload); break;
             case SAP_WMBUSGW_ID: handleWMbusGateway(msg_id, payload); break;
             }
+            // loop again to process any further complete frames left in the buffer
         }
+        // No other FrameStatus is reachable from checkIU891AFrame here.
     }
 }
 

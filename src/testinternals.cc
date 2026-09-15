@@ -2116,6 +2116,46 @@ void test_iu891a_slip()
         if (status != FullFrame)
             printf("ERROR iu891a_slip 6: frame behind c0 flood should still be FullFrame, got %s\n", toString(status));
     }
+
+    // 7. A bogus short frame (a single 0x55 byte) in front of a real frame must NOT
+    //    drop the real frame. The classifier must report a usable consumed-offset
+    //    (frame_length > 0) for the bad frame, and advancing past it (as
+    //    processSerialData now does) must leave the real frame to decode to FullFrame.
+    {
+        vector<uchar> buf;
+        buf.push_back(0xc0); buf.push_back(0x55); buf.push_back(0xc0);   // bogus 1-byte frame
+
+        vector<uchar> real = { 0x03, 0x20, 0x00, 0xab, 0xcd };
+        make_frame(real);
+        vector<uchar> escaped;
+        addSlipFraming(real, escaped);
+        buf.insert(buf.end(), escaped.begin(), escaped.end());           // real frame right behind
+
+        size_t original_size = buf.size();
+        FrameStatus status;
+        size_t len = 0;
+        vector<uchar> out;
+        int ep = 0, mid = 0, st = 0, rssi = 0;
+        status = iu891a_check_frame(buf, out, &len, &ep, &mid, &st, &rssi);
+
+        if (status != ErrorInFrame)
+            printf("ERROR iu891a_slip 7: first (bogus) frame should be ErrorInFrame, got %s\n", toString(status));
+        if (len == 0 || len >= original_size)
+            printf("ERROR iu891a_slip 7: bad frame must report usable offset < buffer, got %zu / %zu\n", len, original_size);
+
+        // Guard so the erase below is always valid even on the above (failed) check.
+        if (len == 0 || len >= original_size) return;
+
+        // Advance past the bogus frame, exactly as processSerialData does.
+        buf.erase(buf.begin(), buf.begin()+len);
+
+        status = iu891a_check_frame(buf, out, &len, &ep, &mid, &st, &rssi);
+        if (status != FullFrame)
+            printf("ERROR iu891a_slip 7: real frame should still be FullFrame after skipping bogus one, got %s\n", toString(status));
+        vector<uchar> expected = { 0xab, 0xcd };
+        if (out != expected)
+            printf("ERROR iu891a_slip 7: bad real-frame payload after skip (got %zu bytes)\n", out.size());
+    }
 }
 
 void test_dvs()
