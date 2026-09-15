@@ -153,3 +153,15 @@ LIST_OF_IU891A_WMBUSGW_ERROR_CODES
 
 const char *toString(ErrorCodeIU891AWMBUSGW ec);
 ErrorCodeIU891AWMBUSGW toErrorCodeIU891AWMBUSGW(uchar c);
+
+// Classify a raw SLIP-framed buffer into FullFrame/PartialFrame/ErrorInFrame and
+// extract the payload. Exposed (rather than a static member of a struct that is
+// only defined in wmbus_iu891a.cc) so it can be unit-tested, e.g. against the
+// empty / byte-at-a-time serial scenarios.
+FrameStatus iu891a_check_frame(std::vector<uchar> &data,
+                               std::vector<uchar> &out,
+                               size_t *frame_length_out,
+                               int *endpoint_id_out,
+                               int *msg_id_out,
+                               int *status_byte_out,
+                               int *rssi_dbm);

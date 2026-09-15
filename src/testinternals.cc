@@ -66,6 +66,7 @@ bool verbose_ = false;
     X(hex)            \
     X(translate)                                \
     X(slip)                                     \
+    X(iu891a_slip)                              \
     X(dvs)                                      \
     X(ascii_detection)                          \
     X(status_join)                              \
@@ -1927,6 +1928,122 @@ void test_slip()
         printf("ERROR slip 7\n");
     }
 
+}
+
+void test_iu891a_slip()
+{
+    // Build a valid non-IND frame: endpoint, msg_id, status, payload, crc16.
+    auto make_frame = [](vector<uchar> &msg)
+    {
+        // `msg` holds all data bytes except the trailing 2-byte CRC.
+        uint16_t crc = ~crc16_CCITT(&msg[0], msg.size());
+        msg.push_back(crc & 0xff);
+        msg.push_back((crc >> 8) & 0xff);
+    };
+
+    // 1. Empty buffer (receive() delivered zero bytes): must be PartialFrame, NOT
+    //    ErrorInFrame, and leave frame_length_out at zero so callers branch safely.
+    {
+        vector<uchar> data;
+        FrameStatus status;
+        size_t len = 0xff;
+        vector<uchar> out;
+        int ep = 0, mid = 0, st = 0, rssi = 0;
+        status = iu891a_check_frame(data, out, &len, &ep, &mid, &st, &rssi);
+        if (status != PartialFrame)
+            printf("ERROR iu891a_slip 1: empty buffer should be PartialFrame, got %s\n", toString(status));
+        if (len != 0)
+            printf("ERROR iu891a_slip 1: empty buffer should set frame_length=0, got %zu\n", len);
+        if (!out.empty())
+            printf("ERROR iu891a_slip 1: empty buffer should produce no payload\n");
+    }
+
+    // 2. Only SLIP END markers (C0): holding leading C0s before the payload arrives
+    //    (byte-at-a-time feeding) must stay PartialFrame, not ErrorInFrame.
+    {
+        vector<uchar> data = { 0xc0, 0xc0, 0xc0 };
+        FrameStatus status;
+        size_t len = 0;
+        vector<uchar> out;
+        int ep = 0, mid = 0, st = 0, rssi = 0;
+        status = iu891a_check_frame(data, out, &len, &ep, &mid, &st, &rssi);
+        if (status != PartialFrame)
+            printf("ERROR iu891a_slip 2: all-C0 buffer should be PartialFrame, got %s\n", toString(status));
+    }
+
+    // 3. A well-formed complete frame must decode to FullFrame with header + payload.
+    {
+        vector<uchar> msg = { 0x01, 0x04, 0x00, 0xde, 0xad, 0xbe, 0xef };
+        make_frame(msg);
+
+        vector<uchar> raw;
+        addSlipFraming(msg, raw);
+
+        FrameStatus status;
+        size_t len = 0;
+        vector<uchar> out;
+        int ep = 0, mid = 0, st = 0, rssi = 0;
+        status = iu891a_check_frame(raw, out, &len, &ep, &mid, &st, &rssi);
+
+        if (status != FullFrame)
+        {
+            printf("ERROR iu891a_slip 3: complete frame should be FullFrame, got %s\n", toString(status));
+            return;
+        }
+        if (ep != 0x01 || mid != 0x04 || st != 0x00)
+            printf("ERROR iu891a_slip 3: bad header ep=%d mid=%d st=%d\n", ep, mid, st);
+        vector<uchar> expected = { 0xde, 0xad, 0xbe, 0xef };
+        if (out != expected)
+            printf("ERROR iu891a_slip 3: bad payload (got %zu bytes)\n", out.size());
+    }
+
+    // 4. A SLIP-completed frame that deslips to fewer than 5 bytes is genuinely
+    //    too short -> ErrorInFrame (this is the pre-existing <5 behaviour).
+    {
+        vector<uchar> msg = { 0x01, 0x02 };   // 2 bytes + 2 crc = 4 < 5
+        make_frame(msg);
+
+        vector<uchar> raw;
+        addSlipFraming(msg, raw);
+
+        FrameStatus status;
+        size_t len = 0;
+        vector<uchar> out;
+        int ep = 0, mid = 0, st = 0, rssi = 0;
+        status = iu891a_check_frame(raw, out, &len, &ep, &mid, &st, &rssi);
+        if (status != ErrorInFrame)
+            printf("ERROR iu891a_slip 4: too-short frame should be ErrorInFrame, got %s\n", toString(status));
+    }
+
+    // 5. Byte-at-a-time: a frame accumulated one receive() byte at a time must read
+    //    as PartialFrame for every incomplete prefix, then FullFrame when complete.
+    {
+        vector<uchar> msg = { 0x09, 0x20, 0xde, 0xad };
+        make_frame(msg);
+        vector<uchar> raw;
+        addSlipFraming(msg, raw);
+
+        vector<uchar> buf;
+        for (size_t i = 0; i < raw.size(); i++)
+        {
+            buf.push_back(raw[i]);
+            FrameStatus status;
+            size_t len = 0;
+            vector<uchar> out;
+            int ep = 0, mid = 0, st = 0, rssi = 0;
+            status = iu891a_check_frame(buf, out, &len, &ep, &mid, &st, &rssi);
+            if (i < raw.size()-1 && status == FullFrame)
+                printf("ERROR iu891a_slip 5: incomplete prefix (%zu/%zu) must not be FullFrame\n", i+1, raw.size());
+        }
+
+        FrameStatus status;
+        size_t len = 0;
+        vector<uchar> out;
+        int ep = 0, mid = 0, st = 0, rssi = 0;
+        status = iu891a_check_frame(buf, out, &len, &ep, &mid, &st, &rssi);
+        if (status != FullFrame)
+            printf("ERROR iu891a_slip 5: complete frame should be FullFrame, got %s\n", toString(status));
+    }
 }
 
 void test_dvs()

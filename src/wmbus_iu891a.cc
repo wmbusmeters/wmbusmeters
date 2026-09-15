@@ -536,15 +536,23 @@ FrameStatus WMBusIU891A::checkIU891AFrame(vector<uchar> &data,
 {
     vector<uchar> msg;
 
-    if (slipAllEND(data)) return ErrorInFrame; // Discard this part, since it is all C0.
+    // No bytes at all: nothing to parse yet, wait for more. Leave frame_length_out
+    // at zero so callers that branch on == 0 never read an indeterminate value.
+    if (data.size() == 0) { *frame_length_out = 0; return PartialFrame; }
 
     removeSlipFraming(data, frame_length_out, msg);
 
     // If frame_length_out is zero, then no END slip frame marker was found.
     // Collect some more.
     if (*frame_length_out == 0) return PartialFrame;
+
     // If the msg is less than five bytes, discard this frame.
-    if (msg.size() < 5) return ErrorInFrame;
+    if (msg.size() < 5)
+    {
+        debugPayload("(iu891a) discarding too short frame", data);
+
+        return ErrorInFrame;
+    }
 
     *endpoint_id_out = msg[0];
     *msg_id_out = msg[1];
@@ -577,6 +585,21 @@ FrameStatus WMBusIU891A::checkIU891AFrame(vector<uchar> &data,
     out.insert(out.end(), msg.begin()+payload_offset, msg.begin()+payload_len);
 
     return FullFrame;
+}
+
+// Test seam: expose the frame classifier (a static member of a struct that is
+// only defined in this translation unit) so it can be unit-tested directly.
+FrameStatus iu891a_check_frame(vector<uchar> &data,
+                               vector<uchar> &out,
+                               size_t *frame_length_out,
+                               int *endpoint_id_out,
+                               int *msg_id_out,
+                               int *status_byte_out,
+                               int *rssi_dbm)
+{
+    return WMBusIU891A::checkIU891AFrame(data, out, frame_length_out,
+                                         endpoint_id_out, msg_id_out,
+                                         status_byte_out, rssi_dbm);
 }
 
 void WMBusIU891A::processSerialData()
