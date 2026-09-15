@@ -32,6 +32,10 @@ bool decrypt_TPL_AES_CBC_NO_IV(Telegram *t,std::vector<uchar> &frame,std::vector
 bool decrypt_TPL_AES_CCM(Telegram *t,std::vector<uchar> &frame,std::vector<uchar>::iterator &pos,std::vector<uchar> &aeskey,
                          int *num_encrypted_bytes,
                          int *num_not_encrypted_at_end);
+// Compute the aes-ccm authentication tag (RFC 3610, L=2) for security mode 10.
+std::vector<uchar> compute_TPL_AES_CCM_tag(std::vector<uchar> &aeskey, uchar *nonce,
+                                           std::vector<uchar> &aad,
+                                           std::vector<uchar> &pt, size_t tag_size);
 
 // iv8 must be 8 bytes. Pass all-zeros for mode 2 (DES_NO_IV_DEPRECATED).
 bool decrypt_TPL_DES_CBC(Telegram *t,std::vector<uchar> &frame,std::vector<uchar>::iterator &pos,

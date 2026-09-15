@@ -275,10 +275,58 @@ bool decrypt_TPL_AES_CBC_NO_IV(Telegram *t, vector<uchar> &frame, vector<uchar>:
     return true;
 }
 
+// Compute the aes-ccm authentication tag according to RFC 3610 with a 2 byte
+// length field (L=2) and the given tag size (M). The cbc-mac is computed over
+// the flags byte B0, the 13 byte nonce, the plaintext length, the aad length,
+// the aad and the plaintext, zero padded to 16 byte blocks. The resulting mac
+// is xor:ed with S0 = E(key, 0x01 || nonce || 0x0000) to hide the final block.
+vector<uchar> compute_TPL_AES_CCM_tag(vector<uchar> &aeskey, uchar *nonce, vector<uchar> &aad,
+                                      vector<uchar> &pt, size_t tag_size)
+{
+    vector<uchar> msg;
+    // The flags byte B0, the 13 byte nonce and the plaintext length
+    // form exactly one block.
+    msg.push_back(0x40 | ((tag_size-2)/2 << 3) | 0x01);
+    msg.insert(msg.end(), nonce, nonce+13);
+    msg.push_back((pt.size() >> 8) & 0xff);
+    msg.push_back(pt.size() & 0xff);
+
+    // The aad length followed by the aad itself.
+    msg.push_back((aad.size() >> 8) & 0xff);
+    msg.push_back(aad.size() & 0xff);
+    msg.insert(msg.end(), aad.begin(), aad.end());
+    while (msg.size() % 16 != 0) msg.push_back(0);
+
+    // The plaintext.
+    msg.insert(msg.end(), pt.begin(), pt.end());
+    while (msg.size() % 16 != 0) msg.push_back(0);
+
+    uchar x[16] = {};
+    uchar tmp[16];
+    for (size_t offset = 0; offset < msg.size(); offset += 16)
+    {
+        for (int i=0; i<16; ++i) tmp[i] = x[i] ^ msg[offset+i];
+        AES_ECB_encrypt(tmp, safeButUnsafeVectorPtr(aeskey), x, 16);
+    }
+
+    // S0 hides the computed tag.
+    uchar s0_in[16];
+    s0_in[0] = 0x01;
+    memcpy(s0_in+1, nonce, 13);
+    s0_in[14] = 0;
+    s0_in[15] = 0;
+    uchar s0[16];
+    AES_ECB_encrypt(s0_in, safeButUnsafeVectorPtr(aeskey), s0, 16);
+
+    vector<uchar> tag;
+    for (size_t i=0; i<tag_size; ++i) tag.push_back(x[i] ^ s0[i]);
+    return tag;
+}
+
 // Security mode 10, OMS security profile D. AES-CCM in counter mode with the
 // ephemeral key generated in parseTPLConfig (DC=00, Kenc). The 13 byte nonce
 // holds M(2) ID(4) Ver(1) Type(1) 00h MC(4). The authentication tag is a
-// suffix at the end of the telegram and is not verified here.
+// suffix at the end of the telegram and is verified against the computed tag.
 bool decrypt_TPL_AES_CCM(Telegram *t, vector<uchar> &frame, vector<uchar>::iterator &pos, vector<uchar> &aeskey,
                          int *num_encrypted_bytes,
                          int *num_not_encrypted_at_end)
@@ -352,6 +400,7 @@ bool decrypt_TPL_AES_CCM(Telegram *t, vector<uchar> &frame, vector<uchar>::itera
     // Remove the encrypted bytes, any potentially not encrypted bytes and the tag.
     frame.erase(pos, frame.end());
 
+    vector<uchar> pt;
     if (num_bytes_to_decrypt > 0)
     {
         uchar buffer_data[num_bytes_to_decrypt];
@@ -374,6 +423,8 @@ bool decrypt_TPL_AES_CCM(Telegram *t, vector<uchar> &frame, vector<uchar>::itera
 
         xorit(keystream, buffer_data, decrypted_data, num_bytes_to_decrypt);
 
+        pt = vector<uchar>(decrypted_data, decrypted_data+num_bytes_to_decrypt);
+
         // Insert the decrypted bytes.
         frame.insert(frame.end(), decrypted_data, decrypted_data+num_bytes_to_decrypt);
     }
@@ -394,8 +445,17 @@ bool decrypt_TPL_AES_CCM(Telegram *t, vector<uchar> &frame, vector<uchar>::itera
     vector<uchar>::iterator tagpos = frame.end()-tag_size;
     vector<uchar> tagv(tagpos, frame.end());
     string tags = bin2hex(tagv);
+
+    // Compute the expected tag over the tpl header (aad) and the decrypted
+    // plaintext and verify it against the received tag.
+    vector<uchar> computed_tag = compute_TPL_AES_CCM_tag(aeskey, nonce, t->tpl_aad, pt, tag_size);
+    bool tag_ok = (computed_tag == tagv);
+    t->tpl_ccm_tag_ok = tag_ok;
+
+    string tag_status = "OK";
+    if (!tag_ok) tag_status = "ERROR should be " + bin2hex(computed_tag);
     t->addExplanationAndIncrementPos(tagpos, tag_size, KindOfData::PROTOCOL, Understanding::FULL,
-                                     "%s aes-ccm-tag", tags.c_str());
+                                     "%s aes-ccm-tag (%s)", tags.c_str(), tag_status.c_str());
 
     return true;
 }

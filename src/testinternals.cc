@@ -27,6 +27,7 @@
 #include"translatebits.h"
 #include"util.h"
 #include"wmbus.h"
+#include"wmbus_utils.h"
 #include"wmbus_iu891a.h"
 #include"dvparser.h"
 #include"xmq.h"
@@ -62,6 +63,7 @@ bool verbose_ = false;
     X(months)         \
     X(years)          \
     X(aes)            \
+    X(aes_ccm_tag)    \
     X(sbc)            \
     X(hex)            \
     X(translate)                                \
@@ -1025,6 +1027,45 @@ void test_kdf()
     {
         printf("ERROR in aes-cmac expected \"%s\" but got \"%s\"\n", ex.c_str(), s.c_str());
     }
+}
+
+void test_aes_ccm_tag()
+{
+    // Worked examples N.2.6 and N.5 from the OMS spec (security profile D,
+    // security mode 10), using the Kenc given in the spec.
+    vector<uchar> key;
+    vector<uchar> nonce;
+    vector<uchar> aad;
+    vector<uchar> pt;
+
+    hex2bin("ECCF39D475D730B8284FDFDC1995D52F", &key);
+
+    hex2bin("93157856341233030000000AB3", &nonce);
+    hex2bin("7A7500112A1001", &aad);
+    hex2bin("0C1427048502046D32371F1502FD170000", &pt);
+    vector<uchar> tag = compute_TPL_AES_CCM_tag(key, safeButUnsafeVectorPtr(nonce), aad, pt, 8);
+    string s = bin2hex(tag);
+    string ex = "5AF7883A5B5A7FD6";
+    if (s != ex)
+    {
+        printf("ERROR in aes-ccm-tag expected \"%s\" but got \"%s\"\n", ex.c_str(), s.c_str());
+    }
+    assert(s == ex);
+
+    nonce.clear();
+    aad.clear();
+    pt.clear();
+    hex2bin("A73D7856341201070000000AB3", &nonce);
+    hex2bin("7A0500492A1001", &aad);
+    hex2bin("0C1379194100026CB2184C139432380082046C81118C0413905234008D04931F23FBFE60260039390034310068340010420078310010540030180086190064240003410002FD170000", &pt);
+    tag = compute_TPL_AES_CCM_tag(key, safeButUnsafeVectorPtr(nonce), aad, pt, 8);
+    s = bin2hex(tag);
+    ex = "E41370F8741B9D99";
+    if (s != ex)
+    {
+        printf("ERROR in aes-ccm-tag expected \"%s\" but got \"%s\"\n", ex.c_str(), s.c_str());
+    }
+    assert(s == ex);
 }
 
 void testp(time_t now, string period, bool expected)

@@ -626,13 +626,14 @@ driver {
             fields   = 'MoreWater;54084283;OK;60.77;51.508;1111-11-11 11:11.11'
         }
         test {
-            comment  = 'Security mode 10 (OMS security profile D), AES-CCM with message counter.'
+            comment  = 'Security mode 10 (OMS security profile D), AES-CCM with message counter. Radio corrupted telegram, the aes-ccm tag does not verify, the data is decoded anyway and marked FAILED_DECODE.'
             args     = 'MoreDWater kamwater 53820306 BF902DD6DFADAFE83E4AE6832B5FA14C'
             telegram = 4544372c060382533c16_8c20307a3010ff2a1001dc2e0d00cf1a85672e138d6c0af61338403fdeb528ab264e2c61e41b06073550aa296ae9815c8a7a9868ec6c624cfbbcecb3
-            json     = '{"_":"telegram","accoustic_noise":"FFFFFFFFFFFF","driver":"kamwater","id":"53820306","media":"cold water","name":"MoreDWater","status":"TEMPORARY_ERROR","target_m3":0,"timestamp":"1111-11-11T11:11:11Z","total_m3":0}'
-            fields   = 'MoreDWater;53820306;TEMPORARY_ERROR;0;0;1111-11-11 11:11.11'
+            json     = '{"_":"telegram","accoustic_noise":"FFFFFFFFFFFF","driver":"kamwater","id":"53820306","media":"cold water","name":"MoreDWater","status":"TEMPORARY_ERROR FAILED_DECODE","target_m3":0,"timestamp":"1111-11-11T11:11:11Z","total_m3":0}'
+            fields   = 'MoreDWater;53820306;TEMPORARY_ERROR FAILED_DECODE;0;0;1111-11-11 11:11.11'
         }
         test {
+            comment  = 'Security mode 10 (OMS security profile D), AES-CCM with message counter, valid tag.'
             args     = 'MoreDWater kamwater 53820306 BF902DD6DFADAFE83E4AE6832B5FA14C'
             telegram = 4544372c060382533c16_8c20307a3010ff2a10018c570e006da7632471f42b0a3ceccd461353573ed02b87118bc5ffe982f7f00a0274543bc51938f8b9c8bb8928114d60788a
             json     = '{"_":"telegram","accoustic_noise":"FFFFFFFFFFFF","driver":"kamwater","id":"53820306","media":"cold water","name":"MoreDWater","status":"TEMPORARY_ERROR","target_m3":0,"timestamp":"1111-11-11T11:11:11Z","total_m3":0}'

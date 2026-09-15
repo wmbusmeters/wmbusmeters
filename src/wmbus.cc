@@ -1250,6 +1250,12 @@ bool Telegram::parseTPLConfig(std::vector<uchar>::iterator &pos)
                                           "%02x tpl-key-version", key_version);
         }
 
+        // The tpl header, from the ci field up to and including the cfg
+        // extension field(s), is used as additional authenticated data
+        // when verifying the aes-ccm tag. The message counter is not part
+        // of the aad, it enters the nonce instead.
+        tpl_aad = vector<uchar>(tpl_start, pos);
+
         CHECK(4);
         for (int i=0; i<4; ++i) tpl_counter_b[i] = *(pos+i);
         tpl_counter_found = true;
@@ -1723,8 +1729,28 @@ bool Telegram::potentiallyDecrypt(vector<uchar>::iterator &pos)
             return false;
         }
 
-        // There are no check bytes in security mode 10. If a wrong key has been
-        // supplied, then the decrypted content will fail to parse as data records.
+        // Security mode 10 has no 2f2f check bytes, instead the aes-ccm tag
+        // computed over the tpl header and the plaintext protects both the
+        // integrity of the content and the correctness of the key.
+        if (!tpl_ccm_tag_ok)
+        {
+            decoding_errors = joinStatusOKStrings(decoding_errors, "FAILED_DECODE");
+            if (parser_warns_)
+            {
+                if (!beingAnalyzed() && (isVerboseEnabled() || isDebugEnabled() || !warned_for_telegram_before(this, dll_a)))
+                {
+                    // Print this warning only once! Unless you are using verbose or debug.
+                    warning("(wmbus) WARNING!!! aes-ccm authentication tag did not verify, wrong key or corrupted telegram? "
+                            "Marking telegrams from id: %02x%02x%02x%02x mfct: (%s) %s (0x%02x) type: %s (0x%02x) ver: 0x%02x\n",
+                            dll_id_b[3], dll_id_b[2], dll_id_b[1], dll_id_b[0],
+                            manufacturerFlag(dll_mfct).c_str(),
+                            manufacturer(dll_mfct).c_str(),
+                            dll_mfct,
+                            mediaType(dll_type, dll_mfct).c_str(), dll_type,
+                            dll_version);
+                }
+            }
+        }
     }
     else if (tpl_sec_mode == TPLSecurityMode::DES_NO_IV_DEPRECATED)
     {
