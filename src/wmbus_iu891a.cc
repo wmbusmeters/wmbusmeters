@@ -602,6 +602,26 @@ FrameStatus iu891a_check_frame(vector<uchar> &data,
                                          status_byte_out, rssi_dbm);
 }
 
+// Idle dongles (and virtualised tty's) happily stream SLIP END (0xc0) bytes.
+// The leading run of 0xc0s is pure padding - removeSlipFraming skips them - so a
+// long run can only grow the buffer. Collapse an over-long leading run down to a
+// single delimiter to keep the buffer bounded. Because a buffer that still needs
+// more bytes (PartialFrame) has all its 0xc0s in the leading run (any 0xc0 after
+// that would be a closing delimiter and the frame would already be complete), this
+// never touches a real payload or CRC byte.
+void iu891a_collapse_excess_end(vector<uchar> &buf, size_t limit)
+{
+    size_t i = 0;
+    while (i < buf.size() && buf[i] == 0xc0) i++;   // i == length of leading 0xc0 run
+
+    if (i <= limit) return;
+
+    debug("(iu891a) collapsing %zu excess leading 0xc0 down to one\n", i);
+
+    // Keep a single 0xc0, drop the rest of the leading run.
+    buf.erase(buf.begin()+1, buf.begin()+i);
+}
+
 void WMBusIU891A::processSerialData()
 {
     vector<uchar> data;
@@ -610,6 +630,9 @@ void WMBusIU891A::processSerialData()
     serial()->receive(&data);
 
     read_buffer_.insert(read_buffer_.end(), data.begin(), data.end());
+
+    // Idle dongles (and virtualised tty's) happily stream SLIP END (0xc0) bytes.
+    iu891a_collapse_excess_end(read_buffer_, 100);
 
     size_t frame_length;
     int endpoint_id;

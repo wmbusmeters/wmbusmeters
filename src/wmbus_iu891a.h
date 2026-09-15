@@ -165,3 +165,7 @@ FrameStatus iu891a_check_frame(std::vector<uchar> &data,
                                int *msg_id_out,
                                int *status_byte_out,
                                int *rssi_dbm);
+
+// Collapse an over-long leading run of SLIP END (0xc0) markers down to a single
+// one, so an idle byte-at-a-time stream cannot grow the receive buffer unbounded.
+void iu891a_collapse_excess_end(std::vector<uchar> &buf, size_t limit);

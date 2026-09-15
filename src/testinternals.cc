@@ -2044,6 +2044,78 @@ void test_iu891a_slip()
         if (status != FullFrame)
             printf("ERROR iu891a_slip 5: complete frame should be FullFrame, got %s\n", toString(status));
     }
+
+    // 6. Collapse of an over-long leading run of 0xc0.
+    auto run_of = [](size_t n)
+    {
+        vector<uchar> v(n, 0xc0);
+        return v;
+    };
+
+    // 150 leading 0xc0 -> collapsed to a single one.
+    {
+        vector<uchar> buf = run_of(150);
+        iu891a_collapse_excess_end(buf, 100);
+        if (buf.size() != 1 || buf[0] != 0xc0)
+            printf("ERROR iu891a_slip 6: 150 c0 should collapse to 1, got %zu\n", buf.size());
+    }
+
+    // Exactly at the limit (100) -> left untouched.
+    {
+        vector<uchar> buf = run_of(100);
+        iu891a_collapse_excess_end(buf, 100);
+        if (buf.size() != 100)
+            printf("ERROR iu891a_slip 6: 100 c0 (== limit) should be kept, got %zu\n", buf.size());
+    }
+
+    // Just over the limit (101) -> collapsed to a single one.
+    {
+        vector<uchar> buf = run_of(101);
+        iu891a_collapse_excess_end(buf, 100);
+        if (buf.size() != 1 || buf[0] != 0xc0)
+            printf("ERROR iu891a_slip 6: 101 c0 should collapse to 1, got %zu\n", buf.size());
+    }
+
+    // Leading 0xc0-run + a partially-received payload: only the run collapses, the
+    // payload bytes are preserved.
+    {
+        vector<uchar> buf = run_of(250);
+        buf.push_back(0x09);   // first payload byte arrives after a C0 flood
+        buf.push_back(0x20);
+        iu891a_collapse_excess_end(buf, 100);
+        if (buf.size() != 3 || buf[0] != 0xc0 || buf[1] != 0x09 || buf[2] != 0x20)
+            printf("ERROR iu891a_slip 6: c0-run + payload should become {c0,09,20}, got %zu bytes\n", buf.size());
+    }
+
+    // No leading 0xc0 -> untouched regardless of size.
+    {
+        vector<uchar> buf = { 0x09, 0x20, 0xde };
+        iu891a_collapse_excess_end(buf, 100);
+        if (buf.size() != 3)
+            printf("ERROR iu891a_slip 6: buffer without leading c0 must be untouched, got %zu\n", buf.size());
+    }
+
+    // End-to-end: a valid SLIP frame hidden behind a 150-byte C0 flood still decodes.
+    {
+        vector<uchar> msg = { 0x07, 0x11, 0x02, 0xaa, 0x55 };
+        make_frame(msg);
+
+        vector<uchar> escaped;
+        addSlipFraming(msg, escaped);
+
+        vector<uchar> raw = run_of(150);   // flood of idle C0s before the real frame
+        raw.insert(raw.end(), escaped.begin(), escaped.end());
+
+        iu891a_collapse_excess_end(raw, 100);
+
+        FrameStatus status;
+        size_t len = 0;
+        vector<uchar> out;
+        int ep = 0, mid = 0, st = 0, rssi = 0;
+        status = iu891a_check_frame(raw, out, &len, &ep, &mid, &st, &rssi);
+        if (status != FullFrame)
+            printf("ERROR iu891a_slip 6: frame behind c0 flood should still be FullFrame, got %s\n", toString(status));
+    }
 }
 
 void test_dvs()
