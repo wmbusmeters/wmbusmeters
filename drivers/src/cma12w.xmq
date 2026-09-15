@@ -5,6 +5,7 @@ driver {
     default_fields = name,id,current_temperature_c,timestamp
     detect {
         mvt = ELV,20,1b
+        mvt = ELV,1f,1b
     }
     library {
         use = software_version
@@ -56,6 +57,12 @@ driver {
             telegram = 2744961566666666201B7AF9000020_2F2F02651E094265180902FD1B30030DFD0F05302E302E340F
             json     = '{"_":"telegram","media":"room sensor","driver":"cma12w","name":"Tempo","id":"66666666","software_version":"4.0.0","status":"OK","current_temperature_c":23.34,"average_temperature_1h_c":23.28,"battery":"BATTERY_330","timestamp":"1111-11-11T11:11:11Z"}'
             fields   = 'Tempo;66666666;23.34;1111-11-11 11:11.11'
+        }
+        test {
+            args     = 'Tempo2 cma12w 68003902 NOKEY'
+            telegram = 27449615023900681F1B7AC5000020_2F2F02651E094265210902FD1B30420DFD0F05352E302E330F
+            json     = '{"_": "telegram","average_temperature_1h_c": 23.37,"battery": "BATTERY_4230","current_temperature_c": 23.34,"driver": "cma12w","id": "68003902","media": "room sensor","name": "Tempo2","software_version": "3.0.5","status": "OK","timestamp": "1111-11-11T11:11:11Z"}'
+            fields   = 'Tempo2;68003902;23.34;1111-11-11 11:11.11'
         }
     }
 }
