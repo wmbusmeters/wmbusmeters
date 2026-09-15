@@ -2048,7 +2048,9 @@ void test_iu891a_slip()
     // 6. Collapse of an over-long leading run of 0xc0.
     auto run_of = [](size_t n)
     {
-        vector<uchar> v(n, 0xc0);
+        vector<uchar> v;
+        v.reserve(n + 1);
+        v.resize(n, 0xc0);
         return v;
     };
 

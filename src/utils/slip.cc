@@ -76,9 +76,9 @@ void addSlipFraming(std::vector<uchar>& from, std::vector<uchar> &to)
     to.push_back(SLIP_END);
 }
 
-void removeSlipFraming(std::vector<uchar>& from, size_t *frame_length, std::vector<uchar> &to)
+void removeSlipFraming(std::vector<uchar>& from, size_t *out_frame_length, std::vector<uchar> &to)
 {
-    *frame_length = 0;
+    *out_frame_length = 0;
     to.clear();
     to.reserve(from.size());
     bool esc = false;
@@ -120,11 +120,11 @@ void removeSlipFraming(std::vector<uchar>& from, size_t *frame_length, std::vect
 
     if (found_end)
     {
-        *frame_length = i;
+        *out_frame_length = i;
     }
     else
     {
-        *frame_length = 0;
+        *out_frame_length = 0;
         to.clear();
     }
 }
