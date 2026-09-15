@@ -92,6 +92,9 @@ if [ "$?" != "0" ]; then RC="1"; fi
 tests/test_qwds_walkby_nokey.sh $PROG
 if [ "$?" != "0" ]; then RC="1"; fi
 
+tests/test_kamwater_ccm_tag.sh $PROG
+if [ "$?" != "0" ]; then RC="1"; fi
+
 tests/test_shell.sh $PROG
 if [ "$?" != "0" ]; then RC="1"; fi
 
