@@ -419,6 +419,11 @@ public:
     int tpl_num_encr_blocks {};
     int tpl_cfg_ext {}; // 1 byte
     int tpl_kdf_selection {}; // 1 byte
+    uchar tpl_counter_b[4] {}; // Message counter found in the security mode 10 cfg extension field. Used by the kdf.
+    bool tpl_counter_found {}; // If set to true, then tpl_counter_b contains valid values.
+    int tpl_ccm_tag_size {}; // Size of the security mode 10 authentication tag, located in the tpl trailer.
+    std::vector<uchar> tpl_aad; // The tpl header bytes (ci..cfg ext) authenticated by the security mode 10 tag.
+    bool tpl_ccm_tag_ok {}; // Set to true if the security mode 10 authentication tag matched the computed tag.
     std::vector<uchar> tpl_generated_key; // 16 bytes
     std::vector<uchar> tpl_generated_mac_key; // 16 bytes
 

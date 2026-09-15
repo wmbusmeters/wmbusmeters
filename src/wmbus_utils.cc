@@ -275,6 +275,191 @@ bool decrypt_TPL_AES_CBC_NO_IV(Telegram *t, vector<uchar> &frame, vector<uchar>:
     return true;
 }
 
+// Compute the aes-ccm authentication tag according to RFC 3610 with a 2 byte
+// length field (L=2) and the given tag size (M). The cbc-mac is computed over
+// the flags byte B0, the 13 byte nonce, the plaintext length, the aad length,
+// the aad and the plaintext, zero padded to 16 byte blocks. The resulting mac
+// is xor:ed with S0 = E(key, 0x01 || nonce || 0x0000) to hide the final block.
+vector<uchar> compute_TPL_AES_CCM_tag(vector<uchar> &aeskey, uchar *nonce, vector<uchar> &aad,
+                                      vector<uchar> &pt, size_t tag_size)
+{
+    vector<uchar> msg;
+    // The flags byte B0, the 13 byte nonce and the plaintext length
+    // form exactly one block.
+    msg.push_back(0x40 | ((tag_size-2)/2 << 3) | 0x01);
+    msg.insert(msg.end(), nonce, nonce+13);
+    msg.push_back((pt.size() >> 8) & 0xff);
+    msg.push_back(pt.size() & 0xff);
+
+    // The aad length followed by the aad itself.
+    msg.push_back((aad.size() >> 8) & 0xff);
+    msg.push_back(aad.size() & 0xff);
+    msg.insert(msg.end(), aad.begin(), aad.end());
+    while (msg.size() % 16 != 0) msg.push_back(0);
+
+    // The plaintext.
+    msg.insert(msg.end(), pt.begin(), pt.end());
+    while (msg.size() % 16 != 0) msg.push_back(0);
+
+    uchar x[16] = {};
+    uchar tmp[16];
+    for (size_t offset = 0; offset < msg.size(); offset += 16)
+    {
+        for (int i=0; i<16; ++i) tmp[i] = x[i] ^ msg[offset+i];
+        AES_ECB_encrypt(tmp, safeButUnsafeVectorPtr(aeskey), x, 16);
+    }
+
+    // S0 hides the computed tag.
+    uchar s0_in[16];
+    s0_in[0] = 0x01;
+    memcpy(s0_in+1, nonce, 13);
+    s0_in[14] = 0;
+    s0_in[15] = 0;
+    uchar s0[16];
+    AES_ECB_encrypt(s0_in, safeButUnsafeVectorPtr(aeskey), s0, 16);
+
+    vector<uchar> tag;
+    for (size_t i=0; i<tag_size; ++i) tag.push_back(x[i] ^ s0[i]);
+    return tag;
+}
+
+// Security mode 10, OMS security profile D. AES-CCM in counter mode with the
+// ephemeral key generated in parseTPLConfig (DC=00, Kenc). The 13 byte nonce
+// holds M(2) ID(4) Ver(1) Type(1) 00h MC(4). The authentication tag is a
+// suffix at the end of the telegram and is verified against the computed tag.
+bool decrypt_TPL_AES_CCM(Telegram *t, vector<uchar> &frame, vector<uchar>::iterator &pos, vector<uchar> &aeskey,
+                         int *num_encrypted_bytes,
+                         int *num_not_encrypted_at_end)
+{
+    if (aeskey.size() == 0) return true;
+
+    vector<uchar> buffer;
+    buffer.insert(buffer.end(), pos, frame.end());
+
+    size_t num_bytes_to_decrypt = buffer.size();
+
+    size_t tag_size = t->tpl_ccm_tag_size;
+    if (buffer.size() < tag_size)
+    {
+        warning("(TPL) warning: aes-ccm telegram received less bytes than expected for decryption! "
+                "Got %zu bytes but expected at least %zu bytes since the tag size is %d.\n",
+                buffer.size(), tag_size, t->tpl_ccm_tag_size);
+        return false;
+    }
+    num_bytes_to_decrypt -= tag_size;
+
+    // The cfg field bits 7-0 (N) hold the number of encrypted bytes,
+    // 0xff means that partial encryption is disabled, all bytes are encrypted.
+    int num_encrypted_cfg = t->tpl_cfg & 0xff;
+    if (num_encrypted_cfg != 0xff && num_encrypted_cfg < (int)num_bytes_to_decrypt)
+    {
+        num_bytes_to_decrypt = num_encrypted_cfg;
+    }
+
+    *num_encrypted_bytes = num_bytes_to_decrypt;
+    *num_not_encrypted_at_end = buffer.size()-num_bytes_to_decrypt;
+
+    debug("(TPL) num encrypted bytes %zu and remaining unencrypted %zu bytes (tag %d bytes)\n",
+          num_bytes_to_decrypt, buffer.size()-num_bytes_to_decrypt, t->tpl_ccm_tag_size);
+
+    // The 13 byte nonce holds the address fields from the tpl header,
+    // if present, else the address fields from the dll header.
+    uchar *mfct_b = t->dll_mfct_b;
+    uchar *id_b = t->dll_id_b;
+    uchar version = t->dll_version;
+    uchar type = t->dll_type;
+    if (t->tpl_id_found)
+    {
+        mfct_b = t->tpl_mfct_b;
+        id_b = t->tpl_id_b;
+        version = t->tpl_version;
+        type = t->tpl_type;
+    }
+
+    uchar nonce[13];
+    int i=0;
+    // M-field
+    nonce[i++] = mfct_b[0]; nonce[i++] = mfct_b[1];
+    // A-field
+    nonce[i++] = id_b[0]; nonce[i++] = id_b[1];
+    nonce[i++] = id_b[2]; nonce[i++] = id_b[3];
+    // Version and type.
+    nonce[i++] = version; nonce[i++] = type;
+    // Separator.
+    nonce[i++] = 0x00;
+    // The message counter is sent little endian but enters the nonce big endian.
+    nonce[i++] = t->tpl_counter_b[3];
+    nonce[i++] = t->tpl_counter_b[2];
+    nonce[i++] = t->tpl_counter_b[1];
+    nonce[i++] = t->tpl_counter_b[0];
+
+    vector<uchar> noncev(nonce, nonce+13);
+    string s = bin2hex(noncev);
+    debug("(TPL) nonce %s\n", s.c_str());
+
+    // Remove the encrypted bytes, any potentially not encrypted bytes and the tag.
+    frame.erase(pos, frame.end());
+
+    vector<uchar> pt;
+    if (num_bytes_to_decrypt > 0)
+    {
+        uchar buffer_data[num_bytes_to_decrypt];
+        memcpy(buffer_data, safeButUnsafeVectorPtr(buffer), num_bytes_to_decrypt);
+        uchar decrypted_data[num_bytes_to_decrypt];
+
+        // AES-CCM encrypts in counter mode: the keystream block for counter i
+        // (starting at 1) is E(key, 0x01 || nonce || i).
+        size_t num_full_blocks = (num_bytes_to_decrypt+15)/16;
+        uchar keystream[num_full_blocks*16];
+        for (size_t b = 0; b < num_full_blocks; ++b)
+        {
+            uchar a[16];
+            a[0] = 0x01;
+            memcpy(a+1, nonce, 13);
+            a[14] = ((b+1) >> 8) & 0xff;
+            a[15] = (b+1) & 0xff;
+            AES_ECB_encrypt(a, safeButUnsafeVectorPtr(aeskey), keystream+b*16, 16);
+        }
+
+        xorit(keystream, buffer_data, decrypted_data, num_bytes_to_decrypt);
+
+        pt = vector<uchar>(decrypted_data, decrypted_data+num_bytes_to_decrypt);
+
+        // Insert the decrypted bytes.
+        frame.insert(frame.end(), decrypted_data, decrypted_data+num_bytes_to_decrypt);
+    }
+
+    debugPayload("(TPL) decrypted ", frame, pos);
+
+    // Append any potentially not encrypted bytes and the authentication tag.
+    if (num_bytes_to_decrypt < buffer.size())
+    {
+        frame.insert(frame.end(), buffer.begin()+num_bytes_to_decrypt, buffer.end());
+        debugPayload("(TPL) appended  ", frame, pos);
+    }
+
+    // The authentication tag is a suffix after the APL content,
+    // record its size so that the dvparser does not try to parse it.
+    t->suffix_size = tag_size;
+
+    vector<uchar>::iterator tagpos = frame.end()-tag_size;
+    vector<uchar> tagv(tagpos, frame.end());
+    string tags = bin2hex(tagv);
+
+    // Compute the expected tag over the tpl header (aad) and the decrypted
+    // plaintext and verify it against the received tag.
+    vector<uchar> computed_tag = compute_TPL_AES_CCM_tag(aeskey, nonce, t->tpl_aad, pt, tag_size);
+    bool tag_ok = (computed_tag == tagv);
+    t->tpl_ccm_tag_ok = tag_ok;
+
+    string tag_status = "OK";
+    if (!tag_ok) tag_status = "ERROR should be " + bin2hex(computed_tag);
+    t->addExplanationAndIncrementPos(tagpos, tag_size, KindOfData::PROTOCOL, Understanding::FULL,
+                                     "%s aes-ccm-tag (%s)", tags.c_str(), tag_status.c_str());
+
+    return true;
+}
+
 bool decrypt_TPL_DES_CBC(Telegram *t, vector<uchar> &frame, vector<uchar>::iterator &pos,
                          vector<uchar> &deskey, const uchar *iv8,
                          int *num_encrypted_bytes,
