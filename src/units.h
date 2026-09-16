@@ -86,6 +86,7 @@ LIST_OF_QUANTITIES
     X(KWH,kwh,"kWh",Energy,"kilo Watt hour")   \
     X(MJ,mj,"MJ",Energy,"Mega Joule")          \
     X(GJ,gj,"GJ",Energy,"Giga Joule")          \
+    X(GCAL,gcal,"Gcal",Energy,"Giga calorie")          \
     X(KVARH,kvarh,"kVARh",Reactive_Energy,"kilo volt amperes reactive hour") \
     X(KVAH,kvah,"kVAh",Apparent_Energy,"kilo volt amperes hour")        \
     X(M3C,m3c,"m³°C",Energy,"cubic meter celsius")                      \

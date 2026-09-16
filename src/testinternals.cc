@@ -2618,7 +2618,7 @@ LIST_OF_QUANTITIES
     // 100 hours is 100/24 days.
     test_si_convert(100.0, 100.0/24.0, Unit::Hour, "h", Unit::Day, "d", Quantity::Time, &from_set, &to_set);
     // 1 year is 365.2425 days.
-//    test_si_convert(1.0, 365.2425, Unit::Year, "y", Unit::Day, "d", Quantity::Time, &from_set, &to_set);
+    //test_si_convert(1.0, 365.2425, Unit::Year, "y", Unit::Day, "d", Quantity::Time, &from_set, &to_set);
 
     check_units_tested(from_set, to_set, Quantity::Time);
 
@@ -2693,6 +2693,10 @@ LIST_OF_QUANTITIES
     test_si_convert(10, 2.7777777777777777, Unit::MJ, "mj", Unit::KWH, "kwh", Quantity::Energy, &from_set, &to_set);
     // 1 ws = 1/3600000 kwh is 1 j = 0.000001 MJ
     test_si_convert(1.0/3600000.0, 0.000001, Unit::KWH, "kwh", Unit::MJ, "mj", Quantity::Energy, &from_set, &to_set);
+    // 1 gcal is 1162.22 kwh
+    test_si_convert(1.0, 1162.22, Unit::GCAL, "gcal", Unit::KWH, "kwh", Quantity::Energy, &from_set, &to_set);
+    // 1kwh is 1/1162.22 gcal
+    test_si_convert(1.0, 1.0/1162.22, Unit::KWH, "kwh", Unit::GCAL, "gcal", Quantity::Energy, &from_set, &to_set);
 
     // 99 m3c = 99 m3c this is the only test we can do with the m3c energy unit,
     // which cannot be converted into other energy units since we lack the density of the water etc.

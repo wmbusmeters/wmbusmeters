@@ -98,6 +98,7 @@ double to_dbm_from_w(double w) { return 10.0*log10(w*1000.0); }
     X(KWH,    3.6e+06,    SIExp().kg(1).m(2).s(-2))                 \
     X(MJ,     1.0e+06,    SIExp().kg(1).m(2).s(-2))                 \
     X(GJ,     1.0e+09,    SIExp().kg(1).m(2).s(-2))                 \
+    X(GCAL,   (1162.22 * 3.6e+06), SIExp().kg(1).m(2).s(-2))        \
     X(KVARH,  3.6e+06,    SIExp().kg(1).m(2).s(-2))                 \
     X(KVAH,   3.6e+06,    SIExp().kg(1).m(2).s(-2))                 \
     X(M3C,    1.0,        SIExp().m(3).c(1))                        \
