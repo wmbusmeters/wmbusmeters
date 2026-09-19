@@ -262,6 +262,9 @@ if [ "$?" != "0" ]; then RC="1"; fi
 ./tests/test_loadable_drivers.sh $PROG
 if [ "$?" != "0" ]; then RC="1"; fi
 
+./tests/test_driver_templates.sh $PROG
+if [ "$?" != "0" ]; then RC="1"; fi
+
 tests/test_force_scaling.sh $PROG
 if [ "$?" != "0" ]; then RC="1"; fi
 

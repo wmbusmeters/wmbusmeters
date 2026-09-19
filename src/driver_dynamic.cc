@@ -66,6 +66,7 @@ void checked_set_subunitnr_range(const char *subunitnr_range_s, FieldMatcher *fm
 Translate::MapType checked_map_type(const char *map_type_s, DriverDynamic *dd);
 uint64_t checked_mask_bits(const char *mask_bits_s, DriverDynamic *dd);
 uint64_t checked_value(const char *value_s, DriverDynamic *dd);
+uint64_t checked_map_from(XMQDoc *doc, XMQNode *map, DriverDynamic *dd);
 TestBit checked_test_type(const char *test_s, DriverDynamic *dd);
 void checked_add_vif_combinable(const char *vif_range_s, FieldMatcher *fm, DriverDynamic *dd);
 void checked_add_vif_combinable_raw(const char *vif_combinable_raw_s, FieldMatcher *fm, DriverDynamic *dd);
@@ -199,6 +200,7 @@ DriverDynamic::DriverDynamic(MeterInfo &mi, DriverInfo &di) :
             }
         }
 
+        xmqForeach(doc, "/driver/templates/template_field", (XMQNodeCallback)add_template_field, this);
         xmqForeach(doc, "/driver/library/use", (XMQNodeCallback)add_use, this);
         xmqForeach(doc, "/driver/fields/field", (XMQNodeCallback)add_field, this);
 
@@ -355,6 +357,26 @@ XMQProceed DriverDynamic::add_use(XMQDoc *doc, XMQNode *field, DriverDynamic *dd
                 dd->fileName().c_str(),
                 name.c_str());
     }
+
+    return XMQ_CONTINUE;
+}
+
+XMQProceed collect_node(XMQDoc *doc, XMQNode *node, vector<XMQNode*> *nodes)
+{
+    nodes->push_back(node);
+    return XMQ_CONTINUE;
+}
+
+XMQProceed DriverDynamic::add_template_field(XMQDoc *doc, XMQNode *template_field, DriverDynamic *dd)
+{
+    const char *name = xmqGetStringRel(doc, "name", template_field);
+    if (!name)
+    {
+        warning("(driver) error in %s, a templates/template_field is missing its name\n",
+                dd->fileName().c_str());
+        return XMQ_CONTINUE;
+    }
+    dd->templates_[name] = template_field;
 
     return XMQ_CONTINUE;
 }
@@ -524,10 +546,51 @@ XMQProceed DriverDynamic::add_field(XMQDoc *doc, XMQNode *field, DriverDynamic *
         use_tpl_aes_cbc_iv_payload_transform = false;
     }
 
-    // Now find all matchers.
+    // A field can reuse a named template's lookup(s), declaring only the
+    // properties (eg. pre_shift_right) it wants to override.
+    XMQNode *template_field_node = NULL;
+    const char *template_name = xmqGetStringRel(doc, "template", field);
+    if (template_name)
+    {
+        auto it = dd->templates_.find(template_name);
+        if (it == dd->templates_.end())
+        {
+            warning("(driver) error in %s, field %s refers to unknown template \"%s\"\n",
+                    dd->fileName().c_str(), name.c_str(), template_name);
+        }
+        else
+        {
+            template_field_node = it->second;
+        }
+    }
+
+    // Now find all lookups. Pair the field's own lookup{} blocks (in document order) with
+    // the template's lookup{} blocks (also in document order); each pair is parsed together,
+    // the field's own properties/map{} entries winning over the template's.
     Translate::Lookup lookup = Translate::Lookup();
     dd->tmp_lookup_ = &lookup;
-    int num_lookups = xmqForeachRel(doc, "lookup", (XMQNodeCallback)add_lookup, dd, field);
+
+    vector<XMQNode*> field_lookup_nodes;
+    xmqForeachRel(doc, "lookup", (XMQNodeCallback)collect_node, &field_lookup_nodes, field);
+
+    vector<XMQNode*> template_lookup_nodes;
+    if (template_field_node)
+    {
+        xmqForeachRel(doc, "lookup", (XMQNodeCallback)collect_node, &template_lookup_nodes, template_field_node);
+    }
+
+    size_t num_lookup_nodes = field_lookup_nodes.size() > template_lookup_nodes.size() ?
+        field_lookup_nodes.size() : template_lookup_nodes.size();
+
+    for (size_t i = 0; i < num_lookup_nodes; ++i)
+    {
+        XMQNode *fl = i < field_lookup_nodes.size() ? field_lookup_nodes[i] : NULL;
+        XMQNode *tl = i < template_lookup_nodes.size() ? template_lookup_nodes[i] : NULL;
+        dd->tmp_template_lookup_ = tl;
+        add_lookup(doc, fl ? fl : tl, dd);
+    }
+    dd->tmp_template_lookup_ = NULL;
+    int num_lookups = (int)num_lookup_nodes;
 
     if (is_numeric)
     {
@@ -667,21 +730,43 @@ XMQProceed DriverDynamic::add_combinable_raw(XMQDoc *doc, XMQNode *match, Driver
        test  = set
    }
 */
-XMQProceed DriverDynamic::add_map(XMQDoc *doc, XMQNode *map, DriverDynamic *dd)
+uint64_t checked_map_from(XMQDoc *doc, XMQNode *map, DriverDynamic *dd)
 {
-    const char *name = xmqGetStringRel(doc, "name", map);
-    uint64_t value = 0;
     const char *bit_s = xmqGetStringRel(doc, "bit", map);
     if (bit_s)
     {
         long v = check_long_property(bit_s, "bit", dd);
-        value = 1;
-        value <<= v;
+        return (uint64_t)1 << v;
     }
-    else
+    return checked_value(xmqGetStringRel(doc, "value", map), dd);
+}
+
+XMQProceed DriverDynamic::add_map(XMQDoc *doc, XMQNode *map, DriverDynamic *dd)
+{
+    const char *name = xmqGetStringRel(doc, "name", map);
+    uint64_t value = checked_map_from(doc, map, dd);
+    TestBit test_type = checked_test_type(xmqGetStringRel(doc, "test", map), dd);
+
+    dd->tmp_rule_->add(Translate::Map(value, name, test_type));
+
+    return XMQ_CONTINUE;
+}
+
+XMQProceed DriverDynamic::add_inherited_map(XMQDoc *doc, XMQNode *map, DriverDynamic *dd)
+{
+    uint64_t value = checked_map_from(doc, map, dd);
+
+    for (Translate::Map &m : dd->tmp_rule_->map)
     {
-        value = checked_value(xmqGetStringRel(doc, "value", map), dd);
+        if (m.from == value)
+        {
+            // The field's own lookup already declares a map{} entry for this bit/value,
+            // it wins over the template's.
+            return XMQ_CONTINUE;
+        }
     }
+
+    const char *name = xmqGetStringRel(doc, "name", map);
     TestBit test_type = checked_test_type(xmqGetStringRel(doc, "test", map), dd);
 
     dd->tmp_rule_->add(Translate::Map(value, name, test_type));
@@ -708,11 +793,30 @@ XMQProceed DriverDynamic::add_map(XMQDoc *doc, XMQNode *map, DriverDynamic *dd)
 */
 XMQProceed DriverDynamic::add_lookup(XMQDoc *doc, XMQNode *lookup, DriverDynamic *dd)
 {
+    // If this lookup was paired with a template lookup (see add_field), any property
+    // not declared on lookup itself is taken from the template instead. The template's
+    // map{} entries are inherited and merged with the field's own (a field's own entry
+    // for a given bit/value wins over the template's). NULL when there is no template
+    // in play.
+    XMQNode *fallback = dd->tmp_template_lookup_;
+
     const char *name = xmqGetStringRel(doc, "name", lookup);
-    Translate::MapType map_type = checked_map_type(xmqGetStringRel(doc, "map_type", lookup), dd);
-    uint64_t mask_bits = checked_mask_bits(xmqGetStringRel(doc, "mask_bits", lookup), dd);
+    if (!name && fallback) name = xmqGetStringRel(doc, "name", fallback);
+
+    const char *map_type_s = xmqGetStringRel(doc, "map_type", lookup);
+    if (!map_type_s && fallback) map_type_s = xmqGetStringRel(doc, "map_type", fallback);
+    Translate::MapType map_type = checked_map_type(map_type_s, dd);
+
+    const char *mask_bits_s = xmqGetStringRel(doc, "mask_bits", lookup);
+    if (!mask_bits_s && fallback) mask_bits_s = xmqGetStringRel(doc, "mask_bits", fallback);
+    uint64_t mask_bits = checked_mask_bits(mask_bits_s, dd);
+
     const char *pre_shift_right_s = xmqGetStringRel(doc, "pre_shift_right", lookup);
+    if (!pre_shift_right_s && fallback) pre_shift_right_s = xmqGetStringRel(doc, "pre_shift_right", fallback);
+
     const char *default_message = xmqGetStringRel(doc, "default_message", lookup);
+    if (!default_message && fallback) default_message = xmqGetStringRel(doc, "default_message", fallback);
+
     bool mark_reserved_bits = check_boolean_property(xmqGetStringRel(doc, "mark_reserved_bits", lookup),
                                                        "mark_reserved_bits", dd, false);
 
@@ -738,6 +842,12 @@ XMQProceed DriverDynamic::add_lookup(XMQDoc *doc, XMQNode *lookup, DriverDynamic
     rule.markReservedBits(mark_reserved_bits);
 
     xmqForeachRel(doc, "map", (XMQNodeCallback)add_map, dd, lookup);
+    if (fallback)
+    {
+        // Inherit the template's map{} entries too, merging them with the field's own.
+        // A field's own entry for a given bit/value wins over the template's.
+        xmqForeachRel(doc, "map", (XMQNodeCallback)add_inherited_map, dd, fallback);
+    }
 
     dd->tmp_lookup_->add(rule);
 

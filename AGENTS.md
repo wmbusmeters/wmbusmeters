@@ -140,6 +140,23 @@ driver {
         use = flow_temperature_c  // comma-separated list also accepted
     }
 
+    templates {
+        // Reusable field templates, referenced from a field via `template = <name>`.
+        // Only the field's lookup{} is templated (see `field { template = ... }` below) —
+        // name/quantity/info/match/attributes etc. are always declared on the field itself.
+        template_field {
+            name = duration_bucket
+            lookup {
+                name      = DURATION
+                map_type  = IndexToString
+                mask_bits = 0x0007   // a plain 0-7 index; see pre_shift_right below
+                map { name = ''           value = 0 test = Set }
+                map { name = '1-8 hours'  value = 1 test = Set }
+                // ...
+            }
+        }
+    }
+
     fields {
         field {
             name              = total
@@ -204,6 +221,16 @@ driver {
                 }
             }
         }
+        field {
+            // Reuses templates/duration_bucket's lookup, only overriding pre_shift_right
+            // so the same 8-entry table decodes a different sub-field of the same word.
+            name     = time_dry
+            quantity = Text
+            template = duration_bucket
+            info     = 'Amount of time the meter has been dry.'
+            match { difvifkey = 02FF20 }
+            lookup { pre_shift_right = 4 }
+        }
     }
 
     tests {
@@ -230,6 +257,7 @@ the end of the previous month. So `total` `Volume` defaults to `total_m3` and me
 - `null_value` specifies a raw numeric value that should be treated as missing/null in output (e.g. `null_value = -327.68` for a sensor that uses that sentinel when disconnected).
 - `mfct_tpl_status_bits` decodes manufacturer-specific error flags in the transport-layer header byte. The result is automatically merged into any `STATUS`/`INCLUDE_TPL_STATUS` field.
 - `lookup { pre_shift_right = N }` right-shifts the raw value by `N` bits before `mask_bits`/`map` matching. Use it to reuse the same `map{}` table (eg. a duration-bucket encoding) at several different bit offsets within the same status word instead of duplicating the table once per offset.
+- `driver { templates { template_field { name = foo  lookup { ... } } } }` declares a reusable field template; a `field { template = foo ... }` starts from that template's `lookup{}` and can override individual properties (eg. `pre_shift_right`, `mask_bits`). The template's `map{}` entries are inherited and merged with any the field declares itself: a field's own `map{}` entry for a given `bit`/`value` wins over the template's, entries for bits/values the field doesn't mention are still taken from the template. Only `lookup{}` is templated — `name`, `quantity`, `info`, `match`, `attributes` etc. must always be declared on the field itself.
 - `match_entire_payload = true` is for unusual meters that use a proprietary ixml-format payload instead of standard DIF/VIF records.
 - New drivers must be written in XMQ. No new C++ drivers are accepted.
 
