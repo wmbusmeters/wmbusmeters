@@ -1055,6 +1055,20 @@ test {
     fields   = 'MoreWater;12345699;7.704;0;1111-11-11 11:11.11'
 }
 test {
+    args     = 'WaterWater iperl 33225544 NOKEY'
+    comment  = 'Test iPerl T1 telegram not encrypted, which has no 2f2f markers.'
+    telegram = 1844AE4C4455223368077A55000000_041389E20100023B0000
+    json     = '{"_":"telegram","media":"water","driver":"iperl","name":"WaterWater","id":"33225544","total_m3":123.529,"max_flow_m3h":0,"status":"OK","timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'WaterWater;33225544;123.529;0;1111-11-11 11:11.11'
+}
+test {
+    args     = 'MoreWater iperl 12345699 NOKEY'
+    comment  = 'Test iPerl T1 telegram, that after decryption, has 2f2f markers.'
+    telegram = 1E44AE4C9956341268077A36001000_2F2F0413181E0000023B00002F2F2F2F
+    json     = '{"_":"telegram","media":"water","driver":"iperl","name":"MoreWater","id":"12345699","total_m3":7.704,"max_flow_m3h":0,"status":"OK","timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'MoreWater;12345699;7.704;0;1111-11-11 11:11.11'
+}
+test {
     args     = 'NoHeatYet istaheat 54900708 NOKEY'
     telegram = 5344742608079054A90C8C20A3900F002C2509530000307906D95D07027E7A09003007102F2F_0C0E00000000426C3F3C4C0E0000000082016C5F378C010E000000008C0115000000002F2F2F2F2F2F2F2F2F2F2F
     json     = '{"_":"telegram","media":"heat volume at inlet","driver":"istaheat","name":"NoHeatYet","id":"54900708","last_year_kwh":0,"last_year_date":"2025-12-31","target_kwh":0,"target_m3":0,"target_date":"2026-07-31","total_kwh":0,"status":"OK","timestamp":"1111-11-11T11:11:11Z"}'
