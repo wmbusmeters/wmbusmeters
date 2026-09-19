@@ -7,7 +7,7 @@
           "wmbusmeters_{id}"
         ],
         "manufacturer": "Sensus",
-        "model": "Sensus iPERL",
+        "model": "SEN,68,07",
         "name": "{name}",
         "hw_version": "{id}"
       },
@@ -31,7 +31,7 @@
           "wmbusmeters_{id}"
         ],
         "manufacturer": "Sensus",
-        "model": "Sensus iPERL",
+        "model": "SEN,68,07",
         "name": "{name}",
         "hw_version": "{id}"
       },
@@ -55,7 +55,7 @@
           "wmbusmeters_{id}"
         ],
         "manufacturer": "Sensus",
-        "model": "Sensus iPERL",
+        "model": "SEN,68,07",
         "name": "{name}",
         "hw_version": "{id}"
       },
@@ -76,7 +76,7 @@
           "wmbusmeters_{id}"
         ],
         "manufacturer": "Sensus",
-        "model": "Sensus iPERL",
+        "model": "SEN,68,07",
         "name": "{name}",
         "hw_version": "{id}"
       },

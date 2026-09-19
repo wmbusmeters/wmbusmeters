@@ -109,6 +109,7 @@ cat <<EOF | jq --sort-keys . > $TEST/test_expected.txt
   "total_volume_m3": 344.27,
   "volume_flow_m3h": 1.005,
   "meter_date": "2022-12-10",
+  "mvt": "KAM,40,04",
   "status": "OK",
   "timestamp": "1111-11-11T11:11:11Z"
 }

@@ -33,6 +33,7 @@ cat <<EOF > $TEST/test_expected.txt
   "id": "33225544",
   "max_flow_m3h": 0,
   "media": "water",
+  "mvt": "SEN,68,07",
   "name": "Gurka",
   "total_m3": 123.529
 }

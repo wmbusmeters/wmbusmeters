@@ -76,6 +76,7 @@
       "info": "Amount of time the meter has been reversed."
     }
   },
+  "mvt": "KAW,3c,16",
   "max_external_temperature_last_month_c": 23,
   "max_flow_last_month_m3h": 0.819,
   "min_external_temperature_last_month_c": 15,
@@ -90,5 +91,5 @@
   "time_dry": "",
   "time_leaking": "",
   "time_reversed": "",
-  "timestamp": "2026-09-19T08:43:02Z"
+  "timestamp": "2026-09-19T09:28:39Z"
 }

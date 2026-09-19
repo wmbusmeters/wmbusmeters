@@ -1529,6 +1529,26 @@ string concatFields(Meter *m, Telegram *t, char c, vector<FieldInfo> &prints, bo
     return buf;
 }
 
+string extractMVTs(Telegram *t);
+
+string extractMVTs(Telegram *t)
+{
+    string s;
+    if (t->tpl_id_found)
+    {
+        s = manufacturerFlag(t->tpl_mfct)+tostrprintf(",%02x,%02x", t->tpl_version, t->tpl_type);
+    }
+    else if (t->ell_id_found)
+    {
+        s = manufacturerFlag(t->ell_mfct)+tostrprintf(",%02x,%02x", t->ell_version, t->ell_type);
+    }
+    else
+    {
+        s = manufacturerFlag(t->dll_mfct)+tostrprintf(",%02x,%02x", t->dll_version, t->dll_type);
+    }
+    return s;
+}
+
 void MeterCommonImplementation::buildOutputDoc(XMQDoc *doc,
                                                string id,
                                                string media,
@@ -1555,6 +1575,8 @@ void MeterCommonImplementation::buildOutputDoc(XMQDoc *doc,
         rn = xmqAddElement(doc, telegram, "details", NS_PARENT);
         details = rn.node;
 
+        string mvts = extractMVTs(t);
+        xmqAddKeyValue(doc, telegram, "mvt", mvts.c_str(), NS_PARENT);
     }
 
     if (getAddTelegramHex())
@@ -1573,7 +1595,7 @@ void MeterCommonImplementation::buildOutputDoc(XMQDoc *doc,
         NumericField& nf = p.second;
         if (nf.field_info->printProperties().hasHIDE()) continue;
 
-        nf.field_info->insertNumericValuesIntoDoc(this, &nf.dv_entry, doc, telegram, details);
+        nf.field_info->insertNumericValueIntoDoc(vname, this, &nf.dv_entry, doc, telegram, details);
     }
 
     for (auto &p : string_values_)
@@ -2486,7 +2508,7 @@ string FieldInfo::renderJson(Meter *m, DVEntry *dve)
     return s;
 }
 
-void FieldInfo::insertNumericValuesIntoDoc(Meter *m, DVEntry *dve, XMQDoc *doc, XMQNode *telegram, XMQNode *details)
+void FieldInfo::insertNumericValueIntoDoc(string vname, Meter *m, DVEntry *dve, XMQDoc *doc, XMQNode *telegram, XMQNode *details)
 {
     string display_unit_s = unitToStringLowerCase(displayUnit());
     string field_name = generateFieldNameNoUnit(m, dve);
@@ -2551,7 +2573,7 @@ void FieldInfo::insertNumericValuesIntoDoc(Meter *m, DVEntry *dve, XMQDoc *doc, 
     }
 }
 
-void FieldInfo::insertStringValuesIntoDoc(Meter *m, Telegram *t, DVEntry *dve, XMQDoc *doc, XMQNode *telegram, XMQNode *details)
+void FieldInfo::insertStringValueIntoDoc(string vname, Meter *m, Telegram *t, DVEntry *dve, XMQDoc *doc, XMQNode *telegram, XMQNode *details)
 {
     /*
     string display_unit_s = unitToStringLowerCase(displayUnit());

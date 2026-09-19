@@ -75,8 +75,8 @@ xsl:stylesheet(version                 = 1.0
         _ {
             xsl:variable(name   = manufacturer
                          select = $drvx/driver/manufacturer)
-            xsl:variable(name   = model
-                         select = $drvx/driver/model)
+            xsl:variable(name   = mvt
+                         select = telegram/mvt)
             xsl:variable(name   = metertype
                          select = $drvx/driver/meter_type)
             xsl:for-each(select = telegram/details/*)
@@ -123,7 +123,7 @@ xsl:stylesheet(version                 = 1.0
                                 xsl:value-of(select = $manufacturer)
                             }
                             model {
-                                xsl:value-of(select = $model)
+                                xsl:value-of(select = $mvt)
                             }
                             name       = '{name}'
                             hw_version = '{id}'
@@ -162,7 +162,7 @@ xsl:stylesheet(version                 = 1.0
                             xsl:value-of(select = $manufacturer)
                         }
                         model {
-                            xsl:value-of(select = $model)
+                            xsl:value-of(select = $mvt)
                         }
                         name         = '{name}'
                         hw_version   = '{id}'
@@ -188,7 +188,7 @@ xsl:stylesheet(version                 = 1.0
                             xsl:value-of(select = $manufacturer)
                         }
                         model {
-                            xsl:value-of(select = $model)
+                            xsl:value-of(select = $mvt)
                         }
                         name         = '{name}'
                         hw_version   = '{id}'

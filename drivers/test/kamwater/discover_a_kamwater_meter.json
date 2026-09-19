@@ -206,20 +206,20 @@
           "wmbusmeters_{id}"
         ],
         "manufacturer": "Kamstrup",
-        "model": "{driver}",
+        "model": "KAW,3c,16",
         "name": "{name}",
         "hw_version": "{id}"
       },
       "entity_category": "diagnostic",
       "name": "rssi",
-      "enabled_by_default": false,
-      "device_class": "signal_strength",
-      "state_class": "measurement",
-      "state_topic": "wmbusmeters/{name}",
       "unique_id": "wmbusmeters_{id}_{attribute}",
-      "unit_of_measurement": "dBm",
+      "state_topic": "wmbusmeters/{name}",
       "value_template": "{{ value_json.{attribute} }}",
-      "icon": "mdi:signal"
+      "icon": "mdi:signal",
+      "unit_of_measurement": "dBm",
+      "state_class": "measurement",
+      "device_class": "signal_strength",
+      "enabled_by_default": false
     }
   }
 }
