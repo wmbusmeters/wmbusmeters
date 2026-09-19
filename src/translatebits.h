@@ -61,6 +61,20 @@ private:
 
 extern MaskBits AutoMask;
 
+struct PreShiftRight
+{
+    PreShiftRight() : shift_(0) {}
+    PreShiftRight(int s) : shift_(s) {}
+    int intValue() const { return shift_; }
+    bool operator==(const PreShiftRight &p) const { return shift_ == p.shift_; }
+    bool operator!=(const PreShiftRight &p) const { return shift_ != p.shift_; }
+
+private:
+    int shift_;
+};
+
+extern PreShiftRight NoPreShift;
+
 struct DefaultMessage
 {
     DefaultMessage() : message_("") {}
@@ -99,6 +113,7 @@ namespace Translate
         MapType type;
         TriggerBits trigger; // Bits that must be set.
         MaskBits mask; // Bits to be used are set as 1.
+        PreShiftRight pre_shift_right; // Shift the input bits right by this much before masking/matching.
         DefaultMessage default_message; // If no bits are set print this, typically "OK" or "".
         std::vector<Map> map;
         // If true, synthesize a RESERVED_BIT_<n> map entry (test=Set) for every bit set in
@@ -108,11 +123,12 @@ namespace Translate
 
         Rule() {};
         Rule(std::string n, MapType t, TriggerBits tr, MaskBits mb, std::string dm, std::vector<Map> m)
-            : name(n), type(t), trigger(tr), mask(mb), default_message(dm), map(m) {}
+            : name(n), type(t), trigger(tr), mask(mb), pre_shift_right(NoPreShift), default_message(dm), map(m) {}
         Rule(std::string n, MapType t) :
-            name(n), type(t), trigger(AlwaysTrigger), mask(AutoMask), default_message(DefaultMessage("")) {}
+            name(n), type(t), trigger(AlwaysTrigger), mask(AutoMask), pre_shift_right(NoPreShift), default_message(DefaultMessage("")) {}
         Rule &set(TriggerBits t) { trigger = t; return *this; }
         Rule &set(MaskBits m) { mask = m; return *this; }
+        Rule &set(PreShiftRight p) { pre_shift_right = p; return *this; }
         Rule &set(DefaultMessage m) { default_message = m; return *this; }
         Rule &add(Map m) { map.push_back(m); return *this; }
         Rule &markReservedBits(bool b = true) { mark_reserved_bits = b; return *this; }

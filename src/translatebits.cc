@@ -26,6 +26,7 @@ using namespace std;
 
 TriggerBits AlwaysTrigger(~(uint64_t)0);
 MaskBits AutoMask(0);
+PreShiftRight NoPreShift(0);
 
 void handleBitToString(Rule& rule, string &out_s, uint64_t bits)
 {
@@ -49,6 +50,7 @@ void handleBitToString(Rule& rule, string &out_s, uint64_t bits)
         }
     }
 
+    bits = bits >> rule.pre_shift_right.intValue();
     bits = bits & mask;
     for (Map& m : rule.map)
     {
@@ -121,6 +123,7 @@ void handleIndexToString(Rule& rule, string &out_s, uint64_t bits)
         }
     }
 
+    bits = bits >> rule.pre_shift_right.intValue();
     bits = bits & mask;
     bool found = false;
     for (Map& m : rule.map)
@@ -172,6 +175,8 @@ void handleDecimalsToString(Rule& rule, string &out_s, uint64_t bits)
             mask |= m.from;
         }
     }
+
+    bits = bits >> rule.pre_shift_right.intValue();
 
     // Switch to signed number here.
     int number = bits % mask;
@@ -294,6 +299,9 @@ map<string,bool> Lookup::translateToObject(uint64_t input_bits)
             }
         }
 
+        uint64_t bits = input_bits >> r.pre_shift_right.intValue();
+        bits = bits & mask;
+
         for (Map& m : r.map)
         {
             uint64_t from = m.from & mask;
@@ -301,11 +309,11 @@ map<string,bool> Lookup::translateToObject(uint64_t input_bits)
 
             if (m.test == TestBit::Set)
             {
-                value = (input_bits & mask & from) != 0;
+                value = (bits & from) != 0;
             }
             else if (m.test == TestBit::NotSet)
             {
-                value = (input_bits & mask & from) == 0;
+                value = (bits & from) == 0;
             }
 
             out[m.to] = out[m.to] || value;

@@ -695,10 +695,13 @@ XMQProceed DriverDynamic::add_map(XMQDoc *doc, XMQNode *map, DriverDynamic *dd)
     Or fallback to the name (ERROR_FLAGS_8) suffixed by the untranslateable bits.
 
     lookup {
-        name              = ERROR_FLAGS
-        map_type          = BitToString
-        mask_bits         = 0xffff
-        default_message   = OK
+        name               = ERROR_FLAGS
+        map_type           = BitToString
+        mask_bits          = 0xffff
+        pre_shift_right    = 4    // optional: shift the input bits right by this much
+                                   // before mask_bits/map matching, so the same map{}
+                                   // table can be reused at different bit offsets.
+        default_message    = OK
         mark_reserved_bits = true // add RESERVED_BIT_<n> for every mask bit not in a map { }
         map { } map {}
     }
@@ -708,6 +711,7 @@ XMQProceed DriverDynamic::add_lookup(XMQDoc *doc, XMQNode *lookup, DriverDynamic
     const char *name = xmqGetStringRel(doc, "name", lookup);
     Translate::MapType map_type = checked_map_type(xmqGetStringRel(doc, "map_type", lookup), dd);
     uint64_t mask_bits = checked_mask_bits(xmqGetStringRel(doc, "mask_bits", lookup), dd);
+    const char *pre_shift_right_s = xmqGetStringRel(doc, "pre_shift_right", lookup);
     const char *default_message = xmqGetStringRel(doc, "default_message", lookup);
     bool mark_reserved_bits = check_boolean_property(xmqGetStringRel(doc, "mark_reserved_bits", lookup),
                                                        "mark_reserved_bits", dd, false);
@@ -725,6 +729,11 @@ XMQProceed DriverDynamic::add_lookup(XMQDoc *doc, XMQNode *lookup, DriverDynamic
     dd->tmp_rule_ = &rule;
 
     rule.set(MaskBits(mask_bits));
+    if (pre_shift_right_s)
+    {
+        long shift = check_long_property(pre_shift_right_s, "pre_shift_right", dd);
+        rule.set(PreShiftRight(shift));
+    }
     rule.set(DefaultMessage(default_message));
     rule.markReservedBits(mark_reserved_bits);
 
