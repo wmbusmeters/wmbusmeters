@@ -22,6 +22,7 @@
 #include"wmbus.h"
 
 #include "crypto/crc16.h"
+#include "utils/fs.h"
 
 #include<cassert>
 #include<cmath>
