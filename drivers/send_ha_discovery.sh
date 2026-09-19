@@ -3,8 +3,8 @@
 # Use this script like this:
 # ./build/wmbusmeters --format=json --metershell='./drivers/send_ha_discovery.sh "$METER_DRIVER" "$METER_JSON"' 1844AE4C4455223368077A55000000_041389E20100023B0000 Vatten iperl 33225544 NOKEY
 
-DRIVER=$(mktemp /tmp/send_ha_discovery.driver.XXXXXX)
-TELEGRAM=$(mktemp /tmp/send_ha_discovery.json.XXXXXX)
+DRIVER=$(mktemp -t send_ha_discovery.driver.XXXXXX)
+TELEGRAM=$(mktemp -t send_ha_discovery.json.XXXXXX)
 
 DEBUG=false
 if [ "$1" = "--debug" ]
