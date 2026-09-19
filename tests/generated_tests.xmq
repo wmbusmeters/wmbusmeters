@@ -485,6 +485,12 @@ test {
     fields   = 'DigiWasser;93929190;214.787;OK;1111-11-11 11:11.11'
 }
 test {
+    args     = 'Golvvarme ebeco500 000001e3 FCC9B808216D9D1F5FF6E1A3CF7D3084'
+    telegram = 31444514e301000001028c20807a2e002025e25dea4f2bc8ec94920260443a95c2bf3856e3e380e889cc8233ca5d9771f289
+    json     = '{"_":"telegram","media":"electricity","driver":"ebeco500","name":"Golvvarme","id":"000001e3","on_time_h":105.633333,"external_temperature_c":22.8,"total_kwh":68.6,"meter_datetime":"2000-02-01 13:54:50","status":"OK","timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'Golvvarme;000001e3;OK;68.6;22.8;105.633333;1111-11-11 11:11.11'
+}
+test {
     args     = 'MyEl ebzwmbe 01135263 NOKEY'
     comment  = 'This is eBZ DD3 meter with a wMB-E01 wmbus radio converter module.'
     telegram = 4B445A146450000002378C20F3900F002C25F38B00006CBB07CEB215901172635213015A140102F3002007102F2F_04039D3E03000429E82201000DFD110E333632353331313031305A424531

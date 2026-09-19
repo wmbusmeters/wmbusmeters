@@ -1,0 +1,106 @@
+// Copyright (C) 2026 Magnus Friskytt (gpl-3.0-or-later)
+driver {
+    name           = ebeco500
+    meter_type     = ElectricityMeter
+    default_fields = name,id,status,total_kwh,external_temperature_c,on_time_h,timestamp
+    manufacturer   = Ebeco
+    about          = 'Underfloor heating thermostat.'
+    detect {
+        mvt = EBE,02,01
+    }
+    library {
+        use = external_temperature_c
+        use = total_kwh
+        use = on_time_h
+        use = meter_datetime
+    }
+    fields {
+        field {
+            name       = status
+            quantity   = Text
+            info       = 'Thermostat error and status flags.'
+            attributes = STATUS,INCLUDE_TPL_STATUS
+            match {
+                difvifkey = 02FB17
+            }
+            lookup {
+                name            = ERROR_FLAGS
+                map_type        = BitToString
+                mask_bits       = 0xffff
+                default_message = OK
+                bit {
+                    pos   = 0
+                    label = TEMPORARY
+                }
+                bit {
+                    pos   = 1
+                    label = MIN_LIMIT
+                }
+                bit {
+                    pos   = 2
+                    label = MAX_LIMIT
+                }
+                bit {
+                    pos   = 3
+                    label = OPEN_WINDOW
+                }
+                bit {
+                    pos   = 4
+                    label = ROOM_OC
+                }
+                bit {
+                    pos   = 5
+                    label = ROOM_SC
+                }
+                bit {
+                    pos   = 6
+                    label = FLOOR_OC
+                }
+                bit {
+                    pos   = 7
+                    label = FLOOR_SC
+                }
+                bit {
+                    pos   = 8
+                    label = RELAY_OC
+                }
+                bit {
+                    pos   = 9
+                    label = RELAY_SC
+                }
+                bit {
+                    pos   = 10
+                    label = RELAY_OT
+                }
+                bit {
+                    pos   = 11
+                    label = SYSTEM
+                }
+                bit {
+                    pos   = 12
+                    label = STARTUP
+                }
+                bit {
+                    pos   = 13
+                    label = POWER_CTRL
+                }
+                bit {
+                    pos   = 14
+                    label = POWER_OFF
+                }
+                bit {
+                    pos   = 15
+                    label = RELAY_TEST
+                }
+            }
+        }
+    }
+    tests {
+        test {
+            args     = 'Golvvarme ebeco500 000001e3 FCC9B808216D9D1F5FF6E1A3CF7D3084'
+            telegram = 31444514e301000001028c20807a2e002025e25dea4f2bc8ec94920260443a95c2bf3856e3e380e889cc8233ca5d9771f289
+            json     = '{"_":"telegram","media":"electricity","driver":"ebeco500","name":"Golvvarme","id":"000001e3","on_time_h":105.633333,"external_temperature_c":22.8,"total_kwh":68.6,"meter_datetime":"2000-02-01 13:54:50","status":"OK","timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'Golvvarme;000001e3;OK;68.6;22.8;105.633333;1111-11-11 11:11.11'
+        }
+    }
+}
