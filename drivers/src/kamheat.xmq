@@ -78,164 +78,164 @@ driver {
                 mask_bits       = 0xffffffff
                 default_message = OK
                 map {
-                    name  = VOLTAGE_INTERRUPTED
-                    value = 0x00000001
-                    test  = Set
+                    name = VOLTAGE_INTERRUPTED
+                    bit  = 0
+                    test = Set
                 }
                 map {
-                    name  = LOW_BATTERY_LEVEL
-                    value = 0x00000002
-                    test  = Set
+                    name = LOW_BATTERY_LEVEL
+                    bit  = 1
+                    test = Set
                 }
                 map {
-                    name  = SENSOR_ERROR
-                    value = 0x00000004
-                    test  = Set
+                    name = SENSOR_ERROR
+                    bit  = 2
+                    test = Set
                 }
                 map {
-                    name  = SENSOR_T1_ABOVE_MEASURING_RANGE
-                    value = 0x00000008
-                    test  = Set
+                    name = SENSOR_T1_ABOVE_MEASURING_RANGE
+                    bit  = 3
+                    test = Set
                 }
                 map {
-                    name  = SENSOR_T2_ABOVE_MEASURING_RANGE
-                    value = 0x00000010
-                    test  = Set
+                    name = SENSOR_T2_ABOVE_MEASURING_RANGE
+                    bit  = 4
+                    test = Set
                 }
                 map {
-                    name  = SENSOR_T1_BELOW_MEASURING_RANGE
-                    value = 0x00000020
-                    test  = Set
+                    name = SENSOR_T1_BELOW_MEASURING_RANGE
+                    bit  = 5
+                    test = Set
                 }
                 map {
-                    name  = SENSOR_T2_BELOW_MEASURING_RANGE
-                    value = 0x00000040
-                    test  = Set
+                    name = SENSOR_T2_BELOW_MEASURING_RANGE
+                    bit  = 6
+                    test = Set
                 }
                 map {
-                    name  = TEMP_DIFF_WRONG_POLARITY
-                    value = 0x00000080
-                    test  = Set
+                    name = TEMP_DIFF_WRONG_POLARITY
+                    bit  = 7
+                    test = Set
                 }
                 map {
-                    name  = FLOW_SENSOR_WEAK_OR_AIR
-                    value = 0x00000100
-                    test  = Set
+                    name = FLOW_SENSOR_WEAK_OR_AIR
+                    bit  = 8
+                    test = Set
                 }
                 map {
-                    name  = WRONG_FLOW_DIRECTION
-                    value = 0x00000200
-                    test  = Set
+                    name = WRONG_FLOW_DIRECTION
+                    bit  = 9
+                    test = Set
                 }
                 map {
-                    name  = RESERVED_BIT_10
-                    value = 0x00000400
-                    test  = Set
+                    name = RESERVED_BIT_10
+                    bit  = 10
+                    test = Set
                 }
                 map {
-                    name  = FLOW_INCREASED
-                    value = 0x00000800
-                    test  = Set
+                    name = FLOW_INCREASED
+                    bit  = 11
+                    test = Set
                 }
                 map {
-                    name  = IN_A1_LEAKAGE_IN_THE_SYSTEM
-                    value = 0x00001000
-                    test  = Set
+                    name = IN_A1_LEAKAGE_IN_THE_SYSTEM
+                    bit  = 12
+                    test = Set
                 }
                 map {
-                    name  = IN_B1_LEAKAGE_IN_THE_SYSTEM
-                    value = 0x00002000
-                    test  = Set
+                    name = IN_B1_LEAKAGE_IN_THE_SYSTEM
+                    bit  = 13
+                    test = Set
                 }
                 map {
-                    name  = IN_A1_A2_EXTERNAL_ALARM
-                    value = 0x00004000
-                    test  = Set
+                    name = IN_A1_A2_EXTERNAL_ALARM
+                    bit  = 14
+                    test = Set
                 }
                 map {
-                    name  = IN_B1_B2_EXTERNAL_ALARM
-                    value = 0x00008000
-                    test  = Set
+                    name = IN_B1_B2_EXTERNAL_ALARM
+                    bit  = 15
+                    test = Set
                 }
                 map {
-                    name  = V1_COMMUNICATION_ERROR
-                    value = 0x00010000
-                    test  = Set
+                    name = V1_COMMUNICATION_ERROR
+                    bit  = 16
+                    test = Set
                 }
                 map {
-                    name  = V1_WRONG_PULSE_FIGURE
-                    value = 0x00020000
-                    test  = Set
+                    name = V1_WRONG_PULSE_FIGURE
+                    bit  = 17
+                    test = Set
                 }
                 map {
-                    name  = IN_A2_LEAKAGE_IN_THE_SYSTEM
-                    value = 0x00040000
-                    test  = Set
+                    name = IN_A2_LEAKAGE_IN_THE_SYSTEM
+                    bit  = 18
+                    test = Set
                 }
                 map {
-                    name  = IN_B2_LEAKAGE_IN_THE_SYSTEM
-                    value = 0x00080000
-                    test  = Set
+                    name = IN_B2_LEAKAGE_IN_THE_SYSTEM
+                    bit  = 19
+                    test = Set
                 }
                 map {
-                    name  = T3_ABOVE_MEASURING_RANGE_OR_SWITCHED_OFF
-                    value = 0x00100000
-                    test  = Set
+                    name = T3_ABOVE_MEASURING_RANGE_OR_SWITCHED_OFF
+                    bit  = 20
+                    test = Set
                 }
                 map {
-                    name  = T3_BELOW_MEASURING_RANGE_OR_SWITCHED_OFF
-                    value = 0x00200000
-                    test  = Set
+                    name = T3_BELOW_MEASURING_RANGE_OR_SWITCHED_OFF
+                    bit  = 21
+                    test = Set
                 }
                 map {
-                    name  = V2_COMMUNICATION_ERROR
-                    value = 0x00400000
-                    test  = Set
+                    name = V2_COMMUNICATION_ERROR
+                    bit  = 22
+                    test = Set
                 }
                 map {
-                    name  = V2_WRONG_PULSE_FIGURE
-                    value = 0x00800000
-                    test  = Set
+                    name = V2_WRONG_PULSE_FIGURE
+                    bit  = 23
+                    test = Set
                 }
                 map {
-                    name  = V2_AIR
-                    value = 0x01000000
-                    test  = Set
+                    name = V2_AIR
+                    bit  = 24
+                    test = Set
                 }
                 map {
-                    name  = V2_WRONG_FLOW_DIRECTION
-                    value = 0x02000000
-                    test  = Set
+                    name = V2_WRONG_FLOW_DIRECTION
+                    bit  = 25
+                    test = Set
                 }
                 map {
-                    name  = RESERVED_BIT_26
-                    value = 0x04000000
-                    test  = Set
+                    name = RESERVED_BIT_26
+                    bit  = 26
+                    test = Set
                 }
                 map {
-                    name  = V2_INCREASED_FLOW
-                    value = 0x08000000
-                    test  = Set
+                    name = V2_INCREASED_FLOW
+                    bit  = 27
+                    test = Set
                 }
                 map {
-                    name  = V1_V2_BURST_WATER_LOSS
-                    value = 0x10000000
-                    test  = Set
+                    name = V1_V2_BURST_WATER_LOSS
+                    bit  = 28
+                    test = Set
                 }
                 map {
-                    name  = V1_V2_BURST_WATER_PENETRATION
-                    value = 0x20000000
-                    test  = Set
+                    name = V1_V2_BURST_WATER_PENETRATION
+                    bit  = 29
+                    test = Set
                 }
                 map {
-                    name  = V1_V2_LEAKAGE_WATER_LOSS
-                    value = 0x40000000
-                    test  = Set
+                    name = V1_V2_LEAKAGE_WATER_LOSS
+                    bit  = 30
+                    test = Set
                 }
                 map {
-                    name  = V1_V2_LEAKAGE_WATER_PENETRATION
-                    value = 0x80000000
-                    test  = Set
+                    name = V1_V2_LEAKAGE_WATER_PENETRATION
+                    bit  = 31
+                    test = Set
                 }
             }
         }
@@ -253,84 +253,84 @@ driver {
                 mask_bits       = 0xffff
                 default_message = OK
                 map {
-                    name  = VOLTAGE_INTERRUPTED
-                    value = 0x0001
-                    test  = Set
+                    name = VOLTAGE_INTERRUPTED
+                    bit  = 0
+                    test = Set
                 }
                 map {
-                    name  = LOW_BATTERY_LEVEL
-                    value = 0x0002
-                    test  = Set
+                    name = LOW_BATTERY_LEVEL
+                    bit  = 1
+                    test = Set
                 }
                 map {
-                    name  = RESERVED_BIT_2
-                    value = 0x0004
-                    test  = Set
+                    name = RESERVED_BIT_2
+                    bit  = 2
+                    test = Set
                 }
                 map {
-                    name  = SENSOR_T1_ABOVE_MEASURING_RANGE
-                    value = 0x0008
-                    test  = Set
+                    name = SENSOR_T1_ABOVE_MEASURING_RANGE
+                    bit  = 3
+                    test = Set
                 }
                 map {
-                    name  = SENSOR_T2_ABOVE_MEASURING_RANGE
-                    value = 0x0010
-                    test  = Set
+                    name = SENSOR_T2_ABOVE_MEASURING_RANGE
+                    bit  = 4
+                    test = Set
                 }
                 map {
-                    name  = SENSOR_T1_BELOW_MEASURING_RANGE
-                    value = 0x0020
-                    test  = Set
+                    name = SENSOR_T1_BELOW_MEASURING_RANGE
+                    bit  = 5
+                    test = Set
                 }
                 map {
-                    name  = SENSOR_T2_BELOW_MEASURING_RANGE
-                    value = 0x0040
-                    test  = Set
+                    name = SENSOR_T2_BELOW_MEASURING_RANGE
+                    bit  = 6
+                    test = Set
                 }
                 map {
-                    name  = TEMP_DIFF_WRONG_POLARITY
-                    value = 0x0080
-                    test  = Set
+                    name = TEMP_DIFF_WRONG_POLARITY
+                    bit  = 7
+                    test = Set
                 }
                 map {
-                    name  = FLOW_SENSOR_WEAK_OR_AIR
-                    value = 0x0100
-                    test  = Set
+                    name = FLOW_SENSOR_WEAK_OR_AIR
+                    bit  = 8
+                    test = Set
                 }
                 map {
-                    name  = WRONG_FLOW_DIRECTION
-                    value = 0x0200
-                    test  = Set
+                    name = WRONG_FLOW_DIRECTION
+                    bit  = 9
+                    test = Set
                 }
                 map {
-                    name  = RESERVED_BIT_10
-                    value = 0x0400
-                    test  = Set
+                    name = RESERVED_BIT_10
+                    bit  = 10
+                    test = Set
                 }
                 map {
-                    name  = FLOW_INCREASED
-                    value = 0x0800
-                    test  = Set
+                    name = FLOW_INCREASED
+                    bit  = 11
+                    test = Set
                 }
                 map {
-                    name  = RESERVED_BIT_12
-                    value = 0x1000
-                    test  = Set
+                    name = RESERVED_BIT_12
+                    bit  = 12
+                    test = Set
                 }
                 map {
-                    name  = RESERVED_BIT_13
-                    value = 0x2000
-                    test  = Set
+                    name = RESERVED_BIT_13
+                    bit  = 13
+                    test = Set
                 }
                 map {
-                    name  = RESERVED_BIT_14
-                    value = 0x4000
-                    test  = Set
+                    name = RESERVED_BIT_14
+                    bit  = 14
+                    test = Set
                 }
                 map {
-                    name  = RESERVED_BIT_15
-                    value = 0x8000
-                    test  = Set
+                    name = RESERVED_BIT_15
+                    bit  = 15
+                    test = Set
                 }
             }
         }
@@ -349,79 +349,79 @@ driver {
                 mask_bits       = 0xffff
                 default_message = OK
                 map {
-                    name  = VOLTAGE_INTERRUPTED
-                    value = 0x0001
-                    test  = Set
+                    name = VOLTAGE_INTERRUPTED
+                    bit  = 0
+                    test = Set
                 }
                 map {
-                    name  = SENSOR_T1_OUTSIDE_MEASURING_RANGE
-                    value = 0x0008
-                    test  = Set
+                    name = SENSOR_T1_OUTSIDE_MEASURING_RANGE
+                    bit  = 3
+                    test = Set
                 }
                 map {
-                    name  = SENSOR_T2_OUTSIDE_MEASURING_RANGE
-                    value = 0x0004
-                    test  = Set
+                    name = SENSOR_T2_OUTSIDE_MEASURING_RANGE
+                    bit  = 2
+                    test = Set
                 }
                 map {
-                    name  = SENSOR_T3_OUTSIDE_MEASURING_RANGE
-                    value = 0x0020
-                    test  = Set
+                    name = SENSOR_T3_OUTSIDE_MEASURING_RANGE
+                    bit  = 5
+                    test = Set
                 }
                 map {
-                    name  = LEAKAGE_COLD_WATER
-                    value = 0x0040
-                    test  = Set
+                    name = LEAKAGE_COLD_WATER
+                    bit  = 6
+                    test = Set
                 }
                 map {
-                    name  = LEAKAGE_HOT_WATER
-                    value = 0x0100
-                    test  = Set
+                    name = LEAKAGE_HOT_WATER
+                    bit  = 8
+                    test = Set
                 }
                 map {
-                    name  = BURST_WATER_LOSS
-                    value = 0x0200
-                    test  = Set
+                    name = BURST_WATER_LOSS
+                    bit  = 9
+                    test = Set
                 }
                 map {
-                    name  = V1_COMMUNICATION_ERROR
-                    value = 0x0010
-                    test  = Set
+                    name = V1_COMMUNICATION_ERROR
+                    bit  = 4
+                    test = Set
                 }
                 map {
-                    name  = V2_COMMUNICATION_ERROR
-                    value = 0x0400
-                    test  = Set
+                    name = V2_COMMUNICATION_ERROR
+                    bit  = 10
+                    test = Set
                 }
                 map {
-                    name  = V1_WRONG_PULSE_FIGURE
-                    value = 0x0800
-                    test  = Set
+                    name = V1_WRONG_PULSE_FIGURE
+                    bit  = 11
+                    test = Set
                 }
                 map {
-                    name  = V2_WRONG_PULSE_FIGURE
-                    value = 0x0080
-                    test  = Set
+                    name = V2_WRONG_PULSE_FIGURE
+                    bit  = 7
+                    test = Set
                 }
                 map {
-                    name  = V1_AIR
-                    value = 0x1000
-                    test  = Set
+                    name = V1_AIR
+                    bit  = 12
+                    test = Set
                 }
                 map {
-                    name  = V2_AIR
-                    value = 0x2000
-                    test  = Set
+                    name = V2_AIR
+                    bit  = 13
+                    test = Set
                 }
                 map {
-                    name  = V1_WRONG_FLOW_DIRECTION
-                    value = 0x4000
-                    test  = Set
+                    name = V1_WRONG_FLOW_DIRECTION
+                    bit  = 14
+                    test = Set
                 }
                 map {
-                    name  = V2_WRONG_FLOW_DIRECTION
-                    value = 0x8000
-                    test  = Set
+                    name = V2_WRONG_FLOW_DIRECTION
+                    bit  = 15
+                    test = Set
                 }
             }
         }
