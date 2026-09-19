@@ -187,10 +187,12 @@ driver {
             }
 
             lookup {
-                name            = ERROR_FLAGS
-                map_type        = BitToString    // BitToString|IndexToString|DecimalsToString
-                mask_bits       = 0xffffffff
-                default_message = OK
+                name              = ERROR_FLAGS
+                map_type          = BitToString    // BitToString|IndexToString|DecimalsToString
+                mask_bits         = 0xffffffff
+                default_message   = OK
+                mark_reserved_bits = true  // add a RESERVED_BIT_<n> map entry (test=Set) for every
+                                           // mask bit not covered by a map { } below. BitToString only.
                 map {
                     name  = LEAK
                     value = 0x01

@@ -67,6 +67,7 @@ bool verbose_ = false;
     X(sbc)            \
     X(hex)            \
     X(translate)                                \
+    X(reserved_bits)                            \
     X(slip)                                     \
     X(iu891a_slip)                              \
     X(dvs)                                      \
@@ -1905,6 +1906,87 @@ void test_translate()
                (unsigned long long)alarm_bits, e.c_str(), s.c_str());
     }
 
+}
+
+void test_reserved_bits()
+{
+    // Narrow field: bit 0 named, bits 1-2 should become RESERVED_BIT_1/RESERVED_BIT_2.
+    Translate::Lookup marked =
+        Translate::Lookup()
+        .add(Translate::Rule("FLAGS", Translate::MapType::BitToString)
+             .set(MaskBits(0x07))
+             .add(Translate::Map(0x01, "FOO", TestBit::Set))
+             .markReservedBits()
+            );
+
+    string s = sortStatusString(marked.translate(0x07));
+    string e = sortStatusString("FOO RESERVED_BIT_1 RESERVED_BIT_2");
+    if (s != e)
+    {
+        printf("ERROR reserved_bits marked translate expected \"%s\" but got \"%s\"\n", e.c_str(), s.c_str());
+    }
+
+    // Reserved bit markers behave like any other map entry: only listed when actually set.
+    s = marked.translate(0x01);
+    e = "FOO";
+    if (s != e)
+    {
+        printf("ERROR reserved_bits marked translate(0x01) expected \"%s\" but got \"%s\"\n", e.c_str(), s.c_str());
+    }
+
+    map<string,bool> obj = marked.translateToObject(0x07);
+    if (obj.size() != 3 || !obj["FOO"] || !obj["RESERVED_BIT_1"] || !obj["RESERVED_BIT_2"])
+    {
+        printf("ERROR reserved_bits marked translateToObject(0x07) did not contain expected 3 true members\n");
+    }
+
+    // Same lookup, but without opting in: unhandled bits fall back to the old numeric suffix.
+    Translate::Lookup unmarked =
+        Translate::Lookup()
+        .add(Translate::Rule("FLAGS", Translate::MapType::BitToString)
+             .set(MaskBits(0x07))
+             .add(Translate::Map(0x01, "FOO", TestBit::Set))
+            );
+
+    s = sortStatusString(unmarked.translate(0x07));
+    e = sortStatusString("FOO FLAGS_6");
+    if (s != e)
+    {
+        printf("ERROR reserved_bits unmarked translate expected \"%s\" but got \"%s\"\n", e.c_str(), s.c_str());
+    }
+
+    obj = unmarked.translateToObject(0x07);
+    if (obj.size() != 1 || !obj["FOO"])
+    {
+        printf("ERROR reserved_bits unmarked translateToObject(0x07) should only contain FOO\n");
+    }
+
+    // AutoMask: nothing to reserve against, since the mask itself is only known at translate time.
+    Translate::Lookup autoMasked =
+        Translate::Lookup()
+        .add(Translate::Rule("AUTO", Translate::MapType::BitToString)
+             .add(Translate::Map(0x01, "FOO", TestBit::Set))
+             .markReservedBits()
+            );
+
+    if (autoMasked.rules[0].map.size() != 1)
+    {
+        printf("ERROR reserved_bits AutoMask rule should not have gained any markers\n");
+    }
+
+    // Only BitToString rules support markers.
+    Translate::Lookup indexed =
+        Translate::Lookup()
+        .add(Translate::Rule("IDX", Translate::MapType::IndexToString)
+             .set(MaskBits(0x03))
+             .add(Translate::Map(0x00, "ZERO", TestBit::Set))
+             .markReservedBits()
+            );
+
+    if (indexed.rules[0].map.size() != 1)
+    {
+        printf("ERROR reserved_bits IndexToString rule should not have gained any markers\n");
+    }
 }
 
 void test_slip()

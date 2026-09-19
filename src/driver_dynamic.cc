@@ -695,10 +695,11 @@ XMQProceed DriverDynamic::add_map(XMQDoc *doc, XMQNode *map, DriverDynamic *dd)
     Or fallback to the name (ERROR_FLAGS_8) suffixed by the untranslateable bits.
 
     lookup {
-        name            = ERROR_FLAGS
-        map_type        = BitToString
-        mask_bits       = 0xffff
-        default_message = OK
+        name              = ERROR_FLAGS
+        map_type          = BitToString
+        mask_bits         = 0xffff
+        default_message   = OK
+        mark_reserved_bits = true // add RESERVED_BIT_<n> for every mask bit not in a map { }
         map { } map {}
     }
 */
@@ -708,14 +709,24 @@ XMQProceed DriverDynamic::add_lookup(XMQDoc *doc, XMQNode *lookup, DriverDynamic
     Translate::MapType map_type = checked_map_type(xmqGetStringRel(doc, "map_type", lookup), dd);
     uint64_t mask_bits = checked_mask_bits(xmqGetStringRel(doc, "mask_bits", lookup), dd);
     const char *default_message = xmqGetStringRel(doc, "default_message", lookup);
+    bool mark_reserved_bits = check_boolean_property(xmqGetStringRel(doc, "mark_reserved_bits", lookup),
+                                                       "mark_reserved_bits", dd, false);
 
     if (default_message == NULL) default_message = "";
+
+    if (mark_reserved_bits && map_type != Translate::MapType::BitToString)
+    {
+        warning("(driver) error in %s, mark_reserved_bits can only be used with map_type=BitToString.\n",
+                dd->fileName().c_str());
+        throw 1;
+    }
 
     Translate::Rule rule = Translate::Rule(name, map_type);
     dd->tmp_rule_ = &rule;
 
     rule.set(MaskBits(mask_bits));
     rule.set(DefaultMessage(default_message));
+    rule.markReservedBits(mark_reserved_bits);
 
     xmqForeachRel(doc, "map", (XMQNodeCallback)add_map, dd, lookup);
 
