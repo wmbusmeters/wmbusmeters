@@ -10,11 +10,11 @@ TEST=testoutput
 TESTNAME="Test that normal meterfiles are written"
 TESTRESULT="ERROR"
 
-rm -f /tmp/MyTapWater
+rm -f $TEST/MyTapWater
 cat simulations/simulation_c1.txt | grep '^{' | grep 76348799 | tail -n 1 | jq --sort-keys . > $TEST/test_expected.txt
-$PROG --meterfiles --format=json simulations/simulation_c1.txt MyTapWater multical21 76348799 "" \
-       2> $TEST/test_stderr.txt
-cat /tmp/MyTapWater | jq --sort-keys .  | sed 's/"timestamp": "....-..-..T..:..:..Z"/"timestamp": "1111-11-11T11:11:11Z"/' > $TEST/test_response.txt
+$PROG --meterfiles=$TEST --format=json simulations/simulation_c1.txt MyTapWater multical21 76348799 "" \
+      2> $TEST/test_stderr.txt
+cat $TEST/MyTapWater | jq --sort-keys .  | sed 's/"timestamp": "....-..-..T..:..:..Z"/"timestamp": "1111-11-11T11:11:11Z"/' > $TEST/test_response.txt
 diff $TEST/test_expected.txt $TEST/test_response.txt
 if [ "$?" = "0" ]
 then

@@ -475,17 +475,16 @@ static shared_ptr<Configuration> parseNormalCommandLine(Configuration *c, int ar
             i++;
             continue;
         }
-        if (!strcmp(argv[i], "--meterfiles") ||
-            (!strncmp(argv[i], "--meterfiles", 12) &&
-             strlen(argv[i]) > 12 &&
-             argv[i][12] == '='))
+        if (!strncmp(argv[i], "--meterfiles=", 13))
         {
             c->meterfiles = true;
-            size_t len = strlen(argv[i]);
-            if (len > 13) {
-                c->meterfiles_dir = string(argv[i]+13, len-13);
-            } else {
-                c->meterfiles_dir = "/tmp";
+            if (strlen(argv[i]) > 13) {
+                size_t len = strlen(argv[i])-13;
+                if (len > 0) {
+                    c->meterfiles_dir = string(argv[i]+13, len);
+                } else {
+                    error(EXIT_USAGE_ERROR, "Not a valid meterfiles name.\n");
+                }
             }
             if (!checkIfDirExists(c->meterfiles_dir.c_str())) {
                 error(EXIT_USAGE_ERROR, "Cannot write meter files into dir \"%s\"\n", c->meterfiles_dir.c_str());

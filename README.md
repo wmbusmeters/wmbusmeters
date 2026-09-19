@@ -883,7 +883,7 @@ You can use `--debug` to get both verbose output and the actual data bytes sent 
 If the meter does not use encryption of its meter data, then enter NOKEY on the command line.
 
 ```shell
-wmbusmeters --format=json --meterfiles /dev/ttyUSB0:im871a:c1 MyTapWater multical21:c1 12345678 NOKEY
+wmbusmeters --format=json --meterfiles=/home/me/meter_readings /dev/ttyUSB0:im871a:c1 MyTapWater multical21:c1 12345678 NOKEY
 ```
 
 # Using wmbusmeters in a pipe
