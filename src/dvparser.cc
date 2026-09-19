@@ -1101,10 +1101,10 @@ bool parseDV(Telegram *t,
         // part of the data! This is the default.
         format = &data;
         format_end = data_end;
-#ifdef COLLECT
+#ifdef COLLECT_FILE
         string s = bin2hex(data, data_end, data_len);
-        bool ok = appendFile("/tmp/difvifexamples", s);
-        if (!ok) fprintf(stderr, "Failed to append to /tmp/difvifexamples.\n");
+        bool ok = appendFile(COLLECT_FILE, s);
+        if (!ok) fprintf(stderr, "Failed to append to " COLLECT_FILE ".\n");
 #endif
     } else {
         // A format string has been supplied. The data is compressed,

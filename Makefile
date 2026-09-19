@@ -81,7 +81,7 @@ else
 endif
 
 ifeq "$(COLLECT)" "true"
-    COLLECT_FLAGS=-DCOLLECT
+    COLLECT_FLAGS=-DCOLLECT_FILE=\"$(CURDIR)/$(BUILD)/difvifexamples\"
 else
     COLLECT_FLAGS=
 endif

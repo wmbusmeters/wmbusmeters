@@ -14,12 +14,12 @@ then
         cp build/wmbusmeters perftest/wmbusmeters_extract
     fi
 
-    # Extract all difvif segments into /tmp/difvifexamples
+    # Extract all difvif segments into build/difvifexamples
     cp perftest/wmbusmeters_extract build
-    rm /tmp/difvifexamples
+    rm -f build/difvifexamples
     make test
 
-    sort /tmp/difvifexamples | uniq > perftest/difvifexamples
+    sort build/difvifexamples | uniq > perftest/difvifexamples
 fi
 
 if ! test -f perftest/parse_dv.benchmark
