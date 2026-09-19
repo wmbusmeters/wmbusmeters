@@ -4505,6 +4505,18 @@ bool getAddTelegramHex()
     return add_telegram_hex_;
 }
 
+static bool structured_status_ = false;
+
+void setStructuredStatus(bool b)
+{
+    structured_status_ = b;
+}
+
+bool getStructuredStatus()
+{
+    return structured_status_;
+}
+
 bool BusDeviceCommonImplementation::handleTelegram(AboutTelegram &about, vector<uchar> frame)
 {
     bool handled = false;

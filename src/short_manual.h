@@ -40,7 +40,7 @@ As {options} you can use:
     --driver=<file> load a driver
     --driversdir=<dir> load all drivers in dir
     --exitafter=<time> exit program after time, eg 20h, 10m 5s
-    --format=<hr/json/fields> for human readable, json or semicolon separated fields
+    --format=<hr/json/json-structured/fields> for human readable, json (optionally with subfields) or semicolon separated fields
     --help list all options
     --identitymode=(id|id-mfct|full|none) group meter state based on the identity mode. Default is id.
     --ignoreduplicates=<bool> ignore duplicate telegrams, remember the last 10 telegrams

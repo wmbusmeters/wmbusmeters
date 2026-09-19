@@ -105,6 +105,11 @@ void setTelegramDetails(TelegramDetails td);
 TelegramDetails getTelegramDetails();
 void setAddTelegramHex(bool b);
 bool getAddTelegramHex();
+// When true, the STATUS field (see PrintProperty::STATUS) is rendered in json as an object
+// with one boolean member per named subfield (bit/bitgroup), instead of a concatenated string.
+// Selected globally via --format=json-structured, not by individual drivers.
+void setStructuredStatus(bool b);
+bool getStructuredStatus();
 
 // A specified bus device is supplied on the command line or in the config file.
 // It has this format "alias=file:type[id](extras):fq:bps:linkmods:CMD(command)"

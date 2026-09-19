@@ -244,6 +244,60 @@ string Lookup::translate(uint64_t bits)
     return sortStatusString(total);
 }
 
+map<string,bool> Lookup::translateToObject(uint64_t input_bits)
+{
+    map<string,bool> out;
+
+    for (Rule& r : rules)
+    {
+        if (r.type != MapType::BitToString)
+        {
+            // Object output only makes sense for individual named bits/bitgroups.
+            continue;
+        }
+
+        if (r.trigger != AlwaysTrigger && (input_bits & r.trigger.intValue()) == 0)
+        {
+            // The trigger bits are needed and there are no trigger bits. Ignore this rule.
+            // FIXME(jkt, 2026-09): looks like this is actually an unused feature...
+            continue;
+        }
+
+        uint64_t mask = r.mask.intValue();
+
+        if (r.mask == AutoMask)
+        {
+            mask = 0;
+            for (Map& m : r.map)
+            {
+                mask |= m.from;
+            }
+        }
+
+        for (Map& m : r.map)
+        {
+            uint64_t from = m.from & mask;
+            bool value = false;
+
+            if (m.test == TestBit::Set)
+            {
+                value = (input_bits & mask & from) != 0;
+            }
+            else if (m.test == TestBit::NotSet)
+            {
+                value = (input_bits & mask & from) == 0;
+            }
+
+            out[m.to] = out[m.to] || value;
+        }
+
+        // FIXME: this will silently skip unhandled bits. The whole point of this feature is to prevent
+        // dynamic names of output values. Let's solve that later.
+    }
+
+    return out;
+}
+
 string Lookup::str()
 {
     string x = " Lookup {\n";
