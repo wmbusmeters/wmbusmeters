@@ -153,9 +153,10 @@ driver {
                                           // unsigned binary values in DIF fields the standard
                                           // would treat as signed (e.g. counters that wrap at
                                           // 2^32 instead of going negative)
-            display_unit      = m3        // override default unit for output
+            display_unit      = m3        // convert the value+unit to this unit for display/output instead of the default unit for this Quantity
             readable_string   = Normal    // Normal|Reversed — byte order for text fields
             force_scale       = 0.001     // override the VIF-derived scale factor
+            force_unit        = gcal      // override the VIF-derived unit
             null_value        = 0xffff    // treat this raw value as null in output
             calculate         = 'expr'    // formula expression (see Formula System below)
             match_entire_payload = true   // rare: parse raw mfct payload as ixml

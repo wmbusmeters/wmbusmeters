@@ -1,0 +1,262 @@
+{
+  "total_m3": {
+    "component": "sensor",
+    "discovery_payload": {
+      "device": {
+        "identifiers": ["{id}"],
+        "manufacturer": "Apator",
+        "model": "Ultrimis v2",
+        "name": "wmbusmeters {name}"
+      },
+      "device_class": "water",
+      "icon": "mdi:water",
+      "json_attributes_topic": "wmbusmeters/{name}",
+      "name": "{name} Total",
+      "state_class": "total_increasing",
+      "state_topic": "wmbusmeters/{name}",
+      "unique_id": "{id}_total_m3",
+      "unit_of_measurement": "m³",
+      "value_template": "{{ value_json.total_m3 }}"
+    }
+  },
+  "target_m3": {
+    "component": "sensor",
+    "discovery_payload": {
+      "device": {
+        "identifiers": ["{id}"],
+        "manufacturer": "Apator",
+        "model": "Ultrimis v2",
+        "name": "wmbusmeters {name}"
+      },
+      "device_class": "water",
+      "icon": "mdi:water-check",
+      "json_attributes_topic": "wmbusmeters/{name}",
+      "name": "{name} Target",
+      "state_class": "total_increasing",
+      "state_topic": "wmbusmeters/{name}",
+      "unique_id": "{id}_target_m3",
+      "unit_of_measurement": "m³",
+      "value_template": "{{ value_json.target_m3 }}"
+    }
+  },
+  "total_backward_m3": {
+    "component": "sensor",
+    "discovery_payload": {
+      "device": {
+        "identifiers": ["{id}"],
+        "manufacturer": "Apator",
+        "model": "Ultrimis v2",
+        "name": "wmbusmeters {name}"
+      },
+      "device_class": "water",
+      "icon": "mdi:water-sync",
+      "json_attributes_topic": "wmbusmeters/{name}",
+      "name": "{name} Backward",
+      "state_class": "total_increasing",
+      "state_topic": "wmbusmeters/{name}",
+      "unique_id": "{id}_total_backward_m3",
+      "unit_of_measurement": "m³",
+      "value_template": "{{ value_json.total_backward_m3 }}"
+    }
+  },
+  "status": {
+    "component": "sensor",
+    "discovery_payload": {
+      "device": {
+        "identifiers": ["{id}"],
+        "manufacturer": "Apator",
+        "model": "Ultrimis v2",
+        "name": "wmbusmeters {name}"
+      },
+      "icon": "mdi:information-outline",
+      "json_attributes_topic": "wmbusmeters/{name}",
+      "name": "{name} Status",
+      "state_topic": "wmbusmeters/{name}",
+      "unique_id": "{id}_status",
+      "value_template": "{{ value_json.status | default('OK', true) }}"
+    }
+  },
+  "status_problem": {
+    "component": "binary_sensor",
+    "discovery_payload": {
+      "device": {
+        "identifiers": ["{id}"],
+        "manufacturer": "Apator",
+        "model": "Ultrimis v2",
+        "name": "wmbusmeters {name}"
+      },
+      "device_class": "problem",
+      "icon": "mdi:alert-circle",
+      "json_attributes_topic": "wmbusmeters/{name}",
+      "name": "{name} Problem",
+      "payload_off": "OK",
+      "payload_on": "PROBLEM",
+      "state_topic": "wmbusmeters/{name}",
+      "unique_id": "{id}_status_problem",
+      "value_template": "{% if value_json.status is defined and value_json.status not in ['OK', '', None] %}PROBLEM{% else %}OK{% endif %}"
+    }
+  },
+  "status_dry": {
+    "component": "binary_sensor",
+    "discovery_payload": {
+      "device": {
+        "identifiers": ["{id}"],
+        "manufacturer": "Apator",
+        "model": "Ultrimis v2",
+        "name": "wmbusmeters {name}"
+      },
+      "device_class": "problem",
+      "icon": "mdi:water-off",
+      "json_attributes_topic": "wmbusmeters/{name}",
+      "name": "{name} Dry",
+      "payload_off": "OFF",
+      "payload_on": "ON",
+      "state_topic": "wmbusmeters/{name}",
+      "unique_id": "{id}_status_dry",
+      "value_template": "{% if 'DRY' in (value_json.status | default('')) %}ON{% else %}OFF{% endif %}"
+    }
+  },
+  "status_leak": {
+    "component": "binary_sensor",
+    "discovery_payload": {
+      "device": {
+        "identifiers": ["{id}"],
+        "manufacturer": "Apator",
+        "model": "Ultrimis v2",
+        "name": "wmbusmeters {name}"
+      },
+      "device_class": "problem",
+      "icon": "mdi:water-alert",
+      "json_attributes_topic": "wmbusmeters/{name}",
+      "name": "{name} Leak",
+      "payload_off": "OFF",
+      "payload_on": "ON",
+      "state_topic": "wmbusmeters/{name}",
+      "unique_id": "{id}_status_leak",
+      "value_template": "{% if 'LEAK' in (value_json.status | default('')) %}ON{% else %}OFF{% endif %}"
+    }
+  },
+  "status_burst": {
+    "component": "binary_sensor",
+    "discovery_payload": {
+      "device": {
+        "identifiers": ["{id}"],
+        "manufacturer": "Apator",
+        "model": "Ultrimis v2",
+        "name": "wmbusmeters {name}"
+      },
+      "device_class": "problem",
+      "icon": "mdi:pipe-leak",
+      "json_attributes_topic": "wmbusmeters/{name}",
+      "name": "{name} Burst",
+      "payload_off": "OFF",
+      "payload_on": "ON",
+      "state_topic": "wmbusmeters/{name}",
+      "unique_id": "{id}_status_burst",
+      "value_template": "{% if 'BURST' in (value_json.status | default('')) %}ON{% else %}OFF{% endif %}"
+    }
+  },
+  "status_reverse": {
+    "component": "binary_sensor",
+    "discovery_payload": {
+      "device": {
+        "identifiers": ["{id}"],
+        "manufacturer": "Apator",
+        "model": "Ultrimis v2",
+        "name": "wmbusmeters {name}"
+      },
+      "device_class": "problem",
+      "icon": "mdi:rotate-left",
+      "json_attributes_topic": "wmbusmeters/{name}",
+      "name": "{name} Reverse",
+      "payload_off": "OFF",
+      "payload_on": "ON",
+      "state_topic": "wmbusmeters/{name}",
+      "unique_id": "{id}_status_reverse",
+      "value_template": "{% if 'REVERSE' in (value_json.status | default('')) %}ON{% else %}OFF{% endif %}"
+    }
+  },
+  "status_tamper": {
+    "component": "binary_sensor",
+    "discovery_payload": {
+      "device": {
+        "identifiers": ["{id}"],
+        "manufacturer": "Apator",
+        "model": "Ultrimis v2",
+        "name": "wmbusmeters {name}"
+      },
+      "device_class": "tamper",
+      "icon": "mdi:hand-back-right",
+      "json_attributes_topic": "wmbusmeters/{name}",
+      "name": "{name} Tamper",
+      "payload_off": "OFF",
+      "payload_on": "ON",
+      "state_topic": "wmbusmeters/{name}",
+      "unique_id": "{id}_status_tamper",
+      "value_template": "{% if 'TAMPER' in (value_json.status | default('')) %}ON{% else %}OFF{% endif %}"
+    }
+  },
+  "status_low_battery": {
+    "component": "binary_sensor",
+    "discovery_payload": {
+      "device": {
+        "identifiers": ["{id}"],
+        "manufacturer": "Apator",
+        "model": "Ultrimis v2",
+        "name": "wmbusmeters {name}"
+      },
+      "device_class": "battery",
+      "entity_category": "diagnostic",
+      "icon": "mdi:battery-alert",
+      "json_attributes_topic": "wmbusmeters/{name}",
+      "name": "{name} Low Battery",
+      "payload_off": "OFF",
+      "payload_on": "ON",
+      "state_topic": "wmbusmeters/{name}",
+      "unique_id": "{id}_status_low_battery",
+      "value_template": "{% if 'LOW_BATTERY' in (value_json.status | default('')) %}ON{% else %}OFF{% endif %}"
+    }
+  },
+  "status_no_flow": {
+    "component": "binary_sensor",
+    "discovery_payload": {
+      "device": {
+        "identifiers": ["{id}"],
+        "manufacturer": "Apator",
+        "model": "Ultrimis v2",
+        "name": "wmbusmeters {name}"
+      },
+      "device_class": "problem",
+      "entity_category": "diagnostic",
+      "icon": "mdi:water-pump-off",
+      "json_attributes_topic": "wmbusmeters/{name}",
+      "name": "{name} No Flow",
+      "payload_off": "OFF",
+      "payload_on": "ON",
+      "state_topic": "wmbusmeters/{name}",
+      "unique_id": "{id}_status_no_flow",
+      "value_template": "{% if 'NO_FLOW' in (value_json.status | default('')) %}ON{% else %}OFF{% endif %}"
+    }
+  },
+  "status_high_temperature": {
+    "component": "binary_sensor",
+    "discovery_payload": {
+      "device": {
+        "identifiers": ["{id}"],
+        "manufacturer": "Apator",
+        "model": "Ultrimis v2",
+        "name": "wmbusmeters {name}"
+      },
+      "device_class": "problem",
+      "entity_category": "diagnostic",
+      "icon": "mdi:thermometer-alert",
+      "json_attributes_topic": "wmbusmeters/{name}",
+      "name": "{name} High Temperature",
+      "payload_off": "OFF",
+      "payload_on": "ON",
+      "state_topic": "wmbusmeters/{name}",
+      "unique_id": "{id}_status_high_temperature",
+      "value_template": "{% if 'HIGH_TEMPERATURE' in (value_json.status | default('')) %}ON{% else %}OFF{% endif %}"
+    }
+  }
+}

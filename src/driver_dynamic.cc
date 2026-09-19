@@ -54,6 +54,7 @@ string get_translation(XMQDoc *doc, XMQNode *node, string name, string lang);
 string check_calculate(const char *formula, DriverDynamic *dd);
 Unit check_display_unit(const char *display_unit, DriverDynamic *dd);
 double check_force_scale(const char *force_scale, DriverDynamic *dd);
+Unit check_force_unit(const char *force_unit, DriverDynamic *dd);
 
 bool checked_set_difvifkey(const char *difvifkey_s, FieldMatcher *fm, DriverDynamic *dd);
 void checked_set_measurement_type(const char *measurement_type_s, FieldMatcher *fm, DriverDynamic *dd);
@@ -394,7 +395,9 @@ XMQProceed DriverDynamic::add_field(XMQDoc *doc, XMQNode *field, DriverDynamic *
         match_entire_frame = false;
     }
 
-    // The vif scaling is by default Auto but can be overriden for pesky fields.
+    // The vif scaling is by default Auto but can be set to None for pesky fields.
+    // Then the correct value can be calculated using a formula or with a force_scale.
+    // Also setting force_unit with change vif_scaling to None.
     VifScaling vif_scaling = check_vif_scaling(xmqGetStringRel(doc, "vif_scaling", field), dd);
 
     // The dif signedness is by default Signed but can be overriden for pesky fields.
@@ -421,6 +424,15 @@ XMQProceed DriverDynamic::add_field(XMQDoc *doc, XMQNode *field, DriverDynamic *
     // A field can force a scale factor. Defaults to 1.0 but you can override
     // with 1.123 or 1/32 or 0.33333 or 3.14/2.5
     double force_scale = check_force_scale(xmqGetStringRel(doc, "force_scale", field), dd);
+
+    // A field can force a unit to the found value. Normally the VIF is used to figure
+    // out the unit, but if a meter uses a mfct specific unit we might need to override.
+    Unit force_unit = check_force_unit(xmqGetStringRel(doc, "force_unit", field), dd);
+
+    if (force_unit != Unit::Unknown)
+    {
+        vif_scaling = VifScaling::None;
+    }
 
     // A field can declare a null value. When the extracted value equals this, it becomes null in output.
     const char *null_value_s = xmqGetStringRel(doc, "null_value", field);
@@ -530,7 +542,8 @@ XMQProceed DriverDynamic::add_field(XMQDoc *doc, XMQNode *field, DriverDynamic *
                 dif_signedness,
                 match,
                 display_unit,
-                force_scale
+                force_scale,
+                force_unit
                 );
             if (has_null_value)
             {
@@ -1250,6 +1263,28 @@ double check_force_scale(const char *force_scale, DriverDynamic *dd)
 
     double d = num / denom;
     return d;
+}
+
+Unit check_force_unit(const char *force_unit_s, DriverDynamic *dd)
+{
+    if (!force_unit_s)
+    {
+        return Unit::Unknown;
+    }
+
+    Unit u = toUnit(force_unit_s);
+    if (u == Unit::Unknown)
+    {
+        warning("(driver) error in %s, unknown force unit: %s\n"
+                "Available units:\n"
+                "%s\n",
+                dd->fileName().c_str(),
+                force_unit_s,
+                availableUnits());
+        throw 1;
+    }
+
+    return u;
 }
 
 bool checked_set_difvifkey(const char *difvifkey_s, FieldMatcher *fm, DriverDynamic *dd)

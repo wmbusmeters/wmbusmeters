@@ -29,11 +29,6 @@ generate_ha_discovery:
 	@mkdir -p build/ha_mqtt_discovery
 	@for i in $(wildcard src/*) ; do echo $$i ; xmq $$i transform to-ha-discovery.xslq to-json | jq . > build/ha_mqtt_discovery/$$(basename $${i%%.xmq}.json); done
 
-test_ha_discovery:
-	xmq test/telegram.json transform --stringparam=drv=src/iperl.xmq to-ha-discovery.xslq to-json | jq . > generated.test.json
-	diff generated.test.json test/iperl.json
-	@echo "generated.test.json is a newly created mqtt HA discovery json message. Identical to the manuall created one."
-
 pretty:
 	@for i in $(wildcard src/*.xmq) ; do xmq $$i > tmp ; mv tmp $$i ; done
 

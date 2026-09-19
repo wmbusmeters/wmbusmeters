@@ -1,0 +1,94 @@
+{
+  "_": "telegram",
+  "media": "cold water",
+  "driver": "kamwater",
+  "name": "MyMeter",
+  "id": "54084283",
+  "details": {
+    "max_external_temperature_last_month_c": {
+      "quantity": "Temperature",
+      "unit": "c",
+      "change": "Instant",
+      "info": "The maximum temperature recorded during previous month."
+    },
+    "max_flow_last_month_m3h": {
+      "quantity": "Flow",
+      "unit": "m3h",
+      "change": "Instant",
+      "info": "The maximum flow recorded during the last month."
+    },
+    "min_external_temperature_last_month_c": {
+      "quantity": "Temperature",
+      "unit": "c",
+      "change": "Instant",
+      "info": "The lowest external temperature outside of the meter during the last month."
+    },
+    "min_flow_temperature_last_month_c": {
+      "quantity": "Temperature",
+      "unit": "c",
+      "change": "Instant",
+      "info": "The lowest water temperature during the last month."
+    },
+    "target_m3": {
+      "quantity": "Volume",
+      "unit": "m3",
+      "change": "Instant",
+      "info": "The volume recorded by this meter at the target date."
+    },
+    "target_date": {
+      "quantity": "PointInTime",
+      "unit": "date",
+      "change": "Instant",
+      "info": "The target date. Usually the end of the previous billing period."
+    },
+    "total_m3": {
+      "quantity": "Volume",
+      "unit": "m3",
+      "change": "Increasing",
+      "info": "The total media volume consumption recorded by this meter."
+    },
+    "accoustic_noise": {
+      "quantity": "Text",
+      "info": "Acoustic noise"
+    },
+    "current_status": {
+      "quantity": "Text",
+      "info": "Status of meter. This field will go away use status instead."
+    },
+    "status": {
+      "quantity": "Text",
+      "info": "Status and error flags."
+    },
+    "time_bursting": {
+      "quantity": "Text",
+      "info": "Amount of time the meter has been bursting."
+    },
+    "time_dry": {
+      "quantity": "Text",
+      "info": "Amount of time the meter has been dry."
+    },
+    "time_leaking": {
+      "quantity": "Text",
+      "info": "Amount of time the meter has been leaking."
+    },
+    "time_reversed": {
+      "quantity": "Text",
+      "info": "Amount of time the meter has been reversed."
+    }
+  },
+  "max_external_temperature_last_month_c": 23,
+  "max_flow_last_month_m3h": 0.819,
+  "min_external_temperature_last_month_c": 15,
+  "min_flow_temperature_last_month_c": 17,
+  "target_m3": 51.508,
+  "target_date": "2026-07-01",
+  "total_m3": 60.77,
+  "accoustic_noise": "077000077000",
+  "current_status": "",
+  "status": "OK",
+  "time_bursting": "",
+  "time_dry": "",
+  "time_leaking": "",
+  "time_reversed": "",
+  "timestamp": "2026-09-19T08:43:02Z"
+}

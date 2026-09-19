@@ -1,5 +1,5 @@
 /* Copyright (C) 2020-2022 Patrick Schwarz (gpl-3.0-or-later)
-   Copyright (C) 2022-2024 Fredrik Öhrström (gpl-3.0-or-later) */
+   Copyright (C) 2022-2026 Fredrik Öhrström (gpl-3.0-or-later) */
 driver {
     name           = sensostar
     meter_type     = HeatMeter
@@ -8,7 +8,11 @@ driver {
         mvt = EFE,00,04
     }
     library {
-        use = meter_datetime,fabrication_no,model_version,on_time_h,parameter_set
+        use = fabrication_no
+        use = meter_datetime
+        use = model_version
+        use = on_time_h
+        use = parameter_set
     }
     fields {
         field {
@@ -74,6 +78,17 @@ driver {
             match {
                 measurement_type = Instantaneous
                 vif_range        = AnyEnergyVIF
+            }
+        }
+        field {
+            name         = total
+            quantity     = Energy
+            info         = 'The total heat energy consumption recorded by this meter using mfct specific gcal.'
+            force_scale  = 0.001
+            force_unit   = gcal
+            display_unit = gcal
+            match {
+                difvifkey = 04FB0D
             }
         }
         field {

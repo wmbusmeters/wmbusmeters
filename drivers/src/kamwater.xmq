@@ -4,6 +4,8 @@ driver {
     aliases        = multical21,flowiq2200
     meter_type     = WaterMeter
     default_fields = name,id,status,total_m3,target_m3,timestamp
+    manufacturer   = Kamstrup
+    model          = kamwater
     detect {
         // multical21
         mvt = KAM,1b,06

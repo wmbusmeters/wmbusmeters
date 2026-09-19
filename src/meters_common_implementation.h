@@ -128,8 +128,9 @@ protected:
         VifScaling vif_scaling, // How should any Vif value be scaled.
         DifSignedness dif_signedness, // Should we override the default signed assumption for binary values?
         FieldMatcher matcher,
-        Unit display_unit = Unit::Unknown, // If specified use this unit for the json field instead instead of the default unit.
-        double scale = 1.0); // A hard coded extra scale factor. Useful for manufacturer specific values.
+        Unit display_unit = Unit::Unknown, // If specified convert the value to this unit for the json field instead instead of the default unit.
+        double scale = 1.0, // A hard coded extra scale factor. Useful for manufacturer specific values.
+        Unit force_unit = Unit::Unknown); // Override the unit derived from the VIF.
 
     void addNumericFieldWithCalculator(
         std::string vname,           // Name of value without unit, eg "total" "total_month{storagenr}"
