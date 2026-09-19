@@ -341,7 +341,7 @@ struct FieldInfo
     std::string renderJson(Meter *m, DVEntry *dve);
     std::string renderJsonText(Meter *m, DVEntry *dve);
     void insertNumericValueIntoDoc(std::string vname, Meter *m, DVEntry *dve, XMQDoc *doc, XMQNode *telegram, XMQNode *details);
-    void insertStringValueIntoDoc(std::string vname, Meter *m, Telegram *t, DVEntry *dve, XMQDoc *doc, XMQNode *telegram, XMQNode *details);
+    void insertStringValueIntoDoc(const std::string &vname, const std::string &value, Meter *m, Telegram *t, DVEntry *dve, XMQDoc *doc, XMQNode *telegram, XMQNode *details);
     // Render the field name based on the actual field from the telegram.
     // A FieldInfo can be declared to handle any number of storage fields of a certain range.
     // The vname is then a pattern total_at_month_{storage_counter} that gets translated into

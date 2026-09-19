@@ -22,6 +22,10 @@ cat <<EOF > $TEST/test_expected.txt
       "quantity": "Flow",
       "unit": "m3h"
     },
+    "status": {
+      "info": "Meter status including the tpl status.",
+      "quantity": "Text"
+    },
     "total_m3": {
       "change": "Increasing",
       "info": "The total water consumption.",
@@ -35,6 +39,7 @@ cat <<EOF > $TEST/test_expected.txt
   "media": "water",
   "mvt": "SEN,68,07",
   "name": "Gurka",
+  "status": "OK",
   "total_m3": 123.529
 }
 EOF

@@ -17,13 +17,13 @@ telegram=|AF46EE4D2827282716087A80000000_046D040A9F2A036E000000426CE1F7436E00000
 # Test iPerl T1 telegram, after decryption, its got 2f2f markers.
 
 telegram=|1E44AE4C9956341268077A36001000_2F2F0413181E0000023B00002F2F2F2F|
-{"_":"telegram","media":"water","driver":"iperl","name":"MoreWater","id":"12345699","total_m3":7.704,"max_flow_m3h":0,"timestamp":"1111-11-11T11:11:11Z"}
+{"_":"telegram","media":"water","driver":"iperl","name":"MoreWater","id":"12345699","total_m3":7.704,"max_flow_m3h":0,"status":"OK","timestamp":"1111-11-11T11:11:11Z"}
 |MoreWater;12345699;7.704;0;1111-11-11 11:11.11
 
 # Test iPerl T1 telegram not encrypted, no 2f2f markers.
 
 telegram=|1844AE4C4455223368077A55000000_041389E20100023B0000|
-{"_":"telegram","media":"water","driver":"iperl","name":"WaterWater","id":"33225544","total_m3":123.529,"max_flow_m3h":0,"timestamp":"1111-11-11T11:11:11Z"}
+{"_":"telegram","media":"water","driver":"iperl","name":"WaterWater","id":"33225544","total_m3":123.529,"max_flow_m3h":0,"status":"OK","timestamp":"1111-11-11T11:11:11Z"}
 |WaterWater;33225544;123.529;0;1111-11-11 11:11.11
 
 # Test amiplus/apator electricity meter

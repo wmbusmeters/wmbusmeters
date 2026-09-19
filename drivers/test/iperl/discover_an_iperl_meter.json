@@ -47,6 +47,30 @@
       "enabled_by_default": true
     }
   },
+  "status": {
+    "component": "sensor",
+    "discovery_payload": {
+      "device": {
+        "identifiers": [
+          "wmbusmeters_{id}"
+        ],
+        "manufacturer": "Sensus",
+        "model": "SEN,68,07",
+        "name": "{name}",
+        "hw_version": "{id}"
+      },
+      "name": {},
+      "unique_id": "wmbusmeters_{id}_{attribute}",
+      "state_topic": "wmbusmeters/{name}",
+      "value_template": "{{ value_json.{attribute} }}",
+      "json_attributes_topic": "wmbusmeters/{name}",
+      "icon": "mdi:gauge",
+      "unit_of_measurement": {},
+      "state_class": {},
+      "device_class": {},
+      "enabled_by_default": true
+    }
+  },
   "timestamp": {
     "component": "sensor",
     "discovery_payload": {

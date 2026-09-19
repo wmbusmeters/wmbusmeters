@@ -16,10 +16,15 @@
       "unit": "m3",
       "change": "Increasing",
       "info": "The total water consumption."
+    },
+    "status": {
+      "quantity": "Text",
+      "info": "Meter status including the tpl status."
     }
   },
   "mvt": "SEN,68,07",
   "max_flow_m3h": 0,
   "total_m3": 123.529,
-  "timestamp": "2026-09-19T09:28:34Z"
+  "status": "OK",
+  "timestamp": "2026-09-19T11:27:26Z"
 }

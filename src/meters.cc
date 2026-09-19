@@ -1602,39 +1602,10 @@ void MeterCommonImplementation::buildOutputDoc(XMQDoc *doc,
     {
         string vname = p.first;
         StringField& sf = p.second;
-        string out;
 
         if (sf.field_info->printProperties().hasHIDE()) continue;
-        if (sf.field_info->printProperties().hasSTATUS())
-        {
-            string in = getStatusField(sf.field_info);
-            if (t->decoding_errors != "")
-            {
-                in = joinStatusOKStrings(in, t->decoding_errors);
-            }
-            xmqAddKeyValueWithAttrs(doc, telegram, vname.c_str(), in.c_str(), NS_PARENT,
-                                    XMQ_ATTRS( { "S", "" } )); // S marks this as a json string.
-        }
-        else
-        {
-            if (sf.value == "null")
-            {
-                // The string "null" translates to actual json null.
-                xmqAddKeyValue(doc, telegram, vname.c_str(), "null", NS_PARENT);
-            }
-            else
-            {
-                xmqAddKeyValueWithAttrs(doc, telegram, vname.c_str(), sf.value.c_str(), NS_PARENT,
-                                        XMQ_ATTRS( { "S", "" } )); // S marks this as a json string.
-            }
-        }
-        if (details)
-        {
-            auto rn = xmqAddElement(doc, details, vname.c_str(), NS_PARENT);
-            XMQNode *info = rn.node;
-            xmqAddKeyValue(doc, info, "quantity", "Text", NS_PARENT);
-            xmqAddKeyValue(doc, info, "info", sf.field_info->help().c_str(), NS_PARENT);
-        }
+
+        sf.field_info->insertStringValueIntoDoc(vname, sf.value, this, t, &sf.dv_entry, doc, telegram, details);
     }
     xmqAddKeyValue(doc, telegram, "timestamp", datetimeOfUpdateRobot().c_str(), NS_PARENT);
 
@@ -2573,33 +2544,28 @@ void FieldInfo::insertNumericValueIntoDoc(string vname, Meter *m, DVEntry *dve, 
     }
 }
 
-void FieldInfo::insertStringValueIntoDoc(string vname, Meter *m, Telegram *t, DVEntry *dve, XMQDoc *doc, XMQNode *telegram, XMQNode *details)
+void FieldInfo::insertStringValueIntoDoc(const string &vname, const string &value, Meter *m, Telegram *t, DVEntry *dve, XMQDoc *doc, XMQNode *telegram, XMQNode *details)
 {
-    /*
-    string display_unit_s = unitToStringLowerCase(displayUnit());
-    string field_name = generateFieldNameNoUnit(m, dve);
-//    string val = m->getStringValue(field_name, displayUnit()), displayUnit());
-
-    if (printProperties().hasSTATUS())
+    if (this->printProperties().hasSTATUS())
     {
         string in = m->getStatusField(this);
         if (t->decoding_errors != "")
         {
             in = joinStatusOKStrings(in, t->decoding_errors);
         }
-        xmqAddKeyValueWithAttrs(doc, telegram, vname().c_str(), in.c_str(), NS_PARENT,
+        xmqAddKeyValueWithAttrs(doc, telegram, vname.c_str(), in.c_str(), NS_PARENT,
                                 XMQ_ATTRS( { "S", "" } )); // S marks this as a json string.
     }
     else
     {
-        if (value() == "null")
+        if (value == "null")
         {
             // The string "null" translates to actual json null.
             xmqAddKeyValue(doc, telegram, vname.c_str(), "null", NS_PARENT);
         }
         else
         {
-            xmqAddKeyValueWithAttrs(doc, telegram, vname.c_str(), sf.value.c_str(), NS_PARENT,
+            xmqAddKeyValueWithAttrs(doc, telegram, vname.c_str(), value.c_str(), NS_PARENT,
                                     XMQ_ATTRS( { "S", "" } )); // S marks this as a json string.
         }
     }
@@ -2607,16 +2573,9 @@ void FieldInfo::insertStringValueIntoDoc(string vname, Meter *m, Telegram *t, DV
     {
         auto rn = xmqAddElement(doc, details, vname.c_str(), NS_PARENT);
         XMQNode *info = rn.node;
-        xmqAddKeyValue(doc, info, "quantity", toString(xuantity()), NS_PARENT);
-        xmqAddKeyValue(doc, info, "unit", display_unit_s.c_str(), NS_PARENT);
-        DVEntry *dve = &sf.dv_entry;
-        assert(dve);
-        string o = to_string(dve->offset);
-        xmqAddKeyValueWithAttrs(doc, info, "dv", dve->dif_vif_key.str().c_str(), NS_PARENT, XMQ_ATTRS({"S",""}));
-        xmqAddKeyValue(doc, info, "off", o.c_str(), NS_PARENT);
-        xmqAddKeyValueWithAttrs(doc, info, "hex", dve->value.c_str(), NS_PARENT, XMQ_ATTRS({"S",""}));
+        xmqAddKeyValue(doc, info, "quantity", "Text", NS_PARENT);
+        xmqAddKeyValue(doc, info, "info", this->help().c_str(), NS_PARENT);
     }
-    */
 }
 
 void MeterCommonImplementation::createMeterEnv(string id,
