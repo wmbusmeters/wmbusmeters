@@ -39,10 +39,10 @@ $PROG --format=json 2A442D2C998734761B168D2091D37CAC21576C78_02FF207100041308190
 
 cat $TEST/test_output.txt | grep -a '^{' | sed 's/"timestamp":"....-..-..T..:..:..Z"/"timestamp":"1111-11-11T11:11:11Z"/' > $TEST/test_response.txt
 
-if grep -qa "use-after-free\|double-free\|heap-buffer-overflow\|SEGV" $TEST/test_output.txt
+if grep -qa "use-after-free\|double-free\|heap-buffer-overflow\|SEGV\|LeakSanitizer" $TEST/test_output.txt
 then
     printERROR "$TESTNAME"
-    echo "wmbusmeters crashed with a memory-safety error:"
+    echo "wmbusmeters hit a memory-safety error or leak:"
     cat $TEST/test_output.txt
     exit 1
 fi
