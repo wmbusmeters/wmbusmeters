@@ -9,13 +9,16 @@ then
     exit 0
 fi
 
+RELEASE_CHANGES=$(mktemp)
+trap 'rm -f "$RELEASE_CHANGES"' EXIT
+
 # Grab all text up to the "Version x.y.z <date>" line
 # If there is no text, then we have to add some information to CHANGES
 # before we make a release.
 CHANGES=$(sed '/Version /q' CHANGES | grep -v ^Version | sed '/./,$!d' | \
-          tac | sed -e '/./,$!d' | tac | sed -e '/./,$!d' > /tmp/release_changes)
+          tac | sed -e '/./,$!d' | tac | sed -e '/./,$!d' > "$RELEASE_CHANGES")
 
-if [ ! -s /tmp/release_changes ]
+if [ ! -s "$RELEASE_CHANGES" ]
 then
     echo "Oups! There are no changes declared in the CHANGES file. There should be some for a release!"
     exit 0
@@ -64,7 +67,7 @@ MESSAGE="Version $RC_VERSION $(date +'%Y-%m-%d')"
 echo
 echo "Creating release candidate >>$MESSAGE<< with changelog:"
 echo "----------------------------------------------------------------------------------"
-cat /tmp/release_changes
+cat "$RELEASE_CHANGES"
 echo "----------------------------------------------------------------------------------"
 echo
 while true; do

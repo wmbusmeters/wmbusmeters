@@ -13,7 +13,7 @@ $PROG --useconfig=tests/config14 2> $TEST/test_stderr.txt > $TEST/test_output.tx
 
 if [ "$?" = "0" ]
 then
-    INFO=$(cat /tmp/wmbusmeters_metershell1_test)
+    INFO=$(cat $TEST/wmbusmeters_metershell1_test)
     EXPECTED='TESTING METERSHELL 12345678'
     if [ "$INFO" = "$EXPECTED" ]
     then
@@ -24,7 +24,7 @@ then
         echo "Got     : $INFO"
     fi
 
-    INFO=$(cat /tmp/wmbusmeters_metershell2_test)
+    INFO=$(cat $TEST/wmbusmeters_metershell2_test)
     EXPECTED='TESTING SHELL 12345678'
     if [ "$INFO" = "$EXPECTED" ]
     then

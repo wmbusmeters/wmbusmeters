@@ -134,10 +134,10 @@ To have the wmbusmeters daemon start automatically when the computer boots do:
 You can trigger a reload of the config files with `sudo killall -HUP wmbusmetersd`
 
 (Note! make install only works for GNU/Linux. For MacOSX try to start
-`wmbusmetersd /tmp/thepidfile` from a script instead.)
+`wmbusmetersd /path/to/thepidfile` from a script instead.)
 
 You can also start the daemon with another set of config files:
-`wmbusmetersd --useconfig=/home/me/.config/wmbusmeters /tmp/thepidfile`
+`wmbusmetersd --useconfig=/home/me/.config/wmbusmeters /path/to/thepidfile`
 
 When using useconfig, the files/dir should be:
 `/home/me/.config/wmbusmeters/wmbusmeters.conf` and the meters dir:
@@ -883,7 +883,7 @@ You can use `--debug` to get both verbose output and the actual data bytes sent 
 If the meter does not use encryption of its meter data, then enter NOKEY on the command line.
 
 ```shell
-wmbusmeters --format=json --meterfiles /dev/ttyUSB0:im871a:c1 MyTapWater multical21:c1 12345678 NOKEY
+wmbusmeters --format=json --meterfiles=/home/me/meter_readings /dev/ttyUSB0:im871a:c1 MyTapWater multical21:c1 12345678 NOKEY
 ```
 
 # Using wmbusmeters in a pipe

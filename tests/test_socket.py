@@ -17,6 +17,7 @@ import signal
 import socket
 import subprocess
 import sys
+import tempfile
 import time
 
 # ANSI colors matching printOK/printERROR in tests/include.sh
@@ -32,7 +33,9 @@ def print_ok(msg):
 def print_error(msg):
     print("%s ERROR %s %s" % (RED, NC, msg))
 
-SOCKET_PATH = "/tmp/test_wmbusmeters_py.sock"
+# these are set in main()
+SOCKET_DIR = None
+SOCKET_PATH = None
 
 # --- Test cases: (description, request, expected_checks) ---
 # expected_checks is a dict of JSON field -> expected value (or a callable for custom checks)
@@ -313,11 +316,16 @@ def check_response(description, response, expected_checks):
 
 
 def main():
+    global SOCKET_DIR, SOCKET_PATH
+
     binary = sys.argv[1] if len(sys.argv) > 1 else "build/wmbusmeters.g"
 
     if not os.path.isfile(binary):
         print("ERROR: binary not found: %s" % binary)
         sys.exit(1)
+
+    SOCKET_DIR = tempfile.mkdtemp(prefix="wmbusmeters-test-socket-")
+    SOCKET_PATH = os.path.join(SOCKET_DIR, "wmbusmeters.sock")
 
     print("Using binary: %s" % binary)
     print("Socket path:  %s" % SOCKET_PATH)
@@ -422,6 +430,8 @@ def main():
         proc.wait()
     if os.path.exists(SOCKET_PATH):
         os.unlink(SOCKET_PATH)
+    if SOCKET_DIR and os.path.isdir(SOCKET_DIR):
+        os.rmdir(SOCKET_DIR)
 
     sys.exit(0 if failed == 0 else 1)
 

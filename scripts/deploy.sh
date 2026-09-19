@@ -1,12 +1,15 @@
 #!/bin/bash
 # Copyright (C) 2022 Fredrik Öhrström (gpl-3.0-or-later)
 
+RELEASE_CHANGES=$(mktemp)
+trap 'rm -f "$RELEASE_CHANGES"' EXIT
+
 # Grab all text up to the "Version x.y.z-RC1 <date>" line
 # There should be no text.
 CHANGES=$(sed '/Version /q' CHANGES | grep -v ^Version | sed '/./,$!d' | \
-          tac | sed -e '/./,$!d' | tac | sed -e '/./,$!d' > /tmp/release_changes)
+          tac | sed -e '/./,$!d' | tac | sed -e '/./,$!d' > "$RELEASE_CHANGES")
 
-if [ -s /tmp/release_changes ]
+if [ -s "$RELEASE_CHANGES" ]
 then
     echo "Oups! There are changes declared in the CHANGES file. There should not be if you are going to deploy."
     exit 0
@@ -15,9 +18,9 @@ fi
 # Grab all text between the Version RC and the previous VERSION.
 sed -n '/^Version.*-RC[0-9] /,/^Version .*\.[0-9]\+:/{p;/^Version .*\.[0-9]\+ /q}' CHANGES \
               | grep -v "^Version " | sed '/./,$!d' \
-              | tac | sed -e '/./,$!d' | tac | sed -e '/./,$!d' > /tmp/release_changes
+              | tac | sed -e '/./,$!d' | tac | sed -e '/./,$!d' > "$RELEASE_CHANGES"
 
-if [ ! -s /tmp/release_changes ]
+if [ ! -s "$RELEASE_CHANGES" ]
 then
     echo "Oups! There should be changes declared in the CHANGES file between the RC version and the previous released version."
     exit 0
@@ -54,7 +57,7 @@ fi
 echo
 echo "Deploying >>$NEW_MESSAGE<< with changelog:"
 echo "----------------------------------------------------------------------------------"
-cat /tmp/release_changes
+cat "$RELEASE_CHANGES"
 echo "----------------------------------------------------------------------------------"
 echo
 while true; do

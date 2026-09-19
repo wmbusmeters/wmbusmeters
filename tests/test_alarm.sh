@@ -16,8 +16,8 @@ pkill -f "wmbusmeters.*config7" 2>/dev/null || true
 sleep 0.1
 
 # Clean up files from previous runs
-> /tmp/wmbusmeters_telegram_test
-> /tmp/wmbusmeters_alarm_test
+> $TEST/wmbusmeters_telegram_test
+> $TEST/wmbusmeters_alarm_test
 
 $PROG --useconfig=tests/config7 --overridedevice=simulations/simulation_alarm.txt 2> $TEST/test_stderr.txt | sed 's/....-..-..T..:..:..Z/1111-11-11T11:11:11Z/' > $TEST/test_output.txt
 
@@ -26,9 +26,9 @@ $PROG --useconfig=tests/config7 --overridedevice=simulations/simulation_alarm.tx
 #echo "STDOUT---------------------------------"
 #cat $TEST/test_output.txt
 #echo "TMP/OUTPUT-----------------------------"
-#cat /tmp/wmbusmeters_telegram_test
+#cat $TEST/wmbusmeters_telegram_test
 #echo "TMP/ALARM------------------------------"
-#cat /tmp/wmbusmeters_alarm_test
+#cat $TEST/wmbusmeters_alarm_test
 #echo "---------------------------------------"
 
 cat > $TEST/test_expected.txt <<EOF
@@ -36,12 +36,12 @@ cat > $TEST/test_expected.txt <<EOF
 (wmbus) successfully reset wmbus device
 EOF
 
-cat > /tmp/wmbusmeters_telegram_expected <<EOF
+cat > $TEST/wmbusmeters_telegram_expected <<EOF
 METER =={"_":"telegram","media":"cold water","driver":"kamwater","name":"Water","id":"76348799","min_external_temperature_last_month_c":19,"min_flow_temperature_last_month_c":127,"target_m3":6.408,"total_m3":6.408,"current_status":"DRY","status":"DRY","time_bursting":"","time_dry":"22-31 days","time_leaking":"","time_reversed":"","timestamp":"1111-11-11T11:11:11Z"}==
 METER =={"_":"telegram","media":"cold water","driver":"kamwater","name":"Water","id":"76348799","min_external_temperature_last_month_c":19,"min_flow_temperature_last_month_c":127,"target_m3":6.408,"total_m3":6.408,"current_status":"DRY","status":"DRY","time_bursting":"","time_dry":"22-31 days","time_leaking":"","time_reversed":"","timestamp":"1111-11-11T11:11:11Z"}==
 EOF
 
-cat > /tmp/wmbusmeters_alarm_expected <<EOF
+cat > $TEST/wmbusmeters_alarm_expected <<EOF
 ALARM_SHELL DeviceInactivity [ALARM DeviceInactivity] 4 seconds of inactivity resetting simulations/simulation_alarm.txt simulation (timeout 4s expected mon-sun(00-23) now 1111-11-11 11:11)
 EOF
 
@@ -58,28 +58,28 @@ then
     TESTRESULT="ERROR"
 fi
 
-cat /tmp/wmbusmeters_telegram_test | sed 's/"timestamp":"....-..-..T..:..:..Z"/"timestamp":"1111-11-11T11:11:11Z"/' > /tmp/wmbusmeters_telegram_output
+cat $TEST/wmbusmeters_telegram_test | sed 's/"timestamp":"....-..-..T..:..:..Z"/"timestamp":"1111-11-11T11:11:11Z"/' > $TEST/wmbusmeters_telegram_output
 
-REST=$(diff /tmp/wmbusmeters_telegram_expected /tmp/wmbusmeters_telegram_output)
+REST=$(diff $TEST/wmbusmeters_telegram_expected $TEST/wmbusmeters_telegram_output)
 
 if [ ! -z "$REST" ]
 then
     printERROR "TELEGRAMS check failed: $TESTNAME"
     echo -----------------
-    diff /tmp/wmbusmeters_telegram_expected /tmp/wmbusmeters_telegram_output
+    diff $TEST/wmbusmeters_telegram_expected $TEST/wmbusmeters_telegram_output
     echo -----------------
     TESTRESULT="ERROR"
 fi
 
-cat /tmp/wmbusmeters_alarm_test |  sed 's/....-..-.. ..:../1111-11-11 11:11/' > /tmp/wmbusmeters_alarm_output
+cat $TEST/wmbusmeters_alarm_test |  sed 's/....-..-.. ..:../1111-11-11 11:11/' > $TEST/wmbusmeters_alarm_output
 
-REST=$(diff /tmp/wmbusmeters_alarm_expected /tmp/wmbusmeters_alarm_output)
+REST=$(diff $TEST/wmbusmeters_alarm_expected $TEST/wmbusmeters_alarm_output)
 
 if [ ! -z "$REST" ]
 then
     printERROR "ALARM SHELLS check failed: $TESTNAME"
     echo -----------------
-    diff /tmp/wmbusmeters_alarm_expected /tmp/wmbusmeters_alarm_output
+    diff $TEST/wmbusmeters_alarm_expected $TEST/wmbusmeters_alarm_output
     echo -----------------
     TESTRESULT="ERROR"
 fi
