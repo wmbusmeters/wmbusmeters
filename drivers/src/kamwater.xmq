@@ -39,6 +39,56 @@ driver {
         use = target_m3
         use = target_date
     }
+    templates {
+        template_field {
+            name = duration_bucket
+            lookup {
+                name      = DURATION
+                map_type  = IndexToString
+                mask_bits = 0x7
+                map {
+                    name  = ''
+                    value = 0x0
+                    test  = Set
+                }
+                map {
+                    name  = '1-8 hours'
+                    value = 0x1
+                    test  = Set
+                }
+                map {
+                    name  = '9-24 hours'
+                    value = 0x2
+                    test  = Set
+                }
+                map {
+                    name  = '2-3 days'
+                    value = 0x3
+                    test  = Set
+                }
+                map {
+                    name  = '4-7 days'
+                    value = 0x4
+                    test  = Set
+                }
+                map {
+                    name  = '8-14 days'
+                    value = 0x5
+                    test  = Set
+                }
+                map {
+                    name  = '15-21 days'
+                    value = 0x6
+                    test  = Set
+                }
+                map {
+                    name  = '22-31 days'
+                    value = 0x7
+                    test  = Set
+                }
+            }
+        }
+    }
     fields {
         field {
             name       = status
@@ -358,213 +408,49 @@ driver {
         field {
             name     = time_dry
             quantity = Text
+            template = duration_bucket
             info     = 'Amount of time the meter has been dry.'
             match {
                 difvifkey = 02FF20
             }
             lookup {
-                name      = DRY
-                map_type  = IndexToString
-                mask_bits = 0x0070
-                map {
-                    name  = ''
-                    value = 0x0000
-                    test  = Set
-                }
-                map {
-                    name  = '1-8 hours'
-                    value = 0x0010
-                    test  = Set
-                }
-                map {
-                    name  = '9-24 hours'
-                    value = 0x0020
-                    test  = Set
-                }
-                map {
-                    name  = '2-3 days'
-                    value = 0x0030
-                    test  = Set
-                }
-                map {
-                    name  = '4-7 days'
-                    value = 0x0040
-                    test  = Set
-                }
-                map {
-                    name  = '8-14 days'
-                    value = 0x0050
-                    test  = Set
-                }
-                map {
-                    name  = '15-21 days'
-                    value = 0x0060
-                    test  = Set
-                }
-                map {
-                    name  = '22-31 days'
-                    value = 0x0070
-                    test  = Set
-                }
+                pre_shift_right = 4
             }
         }
         field {
             name     = time_reversed
             quantity = Text
+            template = duration_bucket
             info     = 'Amount of time the meter has been reversed.'
             match {
                 difvifkey = 02FF20
             }
             lookup {
-                name      = REVERSED
-                map_type  = IndexToString
-                mask_bits = 0x0380
-                map {
-                    name  = ''
-                    value = 0x0000
-                    test  = Set
-                }
-                map {
-                    name  = '1-8 hours'
-                    value = 0x0080
-                    test  = Set
-                }
-                map {
-                    name  = '9-24 hours'
-                    value = 0x0100
-                    test  = Set
-                }
-                map {
-                    name  = '2-3 days'
-                    value = 0x0180
-                    test  = Set
-                }
-                map {
-                    name  = '4-7 days'
-                    value = 0x0200
-                    test  = Set
-                }
-                map {
-                    name  = '8-14 days'
-                    value = 0x0280
-                    test  = Set
-                }
-                map {
-                    name  = '15-21 days'
-                    value = 0x0300
-                    test  = Set
-                }
-                map {
-                    name  = '22-31 days'
-                    value = 0x0380
-                    test  = Set
-                }
+                pre_shift_right = 7
             }
         }
         field {
             name     = time_leaking
             quantity = Text
+            template = duration_bucket
             info     = 'Amount of time the meter has been leaking.'
             match {
                 difvifkey = 02FF20
             }
             lookup {
-                name      = LEAKING
-                map_type  = IndexToString
-                mask_bits = 0x1c00
-                map {
-                    name  = ''
-                    value = 0x0000
-                    test  = Set
-                }
-                map {
-                    name  = '1-8 hours'
-                    value = 0x0400
-                    test  = Set
-                }
-                map {
-                    name  = '9-24 hours'
-                    value = 0x0800
-                    test  = Set
-                }
-                map {
-                    name  = '2-3 days'
-                    value = 0x0c00
-                    test  = Set
-                }
-                map {
-                    name  = '4-7 days'
-                    value = 0x1000
-                    test  = Set
-                }
-                map {
-                    name  = '8-14 days'
-                    value = 0x1400
-                    test  = Set
-                }
-                map {
-                    name  = '15-21 days'
-                    value = 0x1800
-                    test  = Set
-                }
-                map {
-                    name  = '22-31 days'
-                    value = 0x1c00
-                    test  = Set
-                }
+                pre_shift_right = 10
             }
         }
         field {
             name     = time_bursting
             quantity = Text
+            template = duration_bucket
             info     = 'Amount of time the meter has been bursting.'
             match {
                 difvifkey = 02FF20
             }
             lookup {
-                name      = BURSTING
-                map_type  = IndexToString
-                mask_bits = 0xe000
-                map {
-                    name  = ''
-                    value = 0x0000
-                    test  = Set
-                }
-                map {
-                    name  = '1-8 hours'
-                    value = 0x2000
-                    test  = Set
-                }
-                map {
-                    name  = '9-24 hours'
-                    value = 0x4000
-                    test  = Set
-                }
-                map {
-                    name  = '2-3 days'
-                    value = 0x6000
-                    test  = Set
-                }
-                map {
-                    name  = '4-7 days'
-                    value = 0x8000
-                    test  = Set
-                }
-                map {
-                    name  = '8-14 days'
-                    value = 0xa000
-                    test  = Set
-                }
-                map {
-                    name  = '15-21 days'
-                    value = 0xc000
-                    test  = Set
-                }
-                map {
-                    name  = '22-31 days'
-                    value = 0xe000
-                    test  = Set
-                }
+                pre_shift_right = 13
             }
         }
         field {
