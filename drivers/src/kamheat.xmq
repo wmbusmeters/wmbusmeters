@@ -73,10 +73,11 @@ driver {
                 difvifkey = 04FF22
             }
             lookup {
-                name            = ERROR_FLAGS
-                map_type        = BitToString
-                mask_bits       = 0xffffffff
-                default_message = OK
+                name               = ERROR_FLAGS
+                map_type           = BitToString
+                mask_bits          = 0xffffffff
+                default_message    = OK
+                mark_reserved_bits = true
                 map {
                     name = VOLTAGE_INTERRUPTED
                     bit  = 0
@@ -127,11 +128,7 @@ driver {
                     bit  = 9
                     test = Set
                 }
-                map {
-                    name = RESERVED_BIT_10
-                    bit  = 10
-                    test = Set
-                }
+                // bit 10 is reserved
                 map {
                     name = FLOW_INCREASED
                     bit  = 11
@@ -207,11 +204,7 @@ driver {
                     bit  = 25
                     test = Set
                 }
-                map {
-                    name = RESERVED_BIT_26
-                    bit  = 26
-                    test = Set
-                }
+                // bit 26 is reserved
                 map {
                     name = V2_INCREASED_FLOW
                     bit  = 27
@@ -248,10 +241,11 @@ driver {
                 difvifkey = 02FF22
             }
             lookup {
-                name            = ERROR_FLAGS
-                map_type        = BitToString
-                mask_bits       = 0xffff
-                default_message = OK
+                name               = ERROR_FLAGS
+                map_type           = BitToString
+                mask_bits          = 0xffff
+                default_message    = OK
+                mark_reserved_bits = true
                 map {
                     name = VOLTAGE_INTERRUPTED
                     bit  = 0
@@ -262,11 +256,7 @@ driver {
                     bit  = 1
                     test = Set
                 }
-                map {
-                    name = RESERVED_BIT_2
-                    bit  = 2
-                    test = Set
-                }
+                // bit 2 is reserved
                 map {
                     name = SENSOR_T1_ABOVE_MEASURING_RANGE
                     bit  = 3
@@ -302,36 +292,13 @@ driver {
                     bit  = 9
                     test = Set
                 }
-                map {
-                    name = RESERVED_BIT_10
-                    bit  = 10
-                    test = Set
-                }
+                // bit 10 is reserved
                 map {
                     name = FLOW_INCREASED
                     bit  = 11
                     test = Set
                 }
-                map {
-                    name = RESERVED_BIT_12
-                    bit  = 12
-                    test = Set
-                }
-                map {
-                    name = RESERVED_BIT_13
-                    bit  = 13
-                    test = Set
-                }
-                map {
-                    name = RESERVED_BIT_14
-                    bit  = 14
-                    test = Set
-                }
-                map {
-                    name = RESERVED_BIT_15
-                    bit  = 15
-                    test = Set
-                }
+                // bits 12-15 are reserved
             }
         }
         field {
@@ -344,10 +311,11 @@ driver {
                 vif_range        = ErrorFlags
             }
             lookup {
-                name            = NARROW_ERROR_FLAGS
-                map_type        = BitToString
-                mask_bits       = 0xffff
-                default_message = OK
+                name               = NARROW_ERROR_FLAGS
+                map_type           = BitToString
+                mask_bits          = 0xffff
+                default_message    = OK
+                mark_reserved_bits = true
                 map {
                     name = VOLTAGE_INTERRUPTED
                     bit  = 0

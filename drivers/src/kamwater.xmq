@@ -49,10 +49,11 @@ driver {
                 difvifkey = 04FF23
             }
             lookup {
-                name            = ERROR_FLAGS
-                map_type        = BitToString
-                mask_bits       = 0xffffffff
-                default_message = OK
+                name               = ERROR_FLAGS
+                map_type           = BitToString
+                mask_bits          = 0xffffffff
+                default_message    = OK
+                mark_reserved_bits = true
                 map {
                     name = DRY
                     bit  = 0
@@ -611,14 +612,14 @@ driver {
         test {
             args     = 'Votten flowiq2200 23813076 NOKEY'
             telegram = 4744372C763081233C168D2056D1ED11205A3C78_04FF2300080000441300000000523B000006FF1B08900008F0FF426CC12B61670A51671B023B000004131F0F00008101E7FF0F13
-            json     = '{"_":"telegram","media":"cold water","driver":"kamwater","name":"Votten","id":"23813076","flow_m3h":0,"max_external_temperature_last_month_c":27,"target_m3":0,"max_flow_last_month_m3h": 0,"target_date":"2022-11-01","total_m3":3.871,"accoustic_noise":"08900008F0FF","min_external_temperature_last_month_c":10,"status":"ERROR_FLAGS_800","timestamp":"1111-11-11T11:11:11Z"}'
-            fields   = 'Votten;23813076;ERROR_FLAGS_800;3.871;0;1111-11-11 11:11.11'
+            json     = '{"_":"telegram","media":"cold water","driver":"kamwater","name":"Votten","id":"23813076","flow_m3h":0,"max_external_temperature_last_month_c":27,"target_m3":0,"max_flow_last_month_m3h": 0,"target_date":"2022-11-01","total_m3":3.871,"accoustic_noise":"08900008F0FF","min_external_temperature_last_month_c":10,"status":"RESERVED_BIT_11","timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'Votten;23813076;RESERVED_BIT_11;3.871;0;1111-11-11 11:11.11'
         }
         test {
             args     = 'Votten flowiq2200 23813076 NOKEY'
             telegram = 3244372C763081233C168D2057D2ED11205a817905095480_0008000000000000000008900008F0FFC12B0A1B23001F0F000013
-            json     = '{"_":"telegram","media":"cold water","driver":"kamwater","name":"Votten","id":"23813076","min_external_temperature_last_month_c":10,"flow_m3h":0.035,"max_external_temperature_last_month_c":27,"max_flow_last_month_m3h": 0,"target_m3":0,"target_date":"2022-11-01","total_m3":3.871,"accoustic_noise":"08900008F0FF","status":"ERROR_FLAGS_800","timestamp":"1111-11-11T11:11:11Z"}'
-            fields   = 'Votten;23813076;ERROR_FLAGS_800;3.871;0;1111-11-11 11:11.11'
+            json     = '{"_":"telegram","media":"cold water","driver":"kamwater","name":"Votten","id":"23813076","min_external_temperature_last_month_c":10,"flow_m3h":0.035,"max_external_temperature_last_month_c":27,"max_flow_last_month_m3h": 0,"target_m3":0,"target_date":"2022-11-01","total_m3":3.871,"accoustic_noise":"08900008F0FF","status":"RESERVED_BIT_11","timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'Votten;23813076;RESERVED_BIT_11;3.871;0;1111-11-11 11:11.11'
         }
         test {
             args     = 'MoreWater kamwater 54084283 NOKEY'
