@@ -4880,6 +4880,18 @@ LIST_OF_TPL_SECURITY_MODES
     return TPLSecurityMode::SPECIFIC_16_31;
 }
 
+const char *toString(TPLStatusBit b)
+{
+    switch (b) {
+
+#define X(name,mask,value) case TPLStatusBit::name : return #name;
+LIST_OF_TPL_STATUS_BITS
+#undef X
+    }
+
+    return "?";
+}
+
 int toInt(ELLSecurityMode esm)
 {
     switch (esm) {
@@ -5385,14 +5397,10 @@ string decodeTPLStatusByteOnlyStandardBits(uchar sts)
     string s;
 
     if (sts == 0) return "OK";
-    if ((sts & 0x03) == 0x01) s += "BUSY ";  // Meter busy, cannot respond.
-    if ((sts & 0x03) == 0x02) s += "ERROR "; // E.g. meter failed to understand a message sent to it.
-                                             // More information about the error can be sent using error reporting, EN13757-3:2018 §10
-    if ((sts & 0x03) == 0x03) s += "ALARM "; // E.g. an abnormal condition like water is continuously running.
 
-    if ((sts & 0x04) == 0x04) s += "POWER_LOW "; // E.g. battery end of life or external power supply failure
-    if ((sts & 0x08) == 0x08) s += "PERMANENT_ERROR "; // E.g. meter needs service to work again.
-    if ((sts & 0x10) == 0x10) s += "TEMPORARY_ERROR ";
+#define X(name,mask,value) if ((sts & mask) == value) { s += #name " "; }
+LIST_OF_TPL_STATUS_BITS
+#undef X
 
     while (s.size() > 0 && s.back() == ' ') s.pop_back();
     return s;

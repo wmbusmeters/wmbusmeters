@@ -227,6 +227,24 @@ int toInt(TPLSecurityMode tsm);
 TPLSecurityMode fromIntToTPLSecurityMode(int i);
 const char *toString(TPLSecurityMode tsm);
 
+// TPL status byte, standard-defined bits 0-4 (bits 5-7 are mfct specific).
+// name, mask, value: bit(s) are set when (sts & mask) == value.
+#define LIST_OF_TPL_STATUS_BITS \
+    X(BUSY,             0x03, 0x01) /* meter busy, cannot respond */ \
+    X(ERROR,            0x03, 0x02) /* meter failed to understand a message sent to it, details via error reporting, EN13757-3:2018 §10 */ \
+    X(ALARM,            0x03, 0x03) /* an abnormal condition, e.g. water is continuously running */ \
+    X(POWER_LOW,        0x04, 0x04) \
+    X(PERMANENT_ERROR,  0x08, 0x08) \
+    X(TEMPORARY_ERROR,  0x10, 0x10)
+
+enum class TPLStatusBit {
+#define X(name,mask,value) name,
+LIST_OF_TPL_STATUS_BITS
+#undef X
+};
+
+const char *toString(TPLStatusBit b);
+
 #define LIST_OF_AFL_AUTH_TYPES \
     X(NoAuth, 0, 0)             \
     X(Reserved1, 1, 0)          \
