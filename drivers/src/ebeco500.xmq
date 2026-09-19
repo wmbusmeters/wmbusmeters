@@ -28,69 +28,85 @@ driver {
                 map_type        = BitToString
                 mask_bits       = 0xffff
                 default_message = OK
-                bit {
-                    pos   = 0
-                    label = TEMPORARY
+                map {
+                    bit  = 0
+                    name = TEMPORARY
+                    test = Set
                 }
-                bit {
-                    pos   = 1
-                    label = MIN_LIMIT
+                map {
+                    bit  = 1
+                    name = MIN_LIMIT
+                    test = Set
                 }
-                bit {
-                    pos   = 2
-                    label = MAX_LIMIT
+                map {
+                    bit  = 2
+                    name = MAX_LIMIT
+                    test = Set
                 }
-                bit {
-                    pos   = 3
-                    label = OPEN_WINDOW
+                map {
+                    bit  = 3
+                    name = OPEN_WINDOW
+                    test = Set
                 }
-                bit {
-                    pos   = 4
-                    label = ROOM_OC
+                map {
+                    bit  = 4
+                    name = ROOM_OC
+                    test = Set
                 }
-                bit {
-                    pos   = 5
-                    label = ROOM_SC
+                map {
+                    bit  = 5
+                    name = ROOM_SC
+                    test = Set
                 }
-                bit {
-                    pos   = 6
-                    label = FLOOR_OC
+                map {
+                    bit  = 6
+                    name = FLOOR_OC
+                    test = Set
                 }
-                bit {
-                    pos   = 7
-                    label = FLOOR_SC
+                map {
+                    bit  = 7
+                    name = FLOOR_SC
+                    test = Set
                 }
-                bit {
-                    pos   = 8
-                    label = RELAY_OC
+                map {
+                    bit  = 8
+                    name = RELAY_OC
+                    test = Set
                 }
-                bit {
-                    pos   = 9
-                    label = RELAY_SC
+                map {
+                    bit  = 9
+                    name = RELAY_SC
+                    test = Set
                 }
-                bit {
-                    pos   = 10
-                    label = RELAY_OT
+                map {
+                    bit  = 10
+                    name = RELAY_OT
+                    test = Set
                 }
-                bit {
-                    pos   = 11
-                    label = SYSTEM
+                map {
+                    bit  = 11
+                    name = SYSTEM
+                    test = Set
                 }
-                bit {
-                    pos   = 12
-                    label = STARTUP
+                map {
+                    bit  = 12
+                    name = STARTUP
+                    test = Set
                 }
-                bit {
-                    pos   = 13
-                    label = POWER_CTRL
+                map {
+                    bit  = 13
+                    name = POWER_CTRL
+                    test = Set
                 }
-                bit {
-                    pos   = 14
-                    label = POWER_OFF
+                map {
+                    bit  = 14
+                    name = POWER_OFF
+                    test = Set
                 }
-                bit {
-                    pos   = 15
-                    label = RELAY_TEST
+                map {
+                    bit  = 15
+                    name = RELAY_TEST
+                    test = Set
                 }
             }
         }
