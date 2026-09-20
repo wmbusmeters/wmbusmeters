@@ -1591,7 +1591,7 @@ uint64_t checked_mask_bits(const char *mask_bits_s, DriverDynamic *dd)
 {
     if (!mask_bits_s)
     {
-        warning("(driver) error in %s, cannot find: driver/fields/field/lookup/mask_bitse\n"
+        warning("(driver) error in %s, cannot find: driver/fields/field/lookup/mask_bits\n"
                 "%s\n"
                 "Remember to add for example: lookup { mask_bits = 0x00ff ... }\n"
                 "%s\n",
