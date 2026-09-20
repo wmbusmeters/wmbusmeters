@@ -64,8 +64,14 @@ echo "body {" >> $OUT
 
 echo "h2='wmbusmeters drivers $DATE'" >> $OUT
 
+echo -n "Generating library.html"
+XMQ_BG=dark xmq library.xmq render-html > ../build/web/library.xmq.html
+echo "a(href=library.xmq.html)=library.xmq" >> $OUT
+echo br  >> $OUT
+echo "done."
+
 echo -n "Generating index.html"
-for i in $(ls ../build/web/*xmq.html | sort)
+for i in $(ls ../build/web/*xmq.html | grep -v library.xmq.html | sort)
 do
     HREF=$(basename $i)
     NAME=${HREF%%.*}
