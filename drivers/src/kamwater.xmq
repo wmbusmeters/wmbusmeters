@@ -88,22 +88,24 @@ driver {
                 }
             }
         }
-    }
-    fields {
-        field {
-            name       = status
-            quantity   = Text
-            info       = 'Status and error flags.'
-            attributes = STATUS,INCLUDE_TPL_STATUS
-            match {
-                difvifkey = 04FF23
-            }
+        template_field {
+            // Common status fields for modern status fields:
+            // - 04FF23 Info Cold environment
+            // - 04FF24 Info Warm environment
+            // The datasheet also mentions 16bit fields (02FF25, 12FF25), but they are
+            // only partially compatible and we have no recursive inheritance.
+            name = x2xx_status
             lookup {
-                name               = ERROR_FLAGS
-                map_type           = BitToString
-                mask_bits          = 0xffffffff
-                default_message    = OK
-                mark_reserved_bits = true
+                name     = ERROR_FLAGS
+                map_type = BitToString
+                // In these status fields, buts 0-10 are the instant info (with
+                // bits 8 and reserved, and bit 6's different meaning between
+                // meters configured for hot/cold *environment*). Bits 11-31
+                // are for time indication. That gives 0x3ff, but let's
+                // preserve the "unknown" bits until we've added the duration
+                // extractors.
+                mask_bits       = 0xffffffff
+                default_message = OK
                 map {
                     name = DRY
                     bit  = 0
@@ -134,11 +136,7 @@ driver {
                     bit  = 5
                     test = Set
                 }
-                map {
-                    name = LOW_ABIENT_TEMPERATURE
-                    bit  = 6
-                    test = Set
-                }
+                // bit 6 is different and will be filed in later
                 map {
                     name = FLOW_ABOVE_Q4
                     bit  = 7
@@ -151,6 +149,52 @@ driver {
                     test = Set
                 }
                 // bit 10 is unused
+            }
+        }
+    }
+    fields {
+        field {
+            name       = status
+            quantity   = Text
+            template   = x2xx_status
+            info       = 'Status and error flags.'
+            attributes = STATUS,INCLUDE_TPL_STATUS
+            match {
+                // "Info Cold environment"
+                difvifkey = 04FF23
+            }
+            lookup {
+                name               = ERROR_FLAGS
+                map_type           = BitToString
+                default_message    = OK
+                mark_reserved_bits = true
+                map {
+                    name = LOW_ABIENT_TEMPERATURE
+                    bit  = 6
+                    test = Set
+                }
+            }
+        }
+        field {
+            name       = status
+            quantity   = Text
+            template   = x2xx_status
+            info       = 'Status and error flags.'
+            attributes = STATUS,INCLUDE_TPL_STATUS
+            match {
+                // "Info Hot environment"
+                difvifkey = 04FF24
+            }
+            lookup {
+                name               = ERROR_FLAGS
+                map_type           = BitToString
+                default_message    = OK
+                mark_reserved_bits = true
+                map {
+                    name = HIGH_ABIENT_TEMPERATURE
+                    bit  = 6
+                    test = Set
+                }
             }
         }
         field {
