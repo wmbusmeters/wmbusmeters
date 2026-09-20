@@ -1,0 +1,542 @@
+/* This is the library of fields that can be referenced from
+   a driver with library { use = total_m3 }
+
+   The library speeds up creating drivers for meters with mostly
+   standardized values. It also helps normalize the names of the fields.
+
+   A field name is short. For a single direction meter with only consumption
+   values. Use for example:
+   total_m3 (for water/gas consumption volume)
+   total_kwh (for energy consumption)
+*/
+library {
+    /* A template info has access to the following variables.
+       {media} is replaced with water/gas/electricity/heat/coolant.
+       {append_info} is normally empty, but can be replaced with additional driver help.
+       Also the entiry info can be replaced.
+       library { template { use = total_m3 append_info = 'More helpful info.' }
+                 template { use = total_m3 info = 'This is the box volume.' } }
+
+       The change=Increasing or change=Sample is further information
+       about the field to be used outside of wmbusmeters. */
+    template(id = total_m3)
+    {
+        name     = total
+        quantity = Volume
+        info     = 'The total {media} volume recorded.'
+        change   = Increasing
+        match {
+            measurement_type = Instantaneous
+            vif_range        = Volume
+        }
+    }
+    template(id = total_kwh)
+    {
+        name     = total
+        quantity = Energy
+        info     = 'The total {media} energy recorded.'
+        change   = Increasing
+        match {
+            measurement_type = Instantaneous
+            vif_range        = AnyEnergyVIF
+        }
+    }
+    template(id = target_m3)
+    {
+        name     = target
+        quantity = Volume
+        info     = 'The {water} volume recorded at the last billing date.'
+        match {
+            measurement_type = Instantaneous
+            vif_range        = Volume
+            storage_nr       = 1
+        }
+    }
+    template(id = target_kwh)
+    {
+        name     = target
+        quantity = Energy
+        info     = 'The {water} energy recorded at the last billing date.'
+        match {
+            measurement_type = Instantaneous
+            vif_range        = AnyEnergyVIF
+            storage_nr       = 1
+        }
+    }
+}
+/* if (checkIf(fields,"status-tpl-only"))
+      {
+          addStringField(
+              "status",
+              "Status and error flags."+help,
+              STATUS | INCLUDE_TPL_STATUS);
+          markLastFieldAsLibrary();
+      }
+
+      if (checkIf(fields, "actuality_duration_s"))
+      {
+          addNumericFieldWithExtractor(
+              "actuality_duration",
+              "Lapsed time between measurement and transmission."+help,
+              DEFAULT_PRINT_PROPERTIES,
+              Quantity::Time,
+              VifScaling::Auto,
+              DifSignedness::Signed,
+              FieldMatcher::build()
+              .set(MeasurementType::Instantaneous)
+              .set(VIFRange::ActualityDuration),
+              Unit::Second
+              );
+          markLastFieldAsLibrary();
+      }
+
+      if (checkIf(fields, "actuality_duration_h"))
+      {
+          addNumericFieldWithExtractor(
+              "actuality_duration",
+              "Lapsed time between measurement and transmission."+help,
+              DEFAULT_PRINT_PROPERTIES,
+              Quantity::Time,
+              VifScaling::Auto,
+              DifSignedness::Signed,
+              FieldMatcher::build()
+              .set(MeasurementType::Instantaneous)
+              .set(VIFRange::ActualityDuration)
+              );
+          markLastFieldAsLibrary();
+      }
+
+      if (checkIf(fields, "battery_v"))
+      {
+          addNumericFieldWithExtractor(
+              "battery",
+              "Battery voltage."+help,
+              DEFAULT_PRINT_PROPERTIES,
+              Quantity::Voltage,
+              VifScaling::Auto,
+              DifSignedness::Signed,
+              FieldMatcher::build()
+              .set(MeasurementType::Instantaneous)
+              .set(VIFRange::Voltage)
+              );
+          markLastFieldAsLibrary();
+      }
+
+      if (checkIf(fields, "fabrication_no"))
+      {
+          addStringFieldWithExtractor(
+              "fabrication_no",
+              "Fabrication number."+help,
+              DEFAULT_PRINT_PROPERTIES,
+              FieldMatcher::build()
+              .set(MeasurementType::Instantaneous)
+              .set(VIFRange::FabricationNo)
+              );
+          markLastFieldAsLibrary();
+      }
+
+      if (checkIf(fields,"enhanced_id"))
+      {
+          addStringFieldWithExtractor(
+              "enhanced_id",
+              "Enhanced identification number."+help,
+              DEFAULT_PRINT_PROPERTIES,
+              FieldMatcher::build()
+              .set(MeasurementType::Instantaneous)
+              .set(VIFRange::EnhancedIdentification)
+              );
+          markLastFieldAsLibrary();
+      }
+
+      if (checkIf(fields,"software_version"))
+      {
+          addStringFieldWithExtractor(
+              "software_version",
+              "Software version."+help,
+              DEFAULT_PRINT_PROPERTIES,
+              FieldMatcher::build()
+              .set(MeasurementType::Instantaneous)
+              .set(VIFRange::SoftwareVersion)
+              );
+          markLastFieldAsLibrary();
+      }
+
+      if (checkIf(fields,"manufacturer"))
+      {
+          addStringFieldWithExtractor(
+              "manufacturer",
+              "Meter manufacturer."+help,
+              DEFAULT_PRINT_PROPERTIES,
+              FieldMatcher::build()
+              .set(MeasurementType::Instantaneous)
+              .set(VIFRange::Manufacturer)
+              );
+          markLastFieldAsLibrary();
+      }
+
+      if (checkIf(fields,"model_version"))
+      {
+          addStringFieldWithExtractor(
+              "model_version",
+              "Meter model version."+help,
+              DEFAULT_PRINT_PROPERTIES,
+              FieldMatcher::build()
+              .set(MeasurementType::Instantaneous)
+              .set(VIFRange::ModelVersion)
+              );
+          markLastFieldAsLibrary();
+      }
+
+      if (checkIf(fields,"firmware_version"))
+      {
+          addStringFieldWithExtractor(
+              "firmware_version",
+              "Meter firmware version."+help,
+              DEFAULT_PRINT_PROPERTIES,
+              FieldMatcher::build()
+              .set(MeasurementType::Instantaneous)
+              .set(VIFRange::FirmwareVersion)
+              );
+          markLastFieldAsLibrary();
+      }
+
+      if (checkIf(fields,"parameter_set"))
+      {
+          addStringFieldWithExtractor(
+              "parameter_set",
+              "Parameter set for this meter."+help,
+              DEFAULT_PRINT_PROPERTIES,
+              FieldMatcher::build()
+              .set(MeasurementType::Instantaneous)
+              .set(VIFRange::ParameterSet)
+              );
+          markLastFieldAsLibrary();
+      }
+
+      if (checkIf(fields,"customer"))
+      {
+          addStringFieldWithExtractor(
+              "customer",
+              "Customer name."+help,
+              DEFAULT_PRINT_PROPERTIES,
+              FieldMatcher::build()
+              .set(MeasurementType::Instantaneous)
+              .set(VIFRange::Customer)
+              );
+          markLastFieldAsLibrary();
+      }
+
+      if (checkIf(fields,"location"))
+      {
+          addStringFieldWithExtractor(
+              "location",
+              "Meter installed at this customer location."+help,
+              DEFAULT_PRINT_PROPERTIES,
+              FieldMatcher::build()
+              .set(MeasurementType::Instantaneous)
+              .set(VIFRange::Location)
+              );
+          markLastFieldAsLibrary();
+      }
+
+      if (checkIf(fields,"operating_time_h"))
+      {
+          addNumericFieldWithExtractor(
+              "operating_time",
+              "How long the meter has been collecting data."+help,
+              DEFAULT_PRINT_PROPERTIES,
+              Quantity::Time,
+              VifScaling::Auto,
+              DifSignedness::Signed,
+              FieldMatcher::build()
+              .set(MeasurementType::Instantaneous)
+              .set(VIFRange::OperatingTime)
+              );
+          markLastFieldAsLibrary();
+      }
+
+      if (checkIf(fields,"on_time_h"))
+      {
+          addNumericFieldWithExtractor(
+              "on_time",
+              "How long the meter has been powered up."+help,
+              DEFAULT_PRINT_PROPERTIES,
+              Quantity::Time,
+              VifScaling::Auto,
+              DifSignedness::Signed,
+              FieldMatcher::build()
+              .set(MeasurementType::Instantaneous)
+              .set(VIFRange::OnTime)
+              );
+          markLastFieldAsLibrary();
+      }
+
+      if (checkIf(fields,"on_time_at_error_h"))
+      {
+          addNumericFieldWithExtractor(
+              "on_time_at_error",
+              "How long the meter has been in an error state while powered up."+help,
+              DEFAULT_PRINT_PROPERTIES,
+              Quantity::Time,
+              VifScaling::Auto,
+              DifSignedness::Signed,
+              FieldMatcher::build()
+              .set(MeasurementType::AtError)
+              .set(VIFRange::OnTime)
+              );
+          markLastFieldAsLibrary();
+      }
+
+      if (checkIf(fields,"meter_date"))
+      {
+          addStringFieldWithExtractor(
+              "meter_date",
+              "Date when the meter sent the telegram."+help,
+              DEFAULT_PRINT_PROPERTIES,
+              FieldMatcher::build()
+              .set(MeasurementType::Instantaneous)
+              .set(VIFRange::Date)
+              );
+          markLastFieldAsLibrary();
+      }
+
+      if (checkIf(fields,"meter_date_at_error"))
+      {
+          addStringFieldWithExtractor(
+              "meter_date_at_error",
+              "Date when the meter was in error."+help,
+              DEFAULT_PRINT_PROPERTIES,
+              FieldMatcher::build()
+              .set(MeasurementType::AtError)
+              .set(VIFRange::Date)
+              );
+          markLastFieldAsLibrary();
+      }
+
+      if (checkIf(fields,"meter_datetime"))
+      {
+          addStringFieldWithExtractor(
+              "meter_datetime",
+              "Date and time when the meter sent the telegram."+help,
+              DEFAULT_PRINT_PROPERTIES,
+              FieldMatcher::build()
+              .set(MeasurementType::Instantaneous)
+              .set(VIFRange::DateTime)
+              );
+          markLastFieldAsLibrary();
+      }
+
+      if (checkIf(fields,"meter_datetime_at_error"))
+      {
+          addStringFieldWithExtractor(
+              "meter_datetime_at_error",
+              "Date and time when the meter was in error."+help,
+              DEFAULT_PRINT_PROPERTIES,
+              FieldMatcher::build()
+              .set(MeasurementType::AtError)
+              .set(VIFRange::DateTime)
+              );
+          markLastFieldAsLibrary();
+      }
+
+
+
+      if (checkIf(fields,"target_date"))
+      {
+          addNumericFieldWithExtractor(
+              "target",
+              "The target date. Usually the end of the previous billing period."+help,
+              DEFAULT_PRINT_PROPERTIES,
+              Quantity::PointInTime,
+   -           VifScaling::Auto,
+              DifSignedness::Signed,
+              FieldMatcher::build()
+              .set(MeasurementType::Instantaneous)
+              .set(VIFRange::Date)
+              .set(StorageNr(1)),
+              Unit::DateLT
+              );
+          markLastFieldAsLibrary();
+      }
+
+      if (checkIf(fields,"total_forward_m3"))
+      {
+          addNumericFieldWithExtractor(
+              "total_forward",
+              "The total media volume flowing forward."+help,
+              DEFAULT_PRINT_PROPERTIES,
+              Quantity::Volume,
+              VifScaling::Auto,
+              DifSignedness::Signed,
+              FieldMatcher::build()
+              .set(MeasurementType::Instantaneous)
+              .set(VIFRange::Volume)
+              .add(VIFCombinable::ForwardFlow)
+              );
+          lastAddedField()->setChange(Change::Increasing);
+          markLastFieldAsLibrary();
+      }
+
+      if (checkIf(fields,"total_backward_m3"))
+      {
+          addNumericFieldWithExtractor(
+              "total_backward",
+              "The total media volume flowing backward."+help,
+              DEFAULT_PRINT_PROPERTIES,
+              Quantity::Volume,
+              VifScaling::Auto,
+              DifSignedness::Signed,
+              FieldMatcher::build()
+              .set(MeasurementType::Instantaneous)
+              .set(VIFRange::Volume)
+              .add(VIFCombinable::BackwardFlow)
+              );
+          lastAddedField()->setChange(Change::Increasing);
+          markLastFieldAsLibrary();
+      }
+
+      if (checkIf(fields,"flow_temperature_c"))
+      {
+          addNumericFieldWithExtractor(
+              "flow_temperature",
+              "Forward media temperature."+help,
+              DEFAULT_PRINT_PROPERTIES,
+              Quantity::Temperature,
+              VifScaling::Auto,
+              DifSignedness::Signed,
+              FieldMatcher::build()
+              .set(MeasurementType::Instantaneous)
+              .set(VIFRange::FlowTemperature)
+              );
+          markLastFieldAsLibrary();
+      }
+
+      if (checkIf(fields,"external_temperature_c"))
+      {
+          addNumericFieldWithExtractor(
+              "external_temperature",
+              "Temperature outside of meter."+help,
+              DEFAULT_PRINT_PROPERTIES,
+              Quantity::Temperature,
+              VifScaling::Auto,
+              DifSignedness::Signed,
+              FieldMatcher::build()
+              .set(MeasurementType::Instantaneous)
+              .set(VIFRange::ExternalTemperature)
+              );
+          markLastFieldAsLibrary();
+      }
+
+      if (checkIf(fields,"return_temperature_c"))
+      {
+          addNumericFieldWithExtractor(
+              "return_temperature",
+              "Return media temperature.",
+              DEFAULT_PRINT_PROPERTIES,
+              Quantity::Temperature,
+              VifScaling::Auto,
+              DifSignedness::Signed,
+              FieldMatcher::build()
+              .set(MeasurementType::Instantaneous)
+              .set(VIFRange::ReturnTemperature)
+              );
+          markLastFieldAsLibrary();
+      }
+
+      if (checkIf(fields,"flow_return_temperature_difference_c"))
+      {
+          addNumericFieldWithExtractor(
+              "flow_return_temperature_difference",
+              "The difference between flow and return media temperatures."+help,
+              DEFAULT_PRINT_PROPERTIES,
+              Quantity::Temperature,
+              VifScaling::Auto,
+              DifSignedness::Signed,
+              FieldMatcher::build()
+              .set(MeasurementType::Instantaneous)
+              .set(VIFRange::TemperatureDifference)
+              );
+          markLastFieldAsLibrary();
+      }
+
+      if (checkIf(fields,"volume_flow_m3h"))
+      {
+          addNumericFieldWithExtractor(
+              "volume_flow",
+              "Media volume flow."+help,
+              DEFAULT_PRINT_PROPERTIES,
+              Quantity::Flow,
+              VifScaling::Auto,
+              DifSignedness::Signed,
+              FieldMatcher::build()
+              .set(MeasurementType::Instantaneous)
+              .set(VIFRange::VolumeFlow)
+              );
+          markLastFieldAsLibrary();
+      }
+
+      if (checkIf(fields,"access_counter"))
+      {
+          addNumericFieldWithExtractor(
+              "access",
+              "Meter access counter."+help,
+              DEFAULT_PRINT_PROPERTIES,
+              Quantity::Dimensionless,
+              VifScaling::None,
+              DifSignedness::Unsigned,
+              FieldMatcher::build()
+              .set(MeasurementType::Instantaneous)
+              .set(VIFRange::AccessNumber)
+              );
+          markLastFieldAsLibrary();
+      }
+
+      if (checkIf(fields,"consumption_hca"))
+      {
+          addNumericFieldWithExtractor(
+              "consumption",
+              "The current heat cost allocation for this meter."+help,
+              DEFAULT_PRINT_PROPERTIES,
+              Quantity::HCA,
+              VifScaling::Auto,
+              DifSignedness::Signed,
+              FieldMatcher::build()
+              .set(MeasurementType::Instantaneous)
+              .set(VIFRange::HeatCostAllocation)
+              );
+          lastAddedField()->setChange(Change::Increasing);
+          markLastFieldAsLibrary();
+      }
+
+      if (checkIf(fields,"consumption_hca"))
+      {
+          addNumericFieldWithExtractor(
+              "consumption",
+              "The current heat cost allocation for this meter."+help,
+              DEFAULT_PRINT_PROPERTIES,
+              Quantity::HCA,
+              VifScaling::Auto,
+              DifSignedness::Signed,
+              FieldMatcher::build()
+              .set(MeasurementType::Instantaneous)
+              .set(VIFRange::HeatCostAllocation)
+              );
+          markLastFieldAsLibrary();
+      }
+
+      if (checkIf(fields,"target_hca"))
+      {
+          addNumericFieldWithExtractor(
+              "target",
+              "The heat cost allocation recorded by this meter at the target date."+help,
+              DEFAULT_PRINT_PROPERTIES,
+              Quantity::HCA,
+              VifScaling::Auto,
+              DifSignedness::Signed,
+              FieldMatcher::build()
+              .set(MeasurementType::Instantaneous)
+              .set(VIFRange::HeatCostAllocation)
+              .set(StorageNr(1))
+              );
+          markLastFieldAsLibrary();
+      } */
