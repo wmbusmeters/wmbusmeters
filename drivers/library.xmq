@@ -65,6 +65,8 @@ library {
     template(id = status)
     {
         name       = status
+        // Kept working for old C++ drivers that use alias status-tpl-only
+        aliases    = status-tpl-only
         info       = 'Status and error flags.'
         attributes = STATUS,INCLUDE_TPL_STATUS
     }
@@ -222,9 +224,8 @@ library {
     template(id = meter_date)
     {
         name         = meter_date
-        quantity     = PointInTime
+        quantity     = Text
         info         = 'Date when the meter sent the telegram.'
-        display_unit = date
         match {
             measurement_type = Instantaneous
             vif_range        = Date
@@ -233,9 +234,8 @@ library {
     template(id = meter_date_at_error)
     {
         name         = meter_date_at_error
-        quantity     = PointInTime
+        quantity     = Text
         info         = 'Date when the meter was in error.'
-        display_unit = date
         match {
             measurement_type = AtError
             vif_range        = Date
@@ -244,9 +244,8 @@ library {
     template(id = meter_datetime)
     {
         name         = meter_datetime
-        quantity     = PointInTime
+        quantity     = Text
         info         = 'Date and time when the meter sent the telegram.'
-        display_unit = datetime
         match {
             measurement_type = Instantaneous
             vif_range        = DateTime
@@ -255,9 +254,8 @@ library {
     template(id = meter_datetime_at_error)
     {
         name         = meter_datetime_at_error
-        quantity     = PointInTime
+        quantity     = Text
         info         = 'Date and time when the meter was in error.'
-        display_unit = datetime
         match {
             measurement_type = AtError
             vif_range        = DateTime

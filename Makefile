@@ -196,6 +196,7 @@ PROG_OBJS:=\
 	$(BUILD)/mbus_rawtty.o \
 	$(BUILD)/metermanager.o \
 	$(BUILD)/meters.o \
+	$(BUILD)/generated_library.o \
 	$(BUILD)/manufacturer_specificities.o \
 	$(BUILD)/printer.o \
 	$(BUILD)/rtlsdr.o \

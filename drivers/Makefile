@@ -3,8 +3,15 @@ $(shell mkdir -p build/test)
 
 PROG?=../build/wmbusmeters
 
-database: pretty
+database: pretty library
 	@LC_ALL=C ./generate.sh $(PROG)
+
+# Generate src/generated_library.cc from library.xmq
+# This is compiled into wmbusmeters providing
+# MeterCommonImplementation::addOptionalLibraryFields().
+library:
+	@mkdir -p build
+	@LC_ALL=C ./generate_library.sh
 
 web:
 	@mkdir -p ../build/web
@@ -19,6 +26,8 @@ install: database tests
 	@grep -v "// Generated " < ../src/generated_database.cc > build/b
 	@if ! diff build/a build/b ; then \
             cp build/generated_database.cc ../src ; echo "Installed db"; else echo "No changes db." ; fi
+	@if ! diff build/generated_library.cc ../src/generated_library.cc ; then \
+            cp build/generated_library.cc ../src ; echo "Installed library"; else echo "No changes library." ; fi
 	@grep -v "// Generated " < build/generated_tests.xmq > build/a
 	@grep -v "// Generated " < ../tests/generated_tests.xmq > build/b
 	@if ! diff build/a build/b ; then \
@@ -42,4 +51,4 @@ testonly:
 clean:
 	rm -f generated.test.json
 
-.PHONY: database web tests install test clean
+.PHONY: database web tests install library test clean
