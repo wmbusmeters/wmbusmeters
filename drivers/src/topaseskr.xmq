@@ -94,12 +94,10 @@ driver {
             }
         }
         field {
-            name           = battery
-            quantity       = Time
-            info           = 'Remaining battery life in years.'
-            vif_scaling    = Auto
-            dif_signedness = Signed
-            display_unit   = y
+            name         = battery
+            quantity     = Time
+            info         = 'Remaining battery life in years.'
+            display_unit = y
             match {
                 measurement_type = Instantaneous
                 vif_range        = RemainingBattery

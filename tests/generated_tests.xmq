@@ -2310,6 +2310,12 @@ test {
     fields   = 'Witer;78563412;481.899;21.1;0;354.259;0;2019-12-31;461.287;2020-07-31 23:59;1111-11-11 11:11.11'
 }
 test {
+    args     = 'W topaseskr2 88475766 NOKEY'
+    telegram = 3E44B42566574788F2077A6F0030052F2F_0C138150020004FD170000000002FD74AD150A5A1001426C3F3C4C130002000084046D3B375C328C041388380100
+    json     = '{"_": "telegram","battery_y": 15.192646,"driver": "topaseskr2","flow_temperature_c": 11,"id": "88475766","media": "water","name": "W","status": "OK","target_datetime": "2026-02-28 23:59","target_m3": 13.888,"target_year_date": "2025-12-31","target_year_m3": 0.2,"timestamp": "1111-11-11T11:11:11Z","total_m3": 25.081}'
+    fields   = 'W;88475766;OK;25.081;1111-11-11 11:11.11'
+}
+test {
     comment  = 'Broken payload, decoding error in status and prev_date is null'
     args     = 'Smokey tsd2 91633569 NOKEY'
     telegram = 0C4468506935639176F0A0_019F

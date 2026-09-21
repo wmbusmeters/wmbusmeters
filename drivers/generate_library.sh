@@ -74,6 +74,7 @@ unit_c()
     case "$1" in
         s)        echo "Unit::Second" ;;
         h)        echo "Unit::Hour" ;;
+        y)        echo "Unit::Year" ;;
         date)     echo "Unit::DateLT" ;;
         datetime) echo "Unit::DateTimeLT" ;;
         "")       echo "" ;;

@@ -101,6 +101,17 @@ library {
             vif_range        = Voltage
         }
     }
+    template(id = battery_y)
+    {
+        name           = battery
+        quantity       = Time
+        info           = 'Remaining battery life in years.'
+        display_unit   = y
+        match {
+            measurement_type = Instantaneous
+            vif_range        = RemainingBattery
+        }
+    }
     template(id = fabrication_no)
     {
         name     = fabrication_no
