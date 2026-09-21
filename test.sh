@@ -101,6 +101,9 @@ if [ "$?" != "0" ]; then RC="1"; fi
 tests/test_shell_env.sh $PROG
 if [ "$?" != "0" ]; then RC="1"; fi
 
+tests/test_driver_in_shell.sh $PROG
+if [ "$?" != "0" ]; then RC="1"; fi
+
 tests/test_meterfiles.sh $PROG
 if [ "$?" != "0" ]; then RC="1"; fi
 

@@ -2647,6 +2647,7 @@ void MeterCommonImplementation::printMeter(Telegram *t,
     string json = docToString(doc, XMQ_CONTENT_JSON, false);
 
     envs->push_back(string("METER_JSON=")+json);
+    envs->push_back(string("METER_DRIVER=")+driverInfo()->getDynamicSource());
     envs->push_back(string("METER_MEDIA=")+media);
     envs->push_back(string("METER_TIMESTAMP=")+datetimeOfUpdateRobot());
     envs->push_back(string("METER_TIMESTAMP_UTC=")+datetimeOfUpdateRobot());
