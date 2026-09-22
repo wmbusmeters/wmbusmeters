@@ -45,6 +45,7 @@ Thanks Christoph!
 Karl Tremain found an important bug in the rtl_wmbus checker, it failed to detect that
 a T1 telegram had errors (the 3outof6 check number was not tested!) Thanks Karl!
 
+
 Version 3.0.0 2026-06-17
 Version 3.0.0-RC1 2026-06-17
 
