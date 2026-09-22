@@ -8033,11 +8033,20 @@ int xmqForeachRel(XMQDoc *doq, const char *xpath, XMQNodeCallback cb, void *user
 
     if (cb)
     {
-        for(int i = 0; i < size; i++)
+        try
         {
-            xmlNodePtr node = nodes->nodeTab[i];
-            XMQProceed proceed = cb(doq, (XMQNode*)node, user_data);
-            if (proceed == XMQ_STOP) break;
+            for(int i = 0; i < size; i++)
+            {
+                xmlNodePtr node = nodes->nodeTab[i];
+                XMQProceed proceed = cb(doq, (XMQNode*)node, user_data);
+                if (proceed == XMQ_STOP) break;
+            }
+        }
+        catch (...)
+        {
+            xmlXPathFreeObject(objects);
+            xmlXPathFreeContext(ctx);
+            throw;
         }
     }
 
