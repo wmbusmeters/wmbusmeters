@@ -767,6 +767,11 @@ void handleAlarmShell(Configuration *c, string cmdline)
     c->alarm_shells.push_back(cmdline);
 }
 
+void handleRawShell(Configuration *c, string cmdline)
+{
+    c->raw_shells.push_back(cmdline);
+}
+
 void handleExtraConstantField(Configuration *c, string field)
 {
     c->extra_constant_fields.push_back(field);
@@ -850,6 +855,7 @@ shared_ptr<Configuration> loadConfiguration(string root, ConfigOverrides overrid
         else if (p.first == "resetafter") handleResetAfter(c, p.second);
         else if (p.first == "metershell") handleMeterShell(c, p.second);
         else if (p.first == "alarmshell") handleAlarmShell(c, p.second);
+        else if (p.first == "rawshell") handleRawShell(c, p.second);
         else if (startsWith(p.first, "json_") ||
                  startsWith(p.first, "field_"))
         {

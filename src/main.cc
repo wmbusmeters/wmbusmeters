@@ -697,6 +697,33 @@ bool start(Configuration *config)
         }
     }
 
+    if (config->raw_shells.size() > 0)
+    {
+        // Invoke the rawshells for every received telegram, also for telegrams
+        // from meters that are not configured or that cannot be decrypted.
+        vector<string> raw_shells = config->raw_shells;
+        meter_manager_->onTelegram([raw_shells](AboutTelegram &about, vector<uchar> frame) {
+                // Grab the hex before parsing the header, the frame is passed by reference.
+                string hex = bin2hex(frame);
+                Telegram t;
+                t.about = about;
+                t.parseHeader(frame);
+                vector<string> envs;
+                envs.push_back("TELEGRAM_HEX="+hex);
+                envs.push_back("TELEGRAM_ID="+bin2hex(t.dll_id));
+                envs.push_back("TELEGRAM_DEVICE="+about.device);
+                envs.push_back("TELEGRAM_RSSI_DBM="+to_string(about.rssi_dbm));
+                for (auto &s : raw_shells)
+                {
+                    vector<string> args;
+                    args.push_back("-c");
+                    args.push_back(s);
+                    invokeShell("/bin/sh", args, envs);
+                }
+                return true;
+            });
+    }
+
     bus_manager_->runAnySimulations();
 
     // Queue any command line send bus contents.
