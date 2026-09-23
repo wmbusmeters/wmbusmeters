@@ -1099,3 +1099,10 @@ https://oms-group.org/
 There is also a lot of wmbus protocol implementation details that
 are missing. They will be added to the program as we figure out
 how the meters send their data.
+
+## Documentation
+
+Architecture decisions are recorded in
+[docs/adr/](docs/adr/0001-architecture-decision-records.md) and
+mermaid views of the current architecture live in
+[docs/architecture/](docs/architecture/README.md).
