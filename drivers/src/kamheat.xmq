@@ -37,6 +37,8 @@ driver {
         // 603
         mvt = KAM,35,0c
         // 603
+        mvt = KAM,35,0d
+        // 603 heat&cool
         mvt = KAM,39,04
         // 803
     }
@@ -128,7 +130,7 @@ driver {
                     test  = Set
                 }
                 map {
-                    name  = RESERVED_BIT_10
+                    name  = V1_SIGNAL_TOO_LOW
                     value = 0x00000400
                     test  = Set
                 }
@@ -208,7 +210,7 @@ driver {
                     test  = Set
                 }
                 map {
-                    name  = RESERVED_BIT_26
+                    name  = V2_SIGNAL_TOO_LOW
                     value = 0x04000000
                     test  = Set
                 }
@@ -542,6 +544,97 @@ driver {
             }
         }
         field {
+            name     = total_energy_cooling
+            quantity = Energy
+            change   = Increasing
+            info     = 'The cooling energy E3 of a combined heat and cooling meter (63/E3 HC).'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = AnyEnergyVIF
+                add_combinable   = Mfct02
+            }
+        }
+        field {
+            name     = target_energy_cooling
+            quantity = Energy
+            info     = 'The cooling energy E3 of a combined heat and cooling meter at the set date.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = AnyEnergyVIF
+                add_combinable   = Mfct02
+                storage_nr       = 1
+            }
+        }
+        field {
+            name         = target_forward_energy
+            quantity     = Energy
+            info         = 'The forward energy E8 at the set date.'
+            vif_scaling  = None
+            display_unit = m3c
+            match {
+                difvifkey = 44FF07
+            }
+        }
+        field {
+            name         = target_return_energy
+            quantity     = Energy
+            info         = 'The return energy E9 at the set date.'
+            vif_scaling  = None
+            display_unit = m3c
+            match {
+                difvifkey = 44FF08
+            }
+        }
+        field {
+            name     = target_max_power
+            quantity = Power
+            info     = 'The maximum power at the set date.'
+            match {
+                measurement_type = Maximum
+                vif_range        = AnyPowerVIF
+                storage_nr       = 1
+            }
+        }
+        field {
+            name     = target_max_flow
+            quantity = Flow
+            info     = 'The maximum flow at the set date.'
+            match {
+                measurement_type = Maximum
+                vif_range        = VolumeFlow
+                storage_nr       = 1
+            }
+        }
+        field {
+            name            = meter_type
+            quantity        = Text
+            info            = 'Kamstrup meter type and variant, e.g. 1B02 = MULTICAL 603 heat/cooling.'
+            readable_string = Normal
+            match {
+                difvifkey = 02FF1A
+            }
+        }
+        field {
+            name         = module_type_config
+            quantity     = Dimensionless
+            info         = 'M-Bus module type, configuration and datagram profile, e.g. 2000101.'
+            vif_scaling  = None
+            display_unit = nr
+            match {
+                difvifkey = 04FF16
+            }
+        }
+        field {
+            name         = module_software
+            quantity     = Dimensionless
+            info         = 'M-Bus module software number and revision.'
+            vif_scaling  = None
+            display_unit = nr
+            match {
+                difvifkey = 04FF17
+            }
+        }
+        field {
             name     = target_energy
             quantity = Energy
             info     = 'The energy consumption recorded by this meter at the set date (11/60/Heat energy E1/026C).'
@@ -711,25 +804,25 @@ driver {
         test {
             args     = 'Kamstrup_MC603_mbus kamheat 32323232 NOKEY'
             telegram = 68c9c96808e672323232322d2c35041900000004fB006083000004ff074006010004ff08299400000416984e010084401400000000848040140000000004225043000034221c0000000259c91f025d4f1102617a0e042e30020000142e65030000043c24050000143ce308000004ff2200000000046d2e2B0f3144fB00007d000044ff07Bdf9000044ff08308d00004416B73f0100c4401400000000c480401400000000542ed9020000543ce8090000426c013102ff1a011B0c783032858404ff16e5841e0004ff17c1d5B400a516
-            json     = '{"_":"telegram","fabrication_no": "84853230",  "flow_return_temperature_difference_c": 37.06,  "forward_energy_m3c": 67136,  "id": "32323232",  "max_flow_m3h": 22.75,  "max_power_kw": 869,  "media": "heat",  "driver": "kamheat",  "meter_datetime": "2024-01-15 11:46",  "name": "Kamstrup_MC603_mbus",  "on_time_at_error_h": 28,  "on_time_h": 17232,  "power_kw": 560,  "return_energy_m3c": 37929,  "status": "OK",  "t1_temperature_c": 81.37,  "t2_temperature_c": 44.31,  "target_date": "2024-01-01",  "target_energy_kwh": 3200000,  "target_volume_m3": 81847,  "timestamp": "1111-11-11T11:11:11Z",  "total_energy_consumption_kwh": 3363200,  "total_volume_m3": 85656,  "volume_flow_m3h": 13.16,"target_volume_subunit1_m3": 0,"target_volume_subunit2_m3": 0,"total_volume_subunit1_m3": 0,"total_volume_subunit2_m3": 0}'
+            json     = '{"_":"telegram","fabrication_no": "84853230",  "flow_return_temperature_difference_c": 37.06,  "forward_energy_m3c": 67136,  "id": "32323232",  "max_flow_m3h": 22.75,  "max_power_kw": 869,  "media": "heat",  "driver": "kamheat",  "meter_datetime": "2024-01-15 11:46",  "name": "Kamstrup_MC603_mbus",  "on_time_at_error_h": 28,  "on_time_h": 17232,  "power_kw": 560,  "return_energy_m3c": 37929,  "status": "OK",  "t1_temperature_c": 81.37,  "t2_temperature_c": 44.31,  "target_date": "2024-01-01",  "target_energy_kwh": 3200000,  "target_volume_m3": 81847,  "timestamp": "1111-11-11T11:11:11Z",  "total_energy_consumption_kwh": 3363200,  "total_volume_m3": 85656,  "volume_flow_m3h": 13.16,"target_volume_subunit1_m3": 0,"target_volume_subunit2_m3": 0,"total_volume_subunit1_m3": 0,"total_volume_subunit2_m3": 0,"meter_type": "1B01","module_software_nr": 11851201,"module_type_config_nr": 2000101,"target_forward_energy_m3c": 63933,"target_max_flow_m3h": 25.36,"target_max_power_kw": 729,"target_return_energy_m3c": 36144}'
             fields   = 'Kamstrup_MC603_mbus;32323232;3363200;85656;OK;1111-11-11 11:11.11'
         }
         test {
             args     = 'KMHEAT kamheat 85412440 NOKEY'
             telegram = 5e442d2c4024418535047ae10050252f2f04fB091300000004167500000004ff2200000000043ca301000002599c1d025dB00e844014000000008480401400000000042eB9000000026c0534426c013444fB0900000000543c000000002f2f
-            json     = '{"_":"telegram","id": "85412440","media": "heat","driver": "kamheat","meter_date": "2024-04-05","name": "KMHEAT","power_kw": 185,"status": "OK","t1_temperature_c": 75.8,"t2_temperature_c": 37.6,"target_date": "2024-04-01","target_energy_kwh": 0,"timestamp": "1111-11-11T11:11:11Z","total_energy_consumption_kwh": 5277.777778,"total_volume_m3": 117,"volume_flow_m3h": 4.19,"total_volume_subunit1_m3": 0,"total_volume_subunit2_m3": 0}'
+            json     = '{"_":"telegram","id": "85412440","media": "heat","driver": "kamheat","meter_date": "2024-04-05","name": "KMHEAT","power_kw": 185,"status": "OK","t1_temperature_c": 75.8,"t2_temperature_c": 37.6,"target_date": "2024-04-01","target_energy_kwh": 0,"timestamp": "1111-11-11T11:11:11Z","total_energy_consumption_kwh": 5277.777778,"total_volume_m3": 117,"volume_flow_m3h": 4.19,"total_volume_subunit1_m3": 0,"total_volume_subunit2_m3": 0,"target_max_flow_m3h": 0}'
             fields   = 'KMHEAT;85412440;5277.777778;117;OK;1111-11-11 11:11.11'
         }
         test {
             args     = 'KM2 kamheat 85007420 NOKEY'
             telegram = 689f9f68081472207400852d2c350cad00000004fb08c304000004ff07f21c000004ff084d1100000415fe29000084401400000000848040140000000004228829000034220a00000002598511025dab100261da00042d00000000142d08000000043b00000000143b6000000004ff2200000000046d0d2c0238542dc9010000543be1050000426c013102ff1a011b0c782074008504ff16850b200004ff17c9ff0e01cb16
-            json     = '{"_":"telegram","fabrication_no": "85007420","flow_return_temperature_difference_c": 2.18,"forward_energy_m3c": 7410,"id": "85007420","max_flow_m3h": 0.096,"max_power_kw": 0.8,"media": "heat volume at inlet","driver": "kamheat","meter_datetime": "2024-08-02 12:13","name": "KM2","on_time_at_error_h": 10,"on_time_h": 10632,"power_kw": 0,"return_energy_m3c": 4429,"status": "OK","t1_temperature_c": 44.85,"t2_temperature_c": 42.67,"target_date": "2024-01-01","timestamp": "1111-11-11T11:11:11Z","total_energy_consumption_kwh": 33861.111111,"total_volume_m3": 1075,"volume_flow_m3h": 0,"total_volume_subunit1_m3": 0,"total_volume_subunit2_m3": 0}'
+            json     = '{"_":"telegram","fabrication_no": "85007420","flow_return_temperature_difference_c": 2.18,"forward_energy_m3c": 7410,"id": "85007420","max_flow_m3h": 0.096,"max_power_kw": 0.8,"media": "heat volume at inlet","driver": "kamheat","meter_datetime": "2024-08-02 12:13","name": "KM2","on_time_at_error_h": 10,"on_time_h": 10632,"power_kw": 0,"return_energy_m3c": 4429,"status": "OK","t1_temperature_c": 44.85,"t2_temperature_c": 42.67,"target_date": "2024-01-01","timestamp": "1111-11-11T11:11:11Z","total_energy_consumption_kwh": 33861.111111,"total_volume_m3": 1075,"volume_flow_m3h": 0,"total_volume_subunit1_m3": 0,"total_volume_subunit2_m3": 0,"meter_type": "1B01","module_software_nr": 17760201,"module_type_config_nr": 2100101,"target_max_flow_m3h": 1.505,"target_max_power_kw": 45.7}'
             fields   = 'KM2;85007420;33861.111111;1075;OK;1111-11-11 11:11.11'
         }
         test {
             args     = 'Kamstrup_MC303_Heat_AND_COOLING kamheat 30303030 NOKEY'
             telegram = 68888868083072303030302d2c400d0000000004069a00000004863c0000000004146d0f000004ff077205000004ff08ec0400000322890a0033220000000259720b025d040b02616e00022d0e00122db400023b6804123b7a0402ff22000044060000000044863c0000000044140000000044ff070000000044ff0800000000522d0000523b0000426c00006C16
-            json     = '{"_":"telegram","media":"heat/cooling load","driver":"kamheat","name":"Kamstrup_MC303_Heat_AND_COOLING","id":"30303030","flow_return_temperature_difference_c":1.1,"forward_energy_m3c":1394,"max_flow_m3h":1.146,"max_power_kw":18,"on_time_h":2697,"on_time_at_error_h":0,"power_kw":1.4,"return_energy_m3c":1260,"t1_temperature_c":29.3,"t2_temperature_c":28.2,"target_energy_kwh":0,"target_volume_m3":0,"total_energy_backward_kwh":0,"total_energy_consumption_kwh":154,"total_volume_m3":39.49,"volume_flow_m3h":1.128,"status":"OK","target_date":"1999-11-30","target_energy_backward_kwh":0,"timestamp":"1111-11-11T11:11:11Z"}'
+            json     = '{"_":"telegram","media":"heat/cooling load","driver":"kamheat","name":"Kamstrup_MC303_Heat_AND_COOLING","id":"30303030","flow_return_temperature_difference_c":1.1,"forward_energy_m3c":1394,"max_flow_m3h":1.146,"max_power_kw":18,"on_time_h":2697,"on_time_at_error_h":0,"power_kw":1.4,"return_energy_m3c":1260,"t1_temperature_c":29.3,"t2_temperature_c":28.2,"target_energy_kwh":0,"target_volume_m3":0,"total_energy_backward_kwh":0,"total_energy_consumption_kwh":154,"total_volume_m3":39.49,"volume_flow_m3h":1.128,"status":"OK","target_date":"1999-11-30","target_energy_backward_kwh":0,"timestamp":"1111-11-11T11:11:11Z","target_forward_energy_m3c": 0,"target_max_flow_m3h": 0,"target_max_power_kw": 0,"target_return_energy_m3c": 0}'
             fields   = 'Kamstrup_MC303_Heat_AND_COOLING;30303030;154;39.49;OK;1111-11-11 11:11.11'
         }
         test {
@@ -787,6 +880,13 @@ driver {
             telegram = 5B442D2C7764807939048D20870055322006F779A2E76FFD000000000000000000000000000000000000000000000000000000000000000000000000000000000000000060000100892B00000000000000000000000000000000812B
             json     = '{"_":"telegram","media":"heat","driver":"kamheat","name":"kamheat_39_04","id":"79806477","forward_energy_m3c":0,"max_power_kw":0,"return_energy_m3c":0,"t1_temperature_c":0,"t2_temperature_c":0,"target_date":"2020-11-01","target_energy_kwh":0,"target_volume_m3":0,"target_volume_subunit1_m3":0,"target_volume_subunit2_m3":0,"total_energy_consumption_kwh":0,"total_volume_m3":0,"total_volume_subunit1_m3":0,"total_volume_subunit2_m3":0,"volume_flow_m3h":0,"meter_date":"2020-11-09","status":"SENSOR_T1_BELOW_MEASURING_RANGE SENSOR_T2_BELOW_MEASURING_RANGE V1_COMMUNICATION_ERROR","timestamp":"1111-11-11T11:11:11Z"}'
             fields   = 'kamheat_39_04;79806477;0;0;SENSOR_T1_BELOW_MEASURING_RANGE SENSOR_T2_BELOW_MEASURING_RANGE V1_COMMUNICATION_ERROR;1111-11-11 11:11.11'
+        }
+        test {
+            comment  = 'KAM,35,0d - MC603 heat/cooling over wired M-Bus, cooling energy E3 as 8F FF 02'
+            args     = 'MC603_heat_cool kamheat 11223344 NOKEY'
+            telegram = 68d7d768082a72443322112d2c350d07000000040f26af0000048fff020000000004ff07b27a020004ff0860d60000041448df020084401400000000848040140000000004227943000034222fb9000002594813025d05090261430a042d40000000142d31000000043bd3000000143ba400000004ff2200000000046d30294739440f14ae0000448fff020000000044ff07c975020044ff0807d40000441483d50200c4401400000000c480401400000000542d31000000543ba4000000426c413902ff1a021b0c784433221104ff16e6841e0004ff172d000f010616
+            json     = '{"_":"telegram","driver":"kamheat","fabrication_no":"11223344","flow_return_temperature_difference_c":26.27,"forward_energy_m3c":162482,"id":"11223344","max_flow_m3h":0.164,"max_power_kw":4.9,"media":"heat/cooling load","meter_datetime":"2026-09-07 09:48","meter_type":"1B02","module_software_nr":17760301,"module_type_config_nr":2000102,"name":"MC603_heat_cool","on_time_at_error_h":47407,"on_time_h":17273,"power_kw":6.4,"return_energy_m3c":54880,"status":"OK","t1_temperature_c":49.36,"t2_temperature_c":23.09,"target_date":"2026-09-01","target_energy_cooling_kwh":0,"target_energy_kwh":123788.888889,"target_forward_energy_m3c":161225,"target_max_flow_m3h":0.164,"target_max_power_kw":4.9,"target_return_energy_m3c":54279,"target_volume_m3":1857.31,"target_volume_subunit1_m3":0,"target_volume_subunit2_m3":0,"timestamp":"1111-11-11T11:11:11Z","total_energy_consumption_kwh":124550,"total_energy_cooling_kwh":0,"total_volume_m3":1882.32,"total_volume_subunit1_m3":0,"total_volume_subunit2_m3":0,"volume_flow_m3h":0.211}'
+            fields   = 'MC603_heat_cool;11223344;124550;1882.32;OK;1111-11-11 11:11.11'
         }
         test {
             comment  = 'KAM,1c,04 - Long Telegram'
