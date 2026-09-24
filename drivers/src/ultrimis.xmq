@@ -12,6 +12,7 @@ driver {
             name     = total
             quantity = Volume
             info     = 'The total water consumption recorded by this meter.'
+            change   = Increasing
             match {
                 measurement_type = Instantaneous
                 vif_range        = Volume
@@ -21,6 +22,7 @@ driver {
             name     = target
             quantity = Volume
             info     = 'The total water consumption recorded at the beginning of this month.'
+            change   = Increasing
             match {
                 measurement_type = Instantaneous
                 vif_range        = Volume
@@ -85,6 +87,7 @@ driver {
             name           = total_backward_flow
             quantity       = Volume
             info           = 'The total backward water volume recorded by this meter.'
+            change         = Increasing
             vif_scaling    = Auto
             dif_signedness = Signed
             match {
