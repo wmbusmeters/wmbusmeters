@@ -87,6 +87,7 @@ bool MeterCommonImplementation::addOptionalLibraryFields(string field_names)
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::HeatCostAllocation)
             .set(StorageNr(1))            );
+        lastAddedField()->setChange(Change::Increasing);
         markLastFieldAsLibrary();
     }
 
@@ -535,6 +536,7 @@ bool MeterCommonImplementation::addOptionalLibraryFields(string field_names)
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::AnyEnergyVIF)
             .set(StorageNr(1))            );
+        lastAddedField()->setChange(Change::Increasing);
         markLastFieldAsLibrary();
     }
 
@@ -551,6 +553,7 @@ bool MeterCommonImplementation::addOptionalLibraryFields(string field_names)
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::Volume)
             .set(StorageNr(1))            );
+        lastAddedField()->setChange(Change::Increasing);
         markLastFieldAsLibrary();
     }
 
