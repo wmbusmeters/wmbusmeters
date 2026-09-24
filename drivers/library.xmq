@@ -45,6 +45,7 @@ library {
         name     = target
         quantity = Volume
         info     = 'The {water} volume recorded at the last billing date.'
+        change   = Increasing
         match {
             measurement_type = Instantaneous
             vif_range        = Volume
@@ -56,6 +57,7 @@ library {
         name     = target
         quantity = Energy
         info     = 'The {water} energy recorded at the last billing date.'
+        change   = Increasing
         match {
             measurement_type = Instantaneous
             vif_range        = AnyEnergyVIF
@@ -386,6 +388,7 @@ library {
         name     = target
         quantity = HCA
         info     = 'The heat cost allocation recorded by this meter at the target date.'
+        change   = Increasing
         match {
             measurement_type = Instantaneous
             vif_range        = HeatCostAllocation
