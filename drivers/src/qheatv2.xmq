@@ -417,11 +417,18 @@ driver {
             fields   = 'HeatEnc55;67918447;MISSING_KEY;null;1111-11-11 11:11.11'
         }
         test {
+            comment  = 'Q heat 5.5 behind a radio converter: the walk-by block must be decrypted with the meter identity from the 0779 record (type 04), not with the dll address of the converter (type 37). Telegram and key from issue #2100, the meter display shows 5 kWh.'
+            args     = 'QHeat55w qheatv2 68750153 CA7972242CA575C50CEB38FAD70AD169'
+            telegram = 58449344530175683F377807795301756893443F040DFF5F3500822C003555280D40FBA8998C9FE06BD8CD6796ED62F9C8B2CAE1A80D6166007C446865E9502913B1DC1EE820986D102033CE54B902FD170000046D22105639
+            json     = '{"_":"telegram","driver":"qheatv2","energy_delta_10_kwh":-32768,"energy_delta_11_kwh":0,"energy_delta_12_kwh":2,"energy_delta_13_kwh":1,"energy_delta_2_kwh":-32768,"energy_delta_3_kwh":-32768,"energy_delta_4_kwh":-32768,"energy_delta_5_kwh":-32768,"energy_delta_6_kwh":-32768,"energy_delta_7_kwh":-32768,"energy_delta_8_kwh":-32768,"energy_delta_9_kwh":-32768,"enhanced_id":"043F449368750153","id":"68750153","media":"radio converter (meter side)","meter_datetime":"2026-09-22 16:34","name":"QHeat55w","status":"OK","target_date":"2026-08-31","target_kwh":3,"target_year_date":null,"target_year_kwh":0,"timestamp":"1111-11-11T11:11:11Z","total_kwh":5}'
+            fields   = 'QHeat55w;68750153;OK;5;1111-11-11 11:11.11'
+        }
+        test {
             args     = 'RealKeyHeat qheatv2 68369440 31E7AEDAE4B659172F4D4ED99DD7AA52'
-            comment  = 'Real encrypted Q Heat 5.5 walk-by block with the real key that the meter owner published in issue #1497, module version 0x3f: proves the AES path end-to-end with genuine key material. The fail-closed counterpart without a key is covered by HeatEnc55.'
+            comment  = 'Real encrypted Q Heat 5.5 walk-by block with the real key that the meter owner published in issue #1497, module version 0x3f: proves the AES path end-to-end with genuine key material. The fail-closed counterpart without a key is covered by HeatEnc55. The expected total was 3052 until the walk-by IV was built from the meter identity instead of the converter address, which changes exactly the low byte of the total.'
             telegram = 58449344409436683F377807794094366893443F040DFF5F350082110035D3B5EA13344D42345FD6C9B468DC8A7FC0A56DCECD9861481F7C87A367564D55E1576B5A9B00E00CF10466C038D6393902FD170000046D00135832
-            json     = '{"_":"telegram","driver":"qheatv2","energy_delta_10_kwh":364,"energy_delta_11_kwh":370,"energy_delta_12_kwh":354,"energy_delta_13_kwh":334,"energy_delta_2_kwh":-32768,"energy_delta_3_kwh":-32768,"energy_delta_4_kwh":-32768,"energy_delta_5_kwh":0,"energy_delta_6_kwh":0,"energy_delta_7_kwh":517,"energy_delta_8_kwh":457,"energy_delta_9_kwh":375,"enhanced_id":"043F449368369440","id":"68369440","media":"radio converter (meter side)","meter_datetime":"2026-02-24 19:00","name":"RealKeyHeat","status":"OK","target_date":"2026-01-31","target_kwh":2771,"target_year_date":"2025-12-31","target_year_kwh":2437,"timestamp":"1111-11-11T11:11:11Z","total_kwh":3052}'
-            fields   = 'RealKeyHeat;68369440;OK;3052;1111-11-11 11:11.11'
+            json     = '{"_":"telegram","driver":"qheatv2","energy_delta_10_kwh":364,"energy_delta_11_kwh":370,"energy_delta_12_kwh":354,"energy_delta_13_kwh":334,"energy_delta_2_kwh":-32768,"energy_delta_3_kwh":-32768,"energy_delta_4_kwh":-32768,"energy_delta_5_kwh":0,"energy_delta_6_kwh":0,"energy_delta_7_kwh":517,"energy_delta_8_kwh":457,"energy_delta_9_kwh":375,"enhanced_id":"043F449368369440","id":"68369440","media":"radio converter (meter side)","meter_datetime":"2026-02-24 19:00","name":"RealKeyHeat","status":"OK","target_date":"2026-01-31","target_kwh":2771,"target_year_date":"2025-12-31","target_year_kwh":2437,"timestamp":"1111-11-11T11:11:11Z","total_kwh":3061}'
+            fields   = 'RealKeyHeat;68369440;OK;3061;1111-11-11 11:11.11'
         }
     }
 }
