@@ -509,6 +509,9 @@ As {options} you can use:
     --overridedevice=<device> override device in config files. Use only in combination with --useconfig= option
     --ppjson pretty print the json
     --pollinterval=<time> time between polling of meters, must be set to get polling.
+    --rawshell=<cmdline> invokes cmdline for every received telegram, also from unconfigured meters,
+                         with env variables TELEGRAM_ID, TELEGRAM_HEX (as received, not decrypted),
+                         TELEGRAM_DEVICE and TELEGRAM_RSSI_DBM
     --resetafter=<time> reset the wmbus dongle regularly, default is 23h
     --selectfields=id,timestamp,total_m3 select only these fields to be printed (--listfields=<meter> to list available fields)
     --separator=<c> change field separator to c

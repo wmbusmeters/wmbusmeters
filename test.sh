@@ -101,6 +101,9 @@ if [ "$?" != "0" ]; then RC="1"; fi
 tests/test_shell2.sh $PROG
 if [ "$?" != "0" ]; then RC="1"; fi
 
+tests/test_rawshell.sh $PROG
+if [ "$?" != "0" ]; then RC="1"; fi
+
 tests/test_shell_env.sh $PROG
 if [ "$?" != "0" ]; then RC="1"; fi
 
