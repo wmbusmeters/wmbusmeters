@@ -2210,6 +2210,13 @@ test {
     fields   = 'MyElectricity7;11223344;2469.595;0.259;0;0;230;230;230;null;null;null;null;null;null;1111-11-11 11:11.11'
 }
 test {
+    args     = 'GCAL sensostar 45457891 NOKEY'
+    comment  = 'This meter has been configured with a manufacturer specific giga calorie value field.'
+    telegram = 5944C5149178454500047A100040252F2F_046D11334F3904FB0DE70C000001FD170004130DAB0600043B00000000042B00000000025B1B00025F1B000261F3FF2F2F2F2F2F2F2F2F2F2F2F2F2F2F2F03FD0C05000002FD0B1011
+    json     = '{"_": "telegram","difference_c": -0.13,"driver": "sensostar","flow_water_m3h": 0,"forward_c": 27,"id": "45457891","media": "heat","meter_datetime": "2026-09-15 19:17","model_version": "000005","name": "GCAL","parameter_set": "1110","power_kw": 0,"return_c": 27,"status": "OK","timestamp": "1111-11-11T11:11:11Z","total_kwh": 3841.389,"total_water_m3": 437.005}'
+    fields   = 'GCAL;45457891;OK;3841.389;437.005;null;null;1111-11-11 11:11.11'
+}
+test {
     args     = 'XYZ sensostar 21750444 NOKEY'
     telegram = 4944C5144404752100047AC10000202F2F046D142D073404068847000001FD170004138E8A4000043BF7FFFFFF042B00000000025B3E00025F360002612F0303FD0C05010002FD0B2011
     json     = '{"_":"telegram","difference_c": 8.15,"flow_water_m3h": -0.009,"forward_c": 62,"id": "21750444","media": "heat","driver": "sensostar","meter_datetime": "2024-04-07 13:20","model_version": "000105","name": "XYZ","parameter_set": "1120","power_kw": 0,"return_c": 54,"status": "OK","timestamp": "1111-11-11T11:11:11Z","total_kwh": 18312,"total_water_m3": 4229.774}'

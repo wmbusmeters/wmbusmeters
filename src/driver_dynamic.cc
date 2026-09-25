@@ -54,7 +54,7 @@ string get_translation(XMQDoc *doc, XMQNode *node, string name, string lang);
 string check_calculate(const char *formula, DriverDynamic *dd);
 Unit check_display_unit(const char *display_unit, DriverDynamic *dd);
 double check_force_scale(const char *force_scale, DriverDynamic *dd);
-Unit check_force_unit(const char *force_unit, DriverDynamic *dd);
+Unit check_override_vif_unit(const char *override_vif_unit, DriverDynamic *dd);
 
 bool checked_set_difvifkey(const char *difvifkey_s, FieldMatcher *fm, DriverDynamic *dd);
 void checked_set_measurement_type(const char *measurement_type_s, FieldMatcher *fm, DriverDynamic *dd);
@@ -397,7 +397,7 @@ XMQProceed DriverDynamic::add_field(XMQDoc *doc, XMQNode *field, DriverDynamic *
 
     // The vif scaling is by default Auto but can be set to None for pesky fields.
     // Then the correct value can be calculated using a formula or with a force_scale.
-    // Also setting force_unit with change vif_scaling to None.
+    // Also setting override_vif_unit with change vif_scaling to None.
     VifScaling vif_scaling = check_vif_scaling(xmqGetStringRel(doc, "vif_scaling", field), dd);
 
     // The dif signedness is by default Signed but can be overriden for pesky fields.
@@ -427,9 +427,9 @@ XMQProceed DriverDynamic::add_field(XMQDoc *doc, XMQNode *field, DriverDynamic *
 
     // A field can force a unit to the found value. Normally the VIF is used to figure
     // out the unit, but if a meter uses a mfct specific unit we might need to override.
-    Unit force_unit = check_force_unit(xmqGetStringRel(doc, "force_unit", field), dd);
+    Unit override_vif_unit = check_override_vif_unit(xmqGetStringRel(doc, "override_vif_unit", field), dd);
 
-    if (force_unit != Unit::Unknown)
+    if (override_vif_unit != Unit::Unknown)
     {
         vif_scaling = VifScaling::None;
     }
@@ -543,7 +543,7 @@ XMQProceed DriverDynamic::add_field(XMQDoc *doc, XMQNode *field, DriverDynamic *
                 match,
                 display_unit,
                 force_scale,
-                force_unit
+                override_vif_unit
                 );
             if (has_null_value)
             {
@@ -1265,21 +1265,21 @@ double check_force_scale(const char *force_scale, DriverDynamic *dd)
     return d;
 }
 
-Unit check_force_unit(const char *force_unit_s, DriverDynamic *dd)
+Unit check_override_vif_unit(const char *override_vif_unit_s, DriverDynamic *dd)
 {
-    if (!force_unit_s)
+    if (!override_vif_unit_s)
     {
         return Unit::Unknown;
     }
 
-    Unit u = toUnit(force_unit_s);
+    Unit u = toUnit(override_vif_unit_s);
     if (u == Unit::Unknown)
     {
-        warning("(driver) error in %s, unknown force unit: %s\n"
+        warning("(driver) error in %s, unknown override vif unit: %s\n"
                 "Available units:\n"
                 "%s\n",
                 dd->fileName().c_str(),
-                force_unit_s,
+                override_vif_unit_s,
                 availableUnits());
         throw 1;
     }

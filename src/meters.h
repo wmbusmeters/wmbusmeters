@@ -300,7 +300,7 @@ struct FieldInfo
               std::string vname,
               Quantity quantity,
               Unit display_unit,
-              Unit force_unit,
+              Unit override_vif_unit,
               VifScaling vif_scaling,
               DifSignedness dif_signedness,
               double scale,
@@ -320,7 +320,7 @@ struct FieldInfo
     std::string vname() { return vname_; }
     Quantity xuantity() { return xuantity_; }
     Unit displayUnit() { return display_unit_; }
-    Unit forceUnit() { return force_unit_; }
+    Unit overrideVifUnit() { return override_vif_unit_; }
     VifScaling vifScaling() { return vif_scaling_; }
     DifSignedness difSignedness() { return dif_signedness_; }
     double scale() { return scale_; }
@@ -390,7 +390,7 @@ private:
     Quantity xuantity_; // Quantity: Energy, Volume
     Change  change_ {}; // Instant, Net, Increasing defaults to Instant.
     Unit display_unit_; // Selected display unit for above quantity: KWH, M3
-    Unit force_unit_;   // Override the VIF-derived unit.
+    Unit override_vif_unit_;   // Override the VIF-derived unit.
     VifScaling vif_scaling_;
     DifSignedness dif_signedness_;
     double scale_; // A hardcoded scale factor. Used only for manufacturer specific values with unknown units for the vifs.

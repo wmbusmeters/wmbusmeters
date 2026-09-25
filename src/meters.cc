@@ -634,7 +634,7 @@ void MeterCommonImplementation::addNumericFieldWithExtractor(string vname,
                                                              FieldMatcher matcher,
                                                              Unit display_unit,
                                                              double scale,
-                                                             Unit force_unit)
+                                                             Unit override_vif_unit)
 {
     size_t index = num_driver_fields_++;
     field_infos_.emplace_back(
@@ -642,7 +642,7 @@ void MeterCommonImplementation::addNumericFieldWithExtractor(string vname,
                   vname,
                   vquantity,
                   display_unit == Unit::Unknown ? defaultUnitForQuantity(vquantity) : display_unit,
-                  force_unit,
+                  override_vif_unit,
                   vif_scaling,
                   dif_signedness,
                   scale,
@@ -2301,7 +2301,7 @@ FieldInfo::FieldInfo(int index,
                      string vname,
                      Quantity xuantity,
                      Unit display_unit,
-                     Unit force_unit,
+                     Unit override_vif_unit,
                      VifScaling vif_scaling,
                      DifSignedness dif_signedness,
                      double scale,
@@ -2320,7 +2320,7 @@ FieldInfo::FieldInfo(int index,
         vname_(vname),
         xuantity_(xuantity),
         display_unit_(display_unit),
-        force_unit_(force_unit),
+        override_vif_unit_(override_vif_unit),
         vif_scaling_(vif_scaling),
         dif_signedness_(dif_signedness),
         scale_(scale),
@@ -3084,7 +3084,9 @@ bool FieldInfo::extractNumeric(Meter *m, Telegram *t, DVEntry *dve)
 
     double extracted_double_value = NAN;
 
+    // Normally the vif describes the scale factor (Auto). This can be disabled (None).
     bool auto_vif_scaling = vifScaling() == VifScaling::Auto;
+    // Normally the data value is signed (Signed) but this can be override (Unsigned).
     bool force_unsigned = difSignedness() == DifSignedness::Unsigned;
 
     if (dve->extractDouble(&extracted_double_value, auto_vif_scaling, force_unsigned))
@@ -3128,6 +3130,14 @@ bool FieldInfo::extractNumeric(Meter *m, Telegram *t, DVEntry *dve)
         {
             // Pick the default unit for this range.
             decoded_unit = toDefaultUnit(matcher_.vif_range);
+        }
+
+        // Normally the vif unit is used. But for mfct specific vifs, we can override/force the vif unit.
+        Unit override_vif_unit = overrideVifUnit();
+
+        if (override_vif_unit != Unit::Unknown)
+        {
+            decoded_unit = override_vif_unit;
         }
 
         debug("(meter) %s %s decoded %s default %s value %g (scale %g)\n",
