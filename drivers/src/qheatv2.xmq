@@ -33,6 +33,7 @@ driver {
     library {
         use = meter_datetime
         use = enhanced_id
+        use = fabrication_no
     }
     fields {
         field {
@@ -429,6 +430,12 @@ driver {
             telegram = 58449344409436683F377807794094366893443F040DFF5F350082110035D3B5EA13344D42345FD6C9B468DC8A7FC0A56DCECD9861481F7C87A367564D55E1576B5A9B00E00CF10466C038D6393902FD170000046D00135832
             json     = '{"_":"telegram","driver":"qheatv2","energy_delta_10_kwh":364,"energy_delta_11_kwh":370,"energy_delta_12_kwh":354,"energy_delta_13_kwh":334,"energy_delta_2_kwh":-32768,"energy_delta_3_kwh":-32768,"energy_delta_4_kwh":-32768,"energy_delta_5_kwh":0,"energy_delta_6_kwh":0,"energy_delta_7_kwh":517,"energy_delta_8_kwh":457,"energy_delta_9_kwh":375,"enhanced_id":"043F449368369440","id":"68369440","media":"radio converter (meter side)","meter_datetime":"2026-02-24 19:00","name":"RealKeyHeat","status":"OK","target_date":"2026-01-31","target_kwh":2771,"target_year_date":"2025-12-31","target_year_kwh":2437,"timestamp":"1111-11-11T11:11:11Z","total_kwh":3061}'
             fields   = 'RealKeyHeat;68369440;OK;3061;1111-11-11 11:11.11'
+        }
+        test {
+            args     = 'QH qheatv2 67250945 NOKEY'
+            telegram = 2e4465B24509256723047aa20000000c05035612004c0520131100426c3f3c326cffff046d12014a330c7834980437
+            json     = '{"_": "telegram","fabrication_no": "37049834","id": "67250945","media": "heat","driver": "qheatv2","device_error_date": null,"meter_datetime": "2026-03-10 01:18","name": "QH","status": "OK","target_year_date": "2025-12-31","target_year_kwh": 11132,"timestamp": "1111-11-11T11:11:11Z","total_kwh": 12560.3}'
+            fields   = 'QH;67250945;OK;12560.3;1111-11-11 11:11.11'
         }
     }
 }

@@ -1,12 +1,10 @@
 // Copyright (C) 2017-2026 Fredrik Öhrström (gpl-3.0-or-later)
 driver {
     name           = ultrimis
+    deprecated_by  = ultrimisv2
     meter_type     = WaterMeter
     default_fields = name,id,total_m3,target_m3,current_status,total_backward_flow_m3,timestamp
     manufacturer   = Apator
-    detect {
-        mvt = APA,01,16
-    }
     fields {
         field {
             name     = total
@@ -93,20 +91,6 @@ driver {
             match {
                 difvifkey = 04933C
             }
-        }
-    }
-    tests {
-        test {
-            args     = 'Water ultrimis 95969798 NOKEY'
-            telegram = 2E4401069897969501167A4B0320052F2F_0413320C000003FD1700000044132109000004933C000000002F2F2F2F2F
-            json     = '{"_":"telegram","media":"cold water","driver":"ultrimis","name":"Water","id":"95969798","total_m3":3.122,"target_m3":2.337,"current_status":"OK","total_backward_flow_m3":0,"timestamp":"1111-11-11T11:11:11Z"}'
-            fields   = 'Water;95969798;3.122;2.337;OK;0;1111-11-11 11:11.11'
-        }
-        test {
-            args     = 'Water ultrimis 95969798 NOKEY'
-            telegram = 2E4401069897969501167A4B0320052F2F_0413320C000003FD1700000044132109000004933C000000002F2F2F2F2F
-            json     = '{"_":"telegram","media":"cold water","driver":"ultrimis","name":"Water","id":"95969798","total_m3":3.122,"target_m3":2.337,"current_status":"OK","total_backward_flow_m3":0,"timestamp":"1111-11-11T11:11:11Z"}'
-            fields   = 'Water;95969798;3.122;2.337;OK;0;1111-11-11 11:11.11'
         }
     }
 }
