@@ -1,0 +1,3 @@
+# Kamstrup security mode 10 (OMS security profile D) telegram with a valid
+# aes-ccm tag, decode proceeds without any warning.
+telegram=||4544372c060382533c16_8c20307a3010ff2a10018c570e006da7632471f42b0a3ceccd461353573ed02b87118bc5ffe982f7f00a0274543bc51938f8b9c8bb8928114d60788a|

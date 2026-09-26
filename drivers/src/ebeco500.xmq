@@ -6,7 +6,7 @@ driver {
     manufacturer   = Ebeco
     about          = 'Underfloor heating thermostat.'
     detect {
-        mvt = EBE,02,01
+        mvt = EBE,01,02
     }
     library {
         use = external_temperature_c

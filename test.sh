@@ -92,13 +92,22 @@ if [ "$?" != "0" ]; then RC="1"; fi
 tests/test_qwds_walkby_nokey.sh $PROG
 if [ "$?" != "0" ]; then RC="1"; fi
 
+tests/test_kamwater_ccm_tag.sh $PROG
+if [ "$?" != "0" ]; then RC="1"; fi
+
 tests/test_shell.sh $PROG
 if [ "$?" != "0" ]; then RC="1"; fi
 
 tests/test_shell2.sh $PROG
 if [ "$?" != "0" ]; then RC="1"; fi
 
+tests/test_rawshell.sh $PROG
+if [ "$?" != "0" ]; then RC="1"; fi
+
 tests/test_shell_env.sh $PROG
+if [ "$?" != "0" ]; then RC="1"; fi
+
+tests/test_driver_in_shell.sh $PROG
 if [ "$?" != "0" ]; then RC="1"; fi
 
 tests/test_meterfiles.sh $PROG

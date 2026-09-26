@@ -4067,12 +4067,12 @@ string vif_7D_SecondExtensionType(uchar dif, uchar vif, uchar vife)
         return "Date and time of battery change";
     }
 
-    if ((vife & 0x7f) >= 0x71) {
-        return "Reserved";
-    }
-
     if ((vife & 0x7f) == 0x74) {
         return "Remaining battery in days";
+    }
+
+    if ((vife & 0x7f) >= 0x71) {
+        return "Reserved";
     }
 
     return "?";

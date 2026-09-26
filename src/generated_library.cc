@@ -87,6 +87,7 @@ bool MeterCommonImplementation::addOptionalLibraryFields(string field_names)
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::HeatCostAllocation)
             .set(StorageNr(1))            );
+        lastAddedField()->setChange(Change::Increasing);
         markLastFieldAsLibrary();
     }
 
@@ -449,6 +450,23 @@ bool MeterCommonImplementation::addOptionalLibraryFields(string field_names)
         markLastFieldAsLibrary();
     }
 
+    if (checkIf(fields,"battery_y"))
+    {
+        addNumericFieldWithExtractor(
+            "battery",
+            "Remaining battery life in years."+help,
+            DEFAULT_PRINT_PROPERTIES,
+            Quantity::Time,
+            VifScaling::Auto,
+            DifSignedness::Signed,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(VIFRange::RemainingBattery),
+            Unit::Year
+            );
+        markLastFieldAsLibrary();
+    }
+
     if (checkIf(fields,"battery_v"))
     {
         addNumericFieldWithExtractor(
@@ -518,6 +536,7 @@ bool MeterCommonImplementation::addOptionalLibraryFields(string field_names)
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::AnyEnergyVIF)
             .set(StorageNr(1))            );
+        lastAddedField()->setChange(Change::Increasing);
         markLastFieldAsLibrary();
     }
 
@@ -534,6 +553,7 @@ bool MeterCommonImplementation::addOptionalLibraryFields(string field_names)
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::Volume)
             .set(StorageNr(1))            );
+        lastAddedField()->setChange(Change::Increasing);
         markLastFieldAsLibrary();
     }
 

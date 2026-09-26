@@ -151,6 +151,7 @@ driver {
             name      = total
             quantity  = Volume
             info      = 'The total water consumption recorded by this meter.'
+            change    = Increasing
             calculate = '((((packed_total_raw_counter >> 8counter) * 16counter) + (packed_total_raw_counter % 16counter)) * packed_total_multiplier_counter / 1000counter) * 1m3'
         }
         field {
@@ -175,6 +176,7 @@ driver {
             name      = historic
             quantity  = Volume
             info      = 'The last historical water consumption recorded by this meter.'
+            change    = Increasing
             calculate = 'total_m3 - (((((historic_delta_b2_raw_counter << 18counter) +
                          (historic_delta_b1_raw_counter << 10counter) +
                          (historic_delta_b0_raw_counter << 2counter) +

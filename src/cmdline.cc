@@ -609,6 +609,15 @@ static shared_ptr<Configuration> parseNormalCommandLine(Configuration *c, int ar
             i++;
             continue;
         }
+        if (!strncmp(argv[i], "--rawshell=", 11)) {
+            string cmd = string(argv[i]+11);
+            if (cmd == "") {
+                error(EXIT_USAGE_ERROR, "The raw shell command cannot be empty.\n");
+            }
+            c->raw_shells.push_back(cmd);
+            i++;
+            continue;
+        }
         if (!strncmp(argv[i], "--json_", 7) ||
             !strncmp(argv[i], "--field_", 8))
         {

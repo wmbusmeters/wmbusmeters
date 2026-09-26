@@ -1,0 +1,5 @@
+# Kamstrup security mode 10 (OMS security profile D) telegram whose aes-ccm
+# tag does not verify (radio corrupted telegram). Sent twice to exercise the
+# once-per-telegram warning.
+telegram=||4544372c060382533c16_8c20307a3010ff2a1001dc2e0d00cf1a85672e138d6c0af61338403fdeb528ab264e2c61e41b06073550aa296ae9815c8a7a9868ec6c624cfbbcecb3|
+telegram=||4544372c060382533c16_8c20307a3010ff2a1001dc2e0d00cf1a85672e138d6c0af61338403fdeb528ab264e2c61e41b06073550aa296ae9815c8a7a9868ec6c624cfbbcecb3|

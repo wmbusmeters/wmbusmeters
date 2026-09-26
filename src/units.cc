@@ -83,7 +83,18 @@ double to_dbm_from_w(double w) { return 10.0*log10(w*1000.0); }
     X(DateLT, DateTimeLT, {vto=vfrom; }) \
     X(DEGREE, RADIAN, {vto=vfrom*M_PI/180.0;}) \
     X(RADIAN, DEGREE, {vto=vfrom*180.0/M_PI;}) \
+    X(GCAL, KWH,{vto=vfrom*1163.0;}) \
+    X(KWH, GCAL,{vto=vfrom/1163.0;}) \
 
+/*
+  The conversion factor from gigacalories (Gcal) to kilowatt-hours (kWh) is 1163.
+  This comes from the "International Table calorie" https://www.britannica.com/science/International-Table-calorie
+  Energy billing and engineering standards rely on the International Steam Table calorie (defined as exactly 4.1868 Joules).
+  When you upscale this to Gigacalories and convert it to Kilowatt-hours, it equals exactly 1,163 kWh
+  Utility billing software prioritize clean, standardized rounding to avoid micro-discrepancies.
+
+  The other option is to use the Thermochemical Table, which results in 1162.22, but this is not used in wmbusmeters.
+*/
 
 #define LIST_OF_SI_CONVERSIONS  \
     X(Second, 1.0, SIExp().s(1))                                   \
@@ -98,7 +109,7 @@ double to_dbm_from_w(double w) { return 10.0*log10(w*1000.0); }
     X(KWH,    3.6e+06,    SIExp().kg(1).m(2).s(-2))                 \
     X(MJ,     1.0e+06,    SIExp().kg(1).m(2).s(-2))                 \
     X(GJ,     1.0e+09,    SIExp().kg(1).m(2).s(-2))                 \
-    X(GCAL,   (1162.22 * 3.6e+06), SIExp().kg(1).m(2).s(-2))        \
+    X(GCAL,   (1163.0 * 3.6e+06), SIExp().kg(1).m(2).s(-2))        \
     X(KVARH,  3.6e+06,    SIExp().kg(1).m(2).s(-2))                 \
     X(KVAH,   3.6e+06,    SIExp().kg(1).m(2).s(-2))                 \
     X(M3C,    1.0,        SIExp().m(3).c(1))                        \

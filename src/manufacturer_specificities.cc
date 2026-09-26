@@ -444,8 +444,47 @@ bool tryDecodeQundisWalkByAes(Telegram *t, string *value)
     int num_encrypted_bytes = 0;
     int num_not_encrypted_at_end = 0;
 
+    // A CI=0x78 frame has no TPL header, so decrypt_TPL_AES_CBC_IV would build the
+    // Mode-5 IV from the dll address. When the meter sits behind a radio converter
+    // that address belongs to the converter (type 0x37) while the meter encrypted
+    // with its own identity (type 0x04). A single wrong IV byte corrupts exactly
+    // that one byte of the first AES-CBC block, which is the low byte of the total.
+    // The meter sends its identity in the enhanced id record 07 79 of the same
+    // telegram: id(4) mfct(2) version(1) type(1). Use it when it is there.
+    bool restore_tpl_address = false;
+    bool saved_tpl_id_found = t->tpl_id_found;
+    vector<uchar> saved_tpl_a = t->tpl_a;
+    uchar saved_tpl_mfct_b[2] = { t->tpl_mfct_b[0], t->tpl_mfct_b[1] };
+
+    if (!t->tpl_id_found)
+    {
+        auto eid = t->dv_entries.find("0779");
+        if (eid != t->dv_entries.end() && eid->second.second.value.length() >= 16)
+        {
+            vector<uchar> id;
+            if (hex2bin(eid->second.second.value.substr(0, 16), &id) && id.size() == 8)
+            {
+                t->tpl_mfct_b[0] = id[4];
+                t->tpl_mfct_b[1] = id[5];
+                t->tpl_a = { id[0], id[1], id[2], id[3], id[6], id[7] };
+                t->tpl_id_found = true;
+                restore_tpl_address = true;
+            }
+        }
+    }
+
     bool ok = decrypt_TPL_AES_CBC_IV(t, frame, pos, aes_key,
                                      &num_encrypted_bytes, &num_not_encrypted_at_end);
+
+    if (restore_tpl_address)
+    {
+        // The borrowed address was only needed for the IV, do not leak it into the output.
+        t->tpl_id_found = saved_tpl_id_found;
+        t->tpl_a = saved_tpl_a;
+        t->tpl_mfct_b[0] = saved_tpl_mfct_b[0];
+        t->tpl_mfct_b[1] = saved_tpl_mfct_b[1];
+    }
+
     if (!ok) return false;
 
     // Reassemble: keep the 9-byte plaintext header (chars 0..9) + the decrypted

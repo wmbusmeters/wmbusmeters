@@ -110,6 +110,7 @@ struct Configuration
     std::vector<std::string> telegram_shells;
     std::vector<std::string> new_meter_shells;
     std::vector<std::string> alarm_shells;
+    std::vector<std::string> raw_shells; // Invoked for every received telegram.
     int alarm_timeout {}; // Maximum number of seconds between dongle receiving two telegrams.
     std::string alarm_expected_activity; // Only warn when within these time periods.
     bool exit_instead_of_alarm_ {};

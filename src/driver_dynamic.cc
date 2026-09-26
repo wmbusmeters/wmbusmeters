@@ -35,7 +35,7 @@ string check_driver_name(const char *name, string file);
 string check_aliases(const char *aliases, string file);
 MeterType check_meter_type(const char *meter_type_s, string file);
 string check_default_fields(const char *fields, string file);
-void check_detection_triplets(DriverInfo *di, string file);
+void check_detection_triplets(DriverInfo *di, string file, const char *deprecated_by);
 
 string check_field_name(const char *name, DriverDynamic *dd);
 string check_field_ixml(const char *ixml, DriverDynamic *dd);
@@ -54,7 +54,7 @@ string get_translation(XMQDoc *doc, XMQNode *node, string name, string lang);
 string check_calculate(const char *formula, DriverDynamic *dd);
 Unit check_display_unit(const char *display_unit, DriverDynamic *dd);
 double check_force_scale(const char *force_scale, DriverDynamic *dd);
-Unit check_force_unit(const char *force_unit, DriverDynamic *dd);
+Unit check_override_vif_unit(const char *override_vif_unit, DriverDynamic *dd);
 
 bool checked_set_difvifkey(const char *difvifkey_s, FieldMatcher *fm, DriverDynamic *dd);
 void checked_set_measurement_type(const char *measurement_type_s, FieldMatcher *fm, DriverDynamic *dd);
@@ -121,6 +121,8 @@ bool DriverDynamic::load(DriverInfo *di, const string &file_name, const char *co
         string name = check_driver_name(xmqGetString(doc, "/driver/name"), file);
         di->setName(name);
 
+        const char *deprecated_by = xmqGetString(doc, "/driver/deprecated_by");
+
         string aliases = check_aliases(xmqGetString(doc, "/driver/aliases"), file);
         di->setAliases(aliases);
 
@@ -145,7 +147,7 @@ bool DriverDynamic::load(DriverInfo *di, const string &file_name, const char *co
         xmqForeach(doc, "/driver/mfct_tpl_status_bits", (XMQNodeCallback)add_mfct_tpl_status, di);
         xmqForeach(doc, "/driver/default_keys/key", (XMQNodeCallback)add_default_key, di);
 
-        check_detection_triplets(di, file);
+        check_detection_triplets(di, file, deprecated_by);
 
         di->setConstructor([](MeterInfo& mi, DriverInfo& di){ return shared_ptr<Meter>(new DriverDynamic(mi, di)); });
 
@@ -419,7 +421,7 @@ XMQProceed DriverDynamic::add_field(XMQDoc *doc, XMQNode *field, DriverDynamic *
 
     // The vif scaling is by default Auto but can be set to None for pesky fields.
     // Then the correct value can be calculated using a formula or with a force_scale.
-    // Also setting force_unit with change vif_scaling to None.
+    // Also setting override_vif_unit with change vif_scaling to None.
     VifScaling vif_scaling = check_vif_scaling(xmqGetStringRel(doc, "vif_scaling", field), dd);
 
     // The dif signedness is by default Signed but can be overriden for pesky fields.
@@ -449,9 +451,9 @@ XMQProceed DriverDynamic::add_field(XMQDoc *doc, XMQNode *field, DriverDynamic *
 
     // A field can force a unit to the found value. Normally the VIF is used to figure
     // out the unit, but if a meter uses a mfct specific unit we might need to override.
-    Unit force_unit = check_force_unit(xmqGetStringRel(doc, "force_unit", field), dd);
+    Unit override_vif_unit = check_override_vif_unit(xmqGetStringRel(doc, "override_vif_unit", field), dd);
 
-    if (force_unit != Unit::Unknown)
+    if (override_vif_unit != Unit::Unknown)
     {
         vif_scaling = VifScaling::None;
     }
@@ -606,7 +608,7 @@ XMQProceed DriverDynamic::add_field(XMQDoc *doc, XMQNode *field, DriverDynamic *
                 match,
                 display_unit,
                 force_scale,
-                force_unit
+                override_vif_unit
                 );
             if (has_null_value)
             {
@@ -1000,9 +1002,9 @@ string check_default_fields(const char *default_fields, string file)
     return default_fields;
 }
 
-void check_detection_triplets(DriverInfo *di, string file)
+void check_detection_triplets(DriverInfo *di, string file, const char *deprecated_by)
 {
-    if (di->mvts().size() == 0)
+    if (di->mvts().size() == 0 && deprecated_by == NULL)
     {
         warning("(driver) error in %s, cannot find any detection triplets: driver/detect/mvt\n"
                 "%s\n"
@@ -1395,21 +1397,21 @@ double check_force_scale(const char *force_scale, DriverDynamic *dd)
     return d;
 }
 
-Unit check_force_unit(const char *force_unit_s, DriverDynamic *dd)
+Unit check_override_vif_unit(const char *override_vif_unit_s, DriverDynamic *dd)
 {
-    if (!force_unit_s)
+    if (!override_vif_unit_s)
     {
         return Unit::Unknown;
     }
 
-    Unit u = toUnit(force_unit_s);
+    Unit u = toUnit(override_vif_unit_s);
     if (u == Unit::Unknown)
     {
-        warning("(driver) error in %s, unknown force unit: %s\n"
+        warning("(driver) error in %s, unknown override vif unit: %s\n"
                 "Available units:\n"
                 "%s\n",
                 dd->fileName().c_str(),
-                force_unit_s,
+                override_vif_unit_s,
                 availableUnits());
         throw 1;
     }

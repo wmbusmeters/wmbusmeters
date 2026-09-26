@@ -2010,6 +2010,7 @@ bool DVEntry::extractDouble(double *out, bool auto_scale, bool force_unsigned)
         {
             draw = (double)((int64_t)(negate_mask | raw));
         }
+        // Convert the value to wmbusmeters standardized unit for the vif.
         if (auto_scale) scale = vifScale(dif_vif_key.vif());
         *out = (draw) / scale;
     }

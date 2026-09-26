@@ -42,6 +42,12 @@ Michal Strnad improved the hydroclimav2 driver. Thanks Michal!
 Christoph Gommel improved the qwaterv2 and qheatv2 drivers. Christoph also added support
 for inverse compact profiles with multiple bases, like energy consumption and production.
 Thanks Christoph!
+Karl Tremain found an important bug in the rtl_wmbus checker, it failed to detect that
+a T1 telegram had errors (the 3outof6 check number was not tested!) Thanks Karl!
+
+Version nr pattern for ha-addon changes from 3.0.0-123 to 3.0.0.123
+The ha-addon adds test version for the development of the automatic
+generation of mqtt discovery messages.
 
 Version 3.0.0 2026-06-17
 Version 3.0.0-RC1 2026-06-17
