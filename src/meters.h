@@ -155,6 +155,7 @@ struct DriverInfo
 private:
 
     DriverName name_; // auto, unknown, amiplus, lse_07_17, multical21 etc
+    std::string deprecated_by_; // "ultrimisv2 upgrade before 2027-01-01"
     std::vector<DriverName> name_aliases_; // Secondary names that will map to this driver.
     LinkModeSet linkmodes_; // C1, T1, S1 or combinations thereof.
     Translate::Lookup mfct_tpl_status_bits_; // Translate any mfct specific bits in tpl status.
@@ -175,6 +176,7 @@ public:
     ~DriverInfo();
     DriverInfo() {};
     void setName(std::string n) { name_ = n; }
+    void setDeprecatedBy(std::string d) { deprecated_by_ = d; }
     void addNameAlias(std::string n) { name_aliases_.push_back(n); }
     void setMeterType(MeterType t) { type_ = t; }
     void setAliases(std::string f);
@@ -203,6 +205,7 @@ public:
     std::vector<MVT> &mvts() { return mvts_; }
 
     DriverName name() { return name_; }
+    std::string deprecatedBy() { return deprecated_by_; }
     std::vector<DriverName>& nameAliases() { return name_aliases_; }
     bool hasDriverName(DriverName dn) {
         if (name_ == dn) return true;
@@ -340,8 +343,8 @@ struct FieldInfo
     std::string renderJsonOnlyDefaultUnit(Meter *m);
     std::string renderJson(Meter *m, DVEntry *dve);
     std::string renderJsonText(Meter *m, DVEntry *dve);
-    void insertNumericValueIntoDoc(std::string vname, Meter *m, DVEntry *dve, XMQDoc *doc, XMQNode *telegram, XMQNode *details);
-    void insertStringValueIntoDoc(const std::string &vname, const std::string &value, Meter *m, Telegram *t, DVEntry *dve, XMQDoc *doc, XMQNode *telegram, XMQNode *details);
+    void insertNumericValueIntoDoc(std::string vname, Meter *m, DVEntry *dve, XMQDoc *doc, XMQNode *telegram, XMQNode *details, XMQNode *structured);
+    void insertStringValueIntoDoc(const std::string &vname, const std::string &value, Meter *m, Telegram *t, DVEntry *dve, XMQDoc *doc, XMQNode *telegram, XMQNode *details_fields, XMQNode *structured);
     // Render the field name based on the actual field from the telegram.
     // A FieldInfo can be declared to handle any number of storage fields of a certain range.
     // The vname is then a pattern total_at_month_{storage_counter} that gets translated into
@@ -356,6 +359,9 @@ struct FieldInfo
     std::string str();
 
     void markAsLibrary() { from_library_ = true; index_ = -1; }
+    void markAsDeprecatedBy(std::string d) { deprecated_by_ = d; }
+
+    std::string deprecatedBy() { return deprecated_by_; }
 
     void useIXML(const std::string& ixml);
     XMQDoc *ixmlGrammar() { return ixml_grammar_.get(); }
@@ -440,6 +446,8 @@ private:
     int payload_offset_ {};
     int payload_length_ {};
     int tpl_acc_offset_ {};
+
+    std::string deprecated_by_;
 };
 
 struct BusManager;

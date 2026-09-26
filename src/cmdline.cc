@@ -350,12 +350,6 @@ static shared_ptr<Configuration> parseNormalCommandLine(Configuration *c, int ar
                 c->output_format = XMQ_CONTENT_JSON;
                 c->fields = false;
             }
-            else if (!strcmp(argv[i]+9, "json-structured"))
-            {
-                c->output_format = XMQ_CONTENT_JSON;
-                c->fields = false;
-                c->structured_status_output = true;
-            }
             else if (!strcmp(argv[i]+9, "xml"))
             {
                 c->output_format = XMQ_CONTENT_XML;
@@ -544,14 +538,20 @@ static shared_ptr<Configuration> parseNormalCommandLine(Configuration *c, int ar
             i++;
             continue;
         }
-        if (!strncmp(argv[i], "--telegramdetails=", 18)) {
-            if (!strcmp(argv[i]+18, "never")) {
+        if (!strcmp(argv[i], "--addtelegramdetails"))
+        {
+            c->telegram_details = TelegramDetails::ALWAYS;
+            i++;
+            continue;
+        }
+        if (!strncmp(argv[i], "--addtelegramdetails=", 21)) {
+            if (!strcmp(argv[i]+21, "never")) {
                 c->telegram_details = TelegramDetails::NEVER;
             }
-            else if (!strcmp(argv[i]+18, "first")) {
+            else if (!strcmp(argv[i]+21, "first")) {
                 c->telegram_details = TelegramDetails::FIRST;
             }
-            else if (!strcmp(argv[i]+18, "always")) {
+            else if (!strcmp(argv[i]+21, "always")) {
                 c->telegram_details = TelegramDetails::ALWAYS;
             } else {
                 error(EXIT_USAGE_ERROR, "No such telegramdetails %s\n", argv[i]+18);
@@ -577,6 +577,30 @@ static shared_ptr<Configuration> parseNormalCommandLine(Configuration *c, int ar
                 else
                 {
                     error(EXIT_USAGE_ERROR, "You must specify true or false after --addtelegramhex=\n");
+                }
+            }
+            i++;
+            continue;
+        }
+     if (!strncmp(argv[i], "--addtelegramstructured", 23))
+     {
+            if (argv[i][23] == 0)
+            {
+                c->add_telegram_structured = true;
+            }
+            else
+            {
+                if (!strcmp(argv[i]+23, "=true"))
+                {
+                    c->add_telegram_structured = true;
+                }
+                else if (!strcmp(argv[i]+23, "=false"))
+                {
+                    c->add_telegram_structured = false;
+                }
+                else
+                {
+                    error(EXIT_USAGE_ERROR, "You must specify true or false after --addtelegramstructured=\n");
                 }
             }
             i++;

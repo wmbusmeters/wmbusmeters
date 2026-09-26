@@ -11,7 +11,7 @@ TESTNAME="Test meter_shell"
 TESTRESULT="OK"
 
 cat > $TEST/telegram_expected.txt <<EOF
-{"_":"telegram","details":{"max_flow_m3h":{"change":"Instant","info":"The maximum water flow recorded during previous period.","quantity":"Flow","unit":"m3h"},"status":{"info":"Meter status including the tpl status.","quantity":"Text"},"total_m3":{"change":"Increasing","info":"The total water consumption.","quantity":"Volume","unit":"m3"}},"driver":"iperl","id":"33225544","max_flow_m3h":0,"media":"water","mvt":"SEN,68,07","name":"WaterWater","status":"OK","timestamp":"1111-11-11T11:11:11Z","total_m3":123.529}
+{"_":"telegram","details":{"fields":{"max_flow_m3h":{"change":"Instant","info":"The maximum water flow recorded during previous period.","quantity":"Flow","unit":"m3h"},"status":{"info":"Meter status including the tpl status.","quantity":"Text"},"total_m3":{"change":"Increasing","info":"The total water consumption.","quantity":"Volume","unit":"m3"}},"mvt":"SEN,68,07"},"driver":"iperl","id":"33225544","max_flow_m3h":0,"media":"water","name":"WaterWater","status":"OK","timestamp":"1111-11-11T11:11:11Z","total_m3":123.529}
 EOF
 
 cat > $TEST/driver_expected.txt <<EOF

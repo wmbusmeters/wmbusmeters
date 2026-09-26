@@ -14,7 +14,7 @@ ATTENTION! The auto-detect of the emh meter was moved from the nzr driver
 to the ehzp driver. Not sure what it was doing in the nzr driver since
 there ware no test cases in that driver for an emh meter.
 
-Added --telegramdetails=[never|first||always]
+Added --addtelegramdetails=[never|first||always]
 this option will in the json add details about the quantity, unit and info(help) information
 for each field. This will be used to automatically generate the discovery messages
 for HA.

@@ -2032,7 +2032,7 @@ void test_translate_pre_shift_right()
         printf("ERROR translate_pre_shift_right (no shift) 0x%x expected \"%s\" but got \"%s\"\n", 0x0020, e.c_str(), s.c_str());
     }
 
-    // The shift also applies to translateToObject (used by --format=json-structured).
+    // The shift also applies to translateToObject (used when adding structured)
     Translate::Lookup flags =
         Translate::Lookup()
         .add(Translate::Rule("FLAGS", Translate::MapType::BitToString)

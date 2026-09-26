@@ -98,9 +98,9 @@ struct Configuration
     bool ignore_duplicate_telegrams = true; // Default is to ignore duplicates.
     TelegramDetails telegram_details = TelegramDetails::NEVER;
     bool add_telegram_hex = false; // Add hex=... with (decrypted) telegram hex data.
+    bool add_telegram_structured = false; // Add structured{status_flags{...}...}
     std::string logfile;
     XMQContentType output_format {};
-    bool structured_status_output = false;
     bool pretty_print_output {};
     bool colorize_output {};
     int  pollinterval {}; // Time between polling of mbus meters.

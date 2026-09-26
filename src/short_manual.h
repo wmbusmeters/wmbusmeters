@@ -25,6 +25,9 @@ Usage: wmbusmeters {options} [device] { [meter_name] [meter_driver] [meter_id] [
 
 As {options} you can use:
 
+    --addtelegramdetails=never|first|always Add meta-data about the telegram contents.
+    --addtelegramstructured=true|false Add structured representation of statuses and other data.
+    --addtelegramhex=true|false Add hex=... with the original telegram potentially decrypted.
     --alarmexpectedactivity=mon-fri(08-17),sat-sun(09-12) Specify when the timeout is tested, default is mon-sun(00-23)
     --alarmshell=<cmdline> invokes cmdline when an alarm triggers
     --alarmtimeout=<time> Expect a telegram to arrive within <time> seconds, eg 60s, 60m, 24h during expected activity.
@@ -40,7 +43,7 @@ As {options} you can use:
     --driver=<file> load a driver
     --driversdir=<dir> load all drivers in dir
     --exitafter=<time> exit program after time, eg 20h, 10m 5s
-    --format=<hr/json/json-structured/fields> for human readable, json (optionally with subfields) or semicolon separated fields
+    --format=<hr/json/fields> for human readable, json (optionally with subfields) or semicolon separated fields
     --help list all options
     --identitymode=(id|id-mfct|full|none) group meter state based on the identity mode. Default is id.
     --ignoreduplicates=<bool> ignore duplicate telegrams, remember the last 10 telegrams

@@ -122,7 +122,12 @@ bool DriverDynamic::load(DriverInfo *di, const string &file_name, const char *co
         di->setName(name);
 
         const char *deprecated_by = xmqGetString(doc, "/driver/deprecated_by");
-
+        if (deprecated_by)
+        {
+            // This driver is deprecated by:
+            // "ultrimisv2 upgrade before 2027-01-01"
+            di->setDeprecatedBy(deprecated_by);
+        }
         string aliases = check_aliases(xmqGetString(doc, "/driver/aliases"), file);
         di->setAliases(aliases);
 
@@ -430,6 +435,8 @@ XMQProceed DriverDynamic::add_field(XMQDoc *doc, XMQNode *field, DriverDynamic *
     // The properties are by default empty but can be specified for specific fields.
     PrintProperties properties = check_print_properties(xmqGetStringRel(doc, "attributes", field), dd);
 
+    const char *deprecated_by = xmqGetStringRel(doc, "deprecated_by", field);
+
     // The info fields explains what the value is for. Ie. is storage 1 the previous day or month value etc.
     string info = check_field_info(xmqGetStringRel(doc, "info", field), dd);
 
@@ -679,6 +686,11 @@ XMQProceed DriverDynamic::add_field(XMQDoc *doc, XMQNode *field, DriverDynamic *
             }
         }
     }
+    if (deprecated_by)
+    {
+        dd->lastAddedField()->markAsDeprecatedBy(deprecated_by);
+    }
+
     return XMQ_CONTINUE;
 }
 

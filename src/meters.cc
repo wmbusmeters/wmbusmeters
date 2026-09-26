@@ -1567,7 +1567,13 @@ void MeterCommonImplementation::buildOutputDoc(XMQDoc *doc,
     xmqAddKeyValueWithAttrs(doc, telegram, "id", id.c_str(), NS_PARENT,
                             XMQ_ATTRS( {"S", "" }) ); // S means id will be a string in json, even though
                                                       // it looks like a number.
+
+    // /details hold meta-data about the telegram
     XMQNode *details = NULL;
+    // /details/fields hold the meta-data about the fields.
+    XMQNode *details_fields = NULL;
+    // /structured holds the same json data but structured in a way that
+    XMQNode *structured = NULL;
 
     if (getTelegramDetails() == TelegramDetails::ALWAYS ||
         (first && getTelegramDetails() == TelegramDetails::FIRST))
@@ -1575,8 +1581,17 @@ void MeterCommonImplementation::buildOutputDoc(XMQDoc *doc,
         rn = xmqAddElement(doc, telegram, "details", NS_PARENT);
         details = rn.node;
 
+        rn = xmqAddElement(doc, details, "fields", NS_PARENT);
+        details_fields = rn.node;
+
         string mvts = extractMVTs(t);
-        xmqAddKeyValue(doc, telegram, "mvt", mvts.c_str(), NS_PARENT);
+        xmqAddKeyValue(doc, details, "mvt", mvts.c_str(), NS_PARENT);
+    }
+
+    if (getAddTelegramStructured())
+    {
+        rn = xmqAddElement(doc, telegram, "structured", NS_PARENT);
+        structured = rn.node;
     }
 
     if (getAddTelegramHex())
@@ -1595,7 +1610,7 @@ void MeterCommonImplementation::buildOutputDoc(XMQDoc *doc,
         NumericField& nf = p.second;
         if (nf.field_info->printProperties().hasHIDE()) continue;
 
-        nf.field_info->insertNumericValueIntoDoc(vname, this, &nf.dv_entry, doc, telegram, details);
+        nf.field_info->insertNumericValueIntoDoc(vname, this, &nf.dv_entry, doc, telegram, details_fields, structured);
     }
 
     for (auto &p : string_values_)
@@ -1605,7 +1620,7 @@ void MeterCommonImplementation::buildOutputDoc(XMQDoc *doc,
 
         if (sf.field_info->printProperties().hasHIDE()) continue;
 
-        sf.field_info->insertStringValueIntoDoc(vname, sf.value, this, t, &sf.dv_entry, doc, telegram, details);
+        sf.field_info->insertStringValueIntoDoc(vname, sf.value, this, t, &sf.dv_entry, doc, telegram, details_fields, structured);
     }
     xmqAddKeyValue(doc, telegram, "timestamp", datetimeOfUpdateRobot().c_str(), NS_PARENT);
 
@@ -2549,7 +2564,7 @@ string FieldInfo::renderJson(Meter *m, DVEntry *dve)
     return s;
 }
 
-void FieldInfo::insertNumericValueIntoDoc(string vname, Meter *m, DVEntry *dve, XMQDoc *doc, XMQNode *telegram, XMQNode *details)
+void FieldInfo::insertNumericValueIntoDoc(string vname, Meter *m, DVEntry *dve, XMQDoc *doc, XMQNode *telegram, XMQNode *details_fields, XMQNode *structured)
 {
     string display_unit_s = unitToStringLowerCase(displayUnit());
     string field_name = generateFieldNameNoUnit(m, dve);
@@ -2602,19 +2617,23 @@ void FieldInfo::insertNumericValueIntoDoc(string vname, Meter *m, DVEntry *dve, 
             val = valueToString(m->getNumericValue(field_name, displayUnit()), displayUnit());
         }
         xmqAddKeyValue(doc, telegram, key.c_str(), val.c_str(), NS_PARENT);
-        if (details)
+        if (details_fields)
         {
-            auto rn = xmqAddElement(doc, details, key.c_str(), NS_PARENT);
+            auto rn = xmqAddElement(doc, details_fields, key.c_str(), NS_PARENT);
             XMQNode *info = rn.node;
             xmqAddKeyValue(doc, info, "quantity", toString(xuantity()), NS_PARENT);
             xmqAddKeyValue(doc, info, "unit", display_unit_s.c_str(), NS_PARENT);
             xmqAddKeyValue(doc, info, "change", toString(getChange()), NS_PARENT);
             xmqAddKeyValue(doc, info, "info", help().c_str(), NS_PARENT);
+            if (deprecatedBy().length() > 0)
+            {
+                xmqAddKeyValue(doc, info, "deprecated_by", deprecatedBy().c_str(), NS_PARENT);
+            }
         }
     }
 }
 
-void FieldInfo::insertStringValueIntoDoc(const string &vname, const string &value, Meter *m, Telegram *t, DVEntry *dve, XMQDoc *doc, XMQNode *telegram, XMQNode *details)
+void FieldInfo::insertStringValueIntoDoc(const string &vname, const string &value, Meter *m, Telegram *t, DVEntry *dve, XMQDoc *doc, XMQNode *telegram, XMQNode *details_fields, XMQNode *structured)
 {
     if (this->printProperties().hasSTATUS())
     {
@@ -2626,10 +2645,10 @@ void FieldInfo::insertStringValueIntoDoc(const string &vname, const string &valu
         xmqAddKeyValueWithAttrs(doc, telegram, vname.c_str(), in.c_str(), NS_PARENT,
                                 XMQ_ATTRS( { "S", "" } )); // S marks this as a json string.
 
-        if (getStructuredStatus())
+        if (structured)
         {
             string vname_flags = vname+"_flags";
-            auto rn = xmqAddElement(doc, telegram, vname_flags.c_str(), NS_PARENT);
+            auto rn = xmqAddElement(doc, structured, vname_flags.c_str(), NS_PARENT);
             XMQNode *status_object = rn.node;
             for (auto &member : m->getStatusObjectMembers(this, t))
             {
@@ -2650,9 +2669,9 @@ void FieldInfo::insertStringValueIntoDoc(const string &vname, const string &valu
                                     XMQ_ATTRS( { "S", "" } )); // S marks this as a json string.
         }
     }
-    if (details)
+    if (details_fields)
     {
-        auto rn = xmqAddElement(doc, details, vname.c_str(), NS_PARENT);
+        auto rn = xmqAddElement(doc, details_fields, vname.c_str(), NS_PARENT);
         XMQNode *info = rn.node;
         xmqAddKeyValue(doc, info, "quantity", "Text", NS_PARENT);
         xmqAddKeyValue(doc, info, "info", this->help().c_str(), NS_PARENT);

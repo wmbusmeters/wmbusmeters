@@ -238,6 +238,7 @@ driver {
             quantity   = Text
             info       = 'Status of meter. This field will go away use status instead.'
             attributes = DEPRECATED
+            deprecated_by = 'status change before 2026-12-12'
             match {
                 difvifkey = 02FF20
             }

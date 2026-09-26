@@ -396,6 +396,21 @@ void handleAddTelegramHex(Configuration *c, string value)
     }
 }
 
+void handleAddTelegramStructured(Configuration *c, string value)
+{
+    if (value == "true")
+    {
+        c->add_telegram_structured = true;
+    }
+    else if (value == "false")
+    {
+        c->add_telegram_structured = false;
+    }
+    else {
+        warning("addtelegramstructured should be either true or false, not \"%s\"\n", value.c_str());
+    }
+}
+
 void handleResetAfter(Configuration *c, string s)
 {
     if (s.length() >= 1)
@@ -657,7 +672,6 @@ void handleFormat(Configuration *c, string format)
 {
     c->output_format = XMQ_CONTENT_UNKNOWN;
     c->fields = false;
-    c->structured_status_output = false;
     if (format == "hr")
     {
         c->separator = '\t';
@@ -665,11 +679,6 @@ void handleFormat(Configuration *c, string format)
     else if (format == "json")
     {
         c->output_format = XMQ_CONTENT_JSON;
-    }
-    else if (format == "json-structured")
-    {
-        c->output_format = XMQ_CONTENT_JSON;
-        c->structured_status_output = true;
     }
     else if (format == "xml")
     {
@@ -839,6 +848,7 @@ shared_ptr<Configuration> loadConfiguration(string root, ConfigOverrides overrid
         else if (p.first == "ignoreduplicates") handleIgnoreDuplicateTelegrams(c, p.second);
         else if (p.first == "telegramdetails") handleTelegramDetails(c, p.second);
         else if (p.first == "addtelegramhex") handleAddTelegramHex(c, p.second);
+        else if (p.first == "addtelegramstructured") handleAddTelegramStructured(c, p.second);
         else if (p.first == "device") handleDeviceOrHex(c, p.second);
         else if (p.first == "donotprobe") handleDoNotProbe(c, p.second);
         else if (p.first == "listento") handleListenTo(c, p.second);
