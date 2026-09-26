@@ -68,6 +68,9 @@ if [ "$?" != "0" ]; then RC="1"; fi
 ./tests/test_add_telegram_hex.sh $PROG
 if [ "$?" != "0" ]; then RC="1"; fi
 
+./tests/test_deprecated_by.sh $PROG
+if [ "$?" != "0" ]; then RC="1"; fi
+
 tests/test_config_xmq_mvt_override.sh $PROG
 if [ "$?" != "0" ]; then RC="1"; fi
 

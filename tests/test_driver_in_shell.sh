@@ -18,7 +18,7 @@ cat > $TEST/driver_expected.txt <<EOF
 driver{name=iperl meter_type=WaterMeter default_fields=name,id,total_m3,max_flow_m3h,timestamp manufacturer=Sensus model='Sensus iPERL'detect{mvt=SEN,68,06 mvt=SEN,68,07 mvt=SEN,7c,07}fields{field{name=status quantity=Text info='Meter status including the tpl status.'attributes=STATUS,INCLUDE_TPL_STATUS}field{name=total quantity=Volume change=Increasing info='The total water consumption.'match{measurement_type=Instantaneous vif_range=Volume}}field{name=max_flow quantity=Flow change=Instant info='The maximum water flow recorded during previous period.'match{measurement_type=Instantaneous vif_range=VolumeFlow}}}}
 EOF
 
-$PROG --format=fields --selectfields=total_m3 --telegramdetails=first \
+$PROG --format=fields --selectfields=total_m3 --addtelegramdetails=first \
       --metershell='echo "$METER_JSON"; echo "$METER_DRIVER"' \
       1844AE4C4455223368077A55000000_041389E20100023B0000 WaterWater iperl 33225544 NOKEY > $TEST/output.txt 2>&1
 

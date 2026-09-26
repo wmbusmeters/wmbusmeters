@@ -1563,6 +1563,11 @@ void MeterCommonImplementation::buildOutputDoc(XMQDoc *doc,
 
     xmqAddKeyValue(doc, telegram, "media", media.c_str(), NS_PARENT);
     xmqAddKeyValue(doc, telegram, "driver", driverName().str().c_str(), NS_PARENT);
+    if (driverInfo()->deprecatedBy().length() > 0)
+    {
+        xmqAddKeyValue(doc, telegram, "driver_deprecated_by", driverInfo()->deprecatedBy().c_str(), NS_PARENT);
+    }
+
     xmqAddKeyValue(doc, telegram, "name", name().c_str(), NS_PARENT);
     xmqAddKeyValueWithAttrs(doc, telegram, "id", id.c_str(), NS_PARENT,
                             XMQ_ATTRS( {"S", "" }) ); // S means id will be a string in json, even though
