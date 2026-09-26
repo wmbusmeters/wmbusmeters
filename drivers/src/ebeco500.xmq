@@ -1,10 +1,10 @@
 // Copyright (C) 2026 Magnus Friskytt (gpl-3.0-or-later)
 driver {
-    name           = ebeco500
-    meter_type     = ElectricityMeter
-    default_fields = name,id,status,total_kwh,external_temperature_c,on_time_h,timestamp
-    manufacturer   = Ebeco
-    about          = 'Underfloor heating thermostat.'
+    name            = ebeco500
+    meter_type      = ElectricityMeter
+    meter_type_text = 'Underfloor Heating Thermostat'
+    default_fields  = name,id,status,total_kwh,external_temperature_c,on_time_h,timestamp
+    manufacturer    = Ebeco
     detect {
         mvt = EBE,01,02
     }
