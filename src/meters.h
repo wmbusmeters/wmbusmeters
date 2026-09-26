@@ -357,6 +357,7 @@ struct FieldInfo
     std::string str();
 
     void markAsLibrary() { from_library_ = true; index_ = -1; }
+
     void markAsDeprecatedBy(std::string d) { deprecated_by_ = d; }
 
     std::string deprecatedBy() { return deprecated_by_; }

@@ -2680,6 +2680,10 @@ void FieldInfo::insertStringValueIntoDoc(const string &vname, const string &valu
         XMQNode *info = rn.node;
         xmqAddKeyValue(doc, info, "quantity", "Text", NS_PARENT);
         xmqAddKeyValue(doc, info, "info", this->help().c_str(), NS_PARENT);
+        if (deprecatedBy().length() > 0)
+        {
+            xmqAddKeyValue(doc, info, "deprecated_by", deprecatedBy().c_str(), NS_PARENT);
+        }
     }
 }
 

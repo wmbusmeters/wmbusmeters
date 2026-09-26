@@ -35,7 +35,7 @@ string check_driver_name(const char *name, string file);
 string check_aliases(const char *aliases, string file);
 MeterType check_meter_type(const char *meter_type_s, string file);
 string check_default_fields(const char *fields, string file);
-void check_detection_triplets(DriverInfo *di, string file, const char *deprecated_by);
+void check_detection_triplets(DriverInfo *di, string file);
 
 string check_field_name(const char *name, DriverDynamic *dd);
 string check_field_ixml(const char *ixml, DriverDynamic *dd);
@@ -152,7 +152,10 @@ bool DriverDynamic::load(DriverInfo *di, const string &file_name, const char *co
         xmqForeach(doc, "/driver/mfct_tpl_status_bits", (XMQNodeCallback)add_mfct_tpl_status, di);
         xmqForeach(doc, "/driver/default_keys/key", (XMQNodeCallback)add_default_key, di);
 
-        check_detection_triplets(di, file, deprecated_by);
+        if (!deprecated_by)
+        {
+            check_detection_triplets(di, file);
+        }
 
         di->setConstructor([](MeterInfo& mi, DriverInfo& di){ return shared_ptr<Meter>(new DriverDynamic(mi, di)); });
 
@@ -1014,9 +1017,9 @@ string check_default_fields(const char *default_fields, string file)
     return default_fields;
 }
 
-void check_detection_triplets(DriverInfo *di, string file, const char *deprecated_by)
+void check_detection_triplets(DriverInfo *di, string file)
 {
-    if (di->mvts().size() == 0 && deprecated_by == NULL)
+    if (di->mvts().size() == 0)
     {
         warning("(driver) error in %s, cannot find any detection triplets: driver/detect/mvt\n"
                 "%s\n"
