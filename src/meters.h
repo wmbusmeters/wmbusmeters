@@ -483,8 +483,10 @@ struct Meter
     virtual void setStringValue(FieldInfo *fi, std::string v, DVEntry *dve) = 0;
     virtual void setStringValue(std::string vname, std::string v, DVEntry *dve = NULL) = 0;
     virtual std::string getStringValue(FieldInfo *fi) = 0;
+    virtual void setFieldBits(FieldInfo *fi, uint64_t bits, DVEntry *dve) = 0;
     virtual std::string decodeTPLStatusByte(uchar sts) = 0;
     virtual std::string getStatusField(FieldInfo *fi) = 0;
+    virtual std::map<std::string,bool> getStatusObjectMembers(FieldInfo *fi, Telegram *t) = 0;
 
     virtual void onUpdate(std::function<void(Telegram*t,Meter*)> cb) = 0;
     virtual int numUpdates() = 0;

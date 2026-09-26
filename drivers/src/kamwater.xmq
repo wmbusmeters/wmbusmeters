@@ -39,19 +39,73 @@ driver {
         use = target_m3
         use = target_date
     }
-    fields {
-        field {
-            name       = status
-            quantity   = Text
-            info       = 'Status and error flags.'
-            attributes = STATUS,INCLUDE_TPL_STATUS
-            match {
-                difvifkey = 04FF23
-            }
+    templates {
+        template_field {
+            name = duration_bucket
             lookup {
-                name            = ERROR_FLAGS
-                map_type        = BitToString
-                mask_bits       = 0xffffffff
+                name      = DURATION
+                map_type  = IndexToString
+                mask_bits = 0x7
+                map {
+                    name  = ''
+                    value = 0x0
+                    test  = Set
+                }
+                map {
+                    name  = '1-8 hours'
+                    value = 0x1
+                    test  = Set
+                }
+                map {
+                    name  = '9-24 hours'
+                    value = 0x2
+                    test  = Set
+                }
+                map {
+                    name  = '2-3 days'
+                    value = 0x3
+                    test  = Set
+                }
+                map {
+                    name  = '4-7 days'
+                    value = 0x4
+                    test  = Set
+                }
+                map {
+                    name  = '8-14 days'
+                    value = 0x5
+                    test  = Set
+                }
+                map {
+                    name  = '15-21 days'
+                    value = 0x6
+                    test  = Set
+                }
+                map {
+                    name  = '22-31 days'
+                    value = 0x7
+                    test  = Set
+                }
+            }
+        }
+        template_field {
+            // Common status fields for modern status fields:
+            // - 04FF23 Info Cold environment
+            // - 04FF24 Info Warm environment
+            // The datasheet also mentions 16bit fields (02FF25, 12FF25), but they are
+            // only partially compatible and we have no recursive inheritance.
+            name = x2xx_status
+            lookup {
+                name     = ERROR_FLAGS
+                map_type = BitToString
+                // In these status fields, buts 0-10 are the instant info (with
+                // bits 8 and reserved, and bit 6's different meaning between
+                // meters configured for hot/cold *environment*). Bits 11-31
+                // are for time indication. But since bits 29-31 are reserved,
+                // let's roll them back into the "status" part and not "time
+                // indication" part. That way, all parts of the 32bit field are
+                // now covered.
+                mask_bits       = 0xe00003ff
                 default_message = OK
                 map {
                     name = DRY
@@ -83,11 +137,7 @@ driver {
                     bit  = 5
                     test = Set
                 }
-                map {
-                    name = LOW_ABIENT_TEMPERATURE
-                    bit  = 6
-                    test = Set
-                }
+                // bit 6 is different and will be filed in later
                 map {
                     name = FLOW_ABOVE_Q4
                     bit  = 7
@@ -100,6 +150,52 @@ driver {
                     test = Set
                 }
                 // bit 10 is unused
+            }
+        }
+    }
+    fields {
+        field {
+            name       = status
+            quantity   = Text
+            template   = x2xx_status
+            info       = 'Status and error flags.'
+            attributes = STATUS,INCLUDE_TPL_STATUS
+            match {
+                // "Info Cold environment"
+                difvifkey = 04FF23
+            }
+            lookup {
+                name               = ERROR_FLAGS
+                map_type           = BitToString
+                default_message    = OK
+                mark_reserved_bits = true
+                map {
+                    name = LOW_ABIENT_TEMPERATURE
+                    bit  = 6
+                    test = Set
+                }
+            }
+        }
+        field {
+            name       = status
+            quantity   = Text
+            template   = x2xx_status
+            info       = 'Status and error flags.'
+            attributes = STATUS,INCLUDE_TPL_STATUS
+            match {
+                // "Info Hot environment"
+                difvifkey = 04FF24
+            }
+            lookup {
+                name               = ERROR_FLAGS
+                map_type           = BitToString
+                default_message    = OK
+                mark_reserved_bits = true
+                map {
+                    name = HIGH_ABIENT_TEMPERATURE
+                    bit  = 6
+                    test = Set
+                }
             }
         }
         field {
@@ -357,213 +453,193 @@ driver {
         field {
             name     = time_dry
             quantity = Text
+            template = duration_bucket
             info     = 'Amount of time the meter has been dry.'
             match {
                 difvifkey = 02FF20
             }
             lookup {
-                name      = DRY
-                map_type  = IndexToString
-                mask_bits = 0x0070
-                map {
-                    name  = ''
-                    value = 0x0000
-                    test  = Set
-                }
-                map {
-                    name  = '1-8 hours'
-                    value = 0x0010
-                    test  = Set
-                }
-                map {
-                    name  = '9-24 hours'
-                    value = 0x0020
-                    test  = Set
-                }
-                map {
-                    name  = '2-3 days'
-                    value = 0x0030
-                    test  = Set
-                }
-                map {
-                    name  = '4-7 days'
-                    value = 0x0040
-                    test  = Set
-                }
-                map {
-                    name  = '8-14 days'
-                    value = 0x0050
-                    test  = Set
-                }
-                map {
-                    name  = '15-21 days'
-                    value = 0x0060
-                    test  = Set
-                }
-                map {
-                    name  = '22-31 days'
-                    value = 0x0070
-                    test  = Set
-                }
+                pre_shift_right = 4
+            }
+        }
+        field {
+            name     = time_dry
+            quantity = Text
+            template = duration_bucket
+            info     = 'Amount of time the meter has been dry.'
+            match {
+                difvifkey = 04FF23
+            }
+            lookup {
+                pre_shift_right = 11
+            }
+        }
+        field {
+            name     = time_dry
+            quantity = Text
+            template = duration_bucket
+            info     = 'Amount of time the meter has been dry.'
+            match {
+                difvifkey = 04FF24
+            }
+            lookup {
+                pre_shift_right = 11
             }
         }
         field {
             name     = time_reversed
             quantity = Text
+            template = duration_bucket
             info     = 'Amount of time the meter has been reversed.'
             match {
                 difvifkey = 02FF20
             }
             lookup {
-                name      = REVERSED
-                map_type  = IndexToString
-                mask_bits = 0x0380
-                map {
-                    name  = ''
-                    value = 0x0000
-                    test  = Set
-                }
-                map {
-                    name  = '1-8 hours'
-                    value = 0x0080
-                    test  = Set
-                }
-                map {
-                    name  = '9-24 hours'
-                    value = 0x0100
-                    test  = Set
-                }
-                map {
-                    name  = '2-3 days'
-                    value = 0x0180
-                    test  = Set
-                }
-                map {
-                    name  = '4-7 days'
-                    value = 0x0200
-                    test  = Set
-                }
-                map {
-                    name  = '8-14 days'
-                    value = 0x0280
-                    test  = Set
-                }
-                map {
-                    name  = '15-21 days'
-                    value = 0x0300
-                    test  = Set
-                }
-                map {
-                    name  = '22-31 days'
-                    value = 0x0380
-                    test  = Set
-                }
+                pre_shift_right = 7
+            }
+        }
+        field {
+            name     = time_reversed
+            quantity = Text
+            template = duration_bucket
+            info     = 'Amount of time the meter has been reversed.'
+            match {
+                difvifkey = 04FF23
+            }
+            lookup {
+                pre_shift_right = 14
+            }
+        }
+        field {
+            name     = time_reversed
+            quantity = Text
+            template = duration_bucket
+            info     = 'Amount of time the meter has been reversed.'
+            match {
+                difvifkey = 04FF24
+            }
+            lookup {
+                pre_shift_right = 14
             }
         }
         field {
             name     = time_leaking
             quantity = Text
+            template = duration_bucket
             info     = 'Amount of time the meter has been leaking.'
             match {
                 difvifkey = 02FF20
             }
             lookup {
-                name      = LEAKING
-                map_type  = IndexToString
-                mask_bits = 0x1c00
-                map {
-                    name  = ''
-                    value = 0x0000
-                    test  = Set
-                }
-                map {
-                    name  = '1-8 hours'
-                    value = 0x0400
-                    test  = Set
-                }
-                map {
-                    name  = '9-24 hours'
-                    value = 0x0800
-                    test  = Set
-                }
-                map {
-                    name  = '2-3 days'
-                    value = 0x0c00
-                    test  = Set
-                }
-                map {
-                    name  = '4-7 days'
-                    value = 0x1000
-                    test  = Set
-                }
-                map {
-                    name  = '8-14 days'
-                    value = 0x1400
-                    test  = Set
-                }
-                map {
-                    name  = '15-21 days'
-                    value = 0x1800
-                    test  = Set
-                }
-                map {
-                    name  = '22-31 days'
-                    value = 0x1c00
-                    test  = Set
-                }
+                pre_shift_right = 10
+            }
+        }
+        field {
+            name     = time_leaking
+            quantity = Text
+            template = duration_bucket
+            info     = 'Amount of time the meter has been leaking.'
+            match {
+                difvifkey = 04FF23
+            }
+            lookup {
+                pre_shift_right = 17
+            }
+        }
+        field {
+            name     = time_leaking
+            quantity = Text
+            template = duration_bucket
+            info     = 'Amount of time the meter has been leaking.'
+            match {
+                difvifkey = 04FF24
+            }
+            lookup {
+                pre_shift_right = 17
             }
         }
         field {
             name     = time_bursting
             quantity = Text
+            template = duration_bucket
             info     = 'Amount of time the meter has been bursting.'
             match {
                 difvifkey = 02FF20
             }
             lookup {
-                name      = BURSTING
-                map_type  = IndexToString
-                mask_bits = 0xe000
-                map {
-                    name  = ''
-                    value = 0x0000
-                    test  = Set
-                }
-                map {
-                    name  = '1-8 hours'
-                    value = 0x2000
-                    test  = Set
-                }
-                map {
-                    name  = '9-24 hours'
-                    value = 0x4000
-                    test  = Set
-                }
-                map {
-                    name  = '2-3 days'
-                    value = 0x6000
-                    test  = Set
-                }
-                map {
-                    name  = '4-7 days'
-                    value = 0x8000
-                    test  = Set
-                }
-                map {
-                    name  = '8-14 days'
-                    value = 0xa000
-                    test  = Set
-                }
-                map {
-                    name  = '15-21 days'
-                    value = 0xc000
-                    test  = Set
-                }
-                map {
-                    name  = '22-31 days'
-                    value = 0xe000
-                    test  = Set
-                }
+                pre_shift_right = 13
+            }
+        }
+        field {
+            name     = time_bursting
+            quantity = Text
+            template = duration_bucket
+            info     = 'Amount of time the meter has been bursting.'
+            match {
+                difvifkey = 04FF23
+            }
+            lookup {
+                pre_shift_right = 20
+            }
+        }
+        field {
+            name     = time_bursting
+            quantity = Text
+            template = duration_bucket
+            info     = 'Amount of time the meter has been bursting.'
+            match {
+                difvifkey = 04FF24
+            }
+            lookup {
+                pre_shift_right = 20
+            }
+        }
+        field {
+            name     = time_low_abient_temperature
+            quantity = Text
+            template = duration_bucket
+            info     = 'Amount of time the ambinet temperature was too low.'
+            match {
+                difvifkey = 04FF23
+            }
+            lookup {
+                pre_shift_right = 23
+            }
+        }
+        field {
+            name     = time_high_abient_temperature
+            quantity = Text
+            template = duration_bucket
+            info     = 'Amount of time the ambinet temperature was too high.'
+            match {
+                difvifkey = 04FF24
+            }
+            lookup {
+                pre_shift_right = 23
+            }
+        }
+        field {
+            name     = time_flow_above_q4
+            quantity = Text
+            template = duration_bucket
+            info     = 'Amount of time the flow was above the Q_4 threshold.'
+            match {
+                difvifkey = 04FF23
+            }
+            lookup {
+                pre_shift_right = 26
+            }
+        }
+        field {
+            name     = time_flow_above_q4
+            quantity = Text
+            template = duration_bucket
+            info     = 'Amount of time the flow was above the Q_4 threshold.'
+            match {
+                difvifkey = 04FF24
+            }
+            lookup {
+                pre_shift_right = 26
             }
         }
         field {
@@ -605,20 +681,20 @@ driver {
         test {
             args     = 'VATTEN kamwater 52525252 NOKEY'
             telegram = 4D44372C525252523A168D203894DF7920F93278_04FF23000000000413AEAC0000441364A80000426C812A023B000092013BEF01A2013B000006FF1B067000097000A1015B0C91015B14A1016713
-            json     = '{"_":"telegram","media":"cold water","driver":"kamwater","name":"VATTEN","id":"52525252","flow_m3h":0,"max_flow_last_day_m3h":0.495,"max_flow_temperature_last_day_c":20,"min_external_temperature_last_day_c":19,"min_flow_last_day_m3h":0,"min_flow_temperature_last_day_c":12,"target_m3":43.108,"target_date":"2020-10-01","total_m3":44.206,"accoustic_noise":"067000097000","status":"OK","timestamp":"1111-11-11T11:11:11Z"}'
+            json     = '{"_":"telegram","media":"cold water","driver":"kamwater","name":"VATTEN","id":"52525252","flow_m3h":0,"max_flow_last_day_m3h":0.495,"max_flow_temperature_last_day_c":20,"min_external_temperature_last_day_c":19,"min_flow_last_day_m3h":0,"min_flow_temperature_last_day_c":12,"target_m3":43.108,"target_date":"2020-10-01","time_bursting":"","time_dry":"","time_flow_above_q4":"","time_leaking":"","time_low_abient_temperature":"","time_reversed":"","total_m3":44.206,"accoustic_noise":"067000097000","status":"OK","timestamp":"1111-11-11T11:11:11Z"}'
             fields   = 'VATTEN;52525252;OK;44.206;43.108;1111-11-11 11:11.11'
         }
         test {
             args     = 'Votten kamwater 23813076 NOKEY'
             telegram = 4744372C763081233C168D2056D1ED11205A3C78_04FF2300080000441300000000523B000006FF1B08900008F0FF426CC12B61670A51671B023B000004131F0F00008101E7FF0F13
-            json     = '{"_":"telegram","media":"cold water","driver":"kamwater","name":"Votten","id":"23813076","flow_m3h":0,"max_external_temperature_last_month_c":27,"target_m3":0,"max_flow_last_month_m3h": 0,"target_date":"2022-11-01","total_m3":3.871,"accoustic_noise":"08900008F0FF","min_external_temperature_last_month_c":10,"status":"ERROR_FLAGS_800","timestamp":"1111-11-11T11:11:11Z"}'
-            fields   = 'Votten;23813076;ERROR_FLAGS_800;3.871;0;1111-11-11 11:11.11'
+            json     = '{"_":"telegram","media":"cold water","driver":"kamwater","name":"Votten","id":"23813076","flow_m3h":0,"max_external_temperature_last_month_c":27,"target_m3":0,"max_flow_last_month_m3h": 0,"target_date":"2022-11-01","total_m3":3.871,"accoustic_noise":"08900008F0FF","min_external_temperature_last_month_c":10,"status":"OK","time_bursting":"","time_dry":"1-8 hours","time_flow_above_q4":"","time_leaking":"","time_low_abient_temperature":"","time_reversed":"","timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'Votten;23813076;OK;3.871;0;1111-11-11 11:11.11'
         }
         test {
             args     = 'Votten kamwater 23813076 NOKEY'
             telegram = 3244372C763081233C168D2057D2ED11205a817905095480_0008000000000000000008900008F0FFC12B0A1B23001F0F000013
-            json     = '{"_":"telegram","media":"cold water","driver":"kamwater","name":"Votten","id":"23813076","min_external_temperature_last_month_c":10,"flow_m3h":0.035,"max_external_temperature_last_month_c":27,"max_flow_last_month_m3h": 0,"target_m3":0,"target_date":"2022-11-01","total_m3":3.871,"accoustic_noise":"08900008F0FF","status":"ERROR_FLAGS_800","timestamp":"1111-11-11T11:11:11Z"}'
-            fields   = 'Votten;23813076;ERROR_FLAGS_800;3.871;0;1111-11-11 11:11.11'
+            json     = '{"_":"telegram","media":"cold water","driver":"kamwater","name":"Votten","id":"23813076","min_external_temperature_last_month_c":10,"flow_m3h":0.035,"max_external_temperature_last_month_c":27,"max_flow_last_month_m3h": 0,"target_m3":0,"target_date":"2022-11-01","total_m3":3.871,"accoustic_noise":"08900008F0FF","status":"OK","time_bursting":"","time_dry":"1-8 hours","time_flow_above_q4":"","time_leaking":"","time_low_abient_temperature":"","time_reversed":"","timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'Votten;23813076;OK;3.871;0;1111-11-11 11:11.11'
         }
         test {
             args     = 'MoreWater kamwater 54084283 NOKEY'

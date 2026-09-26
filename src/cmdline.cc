@@ -350,6 +350,12 @@ static shared_ptr<Configuration> parseNormalCommandLine(Configuration *c, int ar
                 c->output_format = XMQ_CONTENT_JSON;
                 c->fields = false;
             }
+            else if (!strcmp(argv[i]+9, "json-structured"))
+            {
+                c->output_format = XMQ_CONTENT_JSON;
+                c->fields = false;
+                c->structured_status_output = true;
+            }
             else if (!strcmp(argv[i]+9, "xml"))
             {
                 c->output_format = XMQ_CONTENT_XML;

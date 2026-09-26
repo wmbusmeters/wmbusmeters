@@ -216,6 +216,7 @@ protected:
 public:
     // This should be refactored.
     std::string getStatusField(FieldInfo *fi);
+    std::map<std::string,bool> getStatusObjectMembers(FieldInfo *fi, Telegram *t);
 protected:
 
     virtual void processContent(Telegram *t);
@@ -227,6 +228,7 @@ protected:
     void setStringValue(std::string vname, std::string v, DVEntry *dve = NULL);
     void setStringValue(FieldInfo *fi, std::string v, DVEntry *dve);
     std::string getStringValue(FieldInfo *fi);
+    void setFieldBits(FieldInfo *fi, uint64_t bits, DVEntry *dve);
 
     // Check if the meter has received a value for this field.
     bool hasValue(FieldInfo *fi);
@@ -291,6 +293,9 @@ protected:
     std::map<std::pair<std::string,Unit>,NumericField> numeric_values_;
     // Map field name (at_date) to string value.
     std::map<std::string,StringField> string_values_;
+    // Map field name to the raw bits a lookup-based text field was decoded from.
+    std::map<std::string,uint64_t> bits_values_;
+    bool getFieldBits(FieldInfo *fi, uint64_t *bits);
     // Used to block next poll, until this poll has received a respones.
     Semaphore waiting_for_poll_response_sem_;
     // If the telegram ends with 0x1f then set this to true, and the poll

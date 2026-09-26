@@ -657,6 +657,7 @@ void handleFormat(Configuration *c, string format)
 {
     c->output_format = XMQ_CONTENT_UNKNOWN;
     c->fields = false;
+    c->structured_status_output = false;
     if (format == "hr")
     {
         c->separator = '\t';
@@ -664,6 +665,11 @@ void handleFormat(Configuration *c, string format)
     else if (format == "json")
     {
         c->output_format = XMQ_CONTENT_JSON;
+    }
+    else if (format == "json-structured")
+    {
+        c->output_format = XMQ_CONTENT_JSON;
+        c->structured_status_output = true;
     }
     else if (format == "xml")
     {

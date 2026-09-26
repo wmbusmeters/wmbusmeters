@@ -105,6 +105,11 @@ void setTelegramDetails(TelegramDetails td);
 TelegramDetails getTelegramDetails();
 void setAddTelegramHex(bool b);
 bool getAddTelegramHex();
+// When true, the STATUS field (see PrintProperty::STATUS) is rendered in json as an object
+// with one boolean member per named subfield (bit/bitgroup), instead of a concatenated string.
+// Selected globally via --format=json-structured, not by individual drivers.
+void setStructuredStatus(bool b);
+bool getStructuredStatus();
 
 // A specified bus device is supplied on the command line or in the config file.
 // It has this format "alias=file:type[id](extras):fq:bps:linkmods:CMD(command)"
@@ -226,6 +231,24 @@ LIST_OF_TPL_SECURITY_MODES
 int toInt(TPLSecurityMode tsm);
 TPLSecurityMode fromIntToTPLSecurityMode(int i);
 const char *toString(TPLSecurityMode tsm);
+
+// TPL status byte, standard-defined bits 0-4 (bits 5-7 are mfct specific).
+// name, mask, value: bit(s) are set when (sts & mask) == value.
+#define LIST_OF_TPL_STATUS_BITS \
+    X(BUSY,             0x03, 0x01) /* meter busy, cannot respond */ \
+    X(ERROR,            0x03, 0x02) /* meter failed to understand a message sent to it, details via error reporting, EN13757-3:2018 §10 */ \
+    X(ALARM,            0x03, 0x03) /* an abnormal condition, e.g. water is continuously running */ \
+    X(POWER_LOW,        0x04, 0x04) \
+    X(PERMANENT_ERROR,  0x08, 0x08) \
+    X(TEMPORARY_ERROR,  0x10, 0x10)
+
+enum class TPLStatusBit {
+#define X(name,mask,value) name,
+LIST_OF_TPL_STATUS_BITS
+#undef X
+};
+
+const char *toString(TPLStatusBit b);
 
 #define LIST_OF_AFL_AUTH_TYPES \
     X(NoAuth, 0, 0)             \

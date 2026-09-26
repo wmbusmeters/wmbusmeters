@@ -222,6 +222,9 @@ if [ "$?" != "0" ]; then RC="1"; fi
 ./tests/test_hex_cmdline.sh $PROG
 if [ "$?" != "0" ]; then RC="1"; fi
 
+./tests/test_json_structured.sh $PROG
+if [ "$?" != "0" ]; then RC="1"; fi
+
 ./tests/test_template_field.sh $PROG
 if [ "$?" != "0" ]; then RC="1"; fi
 
@@ -266,6 +269,9 @@ if [ "$?" != "0" ]; then RC="1"; fi
 if [ "$?" != "0" ]; then RC="1"; fi
 
 ./tests/test_loadable_drivers.sh $PROG
+if [ "$?" != "0" ]; then RC="1"; fi
+
+./tests/test_driver_templates.sh $PROG
 if [ "$?" != "0" ]; then RC="1"; fi
 
 tests/test_force_scaling.sh $PROG

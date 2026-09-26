@@ -35,6 +35,12 @@ struct DriverDynamic : public MeterCommonImplementation
 
     static XMQProceed add_lookup(XMQDoc *doc, XMQNode *lookup, DriverDynamic *dd);
     static XMQProceed add_map(XMQDoc *doc, XMQNode *map, DriverDynamic *dd);
+    // Like add_map, but skips the entry if tmp_rule_ already has a map{} for the same bit/value,
+    // used to inherit a template's map{} entries without overriding the field's own.
+    static XMQProceed add_inherited_map(XMQDoc *doc, XMQNode *map, DriverDynamic *dd);
+
+    // Reusable field templates, see driver/templates/template_field.
+    static XMQProceed add_template_field(XMQDoc *doc, XMQNode *template_field, DriverDynamic *dd);
 
     static XMQProceed add_mfct_tpl_status(XMQDoc *doc, XMQNode *node, DriverInfo *di);
     static XMQProceed add_mfct_tpl_status_map(XMQDoc *doc, XMQNode *map, Translate::Rule *rule);
@@ -48,6 +54,12 @@ private:
     FieldMatcher *tmp_matcher_;
     Translate::Lookup *tmp_lookup_;
     Translate::Rule *tmp_rule_;
+    // Named field templates (driver/templates/template_field), keyed by their name.
+    std::map<std::string, XMQNode*> templates_;
+    // While parsing a field's lookup{}, the corresponding template's lookup{} node to
+    // fall back to for any property (or map{} entries) the field itself did not declare.
+    // NULL when the field does not use a template.
+    XMQNode *tmp_template_lookup_;
 };
 
 #endif

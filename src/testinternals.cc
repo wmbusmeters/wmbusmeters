@@ -67,6 +67,8 @@ bool verbose_ = false;
     X(sbc)            \
     X(hex)            \
     X(translate)                                \
+    X(reserved_bits)                            \
+    X(translate_pre_shift_right)                \
     X(slip)                                     \
     X(iu891a_slip)                              \
     X(dvs)                                      \
@@ -1905,6 +1907,148 @@ void test_translate()
                (unsigned long long)alarm_bits, e.c_str(), s.c_str());
     }
 
+}
+
+void test_reserved_bits()
+{
+    // Narrow field: bit 0 named, bits 1-2 should become RESERVED_BIT_1/RESERVED_BIT_2.
+    Translate::Lookup marked =
+        Translate::Lookup()
+        .add(Translate::Rule("FLAGS", Translate::MapType::BitToString)
+             .set(MaskBits(0x07))
+             .add(Translate::Map(0x01, "FOO", TestBit::Set))
+             .markReservedBits()
+            );
+
+    string s = sortStatusString(marked.translate(0x07));
+    string e = sortStatusString("FOO RESERVED_BIT_1 RESERVED_BIT_2");
+    if (s != e)
+    {
+        printf("ERROR reserved_bits marked translate expected \"%s\" but got \"%s\"\n", e.c_str(), s.c_str());
+    }
+
+    // Reserved bit markers behave like any other map entry: only listed when actually set.
+    s = marked.translate(0x01);
+    e = "FOO";
+    if (s != e)
+    {
+        printf("ERROR reserved_bits marked translate(0x01) expected \"%s\" but got \"%s\"\n", e.c_str(), s.c_str());
+    }
+
+    map<string,bool> obj = marked.translateToObject(0x07);
+    if (obj.size() != 3 || !obj["FOO"] || !obj["RESERVED_BIT_1"] || !obj["RESERVED_BIT_2"])
+    {
+        printf("ERROR reserved_bits marked translateToObject(0x07) did not contain expected 3 true members\n");
+    }
+
+    // Same lookup, but without opting in: unhandled bits fall back to the old numeric suffix.
+    Translate::Lookup unmarked =
+        Translate::Lookup()
+        .add(Translate::Rule("FLAGS", Translate::MapType::BitToString)
+             .set(MaskBits(0x07))
+             .add(Translate::Map(0x01, "FOO", TestBit::Set))
+            );
+
+    s = sortStatusString(unmarked.translate(0x07));
+    e = sortStatusString("FOO FLAGS_6");
+    if (s != e)
+    {
+        printf("ERROR reserved_bits unmarked translate expected \"%s\" but got \"%s\"\n", e.c_str(), s.c_str());
+    }
+
+    obj = unmarked.translateToObject(0x07);
+    if (obj.size() != 1 || !obj["FOO"])
+    {
+        printf("ERROR reserved_bits unmarked translateToObject(0x07) should only contain FOO\n");
+    }
+
+    // AutoMask: nothing to reserve against, since the mask itself is only known at translate time.
+    Translate::Lookup autoMasked =
+        Translate::Lookup()
+        .add(Translate::Rule("AUTO", Translate::MapType::BitToString)
+             .add(Translate::Map(0x01, "FOO", TestBit::Set))
+             .markReservedBits()
+            );
+
+    if (autoMasked.rules[0].map.size() != 1)
+    {
+        printf("ERROR reserved_bits AutoMask rule should not have gained any markers\n");
+    }
+
+    // Only BitToString rules support markers.
+    Translate::Lookup indexed =
+        Translate::Lookup()
+        .add(Translate::Rule("IDX", Translate::MapType::IndexToString)
+             .set(MaskBits(0x03))
+             .add(Translate::Map(0x00, "ZERO", TestBit::Set))
+             .markReservedBits()
+            );
+
+    if (indexed.rules[0].map.size() != 1)
+    {
+        printf("ERROR reserved_bits IndexToString rule should not have gained any markers\n");
+    }
+}
+
+void test_translate_pre_shift_right()
+{
+    // Mimics kamwater's duration-bucket encoding (0=none, 1=1-8h, 2=9-24h, 3=2-3 days, ...)
+    // which needs to be reused at several different bit offsets within the same status word,
+    // instead of duplicating the same map{} table once per offset.
+    Translate::Lookup duration =
+        Translate::Lookup()
+        .add(Translate::Rule("DURATION", Translate::MapType::IndexToString)
+             .set(MaskBits(0x0007))
+             .set(PreShiftRight(4))
+             .add(Translate::Map(0, "none"))
+             .add(Translate::Map(1, "1-8 hours"))
+             .add(Translate::Map(2, "9-24 hours"))
+             .add(Translate::Map(3, "2-3 days"))
+            );
+
+    // Index 2 ("9-24 hours") lives at bits 4-6, ie 0b010 << 4 = 0x20.
+    string s = duration.translate(0x0020);
+    string e = "9-24 hours";
+    if (s != e)
+    {
+        printf("ERROR translate_pre_shift_right 0x%x expected \"%s\" but got \"%s\"\n", 0x0020, e.c_str(), s.c_str());
+    }
+
+    // Without the shift, the very same raw bits are misread as index 0 ("none"),
+    // proving the shift is actually applied before matching, not ignored.
+    Translate::Lookup no_shift =
+        Translate::Lookup()
+        .add(Translate::Rule("DURATION", Translate::MapType::IndexToString)
+             .set(MaskBits(0x0007))
+             .add(Translate::Map(0, "none"))
+             .add(Translate::Map(1, "1-8 hours"))
+             .add(Translate::Map(2, "9-24 hours"))
+             .add(Translate::Map(3, "2-3 days"))
+            );
+    s = no_shift.translate(0x0020);
+    e = "none";
+    if (s != e)
+    {
+        printf("ERROR translate_pre_shift_right (no shift) 0x%x expected \"%s\" but got \"%s\"\n", 0x0020, e.c_str(), s.c_str());
+    }
+
+    // The shift also applies to translateToObject (used by --format=json-structured).
+    Translate::Lookup flags =
+        Translate::Lookup()
+        .add(Translate::Rule("FLAGS", Translate::MapType::BitToString)
+             .set(MaskBits(0x0003))
+             .set(PreShiftRight(8))
+             .add(Translate::Map(0x01, "DRY"))
+             .add(Translate::Map(0x02, "LEAK"))
+            );
+
+    // DRY (bit 0 after shift) and LEAK (bit 1 after shift) live at bits 8 and 9 of the raw value.
+    map<string,bool> obj = flags.translateToObject(0x0100);
+    if (obj["DRY"] != true || obj["LEAK"] != false)
+    {
+        printf("ERROR translate_pre_shift_right object 0x100 expected DRY=true LEAK=false but got DRY=%d LEAK=%d\n",
+               obj["DRY"], obj["LEAK"]);
+    }
 }
 
 void test_slip()

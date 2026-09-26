@@ -100,6 +100,7 @@ struct Configuration
     bool add_telegram_hex = false; // Add hex=... with (decrypted) telegram hex data.
     std::string logfile;
     XMQContentType output_format {};
+    bool structured_status_output = false;
     bool pretty_print_output {};
     bool colorize_output {};
     int  pollinterval {}; // Time between polling of mbus meters.

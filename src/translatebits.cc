@@ -26,6 +26,7 @@ using namespace std;
 
 TriggerBits AlwaysTrigger(~(uint64_t)0);
 MaskBits AutoMask(0);
+PreShiftRight NoPreShift(0);
 
 void handleBitToString(Rule& rule, string &out_s, uint64_t bits)
 {
@@ -49,6 +50,7 @@ void handleBitToString(Rule& rule, string &out_s, uint64_t bits)
         }
     }
 
+    bits = bits >> rule.pre_shift_right.intValue();
     bits = bits & mask;
     for (Map& m : rule.map)
     {
@@ -121,6 +123,7 @@ void handleIndexToString(Rule& rule, string &out_s, uint64_t bits)
         }
     }
 
+    bits = bits >> rule.pre_shift_right.intValue();
     bits = bits & mask;
     bool found = false;
     for (Map& m : rule.map)
@@ -173,6 +176,8 @@ void handleDecimalsToString(Rule& rule, string &out_s, uint64_t bits)
         }
     }
 
+    bits = bits >> rule.pre_shift_right.intValue();
+
     // Switch to signed number here.
     int number = bits % mask;
     if (number == 0)
@@ -205,6 +210,26 @@ void handleDecimalsToString(Rule& rule, string &out_s, uint64_t bits)
     }
 
     out_s += s;
+}
+
+void Rule::addReservedBitMarkers()
+{
+    if (!mark_reserved_bits) return;
+    if (type != MapType::BitToString) return;
+    if (mask == AutoMask) return;
+
+    uint64_t m = mask.value();
+    uint64_t covered = 0;
+    for (Map &e : map) covered |= e.from;
+
+    for (int bit = 0; bit < 64; ++bit)
+    {
+        uint64_t bitval = (uint64_t)1 << bit;
+        if ((m & bitval) != 0 && (covered & bitval) == 0)
+        {
+            map.push_back(Map(bitval, "RESERVED_BIT_"+std::to_string(bit), TestBit::Set));
+        }
+    }
 }
 
 void handleRule(Rule& rule, string &s, uint64_t bits)
@@ -242,6 +267,63 @@ string Lookup::translate(uint64_t bits)
     while (total.size() > 0 && total.back() == ' ') total.pop_back();
 
     return sortStatusString(total);
+}
+
+map<string,bool> Lookup::translateToObject(uint64_t input_bits)
+{
+    map<string,bool> out;
+
+    for (Rule& r : rules)
+    {
+        if (r.type != MapType::BitToString)
+        {
+            // Object output only makes sense for individual named bits/bitgroups.
+            continue;
+        }
+
+        if (r.trigger != AlwaysTrigger && (input_bits & r.trigger.intValue()) == 0)
+        {
+            // The trigger bits are needed and there are no trigger bits. Ignore this rule.
+            // FIXME(jkt, 2026-09): looks like this is actually an unused feature...
+            continue;
+        }
+
+        uint64_t mask = r.mask.intValue();
+
+        if (r.mask == AutoMask)
+        {
+            mask = 0;
+            for (Map& m : r.map)
+            {
+                mask |= m.from;
+            }
+        }
+
+        uint64_t bits = input_bits >> r.pre_shift_right.intValue();
+        bits = bits & mask;
+
+        for (Map& m : r.map)
+        {
+            uint64_t from = m.from & mask;
+            bool value = false;
+
+            if (m.test == TestBit::Set)
+            {
+                value = (bits & from) != 0;
+            }
+            else if (m.test == TestBit::NotSet)
+            {
+                value = (bits & from) == 0;
+            }
+
+            out[m.to] = out[m.to] || value;
+        }
+
+        // If mark_reserved_bits is not set, then there's very little to do because this feature
+        // was designed to avoid adding dynamic IDs. Let's drop them silently.
+    }
+
+    return out;
 }
 
 string Lookup::str()

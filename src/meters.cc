@@ -2240,6 +2240,76 @@ string MeterCommonImplementation::getStringValue(FieldInfo *fi)
     return value;
 }
 
+void MeterCommonImplementation::setFieldBits(FieldInfo *fi, uint64_t bits, DVEntry *dve)
+{
+    bits_values_[fi->vname()] = bits;
+}
+
+bool MeterCommonImplementation::getFieldBits(FieldInfo *fi, uint64_t *bits)
+{
+    auto i = bits_values_.find(fi->vname());
+    if (i == bits_values_.end()) return false;
+    *bits = i->second;
+    return true;
+}
+
+static void mergeStatusObjectMembers(map<string,bool> &out, const map<string,bool> &in)
+{
+    for (const auto &e : in)
+    {
+        out[e.first] = out[e.first] || e.second;
+    }
+}
+
+map<string,bool> MeterCommonImplementation::getStatusObjectMembers(FieldInfo *fi, Telegram *t)
+{
+    map<string,bool> out;
+
+    uint64_t bits;
+    if (getFieldBits(fi, &bits))
+    {
+        mergeStatusObjectMembers(out, fi->lookup().translateToObject(bits));
+    }
+
+    for (FieldInfo &f : field_infos_)
+    {
+        if (f.printProperties().hasINJECTINTOSTATUS())
+        {
+            uint64_t fbits;
+            if (getFieldBits(&f, &fbits))
+            {
+                mergeStatusObjectMembers(out, f.lookup().translateToObject(fbits));
+            }
+        }
+    }
+
+    if (fi->printProperties().hasINCLUDETPLSTATUS())
+    {
+        uchar sts = t->tpl_sts;
+        map<string,bool> tpl;
+#define X(name,mask,value) tpl[toString(TPLStatusBit::name)] = (sts & mask) == value;
+LIST_OF_TPL_STATUS_BITS
+#undef X
+        mergeStatusObjectMembers(out, tpl);
+
+        if (mfct_tpl_status_bits_.hasLookups() && (sts & 0xe0) != 0)
+        {
+            mergeStatusObjectMembers(out, mfct_tpl_status_bits_.translateToObject(sts & 0xe0));
+        }
+    }
+
+    // FIXME: these names are dynamic :(
+    if (t->decoding_errors != "")
+    {
+        for (const string &w : splitString(t->decoding_errors, ' '))
+        {
+            if (!w.empty()) out[w] = true;
+        }
+    }
+
+    return out;
+}
+
 string MeterCommonImplementation::decodeTPLStatusByte(uchar sts)
 {
     return ::decodeTPLStatusByteWithMfct(sts, mfct_tpl_status_bits_);
@@ -2548,13 +2618,22 @@ void FieldInfo::insertStringValueIntoDoc(const string &vname, const string &valu
 {
     if (this->printProperties().hasSTATUS())
     {
-        string in = m->getStatusField(this);
-        if (t->decoding_errors != "")
-        {
-            in = joinStatusOKStrings(in, t->decoding_errors);
+        if (getStructuredStatus()) {
+            auto rn = xmqAddElement(doc, telegram, vname.c_str(), NS_PARENT);
+            XMQNode *status_object = rn.node;
+            for (auto &member : m->getStatusObjectMembers(this, t))
+            {
+                xmqAddKeyValue(doc, status_object, member.first.c_str(), member.second ? "true" : "false", NS_PARENT);
+            }
+        } else {
+            string in = m->getStatusField(this);
+            if (t->decoding_errors != "")
+            {
+                in = joinStatusOKStrings(in, t->decoding_errors);
+            }
+            xmqAddKeyValueWithAttrs(doc, telegram, vname.c_str(), in.c_str(), NS_PARENT,
+                                    XMQ_ATTRS( { "S", "" } )); // S marks this as a json string.
         }
-        xmqAddKeyValueWithAttrs(doc, telegram, vname.c_str(), in.c_str(), NS_PARENT,
-                                XMQ_ATTRS( { "S", "" } )); // S marks this as a json string.
     }
     else
     {
@@ -3270,6 +3349,7 @@ bool FieldInfo::extractString(Meter *m, Telegram *t, DVEntry *dve)
         if (lookup_.hasLookups() && dve->extractLong(&extracted_bits))
         {
             translated_bits = lookup().translate(extracted_bits);
+            m->setFieldBits(this, extracted_bits, dve);
             found = true;
         }
 
