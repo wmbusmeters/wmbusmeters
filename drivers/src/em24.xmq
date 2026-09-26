@@ -63,10 +63,10 @@ driver {
             }
         }
         field {
-            name       = error
-            quantity   = Text
-            info       = 'Any errors currently being reported, this field is deprecated and replaced by the status field.'
-            attributes = DEPRECATED
+            name          = error
+            quantity      = Text
+            info          = 'Any errors currently being reported, this field is deprecated and replaced by the status field.'
+            deprecated_by = 'status, update before 2026-12-01'
             match {
                 measurement_type = Instantaneous
                 vif_range        = ErrorFlags

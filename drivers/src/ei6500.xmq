@@ -202,10 +202,10 @@ driver {
             }
         }
         field {
-            name       = dust_level
-            quantity   = Text
-            attributes = DEPRECATED
-            info       = 'Dust level 0 (best) to 31 (worst). Deprecated. Use dust_level_counter instead.'
+            name          = dust_level
+            quantity      = Text
+            deprecated_by = 'dust_level_counter, update before 2026-12-12'
+            info          = 'Dust level 0 (best) to 31 (worst). Deprecated. Use dust_level_counter instead.'
             match {
                 difvifkey = 8440FF2C
             }

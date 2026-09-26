@@ -234,11 +234,10 @@ driver {
             }
         }
         field {
-            name       = current_status
-            quantity   = Text
-            info       = 'Status of meter. This field will go away use status instead.'
-            attributes = DEPRECATED
-            deprecated_by = 'status change before 2026-12-12'
+            name          = current_status
+            quantity      = Text
+            info          = 'Status of meter. This field will go away use status instead.'
+            deprecated_by = 'status, update before 2026-12-12'
             match {
                 difvifkey = 02FF20
             }

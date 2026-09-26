@@ -80,20 +80,20 @@ driver {
             }
         }
         field {
-            name       = current_consumption
-            quantity   = HCA
-            info       = 'DEPRECATED: replaced by consumption_hca. Cumulative heat cost allocation for current billing-period.'
-            attributes = DEPRECATED
+            name          = current_consumption
+            quantity      = HCA
+            info          = 'DEPRECATED Cumulative heat cost allocation for current billing-period.'
+            deprecated_by = 'consumption_hca, update by 2026-12-01'
             match {
                 measurement_type = Instantaneous
                 vif_range        = HeatCostAllocation
             }
         }
         field {
-            name       = consumption_at_set_date_1
-            quantity   = HCA
-            info       = 'DEPRECATED: replaced by target_hca. Heat cost allocation for the most recent billing-period.'
-            attributes = DEPRECATED
+            name          = consumption_at_set_date_1
+            quantity      = HCA
+            info          = 'Replaced by target_hca. Heat cost allocation for the most recent billing-period.'
+            deprecated_by = 'target_hca update before 2026-12-01'
             match {
                 measurement_type = Instantaneous
                 vif_range        = HeatCostAllocation
@@ -204,7 +204,6 @@ driver {
             quantity = PointInTime
             info     = 'EXPERIMENTAL: Date of the oldest half-monthly delta in the history series, anchors delta_30_half_months_ago_hca.'
             // don't rely on this (yet), drop DEPRECATED once hcae2 is fully understood
-            attributes   = DEPRECATED
             display_unit = date
             match {
                 measurement_type = Instantaneous
@@ -216,13 +215,12 @@ driver {
             name     = 'delta_{32counter-storage_counter}_half_months_ago'
             quantity = HCA
             // don't rely on this (yet), drop DEPRECATED once hcae2 is fully understood
-            attributes = DEPRECATED
-            info       = 'EXPERIMENTAL: Difference between two consecutive half-monthly snapshots (not an absolute reading).
-                          -- The fields delta_{1..30}_half_months_ago_hca together span >= 15 months.
-                          -- delta_30_half_months_ago_hca may cover more than a half-month: its left edge anchors to the start of the billing cycle containing the oldest snapshot.
-                          -- Sum from delta_30_half_months_ago_hca forward for the cumulative reading at any half-month.
-                          -- The delta crossing target_date is large-negative due to the billing-period reset (sum still yields the correct post-reset cumulative).
-                          -- See the hcae2 driver source for further information including meter-configuration caveats.'
+            info = 'EXPERIMENTAL: Difference between two consecutive half-monthly snapshots (not an absolute reading).
+                    -- The fields delta_{1..30}_half_months_ago_hca together span >= 15 months.
+                    -- delta_30_half_months_ago_hca may cover more than a half-month: its left edge anchors to the start of the billing cycle containing the oldest snapshot.
+                    -- Sum from delta_30_half_months_ago_hca forward for the cumulative reading at any half-month.
+                    -- The delta crossing target_date is large-negative due to the billing-period reset (sum still yields the correct post-reset cumulative).
+                    -- See the hcae2 driver source for further information including meter-configuration caveats.'
             match {
                 measurement_type = Instantaneous
                 vif_range        = HeatCostAllocation

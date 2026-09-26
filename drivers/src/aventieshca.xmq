@@ -54,10 +54,10 @@ driver {
             }
         }
         field {
-            name       = error_flags
-            quantity   = Text
-            info       = Deprecated.
-            attributes = DEPRECATED
+            name          = error_flags
+            quantity      = Text
+            info          = Deprecated.
+            deprecated_by = 'status, update before 2026-12-01'
             match {
                 measurement_type = Instantaneous
                 vif_range        = ErrorFlags

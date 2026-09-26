@@ -160,6 +160,7 @@ driver {
     fields {
         field {
             name              = total
+            deprecated_by     = 'newdriver, upgrade before 2222-02-22' // Mark the driver for removal, upgrade to newdriver.
             quantity          = Volume    // Volume|Energy|Power|Temperature|Flow|
                                           // PointInTime|Text|Counter|Pressure|RH|
                                           // HCA|Dimensionless|Voltage|Amperage|...
@@ -179,11 +180,11 @@ driver {
             match_entire_payload = true   // rare: parse raw mfct payload as ixml
             attributes        = STATUS    // comma-separated PrintProperty flags:
                                           //   REQUIRED – print even with no data (NaN/null)
-                                          //   DEPRECATED – field being phased out
                                           //   STATUS – primary status field; "OK" if no bits set
                                           //   INCLUDE_TPL_STATUS – also fold in TPL status byte
                                           //   INJECT_INTO_STATUS – merge into the STATUS field
                                           //   HIDE – suppress from output (intermediate calc only)
+            deprecated_by = 'newfield, upgrade before 2222-02-22' // Inform that field is deprecated and will disappear at a certain date.
             match {
                 measurement_type = Instantaneous  // Any|Instantaneous|Minimum|Maximum|AtError
                 vif_range        = Volume          // common values:

@@ -14,10 +14,10 @@ driver {
     }
     fields {
         field {
-            name       = location_hex
-            quantity   = Text
-            info       = 'Meter installed at this customer location. Deprecate field.'
-            attributes = DEPRECATED
+            name          = location_hex
+            quantity      = Text
+            info          = 'Meter installed at this customer location. Deprecate field.'
+            deprecated_by = 'location, update by 2026-12-01'
             match {
                 measurement_type = Instantaneous
                 vif_range        = Location
