@@ -10,7 +10,7 @@ TESTNAME="Test format=json-structured expands status into an object"
 TESTRESULT="ERROR"
 
 cat > $TEST/test_expected_unsorted.txt <<EOF
-{"_":"telegram","media":"cold water","driver":"kamwater","name":"MyTapWater","id":"76348799","min_external_temperature_last_month_c":19,"min_flow_temperature_last_month_c":127,"target_m3":6.408,"total_m3":6.408,"current_status":"DRY","status":{"DRY":true,"REVERSE":false,"LEAK":false,"BURST":false,"BUSY":false,"ERROR":false,"ALARM":false,"POWER_LOW":false,"PERMANENT_ERROR":false,"TEMPORARY_ERROR":false},"time_bursting":"","time_dry":"22-31 days","time_leaking":"","time_reversed":"","timestamp":"1111-11-11T11:11:11Z"}
+{"_":"telegram","media":"cold water","driver":"kamwater","name":"MyTapWater","id":"76348799","min_external_temperature_last_month_c":19,"min_flow_temperature_last_month_c":127,"target_m3":6.408,"total_m3":6.408,"current_status":"DRY","status": "DRY","status_flags":{"DRY":true,"REVERSE":false,"LEAK":false,"BURST":false,"BUSY":false,"ERROR":false,"ALARM":false,"POWER_LOW":false,"PERMANENT_ERROR":false,"TEMPORARY_ERROR":false},"time_bursting":"","time_dry":"22-31 days","time_leaking":"","time_reversed":"","timestamp":"1111-11-11T11:11:11Z"}
 EOF
 
 jq --sort-keys . $TEST/test_expected_unsorted.txt > $TEST/test_expected.txt

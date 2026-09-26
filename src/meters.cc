@@ -2618,21 +2618,23 @@ void FieldInfo::insertStringValueIntoDoc(const string &vname, const string &valu
 {
     if (this->printProperties().hasSTATUS())
     {
-        if (getStructuredStatus()) {
-            auto rn = xmqAddElement(doc, telegram, vname.c_str(), NS_PARENT);
+        string in = m->getStatusField(this);
+        if (t->decoding_errors != "")
+        {
+            in = joinStatusOKStrings(in, t->decoding_errors);
+        }
+        xmqAddKeyValueWithAttrs(doc, telegram, vname.c_str(), in.c_str(), NS_PARENT,
+                                XMQ_ATTRS( { "S", "" } )); // S marks this as a json string.
+
+        if (getStructuredStatus())
+        {
+            string vname_flags = vname+"_flags";
+            auto rn = xmqAddElement(doc, telegram, vname_flags.c_str(), NS_PARENT);
             XMQNode *status_object = rn.node;
             for (auto &member : m->getStatusObjectMembers(this, t))
             {
                 xmqAddKeyValue(doc, status_object, member.first.c_str(), member.second ? "true" : "false", NS_PARENT);
             }
-        } else {
-            string in = m->getStatusField(this);
-            if (t->decoding_errors != "")
-            {
-                in = joinStatusOKStrings(in, t->decoding_errors);
-            }
-            xmqAddKeyValueWithAttrs(doc, telegram, vname.c_str(), in.c_str(), NS_PARENT,
-                                    XMQ_ATTRS( { "S", "" } )); // S marks this as a json string.
         }
     }
     else

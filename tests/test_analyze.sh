@@ -153,7 +153,7 @@ cat > $TEST/test_expected.txt <<EOF
 Auto driver    : kamwater
 Similar driver : unknown 00/00
 Using driver   : kamwater 00/00
-000   : 2a length (42 bytes)(OK)
+000   : 2a length (42 bytes)(OK)(OK)
 001   : 44 dll-c (from meter SND_NR)
 002   : 2d2c dll-mfct (KAM)
 004   : 99873476 dll-id (76348799)
@@ -217,7 +217,7 @@ cat > $TEST/test_expected.txt <<EOF
 Auto driver    : kamwater
 Similar driver : unknown 00/00
 Using driver   : kamwater 00/00
-000   : 23 length (35 bytes)(OK)
+000   : 23 length (35 bytes)(OK)(OK)
 001   : 44 dll-c (from meter SND_NR)
 002   : 2d2c dll-mfct (KAM)
 004   : 99873476 dll-id (76348799)
