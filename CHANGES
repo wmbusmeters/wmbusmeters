@@ -3,6 +3,7 @@ ATTENTION! Breaking changes to the kamwater driver. There were a lot of bugs
 on how the flow_temperature_c was picked up. These are now fixed
 so instead of the old field, expect to see min_flow_temperature_last_month_c
 or min_flow_temperature_last_day_c. These meters are very configurable.
+Also a spelling error was corrected abient should be ambient.
 
 ATTENTION! Breaking change the field "meter":"..." is now renamed to
 "driver":"...". The meter field name is just confusing since it has not been
