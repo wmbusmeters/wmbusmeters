@@ -52,7 +52,8 @@ cat > $TEST/test_expected_unsorted.txt <<EOF
   "media": "water",
   "name": "WaterWater",
   "timestamp": "1111-11-11T11:11:11Z",
-  "total_m3": 123.529
+  "total_m3": 123.529,
+  "total_m3_deprecated_by": "totality get rid of this"
 }
 EOF
 

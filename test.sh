@@ -33,178 +33,178 @@ else
 fi
 
 tests/test_c1_meters.sh $PROG
-if [ "$?" != "0" ]; then RC="1"; fi
+if [ "$?" != "0" ]; then RC="1"; if [ "$STOP" = "true" ]; then exit 1; fi; fi
 
 tests/test_t1_meters.sh $PROG
-if [ "$?" != "0" ]; then RC="1"; fi
+if [ "$?" != "0" ]; then RC="1"; if [ "$STOP" = "true" ]; then exit 1; fi; fi
 
 tests/test_s1_meters.sh $PROG
-if [ "$?" != "0" ]; then RC="1"; fi
+if [ "$?" != "0" ]; then RC="1"; if [ "$STOP" = "true" ]; then exit 1; fi; fi
 
 tests/test_non_existant_driver.sh $PROG
-if [ "$?" != "0" ]; then RC="1"; fi
+if [ "$?" != "0" ]; then RC="1"; if [ "$STOP" = "true" ]; then exit 1; fi; fi
 
 tests/test_download_drivers.sh $PROG
-if [ "$?" != "0" ]; then RC="1"; fi
+if [ "$?" != "0" ]; then RC="1"; if [ "$STOP" = "true" ]; then exit 1; fi; fi
 
 tests/test_mbus.sh $PROG
-if [ "$?" != "0" ]; then RC="1"; fi
+if [ "$?" != "0" ]; then RC="1"; if [ "$STOP" = "true" ]; then exit 1; fi; fi
 
 tests/test_libmbus_secondary_address.sh $PROG
-if [ "$?" != "0" ]; then RC="1"; fi
+if [ "$?" != "0" ]; then RC="1"; if [ "$STOP" = "true" ]; then exit 1; fi; fi
 
 tests/test_anyid.sh $PROG
-if [ "$?" != "0" ]; then RC="1"; fi
+if [ "$?" != "0" ]; then RC="1"; if [ "$STOP" = "true" ]; then exit 1; fi; fi
 
 tests/test_jh_unit.sh $PROG
-if [ "$?" != "0" ]; then RC="1"; fi
+if [ "$?" != "0" ]; then RC="1"; if [ "$STOP" = "true" ]; then exit 1; fi; fi
 
 ./tests/test_list_envs.sh $PROG
-if [ "$?" != "0" ]; then RC="1"; fi
+if [ "$?" != "0" ]; then RC="1"; if [ "$STOP" = "true" ]; then exit 1; fi; fi
 
 ./tests/test_detailed_first.sh $PROG
-if [ "$?" != "0" ]; then RC="1"; fi
+if [ "$?" != "0" ]; then RC="1"; if [ "$STOP" = "true" ]; then exit 1; fi; fi
 
 ./tests/test_add_telegram_hex.sh $PROG
-if [ "$?" != "0" ]; then RC="1"; fi
+if [ "$?" != "0" ]; then RC="1"; if [ "$STOP" = "true" ]; then exit 1; fi; fi
 
 ./tests/test_deprecated_by.sh $PROG
-if [ "$?" != "0" ]; then RC="1"; fi
+if [ "$?" != "0" ]; then RC="1"; if [ "$STOP" = "true" ]; then exit 1; fi; fi
 
 tests/test_config_xmq_mvt_override.sh $PROG
-if [ "$?" != "0" ]; then RC="1"; fi
+if [ "$?" != "0" ]; then RC="1"; if [ "$STOP" = "true" ]; then exit 1; fi; fi
 
 tests/test_extra_library_help.sh $PROG
-if [ "$?" != "0" ]; then RC="1"; fi
+if [ "$?" != "0" ]; then RC="1"; if [ "$STOP" = "true" ]; then exit 1; fi; fi
 
 #tests/test_unknown.sh $PROG
-#if [ "$?" != "0" ]; then RC="1"; fi
+#if [ "$?" != "0" ]; then RC="1"; if [ "$STOP" = "true" ]; then exit 1; fi; fi
 
 tests/test_apas.sh $PROG
-if [ "$?" != "0" ]; then RC="1"; fi
+if [ "$?" != "0" ]; then RC="1"; if [ "$STOP" = "true" ]; then exit 1; fi; fi
 
 tests/test_izars.sh $PROG
-if [ "$?" != "0" ]; then RC="1"; fi
+if [ "$?" != "0" ]; then RC="1"; if [ "$STOP" = "true" ]; then exit 1; fi; fi
 
 tests/test_aes.sh $PROG
-if [ "$?" != "0" ]; then RC="1"; fi
+if [ "$?" != "0" ]; then RC="1"; if [ "$STOP" = "true" ]; then exit 1; fi; fi
 
 tests/test_key_warnings.sh $PROG
-if [ "$?" != "0" ]; then RC="1"; fi
+if [ "$?" != "0" ]; then RC="1"; if [ "$STOP" = "true" ]; then exit 1; fi; fi
 
 tests/test_qwds_walkby_nokey.sh $PROG
-if [ "$?" != "0" ]; then RC="1"; fi
+if [ "$?" != "0" ]; then RC="1"; if [ "$STOP" = "true" ]; then exit 1; fi; fi
 
 tests/test_kamwater_ccm_tag.sh $PROG
-if [ "$?" != "0" ]; then RC="1"; fi
+if [ "$?" != "0" ]; then RC="1"; if [ "$STOP" = "true" ]; then exit 1; fi; fi
 
 tests/test_shell.sh $PROG
-if [ "$?" != "0" ]; then RC="1"; fi
+if [ "$?" != "0" ]; then RC="1"; if [ "$STOP" = "true" ]; then exit 1; fi; fi
 
 tests/test_shell2.sh $PROG
-if [ "$?" != "0" ]; then RC="1"; fi
+if [ "$?" != "0" ]; then RC="1"; if [ "$STOP" = "true" ]; then exit 1; fi; fi
 
 tests/test_rawshell.sh $PROG
-if [ "$?" != "0" ]; then RC="1"; fi
+if [ "$?" != "0" ]; then RC="1"; if [ "$STOP" = "true" ]; then exit 1; fi; fi
 
 tests/test_shell_env.sh $PROG
-if [ "$?" != "0" ]; then RC="1"; fi
+if [ "$?" != "0" ]; then RC="1"; if [ "$STOP" = "true" ]; then exit 1; fi; fi
 
 tests/test_driver_in_shell.sh $PROG
-if [ "$?" != "0" ]; then RC="1"; fi
+if [ "$?" != "0" ]; then RC="1"; if [ "$STOP" = "true" ]; then exit 1; fi; fi
 
 tests/test_meterfiles.sh $PROG
-if [ "$?" != "0" ]; then RC="1"; fi
+if [ "$?" != "0" ]; then RC="1"; if [ "$STOP" = "true" ]; then exit 1; fi; fi
 
 tests/test_config1.sh $PROG
-if [ "$?" != "0" ]; then RC="1"; fi
+if [ "$?" != "0" ]; then RC="1"; if [ "$STOP" = "true" ]; then exit 1; fi; fi
 
 tests/test_logfile.sh $PROG
-if [ "$?" != "0" ]; then RC="1"; fi
+if [ "$?" != "0" ]; then RC="1"; if [ "$STOP" = "true" ]; then exit 1; fi; fi
 
 tests/test_elements.sh $PROG
-if [ "$?" != "0" ]; then RC="1"; fi
+if [ "$?" != "0" ]; then RC="1"; if [ "$STOP" = "true" ]; then exit 1; fi; fi
 
 tests/test_listen_to_all.sh $PROG
-if [ "$?" != "0" ]; then RC="1"; fi
+if [ "$?" != "0" ]; then RC="1"; if [ "$STOP" = "true" ]; then exit 1; fi; fi
 
 tests/test_driver_detection.sh $PROG
-if [ "$?" != "0" ]; then RC="1"; fi
+if [ "$?" != "0" ]; then RC="1"; if [ "$STOP" = "true" ]; then exit 1; fi; fi
 
 tests/test_multiple_ids.sh $PROG
-if [ "$?" != "0" ]; then RC="1"; fi
+if [ "$?" != "0" ]; then RC="1"; if [ "$STOP" = "true" ]; then exit 1; fi; fi
 
 tests/test_conversions.sh $PROG
-if [ "$?" != "0" ]; then RC="1"; fi
+if [ "$?" != "0" ]; then RC="1"; if [ "$STOP" = "true" ]; then exit 1; fi; fi
 
 tests/test_conversions_more.sh $PROG
-if [ "$?" != "0" ]; then RC="1"; fi
+if [ "$?" != "0" ]; then RC="1"; if [ "$STOP" = "true" ]; then exit 1; fi; fi
 
 tests/test_inverse_compact_profile.sh $PROG
-if [ "$?" != "0" ]; then RC="1"; fi
+if [ "$?" != "0" ]; then RC="1"; if [ "$STOP" = "true" ]; then exit 1; fi; fi
 
 tests/test_dbm.sh $PROG
-if [ "$?" != "0" ]; then RC="1"; fi
+if [ "$?" != "0" ]; then RC="1"; if [ "$STOP" = "true" ]; then exit 1; fi; fi
 
 tests/test_calculate.sh $PROG
-if [ "$?" != "0" ]; then RC="1"; fi
+if [ "$?" != "0" ]; then RC="1"; if [ "$STOP" = "true" ]; then exit 1; fi; fi
 
 tests/test_formulas.sh $PROG
-if [ "$?" != "0" ]; then RC="1"; fi
+if [ "$?" != "0" ]; then RC="1"; if [ "$STOP" = "true" ]; then exit 1; fi; fi
 
 tests/test_formula_errors.sh $PROG
-if [ "$?" != "0" ]; then RC="1"; fi
+if [ "$?" != "0" ]; then RC="1"; if [ "$STOP" = "true" ]; then exit 1; fi; fi
 
 tests/test_calculate_dates.sh $PROG
-if [ "$?" != "0" ]; then RC="1"; fi
+if [ "$?" != "0" ]; then RC="1"; if [ "$STOP" = "true" ]; then exit 1; fi; fi
 
 tests/test_fields.sh $PROG
-if [ "$?" != "0" ]; then RC="1"; fi
+if [ "$?" != "0" ]; then RC="1"; if [ "$STOP" = "true" ]; then exit 1; fi; fi
 
 tests/test_oneshot.sh $PROG broken test
-if [ "$?" != "0" ]; then RC="1"; fi
+if [ "$?" != "0" ]; then RC="1"; if [ "$STOP" = "true" ]; then exit 1; fi; fi
 
 tests/test_wrongkeys.sh $PROG
-if [ "$?" != "0" ]; then RC="1"; fi
+if [ "$?" != "0" ]; then RC="1"; if [ "$STOP" = "true" ]; then exit 1; fi; fi
 
 tests/test_config4.sh $PROG
-if [ "$?" != "0" ]; then RC="1"; fi
+if [ "$?" != "0" ]; then RC="1"; if [ "$STOP" = "true" ]; then exit 1; fi; fi
 
 tests/test_linkmodes.sh $PROG
-if [ "$?" != "0" ]; then RC="1"; fi
+if [ "$?" != "0" ]; then RC="1"; if [ "$STOP" = "true" ]; then exit 1; fi; fi
 
 tests/test_cmdline.sh $PROG
-if [ "$?" != "0" ]; then RC="1"; fi
+if [ "$?" != "0" ]; then RC="1"; if [ "$STOP" = "true" ]; then exit 1; fi; fi
 
 tests/test_additional_json.sh $PROG
-if [ "$?" != "0" ]; then RC="1"; fi
+if [ "$?" != "0" ]; then RC="1"; if [ "$STOP" = "true" ]; then exit 1; fi; fi
 
 tests/test_addresses.sh $PROG
-if [ "$?" != "0" ]; then RC="1"; fi
+if [ "$?" != "0" ]; then RC="1"; if [ "$STOP" = "true" ]; then exit 1; fi; fi
 
 tests/test_address_filtering.sh $PROG
-if [ "$?" != "0" ]; then RC="1"; fi
+if [ "$?" != "0" ]; then RC="1"; if [ "$STOP" = "true" ]; then exit 1; fi; fi
 
 tests/test_address_dll.sh $PROG
-if [ "$?" != "0" ]; then RC="1"; fi
+if [ "$?" != "0" ]; then RC="1"; if [ "$STOP" = "true" ]; then exit 1; fi; fi
 
 tests/test_identity_mode.sh $PROG
-if [ "$?" != "0" ]; then RC="1"; fi
+if [ "$?" != "0" ]; then RC="1"; if [ "$STOP" = "true" ]; then exit 1; fi; fi
 
 tests/test_rtlwmbus.sh $PROG
-if [ "$?" != "0" ]; then RC="1"; fi
+if [ "$?" != "0" ]; then RC="1"; if [ "$STOP" = "true" ]; then exit 1; fi; fi
 
 tests/test_stdin_and_file.sh $PROG
-if [ "$?" != "0" ]; then RC="1"; fi
+if [ "$?" != "0" ]; then RC="1"; if [ "$STOP" = "true" ]; then exit 1; fi; fi
 
 tests/test_serial_bads.sh $PROG
-if [ "$?" != "0" ]; then RC="1"; fi
+if [ "$?" != "0" ]; then RC="1"; if [ "$STOP" = "true" ]; then exit 1; fi; fi
 
 tests/test_ignore_duplicates.sh $PROG
-if [ "$?" != "0" ]; then RC="1"; fi
+if [ "$?" != "0" ]; then RC="1"; if [ "$STOP" = "true" ]; then exit 1; fi; fi
 
 ./tests/test_match_dll_and_tpl_id.sh $PROG
-if [ "$?" != "0" ]; then RC="1"; fi
+if [ "$?" != "0" ]; then RC="1"; if [ "$STOP" = "true" ]; then exit 1; fi; fi
 
 ./tests/test_unix_timestamp.sh $PROG
 if [ "$?" != "0" ]; then
@@ -212,51 +212,51 @@ if [ "$?" != "0" ]; then
     # Lets try again.
     ./tests/test_unix_timestamp.sh $PROG
     if [ "$?" != "0" ]; then
-        RC="1";
+        RC="1"; if [ "$STOP" = "true" ]; then exit 1; fi;
     fi
 fi
 
 ./tests/test_log_timestamps.sh $PROG
-if [ "$?" != "0" ]; then RC="1"; fi
+if [ "$?" != "0" ]; then RC="1"; if [ "$STOP" = "true" ]; then exit 1; fi; fi
 
 ./tests/test_meter_extras.sh $PROG
-if [ "$?" != "0" ]; then RC="1"; fi
+if [ "$?" != "0" ]; then RC="1"; if [ "$STOP" = "true" ]; then exit 1; fi; fi
 
 ./tests/test_hex_cmdline.sh $PROG
-if [ "$?" != "0" ]; then RC="1"; fi
+if [ "$?" != "0" ]; then RC="1"; if [ "$STOP" = "true" ]; then exit 1; fi; fi
 
 ./tests/test_json_structured.sh $PROG
-if [ "$?" != "0" ]; then RC="1"; fi
+if [ "$?" != "0" ]; then RC="1"; if [ "$STOP" = "true" ]; then exit 1; fi; fi
 
 ./tests/test_template_field.sh $PROG
-if [ "$?" != "0" ]; then RC="1"; fi
+if [ "$?" != "0" ]; then RC="1"; if [ "$STOP" = "true" ]; then exit 1; fi; fi
 
 ./tests/test_json_stdin.sh $PROG
-if [ "$?" != "0" ]; then RC="1"; fi
+if [ "$?" != "0" ]; then RC="1"; if [ "$STOP" = "true" ]; then exit 1; fi; fi
 
 ./tests/test_json_serial.sh $PROG
-if [ "$?" != "0" ]; then RC="1"; fi
+if [ "$?" != "0" ]; then RC="1"; if [ "$STOP" = "true" ]; then exit 1; fi; fi
 
 ./tests/test_removing_dll_crcs.sh $PROG
-if [ "$?" != "0" ]; then RC="1"; fi
+if [ "$?" != "0" ]; then RC="1"; if [ "$STOP" = "true" ]; then exit 1; fi; fi
 
 ./tests/test_frame_b_trim.sh $PROG
-if [ "$?" != "0" ]; then RC="1"; fi
+if [ "$?" != "0" ]; then RC="1"; if [ "$STOP" = "true" ]; then exit 1; fi; fi
 
 ./tests/test_broken.sh $PROG
-if [ "$?" != "0" ]; then RC="1"; fi
+if [ "$?" != "0" ]; then RC="1"; if [ "$STOP" = "true" ]; then exit 1; fi; fi
 
 ./tests/test_rtlwmbus_crc_errors.sh $PROG
-if [ "$?" != "0" ]; then RC="1"; fi
+if [ "$?" != "0" ]; then RC="1"; if [ "$STOP" = "true" ]; then exit 1; fi; fi
 
 ./tests/test_rtlwmbus_timestamps.sh $PROG
-if [ "$?" != "0" ]; then RC="1"; fi
+if [ "$?" != "0" ]; then RC="1"; if [ "$STOP" = "true" ]; then exit 1; fi; fi
 
 ./tests/test_rtlwmbus_linkmodes.sh $PROG
-if [ "$?" != "0" ]; then RC="1"; fi
+if [ "$?" != "0" ]; then RC="1"; if [ "$STOP" = "true" ]; then exit 1; fi; fi
 
 ./tests/test_bad_telegrams.sh $PROG
-if [ "$?" != "0" ]; then RC="1"; fi
+if [ "$?" != "0" ]; then RC="1"; if [ "$STOP" = "true" ]; then exit 1; fi; fi
 
 if [ -s build/xmq ]
 then
@@ -266,40 +266,40 @@ else
 fi
 
 ./tests/test_drivers.sh $PROG
-if [ "$?" != "0" ]; then RC="1"; fi
+if [ "$?" != "0" ]; then RC="1"; if [ "$STOP" = "true" ]; then exit 1; fi; fi
 
 ./tests/test_analyze.sh $PROG
-if [ "$?" != "0" ]; then RC="1"; fi
+if [ "$?" != "0" ]; then RC="1"; if [ "$STOP" = "true" ]; then exit 1; fi; fi
 
 ./tests/test_loadable_drivers.sh $PROG
-if [ "$?" != "0" ]; then RC="1"; fi
+if [ "$?" != "0" ]; then RC="1"; if [ "$STOP" = "true" ]; then exit 1; fi; fi
 
 ./tests/test_driver_templates.sh $PROG
-if [ "$?" != "0" ]; then RC="1"; fi
+if [ "$?" != "0" ]; then RC="1"; if [ "$STOP" = "true" ]; then exit 1; fi; fi
 
 tests/test_force_scaling.sh $PROG
-if [ "$?" != "0" ]; then RC="1"; fi
+if [ "$?" != "0" ]; then RC="1"; if [ "$STOP" = "true" ]; then exit 1; fi; fi
 
 ./tests/test_dyndriver_key_with_date.sh $PROG
-if [ "$?" != "0" ]; then RC="1"; fi
+if [ "$?" != "0" ]; then RC="1"; if [ "$STOP" = "true" ]; then exit 1; fi; fi
 
 ./tests/test_bad_driver.sh $PROG
-if [ "$?" != "0" ]; then RC="1"; fi
+if [ "$?" != "0" ]; then RC="1"; if [ "$STOP" = "true" ]; then exit 1; fi; fi
 
 ./tests/test_metershell_env.sh $PROG
-if [ "$?" != "0" ]; then RC="1"; fi
+if [ "$?" != "0" ]; then RC="1"; if [ "$STOP" = "true" ]; then exit 1; fi; fi
 
 ./tests/test_metershell.sh $PROG
-if [ "$?" != "0" ]; then RC="1"; fi
+if [ "$?" != "0" ]; then RC="1"; if [ "$STOP" = "true" ]; then exit 1; fi; fi
 
 ./tests/test_metershell2.sh $PROG
-if [ "$?" != "0" ]; then RC="1"; fi
+if [ "$?" != "0" ]; then RC="1"; if [ "$STOP" = "true" ]; then exit 1; fi; fi
 
 # Only run the python3 tests if python3 is installed.
 if command -v python3 > /dev/null 2> /dev/null
 then
     tests/test_socket.py $PROG
-    if [ "$?" != "0" ]; then RC="1"; fi
+    if [ "$?" != "0" ]; then RC="1"; if [ "$STOP" = "true" ]; then exit 1; fi; fi
 fi
 
 # Only run the netcat tests if netcat is installed.
@@ -310,13 +310,13 @@ then
     if [ "$IS_NC_OPENBSD" = "OpenBSD" ]
     then
         ./tests/test_nc1.sh $PROG
-        if [ "$?" != "0" ]; then RC="1"; fi
+        if [ "$?" != "0" ]; then RC="1"; if [ "$STOP" = "true" ]; then exit 1; fi; fi
 
         ./tests/test_nc2.sh $PROG
-        if [ "$?" != "0" ]; then RC="1"; fi
+        if [ "$?" != "0" ]; then RC="1"; if [ "$STOP" = "true" ]; then exit 1; fi; fi
 
         ./tests/test_nc3.sh $PROG
-        if [ "$?" != "0" ]; then RC="1"; fi
+        if [ "$?" != "0" ]; then RC="1"; if [ "$STOP" = "true" ]; then exit 1; fi; fi
     fi
 fi
 
@@ -328,18 +328,18 @@ fi
 echo "Slower tests..."
 
 tests/test_pipe.sh $PROG
-if [ "$?" != "0" ]; then RC="1"; fi
+if [ "$?" != "0" ]; then RC="1"; if [ "$STOP" = "true" ]; then exit 1; fi; fi
 
 tests/test_config_oneshot_exitafter.sh $PROG
-if [ "$?" != "0" ]; then RC="1"; fi
+if [ "$?" != "0" ]; then RC="1"; if [ "$STOP" = "true" ]; then exit 1; fi; fi
 
 tests/test_config_overrides.sh $PROG
-if [ "$?" != "0" ]; then RC="1"; fi
+if [ "$?" != "0" ]; then RC="1"; if [ "$STOP" = "true" ]; then exit 1; fi; fi
 
 if [ "$(uname)" = "Linux" ]
 then
     tests/test_alarm.sh $PROG
-    if [ "$?" != "0" ]; then RC="1"; fi
+    if [ "$?" != "0" ]; then RC="1"; if [ "$STOP" = "true" ]; then exit 1; fi; fi
 fi
 
 if [ "$RC" = "0" ]

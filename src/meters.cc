@@ -2622,6 +2622,11 @@ void FieldInfo::insertNumericValueIntoDoc(string vname, Meter *m, DVEntry *dve, 
             val = valueToString(m->getNumericValue(field_name, displayUnit()), displayUnit());
         }
         xmqAddKeyValue(doc, telegram, key.c_str(), val.c_str(), NS_PARENT);
+        if (deprecatedBy().length() > 0)
+        {
+            string k = key+"_deprecated_by";
+            xmqAddKeyValue(doc, telegram, k.c_str(), deprecatedBy().c_str(), NS_PARENT);
+        }
         if (details_fields)
         {
             auto rn = xmqAddElement(doc, details_fields, key.c_str(), NS_PARENT);
@@ -2673,6 +2678,11 @@ void FieldInfo::insertStringValueIntoDoc(const string &vname, const string &valu
             xmqAddKeyValueWithAttrs(doc, telegram, vname.c_str(), value.c_str(), NS_PARENT,
                                     XMQ_ATTRS( { "S", "" } )); // S marks this as a json string.
         }
+    }
+    if (deprecatedBy().length() > 0)
+    {
+        string k = vname+"_deprecated_by";
+        xmqAddKeyValue(doc, telegram, k.c_str(), deprecatedBy().c_str(), NS_PARENT);
     }
     if (details_fields)
     {
