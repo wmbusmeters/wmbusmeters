@@ -1648,6 +1648,15 @@ void MeterCommonImplementation::buildOutputDoc(XMQDoc *doc,
         xmqAddKeyValueWithAttrs(doc, telegram, k.c_str(), v.c_str(), NS_PARENT,
                                 XMQ_ATTRS( { "S", "" } )); // S marks this as a json string.
     }
+
+    if (structured)
+    {
+        xmqMoveElement(doc, telegram, structured, doc, telegram, XMQ_MOVE_LAST, NULL);
+    }
+    if (details)
+    {
+        xmqMoveElement(doc, telegram, details, doc, telegram, XMQ_MOVE_LAST, NULL);
+    }
 }
 
 bool MeterCommonImplementation::handleTelegram(AboutTelegram &about, vector<uchar> input_frame,

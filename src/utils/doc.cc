@@ -23,7 +23,7 @@ std::string docToString(XMQDoc *doc, XMQContentType format, bool pretty_print)
     XMQOutputSettings *os = xmqNewOutputSettings();
 
     xmqSetCompact(os, !pretty_print);
-    xmqSetUseColor(os, false);
+    xmqSetColorMode(os, XMQ_MONO);
     xmqSetFinalNewline(os, false);
     if (format == XMQ_CONTENT_UNKNOWN) format = XMQ_CONTENT_XMQ;
     xmqSetOutputFormat(os, format);
