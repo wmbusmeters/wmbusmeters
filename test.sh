@@ -277,6 +277,9 @@ if [ "$?" != "0" ]; then RC="1"; if [ "$STOP" = "true" ]; then exit 1; fi; fi
 ./tests/test_driver_templates.sh $PROG
 if [ "$?" != "0" ]; then RC="1"; if [ "$STOP" = "true" ]; then exit 1; fi; fi
 
+./tests/test_driver_construction_exception_safety.sh $PROG
+if [ "$?" != "0" ]; then RC="1"; fi
+
 tests/test_force_scaling.sh $PROG
 if [ "$?" != "0" ]; then RC="1"; if [ "$STOP" = "true" ]; then exit 1; fi; fi
 

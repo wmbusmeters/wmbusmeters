@@ -229,7 +229,7 @@ DriverDynamic::DriverDynamic(MeterInfo &mi, DriverInfo &di) :
     }
     catch(...)
     {
-        xmqFreeDoc(doc);
+        // doc is borrowed from di's shared_ptr<XMQDoc>
     }
 }
 
