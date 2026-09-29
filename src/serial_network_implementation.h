@@ -18,6 +18,7 @@ struct SerialDeviceNetwork : public SerialDeviceImp
     string device() { return device_; }
     bool opened() { return !opening_ && SerialDeviceImp::opened(); }
     int fd() { return opening_ ? -2 : fd_; }
+    bool hasBufferedData() { return buffered_; }
     bool checkIfDataIsPending()
     {
         WITH(network_mutex_, network_lock, network_pending);
@@ -33,6 +34,7 @@ private:
     PARITY parity_;
     bool rfc2217_ {};
     atomic<bool> opening_ {false};
+    atomic<bool> buffered_ {false};
     Rfc2217Client protocol_;
     vector<uchar> pending_;
     bool wait(short events, Deadline deadline);
@@ -119,6 +121,7 @@ bool SerialDeviceNetwork::open(bool fail_if_not_ok)
     if (!parseNetworkSerial(device_, &endpoint)) return false;
     rfc2217_ = endpoint.rfc2217;
     pending_.clear();
+    buffered_ = false;
     addrinfo hints {}, *addresses = NULL;
     hints.ai_family = AF_UNSPEC;
     hints.ai_socktype = SOCK_STREAM;
@@ -195,6 +198,7 @@ bool SerialDeviceNetwork::open(bool fail_if_not_ok)
     }
     // Discard pre-initialization payload (including optional server banners).
     pending_.clear();
+    buffered_ = false;
     manager_->tickleEventLoop();
     verbose("(serialnet) opened %s fd %d (%s)\n", device_.c_str(), fd_, purpose_.c_str());
     return true;
@@ -207,6 +211,7 @@ void SerialDeviceNetwork::close()
     ::close(fd_);
     fd_ = -1;
     pending_.clear();
+    buffered_ = false;
     if (on_disappear_ && !resetting_)
     {
         auto callback = on_disappear_;
@@ -228,6 +233,7 @@ bool SerialDeviceNetwork::send(vector<uchar> &data)
     }
     auto wire = rfc2217_ ? Rfc2217Client::escape(data) : data;
     if (!writeWire(wire, deadline)) { close(); return false; }
+    buffered_ = !pending_.empty();
     manager_->tickleEventLoop();
     return true;
 }
@@ -237,6 +243,7 @@ int SerialDeviceNetwork::receive(vector<uchar> *data)
     WITH(network_mutex_, network_lock, network_receive);
     data->clear();
     data->swap(pending_);
+    buffered_ = false;
     if (fd_ < 0) return data->size();
     Deadline deadline = Clock::now()+chrono::seconds(5);
     // Bound callback work even when a peer continuously streams data.

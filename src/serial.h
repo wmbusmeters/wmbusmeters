@@ -64,6 +64,8 @@ struct SerialDevice
     virtual std::string device() = 0;
 
     virtual bool checkIfDataIsPending() = 0;
+    // Payload decoded while processing transport control messages.
+    virtual bool hasBufferedData() { return false; }
     virtual void fill(std::vector<uchar> &data) = 0; // Fill buffer with raw data.
     virtual SerialCommunicationManager *manager() = 0;
 

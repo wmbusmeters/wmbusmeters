@@ -1224,7 +1224,7 @@ void *SerialCommunicationManagerImp::eventLoop()
             warning("(serial) internal error after select! errno=%s\n", strerror(errno));
         }
 
-        if (activity > 0)
+        if (activity >= 0)
         {
             // Something has happened that caused the sleeping select to wake up.
             vector<shared_ptr<SerialDevice>> to_be_notified;
@@ -1235,7 +1235,7 @@ void *SerialCommunicationManagerImp::eventLoop()
                 {
                     if (sd->opened() && sd->working() && !sd->resetting() && sd->fd() >= 0)
                     {
-                        if (FD_ISSET(sd->fd(), &readfds))
+                        if (FD_ISSET(sd->fd(), &readfds) || sd->hasBufferedData())
                         {
                             trace("[SERIAL] select detected data available for reading on fd %d\n", sd->fd());
                             to_be_notified.push_back(sd);
