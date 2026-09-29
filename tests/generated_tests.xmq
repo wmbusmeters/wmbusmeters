@@ -2610,6 +2610,27 @@ test {
     fields   = 'licznik;16466583;0;1111-11-11 11:11.11'
 }
 test {
+    args     = 'XEEny xeeny 00001234 NOKEY'
+    comment  = 'XEEny on an EasyMeter, configured with the XEEny id, the output id is the meter id.'
+    telegram = 6B44A560341200000237_8C205E900F002C2531950300A3E7CD0FC182890D_7234127060791611025E00400710_2F2F0703388B0A0000000000871003388B0A00000000008720030000000000000000027403030167170D7F0506218001122F2F2F2F2F2F2F2F2F2F2F2F2F2F2F
+    json     = '{"_":"telegram","actuality_duration_s":771,"device_temperature_c":23,"driver":"xeeny","id":"60701234","media":"electricity","name":"XEEny","status":"OK","timestamp":"1111-11-11T11:11:11Z","total_energy_consumption_kwh":691,"total_energy_consumption_tariff_1_kwh":691,"total_energy_consumption_tariff_2_kwh":0}'
+    fields   = 'XEEny;60701234;OK;691;null;1111-11-11 11:11.11'
+}
+test {
+    args     = 'XEEny xeeny 42038102 NOKEY'
+    comment  = 'XEEny on a DZG meter, long tpl with the meter id. Decrypted example from the XEE documentation.'
+    telegram = 5B44A560130000000237_8C20B0900F002C2583540000E368DBF9950CE393_720281034247130002B000300710_2F2F07031A0000000000000007833C140000000000000002741A0001671403FD0F0005010D7F050621FC00122F2F2F2F
+    json     = '{"_":"telegram","actuality_duration_s":26,"device_temperature_c":20,"driver":"xeeny","firmware_version":"010500","id":"42038102","media":"electricity","name":"XEEny","status":"OK","timestamp":"1111-11-11T11:11:11Z","total_energy_consumption_kwh":0.026,"total_energy_production_kwh":0.02}'
+    fields   = 'XEEny;42038102;OK;0.026;0.02;1111-11-11 11:11.11'
+}
+test {
+    args     = 'XEEny xeeny 00000019 33112233445566778899AABBCCDDEEEE'
+    comment  = 'XEEny without meter, short tpl with the XEEny id. Example from the XEE documentation, security profile B.'
+    telegram = 4344A560190000000237_8C2080900F002C25265B0000F1D5D79F_DD106B1B7A8020200710671E3B8F9E17_67A5D00A8105A70B6E713488867AE396_3AA200536119DEBF3C7B
+    json     = '{"_":"telegram","device_temperature_c":20,"driver":"xeeny","firmware_version":"010500","id":"00000019","media":"radio converter (meter side)","name":"XEEny","status":"INSTALLATION_MODE","timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'XEEny;00000019;INSTALLATION_MODE;null;null;1111-11-11 11:11.11'
+}
+test {
     args     = 'StatusWater zenner0b 50087367 NOKEY'
     telegram = 1E44496A677308500B167AD80010252F2F0F80BF1B0080BF1B0000A6420000
     json     = '{"_":"telegram","id":"50087367","media":"cold water","driver":"zenner0b","name":"StatusWater","status":"STATUS_1BBF80","target_m3":7.1035,"timestamp":"1111-11-11T11:11:11Z","total_m3":17.062}'
