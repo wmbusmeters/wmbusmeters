@@ -123,6 +123,11 @@ class Receiver:
                                 elif value == 240:
                                     if sub[0] == 44:
                                         self.settings.append(bytes(sub[1:]))
+                                        # RFC2217 permits ignoring separate inbound
+                                        # flow control, as pySerial servers do.
+                                        if bytes(sub[1:]) == b"\x05\x0e":
+                                            state = "data"
+                                            continue
                                         reply = bytes((44, sub[1] + 100)) + bytes(sub[2:])
                                         if self.reject and sub[1] == 3:
                                             reply = bytes((44, 103, 3))
@@ -130,7 +135,7 @@ class Receiver:
                                         wire = b"\xff\xfa" + reply.replace(b"\xff", b"\xff\xff") + b"\xff\xf0"
                                         for b in wire:
                                             connection.sendall(bytes((b,)))
-                                        if bytes(sub[1:]) == b"\x05\x0e" and not self.cul:
+                                        if bytes(sub[1:]) == b"\x05\x01" and not self.cul:
                                             self.ready.set()
                                     state = "data"
                             if self.cul:
@@ -217,8 +222,8 @@ class NetworkTests(unittest.TestCase):
         self.await_output(process, b"regular reset of rawtty")
         receiver.write(TELEGRAM)
         self.await_output(process, b"33225544")
-        self.assertEqual(receiver.settings[:6], [b"\x01\x00\x00\x96\x00", b"\x02\x08",
-                                                b"\x03\x01", b"\x04\x01", b"\x05\x01", b"\x05\x0e"])
+        self.assertEqual(receiver.settings[:5], [b"\x01\x00\x00\x96\x00", b"\x02\x08",
+                                                b"\x03\x01", b"\x04\x01", b"\x05\x01"])
 
     def test_cul_reinitialized_after_disconnect(self):
         for rfc in (False, True):

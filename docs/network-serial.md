@@ -34,6 +34,11 @@ BREAK are left at the server's settings, consistent with the local TTY drivers,
 which do not currently request these operations. Unsupported settings or a
 missing acknowledgement cause the connection to be closed and retried.
 
+The standard SET-CONTROL value 1 disables flow control in both directions.
+Separate inbound flow-control commands are intentionally omitted: RFC2217
+permits servers without independent inbound settings, including pySerial,
+to ignore them.
+
 ## ser2net 4 configuration for nanoCUL
 
 On the computer with the USB receiver, use a stable `/dev/serial/by-id/` path

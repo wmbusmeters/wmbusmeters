@@ -102,7 +102,12 @@ bool SerialDeviceNetwork::configure(uchar command, const vector<uchar> &value, D
     if (!writeWire(protocol_.configure(command, value), deadline)) return false;
     while (!protocol_.acknowledged())
     {
-        if (!readWire(&pending_, deadline, true)) return false;
+        if (!readWire(&pending_, deadline, true))
+        {
+            verbose("(serialnet) RFC2217 command %u was not acknowledged on %s\n",
+                    unsigned(command), device_.c_str());
+            return false;
+        }
     }
     return true;
 }
@@ -185,10 +190,12 @@ bool SerialDeviceNetwork::open(bool fail_if_not_ok)
         while (ok && !protocol_.negotiated()) ok = readWire(&pending_, deadline, true);
         uint32_t baud = baud_rate_;
         uchar parity = parity_ == PARITY::EVEN ? 3 : parity_ == PARITY::ODD ? 2 : 1;
+        // RFC2217 SET-CONTROL 1 applies to both directions. Servers such as
+        // pySerial legitimately ignore separate inbound flow-control commands.
         ok = ok && baud > 0 &&
             configure(1, {uchar(baud >> 24), uchar(baud >> 16), uchar(baud >> 8), uchar(baud)}, deadline) &&
             configure(2, {8}, deadline) && configure(3, {parity}, deadline) &&
-            configure(4, {1}, deadline) && configure(5, {1}, deadline) && configure(5, {14}, deadline);
+            configure(4, {1}, deadline) && configure(5, {1}, deadline);
     }
     if (!ok)
     {
