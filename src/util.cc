@@ -989,18 +989,35 @@ vector<string> splitDeviceString(const string& ds)
 {
     string s = ds;
     string cmd;
+    vector<string> r;
+    // Preserve scheme, host and port, including bracketed IPv6, as one part.
+    if (s.rfind("tcp://", 0) == 0 || s.rfind("rfc2217://", 0) == 0)
+    {
+        size_t host = s.find("://")+3;
+        size_t port = s.find(':', host);
+        if (host < s.size() && s[host] == '[')
+        {
+            size_t end = s.find(']', host);
+            port = end == string::npos ? string::npos : s.find(':', end);
+        }
+        size_t end = port == string::npos ? string::npos : s.find(':', port+1);
+        r.push_back(s.substr(0, end));
+        if (end == string::npos) return r;
+        s = s.substr(end+1);
+    }
 
     // The CMD(...) might have colons inside.
     // Check this first.
     size_t p = s.rfind(":CMD(");
-    if (s.back() == ')' && p != string::npos)
+    if (!s.empty() && s.back() == ')' && p != string::npos)
     {
         cmd = s.substr(p+1);
         s = s.substr(0,p);
     }
 
     // Now we can split.
-    vector<string> r = splitString(s, ':');
+    auto rest = splitString(s, ':');
+    r.insert(r.end(), rest.begin(), rest.end());
 
     if (cmd != "")
     {

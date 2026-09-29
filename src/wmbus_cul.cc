@@ -21,6 +21,7 @@
 #include"wmbus_common_implementation.h"
 #include"wmbus_utils.h"
 #include"serial.h"
+#include"network_serial.h"
 #include"util.h"
 
 #include<assert.h>
@@ -187,6 +188,8 @@ bool WMBusCUL::deviceSetLinkModes(LinkModeSet lms)
     bool sent = serial()->send(msg);
 
     if (sent) waitForResponse(1);
+
+    if (isNetworkSerial(serial()->device()) && !serial()->working()) return false;
 
     sent_command_ = "";
     debug("(cul) received \"%s\"", received_response_.c_str());

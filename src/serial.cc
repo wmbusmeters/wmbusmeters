@@ -20,6 +20,7 @@
 #include"util.h"
 #include"rtlsdr.h"
 #include"serial.h"
+#include"network_serial.h"
 #include"shell.h"
 #include"threads.h"
 #include"timings.h"
@@ -46,6 +47,10 @@
 #include <stdio.h>
 #include <termios.h>
 #include <unistd.h>
+#include <netdb.h>
+#include <netinet/tcp.h>
+#include <poll.h>
+#include <chrono>
 
 #if defined(__linux__)
 #include <linux/serial.h>
@@ -291,6 +296,8 @@ int SerialDeviceImp::receive(vector<uchar> *data)
 
     return num_read;
 }
+
+#include"serial_network_implementation.h"
 
 struct SerialDeviceTTY : public SerialDeviceImp
 {
@@ -903,6 +910,10 @@ shared_ptr<SerialDevice> SerialCommunicationManagerImp::createSerialDeviceTTY(st
                                                                               PARITY parity,
                                                                               string purpose)
 {
+    if (isNetworkSerial(device))
+    {
+        return addSerialDeviceForManagement(new SerialDeviceNetwork(device, baud_rate, parity, this, purpose));
+    }
     return addSerialDeviceForManagement(new SerialDeviceTTY(device, baud_rate, parity, this, purpose));
 }
 
