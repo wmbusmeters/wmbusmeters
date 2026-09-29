@@ -16,6 +16,8 @@ struct SerialDeviceNetwork : public SerialDeviceImp
     bool send(vector<uchar> &data);
     int receive(vector<uchar> *data);
     string device() { return device_; }
+    bool opened() { return !opening_ && SerialDeviceImp::opened(); }
+    int fd() { return opening_ ? -2 : fd_; }
     bool checkIfDataIsPending()
     {
         WITH(network_mutex_, network_lock, network_pending);
@@ -30,6 +32,7 @@ private:
     int baud_rate_;
     PARITY parity_;
     bool rfc2217_ {};
+    atomic<bool> opening_ {false};
     Rfc2217Client protocol_;
     vector<uchar> pending_;
     bool wait(short events, Deadline deadline);
@@ -106,6 +109,12 @@ bool SerialDeviceNetwork::open(bool fail_if_not_ok)
 {
     WITH(network_mutex_, network_lock, network_open);
     if (fd_ >= 0) return true;
+    opening_ = true;
+    struct OpeningGuard
+    {
+        atomic<bool> &opening;
+        ~OpeningGuard() { opening = false; }
+    } opening_guard {opening_};
     NetworkSerialEndpoint endpoint;
     if (!parseNetworkSerial(device_, &endpoint)) return false;
     rfc2217_ = endpoint.rfc2217;
@@ -137,6 +146,15 @@ bool SerialDeviceNetwork::open(bool fail_if_not_ok)
         int yes = 1;
         setsockopt(socket_fd, IPPROTO_TCP, TCP_NODELAY, &yes, sizeof(yes));
         setsockopt(socket_fd, SOL_SOCKET, SO_KEEPALIVE, &yes, sizeof(yes));
+#ifdef TCP_KEEPIDLE
+        int idle = 30, interval = 10, count = 3;
+        setsockopt(socket_fd, IPPROTO_TCP, TCP_KEEPIDLE, &idle, sizeof(idle));
+        setsockopt(socket_fd, IPPROTO_TCP, TCP_KEEPINTVL, &interval, sizeof(interval));
+        setsockopt(socket_fd, IPPROTO_TCP, TCP_KEEPCNT, &count, sizeof(count));
+#elif defined(TCP_KEEPALIVE)
+        int idle = 30;
+        setsockopt(socket_fd, IPPROTO_TCP, TCP_KEEPALIVE, &idle, sizeof(idle));
+#endif
 #ifdef SO_NOSIGPIPE
         setsockopt(socket_fd, SOL_SOCKET, SO_NOSIGPIPE, &yes, sizeof(yes));
 #endif
@@ -203,6 +221,7 @@ bool SerialDeviceNetwork::send(vector<uchar> &data)
 {
     WITH(network_mutex_, network_lock, network_send);
     Deadline deadline = Clock::now()+chrono::seconds(5);
+    if (fd_ < 0) return false;
     while (rfc2217_ && protocol_.suspended())
     {
         if (!readWire(&pending_, deadline, true)) { close(); return false; }

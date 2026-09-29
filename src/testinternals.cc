@@ -157,9 +157,9 @@ LIST_OF_TESTS
 void test_network_serial()
 {
     NetworkSerialEndpoint endpoint;
-    for (const string &s : {"tcp://localhost:1", "rfc2217://127.0.0.1:65535", "tcp://[fe80::1%eth0]:2000"})
+    for (const string s : {"tcp://localhost:1", "rfc2217://127.0.0.1:65535", "tcp://[fe80::1%eth0]:2000"})
         assert(parseNetworkSerial(s, &endpoint));
-    for (const string &s : {"tcp://:2000", "tcp://host:0", "tcp://host:65536", "tcp://host:-1",
+    for (const string s : {"tcp://:2000", "tcp://host:0", "tcp://host:65536", "tcp://host:-1",
                            "tcp://host:2000/path", "tcp://user@host:2000", "tcp://[::1:2000", "tcp://host:abc"})
         assert(!parseNetworkSerial(s, &endpoint));
     for (string s : {"tcp://host:2000", "tcp://host:2000:auto", "tcp://host:0:cul:t1", "tcp://host:2000:rtlwmbus"})

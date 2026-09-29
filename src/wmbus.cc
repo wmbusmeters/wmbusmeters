@@ -5833,6 +5833,7 @@ bool SpecifiedDevice::parse(string &arg)
     // You cannot combine a file with a command.
     if (file != "" && command != "") return false;
     if (isNetworkSerial(file) && !usesTTY(type)) return false;
+    if (isNetworkSerial(file) && (type == DEVICE_RAWTTY || type == DEVICE_HEXTTY || type == DEVICE_XMQTTY) && bps.empty()) return false;
     return true;
 }
 

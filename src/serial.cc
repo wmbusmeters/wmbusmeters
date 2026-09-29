@@ -51,6 +51,7 @@
 #include <netinet/tcp.h>
 #include <poll.h>
 #include <chrono>
+#include <atomic>
 
 #if defined(__linux__)
 #include <linux/serial.h>

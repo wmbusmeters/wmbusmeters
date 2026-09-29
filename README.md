@@ -1,6 +1,8 @@
 
 # wmbusmeters
 
+Serial receivers can also be connected through [raw TCP or RFC2217](docs/network-serial.md).
+
 The program acquires utility meter readings from wired m-bus or
 wireless wm-bus meters.  The readings can then be published using
 MQTT, curled to a REST api, inserted into a database or stored in a

@@ -91,7 +91,7 @@ shared_ptr<BusDevice> openXmqTTY(Detected detected,
         imp->markAsNoLongerSerial();
         return shared_ptr<BusDevice>(imp);
     }
-    auto serial = manager->createSerialDeviceTTY(device.c_str(), 0, PARITY::NONE, "xmqtty");
+    auto serial = manager->createSerialDeviceTTY(device.c_str(), detected.found_bps, PARITY::NONE, "xmqtty");
     WMBusXmqTTY *imp = new WMBusXmqTTY(bus_alias, serial, manager);
     return shared_ptr<BusDevice>(imp);
 }
