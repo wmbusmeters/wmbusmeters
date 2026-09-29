@@ -315,8 +315,19 @@ class NetworkTests(unittest.TestCase):
                         self.assertLess(time.monotonic(), deadline, "ser2net did not configure raw serial mode")
                         time.sleep(0.01)
                     settings = termios.tcgetattr(slave)
-                    self.assertEqual(settings[4], termios.B38400)
-                    self.assertEqual(settings[5], termios.B38400)
+                    if settings[4] == 0 or settings[5] == 0:
+                        # Some gensio/libc combinations use Linux's extended baud
+                        # interface, which tcgetattr cannot represent correctly.
+                        # TCGETS2 reads the actual kernel speeds on x86/ARM Linux.
+                        import fcntl
+                        import struct
+                        self.assertTrue(sys.platform.startswith("linux"))
+                        self.assertIn(os.uname().machine, ("x86_64", "aarch64", "armv7l", "i686"))
+                        extended = fcntl.ioctl(slave, 0x802C542A, bytes(44))
+                        self.assertEqual(struct.unpack_from("=II", extended, 36), (38400, 38400))
+                    else:
+                        self.assertEqual(settings[4], termios.B38400)
+                        self.assertEqual(settings[5], termios.B38400)
                     self.assertFalse(settings[0] & (termios.IXON | termios.IXOFF))
                     os.write(master, TELEGRAM)
                     self.await_output(process, b"33225544")
