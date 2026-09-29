@@ -151,6 +151,7 @@ bool DriverDynamic::load(DriverInfo *di, const string &file_name, const char *co
         di->setDynamic(file, doc);
 
         xmqForeach(doc, "/driver/detect/mvt", (XMQNodeCallback)add_detect, di);
+        xmqForeach(doc, "/driver/detect/dll_mvt", (XMQNodeCallback)add_dll_detect, di);
         xmqForeach(doc, "/driver/compact_frame_formats/difvif", (XMQNodeCallback)add_compact_frame_format, di);
         xmqForeach(doc, "/driver/mfct_tpl_status_bits", (XMQNodeCallback)add_mfct_tpl_status, di);
         xmqForeach(doc, "/driver/default_keys/key", (XMQNodeCallback)add_default_key, di);
@@ -243,6 +244,16 @@ DriverDynamic::~DriverDynamic()
 
 XMQProceed DriverDynamic::add_detect(XMQDoc *doc, XMQNode *detect, DriverInfo *di)
 {
+    return add_mvt(doc, detect, di, false);
+}
+
+XMQProceed DriverDynamic::add_dll_detect(XMQDoc *doc, XMQNode *detect, DriverInfo *di)
+{
+    return add_mvt(doc, detect, di, true);
+}
+
+XMQProceed DriverDynamic::add_mvt(XMQDoc *doc, XMQNode *detect, DriverInfo *di, bool dll)
+{
     string mvt = xmqGetStringRel(doc, ".", detect);
 
     auto fields = splitString(mvt, ',');
@@ -330,14 +341,16 @@ XMQProceed DriverDynamic::add_detect(XMQDoc *doc, XMQNode *detect, DriverInfo *d
     }
 
     string mfct_flag = manufacturerFlag(mfct_code);
-    debug("(driver) %s register detection from \"%s\" mvt=%s,%02x,%02x\n",
+    debug("(driver) %s register detection from \"%s\" %s=%s,%02x,%02x\n",
           di->name().str().c_str(),
           di->getDynamicFileName().c_str(),
+          dll ? "dll_mvt" : "mvt",
           mfct_flag.c_str(),
           version,
           type);
 
-    di->addMVT(mfct_code, type, version);
+    if (dll) di->addDllMVT(mfct_code, type, version);
+    else di->addMVT(mfct_code, type, version);
     return XMQ_CONTINUE;
 }
 
@@ -1077,9 +1090,9 @@ string check_default_fields(const char *default_fields, string file)
 
 void check_detection_triplets(DriverInfo *di, string file)
 {
-    if (di->mvts().size() == 0)
+    if (di->mvts().size() == 0 && di->dllMvts().size() == 0)
     {
-        warning("(driver) error in %s, cannot find any detection triplets: driver/detect/mvt\n"
+        warning("(driver) error in %s, cannot find any detection triplets: driver/detect/mvt or driver/detect/dll_mvt\n"
                 "%s\n"
                 "Remember to add: detect { mvt = AAA,05,07 mvt = AAA,06,07 ... }\n"
                 "The triplets consists of MANUFACTURER,VERSION,TYPE\n"

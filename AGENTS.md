@@ -115,6 +115,8 @@ driver {
     detect {
         mvt = KAM,1c,16  // 3-char manufacturer code, version byte (hex), type byte (hex)
                          // multiple mvt lines allowed
+        dll_mvt = XEE,02,37  // optional: detect on the dll mvt even when a long tpl
+                             // carries another mvt, see below
     }
 
     mfct_tpl_status_bits {
@@ -256,6 +258,7 @@ driver {
 the end of the previous month. So `total` `Volume` defaults to `total_m3` and means the instantaneous/current meter value, whereas the `target` `Volume` defaults to `target_m3` and means the meter measurement when the previous month switch the to the current month. The target is used for billing and can be collected at any time during the next month.
 - `force_scale` overrides the scale factor normally derived from the VIF byte. Use it when a meter encodes a value with a non-standard scale (e.g. `force_scale = 0.001` when the meter sends milliwatts but the VIF says watts).
 - `null_value` specifies a raw numeric value that should be treated as missing/null in output (e.g. `null_value = -327.68` for a sensor that uses that sentinel when disconnected).
+- `dll_mvt` is for radio converters that build the application layer themselves while the long TPL carries the identity of the meter they read (e.g. the XEEny optical reader). A driver with a matching `dll_mvt` is picked before the TPL mvt is consulted. Normal `mvt` detection uses the TPL mvt whenever a long TPL is present.
 - `mfct_tpl_status_bits` decodes manufacturer-specific error flags in the transport-layer header byte. The result is automatically merged into any `STATUS`/`INCLUDE_TPL_STATUS` field.
 - `lookup { pre_shift_right = N }` right-shifts the raw value by `N` bits before `mask_bits`/`map` matching. Use it to reuse the same `map{}` table (eg. a duration-bucket encoding) at several different bit offsets within the same status word instead of duplicating the table once per offset.
 - `driver { templates { template_field { name = foo  lookup { ... } } } }` declares a reusable field template; a `field { template = foo ... }` starts from that template's `lookup{}` and can override individual properties (eg. `pre_shift_right`, `mask_bits`). The template's `map{}` entries are inherited and merged with any the field declares itself: a field's own `map{}` entry for a given `bit`/`value` wins over the template's, entries for bits/values the field doesn't mention are still taken from the template. Only `lookup{}` is templated — `name`, `quantity`, `info`, `match`, `attributes` etc. must always be declared on the field itself.
