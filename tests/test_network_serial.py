@@ -17,6 +17,22 @@ PROG = os.path.abspath(sys.argv.pop(1))
 TELEGRAM = bytes.fromhex("1844AE4C4455223368077A55000000041389E20100023B0000")
 
 
+def cul_telegram():
+    def crc(block):
+        value = 0
+        for byte in block:
+            value ^= byte << 8
+            for _ in range(8):
+                value = ((value << 1) ^ (0x3D65 if value & 0x8000 else 0)) & 0xFFFF
+        return (value ^ 0xFFFF).to_bytes(2, "big")
+
+    frame = TELEGRAM[:10] + crc(TELEGRAM[:10])
+    for offset in range(10, len(TELEGRAM), 16):
+        block = TELEGRAM[offset:offset + 16]
+        frame += block + crc(block)
+    return b"b" + frame.hex().encode("ascii") + b"0000\r\n"
+
+
 class Receiver:
     """Small independent Telnet server and CUL emulator."""
 
@@ -210,11 +226,14 @@ class NetworkTests(unittest.TestCase):
                 receiver = Receiver(rfc=rfc, cul=True)
                 process = self.start(receiver, "cul")
                 self.assertTrue(receiver.ready.wait(10))
+                receiver.write(b"b1844")
                 receiver.disconnect()
                 self.assertTrue(receiver.ready.wait(15))
                 self.assertIsNone(process.poll())
                 self.assertGreaterEqual(receiver.connections, 2)
                 self.assertEqual(receiver.commands[:4], [b"brt", b"X21", b"brt", b"X21"])
+                receiver.write(cul_telegram())
+                self.await_output(process, b"Received telegram from: 33225544")
 
     def test_rejected_settings_retry_without_exit(self):
         receiver = Receiver(rfc=True, reject=True)
@@ -225,6 +244,12 @@ class NetworkTests(unittest.TestCase):
         self.assertGreaterEqual(receiver.connections, 2)
         self.assertIsNone(process.poll())
         self.assertFalse(receiver.ready.is_set())
+        # The same configured endpoint should recover when the server is fixed.
+        receiver.reject = False
+        self.assertTrue(receiver.ready.wait(15))
+        self.await_output(process, b"regular reset of rawtty")
+        receiver.write(TELEGRAM)
+        self.await_output(process, b"33225544")
 
     def test_ipv6(self):
         try:
