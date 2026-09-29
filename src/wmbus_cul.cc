@@ -206,6 +206,13 @@ bool WMBusCUL::deviceSetLinkModes(LinkModeSet lms)
     if (!ok)
     {
         string modes = lms.hr();
+        if (isNetworkSerial(serial()->device()))
+        {
+            warning("(cul) no confirmation of link mode %s on %s, reconnecting\n",
+                    modes.c_str(), serial()->device().c_str());
+            serial()->close();
+            return false;
+        }
         error(EXIT_BUS_DEVICE_ERROR, "(cul) setting link mode(s) %s is not supported for this cul device!\n", modes.c_str());
     }
 

@@ -251,6 +251,28 @@ class NetworkTests(unittest.TestCase):
         receiver.write(TELEGRAM)
         self.await_output(process, b"33225544")
 
+    def test_server_available_after_startup(self):
+        receiver = Receiver()
+        # Reserve the address, but do not accept connections until after startup.
+        receiver.stop.set()
+        receiver.thread.join(3)
+        receiver.listener.close()
+        port = receiver.port
+        process = self.start(receiver)
+        self.await_output(process, b"could not connect/configure")
+        receiver.listener = socket.socket()
+        receiver.listener.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        receiver.listener.bind(("127.0.0.1", port))
+        receiver.listener.listen()
+        receiver.listener.settimeout(0.2)
+        receiver.stop.clear()
+        receiver.thread = threading.Thread(target=receiver.run, daemon=True)
+        receiver.thread.start()
+        self.assertTrue(receiver.ready.wait(15))
+        self.await_output(process, b"regular reset of rawtty")
+        receiver.write(TELEGRAM)
+        self.await_output(process, b"33225544")
+
     def test_ipv6(self):
         try:
             receiver = Receiver(ipv6=True)

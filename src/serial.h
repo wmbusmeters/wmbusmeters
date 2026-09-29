@@ -30,9 +30,9 @@ struct SerialCommunicationManager;
 enum class PARITY { NONE, EVEN, ODD };
 
 /**
-  A SerialDevice can be connected to a tty with a baudrate.
-  But can also be connected to stdin, a file, or the output from a subshell.
-  If you try to do send bytes to such a non-tty, then send will return false.
+  A SerialDevice can be connected to a local tty or a network serial server.
+  It can also read stdin, a file, or the output from a subshell.
+  Read-only sources return false when asked to send bytes.
 */
 struct SerialDevice
 {
@@ -41,7 +41,7 @@ struct SerialDevice
     virtual void close() = 0;
     // Explicitly closed fd == -1
     virtual bool isClosed() = 0;
-    // Send will return true only if sending on a tty.
+    // Send returns true when all bytes have been written to a writable device.
     virtual bool send(std::vector<uchar> &data) = 0;
     // Receive returns the number of bytes received.
     virtual int receive(std::vector<uchar> *data) = 0;
@@ -81,7 +81,7 @@ struct SerialDevice
 
 struct SerialCommunicationManager
 {
-    // Read from a /dev/ttyUSB0 or /dev/ttyACM0 device with baud settings.
+    // Connect to a local tty, tcp:// endpoint, or rfc2217:// endpoint with baud settings.
     virtual std::shared_ptr<SerialDevice> createSerialDeviceTTY(std::string dev, int baud_rate, PARITY parity, std::string purpose) = 0;
     // Read from a sub shell.
     virtual std::shared_ptr<SerialDevice> createSerialDeviceCommand(std::string identifier,

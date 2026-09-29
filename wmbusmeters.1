@@ -143,6 +143,15 @@ This will significantly reduce the amount of probing done on the serial ports.
 \fB/dev/ttyUSB0:amb8465:c1,t1\fR expect an amb8465 on this tty.
 
 .TP
+\fBtcp://host:port:cul:t1\fR connect to a remote CUL through a raw, bidirectional TCP serial server.
+Configure baud rate, parity and flow control on the server. IPv6 addresses must be bracketed.
+
+.TP
+\fBrfc2217://host:port:cul:t1\fR connect through a Telnet RFC2217 serial server such as ser2net.
+Serial settings are configured and acknowledged remotely. Specify the receiver type explicitly.
+Disconnected devices are retried and initialized again. Use these unencrypted connections only on a trusted network.
+
+.TP
 \fBrtlwmbus\fR use software defined radio rtl_sdr|rtl_wmbus to receive wmbus telegrams.This defaults to 868.95MHz, use for example \fBrtlwmbus:868.9M\fR to tune the rtl_sdr dongle to slightly lower frequency.
 
 .TP

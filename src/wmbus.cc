@@ -4675,7 +4675,11 @@ bool BusDeviceCommonImplementation::reset()
         if (!ok)
         {
             // Ouch....
-            if (isNetworkSerial(serial()->device())) disconnectedFromDevice();
+            if (isNetworkSerial(serial()->device()))
+            {
+                if (resetting) serial()->resetCompleted();
+                disconnectedFromDevice();
+            }
             return false;
         }
     }

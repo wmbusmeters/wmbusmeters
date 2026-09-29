@@ -111,6 +111,9 @@ bool SerialDeviceNetwork::open(bool fail_if_not_ok)
 {
     WITH(network_mutex_, network_lock, network_open);
     if (fd_ >= 0) return true;
+    // Failed resolution must be a closed device, not an unopened device that
+    // lookup() will keep treating as configured forever.
+    fd_ = -1;
     opening_ = true;
     struct OpeningGuard
     {
