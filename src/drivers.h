@@ -41,6 +41,7 @@ struct MVT
 struct MapToDriver {
     MVT mvt;
     const char *name;
+    bool dll; // True for a dll_mvt, false (the default) for a normal mvt.
 };
 
 struct Configuration;
@@ -49,6 +50,7 @@ void prepareBuiltinDrivers();
 void loadDriversFromDir(std::string dir);
 bool loadBuiltinDriver(std::string driver_name);
 const char *findBuiltinDriver(uint16_t mfct, uchar ver, uchar type);
+const char *findBuiltinDllDriver(uint16_t mfct, uchar ver, uchar type);
 void removeBuiltinDriver(std::string driver_name);
 // Builtin drivers are normally loaded on demand when the first telegram arrives.
 // The function below wastes a lot of time, use it only for list_drivers and when
