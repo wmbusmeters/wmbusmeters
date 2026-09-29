@@ -19,6 +19,7 @@
 #include<set>
 
 #include"always.h"
+#include"drivers.h"
 #include"log.h"
 #include"manufacturers.h"
 #include"manufacturer_specificities.h"
@@ -501,4 +502,59 @@ bool tryDecodeQundisWalkByAes(Telegram *t, string *value)
     // marker (0x35) to 0x00 so the (guarded) ixml grammar accepts the value.
     *value = value->substr(0, 8) + "00" + decrypted_hex;
     return true;
+}
+
+bool tryExtractLseBridgeInnerTelegram(const vector<uchar> &frame, vector<uchar> *inner)
+{
+    // Bridge frames: a complete frame header (c-field 0xc4, manufacturer LSE)
+    // with its crc, followed by 6 bridge bytes, then a complete inner telegram
+    // with its own length byte at offset 18. The inner telegram carries no crc.
+    if (frame.size() < 22 ||
+        frame[1] != 0xc4 ||
+        frame[2] != 0x65 ||                        // mfct LSE (the bridge),
+        (frame[3] != 0xb2 && frame[3] != 0x32) ||  // ... arrives as 65b2 and 6532
+        frame[19] != 0x44 ||                       // inner telegram c-field
+        frame[20] != 0x65 ||                       // inner telegram mfct LSE:
+        (frame[21] != 0x32 && frame[21] != 0xb2))  // ... comes as 6532 and 65b2
+    {
+        return false;
+    }
+    uchar ilen = frame[18];
+    if (ilen < 9 || frame.size() < 18u + (size_t)ilen + 1u)
+    {
+        return false;
+    }
+    inner->assign(frame.begin() + 18, frame.begin() + 18 + ilen + 1);
+    return true;
+}
+
+bool lseBridgeDecapAllowed(const vector<uchar> &inner)
+{
+    // Only when the driver detecting the inner telegram opts in via
+    // transform_payload=lse_bridge in its xmq.
+    uint16_t mfct = inner[2] | (inner[3] << 8);
+    uchar ver = inner[8];
+    uchar type = inner[9];
+
+    const char *driver_name = findBuiltinDriver(mfct, ver, type);
+    DriverInfo *di = NULL;
+    if (driver_name)
+    {
+        // Loads the driver xmq when necessary.
+        loadBuiltinDriver(string(driver_name));
+        di = lookupDriver(driver_name);
+    }
+    else
+    {
+        // Or perhaps a user supplied driver in /etc/wmbusmeters.drivers.d
+        for (DriverInfo *d : allDrivers())
+        {
+            if (d && d->detect(mfct, ver, type))
+            {
+                di = d;
+                break;
+            }
+        }
+    }
+    return di && di->allowsLseBridgeDecap();
 }
