@@ -1,8 +1,9 @@
 // Copyright (C) 2021-2024 Fredrik Öhrström (gpl-3.0-or-later)
 driver {
-    name           = lse_07_17
-    meter_type     = WaterMeter
-    default_fields = name,id,total_m3,due_m3,due_date,error_code,error_date,device_datetime,timestamp
+    name              = lse_07_17
+    meter_type        = WaterMeter
+    default_fields    = name,id,total_m3,due_m3,due_date,error_code,error_date,device_datetime,timestamp
+    transform_payload = lse_bridge
     detect {
         mvt = LSE,18,06
         mvt = LSE,18,07

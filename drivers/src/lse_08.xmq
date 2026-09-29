@@ -1,8 +1,9 @@
 // Copyright (C) 2019-2022 Fredrik Öhrström (gpl-3.0-or-later)
 driver {
-    name           = lse_08
-    meter_type     = HeatCostAllocationMeter
-    default_fields = name,id,set_date,consumption_at_set_date_hca,timestamp
+    name              = lse_08
+    meter_type        = HeatCostAllocationMeter
+    default_fields    = name,id,set_date,consumption_at_set_date_hca,timestamp
+    transform_payload = lse_bridge
     detect {
         mvt = LSE,01,08
     }

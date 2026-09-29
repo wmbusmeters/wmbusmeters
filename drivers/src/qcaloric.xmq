@@ -1,9 +1,10 @@
 // Copyright (C) 2019-2023 Fredrik Öhrström (gpl-3.0-or-later)
 driver {
-    name           = qcaloric
-    aliases        = whe5x,whe46x
-    meter_type     = HeatCostAllocationMeter
-    default_fields = name,id,current_consumption_hca,set_date,consumption_at_set_date_hca,timestamp
+    name              = qcaloric
+    aliases           = whe5x,whe46x
+    meter_type        = HeatCostAllocationMeter
+    default_fields    = name,id,current_consumption_hca,set_date,consumption_at_set_date_hca,timestamp
+    transform_payload = lse_bridge
     detect {
         mvt = LSE,34,08
         mvt = LSE,35,08

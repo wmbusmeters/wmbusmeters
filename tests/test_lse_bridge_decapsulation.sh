@@ -18,13 +18,11 @@ Received telegram from: 88441603
                    ver: 0x34
                 driver: qcaloric
 (wmbus) LSE bridge inner telegram was not handled.
-(wmbus) LSE bridge 00a0316a: decapsulating inner telegram id 08244195 (59 bytes).
-Received telegram from: 08244195
+Received telegram from: 00a0316a
           manufacturer: (LSE) Landis Staefa electronic (0xb265)
-                  type: Water meter (0x07)
-                   ver: 0x51
+                  type: Unknown (0xfe)
+                   ver: 0xf1
                 driver: unknown!
-(wmbus) LSE bridge inner telegram was not handled.
 EOF
 
 $PROG simulations/simulation_lse_bridge.txt > $TEST/test_output.txt 2>&1
