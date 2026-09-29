@@ -2751,9 +2751,12 @@ bool isValidWMBusCField(int c_field)
     // 0x46 is only from an ei6500 meter.... all else is ox44
     // However in the future we might see relayed telegrams which will perhaps have
     // some other c field.
+    // 0xc4 comes from relayed telegrams (SND-NR with the relayed bit set)
+    // as sent by LSE bridge devices that encapsulate an inner telegram.
     return
         c_field == 0x44 ||
-        c_field == 0x46;
+        c_field == 0x46 ||
+        c_field == 0xc4;
 }
 
 bool isValidMBusCField(int c_field)
