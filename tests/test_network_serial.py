@@ -301,16 +301,23 @@ class NetworkTests(unittest.TestCase):
                     config = os.path.join(directory, "ser2net.yaml")
                     with open(config, "w", encoding="utf-8") as stream:
                         stream.write(f"connection: &test\n  accepter: {accepter},127.0.0.1,{port}\n"
-                                     f"  connector: serialdev,{os.ttyname(slave)},38400n81,local\n")
+                                     f"  connector: serialdev,{os.ttyname(slave)},38400n81,local,xonxoff=false,rtscts=false\n")
                     server = subprocess.Popen(["ser2net", "-n", "-c", config],
                                               stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
                     scheme = "rfc2217" if rfc else "tcp"
                     process = subprocess.Popen([PROG, "--debug", f"{scheme}://127.0.0.1:{port}:rawtty:38400:t1"],
                                                stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
                     self.await_output(process, b"regular reset of rawtty", timeout=20)
+                    # A raw TCP handshake can finish before ser2net configures
+                    # the PTY. Do not inject serial bytes into its initial cooked mode.
+                    deadline = time.monotonic() + 5
+                    while termios.tcgetattr(slave)[3] & (termios.ICANON | termios.ECHO):
+                        self.assertLess(time.monotonic(), deadline, "ser2net did not configure raw serial mode")
+                        time.sleep(0.01)
                     settings = termios.tcgetattr(slave)
                     self.assertEqual(settings[4], termios.B38400)
                     self.assertEqual(settings[5], termios.B38400)
+                    self.assertFalse(settings[0] & (termios.IXON | termios.IXOFF))
                     os.write(master, TELEGRAM)
                     self.await_output(process, b"33225544")
                 finally:

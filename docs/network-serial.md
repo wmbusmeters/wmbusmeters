@@ -42,7 +42,7 @@ instead of `/dev/ttyUSB0` when possible. RFC2217:
 ```yaml
 connection: &nanocul
   accepter: telnet(rfc2217),tcp,2000
-  connector: serialdev,/dev/serial/by-id/REPLACE_WITH_YOUR_RECEIVER,38400n81,local
+  connector: serialdev,/dev/serial/by-id/REPLACE_WITH_YOUR_RECEIVER,38400n81,local,xonxoff=false,rtscts=false
   options:
     kickolduser: false
 ```
@@ -52,7 +52,7 @@ Alternatively, raw TCP:
 ```yaml
 connection: &nanocul
   accepter: tcp,2000
-  connector: serialdev,/dev/serial/by-id/REPLACE_WITH_YOUR_RECEIVER,38400n81,local
+  connector: serialdev,/dev/serial/by-id/REPLACE_WITH_YOUR_RECEIVER,38400n81,local,xonxoff=false,rtscts=false
   options:
     kickolduser: false
 ```
