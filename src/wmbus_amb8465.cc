@@ -55,6 +55,10 @@ struct ConfigAMB8465AMB3665
 
     string dongleId()
     {
+        // `id` is the dongle's configured wM-Bus address (parameter memory, offset 50-51),
+        // not a factory-assigned serial number. On a factory-default/never-configured
+        // AMB8465/AMB3665 this is legitimately 0 ("00000000") -- that means "no address
+        // configured", not "detection failed".
         return tostrprintf("%08x", id);
     }
 
@@ -1130,28 +1134,65 @@ AccessCheck detectAMB8465AMB3665(Detected *detected, shared_ptr<SerialCommunicat
         usleep(1000*100);
     }
 
+    // config.dongleId() is the dongle's configured wM-Bus radio address, which
+    // defaults to 0 on a factory-fresh/never-configured unit. Query the actual
+    // factory-assigned hardware serial number (CMD_SERIALNO_REQ) instead, so
+    // detection reports a real per-unit identifier rather than "00000000".
+    string unique_id = config.dongleId();
+
+    vector<uchar> sn_request;
+    sn_request.resize(4);
+    sn_request[0] = AMBER_SERIAL_SOF;
+    sn_request[1] = CMD_SERIALNO_REQ;
+    sn_request[2] = 0; // No payload
+    sn_request[3] = xorChecksum(sn_request, 0, 3);
+
+    if (serial->send(sn_request))
+    {
+        vector<uchar> sn_response;
+        size_t sn_offset;
+        for (int i = 0; i < 3; ++i)
+        {
+            usleep(1000*100);
+            vector<uchar> sn_data;
+            serial->receive(&sn_data);
+            sn_response.insert(sn_response.end(), sn_data.begin(), sn_data.end());
+            if (findBytes(sn_response, AMBER_SERIAL_SOF, 0x80|CMD_SERIALNO_REQ, 0x04, &sn_offset) &&
+                sn_response.size() >= sn_offset+8)
+            {
+                uint32_t idv =
+                    sn_response[sn_offset+3] << 24 |
+                    sn_response[sn_offset+4] << 16 |
+                    sn_response[sn_offset+5] << 8 |
+                    sn_response[sn_offset+6];
+                unique_id = tostrprintf("%08x", idv);
+                break;
+            }
+        }
+    }
+
     serial->close();
 
     if (ok_8465)
     {
         // FF8A7A00780080710200000000FFFFFA00FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF003200021400FFFFFFFFFF010004000000FFFFFF01440000000000000000FFFF0B040100FFFFFFFFFF00030000FFFFFFFFFFFFFF0000FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF17
 
-        detected->setAsFound(config.dongleId(), BusDeviceType::DEVICE_AMB8465, 9600, false,
+        detected->setAsFound(unique_id, BusDeviceType::DEVICE_AMB8465, 9600, false,
                              detected->specified_device.linkmodes);
 
         verbose("(amb8465) detect %s\n", config.str().c_str());
-        verbose("(amb8465) are you there? yes %s\n", config.dongleId().c_str());
+        verbose("(amb8465) are you there? yes %s\n", unique_id.c_str());
     }
 
     if (ok_3665)
     {
         // FF8A8200800080710200000000FFFFFA00FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF0C3200021400FFFFFFFFFF010004000000FFFFFF01440000000000000000FFFF0B060100FFFFFFFFFF00020000FFFFFFFFFFFFFF0000FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF18
 
-        detected->setAsFound(config.dongleId(), BusDeviceType::DEVICE_AMB3665, 9600, false,
+        detected->setAsFound(unique_id, BusDeviceType::DEVICE_AMB3665, 9600, false,
                              detected->specified_device.linkmodes);
 
         verbose("(amb3665) detect %s\n", config.str().c_str());
-        verbose("(amb3665) are you there? yes %s\n", config.dongleId().c_str());
+        verbose("(amb3665) are you there? yes %s\n", unique_id.c_str());
     }
 
     return AccessCheck::AccessOK;
