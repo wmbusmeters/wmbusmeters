@@ -1469,6 +1469,34 @@ test {
     fields   = 'Pressing;77000317;LOW;1.02;1.03;1.02;1111-11-11 11:11.11'
 }
 test {
+    comment  = 'syntetic: error propagation from TPL with different error in status'
+    args     = 'synth-tpl-dry kamwater 52525252 NOKEY'
+    telegram = 1944372C525252523A168D203894DF7920_4bf4_7a44020000_04FF2301000000
+    json     = '{"_":"telegram","media":"cold water","driver":"kamwater","id":"52525252","name":"synth-tpl-dry","status": "DRY ERROR","time_bursting":"","time_dry":"","time_flow_above_q4":"","time_leaking":"","time_low_ambient_temperature":"","time_reversed":"","timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'synth-tpl-dry;52525252;DRY ERROR;null;null;1111-11-11 11:11.11'
+}
+test {
+    comment  = 'syntetic: error propagation from TPL with no status'
+    args     = 'synth-tpl-no-status kamwater 52525252 NOKEY'
+    telegram = 1944372C525252523A168D203894DF7920_5053_7a44020000_441301000000
+    json     = '{"_":"telegram","media":"cold water","driver":"kamwater","id":"52525252","name":"synth-tpl-no-status","status":"ERROR","target_m3":0.001,"timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'synth-tpl-no-status;52525252;ERROR;null;0.001;1111-11-11 11:11.11'
+}
+test {
+    comment  = 'synthetic: hot env, dry, high ambient with some duration'
+    args     = 'synth-hot-dry-high kamwater 52525252 NOKEY'
+    telegram = 2044372C525252523A168D203894DF7920_898b_78_04FF2401000001
+    json     = '{"_":"telegram","media":"cold water","driver":"kamwater","id":"52525252","name":"synth-hot-dry-high","status":"DRY","time_bursting":"","time_dry":"","time_flow_above_q4":"","time_leaking":"","time_high_ambient_temperature":"9-24 hours","time_reversed":"","timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'synth-hot-dry-high;52525252;DRY;null;null;1111-11-11 11:11.11'
+}
+test {
+    comment  = 'synthetic: cold env, dry, low ambient with some duration'
+    args     = 'synth-cold-dry-low kamwater 52525252 NOKEY'
+    telegram = 2044372C525252523A168D203894DF7920_1b42_78_04FF2301000001
+    json     = '{"_":"telegram","media":"cold water","driver":"kamwater","id":"52525252","name":"synth-cold-dry-low","status":"DRY","time_bursting":"","time_dry":"","time_flow_above_q4":"","time_leaking":"","time_low_ambient_temperature":"9-24 hours","time_reversed":"","timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'synth-cold-dry-low;52525252;DRY;null;null;1111-11-11 11:11.11'
+}
+test {
     comment  = 'Security mode 10 (OMS security profile D), AES-CCM with message counter, valid tag.'
     args     = 'MoreDWater kamwater 53820306 BF902DD6DFADAFE83E4AE6832B5FA14C'
     telegram = 4544372c060382533c16_8c20307a3010ff2a10018c570e006da7632471f42b0a3ceccd461353573ed02b87118bc5ffe982f7f00a0274543bc51938f8b9c8bb8928114d60788a
