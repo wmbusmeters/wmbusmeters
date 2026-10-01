@@ -201,6 +201,7 @@ PROG_OBJS:=\
 	$(BUILD)/printer.o \
 	$(BUILD)/rtlsdr.o \
 	$(BUILD)/serial.o \
+	$(BUILD)/network_serial.o \
 	$(BUILD)/shell.o \
 	$(BUILD)/sha256.o \
 	$(BUILD)/threads.o \

@@ -207,12 +207,19 @@ void WMBusRawTTY::processSerialData()
 
     copy(&read_buffer_, &data_buffer_);
 
-    size_t frame_length;
-    int payload_len, payload_offset;
+    size_t frame_length = 0;
+    int payload_len = 0, payload_offset = 0;
 
     for (;;)
     {
         FrameStatus status = checkWMBusFrame(data_buffer_, &frame_length, &payload_len, &payload_offset, false);
+
+        if (status == PartialFrame)
+        {
+            // The decoder has not filled the output fields yet. Preserve all
+            // bytes until the rest of this stream fragment arrives.
+            break;
+        }
 
         if (payload_len == 0)
         {
@@ -220,11 +227,6 @@ void WMBusRawTTY::processSerialData()
             string msg = bin2hex(data_buffer_);
             debug("(rawtty) protocol error \"%s\"\n", msg.c_str());
             data_buffer_.clear();
-            break;
-        }
-        if (status == PartialFrame)
-        {
-            // Partial frame, stop eating.
             break;
         }
         if (status == ErrorInFrame)

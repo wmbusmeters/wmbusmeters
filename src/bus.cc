@@ -21,6 +21,7 @@
 #include"printer.h"
 #include"rtlsdr.h"
 #include"serial.h"
+#include"network_serial.h"
 #include"shell.h"
 #include"threads.h"
 #include"util.h"
@@ -141,6 +142,7 @@ void BusManager::openBusDeviceAndPotentiallySetLinkmodes(Configuration *config, 
 
     shared_ptr<BusDevice> wmbus = createWmbusObject(detected, config);
     if (wmbus == NULL) return;
+    if (isNetworkSerial(detected->found_file) && !wmbus->isWorking()) return;
     bus_devices_.push_back(wmbus);
 
     // By default, reset your dongle once every 23 hours,
@@ -498,7 +500,8 @@ void BusManager::detectAndConfigureWmbusDevices(Configuration *config, Detection
                 }
             }
 
-            if (!checkCharacterDeviceExists(specified_device.file.c_str(), false) &&
+            if (!isNetworkSerial(specified_device.file) &&
+                !checkCharacterDeviceExists(specified_device.file.c_str(), false) &&
                 !checkFileExists(specified_device.file.c_str()) &&
                 specified_device.file != "stdin")
             {

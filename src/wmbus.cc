@@ -21,6 +21,7 @@
 #include"wmbus.h"
 #include"wmbus_common_implementation.h"
 #include"wmbus_utils.h"
+#include"network_serial.h"
 #include"dvparser.h"
 #include"manufacturer_specificities.h"
 #include"util.h"
@@ -4585,6 +4586,11 @@ void BusDeviceCommonImplementation::retrySetLinkModes(LinkModeSet lms)
     int tries = 0;
     for (;;)
     {
+        if (serial() && isNetworkSerial(serial()->device()) && !serial()->working())
+        {
+            disconnectedFromDevice();
+            return;
+        }
         bool ok = deviceSetLinkModes(lms);
         if (ok) break;
         if (!manager_->isRunning()) break;
@@ -4669,6 +4675,11 @@ bool BusDeviceCommonImplementation::reset()
         if (!ok)
         {
             // Ouch....
+            if (isNetworkSerial(serial()->device()))
+            {
+                if (resetting) serial()->resetCompleted();
+                disconnectedFromDevice();
+            }
             return false;
         }
     }
@@ -5509,6 +5520,13 @@ bool is_command(string b, string *cmd)
 bool check_file(string f, bool *is_tty, bool *is_stdin, bool *is_file, bool *is_simulation, bool *is_hex_simulation)
 {
     *is_tty = *is_stdin = *is_file = *is_simulation = *is_hex_simulation = false;
+    if (isNetworkSerial(f))
+    {
+        NetworkSerialEndpoint endpoint;
+        if (!parseNetworkSerial(f, &endpoint)) return false;
+        *is_tty = true;
+        return true;
+    }
     if (f == "stdin")
     {
         *is_stdin = true;
@@ -5818,6 +5836,8 @@ bool SpecifiedDevice::parse(string &arg)
     if (type == BusDeviceType::DEVICE_AUTO && (file != "" || bps != "")) return false;
     // You cannot combine a file with a command.
     if (file != "" && command != "") return false;
+    if (isNetworkSerial(file) && !usesTTY(type)) return false;
+    if (isNetworkSerial(file) && (type == DEVICE_RAWTTY || type == DEVICE_HEXTTY || type == DEVICE_XMQTTY) && bps.empty()) return false;
     return true;
 }
 
@@ -6012,6 +6032,15 @@ Detected detectBusDeviceWithFileOrHex(SpecifiedDevice &specified_device,
         // A simulation file/hex has a lms of all by default, eg no simulation_foo.txt:t1 nor --t1
         if (specified_device.linkmodes.empty()) lms.setAll();
         detected.setAsFound("", DEVICE_SIMULATION, 0 , false, lms);
+        return detected;
+    }
+
+    if (isNetworkSerial(specified_device.file))
+    {
+        // Receiver type is explicit; do not probe a network address as a local tty.
+        int bps = specified_device.bps.empty() ? 0 : atoi(specified_device.bps.c_str());
+        if (specified_device.type == DEVICE_MBUS && bps == 0) bps = 2400;
+        detected.setAsFound("", specified_device.type, bps, false, lms);
         return detected;
     }
 

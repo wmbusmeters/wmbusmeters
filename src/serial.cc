@@ -20,6 +20,7 @@
 #include"util.h"
 #include"rtlsdr.h"
 #include"serial.h"
+#include"network_serial.h"
 #include"shell.h"
 #include"threads.h"
 #include"timings.h"
@@ -46,6 +47,11 @@
 #include <stdio.h>
 #include <termios.h>
 #include <unistd.h>
+#include <netdb.h>
+#include <netinet/tcp.h>
+#include <poll.h>
+#include <chrono>
+#include <atomic>
 
 #if defined(__linux__)
 #include <linux/serial.h>
@@ -291,6 +297,8 @@ int SerialDeviceImp::receive(vector<uchar> *data)
 
     return num_read;
 }
+
+#include"serial_network_implementation.h"
 
 struct SerialDeviceTTY : public SerialDeviceImp
 {
@@ -903,6 +911,10 @@ shared_ptr<SerialDevice> SerialCommunicationManagerImp::createSerialDeviceTTY(st
                                                                               PARITY parity,
                                                                               string purpose)
 {
+    if (isNetworkSerial(device))
+    {
+        return addSerialDeviceForManagement(new SerialDeviceNetwork(device, baud_rate, parity, this, purpose));
+    }
     return addSerialDeviceForManagement(new SerialDeviceTTY(device, baud_rate, parity, this, purpose));
 }
 
@@ -1212,7 +1224,7 @@ void *SerialCommunicationManagerImp::eventLoop()
             warning("(serial) internal error after select! errno=%s\n", strerror(errno));
         }
 
-        if (activity > 0)
+        if (activity >= 0)
         {
             // Something has happened that caused the sleeping select to wake up.
             vector<shared_ptr<SerialDevice>> to_be_notified;
@@ -1223,7 +1235,7 @@ void *SerialCommunicationManagerImp::eventLoop()
                 {
                     if (sd->opened() && sd->working() && !sd->resetting() && sd->fd() >= 0)
                     {
-                        if (FD_ISSET(sd->fd(), &readfds))
+                        if (FD_ISSET(sd->fd(), &readfds) || sd->hasBufferedData())
                         {
                             trace("[SERIAL] select detected data available for reading on fd %d\n", sd->fd());
                             to_be_notified.push_back(sd);

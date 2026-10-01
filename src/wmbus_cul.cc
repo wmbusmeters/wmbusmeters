@@ -21,6 +21,7 @@
 #include"wmbus_common_implementation.h"
 #include"wmbus_utils.h"
 #include"serial.h"
+#include"network_serial.h"
 #include"util.h"
 
 #include<assert.h>
@@ -188,6 +189,8 @@ bool WMBusCUL::deviceSetLinkModes(LinkModeSet lms)
 
     if (sent) waitForResponse(1);
 
+    if (isNetworkSerial(serial()->device()) && !serial()->working()) return false;
+
     sent_command_ = "";
     debug("(cul) received \"%s\"", received_response_.c_str());
 
@@ -203,6 +206,13 @@ bool WMBusCUL::deviceSetLinkModes(LinkModeSet lms)
     if (!ok)
     {
         string modes = lms.hr();
+        if (isNetworkSerial(serial()->device()))
+        {
+            warning("(cul) no confirmation of link mode %s on %s, reconnecting\n",
+                    modes.c_str(), serial()->device().c_str());
+            serial()->close();
+            return false;
+        }
         error(EXIT_BUS_DEVICE_ERROR, "(cul) setting link mode(s) %s is not supported for this cul device!\n", modes.c_str());
     }
 

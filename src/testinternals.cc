@@ -24,6 +24,7 @@
 #include"meters.h"
 #include"printer.h"
 #include"serial.h"
+#include"network_serial.h"
 #include"translatebits.h"
 #include"util.h"
 #include"wmbus.h"
@@ -48,6 +49,7 @@ using namespace std;
 bool verbose_ = false;
 
 #define LIST_OF_TESTS \
+    X(network_serial) \
     X(addresses) \
     X(dynamic_loading)                        \
     X(crc)            \
@@ -150,6 +152,58 @@ LIST_OF_TESTS
 #undef X
 
     return 0;
+}
+
+void test_network_serial()
+{
+    NetworkSerialEndpoint endpoint;
+    for (const string s : {"tcp://localhost:1", "rfc2217://127.0.0.1:65535", "tcp://[fe80::1%eth0]:2000"})
+        assert(parseNetworkSerial(s, &endpoint));
+    for (const string s : {"tcp://:2000", "tcp://host:0", "tcp://host:65536", "tcp://host:-1",
+                           "tcp://host:2000/path", "tcp://user@host:2000", "tcp://[::1:2000", "tcp://host:abc"})
+        assert(!parseNetworkSerial(s, &endpoint));
+    for (string s : {"tcp://host:2000", "tcp://host:2000:auto", "tcp://host:0:cul:t1", "tcp://host:2000:rtlwmbus"})
+    {
+        SpecifiedDevice sd;
+        assert(!sd.parse(s));
+    }
+    Rfc2217Client client;
+    assert(client.begin().size() == 18);
+    vector<uchar> data, reply;
+    // Fragment every Telnet sequence at every byte boundary.
+    vector<uchar> negotiation = {255,253,0,255,253,44,255,251,0,255,251,44};
+    for (auto b : negotiation) assert(client.decode(&b, 1, &data, &reply));
+    assert(client.negotiated() && data.empty() && reply.empty());
+    vector<uchar> raw;
+    for (int i = 0; i < 256; ++i) raw.push_back(i);
+    auto escaped = Rfc2217Client::escape(raw);
+    for (auto b : escaped) assert(client.decode(&b, 1, &data, &reply));
+    assert(data == raw);
+    data.clear();
+    uchar unknown[] = {255,251,99,255,253,98};
+    assert(client.decode(unknown, sizeof(unknown), &data, &reply));
+    assert((reply == vector<uchar>{255,254,99,255,252,98}));
+    reply.clear();
+    auto request = client.configure(1, {0,0,255,0});
+    assert((request == vector<uchar>{255,250,44,1,0,0,255,255,0,255,240}));
+    uchar ack[] = {255,250,44,101,0,0,255,255,0,255,240};
+    for (auto b : ack) assert(client.decode(&b, 1, &data, &reply));
+    assert(client.acknowledged() && data.empty());
+    uchar suspend[] = {255,250,44,108,255,240};
+    assert(client.decode(suspend, sizeof(suspend), &data, &reply) && client.suspended());
+    uchar resume[] = {255,250,44,109,255,240};
+    assert(client.decode(resume, sizeof(resume), &data, &reply) && !client.suspended());
+    client.configure(3, {1});
+    uchar reject[] = {255,250,44,103,3,255,240};
+    assert(!client.decode(reject, sizeof(reject), &data, &reply));
+    client.begin();
+    assert(!client.failed() && !client.negotiated());
+    uchar refusal[] = {255,254,44};
+    assert(!client.decode(refusal, sizeof(refusal), &data, &reply));
+    client.begin();
+    vector<uchar> oversized = {255,250,44};
+    oversized.insert(oversized.end(), 1025, 0);
+    assert(!client.decode(oversized.data(), oversized.size(), &data, &reply));
 }
 
 void test_crc()
@@ -1175,6 +1229,8 @@ void testd(string arg, bool xok, string xalias, string xfile, string xtype, stri
 
 void test_device_parsing()
 {
+    testd("rfc2217://bridge:2000:cul:t1", true, "", "rfc2217://bridge:2000", "cul", "", "", "", "", "t1", "");
+    testd("Water=tcp://[::1]:2000:im871a:c1,t1", true, "Water", "tcp://[::1]:2000", "im871a", "", "", "", "", "t1,c1", "");
     testd("Bus_4711=/dev/ttyUSB0:im871a[12345678]:9600:868.95M:c1,t1", true,
           "Bus_4711", // alias
           "/dev/ttyUSB0", // file

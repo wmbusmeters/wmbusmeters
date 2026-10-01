@@ -25,6 +25,9 @@ fi
 export TZ=UTC
 RC="0"
 
+python3 tests/test_network_serial.py "$PROG"
+if [ "$?" != "0" ]; then RC="1"; if [ "$STOP" = "true" ]; then exit 1; fi; fi
+
 $TESTINTERNAL
 if [ "$?" = "0" ]; then
     printOK "test internals"
