@@ -1,8 +1,9 @@
 // Copyright (C) 2021 Fredrik Öhrström (gpl-3.0-or-later)
 driver {
-    name           = qsmoke
-    meter_type     = SmokeDetector
-    default_fields = name,id,status,last_alarm_date,alarm_counter,timestamp
+    name              = qsmoke
+    meter_type        = SmokeDetector
+    default_fields    = name,id,status,last_alarm_date,alarm_counter,timestamp
+    transform_payload = lse_bridge
     detect {
         mvt = QDS,21,1a
         mvt = QDS,23,1a

@@ -2751,9 +2751,12 @@ bool isValidWMBusCField(int c_field)
     // 0x46 is only from an ei6500 meter.... all else is ox44
     // However in the future we might see relayed telegrams which will perhaps have
     // some other c field.
+    // 0xc4 comes from relayed telegrams (SND-NR with the relayed bit set)
+    // as sent by LSE bridge devices that encapsulate an inner telegram.
     return
         c_field == 0x44 ||
-        c_field == 0x46;
+        c_field == 0x46 ||
+        c_field == 0xc4;
 }
 
 bool isValidMBusCField(int c_field)
@@ -4548,6 +4551,44 @@ bool BusDeviceCommonImplementation::handleTelegram(AboutTelegram &about, vector<
         {
             warning("(wmbus) telegram length byte (the first) 0x%02x (%d) is probably wrong. Expected 0x%02x (%zu) based on the length of the telegram.\n",
                     frame[0], frame[0], frame.size()-1, frame.size()-1);
+        }
+    }
+
+    // LSE bridge format frames (c-field 0xc4, manufacturer LSE) encapsulate a
+    // complete wMBus telegram in their payload, starting at offset 18 with its
+    // own length byte and no CRC. Decapsulate and re-inject the inner telegram
+    // so it reaches the regular meter matching instead of being swallowed by
+    // the bridge's own driver=unknown meter. The encapsulation is LSE specific,
+    // so only decapsulate when the driver detecting the inner telegram opts in
+    // with transform_payload=lse_bridge in its xmq.
+    if (about.type == FrameType::WMBUS)
+    {
+        vector<uchar> inner;
+        if (tryExtractLseBridgeInnerTelegram(frame, &inner))
+        {
+            if (lseBridgeDecapAllowed(inner))
+            {
+                notice("(wmbus) LSE bridge %02x%02x%02x%02x: decapsulating inner telegram id %02x%02x%02x%02x (%zu bytes).\n",
+                       frame[7], frame[6], frame[5], frame[4],
+                       inner[7], inner[6], inner[5], inner[4], inner.size());
+                // Log the full inner telegram even when no meter handles it, so new
+                // inner devices can be identified from the journal at normal loglevel.
+                logTelegram(inner, inner, 0, 0);
+                // The dedup marks frames as seen even when no meter handled them,
+                // and inner telegrams repeat near-identically — so bypass dedup for
+                // the re-injection to give a newly registered meter a chance.
+                bool saved_dedup = ignore_duplicate_telegrams_;
+                ignore_duplicate_telegrams_ = false;
+                bool handled = handleTelegram(about, inner);
+                ignore_duplicate_telegrams_ = saved_dedup;
+                notice("(wmbus) LSE bridge inner telegram was %s.\n",
+                       handled ? "handled" : "not handled");
+                return handled;
+            }
+            debug("(wmbus) LSE bridge %02x%02x%02x%02x: not decapsulating inner telegram id %02x%02x%02x%02x "
+                  "since its driver does not enable transform_payload=lse_bridge.\n",
+                  frame[7], frame[6], frame[5], frame[4],
+                  inner[7], inner[6], inner[5], inner[4]);
         }
     }
 

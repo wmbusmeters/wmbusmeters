@@ -4,7 +4,7 @@ driver {
     meter_type        = WaterMeter
     default_fields    = name,id,status,total_m3,timestamp
     manufacturer      = Qundis
-    transform_payload = try_qundis_decode
+    transform_payload = try_qundis_decode,lse_bridge
     detect {
         mvt = QDS,33,37
         mvt = QDS,35,06

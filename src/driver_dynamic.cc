@@ -140,6 +140,37 @@ bool DriverDynamic::load(DriverInfo *di, const string &file_name, const char *co
         const char *media_type_s = xmqGetString(doc, "/driver/force_media_type");
         if (media_type_s) di->setMediaType(media_type_s);
 
+        const char *transform_payload_s = xmqGetString(doc, "/driver/transform_payload");
+        if (transform_payload_s)
+        {
+            // Every known token is validated here at load time. The lse_bridge
+            // token enables decapsulation of LSE bridge frames for telegrams
+            // detected by this driver. Meter side tokens are handled in the
+            // DriverDynamic constructor below.
+            vector<string> tokens = splitString(transform_payload_s, ',');
+            for (const string &tok : tokens)
+            {
+                if (tok == "diehl_prios" ||
+                    tok == "try_qundis_decode" ||
+                    tok == "buggy_sanxing_609B")
+                {
+                    // Handled by the meter constructor.
+                }
+                else if (tok == "lse_bridge")
+                {
+                    di->setAllowsLseBridgeDecap(true);
+                }
+                else
+                {
+                    warning("(driver) error in %s, transform_payload cannot be %s\n"
+                            "Allowed values are diehl_prios, try_qundis_decode, buggy_sanxing_609B and lse_bridge.\n",
+                            file.c_str(),
+                            tok.c_str());
+                    throw 1;
+                }
+            }
+        }
+
         if (!content)
         {
             verbose("(driver) loading driver %s from file %s\n", name.c_str(), file.c_str());
@@ -185,28 +216,38 @@ DriverDynamic::DriverDynamic(MeterInfo &mi, DriverInfo &di) :
         const char *transform_payload_s = xmqGetString(doc, "/driver/transform_payload");
         if (transform_payload_s)
         {
-            if (string(transform_payload_s) == "diehl_prios")
+            // Validated at load time; here only the meter side tokens matter.
+            vector<string> tokens = splitString(transform_payload_s, ',');
+            for (const string &tok : tokens)
             {
-                setDiehlPriosDecode(true);
-            }
-            else if (string(transform_payload_s) == "try_qundis_decode")
-            {
-                setTryQundisDecode(true);
-            }
-            else if (transform_payload_s && string(transform_payload_s) == "buggy_sanxing_609B")
-            {
-                // Opt-in only: permits the non-standard 0x609B decrypt-check marker (see
-                // Telegram::potentiallyDecrypt in wmbus.cc) for meters using this driver,
-                // same shape as the diehl_prios hook above.
-                setBuggySanxing609BDecode(true);
-            }
-            else
-            {
-                warning("(driver) error in %s, transform_payload cannot be %s\n"
-                        "Allowed values are diehl_prios, try_qundis_decode and sanxing_6098.\n",
-                        file_name_.c_str(),
-                        transform_payload_s);
-                throw 1;
+                if (tok == "diehl_prios")
+                {
+                    setDiehlPriosDecode(true);
+                }
+                else if (tok == "try_qundis_decode")
+                {
+                    setTryQundisDecode(true);
+                }
+                else if (tok == "buggy_sanxing_609B")
+                {
+                    // Opt-in only: permits the non-standard 0x609B decrypt-check marker (see
+                    // Telegram::potentiallyDecrypt in wmbus.cc) for meters using this driver,
+                    // same shape as the diehl_prios hook above.
+                    setBuggySanxing609BDecode(true);
+                }
+                else if (tok == "lse_bridge")
+                {
+                    // No meter side action: the driver level decapsulation flag
+                    // was already set on the DriverInfo during load.
+                }
+                else
+                {
+                    warning("(driver) error in %s, transform_payload cannot be %s\n"
+                            "Allowed values are diehl_prios, try_qundis_decode, buggy_sanxing_609B and lse_bridge.\n",
+                            file_name_.c_str(),
+                            tok.c_str());
+                    throw 1;
+                }
             }
         }
 

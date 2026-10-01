@@ -165,6 +165,7 @@ private:
     std::vector<std::string> default_fields_;
     int force_mfct_index_ = -1; // Used for meters not declaring mfct specific data using the dif 0f.
     bool has_process_content_ = false; // Mark this driver as having mfct specific decoding.
+    bool allows_lse_bridge_decap_ = false; // Driver has opted in to transform_payload=lse_bridge.
     std::string media_type_; // Override the media string derived from dll_type (for non-standard type bytes).
     std::shared_ptr<XMQDoc> dynamic_driver_ {}; // Configuration loaded from driver file.
     std::string dynamic_file_name_; // Name of actual loaded driver file.
@@ -223,6 +224,8 @@ public:
     bool isCloseEnoughMedia(uchar type);
     int forceMfctIndex() { return force_mfct_index_; }
     bool hasProcessContent() { return has_process_content_; }
+    void setAllowsLseBridgeDecap(bool b) { allows_lse_bridge_decap_ = b; }
+    bool allowsLseBridgeDecap() { return allows_lse_bridge_decap_; }
 };
 
 bool staticRegisterDriver(std::function<void(DriverInfo&di)> setup);
