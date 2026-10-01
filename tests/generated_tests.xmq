@@ -240,6 +240,24 @@ test {
     fields   = 'HCA1;37373731;1;89;2022-09-18;2016-05-01;2019-08-28;21.703125;19.890625;1111-11-11 11:11.11'
 }
 test {
+    args     = 'HCA3 apatoreitn40 00019913 NOKEY'
+    telegram = 40440106139901000908A00000A10000006D0100000000000000000000000000001A002F000E0006000000000000000000000000005D003F01C7002C3305000000
+    json     = '{"_":"telegram","media":"heat cost allocation","meter":"apatoreitn40","name":"HCA3","id":"00019913","current_date":"2025-09-12","current_hca":0,"current_month_hca":0,"previous_hca":93,"previous_2y_hca":319,"previous_3y_hca":199,"previous_month_hca":0,"previous_month_02_hca":0,"previous_month_03_hca":0,"previous_month_04_hca":0,"previous_month_05_hca":0,"previous_month_06_hca":0,"previous_month_07_hca":26,"previous_month_08_hca":47,"previous_month_09_hca":14,"previous_month_10_hca":6,"previous_month_11_hca":0,"previous_month_12_hca":0,"previous_month_13_hca":0,"previous_month_14_hca":0,"previous_month_15_hca":0,"season_start_date":"2000-05-01","status":"OK","temp_radiator_c":0,"temp_room_c":22.8125,"timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'HCA3;00019913;0;93;319;199;0;0;0;0;0;0;0;26;47;14;6;0;0;0;0;0;2025-09-12;2000-05-01;0;22.8125;OK;1111-11-11 11:11.11'
+}
+test {
+    args     = 'HCA2 apatoreitn40 00383207 NOKEY'
+    telegram = 40440106073238000D08A0000081000000F90007001000000000000000000000000000000000000000000000000000000000001700000000000000A83204000000
+    json     = '{"_":"telegram","media":"heat cost allocation","meter":"apatoreitn40","name":"HCA2","id":"00383207","current_date":"2025-05-08","current_hca":23,"current_month_hca":7,"previous_hca":0,"previous_2y_hca":0,"previous_3y_hca":0,"previous_month_hca":16,"previous_month_02_hca":0,"previous_month_03_hca":0,"previous_month_04_hca":0,"previous_month_05_hca":0,"previous_month_06_hca":0,"previous_month_07_hca":0,"previous_month_08_hca":0,"previous_month_09_hca":0,"previous_month_10_hca":0,"previous_month_11_hca":0,"previous_month_12_hca":0,"previous_month_13_hca":0,"previous_month_14_hca":0,"previous_month_15_hca":0,"season_start_date":"2000-04-01","status":"OK","temp_radiator_c":0,"temp_room_c":15.5625,"timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'HCA2;00383207;23;0;0;0;7;16;0;0;0;0;0;0;0;0;0;0;0;0;0;0;2025-05-08;2000-04-01;0;15.5625;OK;1111-11-11 11:11.11'
+}
+test {
+    args     = 'HCA1 apatoreitn40 00019913 NOKEY'
+    telegram = 40440106139901000908A00000A10081016B013F00A2004E00000000000000000000000000000018001E0007007800100002002F01C700000000002D3006000000
+    json     = '{"_":"telegram","media":"heat cost allocation","meter":"apatoreitn40","name":"HCA1","id":"00019913","current_date":"2024-01-13","current_hca":303,"current_month_hca":63,"previous_hca":199,"previous_2y_hca":0,"previous_3y_hca":0,"previous_month_hca":162,"previous_month_02_hca":78,"previous_month_03_hca":0,"previous_month_04_hca":0,"previous_month_05_hca":0,"previous_month_06_hca":0,"previous_month_07_hca":0,"previous_month_08_hca":0,"previous_month_09_hca":0,"previous_month_10_hca":24,"previous_month_11_hca":30,"previous_month_12_hca":7,"previous_month_13_hca":120,"previous_month_14_hca":16,"previous_month_15_hca":2,"season_start_date":"2000-05-01","status":"OK","temp_radiator_c":24.0625,"temp_room_c":22.6875,"timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'HCA1;00019913;303;199;0;0;63;162;78;0;0;0;0;0;0;0;24;30;7;120;16;2;2024-01-13;2000-05-01;24.0625;22.6875;OK;1111-11-11 11:11.11'
+}
+test {
     comment  = 'Issue 1215 cluster 3 recovery'
     args     = 'ApNa1 apatorna1 04913581 00000000000000000000000000000000'
     telegram = 1C440106813591041407A0130197DAF2A1C02F9B77B14ACD51CB20C41E

@@ -1,0 +1,498 @@
+// Copyright (C) 2026 Fredrik Ohrstrom (gpl-3.0-or-later)
+// Copyright (C) 2026 Ihor Kushnirenko (@SteinerOk) (gpl-3.0-or-later)
+// Reverse engineering, driver architecture and implementation: Ihor Kushnirenko (@SteinerOk)
+// Telegram captures and physical meter verification contributed by:
+//   - @kuchar91 (Winter & Autumn captures, FW rev 0x09)
+//   - @dawidcieszynski (Spring dynamics captures, FW rev 0x0D)
+// Reference: wmbusmeters GitHub issue #1144
+// 
+// Apator Metra E-ITN 40 heat cost allocator (EN 834), two temperature sensors (tz + tL).
+// Protocol: Proprietary wM-Bus, CI=0xA0 (manufacturer-specific, EN 13757-7, range A0h-B7h).
+// Frame: 11-byte DLL header + 54-byte payload = 27 x uint16 LE words (w00..w26). Not OMS.
+// Firmware variants handled (Version byte in DLL header):
+//   0x09/0x0A: old FW (serial < 0101-00205051, before 2024-04-30). 0x09=plain, 0x0A=AES-128.
+//   0x0D/0x0E: new FW (serial >= 0101-00205051, from 2024-04-30).  0x0D=plain, 0x0E=AES-128.
+// Encrypted variants (0x0A, 0x0E) are detected; supply the AES key to decode.
+// Date format (w01, w24): Apator proprietary 16-bit: bits 0..4=Day, 5..8=Month, 9..15=Year+2000.
+//   Different from standard EN 13757-3 CP16 Type G which splits Year across byte boundaries.
+// DVK keys in iXML grammar are virtual identifiers, not real DIF/VIF records.
+//   All monthly HCA DVK keys encode Tariff=0 with unique Storage numbers (no collisions).
+driver {
+    name           = apatoreitn40
+    meter_type     = HeatCostAllocationMeter
+    default_fields = name,id,current_hca,previous_hca,previous_2y_hca,previous_3y_hca,current_month_hca,previous_month_hca,previous_month_02_hca,previous_month_03_hca,previous_month_04_hca,previous_month_05_hca,previous_month_06_hca,previous_month_07_hca,previous_month_08_hca,previous_month_09_hca,previous_month_10_hca,previous_month_11_hca,previous_month_12_hca,previous_month_13_hca,previous_month_14_hca,previous_month_15_hca,current_date,season_start_date,temp_radiator_c,temp_room_c,status,timestamp
+    manufacturer   = Apator
+    detect {
+        mvt = APA,09,08
+        mvt = APA,0A,08
+        mvt = APA,0D,08
+        mvt = APA,0E,08
+        mvt = APT,09,08
+        mvt = APT,0A,08
+        mvt = APT,0D,08
+        mvt = APT,0E,08
+    }
+    fields {
+        field {
+            name     = current
+            quantity = HCA
+            info     = 'Cumulative energy consumption so far in current billing period (main LCD reading without SM).'
+            match {
+                difvifkey = 026E
+            }
+        }
+        field {
+            name     = previous
+            quantity = HCA
+            info     = 'Total energy consumption in previous billing period (SM symbol on LCD).'
+            match {
+                difvifkey = 426E
+            }
+        }
+        field {
+            name     = previous_2y
+            quantity = HCA
+            info     = 'Energy consumption 2 billing periods ago (historical archive).'
+            match {
+                difvifkey = 82016E
+            }
+        }
+        field {
+            name     = previous_3y
+            quantity = HCA
+            info     = 'Energy consumption 3 billing periods ago (historical archive).'
+            match {
+                difvifkey = 82026E
+            }
+        }
+        field {
+            name     = current_month
+            quantity = HCA
+            info     = 'Energy consumption in current month so far (dotted reading on LCD).'
+            match {
+                difvifkey = 82046E
+            }
+        }
+        field {
+            name     = previous_month
+            quantity = HCA
+            info     = 'Final energy consumption in previous closed month (Month -1, dotted reading with SM on LCD).'
+            match {
+                difvifkey = 82086E
+            }
+        }
+        field {
+            name     = previous_month_02
+            quantity = HCA
+            info     = 'Energy consumption 2 months ago (Month -2 in historical 15-month buffer).'
+            match {
+                difvifkey = 82036E
+            }
+        }
+        field {
+            name     = previous_month_03
+            quantity = HCA
+            info     = 'Energy consumption 3 months ago (Month -3 in historical 15-month buffer).'
+            match {
+                difvifkey = C2036E
+            }
+        }
+        field {
+            name     = previous_month_04
+            quantity = HCA
+            info     = 'Energy consumption 4 months ago (Month -4 in historical 15-month buffer).'
+            match {
+                difvifkey = 82056E
+            }
+        }
+        field {
+            name     = previous_month_05
+            quantity = HCA
+            info     = 'Energy consumption 5 months ago (Month -5 in historical 15-month buffer).'
+            match {
+                difvifkey = 82066E
+            }
+        }
+        field {
+            name     = previous_month_06
+            quantity = HCA
+            info     = 'Energy consumption 6 months ago (Month -6 in historical 15-month buffer).'
+            match {
+                difvifkey = 82076E
+            }
+        }
+        field {
+            name     = previous_month_07
+            quantity = HCA
+            info     = 'Energy consumption 7 months ago (Month -7 in historical 15-month buffer).'
+            match {
+                difvifkey = 82096E
+            }
+        }
+        field {
+            name     = previous_month_08
+            quantity = HCA
+            info     = 'Energy consumption 8 months ago (Month -8 in historical 15-month buffer).'
+            match {
+                difvifkey = 820A6E
+            }
+        }
+        field {
+            name     = previous_month_09
+            quantity = HCA
+            info     = 'Energy consumption 9 months ago (Month -9 in historical 15-month buffer).'
+            match {
+                difvifkey = 820B6E
+            }
+        }
+        field {
+            name     = previous_month_10
+            quantity = HCA
+            info     = 'Energy consumption 10 months ago (Month -10 in historical 15-month buffer).'
+            match {
+                difvifkey = 820C6E
+            }
+        }
+        field {
+            name     = previous_month_11
+            quantity = HCA
+            info     = 'Energy consumption 11 months ago (Month -11 in historical 15-month buffer).'
+            match {
+                difvifkey = 820D6E
+            }
+        }
+        field {
+            name     = previous_month_12
+            quantity = HCA
+            info     = 'Energy consumption 12 months ago (Month -12 in historical 15-month buffer).'
+            match {
+                difvifkey = 820E6E
+            }
+        }
+        field {
+            name     = previous_month_13
+            quantity = HCA
+            info     = 'Energy consumption 13 months ago (Month -13 in historical 15-month buffer).'
+            match {
+                difvifkey = 820F6E
+            }
+        }
+        field {
+            name     = previous_month_14
+            quantity = HCA
+            info     = 'Energy consumption 14 months ago (Month -14 in historical 15-month buffer).'
+            match {
+                difvifkey = C2016E
+            }
+        }
+        field {
+            name     = previous_month_15
+            quantity = HCA
+            info     = 'Energy consumption 15 months ago (Month -15 in historical 15-month buffer).'
+            match {
+                difvifkey = C2026E
+            }
+        }
+        field {
+            name           = temp_radiator_raw
+            quantity       = Dimensionless
+            attributes     = HIDE
+            vif_scaling    = None
+            dif_signedness = Signed
+            match {
+                difvifkey = 02FB03
+            }
+        }
+        field {
+            name           = temp_room_raw
+            quantity       = Dimensionless
+            attributes     = HIDE
+            vif_scaling    = None
+            dif_signedness = Signed
+            match {
+                difvifkey = 02FB01
+            }
+        }
+        field {
+            name       = current_date_raw
+            quantity   = Dimensionless
+            attributes = HIDE
+            match {
+                difvifkey = 02FD3A
+            }
+        }
+        field {
+            name       = season_start_date_raw
+            quantity   = Dimensionless
+            attributes = HIDE
+            match {
+                difvifkey = 42FD3A
+            }
+        }
+        field {
+            name           = day_of_week
+            quantity       = Dimensionless
+            attributes     = HIDE
+            vif_scaling    = None
+            dif_signedness = Unsigned
+            match {
+                difvifkey = 02FB05
+            }
+        }
+        field {
+            name       = current_day
+            quantity   = Dimensionless
+            attributes = HIDE
+            calculate  = 'current_date_raw_counter % 32counter'
+        }
+        field {
+            name       = current_month_num
+            quantity   = Dimensionless
+            attributes = HIDE
+            calculate  = '(current_date_raw_counter >> 5counter) % 16counter'
+        }
+        field {
+            name       = current_year_num
+            quantity   = Dimensionless
+            attributes = HIDE
+            calculate  = '(current_date_raw_counter >> 9counter) % 128counter'
+        }
+        field {
+            name       = season_start_day
+            quantity   = Dimensionless
+            attributes = HIDE
+            calculate  = 'season_start_date_raw_counter % 32counter'
+        }
+        field {
+            name       = season_start_month_num
+            quantity   = Dimensionless
+            attributes = HIDE
+            calculate  = '(season_start_date_raw_counter >> 5counter) % 16counter'
+        }
+        field {
+            name       = season_start_year_num
+            quantity   = Dimensionless
+            attributes = HIDE
+            calculate  = '(season_start_date_raw_counter >> 9counter) % 32counter'
+        }
+        field {
+            name      = temp_radiator
+            quantity  = Temperature
+            info      = 'Radiator surface sensor temperature (tz).'
+            calculate = '(temp_radiator_raw_counter / 16counter) * 1c'
+        }
+        field {
+            name      = temp_room
+            quantity  = Temperature
+            info      = 'Ambient room temperature (tL, SM symbol on LCD).'
+            calculate = '(temp_room_raw_counter / 16counter) * 1c'
+        }
+        field {
+            name         = current
+            quantity     = PointInTime
+            display_unit = date
+            info         = 'Current reading date reported by meter. Apator proprietary 16-bit: bits 0..4=Day, 5..8=Month, 9..15=Year+2000.'
+            calculate    = "'2000-01-01 00:00:00' +
+                            (((current_year_num_counter * 12counter) + current_month_num_counter - 1counter) * 1month) +
+                            ((current_day_counter - 1counter) * 24h)"
+        }
+        field {
+            name         = season_start
+            quantity     = PointInTime
+            display_unit = date
+            info         = 'Annual billing period start date, recurring DD.MM (u DD.MM on LCD, w01). Year bits are always 0: year 2000 in output is expected.'
+            calculate    = "'2000-01-01 00:00:00' +
+                            (((season_start_year_num_counter * 12counter) + season_start_month_num_counter - 1counter) * 1month) +
+                            ((season_start_day_counter - 1counter) * 24h)"
+        }
+        field {
+            name       = status
+            quantity   = Text
+            info       = 'Seal and sensor status (w26). 0x0000=OK, 0xFFFF=SEAL_BROKEN. Bits 0..6 are individual sensor/hardware faults per reverse-engineering spec ss9.3 (unverified on faulty hardware).'
+            attributes = STATUS
+            match {
+                difvifkey = 8200FD3A
+            }
+            lookup {
+                name            = STATUS
+                map_type        = BitToString
+                mask_bits       = 0xffff
+                default_message = OK
+                map {
+                    name  = SENSOR_RADIATOR_OPEN
+                    value = 0x0001
+                    test  = Set
+                }
+                map {
+                    name  = SENSOR_RADIATOR_SHORT
+                    value = 0x0002
+                    test  = Set
+                }
+                map {
+                    name  = SENSOR_ROOM_OPEN
+                    value = 0x0004
+                    test  = Set
+                }
+                map {
+                    name  = SENSOR_ROOM_SHORT
+                    value = 0x0008
+                    test  = Set
+                }
+                map {
+                    name  = LOW_BATTERY
+                    value = 0x0010
+                    test  = Set
+                }
+                map {
+                    name  = EEPROM_ERROR
+                    value = 0x0020
+                    test  = Set
+                }
+                map {
+                    name  = OPTICAL_TAMPER
+                    value = 0x0040
+                    test  = Set
+                }
+                map {
+                    name  = SEAL_BROKEN
+                    value = 0xffff
+                    test  = Set
+                }
+            }
+        }
+        field {
+            name                 = mfct_specific_data
+            quantity             = Text
+            attributes           = HIDE
+            match_entire_payload = true
+            ixml                 = "decode = frame_direct | frame_direct_with_a0 | frame_b6.
+                                    frame_direct = pad,
+                                                   SeasonStartDateRaw,
+                                                   TempRadiatorRaw,
+                                                   TempRoomRaw,
+                                                   CurrentMonthHCA,
+                                                   PrevMonth01HCA,
+                                                   PrevMonth02HCA,
+                                                   PrevMonth03HCA,
+                                                   PrevMonth04HCA,
+                                                   PrevMonth05HCA,
+                                                   PrevMonth06HCA,
+                                                   PrevMonth07HCA,
+                                                   PrevMonth08HCA,
+                                                   PrevMonth09HCA,
+                                                   PrevMonth10HCA,
+                                                   PrevMonth11HCA,
+                                                   PrevMonth12HCA,
+                                                   PrevMonth13HCA,
+                                                   PrevMonth14HCA,
+                                                   PrevMonth15HCA,
+                                                   CurrHCA,
+                                                   PrevHCA,
+                                                   HCA2yAgo,
+                                                   HCA3yAgo,
+                                                   CurrentDateRaw,
+                                                   DayOfWeek,
+                                                   SealStatusRaw.
+                                    frame_direct_with_a0 = -'A0', frame_direct.
+                                    frame_b6 = frame_b6_00 | frame_b6_01 | frame_b6_02 | frame_b6_03 |
+                                               frame_b6_04 | frame_b6_05 | frame_b6_06 | frame_b6_07 |
+                                               frame_b6_08 | frame_b6_09 | frame_b6_0A | frame_b6_0B |
+                                               frame_b6_0C | frame_b6_0D | frame_b6_0E | frame_b6_0F.
+                                    frame_b6_00 = -'00', -'A0', frame_direct.
+                                    frame_b6_01 = -'01', byte, -'A0', frame_direct.
+                                    frame_b6_02 = -'02', byte, byte, -'A0', frame_direct.
+                                    frame_b6_03 = -'03', byte, byte, byte, -'A0', frame_direct.
+                                    frame_b6_04 = -'04', byte, byte, byte, byte, -'A0', frame_direct.
+                                    frame_b6_05 = -'05', byte, byte, byte, byte, byte, -'A0', frame_direct.
+                                    frame_b6_06 = -'06', byte, byte, byte, byte, byte, byte, -'A0', frame_direct.
+                                    frame_b6_07 = -'07', byte, byte, byte, byte, byte, byte, byte, -'A0', frame_direct.
+                                    frame_b6_08 = -'08', byte, byte, byte, byte, byte, byte, byte, byte, -'A0', frame_direct.
+                                    frame_b6_09 = -'09', byte, byte, byte, byte, byte, byte, byte, byte, byte, -'A0', frame_direct.
+                                    frame_b6_0A = -'0A', byte, byte, byte, byte, byte, byte, byte, byte, byte, byte, -'A0', frame_direct.
+                                    frame_b6_0B = -'0B', byte, byte, byte, byte, byte, byte, byte, byte, byte, byte, byte, -'A0', frame_direct.
+                                    frame_b6_0C = -'0C', byte, byte, byte, byte, byte, byte, byte, byte, byte, byte, byte, byte, -'A0', frame_direct.
+                                    frame_b6_0D = -'0D', byte, byte, byte, byte, byte, byte, byte, byte, byte, byte, byte, byte, byte, -'A0', frame_direct.
+                                    frame_b6_0E = -'0E', byte, byte, byte, byte, byte, byte, byte, byte, byte, byte, byte, byte, byte, byte, -'A0', frame_direct.
+                                    frame_b6_0F = -'0F', byte, byte, byte, byte, byte, byte, byte, byte, byte, byte, byte, byte, byte, byte, byte, -'A0', frame_direct.
+
+                                    pad = byte, byte.
+                                    SeasonStartDateRaw = word, @DV_season_start_date_raw.
+                                    TempRadiatorRaw = word, @DV_temp_radiator_raw.
+                                    TempRoomRaw = word, @DV_temp_room_raw.
+                                    CurrentMonthHCA = word, @DV_current_month_hca.
+                                    PrevMonth01HCA = word, @DV_previous_month.
+                                    PrevMonth02HCA = word, @DV_previous_month_02.
+                                    PrevMonth03HCA = word, @DV_previous_month_03.
+                                    PrevMonth04HCA = word, @DV_previous_month_04.
+                                    PrevMonth05HCA = word, @DV_previous_month_05.
+                                    PrevMonth06HCA = word, @DV_previous_month_06.
+                                    PrevMonth07HCA = word, @DV_previous_month_07.
+                                    PrevMonth08HCA = word, @DV_previous_month_08.
+                                    PrevMonth09HCA = word, @DV_previous_month_09.
+                                    PrevMonth10HCA = word, @DV_previous_month_10.
+                                    PrevMonth11HCA = word, @DV_previous_month_11.
+                                    PrevMonth12HCA = word, @DV_previous_month_12.
+                                    PrevMonth13HCA = word, @DV_previous_month_13.
+                                    PrevMonth14HCA = word, @DV_previous_month_14.
+                                    PrevMonth15HCA = word, @DV_previous_month_15.
+                                    CurrHCA = word, @DV_current_hca.
+                                    PrevHCA = word, @DV_previous_hca.
+                                    HCA2yAgo = word, @DV_previous_2y.
+                                    HCA3yAgo = word, @DV_previous_3y.
+                                    CurrentDateRaw = word, @DV_current_date_raw.
+                                    DayOfWeek = word, @DV_day_of_week.
+                                    SealStatusRaw = word, @DV_seal_status_raw.
+
+                                    -hex  = ['A'-'F';'0'-'9'].
+                                    -byte = hex, hex.
+                                    -word = byte, byte.
+
+                                    DV_current_hca>dvk = +'026E'.
+                                    DV_previous_hca>dvk = +'426E'.
+                                    DV_previous_2y>dvk = +'82016E'.
+                                    DV_previous_3y>dvk = +'82026E'.
+                                    DV_current_month_hca>dvk = +'82046E'.
+                                    DV_previous_month>dvk = +'82086E'.
+                                    DV_previous_month_02>dvk = +'82036E'.
+                                    DV_previous_month_03>dvk = +'C2036E'.
+                                    DV_previous_month_04>dvk = +'82056E'.
+                                    DV_previous_month_05>dvk = +'82066E'.
+                                    DV_previous_month_06>dvk = +'82076E'.
+                                    DV_previous_month_07>dvk = +'82096E'.
+                                    DV_previous_month_08>dvk = +'820A6E'.
+                                    DV_previous_month_09>dvk = +'820B6E'.
+                                    DV_previous_month_10>dvk = +'820C6E'.
+                                    DV_previous_month_11>dvk = +'820D6E'.
+                                    DV_previous_month_12>dvk = +'820E6E'.
+                                    DV_previous_month_13>dvk = +'820F6E'.
+                                    DV_previous_month_14>dvk = +'C2016E'.
+                                    DV_previous_month_15>dvk = +'C2026E'.
+                                    DV_temp_radiator_raw>dvk = +'02FB03'.
+                                    DV_temp_room_raw>dvk = +'02FB01'.
+                                    DV_current_date_raw>dvk = +'02FD3A'.
+                                    DV_season_start_date_raw>dvk = +'42FD3A'.
+                                    DV_day_of_week>dvk = +'02FB05'.
+                                    DV_seal_status_raw>dvk = +'8200FD3A'."
+        }
+    }
+    tests {
+        test {
+            args     = 'HCA1 apatoreitn40 00019913 NOKEY'
+            telegram = 40440106139901000908A00000A10081016B013F00A2004E00000000000000000000000000000018001E0007007800100002002F01C700000000002D3006000000
+            json     = '{"_":"telegram","current_date":"2024-01-13","current_hca":303,"current_month_hca":63,"driver":"apatoreitn40","id":"00019913","media":"heat cost allocation","name":"HCA1","previous_2y_hca":0,"previous_3y_hca":0,"previous_hca":199,"previous_month_02_hca":78,"previous_month_03_hca":0,"previous_month_04_hca":0,"previous_month_05_hca":0,"previous_month_06_hca":0,"previous_month_07_hca":0,"previous_month_08_hca":0,"previous_month_09_hca":0,"previous_month_10_hca":24,"previous_month_11_hca":30,"previous_month_12_hca":7,"previous_month_13_hca":120,"previous_month_14_hca":16,"previous_month_15_hca":2,"previous_month_hca":162,"season_start_date":"2000-05-01","status":"OK","temp_radiator_c":24.0625,"temp_room_c":22.6875,"timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'HCA1;00019913;303;199;0;0;63;162;78;0;0;0;0;0;0;0;24;30;7;120;16;2;2024-01-13;2000-05-01;24.0625;22.6875;OK;1111-11-11 11:11.11'
+        }
+        test {
+            args     = 'HCA2 apatoreitn40 00383207 NOKEY'
+            telegram = 40440106073238000D08A0000081000000F90007001000000000000000000000000000000000000000000000000000000000001700000000000000A83204000000
+            json     = '{"_":"telegram","current_date":"2025-05-08","current_hca":23,"current_month_hca":7,"driver":"apatoreitn40","id":"00383207","media":"heat cost allocation","name":"HCA2","previous_2y_hca":0,"previous_3y_hca":0,"previous_hca":0,"previous_month_02_hca":0,"previous_month_03_hca":0,"previous_month_04_hca":0,"previous_month_05_hca":0,"previous_month_06_hca":0,"previous_month_07_hca":0,"previous_month_08_hca":0,"previous_month_09_hca":0,"previous_month_10_hca":0,"previous_month_11_hca":0,"previous_month_12_hca":0,"previous_month_13_hca":0,"previous_month_14_hca":0,"previous_month_15_hca":0,"previous_month_hca":16,"season_start_date":"2000-04-01","status":"OK","temp_radiator_c":0,"temp_room_c":15.5625,"timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'HCA2;00383207;23;0;0;0;7;16;0;0;0;0;0;0;0;0;0;0;0;0;0;0;2025-05-08;2000-04-01;0;15.5625;OK;1111-11-11 11:11.11'
+        }
+        test {
+            args     = 'HCA3 apatoreitn40 00019913 NOKEY'
+            telegram = 40440106139901000908A00000A10000006D0100000000000000000000000000001A002F000E0006000000000000000000000000005D003F01C7002C3305000000
+            json     = '{"_":"telegram","current_date":"2025-09-12","current_hca":0,"current_month_hca":0,"driver":"apatoreitn40","id":"00019913","media":"heat cost allocation","name":"HCA3","previous_2y_hca":319,"previous_3y_hca":199,"previous_hca":93,"previous_month_02_hca":0,"previous_month_03_hca":0,"previous_month_04_hca":0,"previous_month_05_hca":0,"previous_month_06_hca":0,"previous_month_07_hca":26,"previous_month_08_hca":47,"previous_month_09_hca":14,"previous_month_10_hca":6,"previous_month_11_hca":0,"previous_month_12_hca":0,"previous_month_13_hca":0,"previous_month_14_hca":0,"previous_month_15_hca":0,"previous_month_hca":0,"season_start_date":"2000-05-01","status":"OK","temp_radiator_c":0,"temp_room_c":22.8125,"timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'HCA3;00019913;0;93;319;199;0;0;0;0;0;0;0;26;47;14;6;0;0;0;0;0;2025-09-12;2000-05-01;0;22.8125;OK;1111-11-11 11:11.11'
+        }
+    }
+}
