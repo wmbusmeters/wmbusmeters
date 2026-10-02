@@ -1958,15 +1958,29 @@ test {
     fields   = 'MyElement1;78563412;127;2018-12-31;145;1111-11-11 11:11.11'
 }
 test {
+    comment  = 'Landis+Gyr ULTRAHEAT T330 in the field, telegram F001 without errors.'
+    args     = 'Heat qheat_55_us 12345678 NOKEY'
+    telegram = 3844a732785634120a047a400000200c06000000008c01060000000084016d0000413a4c0600000000446d00004131046d350c413a0f000000
+    json     = '{"_":"telegram","media":"heat","driver":"qheat_55_us","name":"Heat","id":"12345678","device_datetime":"2026-10-01 12:53","total_energy_consumption_kwh":0,"key_datetime":"2026-01-01 00:00","key_datetime_kwh":0,"prev_month_datetime":"2026-10-01 00:00","prev_1_month_kwh":0,"status":"OK","timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'Heat;12345678;0;0;1111-11-11 11:11.11'
+}
+test {
+    comment  = 'Landis+Gyr ULTRAHEAT T330, raw data example F001 from TKB3551c with error F0 set.'
+    args     = 'Heat qheat_55_us 29071980 NOKEY'
+    telegram = 4544A732801907290A047AFB1000200C06063701000C14229705008C0106843601008C01142882050084016D3B179F284C0668020100446D3B179F2C046D2708B7290F000001
+    json     = '{"_":"telegram","media":"heat","driver":"qheat_55_us","name":"Heat","id":"29071980","device_datetime":"2021-09-23 08:39","total_energy_consumption_kwh":13706,"key_datetime":"2020-12-31 23:59","key_datetime_kwh":10268,"prev_month_datetime":"2020-08-31 23:59","prev_1_month_kwh":13684,"total_volume_m3":597.22,"prev_1_month_m3":582.28,"status":"F0_FLOW_ERROR TEMPORARY_ERROR","timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'Heat;29071980;13706;10268;1111-11-11 11:11.11'
+}
+test {
     args     = 'Heat qheat_55_us 70639638 NOKEY'
     telegram = 9644a7323896637007047a5B00002002740400046d2a0fe2210c0600080600446d3B17df2c4c069106060084016d3B17df2c8c010691060600cc0106227005008c020667430500cc0206122505008c030612180500cc0306821305008c040636090500cc0406080505008c050660960400cc0506597304008c060600410400cc0606790504008c0706936303003c22000000000f001000
-    json     = '{"_":"telegram","media":"heat","driver":"qheat_55_us","name":"Heat","id":"70639638","device_datetime":"2023-01-02 15:42","total_energy_consumption_kwh":60800,"key_datetime":"2022-12-31 23:59","key_datetime_kwh":60691,"prev_month_datetime":"2022-12-31 23:59","prev_1_month_kwh":60691,"prev_2_month_kwh":57022,"prev_3_month_kwh":54367,"prev_4_month_kwh":52512,"prev_5_month_kwh":51812,"prev_6_month_kwh":51382,"prev_7_month_kwh":50936,"prev_8_month_kwh":50508,"prev_9_month_kwh":49660,"prev_10_month_kwh":47359,"prev_11_month_kwh":44100,"prev_12_month_kwh":40579,"prev_13_month_kwh":36393,"actuality_duration_h":0.001111,"time_without_measurement_h":0,"timestamp":"1111-11-11T11:11:11Z"}'
+    json     = '{"_":"telegram","media":"heat","driver":"qheat_55_us","name":"Heat","id":"70639638","device_datetime":"2023-01-02 15:42","total_energy_consumption_kwh":60800,"key_datetime":"2022-12-31 23:59","key_datetime_kwh":60691,"prev_month_datetime":"2022-12-31 23:59","prev_1_month_kwh":60691,"prev_2_month_kwh":57022,"prev_3_month_kwh":54367,"prev_4_month_kwh":52512,"prev_5_month_kwh":51812,"prev_6_month_kwh":51382,"prev_7_month_kwh":50936,"prev_8_month_kwh":50508,"prev_9_month_kwh":49660,"prev_10_month_kwh":47359,"prev_11_month_kwh":44100,"prev_12_month_kwh":40579,"prev_13_month_kwh":36393,"actuality_duration_h":0.001111,"time_without_measurement_h":0,"status":"OK","timestamp":"1111-11-11T11:11:11Z"}'
     fields   = 'Heat;70639638;60800;60691;1111-11-11 11:11.11'
 }
 test {
     args     = 'Heat qheat_55_us 70835484 NOKEY'
     telegram = 9644a732845483700a047ae70000200274fc00046d230Bd3250c0605920000446d3B17Bf2c4c068251000084016d3B17de248c010605900000cc0106988500008c020629770000cc0206226600008c030682510000cc0306933600008c040602260000cc0406691800008c050633140000cc0506900900008c060618020000cc0606000000008c0706000000003c22000000000f001000
-    json     = '{"_":"telegram","media":"heat","driver":"qheat_55_us","name":"Heat","id":"70835484","device_datetime":"2022-05-19 11:35","total_energy_consumption_kwh":9205,"key_datetime":"2021-12-31 23:59","key_datetime_kwh":5182,"prev_month_datetime":"2022-04-30 23:59","prev_1_month_kwh":9005,"prev_2_month_kwh":8598,"prev_3_month_kwh":7729,"prev_4_month_kwh":6622,"prev_5_month_kwh":5182,"prev_6_month_kwh":3693,"prev_7_month_kwh":2602,"prev_8_month_kwh":1869,"prev_9_month_kwh":1433,"prev_10_month_kwh":990,"prev_11_month_kwh":218,"prev_12_month_kwh":0,"prev_13_month_kwh":0,"actuality_duration_h":0.07,"time_without_measurement_h":0,"timestamp":"1111-11-11T11:11:11Z"}'
+    json     = '{"_":"telegram","media":"heat","driver":"qheat_55_us","name":"Heat","id":"70835484","device_datetime":"2022-05-19 11:35","total_energy_consumption_kwh":9205,"key_datetime":"2021-12-31 23:59","key_datetime_kwh":5182,"prev_month_datetime":"2022-04-30 23:59","prev_1_month_kwh":9005,"prev_2_month_kwh":8598,"prev_3_month_kwh":7729,"prev_4_month_kwh":6622,"prev_5_month_kwh":5182,"prev_6_month_kwh":3693,"prev_7_month_kwh":2602,"prev_8_month_kwh":1869,"prev_9_month_kwh":1433,"prev_10_month_kwh":990,"prev_11_month_kwh":218,"prev_12_month_kwh":0,"prev_13_month_kwh":0,"actuality_duration_h":0.07,"time_without_measurement_h":0,"status":"OK","timestamp":"1111-11-11T11:11:11Z"}'
     fields   = 'Heat;70835484;9205;5182;1111-11-11 11:11.11'
 }
 test {
