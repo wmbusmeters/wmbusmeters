@@ -1,0 +1,9 @@
+# LSE bridge frames (C-field 0xc4) that carry a complete inner telegram
+# starting at offset 18. Real on-air data collected 2026-09: the first 18 bytes
+# are an actual outer frame header of that very bridge (the decapsulating
+# outer frames themselves are not logged since the decapsulation consumes
+# them), the inner telegrams are logged air bytes paired with the bridge in
+# the decapsulation notice. The 6532 and the 65b2 inner manufacturer variants
+# and both seen inner lengths (50 and 59 bytes) are covered.
+telegram=|43C465B257604000F0DBA2_8311004259C700314465320316448834087A1C0000000B6E9102004B6E831300426C3F3C326CFFFF046D1A155A3982046C5F388B046E910200|
+telegram=|4CC465B26A31A000F1FEA0_831100385916003A4465B29541240851077A22000000046D19125B390C13450419004C1345231600426C3F3C326CFFFF0C783788565882046C5F388C041314751800|

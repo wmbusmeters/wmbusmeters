@@ -90,4 +90,15 @@ void qdsExtractWalkByField(Telegram *t, Meter *driver, DVEntry &mfctEntry, int p
 // Returns true if decoded; false (leaving `value` untouched) otherwise.
 bool tryDecodeQundisWalkByAes(Telegram *t, std::string *value);
 
+// LSE: bridge frames (c-field 0xc4) encapsulate a complete wmbus telegram in
+// their payload, starting at offset 18 with its own length byte and no crc.
+// Returns true and fills *inner if the frame matches; false otherwise,
+// leaving *inner untouched.
+bool tryExtractLseBridgeInnerTelegram(const std::vector<uchar> &frame, std::vector<uchar> *inner);
+
+// LSE: is decapsulation of this inner telegram permitted, i.e. does the
+// driver detecting it opt in via transform_payload=lse_bridge in its xmq?
+// Loads the builtin driver when necessary.
+bool lseBridgeDecapAllowed(const std::vector<uchar> &inner);
+
 #endif
