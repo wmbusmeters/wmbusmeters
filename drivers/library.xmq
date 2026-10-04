@@ -55,11 +55,6 @@ library {
             name = TEMPORARY_ERROR
             info = 'Temporary meter error. (tpl sts)'
         }
-        // The following flag is wmbusmeters specific.
-        flag {
-            name = FAILED_DECODE
-            info = 'The telegram failed a manufacturer specific decode or decryption.'
-        }
     }
     template(id = total_m3)
     {
