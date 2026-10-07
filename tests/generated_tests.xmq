@@ -2611,6 +2611,13 @@ test {
 }
 test {
     args     = 'XEEny xeeny 00001234 NOKEY'
+    comment  = 'XEEny firmware 1.6.0 on an EasyMeter during installation. Tpl status 0xa0, bit 7 (manually reset) is ignored. The mfct block now carries XEE tag 0x41.'
+    telegram = 6B44A5603412000002378C204C900F002C251F0000006F8C1E004B23AED4_7234127060791611024CA0400710_2F2F070378AA0A000000000087100378AA0A000000000087200300000000000000000274830301671603FD0F0006010D7F07004106218001122F2F2F2F2F2F2F
+    json     = '{"_":"telegram","actuality_duration_s":899,"device_temperature_c":22,"driver":"xeeny","firmware_version":"010600","id":"60701234","media":"electricity","name":"XEEny","status":"INSTALLATION_MODE","timestamp":"1111-11-11T11:11:11Z","total_energy_consumption_kwh":699,"total_energy_consumption_tariff_1_kwh":699,"total_energy_consumption_tariff_2_kwh":0}'
+    fields   = 'XEEny;60701234;INSTALLATION_MODE;699;null;1111-11-11 11:11.11'
+}
+test {
+    args     = 'XEEny xeeny 00001234 NOKEY'
     comment  = 'XEEny on an EasyMeter, configured with the XEEny id, the output id is the meter id.'
     telegram = 6B44A560341200000237_8C205E900F002C2531950300A3E7CD0FC182890D_7234127060791611025E00400710_2F2F0703388B0A0000000000871003388B0A00000000008720030000000000000000027403030167170D7F0506218001122F2F2F2F2F2F2F2F2F2F2F2F2F2F2F
     json     = '{"_":"telegram","actuality_duration_s":771,"device_temperature_c":23,"driver":"xeeny","id":"60701234","media":"electricity","name":"XEEny","status":"OK","timestamp":"1111-11-11T11:11:11Z","total_energy_consumption_kwh":691,"total_energy_consumption_tariff_1_kwh":691,"total_energy_consumption_tariff_2_kwh":0}'
