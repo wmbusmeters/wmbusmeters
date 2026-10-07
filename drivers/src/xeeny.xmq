@@ -15,7 +15,9 @@ driver {
         dll_mvt = XEE,02,37
     }
     mfct_tpl_status_bits {
-        mask_bits       = 0xe0
+        // Bit 7 only says the XEEny was reset manually at some point and is sent
+        // during installation mode only. XEE says it can be ignored, so it is masked out.
+        mask_bits       = 0x60
         default_message = OK
         map {
             name  = INSTALLATION_MODE
@@ -26,11 +28,6 @@ driver {
         map {
             name  = INTERNAL_ERROR_6
             value = 0x40
-            test  = Set
-        }
-        map {
-            name  = INTERNAL_ERROR_7
-            value = 0x80
             test  = Set
         }
     }
