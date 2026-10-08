@@ -163,6 +163,7 @@ private:
     MeterType type_; // Water, Electricity etc.
     std::function<std::shared_ptr<Meter>(MeterInfo&,DriverInfo&di)> constructor_; // Invoke this to create an instance of the driver.
     std::vector<MVT> mvts_;
+    std::vector<MVT> dll_mvts_; // Detected on the dll mvt even when a long tpl carries another mvt.
     std::vector<std::string> default_fields_;
     int force_mfct_index_ = -1; // Used for meters not declaring mfct specific data using the dif 0f.
     bool has_process_content_ = false; // Mark this driver as having mfct specific decoding.
@@ -187,6 +188,7 @@ public:
     void forceMfctIndex(int i) { force_mfct_index_ = i; }
     void setConstructor(std::function<std::shared_ptr<Meter>(MeterInfo&,DriverInfo&)> c) { constructor_ = c; }
     void addMVT(uint16_t mfct, uchar type, uchar ver) { mvts_.push_back({ mfct, ver, type }); }
+    void addDllMVT(uint16_t mfct, uchar type, uchar ver) { dll_mvts_.push_back({ mfct, ver, type }); }
     void addCompactFrameFormat(uint16_t sig, std::vector<uchar> difvif) { compact_frame_formats_.push_back({ sig, std::move(difvif) }); }
     const std::vector<std::pair<uint16_t,std::vector<uchar>>> &compactFrameFormats() { return compact_frame_formats_; }
     void addDefaultFlags();
@@ -212,6 +214,7 @@ public:
     const std::string &getDynamicSource() { return dynamic_source_xmq_; }
 
     std::vector<MVT> &mvts() { return mvts_; }
+    std::vector<MVT> &dllMvts() { return dll_mvts_; }
 
     DriverName name() { return name_; }
     std::string deprecatedBy() { return deprecated_by_; }
@@ -228,6 +231,9 @@ public:
     Translate::Lookup &mfctTPLStatusBits() { return mfct_tpl_status_bits_; }
     std::shared_ptr<Meter> construct(MeterInfo& mi) { return constructor_(mi, *this); }
     bool detect(uint16_t mfct, uchar version, uchar type);
+    // Match against the dll_mvt triplets, used for radio converters that build the
+    // application layer themselves while the tpl carries the identity of the meter.
+    bool detectDll(uint16_t mfct, uchar version, uchar type);
     bool isValidMedia(uchar type);
     bool isCloseEnoughMedia(uchar type);
     int forceMfctIndex() { return force_mfct_index_; }

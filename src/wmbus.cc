@@ -2666,10 +2666,12 @@ string Telegram::analyzeParse(OutputFormat format, int *content_length, int *und
 }
 
 void detectMeterDrivers(int manufacturer, int version, int type, std::vector<std::string> *drivers);
+void detectMeterDllDrivers(int manufacturer, int version, int type, std::vector<std::string> *drivers);
 
 string Telegram::autoDetectPossibleDrivers()
 {
     vector<string> drivers;
+    detectMeterDllDrivers(dll_mfct, dll_version, dll_type, &drivers);
     detectMeterDrivers(dll_mfct, dll_version, dll_type, &drivers);
     if (tpl_id_found)
     {
