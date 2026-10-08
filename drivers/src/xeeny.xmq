@@ -21,7 +21,6 @@ driver {
         default_message = OK
         map {
             name  = INSTALLATION_MODE
-            info  = 'Meter detection is running (green blinking), for up to 30 minutes after activation and every 12 hours while no meter is found.'
             value = 0x20
             test  = Set
         }
@@ -33,6 +32,48 @@ driver {
     }
     library {
         use = actuality_duration_s,meter_datetime
+    }
+    flags {
+        flag {
+            name = INSTALLATION_MODE
+            info = 'Meter detection is running (green blinking), for up to 30 minutes after activation and every 12 hours while no meter is found.'
+        }
+        flag {
+            name = INTERNAL_ERROR_6
+            info = 'Internal error of the XEEny, contact XEE.'
+        }
+        flag {
+            name = LOW_BATTERY
+            info = 'Battery of the XEEny is low.'
+        }
+        flag {
+            name = METER_READOUT_FAILED
+            info = 'A detected meter can no longer be read. Resets when reading works again.'
+        }
+        flag {
+            name = INVALID_METER_ID
+            info = 'The meter sent an invalid id.'
+        }
+        flag {
+            name = METER_DETECTION_FAILED
+            info = 'No meter detected within 30 minutes of installation mode. Detection is retried every 12 hours, the flag resets on success.'
+        }
+        flag {
+            name = INTERNAL_ERROR_2
+            info = 'Internal error of the XEEny, contact XEE.'
+        }
+        flag {
+            name = INTERNAL_ERROR_3
+            info = 'Internal error of the XEEny, contact XEE.'
+        }
+        flag {
+            name = INTERNAL_ERROR_4
+            info = 'Internal error of the XEEny, contact XEE.'
+        }
+        flag {
+            name = NO_SCALING_FROM_METER
+            info = 'The meter sends no scaling, kWh is assumed. Compare once with the meter display.'
+        }
     }
     fields {
         field {
@@ -51,25 +92,21 @@ driver {
                 default_message = OK
                 map {
                     name  = LOW_BATTERY
-                    info  = 'Battery of the XEEny is low.'
                     value = 0x0002
                     test  = Set
                 }
                 map {
                     name  = METER_READOUT_FAILED
-                    info  = 'A detected meter can no longer be read. Resets when reading works again.'
                     value = 0x0020
                     test  = Set
                 }
                 map {
                     name  = INVALID_METER_ID
-                    info  = 'The meter sent an invalid id.'
                     value = 0x0100
                     test  = Set
                 }
                 map {
                     name  = METER_DETECTION_FAILED
-                    info  = 'No meter detected within 30 minutes of installation mode. Detection is retried every 12 hours, the flag resets on success.'
                     value = 0x0200
                     test  = Set
                 }
@@ -90,7 +127,6 @@ driver {
                 }
                 map {
                     name  = NO_SCALING_FROM_METER
-                    info  = 'The meter sends no scaling, kWh is assumed. Compare once with the meter display.'
                     value = 0x2000
                     test  = Set
                 }
