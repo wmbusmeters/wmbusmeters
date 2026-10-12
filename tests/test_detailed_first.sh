@@ -24,8 +24,16 @@ cat <<EOF > $TEST/test_expected.txt
         "unit": "m3h"
       },
       "status": {
+        "flags": [
+          "ALARM",
+          "BUSY",
+          "ERROR",
+          "PERMANENT_ERROR",
+          "POWER_LOW",
+          "TEMPORARY_ERROR"
+        ],
         "info": "Meter status including the tpl status.",
-        "quantity": "Text"
+        "quantity": "Flags"
       },
       "total_m3": {
         "change": "Increasing",

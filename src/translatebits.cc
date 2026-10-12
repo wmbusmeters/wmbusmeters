@@ -326,6 +326,15 @@ map<string,bool> Lookup::translateToObject(uint64_t input_bits)
     return out;
 }
 
+uint64_t Lookup::coveredBits() const
+{
+    uint64_t c = 0;
+    for (const Rule &r : rules)
+        for (const Map &m : r.map)
+            c |= m.from;
+    return c;
+}
+
 std::map<std::string,uint64_t> Lookup::unknownBits(uint64_t bits) const
 {
     std::map<std::string,uint64_t> out;

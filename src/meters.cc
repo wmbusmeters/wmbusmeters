@@ -2383,25 +2383,30 @@ map<string,uint64_t> MeterCommonImplementation::getStatusLookupUnknowns(FieldInf
         }
     }
 
+    // A field with INCLUDE_TPL_STATUS also reports the vendor-specific TPL
+    // status bits (5-7) that are set but have no flag name. The standard bits
+    // 0-4 are always named (BUSY/ERROR/ALARM/POWER_LOW/PERMANENT_ERROR/TEMPORARY_ERROR)
+    // so they never contribute to the unknown bits.
+    if (fi->printProperties().hasINCLUDETPLSTATUS())
+    {
+        uchar sts = t->tpl_sts;
+        uint64_t vendor = sts & 0xe0;
+        if (vendor != 0)
+            out["UNKNOWN"] |= (vendor & ~mfct_tpl_status_bits_.coveredBits());
+    }
+
     return out;
 }
 
 vector<string> MeterCommonImplementation::getFieldFlags(FieldInfo *fi)
 {
-    vector<string> out;
-
-    auto addFlags = [&out](const vector<string> &names)
+    // Use a set so the flag list is deterministic and a name appearing in several
+    // lookups is only reported once.
+    set<string> names;
+    auto addFlags = [&names](const vector<string> &v)
     {
-        for (const string &s : names)
-        {
-            if (s == "") continue;
-            bool have = false;
-            for (const string &o : out)
-            {
-                if (o == s) { have = true; break; }
-            }
-            if (!have) out.push_back(s);
-        }
+        for (const string &s : v)
+            if (s != "") names.insert(s);
     };
 
     addFlags(fi->lookup().flagNames());
@@ -2416,6 +2421,19 @@ vector<string> MeterCommonImplementation::getFieldFlags(FieldInfo *fi)
         }
     }
 
+    // A field with INCLUDE_TPL_STATUS also carries the standard TPL status flags
+    // and any manufacturer-specific TPL status flags.
+    if (fi->printProperties().hasINCLUDETPLSTATUS())
+    {
+        vector<string> tpl;
+#define X(name,mask,value) tpl.push_back(toString(TPLStatusBit::name));
+LIST_OF_TPL_STATUS_BITS
+#undef X
+        addFlags(tpl);
+        addFlags(mfct_tpl_status_bits_.flagNames());
+    }
+
+    vector<string> out(names.begin(), names.end());
     return out;
 }
 
