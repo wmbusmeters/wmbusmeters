@@ -219,6 +219,8 @@ public:
     // This should be refactored.
     std::string getStatusFlags(FieldInfo *fi);
     std::map<std::string,bool> getStatusObjectMembers(FieldInfo *fi, Telegram *t);
+    std::map<std::string,uint64_t> getStatusLookupUnknowns(FieldInfo *fi, Telegram *t);
+    std::vector<std::string> getFieldFlags(FieldInfo *fi);
 protected:
 
     virtual void processContent(Telegram *t);

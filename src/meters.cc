@@ -2356,6 +2356,69 @@ LIST_OF_TPL_STATUS_BITS
     return out;
 }
 
+static void mergeStatusLookupUnknowns(map<string,uint64_t> &out, const map<string,uint64_t> &in)
+{
+    for (const auto &e : in)
+    {
+        out[e.first] |= e.second;
+    }
+}
+
+map<string,uint64_t> MeterCommonImplementation::getStatusLookupUnknowns(FieldInfo *fi, Telegram *t)
+{
+    map<string,uint64_t> out;
+
+    uint64_t bits;
+    if (getFieldBits(fi, &bits))
+        mergeStatusLookupUnknowns(out, fi->lookup().unknownBits(bits));
+
+    // Aggregate the INJECT_INTO_STATUS fields' unknowns, deduped per rule name.
+    for (FieldInfo &f : field_infos_)
+    {
+        if (f.printProperties().hasINJECTINTOSTATUS())
+        {
+            uint64_t fbits;
+            if (getFieldBits(&f, &fbits))
+                mergeStatusLookupUnknowns(out, f.lookup().unknownBits(fbits));
+        }
+    }
+
+    return out;
+}
+
+vector<string> MeterCommonImplementation::getFieldFlags(FieldInfo *fi)
+{
+    vector<string> out;
+
+    auto addFlags = [&out](const vector<string> &names)
+    {
+        for (const string &s : names)
+        {
+            if (s == "") continue;
+            bool have = false;
+            for (const string &o : out)
+            {
+                if (o == s) { have = true; break; }
+            }
+            if (!have) out.push_back(s);
+        }
+    };
+
+    addFlags(fi->lookup().flagNames());
+
+    // The STATUS field aggregates the lookups of all INJECT_INTO_STATUS fields.
+    if (fi->printProperties().hasSTATUS())
+    {
+        for (FieldInfo &f : field_infos_)
+        {
+            if (f.printProperties().hasINJECTINTOSTATUS())
+                addFlags(f.lookup().flagNames());
+        }
+    }
+
+    return out;
+}
+
 string MeterCommonImplementation::decodeTPLStatusByte(uchar sts)
 {
     return ::decodeTPLStatusByteWithMfct(sts, mfct_tpl_status_bits_);
@@ -2690,6 +2753,20 @@ void FieldInfo::insertStringValueIntoDoc(const string &vname, const string &valu
             {
                 xmqAddKeyValue(doc, status_object, member.first.c_str(), member.second ? "true" : "false", NS_PARENT);
             }
+
+            // Sibling to status_flags: the bits that were set in the input value but have no
+            // map entry, per BitToString lookup rule name. Only reported when non-empty.
+            auto unknowns = m->getStatusLookupUnknowns(this, t);
+            if (unknowns.size() > 0)
+            {
+                string vname_unknowns = vname+"_lookups_unknowns";
+                auto rn_u = xmqAddElement(doc, structured, vname_unknowns.c_str(), NS_PARENT);
+                XMQNode *unknowns_object = rn_u.node;
+                for (auto &kv : unknowns)
+                {
+                    xmqAddKeyValue(doc, unknowns_object, kv.first.c_str(), to_string(kv.second).c_str(), NS_PARENT);
+                }
+            }
         }
     }
     else
@@ -2719,6 +2796,23 @@ void FieldInfo::insertStringValueIntoDoc(const string &vname, const string &valu
         if (deprecatedBy().length() > 0)
         {
             xmqAddKeyValue(doc, info, "deprecated_by", deprecatedBy().c_str(), NS_PARENT);
+        }
+        // For STATUS and INJECT_INTO_STATUS fields list all the possible flag names.
+        // For the STATUS field this aggregates the INJECT_INTO_STATUS fields' lookups too.
+        // Only reported when non-empty.
+        if (this->printProperties().hasSTATUS() || this->printProperties().hasINJECTINTOSTATUS())
+        {
+            auto fl = m->getFieldFlags(this);
+            if (fl.size() > 0)
+            {
+                auto rn_f = xmqAddElementWithAttrs(doc, info, "flags", NS_PARENT,
+                                                   XMQ_ATTRS( { "A", "" } ));
+                XMQNode *flags_array = rn_f.node;
+                for (string s : fl)
+                {
+                    xmqAddKeyValue(doc, flags_array, "", s.c_str(), NS_PARENT);
+                }
+            }
         }
     }
 }

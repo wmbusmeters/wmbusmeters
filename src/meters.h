@@ -526,6 +526,14 @@ struct Meter
     virtual std::string decodeTPLStatusByte(uchar sts) = 0;
     virtual std::string getStatusFlags(FieldInfo *fi) = 0;
     virtual std::map<std::string,bool> getStatusObjectMembers(FieldInfo *fi, Telegram *t) = 0;
+    // For each BitToString lookup rule applied to the status field (directly or via
+    // INJECT_INTO_STATUS), returns, keyed by the rule name, the bits that were set in the
+    // input value but have no map entry. Only rules with non-zero unknown bits are included.
+    virtual std::map<std::string,uint64_t> getStatusLookupUnknowns(FieldInfo *fi, Telegram *t) = 0;
+    // Returns the names of all flags (BitToString map "to" strings) defined for this field.
+    // For the STATUS field this is the aggregation of its own lookups and the lookups of all
+    // INJECT_INTO_STATUS fields. For an INJECT_INTO_STATUS field it is just its own lookups.
+    virtual std::vector<std::string> getFieldFlags(FieldInfo *fi) = 0;
 
     virtual void onUpdate(std::function<void(Telegram*t,Meter*)> cb) = 0;
     virtual int numUpdates() = 0;

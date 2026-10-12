@@ -326,6 +326,57 @@ map<string,bool> Lookup::translateToObject(uint64_t input_bits)
     return out;
 }
 
+std::map<std::string,uint64_t> Lookup::unknownBits(uint64_t bits) const
+{
+    std::map<std::string,uint64_t> out;
+    for (const Rule &r : rules)
+    {
+        // Only the BitToString rules are used for status/error flags, the other
+        // map types (IndexToString, DecimalsToString) don't have individual bits.
+        if (r.type != MapType::BitToString)
+            continue;
+
+        if (r.trigger != AlwaysTrigger && (bits & r.trigger.intValue()) == 0)
+            continue; // The trigger bits are not set, so this rule is not active.
+
+        uint64_t mask = r.mask.value();
+        if (r.mask == AutoMask)
+        {
+            // If the mask is AUTO, then it's implicit that it is the OR of all the
+            // "from" bits in the map entries. In that case every set bit is covered
+            // by some map entry, so there can be no unknown bits.
+            continue;
+        }
+
+        uint64_t v = (bits >> r.pre_shift_right.intValue()) & mask;
+        // All the map entries (Set or NotSet tests) define which bits are known.
+        uint64_t covered = 0;
+        for (const Map &m : r.map)
+            covered |= m.from;
+        uint64_t unknown = v & ~covered;
+        if (unknown != 0)
+            out[r.name] = unknown;
+    }
+    return out;
+}
+
+std::vector<std::string> Lookup::flagNames() const
+{
+    std::vector<std::string> out;
+    for (const Rule &r : rules)
+    {
+        // Only the BitToString rules are used for status/error flags.
+        if (r.type != MapType::BitToString)
+            continue;
+        for (const Map &m : r.map)
+        {
+            if (m.to != "")
+                out.push_back(m.to);
+        }
+    }
+    return out;
+}
+
 string Lookup::str()
 {
     string x = " Lookup {\n";

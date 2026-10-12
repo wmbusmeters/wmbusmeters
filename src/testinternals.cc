@@ -67,6 +67,7 @@ bool verbose_ = false;
     X(sbc)            \
     X(hex)            \
     X(translate)                                \
+    X(translate_unknown_bits)                   \
     X(reserved_bits)                            \
     X(translate_pre_shift_right)                \
     X(slip)                                     \
@@ -1905,6 +1906,89 @@ void test_translate()
     {
         printf("ERROR lookup4 0x%06llx expected \"%s\" but got \"%s\"\n",
                (unsigned long long)alarm_bits, e.c_str(), s.c_str());
+    }
+
+}
+
+void test_translate_unknown_bits()
+{
+    // BitToString with explicit mask 0xf0, but map entries only cover 0x10/0x20/0x40,
+    // so 0x80 is inside the mask yet has no map entry -> it is an "unknown" bit.
+    // Also has an IndexToString rule which must never contribute unknowns or names.
+    Translate::Lookup lookup =
+        Translate::Lookup()
+        .add(Translate::Rule("FLAGS", Translate::MapType::BitToString)
+             .set(MaskBits(0xf0))
+             .add(Translate::Map(0x10, "A", TestBit::Set))
+             .add(Translate::Map(0x20, "B", TestBit::Set))
+             .add(Translate::Map(0x40, "C", TestBit::Set))
+             )
+        .add(Translate::Rule("INDEX", Translate::MapType::IndexToString)
+             .set(MaskBits(0x0f))
+             .add(Translate::Map(0x00, "IDX0", TestBit::Set))
+             )
+        ;
+
+    // 0x80: in-mask but uncovered -> unknown = 0x80.
+    {
+        auto u = lookup.unknownBits(0x80);
+        if (u.size() != 1) { printf("ERROR unknownBits(0x80): expected 1 rule, got %zu\n", u.size()); }
+        auto i = u.find("FLAGS");
+        if (i == u.end()) { printf("ERROR unknownBits(0x80): expected FLAGS key\n"); }
+        else if (i->second != 0x80) { printf("ERROR unknownBits(0x80): expected 0x80 got 0x%llx\n", (unsigned long long)i->second); }
+    }
+
+    // 0xb0: covered bits also set; only 0x80 remains unknown.
+    {
+        auto u = lookup.unknownBits(0x80 | 0x10 | 0x20);
+        auto i = u.find("FLAGS");
+        if (i == u.end() || i->second != 0x80) { printf("ERROR unknownBits(0xb0): expected FLAGS=0x80\n"); }
+    }
+
+    // 0x30: only covered bits set -> no unknowns at all.
+    {
+        auto u = lookup.unknownBits(0x30);
+        if (u.size() != 0) { printf("ERROR unknownBits(0x30): expected no unknowns, got %zu\n", u.size()); }
+    }
+
+    // flagNames: only BitToString "to" names, IndexToString names excluded.
+    {
+        auto n = lookup.flagNames();
+        string j;
+        for (string s : n) j += s + ",";
+        if (j != "A,B,C,") { printf("ERROR flagNames: expected \"A,B,C,\" got \"%s\"\n", j.c_str()); }
+    }
+
+    // AutoMask rules (no explicit mask) never contribute unknown bits.
+    {
+        Translate::Lookup am =
+            Translate::Lookup()
+            .add(Translate::Rule("AUTO", Translate::MapType::BitToString)
+                 .add(Translate::Map(0x01, "X", TestBit::Set))
+                 .add(Translate::Map(0x02, "Y", TestBit::Set))
+                 )
+            ;
+        auto u = am.unknownBits(0xff);
+        if (u.size() != 0) { printf("ERROR auto unknownBits: expected none, got %zu\n", u.size()); }
+    }
+
+    // A rule whose trigger bits are not present in the input must be skipped.
+    {
+        Translate::Lookup tr =
+            Translate::Lookup()
+            .add(Translate::Rule("TRIG", Translate::MapType::BitToString)
+                 .set(TriggerBits(0x02))
+                 .set(MaskBits(0x38))
+                 .add(Translate::Map(0x08, "T1", TestBit::Set))
+                 )
+            ;
+        // 0x20 is unknown for the rule, but the trigger bit 0x02 is not set -> skipped.
+        auto u = tr.unknownBits(0x20);
+        if (u.find("TRIG") != u.end()) { printf("ERROR trigger not set should be skipped\n"); }
+        // With the trigger bit set, 0x20 is reported as unknown.
+        auto u2 = tr.unknownBits(0x20 | 0x02);
+        auto i = u2.find("TRIG");
+        if (i == u2.end() || i->second != 0x20) { printf("ERROR trigger set should report TRIG=0x20\n"); }
     }
 
 }

@@ -142,6 +142,12 @@ namespace Translate
 
         std::string translate(uint64_t bits);
         std::map<std::string,bool> translateToObject(uint64_t bits);
+        // Returns, per rule name, the bits/number that were set in the input but
+        // are not covered by any map entry of that rule.
+        // Only rules with unknown bits (non-zero remainder) are included in the map.
+        std::map<std::string,uint64_t> unknownBits(uint64_t bits) const;
+        // Returns the names of all flags (map "to" strings) of all rules, in order.
+        std::vector<std::string> flagNames() const;
         bool hasLookups() { return rules.size() > 0; }
         // Returns true if the lookup covers more than just the vendor-specific bits 5-7 (0xe0),
         // i.e. the mask also includes standard bits 0-4.
