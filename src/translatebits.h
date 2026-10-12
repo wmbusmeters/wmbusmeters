@@ -142,9 +142,9 @@ namespace Translate
 
         std::string translate(uint64_t bits);
         std::map<std::string,bool> translateToObject(uint64_t bits);
-        // Returns, per rule name, the bits/number that were set in the input but
-        // are not covered by any map entry of that rule.
-        // Only rules with unknown bits (non-zero remainder) are included in the map.
+        // For each (trigger-active) BitToString rule, reports the bits set in the
+        // input that are not covered by any map entry of that rule (0 when every
+        // set bit is mapped). Every active rule is included in the returned map.
         std::map<std::string,uint64_t> unknownBits(uint64_t bits) const;
         // Returns the names of all flags (map "to" strings) of all rules, in order.
         std::vector<std::string> flagNames() const;

@@ -2755,17 +2755,14 @@ void FieldInfo::insertStringValueIntoDoc(const string &vname, const string &valu
             }
 
             // Sibling to status_flags: the bits that were set in the input value but have no
-            // map entry, per BitToString lookup rule name. Only reported when non-empty.
-            auto unknowns = m->getStatusLookupUnknowns(this, t);
-            if (unknowns.size() > 0)
+            // map entry, per BitToString lookup rule name. Always present; a rule reports 0
+            // when all of its set bits are mapped.
+            string vname_unknowns = vname+"_lookups_unknowns";
+            auto rn_u = xmqAddElement(doc, structured, vname_unknowns.c_str(), NS_PARENT);
+            XMQNode *unknowns_object = rn_u.node;
+            for (auto &kv : m->getStatusLookupUnknowns(this, t))
             {
-                string vname_unknowns = vname+"_lookups_unknowns";
-                auto rn_u = xmqAddElement(doc, structured, vname_unknowns.c_str(), NS_PARENT);
-                XMQNode *unknowns_object = rn_u.node;
-                for (auto &kv : unknowns)
-                {
-                    xmqAddKeyValue(doc, unknowns_object, kv.first.c_str(), to_string(kv.second).c_str(), NS_PARENT);
-                }
+                xmqAddKeyValue(doc, unknowns_object, kv.first.c_str(), to_string(kv.second).c_str(), NS_PARENT);
             }
         }
     }

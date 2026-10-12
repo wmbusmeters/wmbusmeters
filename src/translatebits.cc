@@ -339,23 +339,20 @@ std::map<std::string,uint64_t> Lookup::unknownBits(uint64_t bits) const
         if (r.trigger != AlwaysTrigger && (bits & r.trigger.intValue()) == 0)
             continue; // The trigger bits are not set, so this rule is not active.
 
-        uint64_t mask = r.mask.value();
-        if (r.mask == AutoMask)
-        {
-            // If the mask is AUTO, then it's implicit that it is the OR of all the
-            // "from" bits in the map entries. In that case every set bit is covered
-            // by some map entry, so there can be no unknown bits.
-            continue;
-        }
-
-        uint64_t v = (bits >> r.pre_shift_right.intValue()) & mask;
         // All the map entries (Set or NotSet tests) define which bits are known.
         uint64_t covered = 0;
         for (const Map &m : r.map)
             covered |= m.from;
-        uint64_t unknown = v & ~covered;
-        if (unknown != 0)
-            out[r.name] = unknown;
+
+        uint64_t mask = r.mask.value();
+        if (r.mask == AutoMask)
+            mask = covered; // AUTO means the rule's span is the OR of its map bits.
+
+        uint64_t v = (bits >> r.pre_shift_right.intValue()) & mask;
+        // Bits set within the rule's span that have no map entry. This is 0 when
+        // every set bit is mapped; the rule is always reported so callers always
+        // see a stable, complete set of rule names.
+        out[r.name] = v & ~covered;
     }
     return out;
 }

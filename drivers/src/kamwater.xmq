@@ -220,10 +220,9 @@ driver {
                 difvifkey = 04FF23
             }
             lookup {
-                name               = ERROR_FLAGS
-                map_type           = BitToString
-                default_message    = OK
-                mark_reserved_bits = true
+                name            = ERROR_FLAGS
+                map_type        = BitToString
+                default_message = OK
                 map {
                     name = LOW_AMBIENT_TEMPERATURE
                     bit  = 6
@@ -242,10 +241,9 @@ driver {
                 difvifkey = 04FF24
             }
             lookup {
-                name               = ERROR_FLAGS
-                map_type           = BitToString
-                default_message    = OK
-                mark_reserved_bits = true
+                name            = ERROR_FLAGS
+                map_type        = BitToString
+                default_message = OK
                 map {
                     name = HIGH_AMBIENT_TEMPERATURE
                     bit  = 6

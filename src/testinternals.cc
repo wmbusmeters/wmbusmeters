@@ -1945,10 +1945,11 @@ void test_translate_unknown_bits()
         if (i == u.end() || i->second != 0x80) { printf("ERROR unknownBits(0xb0): expected FLAGS=0x80\n"); }
     }
 
-    // 0x30: only covered bits set -> no unknowns at all.
+    // 0x30: only covered bits set -> the rule is still reported, with unknown 0.
     {
         auto u = lookup.unknownBits(0x30);
-        if (u.size() != 0) { printf("ERROR unknownBits(0x30): expected no unknowns, got %zu\n", u.size()); }
+        auto i = u.find("FLAGS");
+        if (i == u.end() || i->second != 0) { printf("ERROR unknownBits(0x30): expected FLAGS=0\n"); }
     }
 
     // flagNames: only BitToString "to" names, IndexToString names excluded.
@@ -1959,7 +1960,8 @@ void test_translate_unknown_bits()
         if (j != "A,B,C,") { printf("ERROR flagNames: expected \"A,B,C,\" got \"%s\"\n", j.c_str()); }
     }
 
-    // AutoMask rules (no explicit mask) never contribute unknown bits.
+    // AutoMask rules still report 0: with no explicit mask their span is the OR of
+    // their map bits, so every bit they touch is by definition mapped.
     {
         Translate::Lookup am =
             Translate::Lookup()
@@ -1969,7 +1971,8 @@ void test_translate_unknown_bits()
                  )
             ;
         auto u = am.unknownBits(0xff);
-        if (u.size() != 0) { printf("ERROR auto unknownBits: expected none, got %zu\n", u.size()); }
+        auto i = u.find("AUTO");
+        if (i == u.end() || i->second != 0) { printf("ERROR auto unknownBits: expected AUTO=0\n"); }
     }
 
     // A rule whose trigger bits are not present in the input must be skipped.
