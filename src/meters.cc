@@ -2392,7 +2392,7 @@ map<string,uint64_t> MeterCommonImplementation::getStatusLookupUnknowns(FieldInf
         uchar sts = t->tpl_sts;
         uint64_t vendor = sts & 0xe0;
         if (vendor != 0)
-            out["UNKNOWN"] |= (vendor & ~mfct_tpl_status_bits_.coveredBits());
+            out["TPL_STS"] |= (vendor & ~mfct_tpl_status_bits_.coveredBits());
     }
 
     return out;
