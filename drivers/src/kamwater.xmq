@@ -47,7 +47,7 @@ driver {
         }
         flag {
             name = DRY
-            info = 'The is no water in the meter. Nothing will be measured.'
+            info = 'There is no water in the meter. Nothing will be measured.'
         }
         flag {
             name = LEAK

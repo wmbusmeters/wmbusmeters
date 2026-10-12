@@ -168,7 +168,8 @@ driver {
         field {
             name         = historic_age
             quantity     = Time
-            info         = 'Age of the last historical reading carried in the telegram.'
+            info         = 'Age of the last historical reading carried in the telegram. Reset every month.'
+            change       = Sample
             display_unit = h
             calculate    = '((((historic_age_meta_raw_counter >> 2counter) * 256counter) + historic_age_low_raw_counter) * 1h)'
         }
@@ -245,7 +246,7 @@ driver {
         }
         field {
             name     = current_status
-            quantity = Text
+            quantity = Flags
             info     = 'Current alarm and tamper flags from the decrypted payload.'
             match {
                 difvifkey = 01FB11
@@ -299,7 +300,7 @@ driver {
         }
         field {
             name     = historic_status
-            quantity = Text
+            quantity = Flags
             info     = 'Historic alarm and tamper flags from the decrypted payload.'
             match {
                 difvifkey = 01FB12
