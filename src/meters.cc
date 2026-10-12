@@ -2383,16 +2383,14 @@ map<string,uint64_t> MeterCommonImplementation::getStatusLookupUnknowns(FieldInf
         }
     }
 
-    // A field with INCLUDE_TPL_STATUS also reports the vendor-specific TPL
-    // status bits (5-7) that are set but have no flag name. The standard bits
-    // 0-4 are always named (BUSY/ERROR/ALARM/POWER_LOW/PERMANENT_ERROR/TEMPORARY_ERROR)
-    // so they never contribute to the unknown bits.
+    // A field with INCLUDE_TPL_STATUS always reports a TPL_STS entry (0 when the
+    // vendor-specific bits are fully known), just like the other lookups. The
+    // standard bits 0-4 are always named (BUSY/ERROR/ALARM/POWER_LOW/PERMANENT_ERROR/
+    // TEMPORARY_ERROR) so they never contribute to the unknown bits.
     if (fi->printProperties().hasINCLUDETPLSTATUS())
     {
-        uchar sts = t->tpl_sts;
-        uint64_t vendor = sts & 0xe0;
-        if (vendor != 0)
-            out["TPL_STS"] |= (vendor & ~mfct_tpl_status_bits_.coveredBits());
+        uint64_t vendor = t->tpl_sts & 0xe0;
+        out["TPL_STS"] |= (vendor & ~mfct_tpl_status_bits_.coveredBits());
     }
 
     return out;
