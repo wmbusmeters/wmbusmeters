@@ -690,7 +690,8 @@ XMQProceed DriverDynamic::add_field(XMQDoc *doc, XMQNode *field, DriverDynamic *
                 info,
                 properties,
                 match,
-                lookup
+                lookup,
+                quantity
                 );
         }
         else
@@ -701,7 +702,8 @@ XMQProceed DriverDynamic::add_field(XMQDoc *doc, XMQNode *field, DriverDynamic *
                 properties,
                 match,
                 ixml,
-                match_entire_payload
+                match_entire_payload,
+                quantity
                 );
             if (match_entire_frame)
             {

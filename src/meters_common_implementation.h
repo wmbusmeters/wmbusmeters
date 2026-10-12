@@ -162,14 +162,16 @@ protected:
         PrintProperties print_properties,
         FieldMatcher matcher,
         std::string ixml = "",
-        bool entire_payload = false);
+        bool entire_payload = false,
+        Quantity vquantity = Quantity::Text);
 
     void addStringFieldWithExtractorAndLookup(
         std::string vname,
         std::string help,
         PrintProperties print_properties,
         FieldMatcher matcher,
-        Translate::Lookup lookup); // Translate the bits/indexes.
+        Translate::Lookup lookup,
+        Quantity vquantity = Quantity::Text); // Translate the bits/indexes.
 
     // Used only for status field from tpl_status only.
     void addStringField(

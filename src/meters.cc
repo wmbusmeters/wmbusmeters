@@ -782,14 +782,15 @@ void MeterCommonImplementation::addStringFieldWithExtractor(string vname,
                                                             PrintProperties print_properties,
                                                             FieldMatcher matcher,
                                                             string ixml,
-                                                            bool match_entire_payload)
+                                                            bool match_entire_payload,
+                                                            Quantity vquantity)
 {
     size_t index = num_driver_fields_++;
     field_infos_.emplace_back(
         FieldInfo(index,
                   vname,
-                  Quantity::Text,
-                  defaultUnitForQuantity(Quantity::Text),
+                  vquantity,
+                  defaultUnitForQuantity(vquantity),
                   Unit::Unknown, // Do not override VIF unit.
                   VifScaling::None,
                   DifSignedness::Signed,
@@ -819,14 +820,15 @@ void MeterCommonImplementation::addStringFieldWithExtractorAndLookup(string vnam
                                                                      string help,
                                                                      PrintProperties print_properties,
                                                                      FieldMatcher matcher,
-                                                                     Translate::Lookup lookup)
+                                                                     Translate::Lookup lookup,
+                                                                     Quantity vquantity)
 {
     size_t index = num_driver_fields_++;
     field_infos_.emplace_back(
         FieldInfo(index,
                   vname,
-                  Quantity::Text,
-                  defaultUnitForQuantity(Quantity::Text),
+                  vquantity,
+                  defaultUnitForQuantity(vquantity),
                   Unit::Unknown, // No forced unit.
                   VifScaling::None,
                   DifSignedness::Signed,
@@ -2712,7 +2714,7 @@ void FieldInfo::insertStringValueIntoDoc(const string &vname, const string &valu
     {
         auto rn = xmqAddElement(doc, details_fields, vname.c_str(), NS_PARENT);
         XMQNode *info = rn.node;
-        xmqAddKeyValue(doc, info, "quantity", "Text", NS_PARENT);
+        xmqAddKeyValue(doc, info, "quantity", toString(xuantity()), NS_PARENT);
         xmqAddKeyValue(doc, info, "info", this->help().c_str(), NS_PARENT);
         if (deprecatedBy().length() > 0)
         {
