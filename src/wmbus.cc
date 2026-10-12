@@ -5424,8 +5424,8 @@ string decodeTPLStatusByteNoMfct(uchar sts)
 
     if ((sts & 0xe0) != 0)
     {
-        // Vendor-specific bits (5-7) are not standardized; report them as TPL_STS_<hex>.
-        t = tostrprintf("TPL_STS_%02X", sts & 0xe0);
+        // Vendor-specific bits (5-7) are not standardized; report them as TPL_STS_<decimal-value>.
+        t = tostrprintf("TPL_STS_%u", sts & 0xe0);
     }
 
     return t;
