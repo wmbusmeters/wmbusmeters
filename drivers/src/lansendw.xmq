@@ -33,7 +33,7 @@ driver {
         }
         field {
             name       = error_flags
-            quantity   = Text
+            quantity   = Flags
             info       = 'Error flags.'
             attributes = STATUS,INCLUDE_TPL_STATUS
             match {

@@ -21,7 +21,7 @@ driver {
     fields {
         field {
             name            = status
-            quantity        = Text
+            quantity        = Flags
             info            = 'Meter error flags. IMPORTANT! Smoke alarm is NOT reported here! You MUST check last alarm date and counter!'
             attributes      = STATUS,INCLUDE_TPL_STATUS
             default_message = OK
@@ -224,7 +224,7 @@ driver {
         }
         field {
             name       = dust_status
-            quantity   = Text
+            quantity   = Flags
             info       = 'Status of smoke detector sensors, merged into the status field.'
             attributes = INJECT_INTO_STATUS,HIDE
             match {
@@ -427,7 +427,7 @@ driver {
         }
         field {
             name       = head_status
-            quantity   = Text
+            quantity   = Flags
             info       = 'Status of smoke detector sensors, merged into the status field.'
             attributes = INJECT_INTO_STATUS,HIDE
             match {

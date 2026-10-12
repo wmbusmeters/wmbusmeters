@@ -10,7 +10,7 @@ driver {
     fields {
         field {
             name       = status
-            quantity   = Text
+            quantity   = Flags
             info       = 'Meter status from error flags and tpl status field.'
             attributes = STATUS,INCLUDE_TPL_STATUS
             match {
@@ -56,7 +56,7 @@ driver {
         }
         field {
             name          = error_flags
-            quantity      = Text
+            quantity      = Flags
             info          = 'DEPRECATED! Use status instead.'
             attributes    = STATUS,INCLUDE_TPL_STATUS
             deprecated_by = 'status, update before 2026-12-01'

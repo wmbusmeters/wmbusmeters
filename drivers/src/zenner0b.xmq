@@ -25,7 +25,7 @@ driver {
         }
         field {
             name            = status
-            quantity        = Text
+            quantity        = Flags
             attributes      = STATUS
             info            = 'Meter status flags (bytes 0-3 from manufacturer data).'
             default_message = OK

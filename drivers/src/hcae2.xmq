@@ -18,7 +18,7 @@ driver {
     fields {
         field {
             name       = status_mfct
-            quantity   = Text
+            quantity   = Flags
             info       = 'Manufacturer error flags. Same encoding the LCD displays as decimal value (documented by manufacturer).'
             attributes = INJECT_INTO_STATUS,HIDE
             match {

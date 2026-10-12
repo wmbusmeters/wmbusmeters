@@ -15,7 +15,7 @@ driver {
     fields {
         field {
             name       = status
-            quantity   = Text
+            quantity   = Flags
             info       = 'Status of meter.'
             attributes = STATUS
             match {

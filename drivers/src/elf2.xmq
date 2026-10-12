@@ -159,7 +159,7 @@ driver {
         }
         field {
             name       = status
-            quantity   = Text
+            quantity   = Flags
             info       = 'Status and error flags.'
             attributes = INCLUDE_TPL_STATUS
             match {

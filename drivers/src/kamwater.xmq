@@ -206,6 +206,7 @@ driver {
             // alternatives in the driver, and only one of them will match in a real
             // packet) propagate thir stuff.
             name       = status
+            info       = 'Status and error flags.'
             quantity   = Flags
             attributes = STATUS,INCLUDE_TPL_STATUS
         }

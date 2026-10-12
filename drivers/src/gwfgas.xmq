@@ -15,7 +15,7 @@ driver {
     fields {
         field {
             name       = status
-            quantity   = Text
+            quantity   = Flags
             attributes = STATUS,INCLUDE_TPL_STATUS
         }
     }
