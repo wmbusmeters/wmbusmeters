@@ -34,23 +34,23 @@
 
 
 #define LIST_OF_METER_TYPES \
-    X(AutoMeter) \
-    X(UnknownMeter) \
-    X(DoorWindowDetector) \
-    X(ElectricityMeter) \
-    X(GasMeter) \
-    X(HeatCoolingMeter) \
-    X(HeatCostAllocationMeter) \
-    X(HeatMeter) \
-    X(PressureSensor)  \
-    X(PulseCounter) \
-    X(Repeater) \
-    X(SmokeDetector) \
-    X(TempHygroMeter) \
-    X(WaterMeter)  \
+    X(AutoMeter,"Auto meter.") \
+    X(UnknownMeter,"Unknown meter.") \
+    X(DoorWindowDetector,"Door/window detector.") \
+    X(ElectricityMeter,"Electricity meter.") \
+    X(GasMeter,"Gas meter.") \
+    X(HeatCoolingMeter,"Heating/cooling meter.") \
+    X(HeatCostAllocationMeter,"Heat cost allocator.") \
+    X(HeatMeter,"Heat meter.")\
+    X(PressureSensor,"Pressure sensor.") \
+    X(PulseCounter,"Pulse counter.") \
+    X(Repeater,"Repeater.") \
+    X(SmokeDetector,"Smoke detector.") \
+    X(TempHygroMeter,"Thermometer/hygrometer.") \
+    X(WaterMeter,"Water meter") \
 
 enum class MeterType {
-#define X(name) name,
+#define X(name,desc) name,
 LIST_OF_METER_TYPES
 #undef X
 };
@@ -161,6 +161,8 @@ private:
     LinkModeSet linkmodes_; // C1, T1, S1 or combinations thereof.
     Translate::Lookup mfct_tpl_status_bits_; // Translate any mfct specific bits in tpl status.
     MeterType type_; // Water, Electricity etc.
+    std::string info_; // You can add a more detailed description of the meter. E.g. "Under floor heating with thermostat."
+    // Normally an info string is generated from the MeterType, ie WaterMeter becomes "Water meter." defaultMeterTypeText
     std::function<std::shared_ptr<Meter>(MeterInfo&,DriverInfo&di)> constructor_; // Invoke this to create an instance of the driver.
     std::vector<MVT> mvts_;
     std::vector<std::string> default_fields_;
@@ -184,6 +186,9 @@ public:
     void setDeprecatedBy(std::string d) { deprecated_by_ = d; }
     void addNameAlias(std::string n) { name_aliases_.push_back(n); }
     void setMeterType(MeterType t) { type_ = t; }
+    MeterType getMeterType() { return type_; }
+    std::string getInfo() { return info_; }
+    void setInfo(std::string t) { info_ = t; }
     void setAliases(std::string f);
     void setDefaultFields(std::string f) { default_fields_ = splitString(f, ','); }
     void addLinkMode(LinkMode lm) { linkmodes_.addLinkMode(lm); }
@@ -599,6 +604,7 @@ std::shared_ptr<MeterManager> createMeterManager(bool daemon);
 
 const char *toString(MeterType type);
 MeterType toMeterType(std::string type);
+const char *defaultMeterTypeText(MeterType type);
 std::string toString(DriverInfo &driver);
 const char *toString(ReadableString rs);
 ReadableString toReadableString(std::string rs);

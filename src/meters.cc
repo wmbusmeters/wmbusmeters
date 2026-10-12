@@ -1177,7 +1177,7 @@ bool driverNeedsPolling(DriverName& dn)
 
 const char *toString(MeterType type)
 {
-#define X(tname) if (type == MeterType::tname) return #tname;
+#define X(tname,desc) if (type == MeterType::tname) return #tname;
 LIST_OF_METER_TYPES
 #undef X
     return "unknown";
@@ -1185,10 +1185,18 @@ LIST_OF_METER_TYPES
 
 MeterType toMeterType(string type)
 {
-#define X(tname) if (type == #tname) return MeterType::tname;
+#define X(tname,desc) if (type == #tname) return MeterType::tname;
 LIST_OF_METER_TYPES
 #undef X
     return MeterType::UnknownMeter;
+}
+
+const char *defaultMeterTypeText(MeterType type)
+{
+#define X(tname,desc) if (type == MeterType::tname) return desc;
+LIST_OF_METER_TYPES
+#undef X
+    return "";
 }
 
 const char *toString(ReadableString rs)
@@ -1601,6 +1609,12 @@ void MeterCommonImplementation::buildOutputDoc(XMQDoc *doc,
 
         string mvts = extractMVTs(t);
         xmqAddKeyValue(doc, details, "mvt", mvts.c_str(), NS_PARENT);
+
+        string info = t->meter->driverInfo()->getInfo();
+        if (info == "") {
+            info = defaultMeterTypeText(t->meter->driverInfo()->getMeterType());
+        }
+        xmqAddKeyValue(doc, details, "info", info.c_str(), NS_PARENT);
 
         rn = xmqAddElement(doc, details, "flags", NS_PARENT);
         assert(rn.status == XMQ_OK);
@@ -3701,7 +3715,7 @@ const char *availableMeterTypes()
 {
     if (available_meter_types_[0]) return available_meter_types_;
 
-#define X(m) if (MeterType::m != MeterType::AutoMeter && MeterType::m != MeterType::UnknownMeter) {  \
+#define X(m,desc) if (MeterType::m != MeterType::AutoMeter && MeterType::m != MeterType::UnknownMeter) { \
         strcat(available_meter_types_, #m); strcat(available_meter_types_, "\n"); \
         assert(strlen(available_meter_types_) < 1024); }
 LIST_OF_METER_TYPES

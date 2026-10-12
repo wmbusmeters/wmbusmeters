@@ -139,6 +139,12 @@ bool DriverDynamic::load(DriverInfo *di, const string &file_name, const char *co
         MeterType meter_type = check_meter_type(xmqGetString(doc, "/driver/meter_type"), file);
         di->setMeterType(meter_type);
 
+        const char *info = xmqGetString(doc, "/driver/info");
+        if (info)
+        {
+            di->setInfo(info);
+        }
+
         string default_fields = check_default_fields(xmqGetString(doc, "/driver/default_fields"), file);
         di->setDefaultFields(default_fields);
 

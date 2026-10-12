@@ -50,6 +50,7 @@ cat <<EOF > $TEST/test_expected.txt
       "POWER_LOW": "Power low. (tpl sts)",
       "TEMPORARY_ERROR": "Temporary meter error. (tpl sts)"
     },
+    "info": "Water meter",
     "mvt": "SEN,68,07"
   },
   "driver": "iperl",

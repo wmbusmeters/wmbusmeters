@@ -52,6 +52,7 @@ cat > $TEST/test_expected_unsorted.txt <<EOF
       "POWER_LOW": "Power low. (tpl sts)",
       "TEMPORARY_ERROR": "Temporary meter error. (tpl sts)"
     },
+    "info": "Water meter",
     "mvt": "SEN,68,07"
   },
   "driver": "foo",
