@@ -177,7 +177,8 @@ protected:
     void addStringField(
         std::string vname,
         std::string help,
-        PrintProperties print_properties);
+        PrintProperties print_properties,
+        Quantity vquantity = Quantity::Text);
 
     // The default implementation of poll does nothing.
     // Override for mbus meters that need to be queried and likewise for C2/T2 wmbus-meters.

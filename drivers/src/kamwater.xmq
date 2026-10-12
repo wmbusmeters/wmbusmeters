@@ -289,7 +289,7 @@ driver {
         }
         field {
             name          = current_status
-            quantity      = Text
+            quantity      = Flags
             info          = 'Status of meter. This field will go away use status instead.'
             deprecated_by = 'status, update before 2026-12-01'
             match {

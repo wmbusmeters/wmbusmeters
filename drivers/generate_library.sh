@@ -64,6 +64,7 @@ quantity_c()
         Dimensionless) echo "Quantity::Dimensionless" ;;
         HCA)          echo "Quantity::HCA" ;;
         Text)         echo "Quantity::Text" ;;
+        Flags)        echo "Quantity::Flags" ;;
         "")           echo "Quantity::Text" ;;
         *)            die "unknown quantity: $1" ;;
     esac
@@ -152,12 +153,18 @@ emit_template()
     if [ -z "$matcher" ]
     then
         # No matcher: a simple constant-like field.
+        local q="Quantity::Text"
+        if [ "$quantity" = Flags ]
+        then
+            q="Quantity::Flags"
+        fi
         printf '    if (%s)\n' "$condition"
         printf '    {\n'
         printf '        addStringField(\n'
         printf '            "%s",\n' "$(c_escape "$name")"
         printf '            "%s"+help,\n' "$esc_info"
-        printf '            %s);\n' "$props"
+        printf '            %s,\n' "$props"
+        printf '            %s);\n' "$q"
         printf '        markLastFieldAsLibrary();\n'
         printf '    }\n\n'
         return

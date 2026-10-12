@@ -519,7 +519,8 @@ bool MeterCommonImplementation::addOptionalLibraryFields(string field_names)
         addStringField(
             "status",
             "Status and error flags."+help,
-            STATUS | INCLUDE_TPL_STATUS);
+            STATUS | INCLUDE_TPL_STATUS,
+            Quantity::Flags);
         markLastFieldAsLibrary();
     }
 

@@ -848,14 +848,15 @@ void MeterCommonImplementation::addStringFieldWithExtractorAndLookup(string vnam
 
 void MeterCommonImplementation::addStringField(string vname,
                                                string help,
-                                               PrintProperties print_properties)
+                                               PrintProperties print_properties,
+                                               Quantity vquantity)
 {
     size_t index = num_driver_fields_++;
     field_infos_.emplace_back(
         FieldInfo(index,
                   vname,
-                  Quantity::Text,
-                  defaultUnitForQuantity(Quantity::Text),
+                  vquantity,
+                  defaultUnitForQuantity(vquantity),
                   Unit::Unknown, // No forced unit.
                   VifScaling::None,
                   DifSignedness::Signed,
@@ -2759,28 +2760,6 @@ void FieldInfo::insertStringValueIntoDoc(const string &vname, const string &valu
         }
         xmqAddKeyValueWithAttrs(doc, telegram, vname.c_str(), in.c_str(), NS_PARENT,
                                 XMQ_ATTRS( { "S", "" } )); // S marks this as a json string.
-
-        if (structured)
-        {
-            string vname_flags = vname+"_flags";
-            auto rn = xmqAddElement(doc, structured, vname_flags.c_str(), NS_PARENT);
-            XMQNode *status_object = rn.node;
-            for (auto &member : m->getStatusObjectMembers(this, t))
-            {
-                xmqAddKeyValue(doc, status_object, member.first.c_str(), member.second ? "true" : "false", NS_PARENT);
-            }
-
-            // Sibling to status_flags: the bits that were set in the input value but have no
-            // map entry, per BitToString lookup rule name. Always present; a rule reports 0
-            // when all of its set bits are mapped.
-            string vname_unknowns = vname+"_lookups_unknowns";
-            auto rn_u = xmqAddElement(doc, structured, vname_unknowns.c_str(), NS_PARENT);
-            XMQNode *unknowns_object = rn_u.node;
-            for (auto &kv : m->getStatusLookupUnknowns(this, t))
-            {
-                xmqAddKeyValue(doc, unknowns_object, kv.first.c_str(), to_string(kv.second).c_str(), NS_PARENT);
-            }
-        }
     }
     else
     {
@@ -2793,6 +2772,28 @@ void FieldInfo::insertStringValueIntoDoc(const string &vname, const string &valu
         {
             xmqAddKeyValueWithAttrs(doc, telegram, vname.c_str(), value.c_str(), NS_PARENT,
                                     XMQ_ATTRS( { "S", "" } )); // S marks this as a json string.
+        }
+    }
+
+    if (this->xuantity() == Quantity::Flags && structured)
+    {
+        string vname_flags = vname+"_flags";
+        auto rn = xmqAddElement(doc, structured, vname_flags.c_str(), NS_PARENT);
+        XMQNode *status_object = rn.node;
+        for (auto &member : m->getStatusObjectMembers(this, t))
+        {
+            xmqAddKeyValue(doc, status_object, member.first.c_str(), member.second ? "true" : "false", NS_PARENT);
+        }
+
+        // Sibling to status_flags: the bits that were set in the input value but have no
+        // map entry, per BitToString lookup rule name. Always present; a rule reports 0
+        // when all of its set bits are mapped.
+        string vname_unknowns = vname+"_lookups_unknowns";
+        auto rn_u = xmqAddElement(doc, structured, vname_unknowns.c_str(), NS_PARENT);
+        XMQNode *unknowns_object = rn_u.node;
+        for (auto &kv : m->getStatusLookupUnknowns(this, t))
+        {
+            xmqAddKeyValue(doc, unknowns_object, kv.first.c_str(), to_string(kv.second).c_str(), NS_PARENT);
         }
     }
     if (deprecatedBy().length() > 0)
@@ -2810,10 +2811,9 @@ void FieldInfo::insertStringValueIntoDoc(const string &vname, const string &valu
         {
             xmqAddKeyValue(doc, info, "deprecated_by", deprecatedBy().c_str(), NS_PARENT);
         }
-        // For STATUS and INJECT_INTO_STATUS fields list all the possible flag names.
-        // For the STATUS field this aggregates the INJECT_INTO_STATUS fields' lookups too.
-        // Only reported when non-empty.
-        if (this->printProperties().hasSTATUS() || this->printProperties().hasINJECTINTOSTATUS())
+        // For Flags quantity fields (STATUS and INJECT_INTO_STATUS) list all the
+        // possible flag names. Only reported when non-empty.
+        if (this->xuantity() == Quantity::Flags)
         {
             auto fl = m->getFieldFlags(this);
             if (fl.size() > 0)
