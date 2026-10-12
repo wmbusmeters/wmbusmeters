@@ -14,6 +14,72 @@ driver {
         use = on_time_h
         use = meter_datetime
     }
+    flags {
+        flag {
+            name = TEMPORARY
+            info = ?
+        }
+        flag {
+            name = MIN_LIMIT
+            info = ?
+        }
+        flag {
+            name = MAX_LIMIT
+            info = ?
+        }
+        flag {
+            name = OPEN_WINDOW
+            info = ?
+        }
+        flag {
+            name = ROOM_OC
+            info = ?
+        }
+        flag {
+            name = ROOM_SC
+            info = ?
+        }
+        flag {
+            name = FLOOR_OC
+            info = ?
+        }
+        flag {
+            name = FLOOR_SC
+            info = ?
+        }
+        flag {
+            name = RELAY_OC
+            info = ?
+        }
+        flag {
+            name = RELAY_SC
+            info = ?
+        }
+        flag {
+            name = RELAY_OT
+            info = ?
+        }
+        flag {
+            name = SYSTEM
+            info = ?
+        }
+        flag {
+            name = STARTUP
+            info = ?
+        }
+        flag {
+            name = POWER_CTRL
+            info = ?
+        }
+        flag {
+            name = POWER_OFF
+            info = ?
+        }
+        flag {
+            name = RELAY_TEST
+            info = ?
+        }
+    }
     fields {
         field {
             name       = status
