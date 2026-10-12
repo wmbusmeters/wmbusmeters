@@ -59,6 +59,7 @@
     X(Text,TXT)               \
     X(Angle,DEGREE)           \
     X(Dimensionless,COUNTER)  \
+    X(Flags,TXT)  \
 
 enum class Quantity
 {
@@ -338,7 +339,7 @@ This does not describe whether the numeric value happens to increase or
 decrease, but whether differences between successive readings represent
 accumulated change.
 
-Instant:
+Sample:
   A value describing the state or measurement at a particular point in
   time. Differences between readings are changes in the measured state,
   not accumulated consumption. Examples: temperature (external_temperature_c),
@@ -360,7 +361,7 @@ Increasing:
 */
 enum class Change
 {
-    Instant,    // For example a flow rate or power consumption.
+    Sample,     // For example a flow rate or power consumption.
     Net,        // Can go up and down, net energy, net volume.
     Increasing, // Normally only goes up, the total m3 measured by a water meter.
     Unknown
@@ -368,5 +369,9 @@ enum class Change
 
 Change toChange(std::string s);
 const char *toString(Change c);
+
+Change defaultChangeForQuantity(Quantity q);
+
+bool nonNumericQuantity(Quantity q);
 
 #endif

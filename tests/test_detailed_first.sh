@@ -18,7 +18,7 @@ cat <<EOF > $TEST/test_expected.txt
   "details": {
     "fields": {
       "max_flow_m3h": {
-        "change": "Instant",
+        "change": "Sample",
         "info": "The maximum water flow recorded during previous period.",
         "quantity": "Flow",
         "unit": "m3h"

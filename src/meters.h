@@ -173,6 +173,9 @@ private:
     std::vector<std::pair<uint16_t,std::vector<uchar>>> compact_frame_formats_;
     std::vector<std::vector<uchar>> default_keys_; // Default keys from driver XMQ; tried in order when no meter key is set.
     bool has_flags_in_driver_ = false;
+    bool error_in_driver_ = false;
+    std::string error_in_driver_msg_;
+    bool status_field_found_ {};
 
 public:
     ~DriverInfo();
@@ -232,6 +235,26 @@ public:
     bool isCloseEnoughMedia(uchar type);
     int forceMfctIndex() { return force_mfct_index_; }
     bool hasProcessContent() { return has_process_content_; }
+
+    void errorInDriver(const std::string& msg)
+    {
+        error_in_driver_ = true;
+        if (error_in_driver_msg_.length() > 0) error_in_driver_msg_ += "\n";
+        error_in_driver_msg_ += msg;
+    }
+
+    bool hasError()
+    {
+        return error_in_driver_;
+    }
+
+    const std::string &errorInDriverMsg()
+    {
+        return error_in_driver_msg_;
+    }
+
+    bool markStatusFieldAsFound() { if (status_field_found_) { return true; } else { status_field_found_ = true; return false; } }
+
 };
 
 bool staticRegisterDriver(std::function<void(DriverInfo&di)> setup);
@@ -501,7 +524,7 @@ struct Meter
     virtual std::string getStringValue(FieldInfo *fi) = 0;
     virtual void setFieldBits(FieldInfo *fi, uint64_t bits, DVEntry *dve) = 0;
     virtual std::string decodeTPLStatusByte(uchar sts) = 0;
-    virtual std::string getStatusField(FieldInfo *fi) = 0;
+    virtual std::string getStatusFlags(FieldInfo *fi) = 0;
     virtual std::map<std::string,bool> getStatusObjectMembers(FieldInfo *fi, Telegram *t) = 0;
 
     virtual void onUpdate(std::function<void(Telegram*t,Meter*)> cb) = 0;

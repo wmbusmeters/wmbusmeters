@@ -215,7 +215,7 @@ protected:
     void processFieldCalculators();
 public:
     // This should be refactored.
-    std::string getStatusField(FieldInfo *fi);
+    std::string getStatusFlags(FieldInfo *fi);
     std::map<std::string,bool> getStatusObjectMembers(FieldInfo *fi, Telegram *t);
 protected:
 

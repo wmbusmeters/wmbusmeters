@@ -30,7 +30,7 @@ driver {
         field {
             name     = max_flow
             quantity = Flow
-            change   = Instant
+            change   = Sample
             info     = 'The maximum water flow recorded during previous period.'
             match {
                 measurement_type = Instantaneous

@@ -1415,7 +1415,7 @@ bool checkPrintableField(string *buf, string desired_field, Meter *m, Telegram *
 
     for (FieldInfo &fi : fields)
     {
-        if (fi.xuantity() == Quantity::Text)
+        if (nonNumericQuantity(fi.xuantity()))
         {
             // Strings are simply just print them.
             if (desired_field == fi.vname())
@@ -1423,7 +1423,7 @@ bool checkPrintableField(string *buf, string desired_field, Meter *m, Telegram *
                 // Unless it is the status field...
                 if (fi.printProperties().hasSTATUS())
                 {
-                    string s = ((MeterCommonImplementation*)m)->getStatusField(&fi);
+                    string s = ((MeterCommonImplementation*)m)->getStatusFlags(&fi);
                     if (t->decoding_errors != "")
                     {
                         s = joinStatusOKStrings(s, t->decoding_errors);
@@ -1560,6 +1560,13 @@ void MeterCommonImplementation::buildOutputDoc(XMQDoc *doc,
     XMQReturnNode rn = xmqAddRootElement(doc, "telegram", NS_NONE);
     assert(rn.status == XMQ_OK);
     XMQNode *telegram = rn.node;
+
+    if (driverInfo()->hasError())
+    {
+        string e = driverInfo()->errorInDriverMsg();
+        trimWhitespace(&e);
+        xmqAddKeyValue(doc, telegram, "driver_error", e.c_str(), NS_PARENT);
+    }
 
     xmqAddKeyValue(doc, telegram, "media", media.c_str(), NS_PARENT);
     xmqAddKeyValue(doc, telegram, "driver", driverName().str().c_str(), NS_PARENT);
@@ -2105,7 +2112,7 @@ void MeterCommonImplementation::processFieldCalculators()
     }
 }
 
-string MeterCommonImplementation::getStatusField(FieldInfo *fi)
+string MeterCommonImplementation::getStatusFlags(FieldInfo *fi)
 {
     string field_name_no_unit = fi->vname();
     if (string_values_.count(field_name_no_unit) == 0)
@@ -2123,11 +2130,8 @@ string MeterCommonImplementation::getStatusField(FieldInfo *fi)
     {
         if (f.printProperties().hasINJECTINTOSTATUS())
         {
-            //printf("NOW >%s<\n", value.c_str());
             string more = getStringValue(&f);
-            //printf("MORE >%s<\n", more.c_str());
             string joined = joinStatusOKStrings(value, more);
-            //printf("JOINED >%s<\n", joined.c_str());
             value = joined;
         }
     }
@@ -2473,7 +2477,7 @@ string FieldInfo::generateFieldNameWithUnit(Meter *m, DVEntry *dve)
 {
     if (!valid_field_name_) return "bad_field_name";
 
-    if (xuantity_ == Quantity::Text)
+    if (nonNumericQuantity(xuantity_))
     {
         return field_name_->apply(m, dve);
     }
@@ -2540,7 +2544,7 @@ string FieldInfo::renderJson(Meter *m, DVEntry *dve)
     string display_unit_s = unitToStringLowerCase(displayUnit());
     string field_name = generateFieldNameNoUnit(m, dve);
 
-    if (xuantity() == Quantity::Text)
+    if (nonNumericQuantity(xuantity()))
     {
         string v = m->getStringValue(this);
         if (v == "null")
@@ -2594,7 +2598,7 @@ void FieldInfo::insertNumericValueIntoDoc(string vname, Meter *m, DVEntry *dve, 
     string display_unit_s = unitToStringLowerCase(displayUnit());
     string field_name = generateFieldNameNoUnit(m, dve);
 
-    if (xuantity() == Quantity::Text)
+    if (nonNumericQuantity(xuantity()))
     {
         // Should we even get here? A numerical value cannot be text right?
         string v = m->getStringValue(this);
@@ -2667,7 +2671,7 @@ void FieldInfo::insertStringValueIntoDoc(const string &vname, const string &valu
 {
     if (this->printProperties().hasSTATUS())
     {
-        string in = m->getStatusField(this);
+        string in = m->getStatusFlags(this);
         if (t->decoding_errors != "")
         {
             in = joinStatusOKStrings(in, t->decoding_errors);
@@ -2800,7 +2804,7 @@ void MeterCommonImplementation::printMeter(Telegram *t,
         string display_unit_s = unitToStringUpperCase(fi.displayUnit());
         string var = fi.vname();
         std::transform(var.begin(), var.end(), var.begin(), ::toupper);
-        if (fi.xuantity() == Quantity::Text)
+        if (nonNumericQuantity(fi.xuantity()))
         {
             string envvar = "METER_"+var+"="+getStringValue(&fi);
             envs->push_back(envvar);
@@ -3112,7 +3116,7 @@ bool isValidKey(const string& key, MeterInfo &mi)
 
 void FieldInfo::performExtraction(Meter *m, Telegram *t, DVEntry *dve)
 {
-    if (xuantity_ == Quantity::Text)
+    if (nonNumericQuantity(xuantity_))
     {
         // Extract a string.
         extractString(m, t, dve);

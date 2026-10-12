@@ -206,12 +206,12 @@ driver {
             // alternatives in the driver, and only one of them will match in a real
             // packet) propagate thir stuff.
             name       = status
-            quantity   = Text
+            quantity   = Flags
             attributes = STATUS,INCLUDE_TPL_STATUS
         }
         field {
             name       = status_cold_env
-            quantity   = Text
+            quantity   = Flags
             template   = x2xx_status
             info       = 'Status and error flags.'
             attributes = INJECT_INTO_STATUS,HIDE
@@ -233,7 +233,7 @@ driver {
         }
         field {
             name       = status_hot_env
-            quantity   = Text
+            quantity   = Flags
             template   = x2xx_status
             info       = 'Status and error flags.'
             attributes = INJECT_INTO_STATUS,HIDE
@@ -255,7 +255,7 @@ driver {
         }
         field {
             name       = status16
-            quantity   = Text
+            quantity   = Flags
             info       = 'Status and error flags.'
             attributes = INJECT_INTO_STATUS,HIDE
             match {

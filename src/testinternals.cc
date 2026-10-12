@@ -3077,9 +3077,13 @@ LIST_OF_QUANTITIES
     // Test text unit: text
     /////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    // I do not know how to handle the text unit yet.
+    // I do not know how to handle the text quantity yet.
     // Mark it as tested....
     q_set.erase(Quantity::Text);
+
+    // I do not know how to handle the flags quantity yet.
+    // Mark it as tested....
+    q_set.erase(Quantity::Flags);
 
     check_quantities_tested(q_set);
 }

@@ -140,6 +140,13 @@ driver {
         use = flow_temperature_c  // comma-separated list also accepted
     }
 
+    flags {
+        // If a field has quantity=Flags then all looked up strings BURST DRY LEAK etc must be pre-declared here.
+        flag {
+            name = BURST
+            info = 'The flow of water has been consistently high for half an hour, which indicates a pipe burst.'
+        }
+    }
     templates {
         // Reusable field templates, referenced from a field via `template = <name>`.
         // Only the field's lookup{} is templated (see `field { template = ... }` below) —
@@ -161,7 +168,7 @@ driver {
         field {
             name              = total
             deprecated_by     = 'newdriver, upgrade before 2222-02-22' // Mark the driver for removal, upgrade to newdriver.
-            quantity          = Volume    // Volume|Energy|Power|Temperature|Flow|
+            quantity          = Volume    // Flags|Volume|Energy|Power|Temperature|Flow|
                                           // PointInTime|Text|Counter|Pressure|RH|
                                           // HCA|Dimensionless|Voltage|Amperage|...
             info              = 'Human-readable description of what this field measures.'

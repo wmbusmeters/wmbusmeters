@@ -9,11 +9,14 @@
 #Light Gray   0;37     White         1;37
 
 GREEN='\033[37;1;42m'
-RED='\033[31;1;41m'
+#RED='\033[31;1;41m'
+RED='\033[1;37;41m'
 NC='\033[0m'
 
 printERROR() {
-    printf "${RED} ERROR ${NC} $@\n"
+   local script_name
+   script_name="$(basename "$0")"
+   printf "${RED} ERROR ${NC} [%s] $@\n" "$script_name"
 }
 
 printOK() {
