@@ -5,6 +5,40 @@ driver {
     meter_type     = WaterMeter
     default_fields = name,id,total_m3,target_m3,current_status,total_backward_flow_m3,timestamp
     manufacturer   = Apator
+    flags {
+        flag {
+            name = TAMPER
+            info = 'Tampering has been detected.'
+        }
+        flag {
+            name = LOW_BATTERY
+            info = 'The battery is running low.'
+        }
+        flag {
+            name = DRY
+            info = 'There is no water in the meter.'
+        }
+        flag {
+            name = NO_FLOW
+            info = 'There is no flow of water.'
+        }
+        flag {
+            name = HIGH_TEMPERATURE
+            info = 'The water temperature is too high.'
+        }
+        flag {
+            name = BURST
+            info = 'A pipe burst has been detected.'
+        }
+        flag {
+            name = REVERSE
+            info = 'The water flows through the meter in the wrong direction.'
+        }
+        flag {
+            name = LEAK
+            info = 'A leak has been detected.'
+        }
+    }
     fields {
         field {
             name     = total
@@ -29,7 +63,7 @@ driver {
         }
         field {
             name     = current_status
-            quantity = Text
+            quantity = Flags
             info     = 'Status and error flags.'
             match {
                 difvifkey = 03FD17

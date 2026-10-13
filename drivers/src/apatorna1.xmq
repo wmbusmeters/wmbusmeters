@@ -7,6 +7,76 @@ driver {
     detect {
         mvt = APA,14,07
     }
+    flags {
+        flag {
+            name = SUMMER_TIME
+            info = 'The meter clock is in summer time (daylight saving time).'
+        }
+        flag {
+            name = HISTORICAL_INDICATION
+            info = 'The telegram carries a historical indication.'
+        }
+        flag {
+            name = MAX_SPEED_EXCEEDED
+            info = 'The maximum flow speed has been exceeded.'
+        }
+        flag {
+            name = DEVICE_ACCESS_ERROR
+            info = 'Accessing the device failed.'
+        }
+        flag {
+            name = TWO_WAY_COM_BLOCK
+            info = 'Two-way communication is blocked.'
+        }
+        flag {
+            name = INSTALL_FRAME
+            info = 'The telegram is an installation frame.'
+        }
+        flag {
+            name = WRONG_TEMPERATURE
+            info = 'The temperature is outside of the allowed range.'
+        }
+        flag {
+            name = SERVICE_EVENT
+            info = 'A service event has occurred.'
+        }
+        flag {
+            name = MINIMUM_FLOW
+            info = 'The flow is below the minimum flow rate of the meter.'
+        }
+        flag {
+            name = MAXIMUM_FLOW
+            info = 'The flow is above the maximum flow rate of the meter.'
+        }
+        flag {
+            name = REVERSE_FLOW
+            info = 'The water flows through the meter in the wrong direction.'
+        }
+        flag {
+            name = MEASUREMENT_UNCHANGED
+            info = 'The measured volume has not changed.'
+        }
+        flag {
+            name = LEAK
+            info = 'A leak has been detected.'
+        }
+        flag {
+            name = DEVICE_DISCONNECTED
+            info = 'The device reports that it has been disconnected.'
+        }
+        flag {
+            name = MAGNETIC_FIELD
+            info = 'A magnetic field has been detected, possibly a tampering attempt.'
+        }
+        flag {
+            name = BATTERY_LOW
+            info = 'The battery is low.'
+        }
+        flag {
+            name = BATTERY_LIFETIME_THRESHOLD_EXCEEDED
+            info = 'The battery lifetime threshold has been exceeded.'
+        }
+    }
     fields {
         field {
             name           = packed_total_raw
