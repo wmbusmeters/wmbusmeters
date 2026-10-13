@@ -212,26 +212,6 @@ void handleDecimalsToString(Rule& rule, string &out_s, uint64_t bits)
     out_s += s;
 }
 
-void Rule::addReservedBitMarkers()
-{
-    if (!mark_reserved_bits) return;
-    if (type != MapType::BitToString) return;
-    if (mask == AutoMask) return;
-
-    uint64_t m = mask.value();
-    uint64_t covered = 0;
-    for (Map &e : map) covered |= e.from;
-
-    for (int bit = 0; bit < 64; ++bit)
-    {
-        uint64_t bitval = (uint64_t)1 << bit;
-        if ((m & bitval) != 0 && (covered & bitval) == 0)
-        {
-            map.push_back(Map(bitval, "RESERVED_BIT_"+std::to_string(bit), TestBit::Set));
-        }
-    }
-}
-
 void handleRule(Rule& rule, string &s, uint64_t bits)
 {
     switch (rule.type)

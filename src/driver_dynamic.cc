@@ -866,7 +866,6 @@ XMQProceed DriverDynamic::add_inherited_map(XMQDoc *doc, XMQNode *map, DriverDyn
                                    // before mask_bits/map matching, so the same map{}
                                    // table can be reused at different bit offsets.
         default_message    = OK
-        mark_reserved_bits = true // add RESERVED_BIT_<n> for every mask bit not in a map { }
         map { } map {}
     }
 */
@@ -896,17 +895,7 @@ XMQProceed DriverDynamic::add_lookup(XMQDoc *doc, XMQNode *lookup, DriverDynamic
     const char *default_message = xmqGetStringRel(doc, "default_message", lookup);
     if (!default_message && fallback) default_message = xmqGetStringRel(doc, "default_message", fallback);
 
-    bool mark_reserved_bits = check_boolean_property(xmqGetStringRel(doc, "mark_reserved_bits", lookup),
-                                                       "mark_reserved_bits", dd, false);
-
     if (default_message == NULL) default_message = "";
-
-    if (mark_reserved_bits && map_type != Translate::MapType::BitToString)
-    {
-        warning("(driver) error in %s, mark_reserved_bits can only be used with map_type=BitToString.\n",
-                dd->fileName().c_str());
-        throw 1;
-    }
 
     Translate::Rule rule = Translate::Rule(name, map_type);
     dd->tmp_rule_ = &rule;
@@ -918,7 +907,6 @@ XMQProceed DriverDynamic::add_lookup(XMQDoc *doc, XMQNode *lookup, DriverDynamic
         rule.set(PreShiftRight(shift));
     }
     rule.set(DefaultMessage(default_message));
-    rule.markReservedBits(mark_reserved_bits);
 
     xmqForeachRel(doc, "map", (XMQNodeCallback)add_map, dd, lookup);
     if (fallback)
