@@ -229,10 +229,10 @@ driver {
                 difvifkey = 04FF22
             }
             lookup {
-                name               = ERROR_FLAGS
-                map_type           = BitToString
-                mask_bits          = 0xffffffff
-                default_message    = OK
+                name            = ERROR_FLAGS
+                map_type        = BitToString
+                mask_bits       = 0xffffffff
+                default_message = OK
                 map {
                     name = VOLTAGE_INTERRUPTED
                     bit  = 0
@@ -396,10 +396,10 @@ driver {
                 difvifkey = 02FF22
             }
             lookup {
-                name               = ERROR_FLAGS
-                map_type           = BitToString
-                mask_bits          = 0xffff
-                default_message    = OK
+                name            = ERROR_FLAGS
+                map_type        = BitToString
+                mask_bits       = 0xffff
+                default_message = OK
                 map {
                     name = VOLTAGE_INTERRUPTED
                     bit  = 0
@@ -465,10 +465,10 @@ driver {
                 vif_range        = ErrorFlags
             }
             lookup {
-                name               = NARROW_ERROR_FLAGS
-                map_type           = BitToString
-                mask_bits          = 0xffff
-                default_message    = OK
+                name            = NARROW_ERROR_FLAGS
+                map_type        = BitToString
+                mask_bits       = 0xffff
+                default_message = OK
                 map {
                     name = VOLTAGE_INTERRUPTED
                     bit  = 0

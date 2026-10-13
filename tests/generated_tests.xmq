@@ -2366,6 +2366,12 @@ test {
     fields   = 'MyWarmWater;12345678;5.548;1111-11-11 11:11.11'
 }
 test {
+    args     = 'MyTelmetric telmetricsmart 03190403 NOKEY'
+    telegram = 5344F5360304190312088C2044900F002C2538D00000C4F446C57BAF64167A39002007102F2F_046E3F010000026C493A426C3F3C446EB90000000266C4002F2F2F2F2F2F0F800C000109001019DD0008011F080A
+    json     = '{"_": "telegram","consumption_hca": 319,"driver": "telmetricsmart","external_temperature_c": 19.6,"id": "03190403","media": "heat cost allocation","meter_date": "2026-10-09","name": "MyTelmetric","target_date": "2025-12-31","target_hca": 185,"status":"OK","timestamp": "1111-11-11T11:11:11Z"}'
+    fields   = 'MyTelmetric;03190403;OK;319;185;1111-11-11 11:11.11'
+}
+test {
     args     = 'Woter topaseskr 69190253 NOKEY'
     telegram = 4E44B40553021969F1077A0C0040052F2F_01FD08800C13914544004C1393673500CC101300000000CC201393673500426CDF2C0B3B0100F002FD747912025AAE00C4016D3B17FF25CC011325584100
     json     = '{"_":"telegram","access_counter": 128,"battery_y": 12.947562,"current_flow_m3h": -0.001,"id": "69190253","media": "water","driver": "topaseskr","meter_month_period_end_datetime": "2023-05-31 23:59","meter_year_period_end_date": "2022-12-31","name": "Woter","reverse_volume_year_period_m3": 0,"temperature_c": 17.4,"timestamp": "1111-11-11T11:11:11Z","total_m3": 444.591,"volume_month_period_m3": 415.825,"volume_year_period_m3": 356.793}'

@@ -1,0 +1,33 @@
+// Copyright (C) 2017-2026 Fredrik Öhrström (gpl-3.0-or-later)
+driver {
+    name           = telmetricsmart
+    meter_type     = HeatCostAllocationMeter
+    default_fields = name,id,status,consumption_hca,target_hca,timestamp
+    manufacturer   = Brunata-Metrona
+    detect {
+        mvt = MWU,12,08
+    }
+    library {
+        use = consumption_hca
+        use = target_hca
+        use = target_date
+        use = meter_date
+        use = external_temperature_c
+    }
+    fields {
+        field {
+            name       = status
+            quantity   = Flags
+            info       = 'Meter error flags.'
+            attributes = STATUS,INCLUDE_TPL_STATUS
+        }
+    }
+    tests {
+        test {
+            args     = 'MyTelmetric telmetricsmart 03190403 NOKEY'
+            telegram = 5344F5360304190312088C2044900F002C2538D00000C4F446C57BAF64167A39002007102F2F_046E3F010000026C493A426C3F3C446EB90000000266C4002F2F2F2F2F2F0F800C000109001019DD0008011F080A
+            json     = '{"_": "telegram","consumption_hca": 319,"driver": "telmetricsmart","external_temperature_c": 19.6,"id": "03190403","media": "heat cost allocation","meter_date": "2026-10-09","name": "MyTelmetric","target_date": "2025-12-31","target_hca": 185,"status":"OK","timestamp": "1111-11-11T11:11:11Z"}'
+            fields   = 'MyTelmetric;03190403;OK;319;185;1111-11-11 11:11.11'
+        }
+    }
+}
