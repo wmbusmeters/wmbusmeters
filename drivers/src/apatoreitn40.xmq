@@ -32,6 +32,40 @@ driver {
         mvt = APT,0D,08
         mvt = APT,0E,08
     }
+    flags {
+        flag {
+            name = SENSOR_RADIATOR_OPEN
+            info = 'The radiator temperature sensor is open circuited or broken.'
+        }
+        flag {
+            name = SENSOR_RADIATOR_SHORT
+            info = 'The radiator temperature sensor is short circuited.'
+        }
+        flag {
+            name = SENSOR_ROOM_OPEN
+            info = 'The ambient room temperature sensor is open circuited or broken.'
+        }
+        flag {
+            name = SENSOR_ROOM_SHORT
+            info = 'The ambient room temperature sensor is short circuited.'
+        }
+        flag {
+            name = LOW_BATTERY
+            info = 'The battery is low.'
+        }
+        flag {
+            name = EEPROM_ERROR
+            info = 'Internal EEPROM memory error.'
+        }
+        flag {
+            name = OPTICAL_TAMPER
+            info = 'Optical communication interface tampering detected.'
+        }
+        flag {
+            name = SEAL_BROKEN
+            info = 'The electronic seal has been broken.'
+        }
+    }
     fields {
         field {
             name     = current
@@ -307,7 +341,7 @@ driver {
         }
         field {
             name       = status
-            quantity   = Text
+            quantity   = Flags
             info       = 'Seal and sensor status (w26). 0x0000=OK, 0xFFFF=SEAL_BROKEN. Bits 0..6 are individual sensor/hardware faults per reverse-engineering spec ss9.3 (unverified on faulty hardware).'
             attributes = STATUS
             match {
