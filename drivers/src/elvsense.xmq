@@ -67,7 +67,7 @@ driver {
         }
         field {
             name       = status
-            quantity   = Text
+            quantity   = Flags
             info       = 'Sensor status and error flags.'
             attributes = STATUS,INCLUDE_TPL_STATUS
         }

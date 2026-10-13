@@ -219,7 +219,7 @@ void list_shell_envs(Configuration *config, string meter_driver)
         if (fi.vname() == "") continue;
         string name = fi.vname();
         std::transform(name.begin(), name.end(), name.begin(), ::toupper);
-        if (fi.xuantity() != Quantity::Text)
+        if (!nonNumericQuantity(fi.xuantity()))
         {
             printf("METER_%s_%s\n",name.c_str(), unitToStringUpperCase(fi.displayUnit()).c_str());
         }
@@ -257,7 +257,7 @@ void list_fields(Configuration *config, string meter_driver)
         if (fi.printProperties().hasHIDE()) continue;
 
         string name = fi.vname();
-        if (fi.xuantity() != Quantity::Text)
+        if (!nonNumericQuantity(fi.xuantity()))
         {
             Unit u = defaultUnitForQuantity(fi.xuantity());
             Unit du = fi.displayUnit();
@@ -294,7 +294,7 @@ void list_fields(Configuration *config, string meter_driver)
 
         if (fi.vname() == "") continue;
         string name = fi.vname();
-        if (fi.xuantity() != Quantity::Text)
+        if (!nonNumericQuantity(fi.xuantity()))
         {
             Unit u = defaultUnitForQuantity(fi.xuantity());
             Unit du = fi.displayUnit();

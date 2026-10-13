@@ -45,6 +45,7 @@ struct DriverDynamic : public MeterCommonImplementation
     static XMQProceed add_mfct_tpl_status(XMQDoc *doc, XMQNode *node, DriverInfo *di);
     static XMQProceed add_mfct_tpl_status_map(XMQDoc *doc, XMQNode *map, Translate::Rule *rule);
     static XMQProceed add_default_key(XMQDoc *doc, XMQNode *node, DriverInfo *di);
+    static XMQProceed add_flag(XMQDoc *doc, XMQNode *node, DriverInfo *di);
 
     const std::string &fileName() { return file_name_; }
 
@@ -54,6 +55,7 @@ private:
     FieldMatcher *tmp_matcher_;
     Translate::Lookup *tmp_lookup_;
     Translate::Rule *tmp_rule_;
+    bool flags_found_ {};
     // Named field templates (driver/templates/template_field), keyed by their name.
     std::map<std::string, XMQNode*> templates_;
     // While parsing a field's lookup{}, the corresponding template's lookup{} node to

@@ -98,6 +98,24 @@ typedef struct XMQParseCallbacks XMQParseCallbacks;
 typedef struct XMQOutputSettings XMQOutputSettings;
 
 /**
+   @brief Specifies the color mode when rendering output that can be
+   colorized (terminal, html and tex).
+*/
+typedef enum
+{
+    /** Render without any color. Output is plain monochrome. */
+    XMQ_MONO = 0,
+    /** Render with color, assuming a dark background. The dark background mode is forced. */
+    XMQ_BG_DARK = 1,
+    /** Render with color, assuming a light background. The light background mode is forced. */
+    XMQ_BG_LIGHT = 2,
+    /** Render with color and decide the background automatically,
+       defaulting to a dark background. For html this means the rendered
+       page follows the browser dark/light mode preference. */
+    XMQ_BG_AUTO = 3,
+} XMQColorMode;
+
+/**
    @brief Specify the file/buffer content type both for input and for output.
 */
 typedef enum
@@ -213,6 +231,22 @@ typedef enum XMQColorName {
     /** Override xls prefixed element names with this color. */
     XMQ_COLOR_XLS,
 } XMQColorName;
+
+/**
+   @brief XMQMoveTo decides where a node is moved to, in a new parent element and
+   potentially in relation to another sibling node.
+*/
+typedef enum
+{
+    /** Place the element first in the parents list of childrens. */
+    XMQ_MOVE_FIRST = 0,
+    /** Place the element last in the parents list of children. */
+    XMQ_MOVE_LAST = 1,
+    /** Place the element before the element referenced. */
+    XMQ_MOVE_BEFORE = 2,
+    /** Place the element after the element referenced. */
+    XMQ_MOVE_AFTER = 3,
+} XMQMoveTo;
 
 /**
     The xmq parser invokes the reader to fetch more data.
@@ -770,6 +804,33 @@ XMQReturnNode xmqAddElementWithAttrs(XMQDoc *doq,
                                      XMQNS ns,
                                      XMQAttrList attrs);
 
+
+/**
+    Move an element node somewhere else. Either within the same
+    document or between two documents. The element will carry its
+    namespace with it.
+
+    @from_doq The xmq document to move from.
+    @from_parent The parent holding the element to be moved.
+    @element The element to be moved.
+    @to_doq The xmq document to move to, can be the same as from_doq.
+    @to_parent The new parent for the element.
+    @where Where to place the element below the new parent.
+    @sibling If where is in relation to a sibling, this is the sibling. Can be NULL if not needed.
+
+    @code
+    xmqMoveElement(doc, chapter1, page, chapter2, XMQ_POSITION_LAST, NULL);
+    xmqMoveElement(doc, chapter1, page, chapter2, XMQ_POSITION_BEFORE, page32);
+    @endcode
+*/
+bool xmqMoveElement(XMQDoc *from_doq,
+                             XMQNode *from_parent,
+                             XMQNode *element,
+                             XMQDoc *to_doq,
+                             XMQNode *to_parent,
+                             XMQMoveTo where,
+                             XMQNode *sibling);
+
 /**
     Create a key value under an existing node.
 
@@ -921,9 +982,8 @@ void xmqFreeOutputSettings(XMQOutputSettings *os);
 
 void xmqSetAddIndent(XMQOutputSettings *os, int add_indent);
 void xmqSetCompact(XMQOutputSettings *os, bool compact);
-void xmqSetUseColor(XMQOutputSettings *os, bool use_color);
+void xmqSetColorMode(XMQOutputSettings *os, XMQColorMode color_mode);
 void xmqSetTrueColor(XMQOutputSettings *os, bool truecolor);
-void xmqSetBackgroundMode(XMQOutputSettings *os, bool bg_dark_mode);
 void xmqSetPreferDoubleQuotes(XMQOutputSettings *os, bool prefer_double_quotes);
 void xmqSetFinalNewline(XMQOutputSettings *os, bool final_nl);
 void xmqSetEscapeNewlines(XMQOutputSettings *os, bool escape_newlines);

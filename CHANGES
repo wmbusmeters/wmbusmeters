@@ -27,6 +27,9 @@ Cleaned up some AI generated code that duplicated functionality over
 wmbus_xmqtty.cc and wmbus_socket.cc Common code for these are now
 in command_handler.cc
 
+Stricter handling of flags. Use Quantity=Flags for a field. Predeclare flags { ... }
+Stricter handling of the status field, there can only be one field with the STATUS attribute.
+
 Improved aquastream driver.
 Handle too short qheat telegram when forced analyzed=qheat.
 Detect too short izar telegrams and fail gracefull instead of allocation exception.

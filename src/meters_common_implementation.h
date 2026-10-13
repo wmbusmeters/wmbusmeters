@@ -162,20 +162,23 @@ protected:
         PrintProperties print_properties,
         FieldMatcher matcher,
         std::string ixml = "",
-        bool entire_payload = false);
+        bool entire_payload = false,
+        Quantity vquantity = Quantity::Text);
 
     void addStringFieldWithExtractorAndLookup(
         std::string vname,
         std::string help,
         PrintProperties print_properties,
         FieldMatcher matcher,
-        Translate::Lookup lookup); // Translate the bits/indexes.
+        Translate::Lookup lookup,
+        Quantity vquantity = Quantity::Text); // Translate the bits/indexes.
 
     // Used only for status field from tpl_status only.
     void addStringField(
         std::string vname,
         std::string help,
-        PrintProperties print_properties);
+        PrintProperties print_properties,
+        Quantity vquantity = Quantity::Text);
 
     // The default implementation of poll does nothing.
     // Override for mbus meters that need to be queried and likewise for C2/T2 wmbus-meters.
@@ -215,8 +218,10 @@ protected:
     void processFieldCalculators();
 public:
     // This should be refactored.
-    std::string getStatusField(FieldInfo *fi);
+    std::string getStatusFlags(FieldInfo *fi);
     std::map<std::string,bool> getStatusObjectMembers(FieldInfo *fi, Telegram *t);
+    std::map<std::string,uint64_t> getStatusLookupUnknowns(FieldInfo *fi, Telegram *t);
+    std::vector<std::string> getFieldFlags(FieldInfo *fi);
 protected:
 
     virtual void processContent(Telegram *t);

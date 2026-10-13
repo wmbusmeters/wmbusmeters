@@ -7,17 +7,55 @@
    A field name is short. For a single direction meter with only consumption
    values. Use for example:
    total_m3 (for water/gas consumption volume)
-   total_kwh (for energy consumption) */
-library {
-    /* A template info has access to the following variables.
-       {media} is replaced with water/gas/electricity/heat/coolant.
-       {append_info} is normally empty, but can be replaced with additional driver help.
-       Also the entiry info can be replaced.
-       library { template { use = total_m3 append_info = 'More helpful info.' }
-                 template { use = total_m3 info = 'This is the box volume.' } }
+   total_kwh (for energy consumption)
 
-       The change=Increasing or change=Sample is further information
-       about the field to be used outside of wmbusmeters. */
+   The total accumulated at the end of last month is usually called:
+   target_m3
+   target_kwh
+   These are useful for billing since the readout can happen at
+   any time during the next month.
+
+   For more complex meters with both consumption and production:
+   total_consumption_kwh (Electricity consumed.)
+   total_production_kwh  (Electricity produced.)
+   target_consumption_kwh
+   target_production_kwh
+
+   There should almost always be a status field (with attribute=STATUS) that accumulates all error flags.
+   If the telegram includes a TPL status byte, then those flags (as seen below) are automatically
+   included the status field.
+
+   All flags that a driver uses must be declared either in the flags here in the library,
+   or in the driver flags entry. */
+library {
+    flags {
+        // The following flags are defined in the standard [EN 13757-7:2018 §7.5.6] for the TPL status byte.
+        // The error flag is defined in  [EN 13757-7:2018 §7.5.6; EN 13757-3:2018 §10; OMS Vol.2 §8.8].
+        flag {
+            name = BUSY
+            info = 'Meter busy. (tpl sts)'
+        }
+        flag {
+            name = ERROR
+            info = 'Meter error; details via error reporting. (tpl sts)'
+        }
+        flag {
+            name = ALARM
+            info = 'Abnormal condition/alarm. (tpl sts)'
+        }
+        flag {
+            name = POWER_LOW
+            info = 'Power low. (tpl sts)'
+        }
+        flag {
+            name = PERMANENT_ERROR
+            info = 'Permanent meter error. (tpl sts)'
+        }
+        flag {
+            name = TEMPORARY_ERROR
+            info = 'Temporary meter error. (tpl sts)'
+        }
+    }
     template(id = total_m3)
     {
         name     = total
@@ -66,9 +104,10 @@ library {
     }
     template(id = status)
     {
-        name       = status
+        name = status
         // Kept working for old C++ drivers that use alias status-tpl-only
         aliases    = status-tpl-only
+        quantity   = Flags
         info       = 'Status and error flags.'
         attributes = STATUS,INCLUDE_TPL_STATUS
     }
@@ -105,10 +144,10 @@ library {
     }
     template(id = battery_y)
     {
-        name           = battery
-        quantity       = Time
-        info           = 'Remaining battery life in years.'
-        display_unit   = y
+        name         = battery
+        quantity     = Time
+        info         = 'Remaining battery life in years.'
+        display_unit = y
         match {
             measurement_type = Instantaneous
             vif_range        = RemainingBattery
@@ -236,9 +275,9 @@ library {
     }
     template(id = meter_date)
     {
-        name         = meter_date
-        quantity     = Text
-        info         = 'Date when the meter sent the telegram.'
+        name     = meter_date
+        quantity = Text
+        info     = 'Date when the meter sent the telegram.'
         match {
             measurement_type = Instantaneous
             vif_range        = Date
@@ -246,9 +285,9 @@ library {
     }
     template(id = meter_date_at_error)
     {
-        name         = meter_date_at_error
-        quantity     = Text
-        info         = 'Date when the meter was in error.'
+        name     = meter_date_at_error
+        quantity = Text
+        info     = 'Date when the meter was in error.'
         match {
             measurement_type = AtError
             vif_range        = Date
@@ -256,9 +295,9 @@ library {
     }
     template(id = meter_datetime)
     {
-        name         = meter_datetime
-        quantity     = Text
-        info         = 'Date and time when the meter sent the telegram.'
+        name     = meter_datetime
+        quantity = Text
+        info     = 'Date and time when the meter sent the telegram.'
         match {
             measurement_type = Instantaneous
             vif_range        = DateTime
@@ -266,9 +305,9 @@ library {
     }
     template(id = meter_datetime_at_error)
     {
-        name         = meter_datetime_at_error
-        quantity     = Text
-        info         = 'Date and time when the meter was in error.'
+        name     = meter_datetime_at_error
+        quantity = Text
+        info     = 'Date and time when the meter was in error.'
         match {
             measurement_type = AtError
             vif_range        = DateTime

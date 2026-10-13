@@ -140,6 +140,13 @@ driver {
         use = flow_temperature_c  // comma-separated list also accepted
     }
 
+    flags {
+        // If a field has quantity=Flags then all looked up strings BURST DRY LEAK etc must be pre-declared here.
+        flag {
+            name = BURST
+            info = 'The flow of water has been consistently high for half an hour, which indicates a pipe burst.'
+        }
+    }
     templates {
         // Reusable field templates, referenced from a field via `template = <name>`.
         // Only the field's lookup{} is templated (see `field { template = ... }` below) —
@@ -160,7 +167,8 @@ driver {
     fields {
         field {
             name              = total
-            quantity          = Volume    // Volume|Energy|Power|Temperature|Flow|
+            deprecated_by     = 'newdriver, upgrade before 2222-02-22' // Mark the driver for removal, upgrade to newdriver.
+            quantity          = Volume    // Flags|Volume|Energy|Power|Temperature|Flow|
                                           // PointInTime|Text|Counter|Pressure|RH|
                                           // HCA|Dimensionless|Voltage|Amperage|...
             info              = 'Human-readable description of what this field measures.'
@@ -170,19 +178,20 @@ driver {
                                           // unsigned binary values in DIF fields the standard
                                           // would treat as signed (e.g. counters that wrap at
                                           // 2^32 instead of going negative)
-            display_unit      = m3        // override default unit for output
+            display_unit      = m3        // convert the value+unit to this unit for display/output instead of the default unit for this Quantity
             readable_string   = Normal    // Normal|Reversed — byte order for text fields
             force_scale       = 0.001     // override the VIF-derived scale factor
+            force_unit        = gcal      // override the VIF-derived unit
             null_value        = 0xffff    // treat this raw value as null in output
             calculate         = 'expr'    // formula expression (see Formula System below)
             match_entire_payload = true   // rare: parse raw mfct payload as ixml
             attributes        = STATUS    // comma-separated PrintProperty flags:
                                           //   REQUIRED – print even with no data (NaN/null)
-                                          //   DEPRECATED – field being phased out
                                           //   STATUS – primary status field; "OK" if no bits set
                                           //   INCLUDE_TPL_STATUS – also fold in TPL status byte
                                           //   INJECT_INTO_STATUS – merge into the STATUS field
                                           //   HIDE – suppress from output (intermediate calc only)
+            deprecated_by = 'newfield, upgrade before 2222-02-22' // Inform that field is deprecated and will disappear at a certain date.
             match {
                 measurement_type = Instantaneous  // Any|Instantaneous|Minimum|Maximum|AtError
                 vif_range        = Volume          // common values:

@@ -1,10 +1,10 @@
 // Copyright (C) 2026 Magnus Friskytt (gpl-3.0-or-later)
 driver {
-    name            = ebeco500
-    meter_type      = ElectricityMeter
-    meter_type_text = 'Underfloor Heating Thermostat'
-    default_fields  = name,id,status,total_kwh,external_temperature_c,on_time_h,timestamp
-    manufacturer    = Ebeco
+    name           = ebeco500
+    meter_type     = ElectricityMeter
+    info           = 'Underfloor Heating Thermostat'
+    default_fields = name,id,status,total_kwh,external_temperature_c,on_time_h,timestamp
+    manufacturer   = Ebeco
     detect {
         mvt = EBE,01,02
     }
@@ -14,10 +14,76 @@ driver {
         use = on_time_h
         use = meter_datetime
     }
+    flags {
+        flag {
+            name = TEMPORARY
+            info = 'Temporary operating status; exact meaning not documented.'
+        }
+        flag {
+            name = MIN_LIMIT
+            info = 'Minimum temperature limit is active.'
+        }
+        flag {
+            name = MAX_LIMIT
+            info = 'Maximum temperature limit is active.'
+        }
+        flag {
+            name = OPEN_WINDOW
+            info = 'Open-window detection is active; heating is suspended for 15 minutes after a rapid temperature drop.'
+        }
+        flag {
+            name = ROOM_OC
+            info = 'Room temperature sensor open circuit (E2).'
+        }
+        flag {
+            name = ROOM_SC
+            info = 'Room temperature sensor short circuit (E1).'
+        }
+        flag {
+            name = FLOOR_OC
+            info = 'Floor temperature sensor open circuit (E4).'
+        }
+        flag {
+            name = FLOOR_SC
+            info = 'Floor temperature sensor short circuit (E3).'
+        }
+        flag {
+            name = RELAY_OC
+            info = 'Possible relay open-circuit fault; not confirmed by manufacturer documentation.'
+        }
+        flag {
+            name = RELAY_SC
+            info = 'Possible relay short-circuit fault; not confirmed by manufacturer documentation.'
+        }
+        flag {
+            name = RELAY_OT
+            info = 'Possible relay overtemperature condition; not confirmed by manufacturer documentation.'
+        }
+        flag {
+            name = SYSTEM
+            info = 'Internal system fault; exact fault category not documented.'
+        }
+        flag {
+            name = STARTUP
+            info = 'Thermostat startup or initialization status.'
+        }
+        flag {
+            name = POWER_CTRL
+            info = 'Power-control operating mode; thermostat supports percentage-based control in 20-minute cycles.'
+        }
+        flag {
+            name = POWER_OFF
+            info = 'Power-off status; whether this refers to the thermostat or heating output is not documented.'
+        }
+        flag {
+            name = RELAY_TEST
+            info = 'Relay test status; exact behavior not documented.'
+        }
+    }
     fields {
         field {
             name       = status
-            quantity   = Text
+            quantity   = Flags
             info       = 'Thermostat error and status flags.'
             attributes = STATUS,INCLUDE_TPL_STATUS
             match {
