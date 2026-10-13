@@ -9,6 +9,36 @@ driver {
     library {
         use = total_m3,meter_datetime,target_m3,target_date
     }
+    flags {
+        flag {
+            name = TAMPER
+            info = 'Tampering with the meter has been detected.'
+        }
+        flag {
+            name = BURST
+            info = 'A pipe burst has been detected.'
+        }
+        flag {
+            name = LEAK
+            info = 'A leak has been detected.'
+        }
+        flag {
+            name = NO_FLOW
+            info = 'There is no flow of water.'
+        }
+        flag {
+            name = LOW_BATTERY
+            info = 'The battery is low.'
+        }
+        flag {
+            name = REVERSE
+            info = 'The water flows through the meter in the wrong direction.'
+        }
+        flag {
+            name = OVERFLOW
+            info = 'The flow is above the maximum flow rate of the meter.'
+        }
+    }
     fields {
         field {
             name       = status

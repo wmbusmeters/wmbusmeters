@@ -15,6 +15,44 @@ driver {
         use = total_m3
         use = battery_v
     }
+    flags {
+        flag {
+            name = SW_ERROR
+            info = 'The software of the meter reports an error.'
+        }
+        flag {
+            name = CRC_ERROR
+            info = 'A checksum (CRC) error has been detected.'
+        }
+        flag {
+            name = SENSOR_ERROR
+            info = 'The sensor of the meter is faulty.'
+        }
+        flag {
+            name = MEASUREMENT_ERROR
+            info = 'The measurement has failed.'
+        }
+        flag {
+            name = BATTERY_VOLTAGE_ERROR
+            info = 'The battery voltage is too low.'
+        }
+        flag {
+            name = MANIPULATION
+            info = 'Tampering with the meter has been detected.'
+        }
+        flag {
+            name = LEAKAGE_OR_NO_USAGE
+            info = 'A leakage has been detected, or there has been no usage.'
+        }
+        flag {
+            name = REVERSE_FLOW
+            info = 'The water flows through the meter in the wrong direction.'
+        }
+        flag {
+            name = OVERLOAD
+            info = 'The flow is above the maximum flow rate of the meter.'
+        }
+    }
     fields {
         field {
             name       = status
