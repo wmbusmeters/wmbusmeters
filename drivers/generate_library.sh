@@ -19,7 +19,8 @@ die()
 
 mkdir -p build
 
-# Print all template blocks separated by NUL so they can be read in bash.
+# Print all template blocks separated by the ASCII record separator (0x1e) so
+# they can be read in bash. Not NUL, since BSD awk (macOS) cannot print NUL.
 template_blocks()
 {
     xmq "$LIBRARY" select /library/template to-xmq \
@@ -30,11 +31,11 @@ template_blocks()
             {
                 # Only the unindented template closing brace ends a block,
                 # inner closers are indented.
-                printf "%s\0", buf
+                printf "%s\036", buf
                 buf = ""
             }
         }
-        END { if (buf != "") printf "%s\0", buf }
+        END { if (buf != "") printf "%s\036", buf }
     '
 }
 
@@ -309,7 +310,7 @@ bool MeterCommonImplementation::addOptionalLibraryFields(string field_names)
 
 EOF
 
-while IFS= read -r -d '' BLOCK
+while IFS= read -r -d $'\036' BLOCK
 do
     emit_template >> "$OUT"
 done < <(template_blocks)
