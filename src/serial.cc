@@ -35,6 +35,7 @@
 #include <libgen.h>
 #include <memory.h>
 #include <pthread.h>
+#include <poll.h>
 #include <sys/file.h>
 #include <sys/ioctl.h>
 #include <sys/select.h>
@@ -56,6 +57,11 @@ using namespace std;
 // return a positive integer (file descriptor) on success.
 // return -1 for failure to open. return -2 for already locked.
 static int openSerialTTY(const char *tty, int baud_rate, PARITY parity);
+static bool serialTTYSpeed(int baud_rate, speed_t *speed);
+static bool serialParityValid(PARITY parity)
+{
+    return parity == PARITY::NONE || parity == PARITY::EVEN || parity == PARITY::ODD;
+}
 static string showTTYSettings(int fd);
 
 struct SerialDeviceImp;
@@ -84,7 +90,7 @@ struct SerialCommunicationManagerImp : public SerialCommunicationManager
 
     shared_ptr<SerialDevice> createSerialDeviceTTY(string dev, int baud_rate, PARITY parity, string purpose);
     shared_ptr<SerialDevice> createSerialDeviceCommand(string identifier, string command, vector<string> args,
-                                                       vector<string> envs, string purpose);
+                                                       vector<string> envs, string purpose, bool bidirectional = false);
     shared_ptr<SerialDevice> createSerialDeviceFile(string file, string purpose);
     shared_ptr<SerialDevice> createSerialDeviceSimulator();
     shared_ptr<SerialDevice> createSerialDeviceSocket(string path, string purpose);
@@ -206,6 +212,7 @@ protected:
     bool expecting_ascii_ {}; // If true, print using safeString instead if bin2hex
     bool is_file_ = false;
     bool is_stdin_ = false;
+    bool is_command_ = false;
     // When feeding from stdin, to prevent early exit, we want
     // at least some data before leaving the loop!
     // I.e. do not exit before we have received something!
@@ -248,6 +255,7 @@ int SerialDeviceImp::receive(vector<uchar> *data)
         }
         if (nr == 0)
         {
+            if (is_command_) close_me = true;
             if (is_file_)
             {
                 debug("(serial) no more data on file fd=%d\n", fd_);
@@ -302,12 +310,15 @@ struct SerialDeviceTTY : public SerialDeviceImp
     bool send(vector<uchar> &data);
     bool working();
     string device() { return device_; }
+    bool setSerialSettings(int bps, PARITY parity);
+    bool serialSettingsChanged() { LOCK_WRITE_SERIAL(checksettingstty); return settings_changed_; }
 
     private:
 
     string device_;
     int baud_rate_ {};
     PARITY parity_ {};
+    bool settings_changed_ {};
 };
 
 SerialDeviceTTY::SerialDeviceTTY(string device, int baud_rate, PARITY parity,
@@ -327,6 +338,7 @@ SerialDeviceTTY::~SerialDeviceTTY()
 
 bool SerialDeviceTTY::open(bool fail_if_not_ok)
 {
+    LOCK_WRITE_SERIAL(opentty);
     assert(device_ != "");
     bool ok = checkCharacterDeviceExists(device_.c_str(), fail_if_not_ok);
     if (!ok) return false;
@@ -343,16 +355,20 @@ bool SerialDeviceTTY::open(bool fail_if_not_ok)
         verbose("(serialtty) device %s is already in use and locked.\n", device_.c_str());
         return false;
     }
+    settings_changed_ = false;
     verbose("(serialtty) opened %s fd %d (%s)\n", device_.c_str(), fd_, purpose_.c_str());
     return true;
 }
 
 void SerialDeviceTTY::close()
 {
-    if (fd_ == -1) return;
-    ::flock(fd_, LOCK_UN);
-    ::close(fd_);
-    fd_ = -1;
+    {
+        LOCK_WRITE_SERIAL(closetty);
+        if (fd_ == -1) return;
+        ::flock(fd_, LOCK_UN);
+        ::close(fd_);
+        fd_ = -1;
+    }
     if (on_disappear_ && !resetting_)
     {
         on_disappear_();
@@ -369,6 +385,7 @@ bool SerialDeviceTTY::send(vector<uchar> &data)
 
     assert(data.size() > 0);
 
+    if (settings_changed_) return false;
     bool rc = true;
     int n = data.size();
     int written = 0;
@@ -411,12 +428,26 @@ bool SerialDeviceTTY::working()
     return working;
 }
 
+bool SerialDeviceTTY::setSerialSettings(int bps, PARITY parity)
+{
+    LOCK_WRITE_SERIAL(settingstty);
+    speed_t speed;
+    if (!serialTTYSpeed(bps, &speed) || !serialParityValid(parity)) return false;
+    if (bps != baud_rate_ || parity != parity_)
+    {
+        settings_changed_ = fd_ >= 0;
+        baud_rate_ = bps;
+        parity_ = parity;
+    }
+    return true;
+}
+
 
 struct SerialDeviceCommand : public SerialDeviceImp
 {
     SerialDeviceCommand(string identifier, string command, vector<string> args, vector<string> envs,
                         SerialCommunicationManagerImp *manager,
-                        string purpose);
+                        string purpose, bool bidirectional);
     ~SerialDeviceCommand();
 
     bool open(bool fail_if_not_ok);
@@ -425,6 +456,9 @@ struct SerialDeviceCommand : public SerialDeviceImp
     int available();
     bool working();
     string device() { return identifier_; }
+    bool readonly() { return !bidirectional_; }
+    bool setSerialSettings(int bps, PARITY parity);
+    bool serialSettingsChanged() { LOCK_WRITE_SERIAL(checksettingscmd); return settings_changed_; }
     string command() { return command_; }
 
     private:
@@ -432,6 +466,10 @@ struct SerialDeviceCommand : public SerialDeviceImp
     string identifier_;
     string command_;
     int pid_ {};
+    bool bidirectional_ {};
+    int bps_ {};
+    PARITY parity_ = PARITY::NONE;
+    bool settings_changed_ {};
     vector<string> args_;
     vector<string> envs_;
 
@@ -444,13 +482,15 @@ SerialDeviceCommand::SerialDeviceCommand(string identifier,
                                          vector<string> args,
                                          vector<string> envs,
                                          SerialCommunicationManagerImp *manager,
-                                         string purpose)
+                                         string purpose, bool bidirectional)
     : SerialDeviceImp(manager, purpose)
 {
     identifier_ = identifier;
     command_ = command;
     args_ = args;
     envs_ = envs;
+    bidirectional_ = bidirectional;
+    is_command_ = true;
 }
 
 SerialDeviceCommand::~SerialDeviceCommand()
@@ -460,33 +500,54 @@ SerialDeviceCommand::~SerialDeviceCommand()
 
 bool SerialDeviceCommand::open(bool fail_if_not_ok)
 {
-    expectAscii();
-    bool ok = invokeBackgroundShell("/bin/sh", args_, envs_, &fd_, &pid_);
-    assert(fd_ >= 0);
+    LOCK_WRITE_SERIAL(opencmd);
+    if (!bidirectional_) expectAscii();
+    vector<string> envs = envs_;
+    if (bidirectional_ && bps_ > 0)
+    {
+        envs.push_back("SERIAL_BPS=" + to_string(bps_));
+        envs.push_back("SERIAL_BITS=8");
+        envs.push_back(string("SERIAL_PARITY=") + (parity_ == PARITY::EVEN ? "e" : parity_ == PARITY::ODD ? "o" : "n"));
+        envs.push_back("SERIAL_STOPBITS=1");
+        envs.push_back("SERIAL_FLOW=none");
+    }
+    bool ok = invokeBackgroundShell(command_, args_, envs, &fd_, &pid_, bidirectional_);
     if (!ok) return false;
-    setIsStdin();
+    settings_changed_ = false;
     verbose("(serialcmd) opened %s pid %d fd %d (%s)\n", command_.c_str(), pid_, fd_, purpose_.c_str());
+    return true;
+}
+
+bool SerialDeviceCommand::setSerialSettings(int bps, PARITY parity)
+{
+    LOCK_WRITE_SERIAL(settingscmd);
+    if (!bidirectional_) return true;
+    if (bps <= 0 || !serialParityValid(parity)) return false;
+    if (bps != bps_ || parity != parity_) settings_changed_ = fd_ >= 0;
+    bps_ = bps;
+    parity_ = parity;
     return true;
 }
 
 void SerialDeviceCommand::close()
 {
-    int p = pid_, f = fd_;
-    if (pid_ == 0 && fd_ == -1) return;
-    if (pid_ && stillRunning(pid_))
+    int p, f;
     {
-        stopBackgroundShell(pid_);
+        LOCK_WRITE_SERIAL(closecmd);
+        p = pid_; f = fd_;
+        if (pid_ == 0 && fd_ == -1) return;
+        if (pid_ && stillRunning(pid_)) stopBackgroundShell(pid_);
         pid_ = 0;
+        ::close(fd_);
+        fd_ = -1;
     }
+    // Never invoke callbacks or take manager locks while holding the write
+    // lock: manager shutdown takes its device-list lock before closing us.
     if (on_disappear_ && !resetting_)
     {
         on_disappear_();
         on_disappear_ = NULL;
     }
-    ::flock(fd_, LOCK_UN);
-    ::close(fd_);
-    fd_ = -1;
-
     manager_->tickleEventLoop();
 
     verbose("(serialcmd) closed %s pid=%d fd=%d (%s)\n", command_.c_str(), p, f, purpose_.c_str());
@@ -517,17 +578,29 @@ bool SerialDeviceCommand::send(vector<uchar> &data)
 
     assert(data.size() > 0);
 
+    if (!bidirectional_ || fd_ < 0 || settings_changed_) return false;
     bool rc = true;
     int n = data.size();
     int written = 0;
     while (true) {
-        int nw = write(fd_, &data[written], n-written);
+        int flags = 0;
+#ifdef MSG_NOSIGNAL
+        flags = MSG_NOSIGNAL;
+#endif
+        int nw = ::send(fd_, &data[written], n-written, flags);
         if (nw > 0) written += nw;
         if (nw < 0) {
             if (errno==EINTR) continue;
+            if (errno == EAGAIN || errno == EWOULDBLOCK) {
+                struct pollfd pfd = { fd_, POLLOUT, 0 };
+                int ready;
+                do { ready = poll(&pfd, 1, 1000); } while (ready < 0 && errno == EINTR);
+                if (ready > 0 && (pfd.revents & POLLOUT)) continue;
+            }
             rc = false;
             goto end;
         }
+        if (nw == 0) { rc = false; goto end; }
         if (written == n) break;
     }
 
@@ -910,9 +983,10 @@ shared_ptr<SerialDevice> SerialCommunicationManagerImp::createSerialDeviceComman
                                                                                   string command,
                                                                                   vector<string> args,
                                                                                   vector<string> envs,
-                                                                                  string purpose)
+                                                                                  string purpose,
+                                                                                  bool bidirectional)
 {
-    return addSerialDeviceForManagement(new SerialDeviceCommand(identifier, command, args, envs, this, purpose));
+    return addSerialDeviceForManagement(new SerialDeviceCommand(identifier, command, args, envs, this, purpose, bidirectional));
 }
 
 shared_ptr<SerialDevice> SerialCommunicationManagerImp::createSerialDeviceFile(string file, string purpose)
@@ -1279,10 +1353,33 @@ shared_ptr<SerialCommunicationManager> createSerialCommunicationManager(time_t e
                                                                                     start_event_loop));
 }
 
+static bool serialTTYSpeed(int baud_rate, speed_t *speed)
+{
+    switch (baud_rate)
+    {
+    case 300:   *speed = B300;  break;
+    case 600:   *speed = B600;  break;
+    case 1200:   *speed = B1200;  break;
+    case 2400:   *speed = B2400;  break;
+    case 4800:   *speed = B4800;  break;
+    case 9600:   *speed = B9600;  break;
+    case 19200:  *speed = B19200; break;
+    case 38400:  *speed = B38400; break;
+    case 57600:  *speed = B57600; break;
+    case 115200: *speed = B115200;break;
+    case 230400: *speed = B230400;break;
+    default:
+        return false;
+    }
+
+    return true;
+}
+
 static int openSerialTTY(const char *tty, int baud_rate, PARITY parity)
 {
     int rc = 0;
     speed_t speed = 0;
+    if (!serialTTYSpeed(baud_rate, &speed) || !serialParityValid(parity)) return -1;
     struct termios tios;
     string tty_info;
     //int DTR_flag = TIOCM_DTR;
@@ -1304,22 +1401,6 @@ static int openSerialTTY(const char *tty, int baud_rate, PARITY parity)
     tty_info = showTTYSettings(fd);
     debug("(serial) before config: %s %s\n",  tty, tty_info.c_str());
 
-    switch (baud_rate)
-    {
-    case 300:   speed = B300;  break;
-    case 600:   speed = B600;  break;
-    case 1200:   speed = B1200;  break;
-    case 2400:   speed = B2400;  break;
-    case 4800:   speed = B4800;  break;
-    case 9600:   speed = B9600;  break;
-    case 19200:  speed = B19200; break;
-    case 38400:  speed = B38400; break;
-    case 57600:  speed = B57600; break;
-    case 115200: speed = B115200;break;
-    case 230400: speed = B230400;break;
-    default:
-        goto err;
-    }
 
     memset(&tios, 0, sizeof(tios));
 
