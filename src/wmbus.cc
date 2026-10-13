@@ -4448,9 +4448,9 @@ bool BusDeviceCommonImplementation::isSerial()
 
 void BusDeviceCommonImplementation::markAsNoLongerSerial()
 {
-    // When you override the serial device with a file for an im871a, then
-    // it is no longer a serial device.
-    is_serial_ = false;
+    // Read-only files/stdin are replay sources. A writable CMD override
+    // still needs the ordinary serial initialization and recovery path.
+    if (serial()->readonly()) is_serial_ = false;
 }
 
 BusDeviceType BusDeviceCommonImplementation::type()

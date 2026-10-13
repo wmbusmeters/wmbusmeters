@@ -32,7 +32,8 @@ enum class PARITY { NONE, EVEN, ODD };
 /**
   A SerialDevice can be connected to a tty with a baudrate.
   But can also be connected to stdin, a file, or the output from a subshell.
-  If you try to do send bytes to such a non-tty, then send will return false.
+  Bidirectional commands use stdin/stdout as the serial byte stream.
+  Sending to read-only sources returns false.
 */
 struct SerialDevice
 {
@@ -41,7 +42,7 @@ struct SerialDevice
     virtual void close() = 0;
     // Explicitly closed fd == -1
     virtual bool isClosed() = 0;
-    // Send will return true only if sending on a tty.
+    // Send returns true when all bytes were sent to a writable device.
     virtual bool send(std::vector<uchar> &data) = 0;
     // Receive returns the number of bytes received.
     virtual int receive(std::vector<uchar> *data) = 0;
@@ -86,7 +87,8 @@ struct SerialCommunicationManager
                                                                std::string command,
                                                                std::vector<std::string> args,
                                                                std::vector<std::string> envs,
-                                                               std::string purpose) = 0;
+                                                               std::string purpose,
+                                                               bool bidirectional = false) = 0;
     // Read from stdin (file="stdin") or a specific file.
     virtual std::shared_ptr<SerialDevice> createSerialDeviceFile(std::string file, std::string purpose) = 0;
     // A serial device simulator used for internal testing.
