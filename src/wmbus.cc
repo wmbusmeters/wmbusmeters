@@ -4448,9 +4448,9 @@ bool BusDeviceCommonImplementation::isSerial()
 
 void BusDeviceCommonImplementation::markAsNoLongerSerial()
 {
-    // When you override the serial device with a file for an im871a, then
-    // it is no longer a serial device.
-    is_serial_ = false;
+    // Read-only files/stdin are replay sources. A writable CMD override
+    // still needs the ordinary serial initialization and recovery path.
+    if (serial()->readonly()) is_serial_ = false;
 }
 
 BusDeviceType BusDeviceCommonImplementation::type()
@@ -6102,7 +6102,10 @@ Detected detectBusDeviceWithCommand(SpecifiedDevice &specified_device,
     LinkModeSet lms = specified_device.linkmodes;
     // If the specified device did not set any linkmodes fall back on the default linkmodes.
     if (lms.empty()) lms = default_linkmodes;
-    detected.setAsFound("", specified_device.type, 0, false, lms);
+    int bps = specified_device.bps.empty() ? 0 : atoi(specified_device.bps.c_str());
+    if (!bps && specified_device.type == DEVICE_MBUS) bps = 2400;
+    if (!bps && (specified_device.type == DEVICE_RAWTTY || specified_device.type == DEVICE_HEXTTY)) bps = 9600;
+    detected.setAsFound("", specified_device.type, bps, false, lms);
 
     return detected;
 }
