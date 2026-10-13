@@ -65,6 +65,160 @@ driver {
         use = flow_return_temperature_difference_c
         use = 'target_date|(14/348/Date and Time logged)'
     }
+    flags {
+        flag {
+            name = VOLTAGE_INTERRUPTED
+            info = 'The supply voltage has been interrupted.'
+        }
+        flag {
+            name = LOW_BATTERY_LEVEL
+            info = 'The battery level is low.'
+        }
+        flag {
+            name = SENSOR_ERROR
+            info = 'A temperature sensor error has been detected.'
+        }
+        flag {
+            name = SENSOR_T1_ABOVE_MEASURING_RANGE
+            info = 'Temperature sensor T1 is above its measuring range.'
+        }
+        flag {
+            name = SENSOR_T2_ABOVE_MEASURING_RANGE
+            info = 'Temperature sensor T2 is above its measuring range.'
+        }
+        flag {
+            name = SENSOR_T1_BELOW_MEASURING_RANGE
+            info = 'Temperature sensor T1 is below its measuring range.'
+        }
+        flag {
+            name = SENSOR_T2_BELOW_MEASURING_RANGE
+            info = 'Temperature sensor T2 is below its measuring range.'
+        }
+        flag {
+            name = TEMP_DIFF_WRONG_POLARITY
+            info = 'The temperature difference between T1 and T2 has the wrong polarity.'
+        }
+        flag {
+            name = FLOW_SENSOR_WEAK_OR_AIR
+            info = 'The flow sensor signal is weak or there is air in the flow sensor.'
+        }
+        flag {
+            name = WRONG_FLOW_DIRECTION
+            info = 'The water flows through the flow sensor in the wrong direction.'
+        }
+        flag {
+            name = FLOW_INCREASED
+            info = 'The flow is above the maximum flow rate of the flow sensor.'
+        }
+        flag {
+            name = IN_A1_LEAKAGE_IN_THE_SYSTEM
+            info = 'Input A1 reports a leakage in the system.'
+        }
+        flag {
+            name = IN_B1_LEAKAGE_IN_THE_SYSTEM
+            info = 'Input B1 reports a leakage in the system.'
+        }
+        flag {
+            name = IN_A1_A2_EXTERNAL_ALARM
+            info = 'Input A1 or A2 reports an external alarm.'
+        }
+        flag {
+            name = IN_B1_B2_EXTERNAL_ALARM
+            info = 'Input B1 or B2 reports an external alarm.'
+        }
+        flag {
+            name = V1_COMMUNICATION_ERROR
+            info = 'The communication with flow sensor V1 has failed.'
+        }
+        flag {
+            name = V1_WRONG_PULSE_FIGURE
+            info = 'Flow sensor V1 has the wrong pulse figure.'
+        }
+        flag {
+            name = IN_A2_LEAKAGE_IN_THE_SYSTEM
+            info = 'Input A2 reports a leakage in the system.'
+        }
+        flag {
+            name = IN_B2_LEAKAGE_IN_THE_SYSTEM
+            info = 'Input B2 reports a leakage in the system.'
+        }
+        flag {
+            name = T3_ABOVE_MEASURING_RANGE_OR_SWITCHED_OFF
+            info = 'Temperature sensor T3 is above its measuring range or switched off.'
+        }
+        flag {
+            name = T3_BELOW_MEASURING_RANGE_OR_SWITCHED_OFF
+            info = 'Temperature sensor T3 is below its measuring range or switched off.'
+        }
+        flag {
+            name = V2_COMMUNICATION_ERROR
+            info = 'The communication with flow sensor V2 has failed.'
+        }
+        flag {
+            name = V2_WRONG_PULSE_FIGURE
+            info = 'Flow sensor V2 has the wrong pulse figure.'
+        }
+        flag {
+            name = V2_AIR
+            info = 'There is air in flow sensor V2.'
+        }
+        flag {
+            name = V2_WRONG_FLOW_DIRECTION
+            info = 'The water flows through flow sensor V2 in the wrong direction.'
+        }
+        flag {
+            name = V2_INCREASED_FLOW
+            info = 'The flow in flow sensor V2 is above its maximum flow rate.'
+        }
+        flag {
+            name = V1_V2_BURST_WATER_LOSS
+            info = 'The difference between V1 and V2 indicates a burst with water loss.'
+        }
+        flag {
+            name = V1_V2_BURST_WATER_PENETRATION
+            info = 'The difference between V1 and V2 indicates a burst with water penetration.'
+        }
+        flag {
+            name = V1_V2_LEAKAGE_WATER_LOSS
+            info = 'The difference between V1 and V2 indicates a leakage with water loss.'
+        }
+        flag {
+            name = V1_V2_LEAKAGE_WATER_PENETRATION
+            info = 'The difference between V1 and V2 indicates a leakage with water penetration.'
+        }
+        flag {
+            name = SENSOR_T1_OUTSIDE_MEASURING_RANGE
+            info = 'Temperature sensor T1 is outside its measuring range.'
+        }
+        flag {
+            name = SENSOR_T2_OUTSIDE_MEASURING_RANGE
+            info = 'Temperature sensor T2 is outside its measuring range.'
+        }
+        flag {
+            name = SENSOR_T3_OUTSIDE_MEASURING_RANGE
+            info = 'Temperature sensor T3 is outside its measuring range.'
+        }
+        flag {
+            name = LEAKAGE_COLD_WATER
+            info = 'A leakage in the cold water system has been detected.'
+        }
+        flag {
+            name = LEAKAGE_HOT_WATER
+            info = 'A leakage in the hot water system has been detected.'
+        }
+        flag {
+            name = BURST_WATER_LOSS
+            info = 'A burst with water loss has been detected.'
+        }
+        flag {
+            name = V1_AIR
+            info = 'There is air in flow sensor V1.'
+        }
+        flag {
+            name = V1_WRONG_FLOW_DIRECTION
+            info = 'The water flows through flow sensor V1 in the wrong direction.'
+        }
+    }
     fields {
         field {
             name       = status

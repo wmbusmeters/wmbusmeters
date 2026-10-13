@@ -15,6 +15,12 @@ driver {
             test  = Set
         }
     }
+    flags {
+        flag {
+            name = SABOTAGE_ENCLOSURE
+            info = 'The enclosure has been opened or tampered with.'
+        }
+    }
     fields {
         field {
             name       = status

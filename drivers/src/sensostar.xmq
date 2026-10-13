@@ -14,6 +14,40 @@ driver {
         use = on_time_h
         use = parameter_set
     }
+    flags {
+        flag {
+            name = ERROR_TEMP_SENSOR_1_CABLE_BREAK
+            info = 'The cable of temperature sensor 1 is broken.'
+        }
+        flag {
+            name = ERROR_TEMP_SENSOR_1_SHORT_CIRCUIT
+            info = 'Temperature sensor 1 is short circuited.'
+        }
+        flag {
+            name = ERROR_TEMP_SENSOR_2_CABLE_BREAK
+            info = 'The cable of temperature sensor 2 is broken.'
+        }
+        flag {
+            name = ERROR_TEMP_SENSOR_2_SHORT_CIRCUIT
+            info = 'Temperature sensor 2 is short circuited.'
+        }
+        flag {
+            name = ERROR_FLOW_MEASUREMENT_SYSTEM_ERROR
+            info = 'The flow measurement system is faulty.'
+        }
+        flag {
+            name = ERROR_ELECTRONICS_DEFECT
+            info = 'The electronics of the meter are defective.'
+        }
+        flag {
+            name = OK_INSTRUMENT_RESET
+            info = 'The meter has been reset.'
+        }
+        flag {
+            name = OK_BATTERY_LOW
+            info = 'The battery is low.'
+        }
+    }
     fields {
         field {
             name       = status
