@@ -108,19 +108,174 @@ driver {
                 vif_range        = OnTime
             }
         }
+        field {
+            name           = total_volume
+            quantity       = Volume
+            info           = 'The total heating media volume recorded by this meter.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
+            match {
+                measurement_type = Instantaneous
+                vif_range        = Volume
+                storage_nr       = 0
+                tariff_nr        = 0
+            }
+        }
+        field {
+            name           = 'prev_{storage_counter-1counter}_month'
+            quantity       = Volume
+            info           = 'Previous month volume.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
+            match {
+                measurement_type = Instantaneous
+                vif_range        = Volume
+                storage_nr       = 2,14
+                tariff_nr        = 0
+            }
+        }
+        field {
+            name       = status
+            quantity   = Text
+            info       = 'Error flags from the manufacturer specific data, as shown on the display (F0-F9, FL nEG, DIFF nEG).'
+            attributes = STATUS,INCLUDE_TPL_STATUS
+            match {
+                difvifkey = 03FD17
+            }
+            // The three error bytes ABCDEF (Landis+Gyr TKB3551 and TKB3462) are
+            // stored as a 24-bit little endian integer, byte AB is the lowest.
+            // Masked out: A.3 (mounted in flow/return) and D.3 (wrong
+            // installation/cooling register) are configuration, D.2 is reserved
+            // and nibble C is undocumented.
+            lookup {
+                name            = ERROR_FLAGS
+                map_type        = BitToString
+                mask_bits       = 0xFF033F
+                default_message = OK
+                map {
+                    name  = F0_PREWARNING
+                    value = 0x000001
+                    test  = Set
+                }
+                map {
+                    name  = F4_PREWARNING
+                    value = 0x000002
+                    test  = Set
+                }
+                map {
+                    name  = WRONG_INSTALLATION_TEMPERATURE_SENSOR
+                    value = 0x000004
+                    test  = Set
+                }
+                map {
+                    name  = WRONG_INSTALLATION_VOLUME_UNIT
+                    value = 0x000008
+                    test  = Set
+                }
+                map {
+                    name  = NEGATIVE_TEMPERATURE_DIFFERENCE
+                    value = 0x000010
+                    test  = Set
+                }
+                map {
+                    name  = NEGATIVE_FLOW
+                    value = 0x000020
+                    test  = Set
+                }
+                map {
+                    name  = F8_ERROR_LONGER_THAN_8_HOURS
+                    value = 0x000100
+                    test  = Set
+                }
+                map {
+                    name  = F9_INTERNAL_COMMUNICATION_ERROR
+                    value = 0x000200
+                    test  = Set
+                }
+                map {
+                    name  = F0_FLOW_ERROR
+                    value = 0x010000
+                    test  = Set
+                }
+                map {
+                    name  = F1_FLOW_SENSOR_INTERRUPTED
+                    value = 0x020000
+                    test  = Set
+                }
+                map {
+                    name  = F2_RETURN_SENSOR_INTERRUPTED
+                    value = 0x040000
+                    test  = Set
+                }
+                map {
+                    name  = F3_TEMPERATURE_ELECTRONICS_DEFECT
+                    value = 0x080000
+                    test  = Set
+                }
+                map {
+                    name  = F4_BATTERY_EMPTY
+                    value = 0x100000
+                    test  = Set
+                }
+                map {
+                    name  = F5_FLOW_SENSOR_SHORT_CIRCUIT
+                    value = 0x200000
+                    test  = Set
+                }
+                map {
+                    name  = F6_RETURN_SENSOR_SHORT_CIRCUIT
+                    value = 0x400000
+                    test  = Set
+                }
+                map {
+                    name  = F7_EEPROM_ERROR
+                    value = 0x800000
+                    test  = Set
+                }
+            }
+        }
+        field {
+            name       = mfct_specific_data
+            quantity   = Text
+            attributes = HIDE
+            match {
+                difvifkey = 0F
+            }
+            ixml = "decode = errors, -byte*.
+                    errors = byte, byte, byte, @DV_error_flags.
+
+                    -hex  = ['A'-'F';'0'-'9'].
+                    -byte = hex, hex.
+
+                    DV_error_flags>dvk = +'03FD17'."
+        }
     }
     tests {
         test {
             args     = 'Heat qheat_55_us 70835484 NOKEY'
             telegram = 9644a732845483700a047ae70000200274fc00046d230Bd3250c0605920000446d3B17Bf2c4c068251000084016d3B17de248c010605900000cc0106988500008c020629770000cc0206226600008c030682510000cc0306933600008c040602260000cc0406691800008c050633140000cc0506900900008c060618020000cc0606000000008c0706000000003c22000000000f001000
-            json     = '{"_":"telegram","media":"heat","driver":"qheat_55_us","name":"Heat","id":"70835484","device_datetime":"2022-05-19 11:35","total_energy_consumption_kwh":9205,"key_datetime":"2021-12-31 23:59","key_datetime_kwh":5182,"prev_month_datetime":"2022-04-30 23:59","prev_1_month_kwh":9005,"prev_2_month_kwh":8598,"prev_3_month_kwh":7729,"prev_4_month_kwh":6622,"prev_5_month_kwh":5182,"prev_6_month_kwh":3693,"prev_7_month_kwh":2602,"prev_8_month_kwh":1869,"prev_9_month_kwh":1433,"prev_10_month_kwh":990,"prev_11_month_kwh":218,"prev_12_month_kwh":0,"prev_13_month_kwh":0,"actuality_duration_h":0.07,"time_without_measurement_h":0,"timestamp":"1111-11-11T11:11:11Z"}'
+            json     = '{"_":"telegram","media":"heat","driver":"qheat_55_us","name":"Heat","id":"70835484","device_datetime":"2022-05-19 11:35","total_energy_consumption_kwh":9205,"key_datetime":"2021-12-31 23:59","key_datetime_kwh":5182,"prev_month_datetime":"2022-04-30 23:59","prev_1_month_kwh":9005,"prev_2_month_kwh":8598,"prev_3_month_kwh":7729,"prev_4_month_kwh":6622,"prev_5_month_kwh":5182,"prev_6_month_kwh":3693,"prev_7_month_kwh":2602,"prev_8_month_kwh":1869,"prev_9_month_kwh":1433,"prev_10_month_kwh":990,"prev_11_month_kwh":218,"prev_12_month_kwh":0,"prev_13_month_kwh":0,"actuality_duration_h":0.07,"time_without_measurement_h":0,"status":"OK","timestamp":"1111-11-11T11:11:11Z"}'
             fields   = 'Heat;70835484;9205;5182;1111-11-11 11:11.11'
         }
         test {
             args     = 'Heat qheat_55_us 70639638 NOKEY'
             telegram = 9644a7323896637007047a5B00002002740400046d2a0fe2210c0600080600446d3B17df2c4c069106060084016d3B17df2c8c010691060600cc0106227005008c020667430500cc0206122505008c030612180500cc0306821305008c040636090500cc0406080505008c050660960400cc0506597304008c060600410400cc0606790504008c0706936303003c22000000000f001000
-            json     = '{"_":"telegram","media":"heat","driver":"qheat_55_us","name":"Heat","id":"70639638","device_datetime":"2023-01-02 15:42","total_energy_consumption_kwh":60800,"key_datetime":"2022-12-31 23:59","key_datetime_kwh":60691,"prev_month_datetime":"2022-12-31 23:59","prev_1_month_kwh":60691,"prev_2_month_kwh":57022,"prev_3_month_kwh":54367,"prev_4_month_kwh":52512,"prev_5_month_kwh":51812,"prev_6_month_kwh":51382,"prev_7_month_kwh":50936,"prev_8_month_kwh":50508,"prev_9_month_kwh":49660,"prev_10_month_kwh":47359,"prev_11_month_kwh":44100,"prev_12_month_kwh":40579,"prev_13_month_kwh":36393,"actuality_duration_h":0.001111,"time_without_measurement_h":0,"timestamp":"1111-11-11T11:11:11Z"}'
+            json     = '{"_":"telegram","media":"heat","driver":"qheat_55_us","name":"Heat","id":"70639638","device_datetime":"2023-01-02 15:42","total_energy_consumption_kwh":60800,"key_datetime":"2022-12-31 23:59","key_datetime_kwh":60691,"prev_month_datetime":"2022-12-31 23:59","prev_1_month_kwh":60691,"prev_2_month_kwh":57022,"prev_3_month_kwh":54367,"prev_4_month_kwh":52512,"prev_5_month_kwh":51812,"prev_6_month_kwh":51382,"prev_7_month_kwh":50936,"prev_8_month_kwh":50508,"prev_9_month_kwh":49660,"prev_10_month_kwh":47359,"prev_11_month_kwh":44100,"prev_12_month_kwh":40579,"prev_13_month_kwh":36393,"actuality_duration_h":0.001111,"time_without_measurement_h":0,"status":"OK","timestamp":"1111-11-11T11:11:11Z"}'
             fields   = 'Heat;70639638;60800;60691;1111-11-11 11:11.11'
+        }
+        test {
+            comment  = 'Landis+Gyr ULTRAHEAT T330, raw data example F001 from TKB3551c with error F0 set.'
+            args     = 'Heat qheat_55_us 29071980 NOKEY'
+            telegram = 4544A732801907290A047AFB1000200C06063701000C14229705008C0106843601008C01142882050084016D3B179F284C0668020100446D3B179F2C046D2708B7290F000001
+            json     = '{"_":"telegram","media":"heat","driver":"qheat_55_us","name":"Heat","id":"29071980","device_datetime":"2021-09-23 08:39","total_energy_consumption_kwh":13706,"key_datetime":"2020-12-31 23:59","key_datetime_kwh":10268,"prev_month_datetime":"2020-08-31 23:59","prev_1_month_kwh":13684,"total_volume_m3":597.22,"prev_1_month_m3":582.28,"status":"F0_FLOW_ERROR TEMPORARY_ERROR","timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'Heat;29071980;13706;10268;1111-11-11 11:11.11'
+        }
+        test {
+            comment  = 'Landis+Gyr ULTRAHEAT T330 in the field, telegram F001 without errors.'
+            args     = 'Heat qheat_55_us 12345678 NOKEY'
+            telegram = 3844a732785634120a047a400000200c06000000008c01060000000084016d0000413a4c0600000000446d00004131046d350c413a0f000000
+            json     = '{"_":"telegram","media":"heat","driver":"qheat_55_us","name":"Heat","id":"12345678","device_datetime":"2026-10-01 12:53","total_energy_consumption_kwh":0,"key_datetime":"2026-01-01 00:00","key_datetime_kwh":0,"prev_month_datetime":"2026-10-01 00:00","prev_1_month_kwh":0,"status":"OK","timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'Heat;12345678;0;0;1111-11-11 11:11.11'
         }
     }
 }
