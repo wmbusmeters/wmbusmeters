@@ -400,13 +400,13 @@ FrameStatus WMBusRTLWMBUS::checkRTLWMBUSFrame(vector<uchar> &data,
 
         // And the checksums should match. T1;1;1
         char check_crc = data[3];
-        char check_3outof5 = data[5];
-        if (check_crc != '1' || check_3outof5 != '1')
+        char check_3outof6 = data[5];
+        if (check_crc != '1' || check_3outof6 != '1')
         {
             // Packages that begin with C1;1;1 or with T1;1;1 or with S1;1;1 are good. The full format is:
             // MODE;CRC_OK;3OUTOF6OK;TIMESTAMP;PACKET_RSSI;CURRENT_RSSI;LINK_LAYER_IDENT_NO;DATAGRAM_WITHOUT_CRC_BYTES.
             // 3OUTOF6OK makes sense only with mode T1 and no sense with mode C1 (always set to 10).
-            if (check_crc != '1' && check_3outof5 != '1')
+            if (check_crc != '1' && check_3outof6 != '1')
             {
                 verbose("(rtlwmbus) telegram received but incomplete or with errors, since rtl_wmbus reports that CRC and 3OUTOF6 checks failed.\n");
             }
