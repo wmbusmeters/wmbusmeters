@@ -20,10 +20,16 @@ driver {
             test  = set
         }
     }
+    flags {
+        flag {
+            name = TAMPER
+            info = 'Tampering with the meter has been detected.'
+        }
+    }
     fields {
         field {
             name       = status
-            quantity   = Text
+            quantity   = Flags
             info       = 'Status and error flags.'
             attributes = STATUS,INCLUDE_TPL_STATUS
         }

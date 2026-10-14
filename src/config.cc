@@ -362,7 +362,7 @@ void handleIgnoreDuplicateTelegrams(Configuration *c, string value)
     }
 }
 
-void handleTelegramDetails(Configuration *c, string value)
+void handleAddTelegramDetails(Configuration *c, string value)
 {
     if (value == "never")
     {
@@ -377,7 +377,7 @@ void handleTelegramDetails(Configuration *c, string value)
         c->telegram_details = TelegramDetails::ALWAYS;
     }
     else {
-        warning("telegramdetails should be either never,first or always, not \"%s\"\n", value.c_str());
+        warning("addtelegramdetails should be either never,first or always, not \"%s\"\n", value.c_str());
     }
 }
 
@@ -846,7 +846,7 @@ shared_ptr<Configuration> loadConfiguration(string root, ConfigOverrides overrid
         else if (p.first == "nonet") handleNoNet(c, p.second);
         else if (p.first == "basicauth") handleBasicAuth(c, p.second);
         else if (p.first == "ignoreduplicates") handleIgnoreDuplicateTelegrams(c, p.second);
-        else if (p.first == "telegramdetails") handleTelegramDetails(c, p.second);
+        else if (p.first == "addtelegramdetails") handleAddTelegramDetails(c, p.second);
         else if (p.first == "addtelegramhex") handleAddTelegramHex(c, p.second);
         else if (p.first == "addtelegramstructured") handleAddTelegramStructured(c, p.second);
         else if (p.first == "device") handleDeviceOrHex(c, p.second);

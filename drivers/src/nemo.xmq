@@ -117,7 +117,7 @@ driver {
         }
         field {
             name       = status
-            quantity   = Text
+            quantity   = Flags
             info       = 'Status. OK if no error flags are set.'
             attributes = STATUS,INCLUDE_TPL_STATUS
             match {

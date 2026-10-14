@@ -41,12 +41,16 @@ void recordMyselfAsMainThread();
 // since the callbacks are needed to execute the commands.
 pthread_t getEventLoopThread();
 void startEventLoopThread(std::function<void()> cb);
+// Wait for the event loop thread to exit and forget it, after this
+// getEventLoopThread() returns 0 and nobody signals the joined thread.
+void joinEventLoopThread();
 
 // The timer callback thread runs whenever a timer timeout has happened.
 // This thread is used to probe for lost/found dongles, send commands to dongles,
 // reset dongles due to alarms, and generally monitor the system.
 pthread_t getTimerLoopThread();
 void startTimerLoopThread(std::function<void()> cb);
+void joinTimerLoopThread();
 
 
 size_t getPeakRSS();

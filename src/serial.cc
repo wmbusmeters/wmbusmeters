@@ -1010,8 +1010,8 @@ void SerialCommunicationManagerImp::waitForStop()
         if (getTimerLoopThread()) pthread_kill(getTimerLoopThread(), SIGUSR1);
     }
 
-    pthread_join(getEventLoopThread(), NULL);
-    pthread_join(getTimerLoopThread(), NULL);
+    joinEventLoopThread();
+    joinTimerLoopThread();
 }
 
 bool SerialCommunicationManagerImp::isRunning()

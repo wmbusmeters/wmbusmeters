@@ -34,23 +34,23 @@
 
 
 #define LIST_OF_METER_TYPES \
-    X(AutoMeter) \
-    X(UnknownMeter) \
-    X(DoorWindowDetector) \
-    X(ElectricityMeter) \
-    X(GasMeter) \
-    X(HeatCoolingMeter) \
-    X(HeatCostAllocationMeter) \
-    X(HeatMeter) \
-    X(PressureSensor)  \
-    X(PulseCounter) \
-    X(Repeater) \
-    X(SmokeDetector) \
-    X(TempHygroMeter) \
-    X(WaterMeter)  \
+    X(AutoMeter,"Auto meter.") \
+    X(UnknownMeter,"Unknown meter.") \
+    X(DoorWindowDetector,"Door/window detector.") \
+    X(ElectricityMeter,"Electricity meter.") \
+    X(GasMeter,"Gas meter.") \
+    X(HeatCoolingMeter,"Heating/cooling meter.") \
+    X(HeatCostAllocationMeter,"Heat cost allocator.") \
+    X(HeatMeter,"Heat meter.")\
+    X(PressureSensor,"Pressure sensor.") \
+    X(PulseCounter,"Pulse counter.") \
+    X(Repeater,"Repeater.") \
+    X(SmokeDetector,"Smoke detector.") \
+    X(TempHygroMeter,"Thermometer/hygrometer.") \
+    X(WaterMeter,"Water meter") \
 
 enum class MeterType {
-#define X(name) name,
+#define X(name,desc) name,
 LIST_OF_METER_TYPES
 #undef X
 };
@@ -157,9 +157,12 @@ private:
     DriverName name_; // auto, unknown, amiplus, lse_07_17, multical21 etc
     std::string deprecated_by_; // "ultrimisv2 upgrade before 2027-01-01"
     std::vector<DriverName> name_aliases_; // Secondary names that will map to this driver.
+    std::map<std::string,std::string> flags_; // Flags map to infos here.
     LinkModeSet linkmodes_; // C1, T1, S1 or combinations thereof.
     Translate::Lookup mfct_tpl_status_bits_; // Translate any mfct specific bits in tpl status.
     MeterType type_; // Water, Electricity etc.
+    std::string info_; // You can add a more detailed description of the meter. E.g. "Under floor heating with thermostat."
+    // Normally an info string is generated from the MeterType, ie WaterMeter becomes "Water meter." defaultMeterTypeText
     std::function<std::shared_ptr<Meter>(MeterInfo&,DriverInfo&di)> constructor_; // Invoke this to create an instance of the driver.
     std::vector<MVT> mvts_;
     std::vector<std::string> default_fields_;
@@ -171,6 +174,10 @@ private:
     std::string dynamic_source_xmq_ {}; // A copy of the xmq used to create a dynamic driver.
     std::vector<std::pair<uint16_t,std::vector<uchar>>> compact_frame_formats_;
     std::vector<std::vector<uchar>> default_keys_; // Default keys from driver XMQ; tried in order when no meter key is set.
+    bool has_flags_in_driver_ = false;
+    bool error_in_driver_ = false;
+    std::string error_in_driver_msg_;
+    bool status_field_found_ {};
 
 public:
     ~DriverInfo();
@@ -179,6 +186,9 @@ public:
     void setDeprecatedBy(std::string d) { deprecated_by_ = d; }
     void addNameAlias(std::string n) { name_aliases_.push_back(n); }
     void setMeterType(MeterType t) { type_ = t; }
+    MeterType getMeterType() { return type_; }
+    std::string getInfo() { return info_; }
+    void setInfo(std::string t) { info_ = t; }
     void setAliases(std::string f);
     void setDefaultFields(std::string f) { default_fields_ = splitString(f, ','); }
     void addLinkMode(LinkMode lm) { linkmodes_.addLinkMode(lm); }
@@ -187,6 +197,13 @@ public:
     void addMVT(uint16_t mfct, uchar type, uchar ver) { mvts_.push_back({ mfct, ver, type }); }
     void addCompactFrameFormat(uint16_t sig, std::vector<uchar> difvif) { compact_frame_formats_.push_back({ sig, std::move(difvif) }); }
     const std::vector<std::pair<uint16_t,std::vector<uchar>>> &compactFrameFormats() { return compact_frame_formats_; }
+    void addDefaultFlags();
+    void markHasFlagsInDriver() { has_flags_in_driver_ = true; }
+    bool hasFlagsInDriver() { return has_flags_in_driver_; }
+    void addFlag(const std::string &name, const std::string &info) { if (flags_.count(name) == 0) flags_[name] = info; }
+    bool hasFlag(const std::string &name) { return flags_.count(name) > 0; }
+    std::vector<std::string> sortedFlags();
+    std::string getFlagInfo(const std::string &name) { if (flags_.count(name) == 0) return ""; return flags_[name]; }
     void addDefaultKey(const std::vector<uchar> &key) { default_keys_.push_back(key); }
     const std::vector<std::vector<uchar>> &defaultKeys() const { return default_keys_; }
     void usesProcessContent() { has_process_content_ = true; }
@@ -223,6 +240,26 @@ public:
     bool isCloseEnoughMedia(uchar type);
     int forceMfctIndex() { return force_mfct_index_; }
     bool hasProcessContent() { return has_process_content_; }
+
+    void errorInDriver(const std::string& msg)
+    {
+        error_in_driver_ = true;
+        if (error_in_driver_msg_.length() > 0) error_in_driver_msg_ += "\n";
+        error_in_driver_msg_ += msg;
+    }
+
+    bool hasError()
+    {
+        return error_in_driver_;
+    }
+
+    const std::string &errorInDriverMsg()
+    {
+        return error_in_driver_msg_;
+    }
+
+    bool markStatusFieldAsFound() { if (status_field_found_) { return true; } else { status_field_found_ = true; return false; } }
+
 };
 
 bool staticRegisterDriver(std::function<void(DriverInfo&di)> setup);
@@ -492,8 +529,17 @@ struct Meter
     virtual std::string getStringValue(FieldInfo *fi) = 0;
     virtual void setFieldBits(FieldInfo *fi, uint64_t bits, DVEntry *dve) = 0;
     virtual std::string decodeTPLStatusByte(uchar sts) = 0;
-    virtual std::string getStatusField(FieldInfo *fi) = 0;
+    virtual std::string getStatusFlags(FieldInfo *fi) = 0;
     virtual std::map<std::string,bool> getStatusObjectMembers(FieldInfo *fi, Telegram *t) = 0;
+    // For each BitToString lookup rule applied to the status field (directly or via
+    // INJECT_INTO_STATUS), returns, keyed by the rule name, the bits that were set in
+    // the input value but have no map entry (0 when every set bit is mapped).
+    // Every applicable rule is included in the returned map.
+    virtual std::map<std::string,uint64_t> getStatusLookupUnknowns(FieldInfo *fi, Telegram *t) = 0;
+    // Returns the names of all flags (BitToString map "to" strings) defined for this field.
+    // For the STATUS field this is the aggregation of its own lookups and the lookups of all
+    // INJECT_INTO_STATUS fields. For an INJECT_INTO_STATUS field it is just its own lookups.
+    virtual std::vector<std::string> getFieldFlags(FieldInfo *fi) = 0;
 
     virtual void onUpdate(std::function<void(Telegram*t,Meter*)> cb) = 0;
     virtual int numUpdates() = 0;
@@ -558,6 +604,7 @@ std::shared_ptr<MeterManager> createMeterManager(bool daemon);
 
 const char *toString(MeterType type);
 MeterType toMeterType(std::string type);
+const char *defaultMeterTypeText(MeterType type);
 std::string toString(DriverInfo &driver);
 const char *toString(ReadableString rs);
 ReadableString toReadableString(std::string rs);

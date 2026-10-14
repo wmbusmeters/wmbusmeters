@@ -131,9 +131,6 @@ namespace Translate
         Rule &set(PreShiftRight p) { pre_shift_right = p; return *this; }
         Rule &set(DefaultMessage m) { default_message = m; return *this; }
         Rule &add(Map m) { map.push_back(m); return *this; }
-        Rule &markReservedBits(bool b = true) { mark_reserved_bits = b; return *this; }
-
-        void addReservedBitMarkers();
     };
 
     struct Lookup
@@ -142,12 +139,21 @@ namespace Translate
 
         std::string translate(uint64_t bits);
         std::map<std::string,bool> translateToObject(uint64_t bits);
+        // For each (trigger-active) BitToString rule, reports the bits set in the
+        // input that are not covered by any map entry of that rule (0 when every
+        // set bit is mapped). Every active rule is included in the returned map.
+        // All the bits referenced by any map entry (Set or NotSet) across all rules.
+        // These are the "known" bits; input bits set but not in this mask have no flag name.
+        uint64_t coveredBits() const;
+        std::map<std::string,uint64_t> unknownBits(uint64_t bits) const;
+        // Returns the names of all flags (map "to" strings) of all rules, in order.
+        std::vector<std::string> flagNames() const;
         bool hasLookups() { return rules.size() > 0; }
         // Returns true if the lookup covers more than just the vendor-specific bits 5-7 (0xe0),
         // i.e. the mask also includes standard bits 0-4.
         bool touches1F() { for (auto &r : rules) { if (r.mask.intValue() & 0x1f) return true; } return false; }
 
-        Lookup &add(Rule r) { r.addReservedBitMarkers(); rules.push_back(r); return *this; }
+        Lookup &add(Rule r) { rules.push_back(r); return *this; }
 
         std::string str();
     };

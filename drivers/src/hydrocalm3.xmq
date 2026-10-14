@@ -15,10 +15,16 @@ driver {
             test  = Set
         }
     }
+    flags {
+        flag {
+            name = SABOTAGE_ENCLOSURE
+            info = 'The enclosure has been opened or tampered with.'
+        }
+    }
     fields {
         field {
             name       = status
-            quantity   = Text
+            quantity   = Flags
             info       = 'Meter status from tpl status field.'
             attributes = STATUS,INCLUDE_TPL_STATUS
         }

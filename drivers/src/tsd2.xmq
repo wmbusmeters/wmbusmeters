@@ -23,13 +23,13 @@ driver {
         }
         field {
             name       = status
-            quantity   = Text
+            quantity   = Flags
             info       = 'The current status: OK or SMOKE or errors.'
             attributes = STATUS,INCLUDE_TPL_STATUS
         }
         field {
             name           = detector
-            quantity       = Text
+            quantity       = Flags
             info           = 'The current status: OK or SMOKE.'
             attributes     = INJECT_INTO_STATUS,HIDE
             vif_scaling    = None

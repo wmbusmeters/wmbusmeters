@@ -6,10 +6,16 @@ driver {
     detect {
         mvt = BMT,1a,0d
     }
+    flags {
+        flag {
+            name = SABOTAGE
+            info = 'Tampering with the meter has been detected.'
+        }
+    }
     fields {
         field {
             name       = status
-            quantity   = Text
+            quantity   = Flags
             info       = status_and_error_flags
             attributes = INCLUDE_TPL_STATUS
             match {

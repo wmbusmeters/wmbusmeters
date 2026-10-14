@@ -19,7 +19,8 @@ die()
 
 mkdir -p build
 
-# Print all template blocks separated by NUL so they can be read in bash.
+# Print all template blocks separated by the ASCII record separator (0x1e) so
+# they can be read in bash. Not NUL, since BSD awk (macOS) cannot print NUL.
 template_blocks()
 {
     xmq "$LIBRARY" select /library/template to-xmq \
@@ -30,11 +31,11 @@ template_blocks()
             {
                 # Only the unindented template closing brace ends a block,
                 # inner closers are indented.
-                printf "%s\0", buf
+                printf "%s\036", buf
                 buf = ""
             }
         }
-        END { if (buf != "") printf "%s\0", buf }
+        END { if (buf != "") printf "%s\036", buf }
     '
 }
 
@@ -64,6 +65,7 @@ quantity_c()
         Dimensionless) echo "Quantity::Dimensionless" ;;
         HCA)          echo "Quantity::HCA" ;;
         Text)         echo "Quantity::Text" ;;
+        Flags)        echo "Quantity::Flags" ;;
         "")           echo "Quantity::Text" ;;
         *)            die "unknown quantity: $1" ;;
     esac
@@ -152,12 +154,18 @@ emit_template()
     if [ -z "$matcher" ]
     then
         # No matcher: a simple constant-like field.
+        local q="Quantity::Text"
+        if [ "$quantity" = Flags ]
+        then
+            q="Quantity::Flags"
+        fi
         printf '    if (%s)\n' "$condition"
         printf '    {\n'
         printf '        addStringField(\n'
         printf '            "%s",\n' "$(c_escape "$name")"
         printf '            "%s"+help,\n' "$esc_info"
-        printf '            %s);\n' "$props"
+        printf '            %s,\n' "$props"
+        printf '            %s);\n' "$q"
         printf '        markLastFieldAsLibrary();\n'
         printf '    }\n\n'
         return
@@ -302,7 +310,7 @@ bool MeterCommonImplementation::addOptionalLibraryFields(string field_names)
 
 EOF
 
-while IFS= read -r -d '' BLOCK
+while IFS= read -r -d $'\036' BLOCK
 do
     emit_template >> "$OUT"
 done < <(template_blocks)
@@ -315,3 +323,13 @@ cat >> "$OUT" <<EOF
     return true;
 }
 EOF
+
+cat >> $OUT <<EOF
+
+void DriverInfo::addDefaultFlags()
+{
+EOF
+
+xmq library.xmq for-each /library/flags/flag --shell="printf \"    addFlag(\\\"\${name}\\\", \\\"\${info}\\\");\\n\" >> $OUT"
+
+echo "}" >> $OUT

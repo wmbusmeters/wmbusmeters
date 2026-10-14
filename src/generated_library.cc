@@ -519,7 +519,8 @@ bool MeterCommonImplementation::addOptionalLibraryFields(string field_names)
         addStringField(
             "status",
             "Status and error flags."+help,
-            STATUS | INCLUDE_TPL_STATUS);
+            STATUS | INCLUDE_TPL_STATUS,
+            Quantity::Flags);
         markLastFieldAsLibrary();
     }
 
@@ -594,4 +595,14 @@ bool MeterCommonImplementation::addOptionalLibraryFields(string field_names)
         return false;
     }
     return true;
+}
+
+void DriverInfo::addDefaultFlags()
+{
+    addFlag("BUSY", "Meter busy. (tpl sts)");
+    addFlag("ERROR", "Meter error; details via error reporting. (tpl sts)");
+    addFlag("ALARM", "Abnormal condition/alarm. (tpl sts)");
+    addFlag("POWER_LOW", "Power low. (tpl sts)");
+    addFlag("PERMANENT_ERROR", "Permanent meter error. (tpl sts)");
+    addFlag("TEMPORARY_ERROR", "Temporary meter error. (tpl sts)");
 }

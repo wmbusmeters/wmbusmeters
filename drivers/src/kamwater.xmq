@@ -40,6 +40,48 @@ driver {
         use = target_m3
         use = target_date
     }
+    flags {
+        flag {
+            name = BURST
+            info = 'The flow of water has been consistently high for half an hour, which indicates a pipe burst.'
+        }
+        flag {
+            name = DRY
+            info = 'There is no water in the meter. Nothing will be measured.'
+        }
+        flag {
+            name = LEAK
+            info = 'The flow of water has not stopped for at least one continuous hour during the last 24 hours.'
+        }
+        flag {
+            name = REVERSE
+            info = 'The water flows through the meter in the wrong direction.'
+        }
+        flag {
+            name = TAMPER
+            info = 'Attempt of fraud. The meter is no longer valid for billing.'
+        }
+        flag {
+            name = LOW_BATTERY
+            info = 'The battery is running low. Less than 6 months remaining.'
+        }
+        flag {
+            name = FLOW_ABOVE_Q4
+            info = 'The water flow has exceeded the upper flow limit Q4 which can cause too high error rate.'
+        }
+        flag {
+            name = NO_CONSUMPTION
+            info = 'No flow of water has occurred for the last 15 days.'
+        }
+        flag {
+            name = LOW_AMBIENT_TEMPERATURE
+            info = 'The ambient temperature is below the configured lower temperature limit.'
+        }
+        flag {
+            name = HIGH_AMBIENT_TEMPERATURE
+            info = 'The ambient temperature is above the configured upper temperature limit.'
+        }
+    }
     templates {
         template_field {
             name = duration_bucket
@@ -164,12 +206,13 @@ driver {
             // alternatives in the driver, and only one of them will match in a real
             // packet) propagate thir stuff.
             name       = status
-            quantity   = Text
+            info       = 'Status and error flags.'
+            quantity   = Flags
             attributes = STATUS,INCLUDE_TPL_STATUS
         }
         field {
             name       = status_cold_env
-            quantity   = Text
+            quantity   = Flags
             template   = x2xx_status
             info       = 'Status and error flags.'
             attributes = INJECT_INTO_STATUS,HIDE
@@ -178,10 +221,9 @@ driver {
                 difvifkey = 04FF23
             }
             lookup {
-                name               = ERROR_FLAGS
-                map_type           = BitToString
-                default_message    = OK
-                mark_reserved_bits = true
+                name            = ERROR_FLAGS
+                map_type        = BitToString
+                default_message = OK
                 map {
                     name = LOW_AMBIENT_TEMPERATURE
                     bit  = 6
@@ -191,7 +233,7 @@ driver {
         }
         field {
             name       = status_hot_env
-            quantity   = Text
+            quantity   = Flags
             template   = x2xx_status
             info       = 'Status and error flags.'
             attributes = INJECT_INTO_STATUS,HIDE
@@ -200,10 +242,9 @@ driver {
                 difvifkey = 04FF24
             }
             lookup {
-                name               = ERROR_FLAGS
-                map_type           = BitToString
-                default_message    = OK
-                mark_reserved_bits = true
+                name            = ERROR_FLAGS
+                map_type        = BitToString
+                default_message = OK
                 map {
                     name = HIGH_AMBIENT_TEMPERATURE
                     bit  = 6
@@ -213,7 +254,7 @@ driver {
         }
         field {
             name       = status16
-            quantity   = Text
+            quantity   = Flags
             info       = 'Status and error flags.'
             attributes = INJECT_INTO_STATUS,HIDE
             match {
@@ -248,7 +289,7 @@ driver {
         }
         field {
             name          = current_status
-            quantity      = Text
+            quantity      = Flags
             info          = 'Status of meter. This field will go away use status instead.'
             deprecated_by = 'status, update before 2026-12-01'
             match {

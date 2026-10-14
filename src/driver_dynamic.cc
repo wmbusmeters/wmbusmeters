@@ -46,7 +46,7 @@ bool check_field_match_entire_frame(const char *mef, DriverDynamic *dd);
 string check_field_info(const char *info, DriverDynamic *dd);
 ReadableString check_field_readable_string(const char *rs_s, DriverDynamic *dd);
 Quantity check_field_quantity(const char *quantity_s, DriverDynamic *dd);
-Change check_field_change(const char *change_s, DriverDynamic *dd);
+Change check_field_change(Quantity q, const char *change_s, DriverDynamic *dd);
 VifScaling check_vif_scaling(const char *vif_scaling_s, DriverDynamic *dd);
 DifSignedness check_dif_signedness(const char *dif_signedness_s, DriverDynamic *dd);
 PrintProperties check_print_properties(const char *print_properties_s, DriverDynamic *dd);
@@ -94,9 +94,11 @@ bool DriverDynamic::load(DriverInfo *di, const string &file_name, const char *co
         ok = loadFile(file.c_str(), &buf);
         if (!ok)
         {
-            warning("(driver) error cannot load wmbusmeters driver file %s\n", file.c_str());
+            string msg = tostrprintf("(driver) error cannot load wmbusmeters driver file %s\n", file.c_str());
+            di->errorInDriver(msg);
             return false;
         }
+
         ok = xmqParseBuffer(doc, buf.data(), buf.data()+buf.size(), NULL, 0);
         di->setDynamicSource(string(buf.begin(), buf.end()));
     }
@@ -116,6 +118,9 @@ bool DriverDynamic::load(DriverInfo *di, const string &file_name, const char *co
         return false;
     }
 
+    // Add the TPL flags and others declared in library.xmq
+    di->addDefaultFlags();
+
     try
     {
         string name = check_driver_name(xmqGetString(doc, "/driver/name"), file);
@@ -134,6 +139,12 @@ bool DriverDynamic::load(DriverInfo *di, const string &file_name, const char *co
         MeterType meter_type = check_meter_type(xmqGetString(doc, "/driver/meter_type"), file);
         di->setMeterType(meter_type);
 
+        const char *info = xmqGetString(doc, "/driver/info");
+        if (info)
+        {
+            di->setInfo(info);
+        }
+
         string default_fields = check_default_fields(xmqGetString(doc, "/driver/default_fields"), file);
         di->setDefaultFields(default_fields);
 
@@ -151,10 +162,17 @@ bool DriverDynamic::load(DriverInfo *di, const string &file_name, const char *co
         xmqForeach(doc, "/driver/compact_frame_formats/difvif", (XMQNodeCallback)add_compact_frame_format, di);
         xmqForeach(doc, "/driver/mfct_tpl_status_bits", (XMQNodeCallback)add_mfct_tpl_status, di);
         xmqForeach(doc, "/driver/default_keys/key", (XMQNodeCallback)add_default_key, di);
+        xmqForeach(doc, "/driver/flags/flag", (XMQNodeCallback)add_flag, di);
 
         if (!deprecated_by)
         {
             check_detection_triplets(di, file);
+        }
+
+        if (di->hasError())
+        {
+            warning(di->errorInDriverMsg().c_str());
+            return false;
         }
 
         di->setConstructor([](MeterInfo& mi, DriverInfo& di){ return shared_ptr<Meter>(new DriverDynamic(mi, di)); });
@@ -230,6 +248,11 @@ DriverDynamic::DriverDynamic(MeterInfo &mi, DriverInfo &di) :
     catch(...)
     {
         xmqFreeDoc(doc);
+    }
+
+    if (driverInfo()->hasError())
+    {
+        warning(driverInfo()->errorInDriverMsg().c_str());
     }
 }
 
@@ -399,13 +422,13 @@ XMQProceed DriverDynamic::add_field(XMQDoc *doc, XMQNode *field, DriverDynamic *
     // The quantity ie Volume, gives the default unit (m3) for the field. The unit can be overriden with display_unit.
     Quantity quantity = check_field_quantity(xmqGetStringRel(doc, "quantity", field), dd);
 
-    // The change is instant, cumulative or increasing. This setting provides extra knowledge about the field
-    // which cannot be deduced from the difvif keys.
-    Change change = check_field_change(xmqGetStringRel(doc, "change", field), dd);
+    // The change is Sample, Net or Increasing. This setting provides extra knowledge about the field
+    // which cannot be deduced from the difvif keys. We can guess though.
+    Change change = check_field_change(quantity, xmqGetStringRel(doc, "change", field), dd);
 
     // Text fields are either version strings or lookups from status bits.
     // All other fields are numeric, ie they have a unit. This also includes date and datetime.
-    bool is_numeric = quantity != Quantity::Text;
+    bool is_numeric = !nonNumericQuantity(quantity);
 
     // For ixml parsing of mfct specific payloads, payloads that do not even bother with the 0x0f.
     bool match_entire_payload = check_boolean_property(xmqGetStringRel(doc, "match_entire_payload", field), "match_entire_payload", dd, false);
@@ -437,6 +460,17 @@ XMQProceed DriverDynamic::add_field(XMQDoc *doc, XMQNode *field, DriverDynamic *
 
     // The properties are by default empty but can be specified for specific fields.
     PrintProperties properties = check_print_properties(xmqGetStringRel(doc, "attributes", field), dd);
+
+    if (properties.hasSTATUS())
+    {
+        bool already_set = dd->driverInfo()->markStatusFieldAsFound();
+        if (already_set)
+        {
+            //string msg = tostrprintf("(driver) error in %s, only one field can be marked as STATUS.\n",
+            //dd->fileName().c_str());
+            //dd->driverInfo()->errorInDriver(msg);
+        }
+    }
 
     const char *deprecated_by = xmqGetStringRel(doc, "deprecated_by", field);
 
@@ -662,7 +696,8 @@ XMQProceed DriverDynamic::add_field(XMQDoc *doc, XMQNode *field, DriverDynamic *
                 info,
                 properties,
                 match,
-                lookup
+                lookup,
+                quantity
                 );
         }
         else
@@ -673,7 +708,8 @@ XMQProceed DriverDynamic::add_field(XMQDoc *doc, XMQNode *field, DriverDynamic *
                 properties,
                 match,
                 ixml,
-                match_entire_payload
+                match_entire_payload,
+                quantity
                 );
             if (match_entire_frame)
             {
@@ -742,7 +778,6 @@ XMQProceed DriverDynamic::add_combinable_raw(XMQDoc *doc, XMQNode *match, Driver
 
    map {
        name  = SURGE
-       info  = 'Unexpected increase in pressure in relation to average pressure.'
        value = 0x02
        test  = set
    }
@@ -760,11 +795,28 @@ uint64_t checked_map_from(XMQDoc *doc, XMQNode *map, DriverDynamic *dd)
 
 XMQProceed DriverDynamic::add_map(XMQDoc *doc, XMQNode *map, DriverDynamic *dd)
 {
-    const char *name = xmqGetStringRel(doc, "name", map);
+    const char *name_s = xmqGetStringRel(doc, "name", map);
+    if (!name_s)
+    {
+        warning("(driver) a map must have a flag name.\n",
+                dd->driverInfo()->getDynamicFileName().c_str());
+        return XMQ_CONTINUE;
+    }
+
+    if (dd->driverInfo()->hasFlagsInDriver() &&
+        dd->tmp_rule_->type == Translate::MapType::BitToString &&
+        !dd->driverInfo()->hasFlag(name_s))
+    {
+        warning("(driver) trying to use (%s) in a map but it is not declared in flags {...}.\n",
+                name_s,
+                dd->driverInfo()->getDynamicFileName().c_str());
+        return XMQ_CONTINUE;
+    }
+
     uint64_t value = checked_map_from(doc, map, dd);
     TestBit test_type = checked_test_type(xmqGetStringRel(doc, "test", map), dd);
 
-    dd->tmp_rule_->add(Translate::Map(value, name, test_type));
+    dd->tmp_rule_->add(Translate::Map(value, name_s, test_type));
 
     return XMQ_CONTINUE;
 }
@@ -786,6 +838,16 @@ XMQProceed DriverDynamic::add_inherited_map(XMQDoc *doc, XMQNode *map, DriverDyn
     const char *name = xmqGetStringRel(doc, "name", map);
     TestBit test_type = checked_test_type(xmqGetStringRel(doc, "test", map), dd);
 
+    if (dd->driverInfo()->hasFlagsInDriver() &&
+        dd->tmp_rule_->type == Translate::MapType::BitToString &&
+        !dd->driverInfo()->hasFlag(name))
+    {
+        warning("(driver) trying to use (%s) in a template map but it is not declared in flags {...}.\n",
+                name,
+                dd->driverInfo()->getDynamicFileName().c_str());
+        return XMQ_CONTINUE;
+    }
+
     dd->tmp_rule_->add(Translate::Map(value, name, test_type));
 
     return XMQ_CONTINUE;
@@ -804,7 +866,6 @@ XMQProceed DriverDynamic::add_inherited_map(XMQDoc *doc, XMQNode *map, DriverDyn
                                    // before mask_bits/map matching, so the same map{}
                                    // table can be reused at different bit offsets.
         default_message    = OK
-        mark_reserved_bits = true // add RESERVED_BIT_<n> for every mask bit not in a map { }
         map { } map {}
     }
 */
@@ -834,17 +895,7 @@ XMQProceed DriverDynamic::add_lookup(XMQDoc *doc, XMQNode *lookup, DriverDynamic
     const char *default_message = xmqGetStringRel(doc, "default_message", lookup);
     if (!default_message && fallback) default_message = xmqGetStringRel(doc, "default_message", fallback);
 
-    bool mark_reserved_bits = check_boolean_property(xmqGetStringRel(doc, "mark_reserved_bits", lookup),
-                                                       "mark_reserved_bits", dd, false);
-
     if (default_message == NULL) default_message = "";
-
-    if (mark_reserved_bits && map_type != Translate::MapType::BitToString)
-    {
-        warning("(driver) error in %s, mark_reserved_bits can only be used with map_type=BitToString.\n",
-                dd->fileName().c_str());
-        throw 1;
-    }
 
     Translate::Rule rule = Translate::Rule(name, map_type);
     dd->tmp_rule_ = &rule;
@@ -856,7 +907,6 @@ XMQProceed DriverDynamic::add_lookup(XMQDoc *doc, XMQNode *lookup, DriverDynamic
         rule.set(PreShiftRight(shift));
     }
     rule.set(DefaultMessage(default_message));
-    rule.markReservedBits(mark_reserved_bits);
 
     xmqForeachRel(doc, "map", (XMQNodeCallback)add_map, dd, lookup);
     if (fallback)
@@ -921,6 +971,34 @@ XMQProceed DriverDynamic::add_default_key(XMQDoc *doc, XMQNode *node, DriverInfo
         return XMQ_CONTINUE;
     }
     di->addDefaultKey(key);
+    return XMQ_CONTINUE;
+}
+
+XMQProceed DriverDynamic::add_flag(XMQDoc *doc, XMQNode *node, DriverInfo *di)
+{
+    di->markHasFlagsInDriver();
+
+    const char *name_s = xmqGetStringRel(doc, "name", node);
+    if (!name_s)
+    {
+        warning("(driver) a declared flag must have a name.\n",
+                di->getDynamicFileName().c_str());
+        return XMQ_CONTINUE;
+    }
+    string name = name_s;
+    const char *info_s = xmqGetStringRel(doc, "info", node); // Is optional.
+    if (!info_s) info_s = "";
+    string info = info_s;
+
+    if (di->hasFlag(name))
+    {
+        warning("(driver) trying to declare flag %s twice.\n",
+                name_s,
+                di->getDynamicFileName().c_str());
+        return XMQ_CONTINUE;
+    }
+    di->addFlag(name, info);
+
     return XMQ_CONTINUE;
 }
 
@@ -1180,12 +1258,17 @@ Quantity check_field_quantity(const char *quantity_s, DriverDynamic *dd)
     return quantity;
 }
 
-Change check_field_change(const char *change_s, DriverDynamic *dd)
+Change check_field_change(Quantity q, const char *change_s, DriverDynamic *dd)
 {
     if (!change_s)
     {
         // It is permitted not to have a change setting for backwards compatibility reasons.
-        return Change::Instant;
+        // Also we can make an educated guess on the change for different quantities.
+        // Like Temperature becomes Sample and Energy becomes Increasing.
+        // If you create a calculated field: net_water_m3 = total_m3 - total_backward_3
+        // then you should mark it with change = Net, since the default will be Increasing.
+
+        return defaultChangeForQuantity(q);
     }
 
     Change change = toChange(change_s);

@@ -25,7 +25,7 @@ driver {
     fields {
         field {
             name       = status
-            quantity   = Text
+            quantity   = Flags
             info       = 'Meter status from tpl field.'
             attributes = INCLUDE_TPL_STATUS
         }

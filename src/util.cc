@@ -482,7 +482,7 @@ void eatWhitespace(vector<char> &v, vector<char>::iterator &i, bool *eof)
 
 void trimWhitespace(string *s)
 {
-    const char *ws = " \t";
+    const char *ws = " \t\n\r";
     s->erase(0, s->find_first_not_of(ws));
     s->erase(s->find_last_not_of(ws) + 1);
 }
