@@ -19,17 +19,13 @@ driver {
             }
         }
         field {
-            name           = total_energy_consumption
-            quantity       = Energy
-            info           = 'The total energy consumption recorded by this meter.'
-            vif_scaling    = Auto
-            dif_signedness = Signed
+            name     = total_energy_consumption
+            quantity = Energy
+            info     = 'The total energy consumption recorded by this meter.'
             match {
                 measurement_type = Instantaneous
                 vif_range        = AnyEnergyVIF
-                index_nr         = 1
                 storage_nr       = 0
-                tariff_nr        = 0
             }
         }
         field {
@@ -40,23 +36,17 @@ driver {
             match {
                 measurement_type = Instantaneous
                 vif_range        = DateTime
-                index_nr         = 1
                 storage_nr       = 1
-                tariff_nr        = 0
             }
         }
         field {
-            name           = key_datetime
-            quantity       = Energy
-            info           = 'The total energy consumption recorded at key (billing) date'
-            vif_scaling    = Auto
-            dif_signedness = Signed
+            name     = key_datetime
+            quantity = Energy
+            info     = 'The total energy consumption recorded at key (billing) date'
             match {
                 measurement_type = Instantaneous
                 vif_range        = AnyEnergyVIF
-                index_nr         = 1
                 storage_nr       = 1
-                tariff_nr        = 0
             }
         }
         field {
@@ -67,71 +57,54 @@ driver {
             match {
                 measurement_type = Instantaneous
                 vif_range        = DateTime
-                index_nr         = 1
                 storage_nr       = 2
-                tariff_nr        = 0
             }
         }
         field {
-            name           = 'prev_{storage_counter-1counter}_month'
-            quantity       = Energy
-            info           = 'Previous month energy.'
-            vif_scaling    = Auto
-            dif_signedness = Signed
+            name     = 'prev_{storage_counter-1counter}_month'
+            quantity = Energy
+            info     = 'Previous month energy.'
             match {
                 measurement_type = Instantaneous
                 vif_range        = AnyEnergyVIF
-                index_nr         = 1
                 storage_nr       = 2,14
-                tariff_nr        = 0
             }
         }
         field {
-            name           = actuality_duration
-            quantity       = Time
-            info           = 'The time between the measurement and the sending of this telegram.'
-            vif_scaling    = Auto
-            dif_signedness = Signed
+            name     = actuality_duration
+            quantity = Time
+            info     = 'The time between the measurement and the sending of this telegram.'
             match {
                 measurement_type = Instantaneous
                 vif_range        = ActualityDuration
             }
         }
         field {
-            name           = time_without_measurement
-            quantity       = Time
-            info           = 'How long the meter has been in an error state and unable to measure values, while powered up.'
-            vif_scaling    = Auto
-            dif_signedness = Signed
+            name     = time_without_measurement
+            quantity = Time
+            info     = 'How long the meter has been in an error state and unable to measure values, while powered up.'
             match {
                 measurement_type = AtError
                 vif_range        = OnTime
             }
         }
         field {
-            name           = total_volume
-            quantity       = Volume
-            info           = 'The total heating media volume recorded by this meter.'
-            vif_scaling    = Auto
-            dif_signedness = Signed
+            name     = total
+            quantity = Volume
+            info     = 'The total heating media volume recorded by this meter.'
             match {
                 measurement_type = Instantaneous
                 vif_range        = Volume
-                storage_nr       = 0
-                tariff_nr        = 0
             }
         }
         field {
-            name           = 'prev_{storage_counter-1counter}_month'
-            quantity       = Volume
-            info           = 'Previous month volume.'
-            vif_scaling    = Auto
-            dif_signedness = Signed
+            name     = 'prev_{storage_counter-1counter}_month'
+            quantity = Volume
+            info     = 'Previous month volume.'
             match {
                 measurement_type = Instantaneous
                 vif_range        = Volume
                 storage_nr       = 2,14
-                tariff_nr        = 0
             }
         }
         field {
@@ -267,7 +240,7 @@ driver {
             comment  = 'Landis+Gyr ULTRAHEAT T330, raw data example F001 from TKB3551c with error F0 set.'
             args     = 'Heat qheat_55_us 29071980 NOKEY'
             telegram = 4544A732801907290A047AFB1000200C06063701000C14229705008C0106843601008C01142882050084016D3B179F284C0668020100446D3B179F2C046D2708B7290F000001
-            json     = '{"_":"telegram","media":"heat","driver":"qheat_55_us","name":"Heat","id":"29071980","device_datetime":"2021-09-23 08:39","total_energy_consumption_kwh":13706,"key_datetime":"2020-12-31 23:59","key_datetime_kwh":10268,"prev_month_datetime":"2020-08-31 23:59","prev_1_month_kwh":13684,"total_volume_m3":597.22,"prev_1_month_m3":582.28,"status":"F0_FLOW_ERROR TEMPORARY_ERROR","timestamp":"1111-11-11T11:11:11Z"}'
+            json     = '{"_":"telegram","media":"heat","driver":"qheat_55_us","name":"Heat","id":"29071980","device_datetime":"2021-09-23 08:39","total_energy_consumption_kwh":13706,"key_datetime":"2020-12-31 23:59","key_datetime_kwh":10268,"prev_month_datetime":"2020-08-31 23:59","prev_1_month_kwh":13684,"total_m3":597.22,"prev_1_month_m3":582.28,"status":"F0_FLOW_ERROR TEMPORARY_ERROR","timestamp":"1111-11-11T11:11:11Z"}'
             fields   = 'Heat;29071980;13706;10268;1111-11-11 11:11.11'
         }
         test {
