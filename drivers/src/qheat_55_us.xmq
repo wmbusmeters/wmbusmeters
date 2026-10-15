@@ -110,7 +110,7 @@ driver {
         }
         field {
             name       = status
-            quantity   = Text
+            quantity   = Flags
             info       = 'Error flags from the manufacturer specific data, as shown on the display (F0-F9, FL nEG, DIFF nEG).'
             attributes = STATUS,INCLUDE_TPL_STATUS
             match {
