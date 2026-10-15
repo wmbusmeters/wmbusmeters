@@ -27,6 +27,28 @@ driver {
         use = flow_temperature_c
         use = return_temperature_c
     }
+    flags {
+        flag {
+            name = RADIO_MODULE_BATTERY_LOW
+            info = 'The battery of the radio module is low.'
+        }
+        flag {
+            name = OPEN_COVER
+            info = 'The cover of the meter is open.'
+        }
+        flag {
+            name = MEMORY_ERROR
+            info = 'The memory of the meter reports an error.'
+        }
+        flag {
+            name = TEMP_SENSOR_ERROR
+            info = 'A temperature sensor reports an error.'
+        }
+        flag {
+            name = BATTERY_LOW
+            info = 'The battery is low.'
+        }
+    }
     fields {
         field {
             name       = status

@@ -17,6 +17,88 @@ driver {
         use = volume_flow_m3h
         use = operating_time_h
     }
+    flags {
+        flag {
+            name = P_MAGNETIC_FIELD
+            info = 'A magnetic field has been detected, stored since the event flags were last cleared.'
+        }
+        flag {
+            name = P_STRONG_LIGHT
+            info = 'Strong light above the configured threshold has been detected at the optical sensor, stored since the event flags were last cleared.'
+        }
+        flag {
+            name = P_MBUS_DISCONNECTED
+            info = 'The device has been disconnected, stored since the event flags were last cleared.'
+        }
+        flag {
+            name = P_DETECTION_WITHOUT_CHANGES
+            info = 'The reading has not changed for longer than the configured threshold, stored since the event flags were last cleared.'
+        }
+        flag {
+            name = P_MINIMUM_FLOW
+            info = 'The flow is below the configured minimum flow threshold, stored since the event flags were last cleared.'
+        }
+        flag {
+            name = P_MAXIMUM_FLOW
+            info = 'The flow is above the configured maximum flow threshold, stored since the event flags were last cleared.'
+        }
+        flag {
+            name = P_REVERSE_FLOW
+            info = 'Reverse flow above the configured threshold has been detected, stored since the event flags were last cleared.'
+        }
+        flag {
+            name = P_LEAK
+            info = 'A leak has been detected, based on the configured leak threshold, stored since the event flags were last cleared.'
+        }
+        flag {
+            name = P_PROCESSOR_RESET
+            info = 'The processor of the module has been reset, stored since the event flags were last cleared.'
+        }
+        flag {
+            name = P_CLOCK_HAND_ERROR
+            info = 'The position of the meter dial pointer could not be detected, stored since the event flags were last cleared.'
+        }
+        flag {
+            name = BATTERY_LOW
+            info = 'The battery voltage is below the configured threshold, stored since the event flags were last cleared.'
+        }
+        flag {
+            name = P_DETECTOR_ERROR
+            info = 'The detector of the module has failed, stored since the event flags were last cleared.'
+        }
+        flag {
+            name = MAGNETIC_FIELD
+            info = 'A magnetic field has been detected (current state).'
+        }
+        flag {
+            name = STRONG_LIGHT
+            info = 'Strong light above the configured threshold has been detected at the optical sensor (current state).'
+        }
+        flag {
+            name = MBUS_DISCONNECTED
+            info = 'The device has been disconnected (current state).'
+        }
+        flag {
+            name = DETECTION_WITHOUT_CHANGES
+            info = 'The reading has not changed for longer than the configured threshold (current state).'
+        }
+        flag {
+            name = MINIMUM_FLOW
+            info = 'The flow is below the configured minimum flow threshold (current state).'
+        }
+        flag {
+            name = MAXIMUM_FLOW
+            info = 'The flow is above the configured maximum flow threshold (current state).'
+        }
+        flag {
+            name = REVERSE_FLOW
+            info = 'Reverse flow above the configured threshold has been detected (current state).'
+        }
+        flag {
+            name = PROCESSOR_RESET
+            info = 'The processor of the module has been reset (current state).'
+        }
+    }
     fields {
         // difvifkey = 04FF0A = optical_diagnostic, bits unknown.
         // difvifkey = 02FF0B = oscillator_diagnostic, bits unknown.
