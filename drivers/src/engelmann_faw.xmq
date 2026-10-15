@@ -10,6 +10,40 @@ driver {
     compact_frame_formats {
         difvif = 426C441301FD17840113C40113840213C40213840313C40313840413C40413840513C40513840613C40613840713C40713840813046D0413
     }
+    flags {
+        flag {
+            name = VOLUME_DETECTION_COILS_DEFECT
+            info = 'The coils of the volume detection are defective.'
+        }
+        flag {
+            name = RESET
+            info = 'The meter has been reset.'
+        }
+        flag {
+            name = CRC_ERROR
+            info = 'A checksum (CRC) error has been detected.'
+        }
+        flag {
+            name = REMOVAL_DETECTED
+            info = 'The removal of the meter has been detected.'
+        }
+        flag {
+            name = MAGNETIC_MANIPULATION
+            info = 'Magnetic manipulation has been detected.'
+        }
+        flag {
+            name = LEAKAGE
+            info = 'A leakage has been detected.'
+        }
+        flag {
+            name = BLOCKED
+            info = 'The meter is blocked, no water flows.'
+        }
+        flag {
+            name = REVERSE_FLOW
+            info = 'The water flows through the meter in the wrong direction.'
+        }
+    }
     fields {
         field {
             name     = total

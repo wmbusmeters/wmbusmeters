@@ -6,6 +6,32 @@ driver {
     detect {
         mvt = LAS,03,1a
     }
+    flags {
+        flag {
+            name = LOW_BATTERY
+            info = 'The battery is low.'
+        }
+        flag {
+            name = SMOKE
+            info = 'Smoke has been detected.'
+        }
+        flag {
+            name = MANUAL_TEST
+            info = 'The smoke detector has been tested manually.'
+        }
+        flag {
+            name = MALFUNCTION
+            info = 'The smoke detector reports a malfunction.'
+        }
+        flag {
+            name = NO_CONNECTION_TO_SMOKE_DETECTOR
+            info = 'There is no connection to the smoke detector.'
+        }
+        flag {
+            name = SMOKE_SENSOR_END_OF_LIFE
+            info = 'The smoke sensor has reached its end of life.'
+        }
+    }
     fields {
         field {
             name       = status

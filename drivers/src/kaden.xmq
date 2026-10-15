@@ -15,6 +15,24 @@ driver {
         use = 'external_temperature_c|Corrected room temperature.'
         use = 'flow_temperature_c|Radiator surface temperature.'
     }
+    flags {
+        flag {
+            name = VOLTAGE_INTERRUPTED
+            info = 'The supply voltage has been interrupted.'
+        }
+        flag {
+            name = SENSOR_T2_OUTSIDE_MEASURING_RANGE
+            info = 'Temperature sensor T2 is outside its measuring range.'
+        }
+        flag {
+            name = TAMPERING
+            info = 'Tampering with the meter has been detected.'
+        }
+        flag {
+            name = SENSOR_T3_OUTSIDE_MEASURING_RANGE
+            info = 'Temperature sensor T3 is outside its measuring range.'
+        }
+    }
     fields {
         field {
             name       = status

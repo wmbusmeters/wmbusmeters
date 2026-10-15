@@ -40,6 +40,52 @@ driver {
         use = target_hca
         use = target_date
     }
+    flags {
+        flag {
+            name = EVENT_GROUP_A
+            info = 'Unknown flag, please contact the wmbusmeters project to contribute knowledge.'
+        }
+        flag {
+            name = EVENT_GROUP_B
+            info = 'Unknown flag, please contact the wmbusmeters project to contribute knowledge.'
+        }
+        flag {
+            name = EVENT_GROUP_C
+            info = 'Unknown flag, please contact the wmbusmeters project to contribute knowledge.'
+        }
+        flag {
+            name = NOT_CONFIGURED
+            info = 'The allocator is not configured yet.'
+        }
+        flag {
+            name = VERIFICATION_PENDING
+            info = 'The verification of the allocator is pending.'
+        }
+        flag {
+            name = TAMPERING
+            info = 'Tampering with the allocator has been detected.'
+        }
+        flag {
+            name = HEATER_TEMPERATURE_OUT_OF_RANGE
+            info = 'The radiator temperature is out of the measuring range.'
+        }
+        flag {
+            name = HEATER_TEMPERATURE_LOW
+            info = 'The radiator temperature is low.'
+        }
+        flag {
+            name = CONSUMPTION_OVERFLOW
+            info = 'The consumption counter has overflowed.'
+        }
+        flag {
+            name = OSCILLATOR_ERROR
+            info = 'The oscillator of the allocator reports an error.'
+        }
+        flag {
+            name = POWER_FAILURE
+            info = 'The power supply has failed.'
+        }
+    }
     fields {
         field {
             name       = status

@@ -7,6 +7,32 @@ driver {
         mvt = INE,55,08
         mvt = RAM,55,08
     }
+    flags {
+        flag {
+            name = MEASUREMENT
+            info = 'A measurement error has been detected.'
+        }
+        flag {
+            name = SABOTAGE
+            info = 'Tampering with the device has been detected.'
+        }
+        flag {
+            name = BATTERY
+            info = 'The battery is low.'
+        }
+        flag {
+            name = CS
+            info = 'Unknown flag, please contact the wmbusmeters project to contribute knowledge.'
+        }
+        flag {
+            name = HF
+            info = 'Unknown flag, please contact the wmbusmeters project to contribute knowledge.'
+        }
+        flag {
+            name = RESET
+            info = 'The device has been reset.'
+        }
+    }
     fields {
         field {
             name       = status

@@ -13,6 +13,36 @@ driver {
         use = meter_datetime
         use = battery_v
     }
+    flags {
+        flag {
+            name = SU
+            info = 'The repeater listens on Sundays.'
+        }
+        flag {
+            name = MO
+            info = 'The repeater listens on Mondays.'
+        }
+        flag {
+            name = TU
+            info = 'The repeater listens on Tuesdays.'
+        }
+        flag {
+            name = WE
+            info = 'The repeater listens on Wednesdays.'
+        }
+        flag {
+            name = TH
+            info = 'The repeater listens on Thursdays.'
+        }
+        flag {
+            name = FR
+            info = 'The repeater listens on Fridays.'
+        }
+        flag {
+            name = SA
+            info = 'The repeater listens on Saturdays.'
+        }
+    }
     fields {
         field {
             name       = status

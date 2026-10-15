@@ -16,6 +16,52 @@ driver {
         mvt = DME,78,06
         mvt = HYD,86,07
     }
+    flags {
+        flag {
+            name = LEAKAGE
+            info = 'A leakage has been detected.'
+        }
+        flag {
+            name = METER_BLOCKED
+            info = 'The meter is blocked, no water flows.'
+        }
+        flag {
+            name = BACK_FLOW
+            info = 'The water flows through the meter in the wrong direction.'
+        }
+        flag {
+            name = UNDERFLOW
+            info = 'The flow is below the minimum flow rate.'
+        }
+        flag {
+            name = OVERFLOW
+            info = 'The flow is above the maximum flow rate.'
+        }
+        flag {
+            name = SUBMARINE
+            info = 'The meter is under water.'
+        }
+        flag {
+            name = SENSOR_FRAUD
+            info = 'A fraud attempt on the sensor has been detected.'
+        }
+        flag {
+            name = MECHANICAL_FRAUD
+            info = 'A mechanical fraud attempt has been detected.'
+        }
+        flag {
+            name = PREV_LEAKAGE
+            info = 'A leakage was detected in the previous period.'
+        }
+        flag {
+            name = PREV_SENSOR_FRAUD
+            info = 'A fraud attempt on the sensor was detected in the previous period.'
+        }
+        flag {
+            name = PREV_MECHANICAL_FRAUD
+            info = 'A mechanical fraud attempt was detected in the previous period.'
+        }
+    }
     fields {
         field {
             name     = prefix

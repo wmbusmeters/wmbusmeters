@@ -7,6 +7,60 @@ driver {
     detect {
         mvt = GSS,01,02
     }
+    flags {
+        flag {
+            name = METER_HARDWARE_ERROR
+            info = 'The hardware of the meter reports an error.'
+        }
+        flag {
+            name = RTC_ERROR
+            info = 'The real time clock reports an error.'
+        }
+        flag {
+            name = DSP_COMMUNICATION_ERROR
+            info = 'The communication with the measuring chip (DSP) has failed.'
+        }
+        flag {
+            name = DSP_HARDWARE_ERROR
+            info = 'The measuring chip (DSP) reports a hardware error.'
+        }
+        flag {
+            name = RAM_ERROR
+            info = 'The RAM memory reports an error.'
+        }
+        flag {
+            name = ROM_ERROR
+            info = 'The ROM memory reports an error.'
+        }
+        flag {
+            name = DEVICE_NOT_CONFIGURED
+            info = 'The meter is not configured.'
+        }
+        flag {
+            name = INTERNAL_ERROR
+            info = 'The meter reports an internal error.'
+        }
+        flag {
+            name = BATTERY_LOW
+            info = 'The battery is low.'
+        }
+        flag {
+            name = MAGNETIC_FRAUD_PRESENT
+            info = 'A magnetic fraud attempt is going on now.'
+        }
+        flag {
+            name = MAGNETIC_FRAUD_PAST
+            info = 'A magnetic fraud attempt has been detected in the past.'
+        }
+        flag {
+            name = CALIBRATION_EEPROM_ERROR
+            info = 'The calibration memory (EEPROM) reports an error.'
+        }
+        flag {
+            name = EEPROM1_ERROR
+            info = 'The EEPROM memory reports an error.'
+        }
+    }
     fields {
         field {
             name       = status

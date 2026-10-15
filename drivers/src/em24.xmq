@@ -10,6 +10,32 @@ driver {
     compact_frame_formats {
         difvif = 040504FB827504853C04FB82F53C01FD17
     }
+    flags {
+        flag {
+            name = V_1_OVERFLOW
+            info = 'The voltage on phase 1 is out of range.'
+        }
+        flag {
+            name = V_2_OVERFLOW
+            info = 'The voltage on phase 2 or 3 is out of range.'
+        }
+        flag {
+            name = I_1_OVERFLOW
+            info = 'The current on phase 1 is out of range.'
+        }
+        flag {
+            name = I_2_OVERFLOW
+            info = 'The current on phase 2 is out of range.'
+        }
+        flag {
+            name = I_3_OVERFLOW
+            info = 'The current on phase 3 is out of range.'
+        }
+        flag {
+            name = FREQUENCY
+            info = 'The frequency is out of range.'
+        }
+    }
     fields {
         field {
             name       = status

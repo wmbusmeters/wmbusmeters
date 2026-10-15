@@ -53,6 +53,28 @@ driver {
         use = target_hca
         use = target_date
     }
+    flags {
+        flag {
+            name = BATTERY_WARNING
+            info = 'The battery is running low.'
+        }
+        flag {
+            name = INVALID_METROLOGICAL_TABLE
+            info = 'The metrological table of the allocator is invalid.'
+        }
+        flag {
+            name = REMOVAL
+            info = 'The allocator has been removed from the radiator.'
+        }
+        flag {
+            name = MODE_2F
+            info = 'The allocator measures in two-sensor mode.'
+        }
+        flag {
+            name = PRODUCT_SCALE
+            info = 'The allocator uses the product scale instead of the unit scale.'
+        }
+    }
     fields {
         field {
             name       = status

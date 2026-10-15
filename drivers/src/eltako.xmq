@@ -6,6 +6,16 @@ driver {
     detect {
         mvt = ELT,01,02
     }
+    flags {
+        flag {
+            name = GENERIC_APP_ERROR
+            info = 'The meter reports an application error.'
+        }
+        flag {
+            name = CURRENT_LOW
+            info = 'The current is low.'
+        }
+    }
     fields {
         field {
             name     = status
