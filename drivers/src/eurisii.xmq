@@ -3,6 +3,7 @@ driver {
     name           = eurisii
     meter_type     = HeatCostAllocationMeter
     default_fields = name,id,current_consumption_hca,status,timestamp
+    manufacturer   = Innotas
     detect {
         mvt = INE,55,08
         mvt = RAM,55,08

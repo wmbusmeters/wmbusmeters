@@ -3,6 +3,7 @@ driver {
     name           = nzr
     default_fields = name,id,status,total_energy_consumption_kwh,timestamp
     meter_type     = ElectricityMeter
+    manufacturer   = NZR
     detect {
         mvt = NZR,00,02
     }

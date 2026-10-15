@@ -3,6 +3,7 @@ driver {
     name           = ebzwmbe
     meter_type     = ElectricityMeter
     default_fields = name,id,total_energy_consumption_kwh,current_power_consumption_kw,current_power_consumption_phase1_kw,current_power_consumption_phase2_kw,current_power_consumption_phase3_kw,timestamp
+    manufacturer   = eBZ
     detect {
         mvt = EBZ,01,02
     }

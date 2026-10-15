@@ -3,6 +3,7 @@ driver {
     name           = supercom587
     meter_type     = WaterMeter
     default_fields = name,id,total_m3,timestamp
+    manufacturer   = Sontex
     detect {
         mvt = SON,3c,06
         mvt = SON,3c,07

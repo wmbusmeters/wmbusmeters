@@ -3,6 +3,7 @@ driver {
     name           = cma12w
     meter_type     = TempHygroMeter
     default_fields = name,id,current_temperature_c,timestamp
+    manufacturer   = Elvaco
     detect {
         mvt = ELV,20,1b
         mvt = ELV,1f,1b

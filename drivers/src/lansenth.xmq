@@ -3,6 +3,7 @@ driver {
     name           = lansenth
     meter_type     = TempHygroMeter
     default_fields = name,id,current_temperature_c,current_relative_humidity_rh,timestamp
+    manufacturer   = Lansen
     detect {
         mvt = LAS,07,1b
         mvt = LAS,09,1b

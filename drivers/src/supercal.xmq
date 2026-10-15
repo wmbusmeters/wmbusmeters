@@ -3,6 +3,7 @@ driver {
     name           = supercal
     default_fields = name,id,total_kwh,timestamp
     meter_type     = HeatMeter
+    manufacturer   = Sontex
     detect {
         mvt = SON,1b,04
     }

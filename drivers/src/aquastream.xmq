@@ -3,6 +3,7 @@ driver {
     name           = aquastream
     meter_type     = WaterMeter
     default_fields = name,id,total_m3,timestamp
+    manufacturer   = Integra
     detect {
         mvt = IMT,01,07
     }

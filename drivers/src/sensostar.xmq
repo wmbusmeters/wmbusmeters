@@ -4,6 +4,7 @@ driver {
     name           = sensostar
     meter_type     = HeatMeter
     default_fields = name,id,status,total_kwh,total_water_m3,target_date,target_kwh,timestamp
+    manufacturer   = Engelmann
     detect {
         mvt = EFE,00,04
     }

@@ -3,6 +3,7 @@ driver {
     name           = lansenpu
     meter_type     = PulseCounter
     default_fields = name,id,status,a_counter,b_counter,timestamp
+    manufacturer   = Lansen
     detect {
         mvt = LAS,14,00
         mvt = LAS,1b,00

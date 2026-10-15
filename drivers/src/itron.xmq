@@ -3,6 +3,7 @@ driver {
     name           = itron
     meter_type     = WaterMeter
     default_fields = name,id,total_m3,target_m3,timestamp
+    manufacturer   = Itron
     detect {
         mvt = ITW,00,07
         mvt = ITW,03,07

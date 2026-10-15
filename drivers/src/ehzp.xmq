@@ -3,6 +3,7 @@ driver {
     name           = ehzp
     meter_type     = ElectricityMeter
     default_fields = name,id,total_energy_consumption_kwh,current_power_consumption_kw,total_energy_production_kwh,timestamp
+    manufacturer   = EMH
     detect {
         mvt = EMH,02,02
         mvt = EMH,00,02

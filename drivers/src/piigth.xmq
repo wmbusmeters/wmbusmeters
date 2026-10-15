@@ -3,6 +3,7 @@ driver {
     name           = piigth
     meter_type     = TempHygroMeter
     default_fields = name,id,status,temperature_c,relative_humidity_rh,timestamp
+    manufacturer   = PiiGAB
     detect {
         mvt = PII,01,1b
     }

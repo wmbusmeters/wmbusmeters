@@ -3,6 +3,7 @@ driver {
     name           = eltako
     default_fields = name,id,total_kwh,timestamp
     meter_type     = ElectricityMeter
+    manufacturer   = Eltako
     detect {
         mvt = ELT,01,02
     }

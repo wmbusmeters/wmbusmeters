@@ -4,6 +4,7 @@ driver {
     name           = gransystems
     meter_type     = ElectricityMeter
     default_fields = name,id,total_energy_consumption_kwh,timestamp
+    manufacturer   = Gran-System-S
     detect {
         mvt = GSS,01,02
     }

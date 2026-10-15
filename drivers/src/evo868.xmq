@@ -3,6 +3,7 @@ driver {
     name           = evo868
     meter_type     = WaterMeter
     default_fields = name,id,total_m3,current_status,consumption_at_set_date_m3,set_date,timestamp
+    manufacturer   = Maddalena
     detect {
         mvt = MAD,50,06
         mvt = MAD,50,07

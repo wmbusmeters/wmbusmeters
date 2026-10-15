@@ -3,6 +3,7 @@ driver {
     name           = ei6500
     meter_type     = SmokeDetector
     default_fields = name,id,status,last_alarm_date,alarm_counter,timestamp
+    manufacturer   = 'Ei Electronics'
     detect {
         mvt = EIE,0c,1a
     }

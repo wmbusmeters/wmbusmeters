@@ -4,6 +4,7 @@ driver {
     aliases        = engelmann-faw
     meter_type     = WaterMeter
     default_fields = name,id,status,reporting_date,consumption_at_reporting_date_m3,timestamp
+    manufacturer   = Engelmann
     detect {
         mvt = EFE,00,07
     }

@@ -3,6 +3,7 @@ driver {
     name           = abbb23
     meter_type     = ElectricityMeter
     default_fields = name,id,total_energy_consumption_kwh,timestamp
+    manufacturer   = ABB
     detect {
         mvt = ABB,20,02
     }

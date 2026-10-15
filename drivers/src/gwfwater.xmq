@@ -12,6 +12,7 @@ driver {
     name           = gwfwater
     meter_type     = WaterMeter
     default_fields = name,id,total_m3,timestamp
+    manufacturer   = GWF
     detect {
         mvt = GWF,01,0E
         mvt = GWF,3C,07

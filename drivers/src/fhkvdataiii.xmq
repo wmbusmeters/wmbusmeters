@@ -3,6 +3,7 @@ driver {
     name           = fhkvdataiii
     meter_type     = HeatCostAllocationMeter
     default_fields = name,id,current_hca,current_date,previous_hca,previous_date,temp_room_c,temp_radiator_c,timestamp
+    manufacturer   = Techem
     detect {
         mvt = TCH,69,80
         mvt = TCH,94,80

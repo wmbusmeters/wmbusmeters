@@ -16,6 +16,7 @@ driver {
     aliases        = zennerhca
     meter_type     = HeatCostAllocationMeter
     default_fields = name,id,status,consumption_hca,target_hca,target_date,timestamp
+    manufacturer   = Zenner
     detect {
         mvt = ZRI,FC,08
     }

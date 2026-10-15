@@ -5,6 +5,7 @@ driver {
     name           = lansenrp
     meter_type     = Repeater
     default_fields = name,id,status,total_routed_messages_counter,used_router_slots_counter,is_repeater_listening,timestamp
+    manufacturer   = Lansen
     detect {
         mvt = LAS,0b,32
     }

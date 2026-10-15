@@ -18,6 +18,7 @@ driver {
     name           = istaheat
     meter_type     = HeatMeter
     default_fields = name,id,status,total_kwh,target_kwh,timestamp
+    manufacturer   = Ista
     detect {
         mvt = IST,a9,04
         mvt = IST,a9,0c

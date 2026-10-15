@@ -3,6 +3,7 @@ driver {
     name           = microclima
     meter_type     = HeatMeter
     default_fields = name,id,status,total_energy_consumption_kwh,total_volume_m3,timestamp
+    manufacturer   = Maddalena
     detect {
         mvt = MAD,00,04
     }

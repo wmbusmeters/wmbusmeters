@@ -3,6 +3,7 @@ driver {
     name           = qualcosonic
     meter_type     = HeatCoolingMeter
     default_fields = name,id,status,total_heat_energy_kwh,total_cooling_energy_kwh,power_kw,target_datetime,target_heat_energy_kwh,target_cooling_energy_kwh,timestamp
+    manufacturer   = Axioma
     detect {
         mvt = AXI,0b,0d
         mvt = AXI,0c,0d

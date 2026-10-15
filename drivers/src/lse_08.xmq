@@ -3,6 +3,7 @@ driver {
     name           = lse_08
     meter_type     = HeatCostAllocationMeter
     default_fields = name,id,set_date,consumption_at_set_date_hca,timestamp
+    manufacturer   = Qundis
     detect {
         mvt = LSE,01,08
     }
