@@ -18,7 +18,11 @@ driver {
         }
         flag {
             name = V_2_OVERFLOW
-            info = 'The voltage on phase 2 or 3 is out of range.'
+            info = 'The voltage on phase 2 is out of range.'
+        }
+        flag {
+            name = V_3_OVERFLOW
+            info = 'The voltage on phase 3 is out of range.'
         }
         flag {
             name = I_1_OVERFLOW
@@ -63,7 +67,7 @@ driver {
                     test  = Set
                 }
                 map {
-                    name  = V_2_OVERFLOW
+                    name  = V_3_OVERFLOW
                     value = 0x04
                     test  = Set
                 }
@@ -114,7 +118,7 @@ driver {
                     test  = Set
                 }
                 map {
-                    name  = V_2_OVERFLOW
+                    name  = V_3_OVERFLOW
                     value = 0x04
                     test  = Set
                 }
