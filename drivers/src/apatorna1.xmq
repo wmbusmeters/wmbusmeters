@@ -18,15 +18,15 @@ driver {
         }
         flag {
             name = MAX_SPEED_EXCEEDED
-            info = 'The maximum flow speed has been exceeded.'
+            info = 'The pointer of the meter turns faster than the speed up to which correct counting is guaranteed.'
         }
         flag {
             name = DEVICE_ACCESS_ERROR
-            info = 'Accessing the device failed.'
+            info = 'More than 30 failed radio communication attempts with the module, e.g. a wrong encryption key or a wrongly addressed or malformed message.'
         }
         flag {
             name = TWO_WAY_COM_BLOCK
-            info = 'Two-way communication is blocked.'
+            info = 'Two-way radio communication is blocked for a while, the module has used up its message credits (battery protection).'
         }
         flag {
             name = INSTALL_FRAME
@@ -34,7 +34,7 @@ driver {
         }
         flag {
             name = WRONG_TEMPERATURE
-            info = 'The temperature is outside of the allowed range.'
+            info = 'The temperature of the module is below -15 degrees C or above 60 degrees C.'
         }
         flag {
             name = SERVICE_EVENT
@@ -42,39 +42,39 @@ driver {
         }
         flag {
             name = MINIMUM_FLOW
-            info = 'The flow is below the minimum flow rate of the meter.'
+            info = 'The flow is below the configured minimum flow for longer than the configured time.'
         }
         flag {
             name = MAXIMUM_FLOW
-            info = 'The flow is above the maximum flow rate of the meter.'
+            info = 'The flow is above the configured maximum flow for longer than the configured time.'
         }
         flag {
             name = REVERSE_FLOW
-            info = 'The water flows through the meter in the wrong direction.'
+            info = 'Reverse flow above the configured reverse volume threshold has been detected.'
         }
         flag {
             name = MEASUREMENT_UNCHANGED
-            info = 'The measured volume has not changed.'
+            info = 'No flow, or only very small volume increments, for longer than the configured time.'
         }
         flag {
             name = LEAK
-            info = 'A leak has been detected.'
+            info = 'Continuous flow for longer than the configured time, which indicates a leak.'
         }
         flag {
             name = DEVICE_DISCONNECTED
-            info = 'The device reports that it has been disconnected.'
+            info = 'The radio module has been removed from the water meter. After mounting it again the event must be cleared and the meter reading stored again.'
         }
         flag {
             name = MAGNETIC_FIELD
-            info = 'A magnetic field has been detected, possibly a tampering attempt.'
+            info = 'A strong external magnetic field has been detected.'
         }
         flag {
             name = BATTERY_LOW
-            info = 'The battery is low.'
+            info = 'The battery voltage is too low.'
         }
         flag {
             name = BATTERY_LIFETIME_THRESHOLD_EXCEEDED
-            info = 'The battery lifetime threshold has been exceeded.'
+            info = 'The battery charge is below the configured threshold.'
         }
     }
     fields {
@@ -262,8 +262,8 @@ driver {
         }
         field {
             name     = frame_status
-            quantity = Text
-            info     = 'Status flags stored in the unencrypted manufacturer payload byte.'
+            quantity = Flags
+            info     = 'Status flags from the unencrypted manufacturer payload byte: events (pointer speed, radio access error, two-way communication block, module temperature) and frame information (summer time, historical indication, installation frame, service event).'
             match {
                 difvifkey = 01FB10
             }
@@ -371,7 +371,7 @@ driver {
         field {
             name     = historic_status
             quantity = Flags
-            info     = 'Historic alarm and tamper flags from the decrypted payload.'
+            info     = 'Stored alarm and tamper flags from the decrypted payload. According to the APT-WMBUS-NA-1 documentation every event has a current and a stored flag, the stored flag stays set after the event has ended until the flags are cleared.'
             match {
                 difvifkey = 01FB12
             }
