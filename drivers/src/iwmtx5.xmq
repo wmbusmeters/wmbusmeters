@@ -3,6 +3,7 @@ driver {
     name           = iwmtx5
     meter_type     = WaterMeter
     default_fields = name,id,status,total_m3,timestamp
+    manufacturer   = BMeters
     detect {
         mvt = BMT,18,07
         mvt = BMT,18,06

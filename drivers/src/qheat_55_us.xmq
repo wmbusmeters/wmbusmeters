@@ -3,6 +3,7 @@ driver {
     name           = qheat_55_us
     meter_type     = HeatMeter
     default_fields = name,id,total_energy_consumption_kwh,key_datetime_kwh,timestamp
+    manufacturer   = Landis+Gyr
     detect {
         mvt = LUG,07,04
         mvt = LUG,0a,04

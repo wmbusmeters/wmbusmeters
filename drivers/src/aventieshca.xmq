@@ -3,6 +3,7 @@ driver {
     name           = aventieshca
     meter_type     = HeatCostAllocationMeter
     default_fields = name,id,current_consumption_hca,error_flags,timestamp
+    manufacturer   = Aventies
     detect {
         mvt = AAA,55,08
     }

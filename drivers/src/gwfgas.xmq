@@ -3,6 +3,7 @@ driver {
     name           = gwfgas
     meter_type     = GasMeter
     default_fields = name,id,total_m3,target_m3,timestamp
+    manufacturer   = GWF
     detect {
         mvt = GWF,3c,03
     }

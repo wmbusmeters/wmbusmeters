@@ -5,6 +5,7 @@ driver {
     name           = minomess
     meter_type     = WaterMeter
     default_fields = name,id,status,total_m3,target_m3,timestamp
+    manufacturer   = Zenner
     detect {
         mvt = ZRI,00,07
         mvt = ZRI,01,16

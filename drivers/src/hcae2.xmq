@@ -4,6 +4,7 @@ driver {
     name           = hcae2
     meter_type     = HeatCostAllocationMeter
     default_fields = name,id,consumption_hca,status,timestamp
+    manufacturer   = Engelmann
     detect {
         mvt = EFE,31,08
     }

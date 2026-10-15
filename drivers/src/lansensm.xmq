@@ -3,6 +3,7 @@ driver {
     name           = lansensm
     meter_type     = SmokeDetector
     default_fields = name,id,status,minutes_since_last_manual_test_counter,timestamp
+    manufacturer   = Lansen
     detect {
         mvt = LAS,03,1a
     }

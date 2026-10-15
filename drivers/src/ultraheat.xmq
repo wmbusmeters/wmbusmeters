@@ -4,6 +4,7 @@ driver {
     name           = ultraheat
     meter_type     = HeatMeter
     default_fields = name,id,heat_kwh,timestamp
+    manufacturer   = Landis+Gyr
     detect {
         mvt = LUG,04,04
     }

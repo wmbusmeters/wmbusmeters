@@ -3,6 +3,7 @@ driver {
     name           = lansendw
     meter_type     = DoorWindowDetector
     default_fields = name,id,status,timestamp
+    manufacturer   = Lansen
     detect {
         mvt = LAS,07,1d
     }

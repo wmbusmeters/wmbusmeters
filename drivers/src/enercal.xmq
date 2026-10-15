@@ -3,6 +3,7 @@ driver {
     name           = enercal
     meter_type     = HeatMeter
     default_fields = name,id,status,total_kwh,target_kwh,total_m3,target_m3,timestamp
+    manufacturer   = GWF
     detect {
         mvt = GWF,08,04
     }

@@ -3,6 +3,7 @@ driver {
     name           = q400
     meter_type     = WaterMeter
     default_fields = name,id,total_m3,timestamp
+    manufacturer   = Axioma
     detect {
         mvt = AXI,01,07
         mvt = AXI,10,07

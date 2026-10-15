@@ -4,6 +4,7 @@ driver {
     name           = maddalena
     meter_type     = WaterMeter
     default_fields = name,id,status,total_m3,timestamp
+    manufacturer   = Maddalena
     detect {
         mvt = MAD,01,07
         mvt = MAD,01,06

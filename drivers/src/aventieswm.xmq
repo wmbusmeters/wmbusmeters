@@ -3,6 +3,7 @@ driver {
     name           = aventieswm
     meter_type     = WaterMeter
     default_fields = name,id,total_m3,error_flags,timestamp
+    manufacturer   = Aventies
     detect {
         mvt = AAA,25,07
     }

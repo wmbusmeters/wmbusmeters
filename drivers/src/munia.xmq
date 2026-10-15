@@ -3,6 +3,7 @@ driver {
     name           = munia
     meter_type     = TempHygroMeter
     default_fields = name,id,current_temperature_c,current_relative_humidity_rh,timestamp
+    manufacturer   = Weptech
     detect {
         mvt = WEP,02,1b
         mvt = WEP,04,1b

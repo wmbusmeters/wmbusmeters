@@ -5,6 +5,7 @@ driver {
     default_fields = name,id,total_m3,timestamp
     // The meter sends 0x11 as media type, replace with water which makes more sense.
     force_media_type = water
+    manufacturer     = Apator
     detect {
         mvt = APT,04,11
     }

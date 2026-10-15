@@ -3,6 +3,7 @@ driver {
     name           = metronahca
     meter_type     = HeatCostAllocationMeter
     default_fields = name,id,status,consumption_hca,timestamp
+    manufacturer   = Brunata-Metrona
     detect {
         mvt = MWU,02,08
     }
