@@ -269,7 +269,8 @@ if [ "$?" != "0" ]; then RC="1"; if [ "$STOP" = "true" ]; then exit 1; fi; fi
 
 if [ -s build/xmq ]
 then
-    ./build/xmq tests/generated_tests.xmq for-each /test --shell='./tests/testit.sh '$PROG' "${args}" "${telegram}" "${json}" "${fields}"'
+    ./tests/test_generated_tests.sh $PROG
+    if [ "$?" != "0" ]; then RC="1"; if [ "$STOP" = "true" ]; then exit 1; fi; fi
 else
     echo "Skipping tests/generated_tests.xmq since xmq is missing."
 fi
