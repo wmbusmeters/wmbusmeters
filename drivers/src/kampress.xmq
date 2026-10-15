@@ -39,7 +39,7 @@ driver {
     fields {
         field {
             name     = status
-            quantity = Text
+            quantity = Flags
             info     = status_and_error_flags
             match {
                 measurement_type = Instantaneous

@@ -217,7 +217,7 @@ driver {
         }
         field {
             name     = status
-            quantity = Text
+            quantity = Flags
             info     = 'Current and previous alarms reported by the meter.'
             match {
                 difvifkey = 036C
