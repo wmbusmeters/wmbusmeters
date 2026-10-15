@@ -19,6 +19,92 @@ driver {
             test  = set
         }
     }
+    flags {
+        flag {
+            name = RTC_INVALID
+            info = 'The real time clock of the smoke detector is invalid.'
+        }
+        flag {
+            name = UNKNOWN_FIELD_C
+            info = 'The smoke detector received a telegram with an unknown C field.'
+        }
+        flag {
+            name = UNKNOWN_FIELD_CI
+            info = 'The smoke detector received a telegram with an unknown CI field.'
+        }
+        flag {
+            name = UNKNOWN_RECORD
+            info = 'The smoke detector received a request for an unknown record.'
+        }
+        flag {
+            name = ACCESS_RIGHT
+            info = 'The smoke detector refused a request because of missing access rights.'
+        }
+        flag {
+            name = RECORD_SIZE
+            info = 'The smoke detector received a record with a wrong size.'
+        }
+        flag {
+            name = RECORD_VALUE
+            info = 'The smoke detector received a record with a wrong value.'
+        }
+        flag {
+            name = BAD_PASSWORD
+            info = 'The smoke detector received a wrong password.'
+        }
+        flag {
+            name = SOUNDER_FAULT
+            info = 'The sounder of the smoke detector is faulty.'
+        }
+        flag {
+            name = TAMPER_WHILE_REMOVED
+            info = 'The smoke detector was tampered with while it was removed from its base.'
+        }
+        flag {
+            name = EOL_REACHED
+            info = 'The smoke detector has reached its end of life and must be replaced.'
+        }
+        flag {
+            name = LOW_BATTERY_FAULT
+            info = 'The battery is low.'
+        }
+        flag {
+            name = ALARM_SENSOR_FAULT
+            info = 'The smoke sensor is faulty.'
+        }
+        flag {
+            name = OBSTACLE_DETECTOR_FAULT
+            info = 'The obstacle detection is faulty.'
+        }
+        flag {
+            name = EOL_WITHIN_12_MONTH
+            info = 'The smoke detector reaches its end of life within 12 months.'
+        }
+        flag {
+            name = SEODS_NOT_YET_COMPLETED
+            info = 'Unknown flag, please contact the wmbusmeters project to contribute knowledge.'
+        }
+        flag {
+            name = ENV_CHANGED_SINCE_INSTALLATION
+            info = 'The surroundings of the smoke detector have changed since installation.'
+        }
+        flag {
+            name = COMM_TO_HEAD_FAULT
+            info = 'The communication with the detector head has failed.'
+        }
+        flag {
+            name = INTERFERENCE_PREVENTING_OBSTACLE_DETECTION
+            info = 'Interference prevents the obstacle detection.'
+        }
+        flag {
+            name = OBSTACLE_DETECTED
+            info = 'An obstacle has been detected near the smoke detector.'
+        }
+        flag {
+            name = SMOKE_DETECTOR_FULLY_COVERED
+            info = 'The smoke detector is fully covered.'
+        }
+    }
     fields {
         field {
             name            = status

@@ -8,6 +8,72 @@ driver {
         mvt = LUG,07,04
         mvt = LUG,0a,04
     }
+    flags {
+        flag {
+            name = F0_PREWARNING
+            info = 'Prewarning for F0: the flow cannot be measured.'
+        }
+        flag {
+            name = F4_PREWARNING
+            info = 'Prewarning for F4: the battery is nearly empty.'
+        }
+        flag {
+            name = WRONG_INSTALLATION_TEMPERATURE_SENSOR
+            info = 'The temperature sensors are installed wrongly.'
+        }
+        flag {
+            name = WRONG_INSTALLATION_VOLUME_UNIT
+            info = 'The volume measuring unit is installed wrongly.'
+        }
+        flag {
+            name = NEGATIVE_TEMPERATURE_DIFFERENCE
+            info = 'The temperature difference between supply and return is negative.'
+        }
+        flag {
+            name = NEGATIVE_FLOW
+            info = 'The flow is negative.'
+        }
+        flag {
+            name = F8_ERROR_LONGER_THAN_8_HOURS
+            info = 'F8: an error (F1, F2, F3, F5 or F6) has lasted longer than 8 hours.'
+        }
+        flag {
+            name = F9_INTERNAL_COMMUNICATION_ERROR
+            info = 'F9: the internal communication has failed.'
+        }
+        flag {
+            name = F0_FLOW_ERROR
+            info = 'F0: the flow cannot be measured.'
+        }
+        flag {
+            name = F1_FLOW_SENSOR_INTERRUPTED
+            info = 'F1: the supply temperature sensor is interrupted.'
+        }
+        flag {
+            name = F2_RETURN_SENSOR_INTERRUPTED
+            info = 'F2: the return temperature sensor is interrupted.'
+        }
+        flag {
+            name = F3_TEMPERATURE_ELECTRONICS_DEFECT
+            info = 'F3: the temperature measuring electronics are defective.'
+        }
+        flag {
+            name = F4_BATTERY_EMPTY
+            info = 'F4: the battery is empty.'
+        }
+        flag {
+            name = F5_FLOW_SENSOR_SHORT_CIRCUIT
+            info = 'F5: the supply temperature sensor is short circuited.'
+        }
+        flag {
+            name = F6_RETURN_SENSOR_SHORT_CIRCUIT
+            info = 'F6: the return temperature sensor is short circuited.'
+        }
+        flag {
+            name = F7_EEPROM_ERROR
+            info = 'F7: the memory (EEPROM) reports an error.'
+        }
+    }
     fields {
         field {
             name         = device

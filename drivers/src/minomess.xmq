@@ -51,6 +51,60 @@ driver {
         use = total_backward_m3
         use = volume_flow_m3h
     }
+    flags {
+        flag {
+            name = WAS_LEAKING
+            info = 'A leak was detected earlier.'
+        }
+        flag {
+            name = WAS_TAMPERED
+            info = 'Tampering was detected earlier.'
+        }
+        flag {
+            name = WAS_REMOVED
+            info = 'The removal of the meter was detected earlier.'
+        }
+        flag {
+            name = BURSTING
+            info = 'A pipe burst has been detected.'
+        }
+        flag {
+            name = REMOVED
+            info = 'The meter has been removed.'
+        }
+        flag {
+            name = LEAKING
+            info = 'A leak has been detected.'
+        }
+        flag {
+            name = WAS_BACKFLOWING
+            info = 'A backflow was detected earlier.'
+        }
+        flag {
+            name = BACKFLOWING
+            info = 'The water flows through the meter in the wrong direction.'
+        }
+        flag {
+            name = WAS_BLOCKED
+            info = 'The meter was blocked earlier.'
+        }
+        flag {
+            name = UNDERSIZED
+            info = 'The meter is undersized for the flow, the flow is above its maximum.'
+        }
+        flag {
+            name = OVERSIZED
+            info = 'The meter is oversized for the flow, the flow is below its minimum.'
+        }
+        flag {
+            name = BATTERY_EOL
+            info = 'The battery has reached its end of life.'
+        }
+        flag {
+            name = ABNORMAL_CONDITION
+            info = 'The meter reports an abnormal condition.'
+        }
+    }
     fields {
         field {
             name     = target
