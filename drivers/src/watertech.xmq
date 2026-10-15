@@ -3,6 +3,7 @@ driver {
     name           = watertech
     meter_type     = WaterMeter
     default_fields = name,id,status,total_m3,timestamp
+    manufacturer   = Watertech
     detect {
         mvt = WTT,59,07
     }

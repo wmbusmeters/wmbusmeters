@@ -3,6 +3,7 @@ driver {
     name           = kampress
     default_fields = name,id,status,pressure_bar,max_pressure_bar,min_pressure_bar,timestamp
     meter_type     = PressureSensor
+    manufacturer   = Kamstrup
     detect {
         mvt = KAM,01,18
     }

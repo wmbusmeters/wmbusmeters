@@ -3,6 +3,7 @@ driver {
     name           = elster
     meter_type     = GasMeter
     default_fields = name,id,total_m3,timestamp
+    manufacturer   = Elster
     detect {
         mvt = ELS,81,03
     }

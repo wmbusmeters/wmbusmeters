@@ -16,6 +16,7 @@ driver {
     name           = elvsense
     default_fields = name,id,temperature_c,humidity_rh,co2_ppm,battery_v,status,timestamp
     meter_type     = TempHygroMeter
+    manufacturer   = Elvaco
     detect {
         // Manufacturer ELV (0x1596), VERSION 0x50..0x54, TYPE 0x1B (room sensor 100W)
         mvt = ELV,50,1b

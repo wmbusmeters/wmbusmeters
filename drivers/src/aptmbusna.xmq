@@ -3,6 +3,7 @@ driver {
     name           = aptmbusna
     meter_type     = WaterMeter
     default_fields = name,id,status,total_m3,target_m3,timestamp
+    manufacturer   = Apator
     detect {
         mvt = APA,15,07
         // APT-MBUS-NA-1 (-C)

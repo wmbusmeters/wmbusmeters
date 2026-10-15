@@ -3,6 +3,7 @@ driver {
     name           = esyswm
     meter_type     = ElectricityMeter
     default_fields = name,id,total_energy_consumption_kwh,current_power_consumption_kw,total_energy_production_kwh,total_energy_consumption_tariff1_kwh,total_energy_consumption_tariff2_kwh,current_power_consumption_phase1_kw,current_power_consumption_phase2_kw,current_power_consumption_phase3_kw,enhanced_id,timestamp
+    manufacturer   = EasyMeter
     detect {
         mvt = ESY,30,37
         mvt = ESY,11,02

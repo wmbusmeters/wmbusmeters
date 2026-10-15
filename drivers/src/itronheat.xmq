@@ -4,6 +4,7 @@ driver {
     name           = itronheat
     meter_type     = HeatMeter
     default_fields = name,id,status,total_kwh,timestamp
+    manufacturer   = Itron
     detect {
         mvt = ITW,00,04
     }

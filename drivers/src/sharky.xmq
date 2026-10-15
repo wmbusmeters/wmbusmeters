@@ -5,6 +5,7 @@ driver {
     name           = sharky
     meter_type     = HeatMeter
     default_fields = name,id,total_energy_consumption_kwh,total_energy_consumption_tariff1_kwh,total_volume_m3,total_volume_tariff2_m3,volume_flow_m3h,power_kw,flow_temperature_c,return_temperature_c,temperature_difference_c,timestamp
+    manufacturer   = Diehl
     detect {
         mvt = HYD,20,04
         mvt = DME,40,04

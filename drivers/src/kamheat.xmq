@@ -6,6 +6,7 @@ driver {
     aliases        = multical302,multical303,multical403,multical602,multical603,multical803
     default_fields = name,id,total_energy_consumption_kwh,total_volume_m3,status,timestamp
     meter_type     = HeatMeter
+    manufacturer   = Kamstrup
     detect {
         mvt = KAM,30,04
         // 302

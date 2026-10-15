@@ -3,6 +3,7 @@ driver {
     name           = vario451
     meter_type     = HeatMeter
     default_fields = name,id,total_kwh,current_kwh,previous_kwh,timestamp
+    manufacturer   = Techem
     detect {
         mvt = TCH,27,04
         mvt = TCH,27,C3

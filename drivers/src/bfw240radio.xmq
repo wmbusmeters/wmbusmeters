@@ -16,6 +16,7 @@ driver {
     name           = bfw240radio
     meter_type     = HeatCostAllocationMeter
     default_fields = name,id,current_hca,prev_hca,timestamp
+    manufacturer   = BFW
     detect {
         mvt = BFW,02,08
     }

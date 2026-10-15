@@ -3,6 +3,7 @@ driver {
     name           = relhca
     meter_type     = HeatCostAllocationMeter
     default_fields = name,id,consumption_hca,timestamp
+    manufacturer   = Relay
     detect {
         mvt = REL,41,00
     }

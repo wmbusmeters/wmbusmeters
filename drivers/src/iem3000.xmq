@@ -3,6 +3,7 @@ driver {
     name           = iem3000
     meter_type     = ElectricityMeter
     default_fields = name,id,total_energy_consumption_kwh,timestamp
+    manufacturer   = 'Schneider Electric'
     detect {
         mvt = SEC,13,02
         mvt = SEC,15,02

@@ -3,6 +3,7 @@ driver {
     name           = qsmoke
     meter_type     = SmokeDetector
     default_fields = name,id,status,last_alarm_date,alarm_counter,timestamp
+    manufacturer   = Qundis
     detect {
         mvt = QDS,21,1a
         mvt = QDS,23,1a

@@ -3,6 +3,7 @@ driver {
     name           = elf2
     meter_type     = HeatMeter
     default_fields = name,id,status,total_energy_kwh,timestamp
+    manufacturer   = Apator
     detect {
         mvt = APA,42,04
         mvt = APA,42,0d

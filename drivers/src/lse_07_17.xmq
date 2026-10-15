@@ -3,6 +3,7 @@ driver {
     name           = lse_07_17
     meter_type     = WaterMeter
     default_fields = name,id,total_m3,due_m3,due_date,error_code,error_date,device_datetime,timestamp
+    manufacturer   = Qundis
     detect {
         mvt = LSE,18,06
         mvt = LSE,18,07

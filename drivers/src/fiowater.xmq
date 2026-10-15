@@ -3,6 +3,7 @@ driver {
     name           = fiowater
     meter_type     = WaterMeter
     default_fields = name,id,status,total_m3,timestamp
+    manufacturer   = 'Pietro Fiorentini'
     detect {
         mvt = FIO,01,07
     }

@@ -3,6 +3,7 @@ driver {
     name           = dme173
     meter_type     = WaterMeter
     default_fields = name,id,status,total_m3,timestamp
+    manufacturer   = Diehl
     detect {
         mvt = DME,63,07
     }

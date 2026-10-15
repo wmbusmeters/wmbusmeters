@@ -3,6 +3,7 @@ driver {
     name           = vario411
     meter_type     = HeatMeter
     default_fields = name,id,target_kwh,target_date,timestamp
+    manufacturer   = Techem
     detect {
         mvt = TCH,28,04
     }

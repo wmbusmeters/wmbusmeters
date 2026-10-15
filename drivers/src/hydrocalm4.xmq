@@ -3,6 +3,7 @@ driver {
     name           = hydrocalm4
     default_fields = name,id,status,total_heating_kwh,total_cooling_kwh,timestamp
     meter_type     = HeatCoolingMeter
+    manufacturer   = BMeters
     detect {
         mvt = BMT,1a,0d
     }

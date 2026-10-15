@@ -4,6 +4,7 @@ driver {
     name           = ev200
     meter_type     = WaterMeter
     default_fields = name,id,total_m3,target_m3,timestamp
+    manufacturer   = Elster
     detect {
         mvt = ELR,0d,07
     }
