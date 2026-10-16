@@ -1,3 +1,5 @@
+Version 3.1.0-RC1 2026-10-16
+
 
 Version nr pattern for ha-addon changes from 3.0.0-123 to 3.0.0.123
 The ha-addon now automaticall generates discovery messages from the driver.

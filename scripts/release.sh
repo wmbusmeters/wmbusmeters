@@ -23,7 +23,7 @@ then
     exit 0
 fi
 
-VERSION=$(grep -m 1 ^Version CHANGES  | sed 's/Version \([0-9]\+\)\.\([0-9]\+\)\.\([0-9]\+\)\(-RC[ 0-9]\?\)\? .*/\1 \2 \3 \4/')
+VERSION=$(grep -m 1 -E '^Version [0-9]' CHANGES  | sed 's/Version \([0-9]\+\)\.\([0-9]\+\)\.\([0-9]\+\)\(-RC[ 0-9]\?\)\? .*/\1 \2 \3 \4/')
 
 MAJOR=$(echo "$VERSION" | cut -f 1 -d ' ')
 MINOR=$(echo "$VERSION" | cut -f 2 -d ' ')
