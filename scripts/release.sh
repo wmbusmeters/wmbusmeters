@@ -15,8 +15,7 @@ trap 'rm -f "$RELEASE_CHANGES"' EXIT
 # Grab all text up to the "Version x.y.z <date>" line
 # If there is no text, then we have to add some information to CHANGES
 # before we make a release.
-CHANGES=$(sed '/Version /q' CHANGES | grep -v ^Version | sed '/./,$!d' | \
-          tac | sed -e '/./,$!d' | tac | sed -e '/./,$!d' > "$RELEASE_CHANGES")
+CHANGES=$(sed '/^Version [0-9]/q' CHANGES | grep -v '^Version [0-9]' | sed '/./,$!d' | tac | sed '/./,$!d' | tac | sed '/./,$!d' > "$RELEASE_CHANGES")
 
 if [ ! -s "$RELEASE_CHANGES" ]
 then
