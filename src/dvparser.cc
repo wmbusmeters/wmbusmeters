@@ -1215,7 +1215,8 @@ bool parseDV(Telegram *t,
                 break;
             }
             DEBUG_PARSER("(dvparser) reached unknown dif %02x treating remaining data as manufacturer specific, parsing is done.\n", dif);
-            datalen = std::distance(data,data_end);
+            datalen = std::distance(data, data_end);
+            assert(datalen > 0);
             string value = bin2hex(data+1, data_end, datalen-1);
             t->mfct_0f_index = 1+std::distance(data_start, data);
             assert(t->mfct_0f_index >= 0);

@@ -617,6 +617,8 @@ string ciType(int ci_field)
 
 void Telegram::addExplanationAndIncrementPos(vector<uchar>::iterator &pos, int len, KindOfData k, Understanding u, const char* fmt, ...)
 {
+    assert(len > 0);
+
     char buf[1024];
     buf[1023] = 0;
 
@@ -633,6 +635,8 @@ void Telegram::addExplanationAndIncrementPos(vector<uchar>::iterator &pos, int l
 
 void Telegram::setExplanation(vector<uchar>::iterator &pos, int len, KindOfData k, Understanding u, const char* fmt, ...)
 {
+    assert(len > 0);
+
     char buf[1024];
     buf[1023] = 0;
 
@@ -1262,6 +1266,10 @@ bool Telegram::parseTPLConfig(std::vector<uchar>::iterator &pos)
         addExplanationAndIncrementPos(pos, 4, KindOfData::PROTOCOL, Understanding::FULL,
                                       "%02x%02x%02x%02x tpl-message-counter",
                                       tpl_counter_b[0], tpl_counter_b[1], tpl_counter_b[2], tpl_counter_b[3]);
+
+        // Now verify that there are enough bytes for the tag itself and at at least a single content byte.
+        assert(tpl_ccm_tag_size >= 4 && tpl_ccm_tag_size <= 16);
+        CHECK(tpl_ccm_tag_size+1);
     }
 
     if (tpl_kdf_selection == 1)
@@ -1710,13 +1718,40 @@ bool Telegram::potentiallyDecrypt(vector<uchar>::iterator &pos)
         // The authentication tag is a suffix after the APL content. Its size is
         // known from the cfg extension field even when no key is available.
         suffix_size = tpl_ccm_tag_size;
-
         if (tpl_generated_key.size() != 16)
         {
+            /*
+              // When should we print this warning? A bit unclear, the verification should print, and it does.
+              // Right now we do not print this. But we print a debug message below.
+            if (!beingAnalyzed() && !isSimulated() &&
+                (isVerboseEnabled()
+                 || isDebugEnabled()
+                 || !warned_for_telegram_before(this, dll_a)))
+            {
+                // Print this warning only once! Unless you are using verbose or debug.
+                warning("(wmbus) WARNING!!! Failed to generate ephemeral key when decrypting security mode 10 AES_CCM. "
+                        "Permanently ignoring telegrams from id: %02x%02x%02x%02x mfct: (%s) %s (0x%02x) type: %s (0x%02x) ver: 0x%02x\n",
+                        dll_id_b[3], dll_id_b[2], dll_id_b[1], dll_id_b[0],
+                        manufacturerFlag(dll_mfct).c_str(),
+                        manufacturer(dll_mfct).c_str(),
+                        dll_mfct,
+                        mediaType(dll_type, dll_mfct).c_str(), dll_type,
+                        dll_version);
+            }
+            */
             // This can happen in simulations without any keys, or if the cfg
             // extension field selected an unsupported key derivation function.
-            debug("(wmbus) security mode 10 telegram without a derived key, leaving telegram as is.\n");
-            return true;
+            if (isSimulated())
+            {
+                // Probably pre-decrypted.
+                debug("(wmbus) security mode 10 telegram without a derived key but simulation, leaving telegram as is.\n");
+                return true;
+            }
+            else
+            {
+                // Do not proceed with this telegram.
+                return false;
+            }
         }
 
         int num_encrypted_bytes = 0;

@@ -72,6 +72,7 @@ bool isLogTelegramsEnabled();
 
 void debugPayload(const std::string& intro, std::vector<uchar> &payload);
 void debugPayload(const std::string& intro, std::vector<uchar> &payload, std::vector<uchar>::iterator &pos);
+void debugPayloadSplit(const std::string& intro, std::vector<uchar> &payload, std::vector<uchar>::iterator &pos);
 void logTelegram(std::vector<uchar> &original, std::vector<uchar> &parsed, int header_size, int suffix_size);
 
 #endif // LOG_H

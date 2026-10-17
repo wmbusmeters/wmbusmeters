@@ -335,3 +335,10 @@ void debugPayload(const string& intro, vector<uchar> &payload, vector<uchar>::it
 {
     debug("%s \"%s\"\n", intro.c_str(), bin2hex(pos, payload.end(), 1024).c_str());
 }
+
+void debugPayloadSplit(const string& intro, vector<uchar> &payload, vector<uchar>::iterator &pos)
+{
+    debug("%s \"%s_%s\"\n", intro.c_str(),
+          bin2hex(payload.begin(), pos, 1024).c_str(),
+          bin2hex(pos, payload.end(), 1024).c_str());
+}

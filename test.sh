@@ -104,6 +104,9 @@ if [ "$?" != "0" ]; then RC="1"; if [ "$STOP" = "true" ]; then exit 1; fi; fi
 tests/test_kamwater_ccm_tag.sh $PROG
 if [ "$?" != "0" ]; then RC="1"; if [ "$STOP" = "true" ]; then exit 1; fi; fi
 
+tests/test_bad_aes_ccm.sh $PROG
+if [ "$?" != "0" ]; then RC="1"; if [ "$STOP" = "true" ]; then exit 1; fi; fi
+
 tests/test_shell.sh $PROG
 if [ "$?" != "0" ]; then RC="1"; if [ "$STOP" = "true" ]; then exit 1; fi; fi
 
