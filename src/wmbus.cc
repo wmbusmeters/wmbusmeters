@@ -1528,7 +1528,10 @@ bool Telegram::potentiallyDecrypt(vector<uchar>::iterator &pos)
             // No key supplied.
             string info =  bin2hex(pos, frame.end(), num_encrypted_bytes);
             info += " encrypted";
-            addExplanationAndIncrementPos(pos, num_encrypted_bytes, KindOfData::CONTENT, Understanding::ENCRYPTED, info.c_str());
+            if (num_encrypted_bytes > 0)
+            {
+                addExplanationAndIncrementPos(pos, num_encrypted_bytes, KindOfData::CONTENT, Understanding::ENCRYPTED, info.c_str());
+            }
             if (parser_warns_)
             {
                 if (!beingAnalyzed() && (isVerboseEnabled() || isDebugEnabled() || !warned_for_telegram_before(this, dll_a)))
