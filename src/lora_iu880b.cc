@@ -181,7 +181,6 @@ shared_ptr<BusDevice> openIU880B(Detected detected, shared_ptr<SerialCommunicati
 {
     string bus_alias = detected.specified_device.bus_alias;
     string device_file = detected.found_file;
-    assert(device_file != "");
     if (serial_override)
     {
         LoRaIU880B *imp = new LoRaIU880B(bus_alias, serial_override, manager);
@@ -189,6 +188,7 @@ shared_ptr<BusDevice> openIU880B(Detected detected, shared_ptr<SerialCommunicati
         return shared_ptr<BusDevice>(imp);
     }
 
+    assert(device_file != "");
     auto serial = manager->createSerialDeviceTTY(device_file.c_str(), 115200, PARITY::NONE, "iu880b");
     LoRaIU880B *imp = new LoRaIU880B(bus_alias, serial, manager);
     return shared_ptr<BusDevice>(imp);

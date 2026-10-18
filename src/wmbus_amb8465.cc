@@ -442,7 +442,6 @@ shared_ptr<BusDevice> openAmber(Detected detected,
 {
     string bus_alias  = detected.specified_device.bus_alias;
     string device = detected.found_file;
-    assert(device != "");
 
     if (serial_override)
     {
@@ -451,6 +450,7 @@ shared_ptr<BusDevice> openAmber(Detected detected,
         return shared_ptr<BusDevice>(imp);
     }
 
+    assert(device != "");
     auto serial = manager->createSerialDeviceTTY(device.c_str(), 9600, PARITY::NONE, "amb8465");
     WMBusAmber *imp = new WMBusAmber(bus_alias, serial, manager, dt);
     return shared_ptr<BusDevice>(imp);
