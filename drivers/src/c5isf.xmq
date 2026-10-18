@@ -10,6 +10,9 @@ driver {
         mvt = ZRI,88,07
         mvt = ZRI,88,04
     }
+    library {
+        use = rssi_dbm
+    }
     fields {
         // Common fields for T1A1, T1A2, T1B
         field {

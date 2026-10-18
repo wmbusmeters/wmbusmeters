@@ -74,6 +74,7 @@
     X(ResetCounter,0x7D60,0x7D60, Quantity::Counter, Unit::COUNTER) \
     X(CumulationCounter,0x7D61,0x7D61, Quantity::Counter, Unit::COUNTER) \
     X(SpecialSupplierInformation,0x7D67,0x7D67, Quantity::Text, Unit::TXT) \
+    X(ReceptionLevel,0x7D71,0x7D71, Quantity::Power, Unit::DBM) \
     X(RemainingBattery,0x7D74,0x7D74, Quantity::Time, Unit::Day) \
     X(AnyVolumeVIF,0x00,0x00, Quantity::Volume, Unit::Unknown) \
     X(AnyEnergyVIF,0x00,0x00, Quantity::Energy, Unit::Unknown)  \

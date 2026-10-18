@@ -107,6 +107,23 @@ bool MeterCommonImplementation::addOptionalLibraryFields(string field_names)
         markLastFieldAsLibrary();
     }
 
+    if (checkIf(fields,"rssi_dbm"))
+    {
+        addNumericFieldWithExtractor(
+            "rssi",
+            "The RSSI reception level reported by the gateway."+help,
+            DEFAULT_PRINT_PROPERTIES,
+            Quantity::Power,
+            VifScaling::None,
+            DifSignedness::Signed,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(VIFRange::ReceptionLevel),
+            Unit::DBM
+            );
+        markLastFieldAsLibrary();
+    }
+
     if (checkIf(fields,"access_counter"))
     {
         addNumericFieldWithExtractor(

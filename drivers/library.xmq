@@ -411,6 +411,19 @@ library {
             vif_range        = AccessNumber
         }
     }
+    template(id = rssi_dbm)
+    {
+        name           = rssi
+        quantity       = Power
+        display_unit   = dbm
+        info           = 'The RSSI reception level reported by the gateway.'
+        vif_scaling    = None
+        dif_signedness = Signed
+        match {
+            measurement_type = Instantaneous
+            vif_range        = ReceptionLevel
+        }
+    }
     template(id = consumption_hca)
     {
         name     = consumption
