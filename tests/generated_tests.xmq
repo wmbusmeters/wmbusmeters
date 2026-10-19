@@ -2132,6 +2132,13 @@ test {
     fields   = 'AESTest;14356101;OK;0.01;1111-11-11 11:11.11'
 }
 test {
+    args     = 'MyQWater1A qwaterv2 12345678 NOKEY'
+    comment  = 'Version 0x1A water meter, walk by telegram with mfct data. Header byte [7] is 0x00, not 0x07. Real telegram, A-field replaced.'
+    telegram = 49449344785634121A07780DFF5F350082720000800000C113FFFF029000003F3C192500005F330073000000000000000000000000000000004700B100B1008600A8002F046D00135E34
+    json     = '{"_":"telegram","media":"water","driver":"qwaterv2","name":"MyQWater1A","id":"12345678","target_m3":7.3,"target_date":"2026-03-31","target_year_m3":2.519,"target_year_date":"2025-12-31","total_m3":9.002,"volume_delta_10_m3":0.177,"volume_delta_11_m3":0.177,"volume_delta_12_m3":0.134,"volume_delta_13_m3":0.168,"volume_delta_2_m3":0,"volume_delta_3_m3":0,"volume_delta_4_m3":0,"volume_delta_5_m3":0,"volume_delta_6_m3":0,"volume_delta_7_m3":0,"volume_delta_8_m3":0,"volume_delta_9_m3":0.071,"meter_datetime":"2026-04-30 19:00","status":"OK","timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'MyQWater1A;12345678;OK;9.002;1111-11-11 11:11.11'
+}
+test {
     args     = 'MyQWater19 qwaterv2 51341234 NOKEY'
     comment  = 'Version 19 warm water meter, walk by telegram with mfct data.'
     telegram = 49449344341234511906780dff5f3500822d0000600107c113ffff748702003f3c215102005f374386020031003600330033003600360031003600320037002e002c002f046d0f114b38
