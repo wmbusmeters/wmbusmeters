@@ -258,6 +258,7 @@ private:
     DriverName driver_name_;
     DriverInfo *driver_info_ {};
     std::string bus_ {};
+    int serial_bps_ {};
     MeterKeys meter_keys_ {};
     ELLSecurityMode expected_ell_sec_mode_ {};
     TPLSecurityMode expected_tpl_sec_mode_ {};

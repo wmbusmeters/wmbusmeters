@@ -625,6 +625,8 @@ struct BusDevice
     // Close any underlying ttys or software and restart/reinitialize.
     // Return true if ok.
     virtual bool reset() = 0;
+    // Reopen and reinitialize the bus if the requested serial settings differ.
+    virtual bool setSerialSettings(int bps, PARITY parity) = 0;
     // Set a dead-mans grip timeout, if no telegram is received
     // within seconds, then invoke reset(). However do not reset
     // when no activity is expected.

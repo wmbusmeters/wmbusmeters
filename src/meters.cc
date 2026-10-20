@@ -477,6 +477,7 @@ MeterCommonImplementation::MeterCommonImplementation(MeterInfo &mi,
     driver_name_(di.name()),
     driver_info_(&di),
     bus_(mi.bus),
+    serial_bps_(mi.bps),
     name_(mi.name),
     mfct_tpl_status_bits_(di.mfctTPLStatusBits()),
     has_process_content_(di.hasProcessContent()),
@@ -1019,6 +1020,17 @@ void MeterCommonImplementation::poll(shared_ptr<BusManager> bus_manager)
     if (ae.has_wildcard)
     {
         warning("(meter) not polling from id \"%s\" since poll id must not have a wildcard\n", ae.id.c_str());
+        return;
+    }
+
+    // Apply a meter's requested baud rate before sending its poll. Command
+    // overrides reopen with the new environment through the normal reset path.
+    int bps = serial_bps_;
+    if (bus_device->type() == DEVICE_MBUS && !bps) bps = bus_device->getDetected()->found_bps;
+    if (bus_device->type() == DEVICE_MBUS && bps > 0 &&
+        !bus_device->setSerialSettings(bps, PARITY::EVEN))
+    {
+        warning("(meter) could not set baud rate %d for %s\n", bps, name().c_str());
         return;
     }
 

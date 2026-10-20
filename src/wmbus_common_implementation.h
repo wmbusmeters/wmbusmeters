@@ -47,6 +47,7 @@ struct BusDeviceCommonImplementation : public BusDevice
     virtual void processSerialData() = 0;
     void disconnectedFromDevice();
     bool reset();
+    bool setSerialSettings(int bps, PARITY parity);
     SerialDevice *serial() { if (serial_) return serial_.get(); else return NULL; }
     bool serialOverride() { return serial_override_; }
     void markSerialAsOverriden() { serial_override_ = true; }

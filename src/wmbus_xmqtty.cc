@@ -71,19 +71,6 @@ shared_ptr<BusDevice> openXmqTTY(Detected detected,
     string bus_alias = detected.specified_device.bus_alias;
     string device = detected.found_file;
 
-    if (detected.specified_device.command != "")
-    {
-        string identifier = "cmd_" + to_string(detected.specified_device.index);
-
-        vector<string> args;
-        vector<string> envs;
-        args.push_back("-c");
-        args.push_back(detected.specified_device.command);
-
-        auto serial = manager->createSerialDeviceCommand(identifier, "/bin/sh", args, envs, "rawtty");
-        WMBusXmqTTY *imp = new WMBusXmqTTY(bus_alias, serial, manager);
-        return shared_ptr<BusDevice>(imp);
-    }
 
     if (serial_override)
     {
