@@ -24,6 +24,7 @@
 #include"meters.h"
 #include"printer.h"
 #include"serial.h"
+#include"shell.h"
 #include"translatebits.h"
 #include"util.h"
 #include"wmbus.h"
@@ -31,6 +32,11 @@
 #include"wmbus_iu891a.h"
 #include"dvparser.h"
 #include"xmq.h"
+#include <poll.h>
+#include <unistd.h>
+#include <sys/socket.h>
+#include <sys/wait.h>
+#include <thread>
 
 #include"crypto/aes.h"
 #include"crypto/aescmac.h"
@@ -48,6 +54,7 @@ using namespace std;
 bool verbose_ = false;
 
 #define LIST_OF_TESTS \
+    X(serial_command) \
     X(addresses) \
     X(dynamic_loading)                        \
     X(crc)            \
@@ -204,6 +211,138 @@ void test_crc()
     if (crc != 0xc2b7) {
         printf("ERROR! %4x should be c2b7\n", crc);
     }
+}
+
+void test_serial_command()
+{
+    // Closed standard descriptors must not alias the socketpair endpoints.
+    pid_t probe = fork();
+    assert(probe >= 0);
+    if (probe == 0)
+    {
+        close(0); close(1); close(2);
+        int fd, pid;
+        if (!invokeBackgroundShell("/bin/sh", {"-c", "exec cat"}, {}, &fd, &pid, true)) _exit(1);
+        uchar sent[] = {0, 255, 128, 10};
+        if (::send(fd, sent, sizeof(sent), 0) != sizeof(sent)) _exit(2);
+        struct pollfd pfd = { fd, POLLIN, 0 };
+        if (poll(&pfd, 1, 2000) != 1) _exit(3);
+        uchar got[sizeof(sent)];
+        size_t count = 0;
+        while (count < sizeof(got))
+        {
+            int n = read(fd, got+count, sizeof(got)-count);
+            if (n <= 0) _exit(4);
+            count += n;
+        }
+        stopBackgroundShell(pid);
+        close(fd);
+        _exit(memcmp(sent, got, sizeof(sent)) == 0 ? 0 : 5);
+    }
+    int status;
+    assert(waitpid(probe, &status, 0) == probe);
+    assert(WIFEXITED(status) && WEXITSTATUS(status) == 0);
+
+    auto manager = createSerialCommunicationManager(0, false);
+    auto receive = [](shared_ptr<SerialDevice> sd, size_t size) {
+        vector<uchar> result;
+        for (int tries = 0; result.size() < size && tries < 50; tries++)
+        {
+            struct pollfd pfd = { sd->fd(), POLLIN, 0 };
+            if (poll(&pfd, 1, 100) <= 0) continue;
+            vector<uchar> part;
+            sd->receive(&part);
+            result.insert(result.end(), part.begin(), part.end());
+        }
+        return result;
+    };
+
+    vector<uchar> bytes;
+    for (int i = 0; i < 4096; i++) bytes.push_back(i & 255);
+    auto sd = manager->createSerialDeviceCommand("test_cmd", "/bin/sh",
+                 {"-c", "printf 'serial command diagnostic\\n' >&2; exec cat"}, {}, "test", true);
+    assert(!sd->readonly());
+    for (int session = 0; session < 3; session++)
+    {
+        assert(sd->open(false));
+        for (int i = 0; i < 8; i++)
+        {
+            assert(sd->send(bytes));
+            assert(receive(sd, bytes.size()) == bytes);
+        }
+        sd->close();
+        sd->close();
+        assert(sd->isClosed());
+        assert(!sd->send(bytes));
+    }
+
+    // Close callbacks must run without the serial write lock. Otherwise
+    // they can deadlock with manager shutdown or a sender on another thread.
+    pid_t callback_probe = fork();
+    assert(callback_probe >= 0);
+    if (callback_probe == 0)
+    {
+        assert(sd->open(false));
+        manager->onDisappear(sd.get(), [&]() {
+            thread sender([&]() { assert(!sd->send(bytes)); });
+            sender.join();
+        });
+        sd->close();
+        _exit(0);
+    }
+    int callback_status = 0;
+    pid_t finished = 0;
+    for (int tries = 0; !finished && tries < 100; tries++)
+    {
+        finished = waitpid(callback_probe, &callback_status, WNOHANG);
+        if (!finished) usleep(50000);
+    }
+    if (!finished)
+    {
+        kill(callback_probe, SIGKILL);
+        waitpid(callback_probe, &callback_status, 0);
+    }
+    assert(finished == callback_probe && WIFEXITED(callback_status) && WEXITSTATUS(callback_status) == 0);
+
+    // A dead peer must return a send error, not terminate us with SIGPIPE.
+    auto dead = manager->createSerialDeviceCommand("test_dead", "/bin/sh",
+                 {"-c", "printf x"}, {}, "test", true);
+    assert(dead->open(false));
+    // Let the child exit without consuming stdout, then test the send path.
+    usleep(200000);
+    assert(!dead->send(bytes));
+    assert(receive(dead, 1) == vector<uchar>({'x'}));
+    assert(dead->isClosed());
+    dead->close();
+
+    // Producer commands still have the existing read-only contract.
+    auto producer = manager->createSerialDeviceCommand("test_producer", "/bin/sh",
+                 {"-c", "printf x"}, {}, "test");
+    assert(producer->readonly());
+    assert(producer->open(false));
+    assert(!producer->send(bytes));
+    assert(receive(producer, 1) == vector<uchar>({'x'}));
+    producer->close();
+
+    // Device settings win over an inherited/custom SERIAL_* environment.
+    auto settings = manager->createSerialDeviceCommand("test_settings", "/bin/sh",
+        {"-c", "printf '%s/%s/%s/%s/%s' \"$SERIAL_BPS\" \"$SERIAL_BITS\" \"$SERIAL_PARITY\" \"$SERIAL_STOPBITS\" \"$SERIAL_FLOW\"; exec cat"},
+        {"SERIAL_BPS=999"}, "test", true);
+    assert(!settings->setSerialSettings(0, PARITY::NONE));
+    assert(settings->setSerialSettings(2400, PARITY::EVEN));
+    assert(settings->open(false));
+    string expected = "2400/8/e/1/none";
+    auto got = receive(settings, expected.size());
+    assert(string(got.begin(), got.end()) == expected);
+    assert(settings->setSerialSettings(2400, PARITY::EVEN));
+    assert(!settings->setSerialSettings(9600, PARITY::NONE));
+    settings->close();
+    assert(settings->setSerialSettings(9600, PARITY::NONE));
+    assert(settings->open(false));
+    expected = "9600/8/n/1/none";
+    got = receive(settings, expected.size());
+    assert(string(got.begin(), got.end()) == expected);
+    settings->close();
 }
 
 bool tst_parse(const char *data, std::unordered_map<std::string,std::pair<int,DVEntry>> *dv_entries, int testnr)
