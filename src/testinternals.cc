@@ -52,6 +52,7 @@ bool verbose_ = false;
     X(dynamic_loading)                        \
     X(crc)            \
     X(dvparser)       \
+    X(lvar)           \
     X(ixmlparser)      \
     X(devices)        \
     X(linkmodes)      \
@@ -529,6 +530,65 @@ void test_dvparser()
     tst_double(dv_entries, "8402747F77", 10.0/3600.0, testnr);
     tst_double(dv_entries, "C402747F77", 18.0/3600.0, testnr);
     tst_double(dv_entries, "8403747F77", 26.0/3600.0, testnr);
+
+    testnr++;
+    dv_entries.clear();
+    // OMS Spec Vol.2 Annex N (Release E), N.13: TAF7 data with two inverse compact profiles.
+    // The base time CD 01 6D E2 03 30 is a Type M date/time behind the LVAR E2h, which
+    // EN 13757-3 table 5 defines as a binary value of 2 bytes, not as 226 bytes of text.
+    // Every record behind it must therefore still be found.
+    tst_parse("2F2F0E026099010000000E823C513000000000CD016DE20330CE0103951900000000"
+              "CD01831330410801030507090806040200000000000000000000000103050709080604020000000000000000000000010305070908"
+              "CE01833C050300000000"
+              "CD0183BC1330410800000000000000000000010305070908060402000000000000000000000001030507090806040200000000000000"
+              "C101740302FD971D00002F2F2F2F2F2F2F2F2F2F2F2F2F2F2F", &dv_entries, testnr);
+    tst_string(dv_entries, "CD016D", "0330", testnr);
+    tst_double(dv_entries, "CE0103", 1.995, testnr);
+    tst_double(dv_entries, "CE01833C", 0.305, testnr);
+    tst_string(dv_entries, "C10174", "03", testnr);
+}
+
+void test_lvar()
+{
+    // EN 13757-3:2018 table 5.
+    struct { int lvar; int len; const char *type; } cases[] = {
+        { 0x00,  0, "text" },
+        { 0x30, 48, "text" },
+        { 0xbf, 191, "text" },
+        { 0xc0,  0, "bcd" },
+        { 0xc9,  9, "bcd" },
+        { 0xca, -1, "reserved" },
+        { 0xcf, -1, "reserved" },
+        { 0xd0,  0, "negative_bcd" },
+        { 0xd9,  9, "negative_bcd" },
+        { 0xda, -1, "reserved" },
+        { 0xdf, -1, "reserved" },
+        { 0xe0,  0, "binary" },
+        { 0xe2,  2, "binary" },
+        { 0xef, 15, "binary" },
+        { 0xf0, 16, "binary" },
+        { 0xf4, 32, "binary" },
+        { 0xf5, 48, "binary" },
+        { 0xf6, 64, "binary" },
+        { 0xf7, -1, "reserved" },
+        { 0xff, -1, "reserved" },
+    };
+    for (auto &c : cases)
+    {
+        int len = lvarLenBytes(c.lvar);
+        string type = lvarType(c.lvar);
+        if (len != c.len || type != c.type)
+        {
+            printf("ERROR! lvar %02x expected %d %s but got %d %s\n", c.lvar, c.len, c.type, len, type.c_str());
+        }
+    }
+
+    // A reserved LVAR leaves the length unknown. The records before it stay, nothing after it is guessed.
+    unordered_map<string,pair<int,DVEntry>> dv_entries;
+    tst_parse("01FD1705 0D03F7010203 01FD1706", &dv_entries, 1);
+    tst_string(dv_entries, "01FD17", "05", 1);
+    tst_no_key(dv_entries, "0D03", 1);
+    tst_no_key(dv_entries, "01FD17_2", 1);
 }
 
 void test_ixmlparser()

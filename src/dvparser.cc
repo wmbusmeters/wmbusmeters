@@ -1466,8 +1466,16 @@ bool parseDV(Telegram *t,
 
         if (variable_length) {
             DEBUG_PARSER("(dvparser debug) varlen %02x\n", *(data+0));
-            datalen = *(data);
-            t->addExplanationAndIncrementPos(data, 1, KindOfData::PROTOCOL, Understanding::FULL, "%02X varlen=%d", *(data+0), datalen);
+            int lvar = *(data);
+            datalen = lvarLenBytes(lvar);
+            if (datalen < 0)
+            {
+                // A reserved LVAR leaves the length unknown, nothing after it can be found.
+                t->addExplanationAndIncrementPos(data, 1, KindOfData::PROTOCOL, Understanding::NONE, "%02X varlen reserved", lvar);
+                debug("(dvparser) warning: reserved lvar %02x\n", lvar);
+                break;
+            }
+            t->addExplanationAndIncrementPos(data, 1, KindOfData::PROTOCOL, Understanding::FULL, "%02X varlen=%d %s", lvar, datalen, lvarType(lvar));
             remaining--; // Drop the length byte.
         }
         DEBUG_PARSER("(dvparser debug) remaining data %d len=%d\n", remaining, datalen);
@@ -2446,6 +2454,10 @@ bool DVEntry::extractDate(struct tm *out)
 {
     memset(out, 0, sizeof(*out));
     out->tm_isdst = -1; // Figure out the dst automatically!
+
+    // A variable length date/time is Type M (EN 13757-3 table A.12), not Type G, F or I,
+    // even when it happens to have the same number of bytes.
+    if ((dif_vif_key.dif() & 0x0f) == 0x0d) return false;
 
     vector<uchar> v;
     hex2bin(value, &v);
