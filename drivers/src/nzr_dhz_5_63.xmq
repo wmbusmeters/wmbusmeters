@@ -2,36 +2,32 @@
 driver {
     name           = nzr_dhz_5_63
     meter_type     = ElectricityMeter
-    default_fields = name,id,total_energy_consumption_kwh,total_energy_consumption_2_kwh,current_power_consumption_kw,voltage_v,amperage_a,timestamp
+    default_fields = name,id,total_kwh,timestamp
     detect {
         mvt = NZR,01,02
     }
+    library {
+        use = total_kwh
+        use = fabrication_no
+    }
     fields {
         field {
-            name     = total_energy_consumption
+            name     = resettable
             quantity = Energy
-            info     = 'The total energy consumption recorded by this meter.'
+            info     = 'Accumulated energy since the counter was last reset.'
             match {
-                measurement_type = Instantaneous
-                vif_scaling      = Auto
-                vif_range        = AnyEnergyVIF
-            }
-        }
-        field {
-            name     = total_energy_consumption_2
-            quantity = Energy
-            info     = 'A second total energy consumption register reported by this meter.'
-            match {
+                // This meter uses 0x7f which ought to be followed by a second combinable byte, or?
+                // Either the meter is wrong or wmbusmeters, for now we need to hardcode the difvif to
+                // match this entry. They should have used a storage_nr instead.....
                 difvifkey = 04837F
             }
         }
         field {
-            name     = current_power_consumption
+            name     = power
             quantity = Power
             info     = 'Power consumption (now).'
             match {
                 measurement_type = Instantaneous
-                vif_scaling      = Auto
                 vif_range        = AnyPowerVIF
             }
         }
@@ -41,7 +37,6 @@ driver {
             info     = 'Voltage (now).'
             match {
                 measurement_type = Instantaneous
-                vif_scaling      = Auto
                 vif_range        = Voltage
             }
         }
@@ -51,7 +46,6 @@ driver {
             info     = 'Amperage (now).'
             match {
                 measurement_type = Instantaneous
-                vif_scaling      = Auto
                 vif_range        = Amperage
             }
         }
@@ -60,8 +54,8 @@ driver {
         test {
             args     = 'NZR1 nzr_dhz_5_63 30101959 NOKEY'
             telegram = 68323268083B7259191030523B0102E70000000403A9487D0104837F5438690102FD484D0902FD5B0E00022B1F010C78591910300FDFC616
-            json     = '{"_": "telegram","amperage_a": 1.4,"current_power_consumption_kw": 0.287,"driver": "nzr_dhz_5_63","id": "30101959","media": "electricity","name": "NZR1","timestamp": "1111-11-11T11:11:11Z","total_energy_consumption_2_kwh": 23672.916,"total_energy_consumption_kwh": 24987.817,"voltage_v": 238.1}'
-            fields   = 'NZR1;30101959;24987.817;23672.916;0.287;238.1;1.4;1111-11-11 11:11.11'
+            json     = '{"_": "telegram","media": "electricity","driver": "nzr_dhz_5_63","name": "NZR1","id": "30101959","amperage_a": 1.4,"power_kw": 0.287,"resettable_kwh": 23672.916,"total_kwh": 24987.817,"voltage_v": 238.1,"fabrication_no": "30101959","timestamp": "1111-11-11T11:11:11Z"}'
+            fields   = 'NZR1;30101959;24987.817;1111-11-11 11:11.11'
             comment  = 'Telegram captured from an NZR DHZ-5/63 single phase electricity meter.'
         }
     }
