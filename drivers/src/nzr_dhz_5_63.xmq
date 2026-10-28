@@ -1,0 +1,68 @@
+// Copyright (C) 2026 Tomas (gpl-3.0-or-later)
+driver {
+    name           = nzr_dhz_5_63
+    meter_type     = ElectricityMeter
+    default_fields = name,id,total_energy_consumption_kwh,total_energy_consumption_2_kwh,current_power_consumption_kw,voltage_v,amperage_a,timestamp
+    detect {
+        mvt = NZR,01,02
+    }
+    fields {
+        field {
+            name     = total_energy_consumption
+            quantity = Energy
+            info     = 'The total energy consumption recorded by this meter.'
+            match {
+                measurement_type = Instantaneous
+                vif_scaling      = Auto
+                vif_range        = AnyEnergyVIF
+            }
+        }
+        field {
+            name     = total_energy_consumption_2
+            quantity = Energy
+            info     = 'A second total energy consumption register reported by this meter.'
+            match {
+                difvifkey = 04837F
+            }
+        }
+        field {
+            name     = current_power_consumption
+            quantity = Power
+            info     = 'Power consumption (now).'
+            match {
+                measurement_type = Instantaneous
+                vif_scaling      = Auto
+                vif_range        = AnyPowerVIF
+            }
+        }
+        field {
+            name     = voltage
+            quantity = Voltage
+            info     = 'Voltage (now).'
+            match {
+                measurement_type = Instantaneous
+                vif_scaling      = Auto
+                vif_range        = Voltage
+            }
+        }
+        field {
+            name     = amperage
+            quantity = Amperage
+            info     = 'Amperage (now).'
+            match {
+                measurement_type = Instantaneous
+                vif_scaling      = Auto
+                vif_range        = Amperage
+            }
+        }
+    }
+    tests {
+        test {
+            args     = 'NZR1 nzr_dhz_5_63 30101959 NOKEY'
+            telegram = 68323268083B7259191030523B0102E70000000403A9487D0104837F5438690102FD484D0902FD5B0E00022B1F010C78591910300FDFC616
+            json     = '{"_": "telegram","amperage_a": 1.4,"current_power_consumption_kw": 0.287,"driver": "nzr_dhz_5_63","id": "30101959","media": "electricity","name": "NZR1","timestamp": "1111-11-11T11:11:11Z","total_energy_consumption_2_kwh": 23672.916,"total_energy_consumption_kwh": 24987.817,"voltage_v": 238.1}'
+            fields   = 'NZR1;30101959;24987.817;23672.916;0.287;238.1;1.4;1111-11-11 11:11.11'
+            comment  = 'Telegram captured from an NZR DHZ-5/63 single phase electricity meter.'
+        }
+    }
+}
