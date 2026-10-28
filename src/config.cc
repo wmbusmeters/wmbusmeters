@@ -240,6 +240,17 @@ void parseMeterConfig(Configuration *c, vector<char> &buf, string file)
     if (use)
     {
         mi.parse(name, driver, address_expressions, key); // sets driver, extras, name, bus, bps, link_modes, ids, name, key
+        if (bus != "")
+        {
+            // The bus key sets the bus alias for this meter,
+            // overriding any bus specified in the driver string.
+            if (mi.bus != "" && mi.bus != bus)
+            {
+                warning("In config, meter %s has both bus \"%s\" in the driver string and bus \"%s\" in the bus key, using the bus key.\n",
+                        name.c_str(), mi.bus.c_str(), bus.c_str());
+            }
+            mi.bus = bus;
+        }
         mi.poll_interval = poll_interval;
         mi.identity_mode = identity_mode;
 

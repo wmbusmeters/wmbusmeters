@@ -1511,6 +1511,7 @@ void testc(string file, string file_content,
                xbps.c_str(),
                xlm.c_str()
             );
+        assert(0); // Fail the test hard, a printed error is not enough.
     }
 }
 
@@ -1577,6 +1578,32 @@ void test_meters()
           "", // bus
           "0", // bps
           "c1"); // linkmodes)
+
+    // The bus key in the meter file sets the bus alias for the meter.
+    config_content =
+        "name=test\n"
+        "driver=multical21:c1\n"
+        "id=01234567\n"
+        "bus=BUS1\n";
+    testc("meter/buskey", config_content,
+          "kamwater", // driver
+          "", // extras
+          "BUS1", // bus
+          "0", // bps
+          "c1"); // linkmodes)
+
+    // The bus key overrides a bus in the driver string.
+    config_content =
+        "name=test\n"
+        "driver=piigth:BUS2:2400:mbus\n"
+        "id=01234567\n"
+        "bus=BUS1\n";
+    testc("meter/buskey-override", config_content,
+          "piigth", // driver
+          "", // extras
+          "BUS1", // bus
+          "2400", // bps
+          "mbus"); // linkmodes)
 
 
     testm("unknown(offset=162)", true,
