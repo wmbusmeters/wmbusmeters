@@ -1710,16 +1710,23 @@ test {
     fields   = 'Heat;93572431;OK;1805;297.994;1111-11-11 11:11.11'
 }
 test {
+    args     = 'Zenner_warm2 minomess 12345678 NOKEY'
+    comment  = 'Target 8C0413 sent as binary uint32 litres: F51C0200 = 138485 l.'
+    telegram = 6644496A7856341218377278563412496A01067D0050052F2F_0C1354031400026C4F3A82046C413A8C0413F51C02008D0493132C33FEEE0F020D05021EFA018CED010CE0013ED401FFC601A9B701E2A2011B94014884011D7401FC6601EA5A0102FD1700002F2F
+    json     = '{"_":"telegram","media":"warm water","driver":"minomess","name":"Zenner_warm2","id":"12345678","meter_date":"2026-10-15","total_m3":140.354,"target_m3":138.485,"target_date":"2026-10-01","status":"OK","timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'Zenner_warm2;12345678;OK;140.354;138.485;1111-11-11 11:11.11'
+}
+test {
     args     = 'Zenner_warm minomess 51413121 NOKEY'
     telegram = 6644496A8753155518377221314151496A0106300050052F2F_0C1357000000026CEC2182046CE1218C0413000000808D0493132C33FE00008000008000008000008000008000008000008000008000008000008000008000008000008000008002FD1700002F2F
-    json     = '{"_":"telegram","media":"warm water","driver":"minomess","name":"Zenner_warm","id":"51413121","meter_date":"2023-01-12","total_m3":0.057,"target_m3":80000,"target_date":"2023-01-01","status":"OK","timestamp":"1111-11-11T11:11:11Z"}'
-    fields   = 'Zenner_warm;51413121;OK;0.057;80000;1111-11-11 11:11.11'
+    json     = '{"_":"telegram","media":"warm water","driver":"minomess","name":"Zenner_warm","id":"51413121","meter_date":"2023-01-12","total_m3":0.057,"target_m3":null,"target_date":"2023-01-01","status":"OK","timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'Zenner_warm;51413121;OK;0.057;null;1111-11-11 11:11.11'
 }
 test {
     args     = 'Zenner_cold minomess 21314151 NOKEY'
     telegram = 6644496A4425155518377251413121496A0116360050052F2F_0C1355000000026CEC2182046CE1218C0413000000808D0493132C33FE00008000008000008000008000008000008000008000008000008000008000008000008000008000008002FD1700002F2F
-    json     = '{"_":"telegram","media":"cold water","driver":"minomess","name":"Zenner_cold","id":"21314151","meter_date":"2023-01-12","total_m3":0.055,"target_m3":80000,"target_date":"2023-01-01","status":"OK","timestamp":"1111-11-11T11:11:11Z"}'
-    fields   = 'Zenner_cold;21314151;OK;0.055;80000;1111-11-11 11:11.11'
+    json     = '{"_":"telegram","media":"cold water","driver":"minomess","name":"Zenner_cold","id":"21314151","meter_date":"2023-01-12","total_m3":0.055,"target_m3":null,"target_date":"2023-01-01","status":"OK","timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'Zenner_cold;21314151;OK;0.055;null;1111-11-11 11:11.11'
 }
 test {
     args     = 'Mino minomess 15503451 NOKEY'
