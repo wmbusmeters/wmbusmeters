@@ -53,6 +53,7 @@ bool verbose_ = false;
     X(crc)            \
     X(dvparser)       \
     X(lvar)           \
+    X(type_m)         \
     X(ixmlparser)      \
     X(devices)        \
     X(linkmodes)      \
@@ -589,6 +590,60 @@ void test_lvar()
     tst_string(dv_entries, "01FD17", "05", 1);
     tst_no_key(dv_entries, "0D03", 1);
     tst_no_key(dv_entries, "01FD17_2", 1);
+}
+
+void tst_type_m(const char *hex, bool ok_expected, double seconds_expected)
+{
+    vector<uchar> bytes;
+    hex2bin(hex, &bytes);
+    double seconds = 0;
+    bool ok = decodeTypeMDuration(bytes, &seconds);
+    if (ok != ok_expected || (ok && seconds != seconds_expected))
+    {
+        printf("ERROR! type m %s expected ok=%d %g s but got ok=%d %g s\n",
+               hex, ok_expected, seconds_expected, ok, seconds);
+    }
+}
+
+void test_type_m()
+{
+    // EN 13757-3:2018 table A.12, example 2: an event 34.5 s before the transmission,
+    // 2 byte timer, resolution 1/256 s.
+    tst_type_m("80DD" "50", true, -34.5);
+    // OMS Vol.2 Annex N.13 and the Apator TAF7 telegrams: the base time of a compact profile, 3 s.
+    tst_type_m("03" "30", true, 3);
+    // Resolution 2 s, and 1/32768 s.
+    tst_type_m("0A" "10", true, 20);
+    tst_type_m("0040" "70", true, 0.5);
+    // The start time does not matter for a relative time.
+    tst_type_m("03" "B0", true, 3);
+    // The most negative count signals "invalid", one above it is a valid value.
+    tst_type_m("80" "30", false, 0);
+    tst_type_m("81" "30", true, -127);
+    // Example 1 is an absolute time, 2013-01-02 01:02:03 UTC, no duration.
+    tst_type_m("0B600100" "21", false, 0);
+    // A reserved time offset (-15) is no duration either.
+    tst_type_m("01" "31", false, 0);
+    // No count byte, or more than LVAR EAh allows.
+    tst_type_m("30", false, 0);
+    tst_type_m("0000000000000000000030", false, 0);
+
+    unordered_map<string,pair<int,DVEntry>> dv_entries;
+    int testnr = 1;
+    // Example 2 as a data record: a duration, but no date.
+    tst_parse("0D6DE380DD50", &dv_entries, testnr);
+    tst_double(dv_entries, "0D6D", -34.5, testnr);
+    struct tm d;
+    int offset;
+    if (extractDVdate(&dv_entries, "0D6D", &offset, &d)) printf("ERROR! relative type m gave a date\n");
+
+    testnr++;
+    dv_entries.clear();
+    // A text of 2 bytes behind the same vif is neither a duration nor a Type G date.
+    tst_parse("0D6D020330", &dv_entries, testnr);
+    double v;
+    if (extractDVdouble(&dv_entries, "0D6D", &offset, &v)) printf("ERROR! text gave a duration\n");
+    if (extractDVdate(&dv_entries, "0D6D", &offset, &d)) printf("ERROR! text gave a date\n");
 }
 
 void test_ixmlparser()

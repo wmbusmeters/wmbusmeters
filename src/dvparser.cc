@@ -1464,9 +1464,10 @@ bool parseDV(Telegram *t,
             break;
         }
 
+        int lvar = -1;
         if (variable_length) {
             DEBUG_PARSER("(dvparser debug) varlen %02x\n", *(data+0));
-            int lvar = *(data);
+            lvar = *(data);
             datalen = lvarLenBytes(lvar);
             if (datalen < 0)
             {
@@ -1503,6 +1504,7 @@ bool parseDV(Telegram *t,
         assert(insert_res.second);
         auto &entry = insert_res.first->second;
         DVEntry *dve = &entry.second;
+        dve->lvar = lvar;
 
         trace("[DVPARSER] entry %s\n", dve->str().c_str());
 
@@ -1945,6 +1947,13 @@ bool is_all_F(string &v)
 bool DVEntry::extractDouble(double *out, bool auto_scale, bool force_unsigned)
 {
     int t = dif_vif_key.dif() & 0xf;
+    if (t == 0xd && isTypeM())
+    {
+        // A relative Type M date/time is a duration in seconds, the vif has no scale for it.
+        vector<uchar> v;
+        hex2bin(value, &v);
+        return decodeTypeMDuration(v, out);
+    }
     if (t == 0x0 ||
         t == 0x8 ||
         t == 0xd ||
@@ -2450,17 +2459,44 @@ bool extractDVdate(unordered_map<string,pair<int,DVEntry>> *dv_entries,
     return p.second.extractDate(out);
 }
 
+bool decodeTypeMDuration(const vector<uchar> &bytes, double *seconds)
+{
+    // LVAR E2h-EAh: one header byte and 1 to 9 bytes of signed count.
+    size_t n = bytes.size();
+    if (n < 2 || n > 10) return false;
+
+    // The most significant byte is the header:
+    // bit 7 start time, bits 6-5 resolution, bits 4-0 time offset.
+    // Only the time offset 10000b (-16) is a relative time, the start time does not matter then.
+    uchar header = bytes[n-1];
+    if ((header & 0x1f) != 0x10) return false;
+
+    // The most negative count, -2^(X-9), signals "invalid".
+    bool invalid = bytes[n-2] == 0x80;
+    for (size_t i = 0; i < n-2; i++) invalid &= bytes[i] == 0;
+    if (invalid) return false;
+
+    // Up to 72 bits of count in two's complement, long double keeps 64 bits of them exact.
+    long double count = 0;
+    for (size_t i = n-1; i-- > 0;) count = count * 256 + bytes[i];
+    if (bytes[n-2] & 0x80) count -= powl(2.0L, 8 * (n-1));
+
+    static const long double resolution_s[] = { 2.0L, 1.0L, 1.0L/256, 1.0L/32768 };
+    *seconds = (double)(count * resolution_s[(header >> 5) & 0x03]);
+    return true;
+}
+
 bool DVEntry::extractDate(struct tm *out)
 {
     memset(out, 0, sizeof(*out));
     out->tm_isdst = -1; // Figure out the dst automatically!
 
+    vector<uchar> v;
+    hex2bin(value, &v);
+
     // A variable length date/time is Type M (EN 13757-3 table A.12), not Type G, F or I,
     // even when it happens to have the same number of bytes.
     if ((dif_vif_key.dif() & 0x0f) == 0x0d) return false;
-
-    vector<uchar> v;
-    hex2bin(value, &v);
 
     bool ok = true;
     if (v.size() == 2) {
