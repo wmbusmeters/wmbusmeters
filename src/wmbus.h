@@ -732,6 +732,10 @@ std::string decodeTPLStatusByteNoMfct(uchar sts);
 std::string decodeTPLStatusByteWithMfct(uchar sts, Translate::Lookup &lookup);
 
 int difLenBytes(int dif);
+// Number of data bytes announced by the LVAR byte after a variable length dif, -1 if reserved.
+int lvarLenBytes(int lvar);
+// The encoding the LVAR byte announces: text, bcd, negative_bcd, binary or reserved.
+const char *lvarType(int lvar);
 MeasurementType difMeasurementType(int dif);
 
 std::string measurementTypeName(MeasurementType mt);
