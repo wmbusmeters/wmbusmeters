@@ -11,6 +11,7 @@ driver {
         mvt = QDS,35,08
         mvt = QDS,34,08
         mvt = QDS,36,08
+        mvt = QDS,3a,08
         mvt = LSE,18,08
         mvt = ZRI,fd,08
     }
@@ -243,6 +244,13 @@ driver {
             telegram = 49449344825253303608780DFF5F350082430035E3DFC4EAC97A58B8610713D93549E2601258D617D267E7515C764B002A88CD341A9F9DF3C6034DE5B6D1FAB3619CBA9F046D250DDA2C
             json     = '{"_":"telegram","media":"heat cost allocation","driver":"qcaloric","name":"HCA4","id":"30535282","status":"OK","device_datetime":"2022-12-26 13:37","timestamp":"1111-11-11T11:11:11Z"}'
             fields   = 'HCA4;30535282;null;null;null;1111-11-11 11:11.11'
+        }
+        test {
+            args     = 'HCA5_3a qcaloric 41195571 NOKEY'
+            comment  = 'Another version 3a.'
+            telegram = 38449344715519413A087A7A0020252F2F_0B6E2201004B6E000000426CFFFFCB086E070100C2086C5E392F2F2F2F2F326CFFFF046D160B533A
+            json     = '{"_": "telegram","consumption_at_set_date_17_hca": 107,"consumption_at_set_date_1_hca": 0,"consumption_at_set_date_hca": 0,"current_consumption_hca": 122,"device_datetime": "2026-10-19 11:22","driver": "qcaloric","error_date": "","id": "41195571","media": "heat cost allocation","name": "HCA5_3a","set_date": null,"set_date_1": "","set_date_17": "2026-09-30","status": "OK","timestamp": "1111-11-11T11:11:11Z"}'
+            fields   = 'HCA5_3a;41195571;122;null;0;1111-11-11 11:11.11'
         }
     }
 }
