@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2019-2021 Fredrik Öhrström (gpl-3.0-or-later)
+ Copyright (C) 2019-2026 Fredrik Öhrström (gpl-3.0-or-later)
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -155,6 +155,8 @@ struct Configuration
 
 std::shared_ptr<Configuration> loadConfiguration(std::string root, ConfigOverrides overrides);
 
+bool isWMBusMetersConfigXMQ(std::vector<char> &buf);
+bool isMeterConfigXMQ(std::vector<char> &buf);
 void parseMeterConfig(Configuration *c, std::vector<char> &buf, std::string file);
 void handleSelectedFields(Configuration *c, std::string s);
 bool handleDeviceOrHex(Configuration *c, std::string devicefilehex);

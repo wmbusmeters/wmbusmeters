@@ -1,0 +1,6 @@
+meter {
+    name   = Rum
+    driver = cma12w
+    id     = 66666666
+    key    = NOKEY
+}
