@@ -50,6 +50,7 @@ driver {
         use = on_time_at_error_h
         use = total_backward_m3
         use = volume_flow_m3h
+        use = rssi_dbm
     }
     flags {
         flag {
@@ -260,6 +261,12 @@ driver {
         }
     }
     tests {
+        test {
+            args     = 'MBusRSSI minomess 15363320 NOKEY'
+            telegram = 685F5F6808007220333615496A0116A30000000C1397750500026C513A82046C413A8C0413AADB00008D0493132C33FED0D200A6CD007EC8009CC10048BA00FAB3009BAD00D2A80028A2004F9B00F694009B8F00F9890048860002FD17000001FD71AAE716
+            json     = '{"_":"telegram","media":"cold water","driver":"minomess","name":"MBusRSSI","id":"15363320","rssi_dbm":-86,"target_m3":21.987,"target_date":"2026-10-01","total_m3":57.597,"meter_date":"2026-10-17","status":"OK","timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'MBusRSSI;15363320;OK;57.597;21.987;1111-11-11 11:11.11'
+        }
         test {
             args     = 'Mino minomess 15503451 NOKEY'
             telegram = 6644496A1064035514377251345015496A0007EE0050052F2F_0C1359000000026CBE2B82046CA12B8C0413FFFFFFFF8D0493132CFBFEFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF02FD1700002F2F
