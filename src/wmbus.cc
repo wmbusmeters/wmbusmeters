@@ -2894,6 +2894,32 @@ int difLenBytes(int dif)
     return -2;
 }
 
+// EN 13757-3:2018 table 5. Only 00h-BFh is a plain length (of text),
+// above that the LVAR byte names the encoding and the length is derived from it.
+// E2h is therefore a binary value of 2 bytes, not 226 bytes of text.
+int lvarLenBytes(int lvar)
+{
+    if (lvar <= 0xbf) return lvar;               // Text, 0-191 bytes
+    if (lvar <= 0xc9) return lvar - 0xc0;        // Positive BCD, 0-9 bytes
+    if (lvar <= 0xcf) return -1;                 // Reserved
+    if (lvar <= 0xd9) return lvar - 0xd0;        // Negative BCD, 0-9 bytes
+    if (lvar <= 0xdf) return -1;                 // Reserved
+    if (lvar <= 0xef) return lvar - 0xe0;        // Binary, 0-15 bytes
+    if (lvar <= 0xf4) return 4 * (lvar - 0xec);  // Binary, 16, 20, 24, 28 or 32 bytes
+    if (lvar == 0xf5) return 48;                 // Binary, 48 bytes
+    if (lvar == 0xf6) return 64;                 // Binary, 64 bytes
+    return -1;                                   // Reserved
+}
+
+const char *lvarType(int lvar)
+{
+    if (lvarLenBytes(lvar) < 0) return "reserved";
+    if (lvar <= 0xbf) return "text";
+    if (lvar <= 0xc9) return "bcd";
+    if (lvar <= 0xd9) return "negative_bcd";
+    return "binary";
+}
+
 string difType(int dif)
 {
     string s;

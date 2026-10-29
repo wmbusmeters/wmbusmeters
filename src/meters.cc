@@ -3366,6 +3366,11 @@ bool FieldInfo::extractNumeric(Meter *m, Telegram *t, DVEntry *dve)
                 time_t tmp = mktime(&datetime);
                 extracted_double_value = tmp;
             }
+            else if (dve->isTypeM())
+            {
+                // A relative Type M date/time, extractDouble already gave its duration in seconds.
+                decoded_unit = Unit::Second;
+            }
             else
             {
                 extracted_double_value = NAN;

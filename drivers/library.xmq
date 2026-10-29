@@ -14,6 +14,8 @@
    target_kwh
    These are useful for billing since the readout can happen at
    any time during the next month.
+   Sometimes even older targets are provided, the even older target value
+   will be named: target_1_m3, target_2_m3, etc...
 
    For more complex meters with both consumption and production:
    total_consumption_kwh (Electricity consumed.)

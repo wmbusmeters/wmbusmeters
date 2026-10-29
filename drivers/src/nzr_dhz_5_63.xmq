@@ -1,0 +1,62 @@
+// Copyright (C) 2026 Tomas (gpl-3.0-or-later)
+driver {
+    name           = nzr_dhz_5_63
+    meter_type     = ElectricityMeter
+    default_fields = name,id,total_kwh,timestamp
+    detect {
+        mvt = NZR,01,02
+    }
+    library {
+        use = total_kwh
+        use = fabrication_no
+    }
+    fields {
+        field {
+            name     = resettable
+            quantity = Energy
+            info     = 'Accumulated energy since the counter was last reset.'
+            match {
+                // This meter uses 0x7f which ought to be followed by a second combinable byte, or?
+                // Either the meter is wrong or wmbusmeters, for now we need to hardcode the difvif to
+                // match this entry. They should have used a storage_nr instead.....
+                difvifkey = 04837F
+            }
+        }
+        field {
+            name     = power
+            quantity = Power
+            info     = 'Power consumption (now).'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = AnyPowerVIF
+            }
+        }
+        field {
+            name     = voltage
+            quantity = Voltage
+            info     = 'Voltage (now).'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = Voltage
+            }
+        }
+        field {
+            name     = amperage
+            quantity = Amperage
+            info     = 'Amperage (now).'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = Amperage
+            }
+        }
+    }
+    tests {
+        test {
+            args     = 'NZR1 nzr_dhz_5_63 30101959 NOKEY'
+            telegram = 68323268083B7259191030523B0102E70000000403A9487D0104837F5438690102FD484D0902FD5B0E00022B1F010C78591910300FDFC616
+            json     = '{"_": "telegram","media": "electricity","driver": "nzr_dhz_5_63","name": "NZR1","id": "30101959","amperage_a": 1.4,"power_kw": 0.287,"resettable_kwh": 23672.916,"total_kwh": 24987.817,"voltage_v": 238.1,"fabrication_no": "30101959","timestamp": "1111-11-11T11:11:11Z"}'
+            fields   = 'NZR1;30101959;24987.817;1111-11-11 11:11.11'
+            comment  = 'Telegram captured from an NZR DHZ-5/63 single phase electricity meter.'
+        }
+    }
+}
