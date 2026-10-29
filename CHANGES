@@ -1,6 +1,23 @@
+
+Add new mvt to qcaloric driver.
+Fixed several cases where too short telegrams triggered asserts,
+ie wmbusmeters was looking for certain bytes that did not exist.
+
+Tmtom created the nzr_dhz_5_63 driver, improved the AGENTS.md
+and fixed a bug in the config file reading that ignored the bus setting. Thanks Tmtom!
+
+Christoph Gommel made several improvements on decoding compact profiles,
+ie variable length entries that store multiple values in time in a more
+space efficient way. Thanks Cristoph!
+
+Krzysztof Kozioł improved the qwaterv2 driver to accept different
+versions of the meter. Thanks Krzysztof!
+
+Petr Cernohorsky improved the minomess driver by
+working around a meter bug using ixml. Thanks Petr!
+
 Version 3.1.0 2026-10-16
 Version 3.1.0-RC1 2026-10-16
-
 
 Version nr pattern for ha-addon changes from 3.0.0-123 to 3.0.0.123
 The ha-addon now automaticall generates discovery messages from the driver.
