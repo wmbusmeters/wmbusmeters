@@ -129,9 +129,9 @@ void addRegisteredDriver(DriverInfo di)
     (*registered_drivers_list_).push_back(lookupDriver(di.name().str()));
 }
 
-bool DriverInfo::detect(uint16_t mfct, uchar version, uchar type)
+static bool detectMVT(vector<MVT> &mvts, uint16_t mfct, uchar version, uchar type)
 {
-    for (auto &dd : mvts_)
+    for (auto &dd : mvts)
     {
         if (dd.mfct == 0 && dd.type == 0 && dd.version == 0) continue; // Ignore drivers with no detection.
         bool version_match = dd.version == 0xff || dd.version == version;
@@ -142,6 +142,16 @@ bool DriverInfo::detect(uint16_t mfct, uchar version, uchar type)
         if ((dd.mfct & 0x7fff) == (mfct & 0x7fff) && version_match && type_match ) return true;
     }
     return false;
+}
+
+bool DriverInfo::detect(uint16_t mfct, uchar version, uchar type)
+{
+    return detectMVT(mvts_, mfct, version, type);
+}
+
+bool DriverInfo::detectDll(uint16_t mfct, uchar version, uchar type)
+{
+    return detectMVT(dll_mvts_, mfct, version, type);
 }
 
 void DriverInfo::setAliases(string a)
@@ -323,6 +333,28 @@ string loadDriver(const string &file, const char *content)
             if (old_name != NULL)
             {
                 string exp = tostrprintf("new driver %s (%s) triggered a removal of the (not yet loaded) builtin driver %s because of the same mvt=%s,%02x,%02x",
+                      di.name().str().c_str(),
+                      di.getDynamicFileName().c_str(),
+                      old_name,
+                      mfct.c_str(),
+                      d.version,
+                      d.type);
+                debug("(driver) %s\n", exp.c_str());
+                removeDriver(old_name, exp);
+            }
+        }
+    }
+
+    // Same check for the dll_mvt triplets of a new driver from /etc/wmbusmeters.drivers.d.
+    if (!loading_builtin)
+    {
+        for (auto &d : di.dllMvts())
+        {
+            const char *old_name = findBuiltinDllDriver(d.mfct, d.version, d.type);
+            if (old_name != NULL)
+            {
+                string mfct = manufacturerFlag(d.mfct);
+                string exp = tostrprintf("new driver %s (%s) triggered a removal of the (not yet loaded) builtin driver %s because of the same dll_mvt=%s,%02x,%02x",
                       di.name().str().c_str(),
                       di.getDynamicFileName().c_str(),
                       old_name,
@@ -2967,6 +2999,24 @@ ELLSecurityMode MeterCommonImplementation::expectedELLSecurityMode()
     return expected_ell_sec_mode_;
 }
 
+void detectMeterDllDrivers(int manufacturer, int version, int type, vector<string> *drivers)
+{
+    bool found = false;
+    for (DriverInfo *p : allDrivers())
+    {
+        if (p->detectDll(manufacturer, version, type))
+        {
+            drivers->push_back(p->name().str());
+            found = true;
+        }
+    }
+    if (!found)
+    {
+        const char *name = findBuiltinDllDriver(manufacturer, version, type);
+        if (name) drivers->push_back(name);
+    }
+}
+
 void detectMeterDrivers(int manufacturer, int version, int type, vector<string> *drivers)
 {
     bool found = false;
@@ -3002,8 +3052,39 @@ bool isMeterDriverReasonableForMedia(string driver_name, int media)
 
 DriverInfo driver_unknown_;
 
+// A radio converter can build the application layer itself while the long tpl
+// carries the identity of the meter it reads (e.g. an optical reader clipped onto
+// an electricity meter). Such a driver claims the converter with a dll_mvt,
+// which is therefore checked before the tpl mvt.
+static bool pickDllDriver(Telegram *t, DriverInfo *out)
+{
+    for (DriverInfo *p : allDrivers())
+    {
+        if (p->detectDll(t->dll_mfct, t->dll_version, t->dll_type))
+        {
+            *out = *p;
+            return true;
+        }
+    }
+
+    const char *builtin_name = findBuiltinDllDriver(t->dll_mfct, t->dll_version, t->dll_type);
+    if (builtin_name && loadBuiltinDriver(builtin_name))
+    {
+        DriverInfo *di = lookupDriver(builtin_name);
+        if (di)
+        {
+            *out = *di;
+            return true;
+        }
+    }
+    return false;
+}
+
 DriverInfo pickMeterDriver(Telegram *t)
 {
+    DriverInfo dll_di;
+    if (pickDllDriver(t, &dll_di)) return dll_di;
+
     int manufacturer = t->dll_mfct;
     int version = t->dll_version;
     int type = t->dll_type;
