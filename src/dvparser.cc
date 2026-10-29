@@ -24,6 +24,7 @@
 #include "crypto/crc16.h"
 #include "utils/fs.h"
 
+#include<algorithm>
 #include<cassert>
 #include<cmath>
 #include<memory.h>
@@ -739,9 +740,9 @@ static bool stepCompactProfileDate(struct tm *date,
     return true;
 }
 
-static void addSyntheticCompactProfileEntries(unordered_map<string,pair<int,DVEntry>> *dv_entries,
-                                              int offset,
-                                              DVEntry &entry)
+static void addSyntheticCompactProfileEntriesFor(unordered_map<string,pair<int,DVEntry>> *dv_entries,
+                                                 int offset,
+                                                 DVEntry &entry)
 {
     bool has_compact = entry.combinable_vifs.count(VIFCombinable::CompactProfile) > 0;
     bool has_compact_with_register = entry.combinable_vifs.count(VIFCombinable::CompactProfileWithRegister) > 0;
@@ -1037,6 +1038,30 @@ static void addSyntheticCompactProfileEntries(unordered_map<string,pair<int,DVEn
     {
         for (size_t end = payload.size(); end >= data_start + (size_t)slot_bytes; end -= slot_bytes)
             add_slot(end - slot_bytes);
+    }
+}
+
+static void addSyntheticCompactProfileEntries(unordered_map<string,pair<int,DVEntry>> *dv_entries)
+{
+    // Collect the profiles first, the expansion inserts into the map and must not run while
+    // iterating it. Expand them in telegram order, so that the _2, _3 suffixes of the generated
+    // keys stay the same as when every profile was expanded right after it was parsed.
+    vector<pair<int,string>> profiles;
+    for (auto &kv : *dv_entries)
+    {
+        const set<VIFCombinable> &vc = kv.second.second.combinable_vifs;
+        if (vc.count(VIFCombinable::CompactProfile) > 0 ||
+            vc.count(VIFCombinable::CompactProfileWithRegister) > 0 ||
+            vc.count(VIFCombinable::InverseCompactProfile) > 0)
+        {
+            profiles.push_back({ kv.second.first, kv.first });
+        }
+    }
+    sort(profiles.begin(), profiles.end());
+
+    for (auto &p : profiles)
+    {
+        addSyntheticCompactProfileEntriesFor(dv_entries, p.first, (*dv_entries)[p.second].second);
     }
 }
 
@@ -1508,8 +1533,6 @@ bool parseDV(Telegram *t,
 
         trace("[DVPARSER] entry %s\n", dve->str().c_str());
 
-        addSyntheticCompactProfileEntries(dv_entries, offset, *dve);
-
         assert(key == dve->dif_vif_key.str());
 
         if (value.length() > 0) {
@@ -1522,6 +1545,11 @@ bool parseDV(Telegram *t,
             break;
         }
     }
+
+    // Expand the compact profiles only now that every record is known. The base value, base time
+    // and actuality duration they refer to may come after the profile, eg. OMS Vol.2 Annex N.13
+    // and the Apator TAF7 telegrams send the actuality duration last.
+    addSyntheticCompactProfileEntries(dv_entries);
 
     if (data_has_difvifs) {
         size_t format_bytes_len = format_bytes.size();

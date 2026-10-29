@@ -547,6 +547,16 @@ void test_dvparser()
     tst_double(dv_entries, "CE0103", 1.995, testnr);
     tst_double(dv_entries, "CE01833C", 0.305, testnr);
     tst_string(dv_entries, "C10174", "03", testnr);
+    // The profile points, Annex N.13 prints them: import 1994, 1991, 1986 Wh, export stays 305 Wh.
+    tst_double(dv_entries, "8E02037F77", 1.994, testnr);
+    tst_double(dv_entries, "CE02037F77", 1.991, testnr);
+    tst_double(dv_entries, "8E03037F77", 1.986, testnr);
+    tst_double(dv_entries, "8E02037F77_2", 0.305, testnr);
+    // The actuality duration C1 01 74 03 comes after both profiles, still every point gets
+    // its own: 3 s plus 8 s spacing per point, point 1 at 11 s, point 46 (storage 49) at 371 s.
+    tst_string(dv_entries, "8402747F77", "0B000000", testnr);
+    tst_string(dv_entries, "C48801747F77", "73010000", testnr);
+    tst_string(dv_entries, "8402747F77_2", "0B000000", testnr);
 }
 
 void test_lvar()
