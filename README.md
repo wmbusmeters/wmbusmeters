@@ -1030,6 +1030,20 @@ environment to force LLVM to be used.
 
 Binary generated: `./build_arm_debug/wmbusmeters`
 
+# How to run fuzzing
+
+```
+make build_fuzz
+make run_fuzz_telegrams
+or
+make run_fuzz_difvifparser
+```
+
+```
+make build_fuzz_clang
+build_debug/fuzztelegram fuzz_testcases/telegrams_clang
+```
+
 # System configuration
 
 `make install` installs the files:
