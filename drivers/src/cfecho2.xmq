@@ -1,0 +1,148 @@
+/*
+ Copyright (C) 2026 Metronix Engineering Team (gpl-3.0-or-later)
+
+ This program is free software: you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation, either version 3 of the License, or
+ (at your option) any later version.
+
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+
+ You should have received a copy of the GNU General Public License
+ along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
+// Itron (Allmess/Actaris) CF Echo II ultrasonic heat/cooling meter.
+// Received via a Lansen (LAS) wM-Bus radio converter, OMS mode 7 (AES-CBC + CMAC, KDF 1).
+driver {
+    name           = cfecho2
+    meter_type     = HeatMeter
+    default_fields = name,id,status,total_energy_consumption_kwh,total_volume_m3,power_kw,volume_flow_m3h,t1_temperature_c,t2_temperature_c,timestamp
+    detect {
+        mvt = ACW,09,0c
+    }
+    library {
+        use = fabrication_no
+        use = meter_datetime
+        use = flow_return_temperature_difference_c
+    }
+    fields {
+        // TPL status byte
+        field {
+            name       = status
+            quantity   = Text
+            info       = 'Meter status from tpl status field.'
+            attributes = STATUS,INCLUDE_TPL_STATUS
+        }
+        // DR 04 07: Energy, 32-bit binary, 10^4 Wh
+        field {
+            name     = total_energy_consumption
+            quantity = Energy
+            info     = 'The total heat energy consumption recorded by this meter.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = AnyEnergyVIF
+            }
+        }
+        // DR 0C 15: Volume, 8 digit BCD, 10^-1 m3
+        field {
+            name     = total_volume
+            quantity = Volume
+            info     = 'The total volume of heating media recorded by this meter.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = Volume
+            }
+        }
+        // DR 0B 2D: Power, 6 digit BCD, 10^2 W
+        field {
+            name     = power
+            quantity = Power
+            info     = 'The current power.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = AnyPowerVIF
+            }
+        }
+        // DR 0B 3B: Volume flow, 6 digit BCD, l/h
+        field {
+            name     = volume_flow
+            quantity = Flow
+            info     = 'The current volume flow.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = VolumeFlow
+            }
+        }
+        // DR 0A 5A: Flow temperature, 4 digit BCD, 10^-1 C
+        field {
+            name     = t1_temperature
+            quantity = Temperature
+            info     = 'The forward (flow) temperature.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = FlowTemperature
+            }
+        }
+        // DR 0A 5E: Return temperature, 4 digit BCD, 10^-1 C
+        field {
+            name     = t2_temperature
+            quantity = Temperature
+            info     = 'The return temperature.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = ReturnTemperature
+            }
+        }
+        // DR 02 27: Operating time, 16-bit binary, days
+        field {
+            name         = operating_time
+            quantity     = Time
+            display_unit = d
+            info         = 'How long the meter has been operating.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = OperatingTime
+            }
+        }
+        // DR 09 FD0E: Firmware version, 2 digit BCD
+        field {
+            name     = firmware_version
+            quantity = Text
+            info     = 'Meter firmware version.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = FirmwareVersion
+            }
+        }
+        // DR 09 FD0F: Software version, 2 digit BCD
+        field {
+            name     = software_version
+            quantity = Text
+            info     = 'Meter software version.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = SoftwareVersion
+            }
+        }
+    }
+    tests {
+        test {
+            args     = 'CFEcho2 cfecho2 25076546 988BEBF0E8A769F863414D9EC141122D'
+            comment  = 'Itron CF Echo II via Lansen radio converter, OMS mode 7'
+            telegram = 6B443330484926001F378C00C1900F002C25CF470100F85962DBD0A0E68372466507257704090C0A00400710FBDF406DDEBA7D94276769DB9B8A4D6A5C79292F74F7E3A744A97109DE5C65416D2B9026F3DF1D55B8848F4BD6769422E62B212F534F39C9516A7B1829E6468C
+            json     = '{"_":"telegram","media":"heat volume at inlet","meter":"cfecho2","name":"CFEcho2","id":"25076546","flow_return_temperature_difference_c":3.41,"operating_time_d":519,"power_kw":45,"t1_temperature_c":11.3,"t2_temperature_c":7.9,"total_energy_consumption_kwh":225200,"total_volume_m3":49389,"volume_flow_m3h":11.315,"fabrication_no":"25076546","firmware_version":"22","meter_datetime":"2026-10-29 16:21","software_version":"47","status":"OK","timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'CFEcho2;25076546;OK;225200;49389;45;11.315;11.3;7.9;1111-11-11 11:11.11'
+        }
+        test {
+            args     = 'CFEcho2_2 cfecho2 21564946 A5550DC87FFFE00DBDD50CD6D5355E6E'
+            comment  = 'Second Itron CF Echo II via Lansen radio converter, OMS mode 7'
+            telegram = 6B443330504926001F378C00C3900F002C25EC030000F12AE2A5EA432E3872464956217704090C1E004007108C6174B21AA0FF4AD3A9C80C15395E32BCDFAE3927D93DD6E1CE47110C252386D0CD545F7BA9F9D9888581E828DC184A47918342BD69ACBB4316DF14E5BF3DFA
+            json     = '{"_":"telegram","media":"heat volume at inlet","meter":"cfecho2","name":"CFEcho2_2","id":"21564946","flow_return_temperature_difference_c":5.26,"operating_time_d":1898,"power_kw":72.2,"t1_temperature_c":12.2,"t2_temperature_c":6.9,"total_energy_consumption_kwh":1858100,"total_volume_m3":327933.8,"volume_flow_m3h":11.766,"fabrication_no":"21564946","firmware_version":"22","meter_datetime":"2026-10-29 16:28","software_version":"47","status":"OK","timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'CFEcho2_2;21564946;OK;1858100;327933.8;72.2;11.766;12.2;6.9;1111-11-11 11:11.11'
+        }
+    }
+}

@@ -1,5 +1,5 @@
 -n // Generated 
-2026-08-31_12:12
+2026-10-30_19:14
 test {
     args     = 'AqWater aquastream 05933237 NOKEY'
     telegram = 4644B42557920410050E7237329305B42501075B0030252F2F_04130342000084101300000000046D0D30F62B441349180000426CFF2A02FD17000002FD74DB152F2F2F2F2F2F2F
@@ -11,6 +11,20 @@ test {
     telegram = 3B4498047444161400078C207F7A73000020046D1B110137041303D9000004933B9CAD000004933C672B000003FD1701000002FDFD026500025B1900
     json     = '{"_":"telegram","flow_temperature_c": 25,"id": "14164474","media": "water","meter": "aquauni","meter_datetime": "2024-07-01 17:27","name": "aquauni_test","status": "OK","valve_state": "OPENED_100","timestamp": "1111-11-11T11:11:11Z","total_backward_m3": 11.111,"total_forward_m3": 44.444,"total_m3": 55.555}'
     fields   = 'aquauni_test;14164474;OK;OPENED_100;55.555;11.111;44.444;25;2024-07-01 17:27;1111-11-11 11:11.11'
+}
+test {
+    args     = 'CFEcho2_2 cfecho2 21564946 A5550DC87FFFE00DBDD50CD6D5355E6E'
+    comment  = 'Second Itron CF Echo II via Lansen radio converter, OMS mode 7'
+    telegram = 6B443330504926001F378C00C3900F002C25EC030000F12AE2A5EA432E3872464956217704090C1E004007108C6174B21AA0FF4AD3A9C80C15395E32BCDFAE3927D93DD6E1CE47110C252386D0CD545F7BA9F9D9888581E828DC184A47918342BD69ACBB4316DF14E5BF3DFA
+    json     = '{"_":"telegram","media":"heat volume at inlet","meter":"cfecho2","name":"CFEcho2_2","id":"21564946","flow_return_temperature_difference_c":5.26,"operating_time_d":1898,"power_kw":72.2,"t1_temperature_c":12.2,"t2_temperature_c":6.9,"total_energy_consumption_kwh":1858100,"total_volume_m3":327933.8,"volume_flow_m3h":11.766,"fabrication_no":"21564946","firmware_version":"22","meter_datetime":"2026-10-29 16:28","software_version":"47","status":"OK","timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'CFEcho2_2;21564946;OK;1858100;327933.8;72.2;11.766;12.2;6.9;1111-11-11 11:11.11'
+}
+test {
+    args     = 'CFEcho2 cfecho2 25076546 988BEBF0E8A769F863414D9EC141122D'
+    comment  = 'Itron CF Echo II via Lansen radio converter, OMS mode 7'
+    telegram = 6B443330484926001F378C00C1900F002C25CF470100F85962DBD0A0E68372466507257704090C0A00400710FBDF406DDEBA7D94276769DB9B8A4D6A5C79292F74F7E3A744A97109DE5C65416D2B9026F3DF1D55B8848F4BD6769422E62B212F534F39C9516A7B1829E6468C
+    json     = '{"_":"telegram","media":"heat volume at inlet","meter":"cfecho2","name":"CFEcho2","id":"25076546","flow_return_temperature_difference_c":3.41,"operating_time_d":519,"power_kw":45,"t1_temperature_c":11.3,"t2_temperature_c":7.9,"total_energy_consumption_kwh":225200,"total_volume_m3":49389,"volume_flow_m3h":11.315,"fabrication_no":"25076546","firmware_version":"22","meter_datetime":"2026-10-29 16:21","software_version":"47","status":"OK","timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'CFEcho2;25076546;OK;225200;49389;45;11.315;11.3;7.9;1111-11-11 11:11.11'
 }
 test {
     args     = 'Heato dme_sharky 72233396 677BFA7E5CC19103518B7BF82BEF8954'
