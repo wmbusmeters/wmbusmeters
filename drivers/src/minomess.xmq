@@ -51,7 +51,8 @@ driver {
         use = total_backward_m3
         use = volume_flow_m3h
         use = rssi_dbm
-        /* Yeah, the minmoess does not send the rssi, a gateway adds it.
+        use = actuality_duration_s
+        /* Yeah, the minmoess does not send the rssi and actuality_duration_s, a gateway adds it.
            The rssi_dbm will be added to a global config. */
     }
     flags {
@@ -270,6 +271,12 @@ driver {
             telegram = 685F5F6808007220333615496A0116A30000000C1397750500026C513A82046C413A8C0413AADB00008D0493132C33FED0D200A6CD007EC8009CC10048BA00FAB3009BAD00D2A80028A2004F9B00F694009B8F00F9890048860002FD17000001FD71AAE716
             json     = '{"_":"telegram","media":"cold water","driver":"minomess","name":"MBusRSSI","id":"15363320","rssi_dbm":-86,"target_m3":56.234,"target_date":"2026-10-01","total_m3":57.597,"meter_date":"2026-10-17","status":"OK","timestamp":"1111-11-11T11:11:11Z"}'
             fields   = 'MBusRSSI;15363320;OK;57.597;56.234;1111-11-11 11:11.11'
+        }
+        test {
+            args     = 'MBusActuality minomess 15363320 NOKEY'
+            telegram = 6863636808007220333615496A0116DD0000000C1329810500026C5E3A82046C413A8C0413AADB00008D0493132C33FED0D200A6CD007EC8009CC10048BA00FAB3009BAD00D2A80028A2004F9B00F694009B8F00F9890048860002FD17000001FD71AB02746B00AE16
+            json     = '{"_":"telegram","media":"cold water","driver":"minomess","name":"MBusActuality","id":"15363320","actuality_duration_s":107,"rssi_dbm":-85,"target_m3":21.987,"target_date":"2026-10-01","total_m3":58.129,"meter_date":"2026-10-30","status":"OK","timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'MBusActuality;15363320;OK;58.129;21.987;1111-11-11 11:11.11'
         }
         test {
             args     = 'Mino minomess 15503451 NOKEY'

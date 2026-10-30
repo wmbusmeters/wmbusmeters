@@ -31,6 +31,7 @@ driver {
     }
     library {
         use = rssi_dbm
+        use = actuality_duration_s
     }
     fields {
         field {

@@ -12,6 +12,7 @@ driver {
     }
     library {
         use = rssi_dbm
+        use = actuality_duration_s
     }
     fields {
         // Common fields for T1A1, T1A2, T1B
