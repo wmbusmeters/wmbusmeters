@@ -331,6 +331,12 @@ $(BUILD)/testinternals: $(BUILD)/testinternals.o
 $(BUILD)/fuzz: $(PROG_OBJS) $(DRIVER_OBJS) $(BUILD)/fuzz.o
 	$(CXX) $(DEBUG_FLAGS) -o $(BUILD)/fuzz $(PROG_OBJS) $(DRIVER_OBJS) $(BUILD)/fuzz.o $(LDFLAGS) -lpthread
 
+# Clang + libFuzzer harness over Telegram::parse (see src/fuzz_telegram.cc).
+# libFuzzer supplies main, so this does not link $(BUILD)/main.o. Built via
+# "make build_fuzz_clang", which sets the clang + libFuzzer DEBUG_FLAGS.
+$(BUILD)/fuzztelegram: $(PROG_OBJS) $(DRIVER_OBJS) $(BUILD)/fuzz_telegram.o
+	$(CXX) $(DEBUG_FLAGS) -o $(BUILD)/fuzztelegram $(PROG_OBJS) $(DRIVER_OBJS) $(BUILD)/fuzz_telegram.o $(LDFLAGS) -lpthread
+
 # Micro benchmarks for individual functions, one case per benchmarks/<name>.benchmark.cc
 # Usage: make benchmark <name>     e.g. make benchmark char2int
 #        make benchmark            lists the available cases
@@ -441,6 +447,17 @@ afl_prepared:  AFLplusplus/src/afl-cc.c
 build_fuzz: afl_prepared
 	$(MAKE) AFL_HARDEN=1 CXX=$(AFL_HOME)/afl-g++-fast FUZZFLAGS=-DFUZZING=true $(BUILD)/fuzz
 	$(MAKE) AFL_HARDEN=1 CXX=$(AFL_HOME)/afl-g++-fast FUZZFLAGS=-DFUZZING=true $(BUILD)/wmbusmeters
+
+# In-process libFuzzer harness over Telegram::parse, built with clang +
+# AddressSanitizer + UndefinedBehaviorSanitizer. Complements the AFL targets
+# above (AFL_HARDEN is not a sanitizer and counts exit() as a clean exit).
+#   make build_fuzz_clang
+#   build_debug/fuzztelegram fuzz_testcases/telegrams_clang
+build_fuzz_clang:
+	$(MAKE) DEBUG=true CXX=clang++ FUZZFLAGS=-DFUZZING=true EXTRA_CXXFLAGS="-g" \
+	  DEBUG_FLAGS="-O1 -g -fno-omit-frame-pointer -fsanitize=fuzzer,address,undefined -fno-sanitize-recover=undefined" \
+	  DEBUG_LDFLAGS="-fsanitize=fuzzer,address,undefined" \
+	  build_debug/fuzztelegram
 
 run_fuzz_difvifparser:
 	${AFL_HOME}/afl-fuzz -i fuzz_testcases/difvifparser -o fuzz_findings_difvifparser/ build/fuzz
