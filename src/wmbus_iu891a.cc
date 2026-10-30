@@ -488,7 +488,7 @@ bool WMBusIU891A::deviceSetLinkModes(LinkModeSet lms)
     if (!canSetLinkModes(lms))
     {
         string modes = lms.hr();
-        error(EXIT_BUS_DEVICE_ERROR, "(iu871a) setting link mode(s) %s is not supported for iu891a\n", modes.c_str());
+        errorAndExit(EXIT_BUS_DEVICE_ERROR, "(iu871a) setting link mode(s) %s is not supported for iu891a\n", modes.c_str());
     }
 
     LOCK_WMBUS_EXECUTING_COMMAND(set_link_modes);

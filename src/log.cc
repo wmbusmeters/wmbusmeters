@@ -283,7 +283,7 @@ void trace_int(const char* fmt, ...) {
     }
 }
 
-[[noreturn]] void error(int __status, const char* fmt, ...)
+[[noreturn]] void errorAndExit(int __status, const char* fmt, ...)
 {
     va_list args;
     va_start(args, fmt);

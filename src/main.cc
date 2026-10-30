@@ -167,7 +167,7 @@ int main(int argc, char **argv)
         start(config.get());
         exit(EXIT_SUCCESS);
     }
-    error(EXIT_FAILURE, "(main) internal error\n");
+    errorAndExit(EXIT_FAILURE, "(main) internal error\n");
 }
 
 shared_ptr<Printer> create_printer(Configuration *config)
@@ -197,7 +197,7 @@ void list_shell_envs(Configuration *config, string meter_driver)
     mi.driver_name = meter_driver;
     if (!lookupDriverInfo(meter_driver, &di))
     {
-        error(EXIT_USAGE_ERROR, "No such driver %s %s\n", meter_driver.c_str(), removedDriverExplanation(meter_driver).c_str());
+        errorAndExit(EXIT_USAGE_ERROR, "No such driver %s %s\n", meter_driver.c_str(), removedDriverExplanation(meter_driver).c_str());
     }
     meter = di.construct(mi);
 
@@ -247,7 +247,7 @@ void list_fields(Configuration *config, string meter_driver)
     mi.driver_name = meter_driver;
     if (!lookupDriverInfo(meter_driver, &di))
     {
-        error(EXIT_USAGE_ERROR, "No such driver %s\n", meter_driver.c_str());
+        errorAndExit(EXIT_USAGE_ERROR, "No such driver %s\n", meter_driver.c_str());
     }
     meter = di.construct(mi);
 
@@ -316,7 +316,7 @@ void print_driver(Configuration *config, string meter_driver)
     mi.driver_name = meter_driver;
     if (!lookupDriverInfo(meter_driver, &di))
     {
-        error(EXIT_USAGE_ERROR, "info='No such driver %s'\n", meter_driver.c_str());
+        errorAndExit(EXIT_USAGE_ERROR, "info='No such driver %s'\n", meter_driver.c_str());
     }
     meter = di.construct(mi);
 
@@ -519,7 +519,7 @@ void setup_log_file(Configuration *config)
             if (config->daemon) {
                 warning("Could not open log file %s will use syslog instead.\n", config->logfile.c_str());
             } else {
-                error(EXIT_FILE_ERROR, "Could not open log file %s\n", config->logfile.c_str());
+                errorAndExit(EXIT_FILE_ERROR, "Could not open log file %s\n", config->logfile.c_str());
             }
         }
     }
@@ -562,7 +562,7 @@ bool start(Configuration *config)
     {
         if (config->num_wmbus_devices > 0 && config->all_device_linkmodes_specified.empty())
         {
-            error(EXIT_DEVICE_ERROR, "Wmbus devices found but no meters supplied. You must supply which link modes to listen to. Eg. auto:c1\n");
+            errorAndExit(EXIT_DEVICE_ERROR, "Wmbus devices found but no meters supplied. You must supply which link modes to listen to. Eg. auto:c1\n");
         }
     }
 
@@ -776,7 +776,7 @@ void start_daemon(string pid_file, string root, ConfigOverrides overrides)
     pid_t pid = fork();
     if (pid < 0)
     {
-        error(EXIT_SHELL_ERROR, "Could not fork.\n");
+        errorAndExit(EXIT_SHELL_ERROR, "Could not fork.\n");
     }
     if (pid > 0)
     {
@@ -796,7 +796,7 @@ void start_daemon(string pid_file, string root, ConfigOverrides overrides)
     }
 
     if ((chdir("/")) < 0) {
-        error(EXIT_FAILURE, "Could not change to root as current working directory.");
+        errorAndExit(EXIT_FAILURE, "Could not change to root as current working directory.");
     }
 
     close(STDIN_FILENO);
@@ -804,13 +804,13 @@ void start_daemon(string pid_file, string root, ConfigOverrides overrides)
     close(STDERR_FILENO);
 
     if (open("/dev/null", O_RDONLY) == -1) {
-        error(EXIT_FAILURE, "Failed to reopen stdin while daemonising (errno=%d)",errno);
+        errorAndExit(EXIT_FAILURE, "Failed to reopen stdin while daemonising (errno=%d)",errno);
     }
     if (open("/dev/null", O_WRONLY) == -1) {
-        error(EXIT_FAILURE, "Failed to reopen stdout while daemonising (errno=%d)",errno);
+        errorAndExit(EXIT_FAILURE, "Failed to reopen stdout while daemonising (errno=%d)",errno);
     }
     if (open("/dev/null", O_RDWR) == -1) {
-        error(EXIT_FAILURE, "Failed to reopen stderr while daemonising (errno=%d)",errno);
+        errorAndExit(EXIT_FAILURE, "Failed to reopen stderr while daemonising (errno=%d)",errno);
     }
 
     // In daemon mode, dynamically downloaded drivers will be stored in
@@ -863,12 +863,12 @@ void write_pid(string pid_file, int pid)
 {
     FILE *pidf = fopen(pid_file.c_str(), "w");
     if (!pidf) {
-        error(EXIT_FILE_ERROR, "Could not open pid file \"%s\" for writing!\n", pid_file.c_str());
+        errorAndExit(EXIT_FILE_ERROR, "Could not open pid file \"%s\" for writing!\n", pid_file.c_str());
     }
     if (pid > 0) {
         int n = fprintf(pidf, "%d\n", pid);
         if (!n) {
-            error(EXIT_FILE_ERROR, "Could not write pid (%d) to file \"%s\"!\n", pid, pid_file.c_str());
+            errorAndExit(EXIT_FILE_ERROR, "Could not write pid (%d) to file \"%s\"!\n", pid, pid_file.c_str());
         }
         notice("(wmbusmeters) started %s\n", pid_file.c_str());
     }

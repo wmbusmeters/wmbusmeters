@@ -307,7 +307,7 @@ bool MeterCommonImplementation::addOptionalLibraryFields(string field_names)
     }
     if (helps.size() > 2)
     {
-        error(EXIT_DRIVER_ERROR, "Bad library field, only zero or one pipe | symbol is allowed: %s", field_names.c_str());
+        errorAndExit(EXIT_DRIVER_ERROR, "Bad library field, only zero or one pipe | symbol is allowed: %s", field_names.c_str());
     }
 
 EOF

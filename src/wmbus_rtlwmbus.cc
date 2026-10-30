@@ -104,7 +104,7 @@ shared_ptr<BusDevice> openRTLWMBUS(Detected detected,
     bool ok = parseExtras(detected.specified_device.extras, &extras);
     if (!ok)
     {
-        error(EXIT_BUS_DEVICE_ERROR, "(rtlwmbus) invalid extra parameters to rtlwmbus (%s)\n", detected.specified_device.extras.c_str());
+        errorAndExit(EXIT_BUS_DEVICE_ERROR, "(rtlwmbus) invalid extra parameters to rtlwmbus (%s)\n", detected.specified_device.extras.c_str());
     }
     string ppm = "";
     if (extras.size() > 0)
@@ -139,7 +139,7 @@ shared_ptr<BusDevice> openRTLWMBUS(Detected detected,
         {
             if (daemon)
             {
-                error(EXIT_BUS_DEVICE_ERROR, "(rtlwmbus) error: when starting as daemon, wmbusmeters looked for %s/rtl_sdr and %s/rtl_sdr, but found neither!\n",
+                errorAndExit(EXIT_BUS_DEVICE_ERROR, "(rtlwmbus) error: when starting as daemon, wmbusmeters looked for %s/rtl_sdr and %s/rtl_sdr, but found neither!\n",
                       bin_dir.c_str(), "/usr/bin");
             }
             else
@@ -153,7 +153,7 @@ shared_ptr<BusDevice> openRTLWMBUS(Detected detected,
         {
             if (daemon)
             {
-                error(EXIT_BUS_DEVICE_ERROR, "(rtlwmbus) error: when starting as daemon, wmbusmeters looked for %s/rtl_wmbus and %s/rtl_wmbus, but found neither!\n",
+                errorAndExit(EXIT_BUS_DEVICE_ERROR, "(rtlwmbus) error: when starting as daemon, wmbusmeters looked for %s/rtl_wmbus and %s/rtl_wmbus, but found neither!\n",
                       bin_dir.c_str(), "/usr/bin");
             }
             else

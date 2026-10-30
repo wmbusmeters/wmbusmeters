@@ -1121,6 +1121,7 @@ bool Telegram::parseAFL(vector<uchar>::iterator &pos)
             return false;
         }
         afl_mac_b.clear();
+        CHECK(len);
         for (int i=0; i<len; ++i)
         {
             afl_mac_b.insert(afl_mac_b.end(), *(pos+i));
@@ -4948,7 +4949,7 @@ bool BusDeviceCommonImplementation::waitForResponse(int id)
 
     if (waiting_for_response_id_ != 0)
     {
-        error(EXIT_BUS_DEVICE_ERROR, "(wmbus) bad internal state tried waitForResponse(%d) but already waiting for %d! Exiting!\n", id, waiting_for_response_id_);
+        errorAndExit(EXIT_BUS_DEVICE_ERROR, "(wmbus) bad internal state tried waitForResponse(%d) but already waiting for %d! Exiting!\n", id, waiting_for_response_id_);
     }
 
     waiting_for_response_id_ = id;
@@ -6182,7 +6183,7 @@ Detected detectBusDeviceWithFileOrHex(SpecifiedDevice &specified_device,
     LinkModeSet desired_linkmodes = lms;
     if (specified_device.type == BusDeviceType::DEVICE_UNKNOWN)
     {
-        error(EXIT_BUS_DEVICE_ERROR, "You have to specify the expected device type for the tty %s\n",
+        errorAndExit(EXIT_BUS_DEVICE_ERROR, "You have to specify the expected device type for the tty %s\n",
               specified_device.file.c_str());
     }
 

@@ -2290,7 +2290,8 @@ bool DVEntry::extractLong(uint64_t *out)
     }
     else
     {
-        error(EXIT_DRIVER_ERROR, "Unsupported dif format for extraction to long! dif=%02x\n", dif_vif_key.dif());
+        warning("(dvparser) Unsupported dif format for extraction to long! dif=%02x\n", dif_vif_key.dif());
+        return false;
     }
 
     return true;

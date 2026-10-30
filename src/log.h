@@ -36,7 +36,7 @@ void notice_timestamp(const char* fmt, ...);
 
 void warning(const char* fmt, ...);
 
-[[noreturn]] void error(int __status, const char* fmt, ...);
+[[noreturn]] void errorAndExit(int __status, const char* fmt, ...);
 
 #define verbose(...) { if (isVerboseEnabled()) { verbose_int(__VA_ARGS__); } }
 void verbose_int(const char* fmt, ...);

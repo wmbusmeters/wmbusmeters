@@ -34,14 +34,14 @@ bool checkCharacterDeviceExists(const char *tty, bool fail_if_not)
     int rc = stat(tty, &info);
     if (rc != 0) {
         if (fail_if_not) {
-            error(EXIT_DEVICE_ERROR, "Device \"%s\" does not exist.\n", tty);
+            errorAndExit(EXIT_DEVICE_ERROR, "Device \"%s\" does not exist.\n", tty);
         } else {
             return false;
         }
     }
     if (!S_ISCHR(info.st_mode)) {
         if (fail_if_not) {
-            error(EXIT_DEVICE_ERROR, "Device %s is not a character device.\n", tty);
+            errorAndExit(EXIT_DEVICE_ERROR, "Device %s is not a character device.\n", tty);
         } else {
             return false;
         }
@@ -145,7 +145,7 @@ int loadFile(const std::string& file, std::vector<std::string> *lines)
                 continue;
             }
             close(fd);
-            error(EXIT_FILE_ERROR, "Could not read file %s errno=%d\n", file.c_str(), errno);
+            errorAndExit(EXIT_FILE_ERROR, "Could not read file %s errno=%d\n", file.c_str(), errno);
         }
         buf.insert(buf.end(), block, block+n);
         if (n < (ssize_t)sizeof(block)) {
@@ -159,7 +159,7 @@ int loadFile(const std::string& file, std::vector<std::string> *lines)
     for (;;) {
         std::string line = eatTo(buf, i, '\n', 32768, &eof, &err);
         if (err) {
-            error(EXIT_FILE_ERROR, "Error parsing simulation file.\n");
+            errorAndExit(EXIT_FILE_ERROR, "Error parsing simulation file.\n");
         }
         if (line.length() > 0) {
             lines->push_back(line);

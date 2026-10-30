@@ -93,7 +93,7 @@ shared_ptr<BusDevice> openRTL433(Detected detected, string bin_dir, bool daemon,
     bool ok = parseExtras(detected.specified_device.extras, &extras);
     if (!ok)
     {
-        error(EXIT_BUS_DEVICE_ERROR, "(rtl433) invalid extra parameters to rtl433 (%s)\n", detected.specified_device.extras.c_str());
+        errorAndExit(EXIT_BUS_DEVICE_ERROR, "(rtl433) invalid extra parameters to rtl433 (%s)\n", detected.specified_device.extras.c_str());
     }
     string ppm = "";
     if (extras.size() > 0)
@@ -124,7 +124,7 @@ shared_ptr<BusDevice> openRTL433(Detected detected, string bin_dir, bool daemon,
         {
             if (daemon)
             {
-                error(EXIT_BUS_DEVICE_ERROR, "(rtl433) error: when starting as daemon, wmbusmeters looked for %s/rtl_433 and %s/rtl_sdr, but found neither!\n",
+                errorAndExit(EXIT_BUS_DEVICE_ERROR, "(rtl433) error: when starting as daemon, wmbusmeters looked for %s/rtl_433 and %s/rtl_sdr, but found neither!\n",
                       bin_dir.c_str(), "/usr/bin");
             }
             else
