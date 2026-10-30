@@ -10,10 +10,10 @@ TEST=testoutput
 TESTNAME="Test too short telegram that does not have enough bytes for the tag."
 TESTRESULT="OK"
 
-$PROG --debug 1d4496ff58a2ffff7fff7a1500102a2f96ff58a2ffff7fff7a1500102a2fff 2>&1 | grep "expected more data" | uniq > $TEST/test_output.txt
+$PROG --debug 1d4496ff58a2ffff7fff7a1500102a2f96ff58a2ffff7fff7a1500102a2fff 2>&1 | grep -o "expected more data" | uniq > $TEST/test_output.txt
 
 cat <<EOF > $TEST/expected_output.txt
-(wmbus) parser expected more data! (1282)
+expected more data
 EOF
 
 diff $TEST/test_output.txt $TEST/expected_output.txt

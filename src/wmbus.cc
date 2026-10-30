@@ -805,6 +805,7 @@ bool Telegram::parseDLL(vector<uchar>::iterator &pos)
     CHECK(8)
     addAddressMfctFirst(pos);
 
+    CHECK(2);
     dll_mfct_b[0] = *(pos+0);
     dll_mfct_b[1] = *(pos+1);
     dll_mfct = dll_mfct_b[1] <<8 | dll_mfct_b[0];
@@ -814,6 +815,7 @@ bool Telegram::parseDLL(vector<uchar>::iterator &pos)
 
     dll_a.resize(6);
     dll_id.resize(4);
+    CHECK(6);
     for (int i=0; i<6; ++i)
     {
         dll_a[i] = *(pos+i);
@@ -827,6 +829,7 @@ bool Telegram::parseDLL(vector<uchar>::iterator &pos)
     addExplanationAndIncrementPos(pos, 4, KindOfData::PROTOCOL, Understanding::FULL, "%02x%02x%02x%02x dll-id (%s)",
                                   *(pos+0), *(pos+1), *(pos+2), *(pos+3), addresses.back().id.c_str());
 
+    CHECK(2);
     dll_version = *(pos+0);
     dll_type = *(pos+1);
     addExplanationAndIncrementPos(pos, 1, KindOfData::PROTOCOL, Understanding::FULL, "%02x dll-version", dll_version);
@@ -868,9 +871,11 @@ bool Telegram::parseELL(vector<uchar>::iterator &pos)
 
     // All ELL:s (including ELL I) start with cc,acc.
 
+    CHECK(1);
     ell_cc = *pos;
     addExplanationAndIncrementPos(pos, 1, KindOfData::PROTOCOL, Understanding::FULL, "%02x ell-cc (%s)", ell_cc, ccType(ell_cc).c_str());
 
+    CHECK(1);
     ell_acc = *pos;
     addExplanationAndIncrementPos(pos, 1, KindOfData::PROTOCOL, Understanding::FULL, "%02x ell-acc", ell_acc);
 
@@ -902,6 +907,7 @@ bool Telegram::parseELL(vector<uchar>::iterator &pos)
         CHECK(8);
         addAddressMfctFirst(pos);
 
+        CHECK(2);
         ell_mfct_b[0] = *(pos+0);
         ell_mfct_b[1] = *(pos+1);
         ell_mfct = ell_mfct_b[1] << 8 | ell_mfct_b[0];
@@ -910,6 +916,7 @@ bool Telegram::parseELL(vector<uchar>::iterator &pos)
                                       ell_mfct_b[0], ell_mfct_b[1], man.c_str());
 
         ell_id_found = true;
+        CHECK(4);
         ell_id_b[0] = *(pos+0);
         ell_id_b[1] = *(pos+1);
         ell_id_b[2] = *(pos+2);
@@ -919,9 +926,11 @@ bool Telegram::parseELL(vector<uchar>::iterator &pos)
         addExplanationAndIncrementPos(pos, 4, KindOfData::PROTOCOL, Understanding::FULL, "%02x%02x%02x%02x ell-id",
                                       ell_id_b[0], ell_id_b[1], ell_id_b[2], ell_id_b[3]);
 
+        CHECK(1);
         ell_version = *pos;
         addExplanationAndIncrementPos(pos, 1, KindOfData::PROTOCOL, Understanding::FULL, "%02x ell-version", ell_version);
 
+        CHECK(1);
         ell_type = *pos;
         addExplanationAndIncrementPos(pos, 1, KindOfData::PROTOCOL, Understanding::FULL, "%02x ell-type", ell_type);
     }
@@ -929,6 +938,7 @@ bool Telegram::parseELL(vector<uchar>::iterator &pos)
     if (has_session_number_pl_crc)
     {
         string sn_info;
+        CHECK(4);
         ell_sn_b[0] = *(pos+0);
         ell_sn_b[1] = *(pos+1);
         ell_sn_b[2] = *(pos+2);
@@ -953,6 +963,7 @@ bool Telegram::parseELL(vector<uchar>::iterator &pos)
             // Now the frame from pos and onwards has been decrypted, perhaps.
         }
 
+        CHECK(2);
         ell_pl_crc_b[0] = *(pos+0);
         ell_pl_crc_b[1] = *(pos+1);
         ell_pl_crc = (ell_pl_crc_b[1] << 8) | ell_pl_crc_b[0];
@@ -1026,6 +1037,7 @@ bool Telegram::parseNWL(vector<uchar>::iterator &pos)
 
     if (remaining < len+1) return expectedMore(__LINE__);
 
+    CHECK(1);
     uchar nwl = *pos;
     addExplanationAndIncrementPos(pos, 1, KindOfData::PROTOCOL, Understanding::FULL, "%02x nwl?", nwl);
 
@@ -1042,6 +1054,7 @@ bool Telegram::parseAFL(vector<uchar>::iterator &pos)
 
     debug("(wmbus) parseAFL @%d %d\n", distance(frame.begin(), pos), remaining);
 
+    CHECK(1);
     int ci_field = *pos;
     if (!isCiFieldOfType(ci_field, CI_TYPE::AFL)) return true;
     addExplanationAndIncrementPos(pos, 1, KindOfData::PROTOCOL, Understanding::FULL, "%02x afl-ci-field (%s)",
@@ -1359,7 +1372,6 @@ bool Telegram::parseTPLConfig(std::vector<uchar>::iterator &pos)
 bool Telegram::parseShortTPL(std::vector<uchar>::iterator &pos)
 {
     CHECK(1);
-
     tpl_acc = *pos;
     addExplanationAndIncrementPos(pos, 1, KindOfData::PROTOCOL, Understanding::FULL,
                                   "%02x tpl-acc-field", tpl_acc);
@@ -1381,12 +1393,14 @@ bool Telegram::parseLongTPL(std::vector<uchar>::iterator &pos)
     addAddressIdFirst(pos);
 
     tpl_id_found = true;
+    CHECK(4);
     tpl_id_b[0] = *(pos+0);
     tpl_id_b[1] = *(pos+1);
     tpl_id_b[2] = *(pos+2);
     tpl_id_b[3] = *(pos+3);
 
     tpl_a.resize(6);
+    CHECK(4);
     for (int i=0; i<4; ++i)
     {
         tpl_a[i] = *(pos+i);
@@ -1953,7 +1967,7 @@ bool Telegram::potentiallyDecrypt(vector<uchar>::iterator &pos)
                                           iv3, &num_encrypted_bytes, &num_not_encrypted_at_end);
             if (!ok) continue;
 
-            if (*(pos+0) == 0x2f && *(pos+1) == 0x2f)
+            if (pos+1 < frame.end() && *(pos+0) == 0x2f && *(pos+1) == 0x2f)
             {
                 decrypted_ok = true;
             }
