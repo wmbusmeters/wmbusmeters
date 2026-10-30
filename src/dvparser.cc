@@ -30,6 +30,7 @@
 #include<memory.h>
 #include<limits>
 #include<unordered_map>
+#include<cinttypes>
 
 // The parser should not crash on invalid data, but yeah, when I
 // need to debug it because it crashes on invalid data, then
@@ -328,7 +329,7 @@ static bool findCompactProfileBaseValue(unordered_map<string,pair<int,DVEntry>> 
                                         uchar *base_dif_nibble,
                                         uint64_t *base_value)
 {
-    int base_storage = entry.storage_nr.intValue();
+    uint64_t base_storage = entry.storage_nr.uint64Value();
     int target_vif = entry.vif.intValue() & 0xff;
     int target_tariff = entry.tariff_nr.intValue();
     int target_subunit = entry.subunit_nr.intValue();
@@ -347,7 +348,7 @@ static bool findCompactProfileBaseValue(unordered_map<string,pair<int,DVEntry>> 
             if ((cand.dif_vif_key.dif() & 0x0f) == 0x0d) continue;
             if (require_matching_combinables &&
                 combinableVifsWithoutProfileMarkers(cand) != target_combinables) continue;
-            if (cand.storage_nr.intValue() != base_storage) continue;
+            if (cand.storage_nr.uint64Value() != base_storage) continue;
             if ((cand.vif.intValue() & 0xff) != target_vif) continue;
             if (cand.tariff_nr.intValue() != target_tariff) continue;
             if (cand.subunit_nr.intValue() != target_subunit) continue;
@@ -412,14 +413,14 @@ static bool findCompactProfileBaseDate(unordered_map<string,pair<int,DVEntry>> *
                                        struct tm *base_date,
                                        int *date_len)
 {
-    int base_storage = entry.storage_nr.intValue();
+    uint64_t base_storage = entry.storage_nr.uint64Value();
     int target_tariff = entry.tariff_nr.intValue();
     int target_subunit = entry.subunit_nr.intValue();
 
     for (auto &kv : *dv_entries)
     {
         DVEntry &cand = kv.second.second;
-        if (cand.storage_nr.intValue() != base_storage) continue;
+        if (cand.storage_nr.uint64Value() != base_storage) continue;
         if (cand.tariff_nr.intValue() != target_tariff) continue;
         if (cand.subunit_nr.intValue() != target_subunit) continue;
         if (!isInsideVIFRange(cand.vif, VIFRange::Date)) continue;
@@ -449,14 +450,14 @@ static bool findCompactProfileBaseActuality(unordered_map<string,pair<int,DVEntr
                                             DVEntry &entry,
                                             double *actuality_s)
 {
-    int base_storage = entry.storage_nr.intValue();
+    uint64_t base_storage = entry.storage_nr.uint64Value();
     int target_tariff = entry.tariff_nr.intValue();
     int target_subunit = entry.subunit_nr.intValue();
 
     for (auto &kv : *dv_entries)
     {
         DVEntry &cand = kv.second.second;
-        if (cand.storage_nr.intValue() != base_storage) continue;
+        if (cand.storage_nr.uint64Value() != base_storage) continue;
         if (cand.tariff_nr.intValue() != target_tariff) continue;
         if (cand.subunit_nr.intValue() != target_subunit) continue;
         if (!isInsideVIFRange(cand.vif, VIFRange::ActualityDuration)) continue;
@@ -784,7 +785,7 @@ static void addSyntheticCompactProfileEntriesFor(unordered_map<string,pair<int,D
 
     // Storage of compact-profile payload acts as a base/reference value.
     // History points are generated from the next storage and onward.
-    int base_storage = entry.storage_nr.intValue();
+    uint64_t base_storage = entry.storage_nr.uint64Value();
     int synthetic_index = 0;
     uint64_t running_base_value_u = 0;
     uchar base_dif_nibble = slot_dif_nibble;
@@ -1272,33 +1273,37 @@ bool parseDV(Telegram *t,
         int subunit = 0;
         int tariff = 0;
         int lsb_of_storage_nr = (dif & 0x40) >> 6;
-        int storage_nr = lsb_of_storage_nr;
+        uint64_t storage_nr = lsb_of_storage_nr;
 
         bool has_another_dife = (dif & 0x80) == 0x80;
-        int num_dife = 0;
 
         while (has_another_dife)
         {
-            num_dife++;
-            if (num_dife > 10) { debug("(dvparser) warning: too many dife found!\n"); break; }
+            if (difenr >= 10) { debug("(dvparser) warning: too many dife found!\n"); break; }
             if (*format == format_end) { debug("(dvparser) warning: unexpected end of data (dife expected)\n"); break; }
 
+            // The maximum number of bits for a storage nr is 41. dif (1 bit) + 10 difes (4 bit each)
+            // This is just silly that would allow for 2199023255552 storages.
+            // The other values do fit in normal 32 bit ints.
+
+            assert(difenr < 10);
+            assert(difenr >= 0);
             uchar dife = **format;
             int subunit_bit = (dife & 0x40) >> 6;
             subunit |= subunit_bit << difenr;
             int tariff_bits = (dife & 0x30) >> 4;
             tariff |= tariff_bits << (difenr*2);
-            int storage_nr_bits = (dife & 0x0f);
+            uint64_t storage_nr_bits = (dife & 0x0f);
             storage_nr |= storage_nr_bits << (1+difenr*4);
 
-            DEBUG_PARSER("(dvparser debug) dife=%02x (subunit=%d tariff=%d storagenr=%d)\n", dife, subunit, tariff, storage_nr);
+            DEBUG_PARSER("(dvparser debug) dife=%02x (subunit=%d tariff=%d storagenr=%" PRIu64 ")\n", dife, subunit, tariff, storage_nr);
 
             if (data_has_difvifs)
             {
                 format_bytes.push_back(dife);
                 id_bytes.push_back(dife);
                 t->addExplanationAndIncrementPos(*format, 1, KindOfData::PROTOCOL, Understanding::FULL,
-                                                 "%02X dife (subunit=%d tariff=%d storagenr=%d)",
+                                                 "%02X dife (subunit=%d tariff=%d storagenr=%zu)",
                                                  dife, subunit, tariff, storage_nr);
             }
             else
@@ -1755,9 +1760,9 @@ bool findKeyWithNr(MeasurementType mit, VIFRange vif_range, StorageNr storagenr,
             *key = v.first;
             nr--;
             if (nr <= 0) return true;
-            debug("(dvparser) found key %s for type=%s vif=%x storagenr=%d\n",
+            debug("(dvparser) found key %s for type=%s vif=%x storagenr=%zu\n",
                   v.first.c_str(), measurementTypeName(ty).c_str(),
-                  vi.intValue(), storagenr.intValue());
+                  vi.intValue(), storagenr.uint64Value());
         }
     }
     return false;
@@ -2409,7 +2414,7 @@ double DVEntry::getCounter(DVEntryCounterType ct)
 {
     switch (ct)
     {
-    case DVEntryCounterType::STORAGE_COUNTER: return storage_nr.intValue();
+    case DVEntryCounterType::STORAGE_COUNTER: return storage_nr.uint64Value();
     case DVEntryCounterType::TARIFF_COUNTER: return tariff_nr.intValue();
     case DVEntryCounterType::SUBUNIT_COUNTER: return subunit_nr.intValue();
     case DVEntryCounterType::UNKNOWN: break;
@@ -2428,7 +2433,7 @@ string DVEntry::str()
                     vif.intValue(),
                     combinable_vifs.size() > 0 ? "HASCOMB ":"",
                     combinable_vifs_raw.size() > 0 ? "HASCOMBRAW ":"",
-                    storage_nr.intValue(),
+                    storage_nr.uint64Value(),
                     tariff_nr.intValue(),
                     subunit_nr.intValue()
             );
@@ -2706,7 +2711,7 @@ string FieldMatcher::str()
 
     if (match_storage_nr)
     {
-        s = s+"S("+to_string(storage_nr_from.intValue())+"-"+to_string(storage_nr_to.intValue())+") ";
+        s = s+"S("+to_string(storage_nr_from.uint64Value())+"-"+to_string(storage_nr_to.uint64Value())+") ";
     }
 
     if (match_tariff_nr)

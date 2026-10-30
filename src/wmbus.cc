@@ -1048,6 +1048,7 @@ bool Telegram::parseAFL(vector<uchar>::iterator &pos)
                                   ci_field, ciType(ci_field).c_str());
     afl_ci = ci_field;
 
+    CHECK(1);
     afl_len = *pos;
     addExplanationAndIncrementPos(pos, 1, KindOfData::PROTOCOL, Understanding::FULL, "%02x afl-len (%d)",
                                   afl_len, afl_len);

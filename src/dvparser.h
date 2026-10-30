@@ -248,15 +248,15 @@ MeasurementType toMeasurementType(const char *s);
 
 struct StorageNr
 {
-    StorageNr(int n) : nr_(n) {}
-    int intValue() { return nr_; }
+    StorageNr(uint64_t n) : nr_(n) {}
+    uint64_t uint64Value() { return nr_; }
     bool operator==(StorageNr s) { return nr_ == s.nr_; }
     bool operator!=(StorageNr s) { return nr_ != s.nr_; }
     bool operator>=(StorageNr s) { return nr_ >= s.nr_; }
     bool operator<=(StorageNr s) { return nr_ <= s.nr_; }
 
 private:
-    int nr_;
+    uint64_t nr_;
 };
 
 typedef struct StorageNr StorageNr;

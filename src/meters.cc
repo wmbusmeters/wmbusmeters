@@ -3327,7 +3327,7 @@ bool FieldInfo::extractNumeric(Meter *m, Telegram *t, DVEntry *dve)
             // Search for key.
             bool ok = findKeyWithNr(matcher_.measurement_type,
                                     matcher_.vif_range,
-                                    matcher_.storage_nr_from.intValue(),
+                                    matcher_.storage_nr_from.uint64Value(),
                                     matcher_.tariff_nr_from.intValue(),
                                     matcher_.index_nr.intValue(),
                                     &key,
@@ -3494,7 +3494,7 @@ bool FieldInfo::extractString(Meter *m, Telegram *t, DVEntry *dve)
                 // Search for key.
                 bool ok = findKeyWithNr(matcher_.measurement_type,
                                         matcher_.vif_range,
-                                        matcher_.storage_nr_from.intValue(),
+                                        matcher_.storage_nr_from.uint64Value(),
                                         matcher_.tariff_nr_from.intValue(),
                                         matcher_.index_nr.intValue(),
                                         &key,
