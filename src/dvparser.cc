@@ -1808,6 +1808,7 @@ void extractDV(string &s, uchar *dif, int *vif, bool *has_difes, bool *has_vifes
         // There should never be more than 10 dife:s, but we need to skip them
         // to get to the vif, if for some reason someone has managed to store
         // too many dife:s here.
+        i++;
         if (difenr < 10)
         {
             int dife = bytes[i];
@@ -1819,7 +1820,6 @@ void extractDV(string &s, uchar *dif, int *vif, bool *has_difes, bool *has_vifes
             storage |= storage_nr_bits << (1+difenr*4);
             *has_difes = true;
         }
-        i++;
         difenr++;
     }
     i++;
