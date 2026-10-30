@@ -891,19 +891,30 @@ static void addSyntheticCompactProfileEntriesFor(unordered_map<string,pair<int,D
                 return;
             }
 
+            bool overflow = false;
             int64_t absolute = running_base_value;
             if (increment_mode == CompactProfileIncrementMode::Increments)
             {
-                absolute = running_base_value - delta;
+                overflow = __builtin_sub_overflow(running_base_value, delta, &absolute);
+                // absolute = running_base_value - delta;
             }
             else if (increment_mode == CompactProfileIncrementMode::Decrements)
             {
-                absolute = running_base_value + delta;
+                overflow = __builtin_add_overflow(running_base_value, delta, &absolute);
+                // absolute = running_base_value + delta;
             }
             else if (increment_mode == CompactProfileIncrementMode::SignedDifference)
             {
                 // difference = younger - older  =>  older = younger - difference
-                absolute = running_base_value - delta;
+                overflow = __builtin_sub_overflow(running_base_value, delta, &absolute);
+                // absolute = running_base_value - delta;
+            }
+
+            if (overflow)
+            {
+                // No valid absolute value for this or subsequent dependent slots.
+                stop_iteration = true;
+                return;
             }
 
             vector<uchar> encoded_absolute;
