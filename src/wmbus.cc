@@ -798,6 +798,7 @@ bool Telegram::parseDLL(vector<uchar>::iterator &pos)
     if (remaining < dll_len) return expectedMore(__LINE__);
     addExplanationAndIncrementPos(pos, 1, KindOfData::PROTOCOL, Understanding::FULL, "%02x length (%d bytes)", dll_len, dll_len);
 
+    CHECK(1);
     dll_c = *pos;
     addExplanationAndIncrementPos(pos, 1, KindOfData::PROTOCOL, Understanding::FULL, "%02x dll-c (%s)", dll_c, cType(dll_c).c_str());
 

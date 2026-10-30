@@ -180,9 +180,23 @@ bool decrypt_TPL_AES_CBC_IV(Telegram *t,
     string s = bin2hex(ivv);
     debug("(TPL) IV %s\n", s.c_str());
 
-    uchar buffer_data[num_bytes_to_decrypt];
+    // We must have at least 16 bytes to decrypt. Give up otherwise.
+    if (num_bytes_to_decrypt < 16)
+    {
+        warning("(TPL) warning: remaining bytes are too few to be decrypted! "
+                "Wants to decrypt %zu bytes.\n", num_bytes_to_decrypt);
+        return false;
+    }
+
+    // So far, wmbus and mbus telegrams have been limited to 255 bytes of length.
+    // Little risk of overflowing the stack, however, in the future, some new improvement
+    // in the OMS standard might start to use longer telegrams. Better use calloc instead of
+    // an on stack buffer.
+    uchar *buffer_data = (uchar*)calloc(num_bytes_to_decrypt, 1);
+    assert(buffer_data);
     memcpy(buffer_data, safeButUnsafeVectorPtr(buffer), num_bytes_to_decrypt);
-    uchar decrypted_data[num_bytes_to_decrypt];
+    uchar *decrypted_data = (uchar*)calloc(num_bytes_to_decrypt, 1);
+    assert(decrypted_data);
 
     AES_CBC_decrypt_buffer(decrypted_data, buffer_data, num_bytes_to_decrypt, safeButUnsafeVectorPtr(aeskey), iv);
 
@@ -199,6 +213,10 @@ bool decrypt_TPL_AES_CBC_IV(Telegram *t,
         frame.insert(frame.end(), buffer.begin()+num_bytes_to_decrypt, buffer.end());
         debugPayload("(TPL) appended  ", frame, pos);
     }
+
+    free(buffer_data);
+    free(decrypted_data);
+
     return true;
 }
 
