@@ -13,7 +13,7 @@ TESTRESULT="OK"
 $PROG --debug 1d4496ff58a2ffff7fff7a1500102a2f96ff58a2ffff7fff7a1500102a2fff 2>&1 | grep "expected more data" | uniq > $TEST/test_output.txt
 
 cat <<EOF > $TEST/expected_output.txt
-(wmbus) parser expected more data! (1279)
+(wmbus) parser expected more data! (1280)
 EOF
 
 diff $TEST/test_output.txt $TEST/expected_output.txt
