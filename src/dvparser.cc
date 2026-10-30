@@ -1303,7 +1303,7 @@ bool parseDV(Telegram *t,
                 format_bytes.push_back(dife);
                 id_bytes.push_back(dife);
                 t->addExplanationAndIncrementPos(*format, 1, KindOfData::PROTOCOL, Understanding::FULL,
-                                                 "%02X dife (subunit=%d tariff=%d storagenr=%zu)",
+                                                 "%02X dife (subunit=%d tariff=%d storagenr=%" PRIu64 ")",
                                                  dife, subunit, tariff, storage_nr);
             }
             else
@@ -1738,7 +1738,7 @@ bool findKey(MeasurementType mit, VIFRange vif_range, StorageNr storagenr, Tarif
 bool findKeyWithNr(MeasurementType mit, VIFRange vif_range, StorageNr storagenr, TariffNr tariffnr, int nr,
                    std::string *key, std::unordered_map<std::string,std::pair<int,DVEntry>> *dv_entries)
 {
-    /*debug("(dvparser) looking for type=%s vifrange=%s storagenr=%d tariffnr=%d\n",
+    /*debug("(dvparser) looking for type=%s vifrange=%s storagenr=%" PRIu64 " tariffnr=%d\n",
       measurementTypeName(mit).c_str(), toString(vif_range), storagenr.intValue(), tariffnr.intValue());*/
 
     for (auto& v : *dv_entries)
@@ -1748,7 +1748,7 @@ bool findKeyWithNr(MeasurementType mit, VIFRange vif_range, StorageNr storagenr,
         StorageNr sn = v.second.second.storage_nr;
         TariffNr tn = v.second.second.tariff_nr;
 
-        /* debug("(dvparser) match? %s type=%s vife=%x (%s) and storagenr=%d\n",
+        /* debug("(dvparser) match? %s type=%s vife=%x (%s) and storagenr=%" PRIu64 "\n",
               v.first.c_str(),
               measurementTypeName(ty).c_str(), vi.intValue(), storagenr, sn);*/
 
@@ -1760,7 +1760,7 @@ bool findKeyWithNr(MeasurementType mit, VIFRange vif_range, StorageNr storagenr,
             *key = v.first;
             nr--;
             if (nr <= 0) return true;
-            debug("(dvparser) found key %s for type=%s vif=%x storagenr=%zu\n",
+            debug("(dvparser) found key %s for type=%s vif=%x storagenr=%" PRIu64 "\n",
                   v.first.c_str(), measurementTypeName(ty).c_str(),
                   vi.intValue(), storagenr.uint64Value());
         }
@@ -1797,23 +1797,29 @@ void extractDV(string &s, uchar *dif, int *vif, bool *has_difes, bool *has_vifes
     }
 
     *dif = bytes[i];
-    int lsb_of_storage_nr = (*dif & 0x40) >> 6;
-    int storage = lsb_of_storage_nr;
+    uint64_t lsb_of_storage_nr = (*dif & 0x40) >> 6;
+    uint64_t storage = lsb_of_storage_nr;
     int difenr = 0;
     int subunit = 0;
     int tariff = 0;
     *measurement_type = difMeasurementType(*dif);
     while (i < bytes.size() && (bytes[i] & 0x80))
     {
+        // There should never be more than 10 dife:s, but we need to skip them
+        // to get to the vif, if for some reason someone has managed to store
+        // too many dife:s here.
+        if (difenr < 10)
+        {
+            int dife = bytes[i];
+            int subunit_bit = (dife & 0x40) >> 6;
+            subunit |= subunit_bit << difenr;
+            int tariff_bits = (dife & 0x30) >> 4;
+            tariff |= tariff_bits << (difenr*2);
+            uint64_t storage_nr_bits = (dife & 0x0f);
+            storage |= storage_nr_bits << (1+difenr*4);
+            *has_difes = true;
+        }
         i++;
-        int dife = bytes[i];
-        int subunit_bit = (dife & 0x40) >> 6;
-        subunit |= subunit_bit << difenr;
-        int tariff_bits = (dife & 0x30) >> 4;
-        tariff |= tariff_bits << (difenr*2);
-        int storage_nr_bits = (dife & 0x0f);
-        storage |= storage_nr_bits << (1+difenr*4);
-        *has_difes = true;
         difenr++;
     }
     i++;
@@ -2109,12 +2115,12 @@ bool DVEntry::extractDouble(double *out, bool auto_scale, bool force_unsigned)
         } else if (t ==  0xE) {
             if (!checkSizeHex(12, dif_vif_key, v)) return false;
             if (v[10] == 'F') { negate = true; v[10] = '0'; }
-            raw =(v[10]-'0')*10*10*10*10*10*10*10*10*10*10*10 + (v[11]-'0')*10*10*10*10*10*10*10*10*10*10
-                + (v[8]-'0')*10*10*10*10*10*10*10*10*10 + (v[9]-'0')*10*10*10*10*10*10*10*10
-                + (v[6]-'0')*10*10*10*10*10*10*10 + (v[7]-'0')*10*10*10*10*10*10
-                + (v[4]-'0')*10*10*10*10*10 + (v[5]-'0')*10*10*10*10
-                + (v[2]-'0')*10*10*10 + (v[3]-'0')*10*10
-                + (v[0]-'0')*10 + (v[1]-'0');
+            raw =(v[10]-'0')*((uint64_t)10)*10*10*10*10*10*10*10*10*10*10 + (v[11]-'0')*((uint64_t)10)*10*10*10*10*10*10*10*10*10
+                + (v[8]-'0')*((uint64_t)10)*10*10*10*10*10*10*10*10 + (v[9]-'0')*((uint64_t)10)*10*10*10*10*10*10*10
+                + (v[6]-'0')*((uint64_t)10)*10*10*10*10*10*10 + (v[7]-'0')*((uint64_t)10)*10*10*10*10*10
+                + (v[4]-'0')*((uint64_t)10)*10*10*10*10 + (v[5]-'0')*((uint64_t)10)*10*10*10
+                + (v[2]-'0')*((uint64_t)10)*10*10 + (v[3]-'0')*((uint64_t)10)*10
+                + (v[0]-'0')*((uint64_t)10) + (v[1]-'0');
         }
         double scale = 1.0;
         double draw = (double)raw;
@@ -2278,12 +2284,12 @@ bool DVEntry::extractLong(uint64_t *out)
             if (!checkSizeHex(12, dif_vif_key, value)) return false;
             if (v[10] == 'F') { negate = true; v[10] = '0'; }
             assert(v.size() == 12);
-            raw =(v[10]-'0')*10*10*10*10*10*10*10*10*10*10*10 + (v[11]-'0')*10*10*10*10*10*10*10*10*10*10
-                + (v[8]-'0')*10*10*10*10*10*10*10*10*10 + (v[9]-'0')*10*10*10*10*10*10*10*10
-                + (v[6]-'0')*10*10*10*10*10*10*10 + (v[7]-'0')*10*10*10*10*10*10
-                + (v[4]-'0')*10*10*10*10*10 + (v[5]-'0')*10*10*10*10
-                + (v[2]-'0')*10*10*10 + (v[3]-'0')*10*10
-                + (v[0]-'0')*10 + (v[1]-'0');
+            raw = ((v[10]-'0')*((uint64_t)10)*10*10*10*10*10*10*10*10*10*10 + (v[11]-'0')*((uint64_t)10)*10*10*10*10*10*10*10*10*10
+                  + (v[8]-'0')*((uint64_t)10)*10*10*10*10*10*10*10*10 + (v[9]-'0')*((uint64_t)10)*10*10*10*10*10*10*10
+                  + (v[6]-'0')*((uint64_t)10)*10*10*10*10*10*10 + (v[7]-'0')*((uint64_t)10)*10*10*10*10*10
+                  + (v[4]-'0')*((uint64_t)10)*10*10*10*10 + (v[5]-'0')*((uint64_t)10)*10*10*10
+                  + (v[2]-'0')*((uint64_t)10)*10*10 + (v[3]-'0')*((uint64_t)10)*10
+                  + (v[0]-'0')*((uint64_t)10) + (v[1]-'0'));
         }
 
         if (negate)

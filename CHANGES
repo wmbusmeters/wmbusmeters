@@ -1,4 +1,7 @@
 
+Shad Malloy added a second fuzzer based on clang that complements the AFL fuzzer.
+It already found a bunch of mistakes that are now fixed. Thanks Shad!
+
 Add new mvt to qcaloric driver.
 Fixed several cases where too short telegrams triggered asserts,
 ie wmbusmeters was looking for certain bytes that did not exist.
