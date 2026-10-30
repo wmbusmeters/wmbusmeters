@@ -455,8 +455,8 @@ build_fuzz: afl_prepared
 #   build_debug/fuzztelegram fuzz_testcases/telegrams_clang
 build_fuzz_clang:
 	$(MAKE) DEBUG=true CXX=clang++ FUZZFLAGS=-DFUZZING=true EXTRA_CXXFLAGS="-g" \
-	  DEBUG_FLAGS="-O1 -g -fno-omit-frame-pointer -fsanitize=fuzzer,address,undefined -fno-sanitize-recover=undefined" \
-	  DEBUG_LDFLAGS="-fsanitize=fuzzer,address,undefined" \
+	  DEBUG_FLAGS="-O1 -g -fno-omit-frame-pointer -fno-pie -fsanitize=fuzzer,address,undefined -fno-sanitize-recover=undefined" \
+	  DEBUG_LDFLAGS="-fsanitize=fuzzer,address,undefined -no-pie" \
 	  build_debug/fuzztelegram
 
 run_fuzz_difvifparser:

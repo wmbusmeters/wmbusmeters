@@ -1056,6 +1056,7 @@ bool Telegram::parseAFL(vector<uchar>::iterator &pos)
     int len = ciFieldLength(afl_ci);
     if (remaining < len) return expectedMore(__LINE__);
 
+    CHECK(2);
     afl_fc_b[0] = *(pos+0);
     afl_fc_b[1] = *(pos+1);
     afl_fc = afl_fc_b[1] << 8 | afl_fc_b[0];
@@ -1072,6 +1073,7 @@ bool Telegram::parseAFL(vector<uchar>::iterator &pos)
 
     if (has_control)
     {
+        CHECK(1);
         afl_mcl = *pos;
         string afl_mcl_info = toStringFromAFLMC(afl_mcl);
         addExplanationAndIncrementPos(pos, 1, KindOfData::PROTOCOL, Understanding::FULL, "%02x afl-mcl (%s)",
@@ -1080,6 +1082,7 @@ bool Telegram::parseAFL(vector<uchar>::iterator &pos)
 
     if (has_key_info)
     {
+        CHECK(2);
         afl_ki_b[0] = *(pos+0);
         afl_ki_b[1] = *(pos+1);
         afl_ki = afl_ki_b[1] << 8 | afl_ki_b[0];
@@ -1090,6 +1093,7 @@ bool Telegram::parseAFL(vector<uchar>::iterator &pos)
 
     if (has_counter)
     {
+        CHECK(4);
         afl_counter_b[0] = *(pos+0);
         afl_counter_b[1] = *(pos+1);
         afl_counter_b[2] = *(pos+2);
