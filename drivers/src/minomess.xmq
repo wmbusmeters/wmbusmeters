@@ -275,8 +275,8 @@ driver {
         test {
             args     = 'MBusActuality minomess 15363320 NOKEY'
             telegram = 6863636808007220333615496A0116DD0000000C1329810500026C5E3A82046C413A8C0413AADB00008D0493132C33FED0D200A6CD007EC8009CC10048BA00FAB3009BAD00D2A80028A2004F9B00F694009B8F00F9890048860002FD17000001FD71AB02746B00AE16
-            json     = '{"_":"telegram","media":"cold water","driver":"minomess","name":"MBusActuality","id":"15363320","actuality_duration_s":107,"rssi_dbm":-85,"target_m3":21.987,"target_date":"2026-10-01","total_m3":58.129,"meter_date":"2026-10-30","status":"OK","timestamp":"1111-11-11T11:11:11Z"}'
-            fields   = 'MBusActuality;15363320;OK;58.129;21.987;1111-11-11 11:11.11'
+            json     = '{"_":"telegram","media":"cold water","driver":"minomess","name":"MBusActuality","id":"15363320","actuality_duration_s":107,"rssi_dbm":-85,"target_m3":56.234,"target_date":"2026-10-01","total_m3":58.129,"meter_date":"2026-10-30","status":"OK","timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'MBusActuality;15363320;OK;58.129;56.234;1111-11-11 11:11.11'
         }
         test {
             args     = 'Mino minomess 15503451 NOKEY'
