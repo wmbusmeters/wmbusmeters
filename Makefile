@@ -194,6 +194,7 @@ PROG_OBJS:=\
 	$(BUILD)/formula.o \
 	$(BUILD)/log.o \
 	$(BUILD)/mbus_rawtty.o \
+	$(BUILD)/mbus_tcp.o \
 	$(BUILD)/metermanager.o \
 	$(BUILD)/meters.o \
 	$(BUILD)/generated_library.o \

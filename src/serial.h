@@ -93,6 +93,8 @@ struct SerialCommunicationManager
     virtual std::shared_ptr<SerialDevice> createSerialDeviceSimulator() = 0;
     // Listen on a Unix domain socket for incoming connections.
     virtual std::shared_ptr<SerialDevice> createSerialDeviceSocket(std::string path, std::string purpose) = 0;
+    // Connect to a remote TCP host:port (e.g. serial-to-mbus gateway).
+    virtual std::shared_ptr<SerialDevice> createSerialDeviceTCP(std::string host, int port, std::string purpose) = 0;
 
     // Invoke cb callback when data arrives on the serial device.
     virtual void listenTo(SerialDevice *sd, std::function<void()> cb) = 0;

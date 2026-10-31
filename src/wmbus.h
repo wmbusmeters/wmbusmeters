@@ -41,6 +41,7 @@ bool trimCRCsFrameFormatB(std::vector<uchar> &payload);
 #define LIST_OF_MBUS_DEVICES \
     X(UNKNOWN,unknown,false,false,detectUNKNOWN)     \
     X(MBUS,mbus,true,false,detectMBUS)               \
+    X(MBUS_TCP,mbus_tcp,false,false,detectSKIP)      \
     X(AUTO,auto,false,false,detectAUTO)              \
     X(AMB8465,amb8465,true,false,detectAMB8465AMB3665)\
     X(AMB3665,amb3665,true,false,detectSKIP)         \
@@ -117,6 +118,9 @@ struct SpecifiedDevice
     std::string file; // simulation_meter.txt, stdin, file.raw, /dev/ttyUSB0
     std::string hex; // a hex string supplied on the command line becomes a hex simulation.
     bool is_tty{}, is_stdin{}, is_file{}, is_simulation{}, is_hex_simulation{};
+    bool is_tcp{}; // tcp://host:port for remote mbus gateways
+    std::string tcp_host; // TCP host for mbus_tcp devices
+    int tcp_port{}; // TCP port for mbus_tcp devices
     BusDeviceType type; // im871a, rtlwmbus
     std::string id; // 12345678 for wmbus dongles or 0,1 for rtlwmbus indexes.
     std::string extras; // Extra device specific settings.
@@ -680,6 +684,9 @@ std::shared_ptr<BusDevice> openXmqTTY(Detected detected,
 std::shared_ptr<BusDevice> openMBUS(Detected detected,
                            std::shared_ptr<SerialCommunicationManager> manager,
                            std::shared_ptr<SerialDevice> serial_override);
+std::shared_ptr<BusDevice> openMBusTCP(Detected detected,
+                              std::shared_ptr<SerialCommunicationManager> manager,
+                              std::shared_ptr<SerialDevice> serial_override);
 std::shared_ptr<BusDevice> openRC1180(Detected detected,
                              std::shared_ptr<SerialCommunicationManager> manager,
                              std::shared_ptr<SerialDevice> serial_override);
