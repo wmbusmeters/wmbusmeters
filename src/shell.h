@@ -20,7 +20,7 @@
 
 void invokeShell(std::string program, std::vector<std::string> args, std::vector<std::string> envs);
 int  invokeShellCaptureOutput(std::string program, std::vector<std::string> args, std::vector<std::string> envs, std::string *out, bool do_not_warn_if_fail);
-bool invokeBackgroundShell(std::string program, std::vector<std::string> args, std::vector<std::string> envs, int *out, int *pid);
+bool invokeBackgroundShell(std::string program, std::vector<std::string> args, std::vector<std::string> envs, int *out, int *pid, bool bidirectional = false);
 bool stillRunning(int pid);
 void stopBackgroundShell(int pid);
 void detectProcesses(std::string cmd, std::vector<int> *pids);

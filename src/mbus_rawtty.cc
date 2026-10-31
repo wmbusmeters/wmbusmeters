@@ -62,7 +62,6 @@ shared_ptr<BusDevice> openMBUS(Detected detected, shared_ptr<SerialCommunication
     string device = detected.found_file;
     int bps = detected.found_bps;
 
-    assert(device != "");
 
     if (serial_override)
     {
@@ -70,6 +69,7 @@ shared_ptr<BusDevice> openMBUS(Detected detected, shared_ptr<SerialCommunication
         imp->markAsNoLongerSerial();
         return shared_ptr<BusDevice>(imp);
     }
+    assert(device != "");
     auto serial = manager->createSerialDeviceTTY(device.c_str(), bps, PARITY::EVEN, "mbus");
     MBusRawTTY *imp = new MBusRawTTY(bus_alias, serial, manager);
     return shared_ptr<BusDevice>(imp);

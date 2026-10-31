@@ -27,6 +27,7 @@
 #include <memory.h>
 #include <pthread.h>
 #include <sys/types.h>
+#include <sys/socket.h>
 #include <sys/wait.h>
 #include <unistd.h>
 
@@ -121,7 +122,7 @@ void invokeShell(string program, vector<string> args, vector<string> envs)
     delete[] p;
 }
 
-bool invokeBackgroundShell(string program, vector<string> args, vector<string> envs, int *fd_out, int *pid)
+bool invokeBackgroundShell(string program, vector<string> args, vector<string> envs, int *fd_out, int *pid, bool bidirectional)
 {
     int link[2];
     vector<const char*> argv(args.size()+2);
@@ -139,9 +140,37 @@ bool invokeBackgroundShell(string program, vector<string> args, vector<string> e
 
     vector<const char*> env = prepareEnv(envs);
 
-    if (pipe(link) == -1) {
-        errorAndExit(EXIT_SHELL_ERROR, "(bgshell) could not create pipe!\n");
+    *fd_out = -1;
+    *pid = 0;
+    int rc = bidirectional ? socketpair(AF_UNIX, SOCK_STREAM, 0, link) : pipe(link);
+    if (rc == -1) {
+        delete[] p;
+        return false;
     }
+    // Keep both endpoints away from stdio before dup2 in the child, even
+    // when the caller has closed stdin/stdout/stderr. Also prevent leaks
+    // into subsequently executed commands.
+    for (int j = 0; j < 2; j++) {
+        if (link[j] < 3) {
+            int moved = fcntl(link[j], F_DUPFD, 3);
+            if (moved < 0) {
+                close(link[0]); close(link[1]); delete[] p;
+                return false;
+            }
+            close(link[j]);
+            link[j] = moved;
+        }
+        if (fcntl(link[j], F_SETFD, FD_CLOEXEC) < 0) {
+            close(link[0]); close(link[1]); delete[] p;
+            return false;
+        }
+    }
+#ifdef SO_NOSIGPIPE
+    if (bidirectional) {
+        int on = 1;
+        setsockopt(link[0], SOL_SOCKET, SO_NOSIGPIPE, &on, sizeof(on));
+    }
+#endif
 
     *pid = fork();
     if (*pid == 0) {
@@ -153,14 +182,16 @@ bool invokeBackgroundShell(string program, vector<string> args, vector<string> e
         // so that we can easily terminate it and all its
         // subprocesses later one!
         setpgid(0, 0);
-        // Redirect stdout and stderr to pipe
+        // Serial commands exchange bytes through stdin/stdout. Diagnostics
+        // stay on stderr instead of entering the receiver data stream.
         dup2 (link[1], STDOUT_FILENO);
-        dup2 (link[1], STDERR_FILENO);
+        if (bidirectional) dup2(link[1], STDIN_FILENO);
+        else dup2(link[1], STDERR_FILENO);
         // Close return pipe, not duped.
         close(link[0]);
         // Close old forward fd pipe.
         close(link[1]);
-        close(0); // Close stdin
+        if (!bidirectional) close(0);
 
 #if (defined(__APPLE__) && defined(__MACH__)) || defined(__FreeBSD__)
         environ = (char**)&env[0];
@@ -174,6 +205,17 @@ bool invokeBackgroundShell(string program, vector<string> args, vector<string> e
         // which can deadlock in a forked child.
         _exit(127);
     }
+
+    close(link[1]);
+    if (*pid < 0) {
+        close(link[0]);
+        *pid = 0;
+        delete[] p;
+        return false;
+    }
+    // Also set the group in the parent, so immediate shutdown cannot race
+    // the child's setpgid().
+    setpgid(*pid, *pid);
 
     // Make reads from the pipe non-blocking.
     int flags = fcntl(link[0], F_GETFL);

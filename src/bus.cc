@@ -177,6 +177,15 @@ shared_ptr<BusDevice> BusManager::createWmbusObject(Detected *detected, Configur
 
     shared_ptr<SerialDevice> serial_override;
 
+    if (usesTTY(detected->found_type) && detected->specified_device.command != "")
+    {
+        string identifier = "cmd_" + to_string(detected->specified_device.index);
+        vector<string> args = { "-c", detected->specified_device.command };
+        vector<string> envs;
+        serial_override = serial_manager_->createSerialDeviceCommand(identifier, "/bin/sh", args, envs,
+                                                                     "override " + identifier, true);
+    }
+
     if (detected->found_tty_override)
     {
         serial_override = serial_manager_->createSerialDeviceFile(detected->specified_device.file,

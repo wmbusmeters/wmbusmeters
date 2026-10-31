@@ -93,22 +93,9 @@ shared_ptr<BusDevice> openCUL(Detected detected, shared_ptr<SerialCommunicationM
         return shared_ptr<BusDevice>(imp);
     }
 
-	if (detected.specified_device.command != "")
-	{
-		string identifier = "cmd_" + to_string(detected.specified_device.index);
 
-		vector<string> args;
-		vector<string> envs;
-		args.push_back("-c");
-		args.push_back(detected.specified_device.command);
-
-		auto serial = manager->createSerialDeviceCommand(identifier, "/bin/sh", args, envs, "cul");
-		WMBusCUL *imp = new WMBusCUL(bus_alias, serial, manager);
-		return shared_ptr<BusDevice>(imp);
-	}
-
-	string device = detected.found_file;
-	auto serial = manager->createSerialDeviceTTY(device.c_str(), 38400, PARITY::NONE, "cul");
+    string device = detected.found_file;
+    auto serial = manager->createSerialDeviceTTY(device.c_str(), 38400, PARITY::NONE, "cul");
     WMBusCUL *imp = new WMBusCUL(bus_alias, serial, manager);
     return shared_ptr<BusDevice>(imp);
 }
