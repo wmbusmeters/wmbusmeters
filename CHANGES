@@ -1,3 +1,4 @@
+Version 3.1.1 2026-10-31
 
 Shad Malloy added a second fuzzer based on clang that complements the AFL fuzzer.
 It already found a bunch of mistakes that are now fixed. Thanks Shad!
