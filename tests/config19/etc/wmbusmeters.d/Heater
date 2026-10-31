@@ -1,0 +1,7 @@
+meter {
+    name   = Heater
+    driver = multical803
+    id     = 80808081
+    //key=testing comment
+    key    = ''
+}

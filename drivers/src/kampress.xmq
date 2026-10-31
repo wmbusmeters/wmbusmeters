@@ -3,16 +3,43 @@ driver {
     name           = kampress
     default_fields = name,id,status,pressure_bar,max_pressure_bar,min_pressure_bar,timestamp
     meter_type     = PressureSensor
+    manufacturer   = Kamstrup
     detect {
         mvt = KAM,01,18
     }
     compact_frame_formats {
         difvif = 22691269026905FF0905FF0A02FD17
     }
+    flags {
+        flag {
+            name = DROP
+            info = 'The pressure has dropped.'
+        }
+        flag {
+            name = SURGE
+            info = 'A pressure surge has been detected.'
+        }
+        flag {
+            name = HIGH
+            info = 'The pressure is high.'
+        }
+        flag {
+            name = LOW
+            info = 'The pressure is low.'
+        }
+        flag {
+            name = TRANSIENT
+            info = 'A pressure transient has been detected.'
+        }
+        flag {
+            name = COMM_ERROR
+            info = 'The communication with the pressure sensor has failed.'
+        }
+    }
     fields {
         field {
             name     = status
-            quantity = Text
+            quantity = Flags
             info     = status_and_error_flags
             match {
                 measurement_type = Instantaneous

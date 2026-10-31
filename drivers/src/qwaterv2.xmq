@@ -39,10 +39,52 @@ driver {
         use = meter_datetime
         use = enhanced_id
     }
+    flags {
+        flag {
+            name = NO_FLOW
+            info = 'There is no flow.'
+        }
+        flag {
+            name = SUPPLY_SENSOR_INTERRUPTED
+            info = 'The supply temperature sensor is interrupted.'
+        }
+        flag {
+            name = RETURN_SENSOR_INTERRUPTED
+            info = 'The return temperature sensor is interrupted.'
+        }
+        flag {
+            name = TEMPERATURE_ELECTRONICS_ERROR
+            info = 'The temperature measuring electronics are faulty.'
+        }
+        flag {
+            name = BATTERY_VOLTAGE_ERROR
+            info = 'The battery voltage is too low.'
+        }
+        flag {
+            name = SHORT_CIRCUIT_SUPPLY_SENSOR
+            info = 'The supply temperature sensor is short circuited.'
+        }
+        flag {
+            name = SHORT_CIRCUIT_RETURN_SENSOR
+            info = 'The return temperature sensor is short circuited.'
+        }
+        flag {
+            name = MEMORY_ERROR
+            info = 'The memory of the meter is faulty.'
+        }
+        flag {
+            name = SABOTAGE
+            info = 'Tampering with the meter has been detected.'
+        }
+        flag {
+            name = ELECTRONICS_ERROR
+            info = 'The electronics of the meter are faulty.'
+        }
+    }
     fields {
         field {
             name       = status
-            quantity   = Text
+            quantity   = Flags
             info       = 'Status and error flags'
             attributes = STATUS,INCLUDE_TPL_STATUS
             match {
@@ -188,16 +230,17 @@ driver {
             //   [4]   0x00     reserved
             //   [5]   flags    device-specific status/flags (format unknown)
             //   [6]   0x00/01  extra flag
-            //   [7]   0x07     constant (possibly number of data records)
+            //   [7]   0x07/00  not constant: 0x07 on the version 0x18/0x19 meters, 0x00 on a
+            //                  version 0x1A water meter whose block is otherwise identical
             //   [8]   0xC1     meter type: 0xB0=HCA, 0xC0=heat, 0xC1=warm/cold water
             // Byte [9] is the VIF (0x13 = volume in liters), which is matched below.
             // The 9-byte header is validated against its fixed bytes ([0]=00, [1]=82,
-            // [3]=00, [4]=00, [7]=07, [8]=C1 warm/cold water) so that a block with an
+            // [3]=00, [4]=00, [8]=C1 warm/cold water) so that a block with an
             // unexpected layout (e.g. an encrypted/non-walk-by payload that merely
             // happens to carry the 0DFF5F difvifkey) fails closed instead of having
             // total_m3/target_*/volume_delta_* invented from the wrong offsets.
             // See issue #1916.
-            ixml = "decode = -'00', -'82', byte, -'00', -'00', byte, byte, -'07', -'C1', volume_l.
+            ixml = "decode = -'00', -'82', byte, -'00', -'00', byte, byte, byte, -'C1', volume_l.
 
                     volume_l = '13', error_date, total_l, target_year_date, target_year_l, target_date, target_l, delta1, delta2, delta3, delta4, delta5, delta6, delta7, delta8, delta9, delta10, delta11, delta12, -pad.
 
@@ -383,6 +426,13 @@ driver {
             telegram = 49449344341234511906780dff5f3500822d0000600107c113ffff748702003f3c215102005f374386020031003600330033003600360031003600320037002e002c002f046d0f114b38
             json     = '{"_":"telegram","media":"warm water","driver":"qwaterv2","name":"MyQWater19","id":"51341234","target_m3":28.643,"target_date":"2026-07-31","target_year_m3":25.121,"target_year_date":"2025-12-31","total_m3":28.774,"volume_delta_2_m3":0.049,"volume_delta_3_m3":0.054,"volume_delta_4_m3":0.051,"volume_delta_5_m3":0.051,"volume_delta_6_m3":0.054,"volume_delta_7_m3":0.054,"volume_delta_8_m3":0.049,"volume_delta_9_m3":0.054,"volume_delta_10_m3":0.05,"volume_delta_11_m3":0.055,"volume_delta_12_m3":0.046,"volume_delta_13_m3":0.044,"meter_datetime":"2026-08-11 17:15","status":"OK","timestamp":"1111-11-11T11:11:11Z"}'
             fields   = 'MyQWater19;51341234;OK;28.774;1111-11-11 11:11.11'
+        }
+        test {
+            args     = 'MyQWater1A qwaterv2 12345678 NOKEY'
+            comment  = 'Version 0x1A water meter, walk by telegram with mfct data. Header byte [7] is 0x00, not 0x07. Real telegram, A-field replaced.'
+            telegram = 49449344785634121A07780DFF5F350082720000800000C113FFFF029000003F3C192500005F330073000000000000000000000000000000004700B100B1008600A8002F046D00135E34
+            json     = '{"_":"telegram","media":"water","driver":"qwaterv2","name":"MyQWater1A","id":"12345678","target_m3":7.3,"target_date":"2026-03-31","target_year_m3":2.519,"target_year_date":"2025-12-31","total_m3":9.002,"volume_delta_10_m3":0.177,"volume_delta_11_m3":0.177,"volume_delta_12_m3":0.134,"volume_delta_13_m3":0.168,"volume_delta_2_m3":0,"volume_delta_3_m3":0,"volume_delta_4_m3":0,"volume_delta_5_m3":0,"volume_delta_6_m3":0,"volume_delta_7_m3":0,"volume_delta_8_m3":0,"volume_delta_9_m3":0.071,"meter_datetime":"2026-04-30 19:00","status":"OK","timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'MyQWater1A;12345678;OK;9.002;1111-11-11 11:11.11'
         }
         test {
             args     = 'AESTest qwaterv2 14356101 000102030405060708090A0B0C0D0E0F'

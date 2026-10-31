@@ -3,6 +3,7 @@ driver {
     name           = lansenpu
     meter_type     = PulseCounter
     default_fields = name,id,status,a_counter,b_counter,timestamp
+    manufacturer   = Lansen
     detect {
         mvt = LAS,14,00
         mvt = LAS,1b,00
@@ -17,10 +18,16 @@ driver {
             test  = set
         }
     }
+    flags {
+        flag {
+            name = SABOTAGE_ENCLOSURE
+            info = 'The enclosure has been opened or tampered with.'
+        }
+    }
     fields {
         field {
             name       = status
-            quantity   = Text
+            quantity   = Flags
             info       = 'Status and error flags.'
             attributes = STATUS,INCLUDE_TPL_STATUS
         }

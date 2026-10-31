@@ -104,7 +104,7 @@ shared_ptr<BusDevice> openRTLWMBUS(Detected detected,
     bool ok = parseExtras(detected.specified_device.extras, &extras);
     if (!ok)
     {
-        error(EXIT_BUS_DEVICE_ERROR, "(rtlwmbus) invalid extra parameters to rtlwmbus (%s)\n", detected.specified_device.extras.c_str());
+        errorAndExit(EXIT_BUS_DEVICE_ERROR, "(rtlwmbus) invalid extra parameters to rtlwmbus (%s)\n", detected.specified_device.extras.c_str());
     }
     string ppm = "";
     if (extras.size() > 0)
@@ -139,7 +139,7 @@ shared_ptr<BusDevice> openRTLWMBUS(Detected detected,
         {
             if (daemon)
             {
-                error(EXIT_BUS_DEVICE_ERROR, "(rtlwmbus) error: when starting as daemon, wmbusmeters looked for %s/rtl_sdr and %s/rtl_sdr, but found neither!\n",
+                errorAndExit(EXIT_BUS_DEVICE_ERROR, "(rtlwmbus) error: when starting as daemon, wmbusmeters looked for %s/rtl_sdr and %s/rtl_sdr, but found neither!\n",
                       bin_dir.c_str(), "/usr/bin");
             }
             else
@@ -153,7 +153,7 @@ shared_ptr<BusDevice> openRTLWMBUS(Detected detected,
         {
             if (daemon)
             {
-                error(EXIT_BUS_DEVICE_ERROR, "(rtlwmbus) error: when starting as daemon, wmbusmeters looked for %s/rtl_wmbus and %s/rtl_wmbus, but found neither!\n",
+                errorAndExit(EXIT_BUS_DEVICE_ERROR, "(rtlwmbus) error: when starting as daemon, wmbusmeters looked for %s/rtl_wmbus and %s/rtl_wmbus, but found neither!\n",
                       bin_dir.c_str(), "/usr/bin");
             }
             else
@@ -400,13 +400,13 @@ FrameStatus WMBusRTLWMBUS::checkRTLWMBUSFrame(vector<uchar> &data,
 
         // And the checksums should match. T1;1;1
         char check_crc = data[3];
-        char check_3outof5 = data[5];
-        if (check_crc != '1' || check_3outof5 != '1')
+        char check_3outof6 = data[5];
+        if (check_crc != '1' || check_3outof6 != '1')
         {
             // Packages that begin with C1;1;1 or with T1;1;1 or with S1;1;1 are good. The full format is:
             // MODE;CRC_OK;3OUTOF6OK;TIMESTAMP;PACKET_RSSI;CURRENT_RSSI;LINK_LAYER_IDENT_NO;DATAGRAM_WITHOUT_CRC_BYTES.
             // 3OUTOF6OK makes sense only with mode T1 and no sense with mode C1 (always set to 10).
-            if (check_crc != '1' && check_3outof5 != '1')
+            if (check_crc != '1' && check_3outof6 != '1')
             {
                 verbose("(rtlwmbus) telegram received but incomplete or with errors, since rtl_wmbus reports that CRC and 3OUTOF6 checks failed.\n");
             }

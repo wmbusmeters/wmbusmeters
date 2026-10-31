@@ -35,10 +35,52 @@ driver {
         use = enhanced_id
         use = fabrication_no
     }
+    flags {
+        flag {
+            name = NO_FLOW
+            info = 'There is no flow.'
+        }
+        flag {
+            name = SUPPLY_SENSOR_INTERRUPTED
+            info = 'The supply temperature sensor is interrupted.'
+        }
+        flag {
+            name = RETURN_SENSOR_INTERRUPTED
+            info = 'The return temperature sensor is interrupted.'
+        }
+        flag {
+            name = TEMPERATURE_ELECTRONICS_ERROR
+            info = 'The temperature measuring electronics are faulty.'
+        }
+        flag {
+            name = BATTERY_VOLTAGE_ERROR
+            info = 'The battery voltage is too low.'
+        }
+        flag {
+            name = SHORT_CIRCUIT_SUPPLY_SENSOR
+            info = 'The supply temperature sensor is short circuited.'
+        }
+        flag {
+            name = SHORT_CIRCUIT_RETURN_SENSOR
+            info = 'The return temperature sensor is short circuited.'
+        }
+        flag {
+            name = MEMORY_ERROR
+            info = 'The memory of the meter is faulty.'
+        }
+        flag {
+            name = SABOTAGE
+            info = 'Tampering with the meter has been detected.'
+        }
+        flag {
+            name = ELECTRONICS_ERROR
+            info = 'The electronics of the meter are faulty.'
+        }
+    }
     fields {
         field {
             name       = status
-            quantity   = Text
+            quantity   = Flags
             info       = 'Status and error flags'
             attributes = STATUS,INCLUDE_TPL_STATUS
             match {

@@ -617,6 +617,8 @@ string ciType(int ci_field)
 
 void Telegram::addExplanationAndIncrementPos(vector<uchar>::iterator &pos, int len, KindOfData k, Understanding u, const char* fmt, ...)
 {
+    assert(len > 0);
+
     char buf[1024];
     buf[1023] = 0;
 
@@ -633,6 +635,8 @@ void Telegram::addExplanationAndIncrementPos(vector<uchar>::iterator &pos, int l
 
 void Telegram::setExplanation(vector<uchar>::iterator &pos, int len, KindOfData k, Understanding u, const char* fmt, ...)
 {
+    assert(len > 0);
+
     char buf[1024];
     buf[1023] = 0;
 
@@ -794,12 +798,14 @@ bool Telegram::parseDLL(vector<uchar>::iterator &pos)
     if (remaining < dll_len) return expectedMore(__LINE__);
     addExplanationAndIncrementPos(pos, 1, KindOfData::PROTOCOL, Understanding::FULL, "%02x length (%d bytes)", dll_len, dll_len);
 
+    CHECK(1);
     dll_c = *pos;
     addExplanationAndIncrementPos(pos, 1, KindOfData::PROTOCOL, Understanding::FULL, "%02x dll-c (%s)", dll_c, cType(dll_c).c_str());
 
     CHECK(8)
     addAddressMfctFirst(pos);
 
+    CHECK(2);
     dll_mfct_b[0] = *(pos+0);
     dll_mfct_b[1] = *(pos+1);
     dll_mfct = dll_mfct_b[1] <<8 | dll_mfct_b[0];
@@ -809,6 +815,7 @@ bool Telegram::parseDLL(vector<uchar>::iterator &pos)
 
     dll_a.resize(6);
     dll_id.resize(4);
+    CHECK(6);
     for (int i=0; i<6; ++i)
     {
         dll_a[i] = *(pos+i);
@@ -822,6 +829,7 @@ bool Telegram::parseDLL(vector<uchar>::iterator &pos)
     addExplanationAndIncrementPos(pos, 4, KindOfData::PROTOCOL, Understanding::FULL, "%02x%02x%02x%02x dll-id (%s)",
                                   *(pos+0), *(pos+1), *(pos+2), *(pos+3), addresses.back().id.c_str());
 
+    CHECK(2);
     dll_version = *(pos+0);
     dll_type = *(pos+1);
     addExplanationAndIncrementPos(pos, 1, KindOfData::PROTOCOL, Understanding::FULL, "%02x dll-version", dll_version);
@@ -863,9 +871,11 @@ bool Telegram::parseELL(vector<uchar>::iterator &pos)
 
     // All ELL:s (including ELL I) start with cc,acc.
 
+    CHECK(1);
     ell_cc = *pos;
     addExplanationAndIncrementPos(pos, 1, KindOfData::PROTOCOL, Understanding::FULL, "%02x ell-cc (%s)", ell_cc, ccType(ell_cc).c_str());
 
+    CHECK(1);
     ell_acc = *pos;
     addExplanationAndIncrementPos(pos, 1, KindOfData::PROTOCOL, Understanding::FULL, "%02x ell-acc", ell_acc);
 
@@ -897,6 +907,7 @@ bool Telegram::parseELL(vector<uchar>::iterator &pos)
         CHECK(8);
         addAddressMfctFirst(pos);
 
+        CHECK(2);
         ell_mfct_b[0] = *(pos+0);
         ell_mfct_b[1] = *(pos+1);
         ell_mfct = ell_mfct_b[1] << 8 | ell_mfct_b[0];
@@ -905,6 +916,7 @@ bool Telegram::parseELL(vector<uchar>::iterator &pos)
                                       ell_mfct_b[0], ell_mfct_b[1], man.c_str());
 
         ell_id_found = true;
+        CHECK(4);
         ell_id_b[0] = *(pos+0);
         ell_id_b[1] = *(pos+1);
         ell_id_b[2] = *(pos+2);
@@ -914,9 +926,11 @@ bool Telegram::parseELL(vector<uchar>::iterator &pos)
         addExplanationAndIncrementPos(pos, 4, KindOfData::PROTOCOL, Understanding::FULL, "%02x%02x%02x%02x ell-id",
                                       ell_id_b[0], ell_id_b[1], ell_id_b[2], ell_id_b[3]);
 
+        CHECK(1);
         ell_version = *pos;
         addExplanationAndIncrementPos(pos, 1, KindOfData::PROTOCOL, Understanding::FULL, "%02x ell-version", ell_version);
 
+        CHECK(1);
         ell_type = *pos;
         addExplanationAndIncrementPos(pos, 1, KindOfData::PROTOCOL, Understanding::FULL, "%02x ell-type", ell_type);
     }
@@ -924,6 +938,7 @@ bool Telegram::parseELL(vector<uchar>::iterator &pos)
     if (has_session_number_pl_crc)
     {
         string sn_info;
+        CHECK(4);
         ell_sn_b[0] = *(pos+0);
         ell_sn_b[1] = *(pos+1);
         ell_sn_b[2] = *(pos+2);
@@ -948,6 +963,7 @@ bool Telegram::parseELL(vector<uchar>::iterator &pos)
             // Now the frame from pos and onwards has been decrypted, perhaps.
         }
 
+        CHECK(2);
         ell_pl_crc_b[0] = *(pos+0);
         ell_pl_crc_b[1] = *(pos+1);
         ell_pl_crc = (ell_pl_crc_b[1] << 8) | ell_pl_crc_b[0];
@@ -975,7 +991,11 @@ bool Telegram::parseELL(vector<uchar>::iterator &pos)
             int num_encrypted_bytes = frame.end()-pos;
             string info = bin2hex(pos, frame.end(), num_encrypted_bytes);
             info += " failed decryption. Wrong key?";
-            addExplanationAndIncrementPos(pos, num_encrypted_bytes, KindOfData::CONTENT, Understanding::ENCRYPTED, info.c_str());
+
+            if (num_encrypted_bytes > 0)
+            {
+                addExplanationAndIncrementPos(pos, num_encrypted_bytes, KindOfData::CONTENT, Understanding::ENCRYPTED, info.c_str());
+            }
 
             if (parser_warns_)
             {
@@ -1017,6 +1037,7 @@ bool Telegram::parseNWL(vector<uchar>::iterator &pos)
 
     if (remaining < len+1) return expectedMore(__LINE__);
 
+    CHECK(1);
     uchar nwl = *pos;
     addExplanationAndIncrementPos(pos, 1, KindOfData::PROTOCOL, Understanding::FULL, "%02x nwl?", nwl);
 
@@ -1033,12 +1054,14 @@ bool Telegram::parseAFL(vector<uchar>::iterator &pos)
 
     debug("(wmbus) parseAFL @%d %d\n", distance(frame.begin(), pos), remaining);
 
+    CHECK(1);
     int ci_field = *pos;
     if (!isCiFieldOfType(ci_field, CI_TYPE::AFL)) return true;
     addExplanationAndIncrementPos(pos, 1, KindOfData::PROTOCOL, Understanding::FULL, "%02x afl-ci-field (%s)",
                                   ci_field, ciType(ci_field).c_str());
     afl_ci = ci_field;
 
+    CHECK(1);
     afl_len = *pos;
     addExplanationAndIncrementPos(pos, 1, KindOfData::PROTOCOL, Understanding::FULL, "%02x afl-len (%d)",
                                   afl_len, afl_len);
@@ -1046,6 +1069,7 @@ bool Telegram::parseAFL(vector<uchar>::iterator &pos)
     int len = ciFieldLength(afl_ci);
     if (remaining < len) return expectedMore(__LINE__);
 
+    CHECK(2);
     afl_fc_b[0] = *(pos+0);
     afl_fc_b[1] = *(pos+1);
     afl_fc = afl_fc_b[1] << 8 | afl_fc_b[0];
@@ -1062,6 +1086,7 @@ bool Telegram::parseAFL(vector<uchar>::iterator &pos)
 
     if (has_control)
     {
+        CHECK(1);
         afl_mcl = *pos;
         string afl_mcl_info = toStringFromAFLMC(afl_mcl);
         addExplanationAndIncrementPos(pos, 1, KindOfData::PROTOCOL, Understanding::FULL, "%02x afl-mcl (%s)",
@@ -1070,6 +1095,7 @@ bool Telegram::parseAFL(vector<uchar>::iterator &pos)
 
     if (has_key_info)
     {
+        CHECK(2);
         afl_ki_b[0] = *(pos+0);
         afl_ki_b[1] = *(pos+1);
         afl_ki = afl_ki_b[1] << 8 | afl_ki_b[0];
@@ -1080,6 +1106,7 @@ bool Telegram::parseAFL(vector<uchar>::iterator &pos)
 
     if (has_counter)
     {
+        CHECK(4);
         afl_counter_b[0] = *(pos+0);
         afl_counter_b[1] = *(pos+1);
         afl_counter_b[2] = *(pos+2);
@@ -1113,12 +1140,16 @@ bool Telegram::parseAFL(vector<uchar>::iterator &pos)
             return false;
         }
         afl_mac_b.clear();
+        CHECK(len);
         for (int i=0; i<len; ++i)
         {
             afl_mac_b.insert(afl_mac_b.end(), *(pos+i));
         }
         string s = bin2hex(afl_mac_b);
-        addExplanationAndIncrementPos(pos, len, KindOfData::PROTOCOL, Understanding::FULL, "%s afl-mac %d bytes", s.c_str(), len);
+        if (len > 0)
+        {
+            addExplanationAndIncrementPos(pos, len, KindOfData::PROTOCOL, Understanding::FULL, "%s afl-mac %d bytes", s.c_str(), len);
+        }
         must_check_mac = true;
     }
 
@@ -1262,6 +1293,10 @@ bool Telegram::parseTPLConfig(std::vector<uchar>::iterator &pos)
         addExplanationAndIncrementPos(pos, 4, KindOfData::PROTOCOL, Understanding::FULL,
                                       "%02x%02x%02x%02x tpl-message-counter",
                                       tpl_counter_b[0], tpl_counter_b[1], tpl_counter_b[2], tpl_counter_b[3]);
+
+        // Now verify that there are enough bytes for the tag itself and at at least a single content byte.
+        assert(tpl_ccm_tag_size >= 4 && tpl_ccm_tag_size <= 16);
+        CHECK(tpl_ccm_tag_size+1);
     }
 
     if (tpl_kdf_selection == 1)
@@ -1337,7 +1372,6 @@ bool Telegram::parseTPLConfig(std::vector<uchar>::iterator &pos)
 bool Telegram::parseShortTPL(std::vector<uchar>::iterator &pos)
 {
     CHECK(1);
-
     tpl_acc = *pos;
     addExplanationAndIncrementPos(pos, 1, KindOfData::PROTOCOL, Understanding::FULL,
                                   "%02x tpl-acc-field", tpl_acc);
@@ -1359,12 +1393,14 @@ bool Telegram::parseLongTPL(std::vector<uchar>::iterator &pos)
     addAddressIdFirst(pos);
 
     tpl_id_found = true;
+    CHECK(4);
     tpl_id_b[0] = *(pos+0);
     tpl_id_b[1] = *(pos+1);
     tpl_id_b[2] = *(pos+2);
     tpl_id_b[3] = *(pos+3);
 
     tpl_a.resize(6);
+    CHECK(4);
     for (int i=0; i<4; ++i)
     {
         tpl_a[i] = *(pos+i);
@@ -1520,7 +1556,10 @@ bool Telegram::potentiallyDecrypt(vector<uchar>::iterator &pos)
             // No key supplied.
             string info =  bin2hex(pos, frame.end(), num_encrypted_bytes);
             info += " encrypted";
-            addExplanationAndIncrementPos(pos, num_encrypted_bytes, KindOfData::CONTENT, Understanding::ENCRYPTED, info.c_str());
+            if (num_encrypted_bytes > 0)
+            {
+                addExplanationAndIncrementPos(pos, num_encrypted_bytes, KindOfData::CONTENT, Understanding::ENCRYPTED, info.c_str());
+            }
             if (parser_warns_)
             {
                 if (!beingAnalyzed() && (isVerboseEnabled() || isDebugEnabled() || !warned_for_telegram_before(this, dll_a)))
@@ -1581,7 +1620,10 @@ bool Telegram::potentiallyDecrypt(vector<uchar>::iterator &pos)
             int num_bytes = distance(pos, frame.end());
             string info = bin2hex(pos, frame.end(), num_bytes);
             info += " failed decryption. Wrong key?";
-            addExplanationAndIncrementPos(pos, num_bytes, KindOfData::CONTENT, Understanding::ENCRYPTED, info.c_str());
+            if (num_bytes > 0)
+            {
+                addExplanationAndIncrementPos(pos, num_bytes, KindOfData::CONTENT, Understanding::ENCRYPTED, info.c_str());
+            }
 
             if (parser_warns_)
             {
@@ -1646,7 +1688,11 @@ bool Telegram::potentiallyDecrypt(vector<uchar>::iterator &pos)
 
                 string info =  bin2hex(pos, frame.end(), frame.end()-pos);
                 info += " encrypted mac failed";
-                addExplanationAndIncrementPos(pos, frame.end()-pos, KindOfData::CONTENT, Understanding::ENCRYPTED, info.c_str());
+                ssize_t len = frame.end()-pos;
+                if (len > 0)
+                {
+                    addExplanationAndIncrementPos(pos, frame.end()-pos, KindOfData::CONTENT, Understanding::ENCRYPTED, info.c_str());
+                }
                 if (meter_keys->confidentiality_key.size() > 0)
                 {
                     // Only fail if we gave an explicit key.
@@ -1664,8 +1710,11 @@ bool Telegram::potentiallyDecrypt(vector<uchar>::iterator &pos)
                                             &num_not_encrypted_at_end);
         if (!ok)
         {
-            addExplanationAndIncrementPos(pos, num_encrypted_bytes, KindOfData::CONTENT, Understanding::FULL,
-                                          "encrypted data");
+            if (num_encrypted_bytes > 0)
+            {
+                addExplanationAndIncrementPos(pos, num_encrypted_bytes, KindOfData::CONTENT, Understanding::FULL,
+                                              "encrypted data");
+            }
             return false;
         }
 
@@ -1682,7 +1731,10 @@ bool Telegram::potentiallyDecrypt(vector<uchar>::iterator &pos)
             // Wrong key supplied.
             string info = bin2hex(pos, frame.end(), num_encrypted_bytes);
             info += " failed decryption. Wrong key?";
-            addExplanationAndIncrementPos(pos, num_encrypted_bytes, KindOfData::CONTENT, Understanding::ENCRYPTED, info.c_str());
+            if (num_encrypted_bytes > 0)
+            {
+                addExplanationAndIncrementPos(pos, num_encrypted_bytes, KindOfData::CONTENT, Understanding::ENCRYPTED, info.c_str());
+            }
 
             if (parser_warns_)
             {
@@ -1710,13 +1762,40 @@ bool Telegram::potentiallyDecrypt(vector<uchar>::iterator &pos)
         // The authentication tag is a suffix after the APL content. Its size is
         // known from the cfg extension field even when no key is available.
         suffix_size = tpl_ccm_tag_size;
-
         if (tpl_generated_key.size() != 16)
         {
+            /*
+              // When should we print this warning? A bit unclear, the verification should print, and it does.
+              // Right now we do not print this. But we print a debug message below.
+            if (!beingAnalyzed() && !isSimulated() &&
+                (isVerboseEnabled()
+                 || isDebugEnabled()
+                 || !warned_for_telegram_before(this, dll_a)))
+            {
+                // Print this warning only once! Unless you are using verbose or debug.
+                warning("(wmbus) WARNING!!! Failed to generate ephemeral key when decrypting security mode 10 AES_CCM. "
+                        "Permanently ignoring telegrams from id: %02x%02x%02x%02x mfct: (%s) %s (0x%02x) type: %s (0x%02x) ver: 0x%02x\n",
+                        dll_id_b[3], dll_id_b[2], dll_id_b[1], dll_id_b[0],
+                        manufacturerFlag(dll_mfct).c_str(),
+                        manufacturer(dll_mfct).c_str(),
+                        dll_mfct,
+                        mediaType(dll_type, dll_mfct).c_str(), dll_type,
+                        dll_version);
+            }
+            */
             // This can happen in simulations without any keys, or if the cfg
             // extension field selected an unsupported key derivation function.
-            debug("(wmbus) security mode 10 telegram without a derived key, leaving telegram as is.\n");
-            return true;
+            if (isSimulated())
+            {
+                // Probably pre-decrypted.
+                debug("(wmbus) security mode 10 telegram without a derived key but simulation, leaving telegram as is.\n");
+                return true;
+            }
+            else
+            {
+                // Do not proceed with this telegram.
+                return false;
+            }
         }
 
         int num_encrypted_bytes = 0;
@@ -1759,7 +1838,10 @@ bool Telegram::potentiallyDecrypt(vector<uchar>::iterator &pos)
             int num_encrypted_bytes = (int)distance(pos, frame.end());
             string info = bin2hex(pos, frame.end(), num_encrypted_bytes);
             info += " encrypted";
-            addExplanationAndIncrementPos(pos, num_encrypted_bytes, KindOfData::CONTENT, Understanding::ENCRYPTED, info.c_str());
+            if (num_encrypted_bytes > 0)
+            {
+                addExplanationAndIncrementPos(pos, num_encrypted_bytes, KindOfData::CONTENT, Understanding::ENCRYPTED, info.c_str());
+            }
             if (parser_warns_)
             {
                 if (!beingAnalyzed() && (isVerboseEnabled() || isDebugEnabled() || !warned_for_telegram_before(this, dll_a)))
@@ -1786,7 +1868,10 @@ bool Telegram::potentiallyDecrypt(vector<uchar>::iterator &pos)
             int num_bytes = (int)distance(pos, frame.end());
             string info = bin2hex(pos, frame.end(), num_bytes);
             info += " failed DES decryption";
-            addExplanationAndIncrementPos(pos, num_bytes, KindOfData::CONTENT, Understanding::ENCRYPTED, info.c_str());
+            if (num_bytes > 0)
+            {
+                addExplanationAndIncrementPos(pos, num_bytes, KindOfData::CONTENT, Understanding::ENCRYPTED, info.c_str());
+            }
             return false;
         }
         // Decrypted plaintext starts with 2F 2F check bytes (same convention as AES mode 5).
@@ -1802,7 +1887,10 @@ bool Telegram::potentiallyDecrypt(vector<uchar>::iterator &pos)
             int num_bytes = (int)distance(pos, frame.end());
             string info = bin2hex(pos, frame.end(), num_bytes);
             info += " failed decryption. Wrong key?";
-            addExplanationAndIncrementPos(pos, num_bytes, KindOfData::CONTENT, Understanding::ENCRYPTED, info.c_str());
+            if (num_bytes > 0)
+            {
+                addExplanationAndIncrementPos(pos, num_bytes, KindOfData::CONTENT, Understanding::ENCRYPTED, info.c_str());
+            }
             if (parser_warns_)
             {
                 if (!beingAnalyzed() && (isVerboseEnabled() || isDebugEnabled() || !warned_for_telegram_before(this, dll_a)))
@@ -1830,7 +1918,10 @@ bool Telegram::potentiallyDecrypt(vector<uchar>::iterator &pos)
             int num_encrypted_bytes = (int)distance(pos, frame.end());
             string info = bin2hex(pos, frame.end(), num_encrypted_bytes);
             info += " encrypted";
-            addExplanationAndIncrementPos(pos, num_encrypted_bytes, KindOfData::CONTENT, Understanding::ENCRYPTED, info.c_str());
+            if (num_encrypted_bytes > 0)
+            {
+                addExplanationAndIncrementPos(pos, num_encrypted_bytes, KindOfData::CONTENT, Understanding::ENCRYPTED, info.c_str());
+            }
             if (parser_warns_)
             {
                 if (!beingAnalyzed() && (isVerboseEnabled() || isDebugEnabled() || !warned_for_telegram_before(this, dll_a)))
@@ -1876,7 +1967,7 @@ bool Telegram::potentiallyDecrypt(vector<uchar>::iterator &pos)
                                           iv3, &num_encrypted_bytes, &num_not_encrypted_at_end);
             if (!ok) continue;
 
-            if (*(pos+0) == 0x2f && *(pos+1) == 0x2f)
+            if (pos+1 < frame.end() && *(pos+0) == 0x2f && *(pos+1) == 0x2f)
             {
                 decrypted_ok = true;
             }
@@ -1893,7 +1984,10 @@ bool Telegram::potentiallyDecrypt(vector<uchar>::iterator &pos)
             int num_bytes = (int)distance(pos, frame.end());
             string info = bin2hex(pos, frame.end(), num_bytes);
             info += " failed decryption. Wrong key?";
-            addExplanationAndIncrementPos(pos, num_bytes, KindOfData::CONTENT, Understanding::ENCRYPTED, info.c_str());
+            if (num_bytes > 0)
+            {
+                addExplanationAndIncrementPos(pos, num_bytes, KindOfData::CONTENT, Understanding::ENCRYPTED, info.c_str());
+            }
             if (parser_warns_)
             {
                 if (!beingAnalyzed() && (isVerboseEnabled() || isDebugEnabled() || !warned_for_telegram_before(this, dll_a)))
@@ -2003,16 +2097,23 @@ bool Telegram::parse_TPL_79(vector<uchar>::iterator &pos)
     {
         addMoreExplanation(offset, " (unknown)");
         int num_compressed_bytes = distance(pos, frame.end());
-        string info = bin2hex(pos, frame.end(), num_compressed_bytes);
-        info += " compressed and signature unknown";
-        addExplanationAndIncrementPos(pos, distance(pos, frame.end()),
-                                      KindOfData::CONTENT, Understanding::COMPRESSED,
-                                      info.c_str());
-        verbose("(wmbus) ignoring compressed telegram since format signature hash 0x%02x is yet unknown.\n"
-                "     this is not a problem, since you only need wait for at most 8 telegrams\n"
-                "     (8*16 seconds) until an full length telegram arrives and then we know\n"
-                "     the format giving this hash and start decoding the telegrams properly.\n",
-                format_signature);
+        if (num_compressed_bytes > 0)
+        {
+            string info = bin2hex(pos, frame.end(), num_compressed_bytes);
+            info += " compressed and signature unknown";
+            int len = distance(pos, frame.end());
+            if (len > 0)
+            {
+                addExplanationAndIncrementPos(pos, len,
+                                              KindOfData::CONTENT, Understanding::COMPRESSED,
+                                              info.c_str());
+            }
+            verbose("(wmbus) ignoring compressed telegram since format signature hash 0x%02x is yet unknown.\n"
+                    "     this is not a problem, since you only need wait for at most 8 telegrams\n"
+                    "     (8*16 seconds) until an full length telegram arrives and then we know\n"
+                    "     the format giving this hash and start decoding the telegrams properly.\n",
+                    format_signature);
+        }
         return false;
     }
     vector<uchar>::iterator format = format_bytes.begin();
@@ -2061,9 +2162,13 @@ bool Telegram::parse_TPL_73(vector<uchar>::iterator &pos)
         int num_compressed_bytes = distance(pos, frame.end());
         string info = bin2hex(pos, frame.end(), num_compressed_bytes);
         info += " compressed and signature unknown";
-        addExplanationAndIncrementPos(pos, distance(pos, frame.end()),
-                                      KindOfData::CONTENT, Understanding::COMPRESSED,
-                                      info.c_str());
+        int len = distance(pos, frame.end());
+        if (len > 0)
+        {
+            addExplanationAndIncrementPos(pos, len,
+                                          KindOfData::CONTENT, Understanding::COMPRESSED,
+                                          info.c_str());
+        }
         verbose("(wmbus) ignoring compressed telegram since format signature hash 0x%02x is yet unknown.\n"
                 "     this is not a problem, since you only need wait for at most 8 telegrams\n"
                 "     (8*16 seconds) until an full length telegram arrives and then we know\n"
@@ -2137,9 +2242,13 @@ bool Telegram::parse_TPL_7B(vector<uchar>::iterator &pos)
         int num_compressed_bytes = distance(pos, frame.end());
         string info = bin2hex(pos, frame.end(), num_compressed_bytes);
         info += " compressed and signature unknown";
-        addExplanationAndIncrementPos(pos, distance(pos, frame.end()),
-                                      KindOfData::CONTENT, Understanding::COMPRESSED,
-                                      info.c_str());
+        int len = distance(pos, frame.end());
+        if (len > 0)
+        {
+            addExplanationAndIncrementPos(pos, len,
+                                          KindOfData::CONTENT, Understanding::COMPRESSED,
+                                          info.c_str());
+        }
         verbose("(wmbus) ignoring compressed telegram since format signature hash 0x%02x is yet unknown.\n"
                 "     this is not a problem, since you only need wait for at most 8 telegrams\n"
                 "     (8*16 seconds) until an full length telegram arrives and then we know\n"
@@ -2209,7 +2318,10 @@ bool Telegram::parseTPL(vector<uchar>::iterator &pos)
             int num_mfct_bytes = frame.end()-pos-suffix_size;
             string info =  bin2hex(pos, frame.end(), num_mfct_bytes);
             info += " mfct specific";
-            addExplanationAndIncrementPos(pos, num_mfct_bytes, KindOfData::CONTENT, Understanding::NONE, info.c_str());
+            if (num_mfct_bytes > 0)
+            {
+                addExplanationAndIncrementPos(pos, num_mfct_bytes, KindOfData::CONTENT, Understanding::NONE, info.c_str());
+            }
 
             return true; // Manufacturer specific telegram payload. Oh well....
         }
@@ -2801,6 +2913,32 @@ int difLenBytes(int dif)
     }
     // Bad!
     return -2;
+}
+
+// EN 13757-3:2018 table 5. Only 00h-BFh is a plain length (of text),
+// above that the LVAR byte names the encoding and the length is derived from it.
+// E2h is therefore a binary value of 2 bytes, not 226 bytes of text.
+int lvarLenBytes(int lvar)
+{
+    if (lvar <= 0xbf) return lvar;               // Text, 0-191 bytes
+    if (lvar <= 0xc9) return lvar - 0xc0;        // Positive BCD, 0-9 bytes
+    if (lvar <= 0xcf) return -1;                 // Reserved
+    if (lvar <= 0xd9) return lvar - 0xd0;        // Negative BCD, 0-9 bytes
+    if (lvar <= 0xdf) return -1;                 // Reserved
+    if (lvar <= 0xef) return lvar - 0xe0;        // Binary, 0-15 bytes
+    if (lvar <= 0xf4) return 4 * (lvar - 0xec);  // Binary, 16, 20, 24, 28 or 32 bytes
+    if (lvar == 0xf5) return 48;                 // Binary, 48 bytes
+    if (lvar == 0xf6) return 64;                 // Binary, 64 bytes
+    return -1;                                   // Reserved
+}
+
+const char *lvarType(int lvar)
+{
+    if (lvarLenBytes(lvar) < 0) return "reserved";
+    if (lvar <= 0xbf) return "text";
+    if (lvar <= 0xc9) return "bcd";
+    if (lvar <= 0xd9) return "negative_bcd";
+    return "binary";
 }
 
 string difType(int dif)
@@ -4831,7 +4969,7 @@ bool BusDeviceCommonImplementation::waitForResponse(int id)
 
     if (waiting_for_response_id_ != 0)
     {
-        error(EXIT_BUS_DEVICE_ERROR, "(wmbus) bad internal state tried waitForResponse(%d) but already waiting for %d! Exiting!\n", id, waiting_for_response_id_);
+        errorAndExit(EXIT_BUS_DEVICE_ERROR, "(wmbus) bad internal state tried waitForResponse(%d) but already waiting for %d! Exiting!\n", id, waiting_for_response_id_);
     }
 
     waiting_for_response_id_ = id;
@@ -5424,7 +5562,8 @@ string decodeTPLStatusByteNoMfct(uchar sts)
 
     if ((sts & 0xe0) != 0)
     {
-        t = tostrprintf("UNKNOWN_%02X", sts & 0xe0);
+        // Vendor-specific bits (5-7) are not standardized; report them as TPL_STS_<decimal-value>.
+        t = tostrprintf("TPL_STS_%u", sts & 0xe0);
     }
 
     return t;
@@ -6064,7 +6203,7 @@ Detected detectBusDeviceWithFileOrHex(SpecifiedDevice &specified_device,
     LinkModeSet desired_linkmodes = lms;
     if (specified_device.type == BusDeviceType::DEVICE_UNKNOWN)
     {
-        error(EXIT_BUS_DEVICE_ERROR, "You have to specify the expected device type for the tty %s\n",
+        errorAndExit(EXIT_BUS_DEVICE_ERROR, "You have to specify the expected device type for the tty %s\n",
               specified_device.file.c_str());
     }
 

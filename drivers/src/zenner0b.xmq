@@ -3,6 +3,7 @@ driver {
     name           = zenner0b
     meter_type     = WaterMeter
     default_fields = name,id,status,total_m3,target_m3,timestamp
+    manufacturer   = Zenner
     detect {
         mvt = ZRI,0B,16
     }
@@ -25,7 +26,7 @@ driver {
         }
         field {
             name            = status
-            quantity        = Text
+            quantity        = Flags
             attributes      = STATUS
             info            = 'Meter status flags (bytes 0-3 from manufacturer data).'
             default_message = OK

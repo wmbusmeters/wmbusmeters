@@ -13,10 +13,108 @@ driver {
         use = target_m3
         use = total_backward_m3
     }
+    flags {
+        flag {
+            name = TAMPER
+            info = 'Tampering has been detected.'
+        }
+        flag {
+            name = LOW_BATTERY
+            info = 'The battery is running low.'
+        }
+        flag {
+            name = DRY
+            info = 'There is no water in the meter.'
+        }
+        flag {
+            name = NO_FLOW
+            info = 'There is no flow of water.'
+        }
+        flag {
+            name = HIGH_TEMPERATURE
+            info = 'The water temperature is too high.'
+        }
+        flag {
+            name = BURST
+            info = 'A pipe burst has been detected.'
+        }
+        flag {
+            name = REVERSE
+            info = 'The water flows through the meter in the wrong direction.'
+        }
+        flag {
+            name = LEAK
+            info = 'A leak has been detected.'
+        }
+        flag {
+            name = TAMPER_THIS_MONTH
+            info = 'Tampering has been detected, at some time during this month.'
+        }
+        flag {
+            name = LOW_BATTERY_THIS_MONTH
+            info = 'The battery is running low, at some time during this month.'
+        }
+        flag {
+            name = DRY_THIS_MONTH
+            info = 'There is no water in the meter, at some time during this month.'
+        }
+        flag {
+            name = NO_FLOW_THIS_MONTH
+            info = 'There is no flow of water, at some time during this month.'
+        }
+        flag {
+            name = HIGH_TEMPERATURE_THIS_MONTH
+            info = 'The water temperature is too high, at some time during this month.'
+        }
+        flag {
+            name = BURST_THIS_MONTH
+            info = 'A pipe burst has been detected, at some time during this month.'
+        }
+        flag {
+            name = REVERSE_THIS_MONTH
+            info = 'The water flows through the meter in the wrong direction, at some time during this month.'
+        }
+        flag {
+            name = LEAK_THIS_MONTH
+            info = 'A leak has been detected, at some time during this month.'
+        }
+        flag {
+            name = TAMPER_PREV_MONTH
+            info = 'Tampering has been detected, at some time during the previous month.'
+        }
+        flag {
+            name = LOW_BATTERY_PREV_MONTH
+            info = 'The battery is running low, at some time during the previous month.'
+        }
+        flag {
+            name = DRY_PREV_MONTH
+            info = 'There is no water in the meter, at some time during the previous month.'
+        }
+        flag {
+            name = NO_FLOW_PREV_MONTH
+            info = 'There is no flow of water, at some time during the previous month.'
+        }
+        flag {
+            name = HIGH_TEMPERATURE_PREV_MONTH
+            info = 'The water temperature is too high, at some time during the previous month.'
+        }
+        flag {
+            name = BURST_PREV_MONTH
+            info = 'A pipe burst has been detected, at some time during the previous month.'
+        }
+        flag {
+            name = REVERSE_PREV_MONTH
+            info = 'The water flows through the meter in the wrong direction, at some time during the previous month.'
+        }
+        flag {
+            name = LEAK_PREV_MONTH
+            info = 'A leak has been detected, at some time during the previous month.'
+        }
+    }
     fields {
         field {
             name     = status
-            quantity = Text
+            quantity = Flags
             info     = 'Status and error flags.'
             match {
                 difvifkey = 03FD17

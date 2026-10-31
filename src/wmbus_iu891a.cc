@@ -402,7 +402,7 @@ string WMBusIU891A::getDeviceUniqueId()
 
     cached_device_unique_id_ = tostrprintf("%08x", device_info_.uid);
 
-    verbose("(im871a) got device unique id %s\n", cached_device_unique_id_.c_str());
+    verbose("(iu891a) got device unique id %s\n", cached_device_unique_id_.c_str());
 
     return cached_device_unique_id_;
 }
@@ -488,7 +488,7 @@ bool WMBusIU891A::deviceSetLinkModes(LinkModeSet lms)
     if (!canSetLinkModes(lms))
     {
         string modes = lms.hr();
-        error(EXIT_BUS_DEVICE_ERROR, "(iu871a) setting link mode(s) %s is not supported for iu891a\n", modes.c_str());
+        errorAndExit(EXIT_BUS_DEVICE_ERROR, "(iu891a) setting link mode(s) %s is not supported for iu891a\n", modes.c_str());
     }
 
     LOCK_WMBUS_EXECUTING_COMMAND(set_link_modes);
@@ -509,7 +509,7 @@ bool WMBusIU891A::deviceSetLinkModes(LinkModeSet lms)
     bool ok = waitForResponse(WMBUSGW_SET_ACTIVE_CONFIGURATION_RSP);
     if (!ok) return false; // timeout
 
-    verbose("(iu871a) set config to set link mode %02x\n", body[0]);
+    verbose("(iu891a) set config to set link mode %02x\n", body[0]);
 
     return true;
 }

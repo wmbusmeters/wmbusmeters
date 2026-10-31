@@ -3,6 +3,7 @@ driver {
     name           = em24
     meter_type     = ElectricityMeter
     default_fields = name,id,total_energy_consumption_kwh,total_energy_production_kwh,total_reactive_energy_consumption_kvarh,total_reactive_energy_production_kvarh,total_apparent_energy_consumption_kvah,total_apparent_energy_production_kvah,timestamp
+    manufacturer   = 'Carlo Gavazzi'
     detect {
         mvt = KAM,33,02
         mvt = GAV,00,02
@@ -10,10 +11,40 @@ driver {
     compact_frame_formats {
         difvif = 040504FB827504853C04FB82F53C01FD17
     }
+    flags {
+        flag {
+            name = V_1_OVERFLOW
+            info = 'The voltage on phase 1 is out of range.'
+        }
+        flag {
+            name = V_2_OVERFLOW
+            info = 'The voltage on phase 2 is out of range.'
+        }
+        flag {
+            name = V_3_OVERFLOW
+            info = 'The voltage on phase 3 is out of range.'
+        }
+        flag {
+            name = I_1_OVERFLOW
+            info = 'The current on phase 1 is out of range.'
+        }
+        flag {
+            name = I_2_OVERFLOW
+            info = 'The current on phase 2 is out of range.'
+        }
+        flag {
+            name = I_3_OVERFLOW
+            info = 'The current on phase 3 is out of range.'
+        }
+        flag {
+            name = FREQUENCY
+            info = 'The frequency is out of range.'
+        }
+    }
     fields {
         field {
             name       = status
-            quantity   = Text
+            quantity   = Flags
             info       = 'Status of meter.'
             attributes = STATUS
             match {
@@ -36,7 +67,7 @@ driver {
                     test  = Set
                 }
                 map {
-                    name  = V_2_OVERFLOW
+                    name  = V_3_OVERFLOW
                     value = 0x04
                     test  = Set
                 }
@@ -87,7 +118,7 @@ driver {
                     test  = Set
                 }
                 map {
-                    name  = V_2_OVERFLOW
+                    name  = V_3_OVERFLOW
                     value = 0x04
                     test  = Set
                 }

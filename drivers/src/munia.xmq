@@ -3,6 +3,7 @@ driver {
     name           = munia
     meter_type     = TempHygroMeter
     default_fields = name,id,current_temperature_c,current_relative_humidity_rh,timestamp
+    manufacturer   = Weptech
     detect {
         mvt = WEP,02,1b
         mvt = WEP,04,1b
@@ -10,7 +11,7 @@ driver {
     fields {
         field {
             name       = status
-            quantity   = Text
+            quantity   = Flags
             info       = 'Meter status. Reports OK if neither tpl sts nor error flags have bits set.'
             attributes = STATUS,INCLUDE_TPL_STATUS
             match {

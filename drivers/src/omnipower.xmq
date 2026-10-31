@@ -22,11 +22,16 @@ driver {
     name           = omnipower
     meter_type     = ElectricityMeter
     default_fields = name,id,total_energy_consumption_kwh,total_energy_production_kwh,current_power_consumption_kw,current_power_production_kw,timestamp
+    manufacturer   = Kamstrup
     detect {
         mvt = KAM,30,02
     }
     compact_frame_formats {
         difvif = 040404843C042B04AB3C
+    }
+    library {
+        use = rssi_dbm
+        use = actuality_duration_s
     }
     fields {
         field {

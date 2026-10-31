@@ -283,7 +283,7 @@ void trace_int(const char* fmt, ...) {
     }
 }
 
-[[noreturn]] void error(int __status, const char* fmt, ...)
+[[noreturn]] void errorAndExit(int __status, const char* fmt, ...)
 {
     va_list args;
     va_start(args, fmt);
@@ -334,4 +334,11 @@ void debugPayload(const string& intro, vector<uchar> &payload)
 void debugPayload(const string& intro, vector<uchar> &payload, vector<uchar>::iterator &pos)
 {
     debug("%s \"%s\"\n", intro.c_str(), bin2hex(pos, payload.end(), 1024).c_str());
+}
+
+void debugPayloadSplit(const string& intro, vector<uchar> &payload, vector<uchar>::iterator &pos)
+{
+    debug("%s \"%s_%s\"\n", intro.c_str(),
+          bin2hex(payload.begin(), pos, 1024).c_str(),
+          bin2hex(pos, payload.end(), 1024).c_str());
 }

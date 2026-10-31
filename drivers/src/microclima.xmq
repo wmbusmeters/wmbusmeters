@@ -3,6 +3,7 @@ driver {
     name           = microclima
     meter_type     = HeatMeter
     default_fields = name,id,status,total_energy_consumption_kwh,total_volume_m3,timestamp
+    manufacturer   = Maddalena
     detect {
         mvt = MAD,00,04
     }
@@ -13,7 +14,7 @@ driver {
     fields {
         field {
             name       = status
-            quantity   = Text
+            quantity   = Flags
             info       = 'Meter status from error flags and tpl status field.'
             attributes = STATUS,INCLUDE_TPL_STATUS
             match {

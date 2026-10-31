@@ -74,6 +74,7 @@
     X(ResetCounter,0x7D60,0x7D60, Quantity::Counter, Unit::COUNTER) \
     X(CumulationCounter,0x7D61,0x7D61, Quantity::Counter, Unit::COUNTER) \
     X(SpecialSupplierInformation,0x7D67,0x7D67, Quantity::Text, Unit::TXT) \
+    X(ReceptionLevel,0x7D71,0x7D71, Quantity::Power, Unit::DBM) \
     X(RemainingBattery,0x7D74,0x7D74, Quantity::Time, Unit::Day) \
     X(AnyVolumeVIF,0x00,0x00, Quantity::Volume, Unit::Unknown) \
     X(AnyEnergyVIF,0x00,0x00, Quantity::Energy, Unit::Unknown)  \
@@ -247,15 +248,15 @@ MeasurementType toMeasurementType(const char *s);
 
 struct StorageNr
 {
-    StorageNr(int n) : nr_(n) {}
-    int intValue() { return nr_; }
+    StorageNr(uint64_t n) : nr_(n) {}
+    uint64_t uint64Value() { return nr_; }
     bool operator==(StorageNr s) { return nr_ == s.nr_; }
     bool operator!=(StorageNr s) { return nr_ != s.nr_; }
     bool operator>=(StorageNr s) { return nr_ >= s.nr_; }
     bool operator<=(StorageNr s) { return nr_ <= s.nr_; }
 
 private:
-    int nr_;
+    uint64_t nr_;
 };
 
 typedef struct StorageNr StorageNr;
@@ -367,6 +368,12 @@ static IndexNr AnyIndexNr = IndexNr(-1);
 
 struct FieldInfo;
 
+// A Type M date/time (CP_LVAR, EN 13757-3:2018 table A.12) with the time offset -16 is a
+// duration relative to the transmission, eg. the base time of a TAF7 compact profile.
+// Decode it from the value bytes (least significant first) into signed seconds.
+// Returns false for an absolute time, a reserved time offset and the count that signals "invalid".
+bool decodeTypeMDuration(const std::vector<uchar> &bytes, double *seconds);
+
 struct DVEntry
 {
     int offset {}; // Where in the telegram this dventry was found.
@@ -379,6 +386,7 @@ struct DVEntry
     TariffNr tariff_nr;
     SubUnitNr subunit_nr;
     std::string value;
+    int lvar {-1}; // The LVAR byte in front of a variable length value, -1 for a fixed length.
 
     DVEntry(int off,
             DifVifKey dvk,
@@ -418,6 +426,8 @@ struct DVEntry
     bool extractDouble(double *out, bool auto_scale, bool force_unsigned);
     bool extractLong(uint64_t *out);
     bool extractDate(struct tm *out);
+    // A variable length date/time with LVAR E2h-EAh is Type M.
+    bool isTypeM() { return lvar >= 0xe2 && lvar <= 0xea; }
     bool extractReadableString(std::string *out);
     bool extractReadableStringReversed(std::string *out);
     bool extractHexString(std::string *out);

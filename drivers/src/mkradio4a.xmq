@@ -4,6 +4,7 @@ driver {
     name           = mkradio4a
     meter_type     = WaterMeter
     default_fields = name,id,target_m3,target_date,timestamp
+    manufacturer   = Techem
     detect {
         mvt = HYD,fe,06
         mvt = TCH,95,37

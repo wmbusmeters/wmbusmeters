@@ -48,11 +48,11 @@ cat > $TEST/test_expected_unsorted.txt <<EOF
       "ALARM": "Abnormal condition/alarm. (tpl sts)",
       "BUSY": "Meter busy. (tpl sts)",
       "ERROR": "Meter error; details via error reporting. (tpl sts)",
-      "FAILED_DECODE": "The telegram failed a manufacturer specific decode or decryption.",
       "PERMANENT_ERROR": "Permanent meter error. (tpl sts)",
       "POWER_LOW": "Power low. (tpl sts)",
       "TEMPORARY_ERROR": "Temporary meter error. (tpl sts)"
     },
+    "info": "Water meter",
     "mvt": "SEN,68,07"
   },
   "driver": "foo",

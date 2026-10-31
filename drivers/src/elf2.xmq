@@ -3,6 +3,7 @@ driver {
     name           = elf2
     meter_type     = HeatMeter
     default_fields = name,id,status,total_energy_kwh,timestamp
+    manufacturer   = Apator
     detect {
         mvt = APA,42,04
         mvt = APA,42,0d
@@ -11,6 +12,72 @@ driver {
         use = fabrication_no
         use = on_time_h
         use = on_time_at_error_h
+    }
+    flags {
+        flag {
+            name = MINIMUM_FLOW
+            info = 'The flow is below the minimum flow rate.'
+        }
+        flag {
+            name = FLOW_METER_FAILURE
+            info = 'The flow sensor has failed.'
+        }
+        flag {
+            name = RETURN_TEMPERATURE_ERROR
+            info = 'The return temperature sensor reports an error.'
+        }
+        flag {
+            name = SUPPLY_TEMPERATURE_ERROR
+            info = 'The supply temperature sensor reports an error.'
+        }
+        flag {
+            name = DIFFERENTIAL_TEMPERATURE_ERROR
+            info = 'The temperature difference between supply and return is wrong.'
+        }
+        flag {
+            name = MAXIMUM_FLOW
+            info = 'The flow is above the maximum flow rate.'
+        }
+        flag {
+            name = MEMORY_FAILURE
+            info = 'The memory of the meter has failed.'
+        }
+        flag {
+            name = LOW_BATTERY_VOLTAGE
+            info = 'The battery voltage is low.'
+        }
+        flag {
+            name = DAILY_ABNORMAL_NOMINAL_FLOW
+            info = 'The nominal flow was abnormal during the day.'
+        }
+        flag {
+            name = ANNUAL_ABNORMAL_NOMINAL_FLOW
+            info = 'The nominal flow was abnormal during the year.'
+        }
+        flag {
+            name = DIFFERENTIAL_TEMPERATURE_TOO_LOW
+            info = 'The temperature difference between supply and return is too low.'
+        }
+        flag {
+            name = CRC_ERROR
+            info = 'A checksum (CRC) error has been detected.'
+        }
+        flag {
+            name = FLASH_ERROR
+            info = 'The flash memory reports an error.'
+        }
+        flag {
+            name = CRITICAL_BATTERY_VOLTAGE
+            info = 'The battery voltage is critically low.'
+        }
+        flag {
+            name = CPU_OVERTEMPERATURE
+            info = 'The processor of the meter is too hot.'
+        }
+        flag {
+            name = UART_LIMIT_OVERRUN
+            info = 'The serial interface (UART) has exceeded its limit.'
+        }
     }
     fields {
         field {
@@ -159,7 +226,7 @@ driver {
         }
         field {
             name       = status
-            quantity   = Text
+            quantity   = Flags
             info       = 'Status and error flags.'
             attributes = INCLUDE_TPL_STATUS
             match {

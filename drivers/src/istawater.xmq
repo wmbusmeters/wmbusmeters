@@ -7,6 +7,7 @@ driver {
     name           = istawater
     meter_type     = WaterMeter
     default_fields = name,id,total_m3,target_m3,timestamp
+    manufacturer   = Ista
     detect {
         mvt = IST,31,07
         mvt = IST,33,07

@@ -4,6 +4,7 @@ driver {
     name           = itronheat
     meter_type     = HeatMeter
     default_fields = name,id,status,total_kwh,timestamp
+    manufacturer   = Itron
     detect {
         mvt = ITW,00,04
     }
@@ -13,7 +14,7 @@ driver {
     fields {
         field {
             name       = status
-            quantity   = Text
+            quantity   = Flags
             info       = 'Meter status from tpl field.'
             attributes = INCLUDE_TPL_STATUS
         }

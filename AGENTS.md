@@ -140,6 +140,13 @@ driver {
         use = flow_temperature_c  // comma-separated list also accepted
     }
 
+    flags {
+        // If a field has quantity=Flags then all looked up strings BURST DRY LEAK etc must be pre-declared here.
+        flag {
+            name = BURST
+            info = 'The flow of water has been consistently high for half an hour, which indicates a pipe burst.'
+        }
+    }
     templates {
         // Reusable field templates, referenced from a field via `template = <name>`.
         // Only the field's lookup{} is templated (see `field { template = ... }` below) —
@@ -161,7 +168,7 @@ driver {
         field {
             name              = total
             deprecated_by     = 'newdriver, upgrade before 2222-02-22' // Mark the driver for removal, upgrade to newdriver.
-            quantity          = Volume    // Volume|Energy|Power|Temperature|Flow|
+            quantity          = Volume    // Flags|Volume|Energy|Power|Temperature|Flow|
                                           // PointInTime|Text|Counter|Pressure|RH|
                                           // HCA|Dimensionless|Voltage|Amperage|...
             info              = 'Human-readable description of what this field measures.'
@@ -383,20 +390,20 @@ Each driver's `tests { test { ... } }` block specifies: raw telegram hex, expect
 USE_MELD=true cd drivers && make testonly DRIVER=<name>
 ```
 
-To manually reproduce what the test does:
+To manually reproduce what the test does (the file must be named `simulation*` to be treated as a simulation file):
 ```bash
-echo "telegram=AABBCCDD..." > build/sim.txt
-build/wmbusmeters --driver=mydriver --format=json build/sim.txt metername mydriver meterid NOKEY
+echo "telegram=AABBCCDD..." > build/simulation.txt
+build/wmbusmeters --driver=drivers/src/mydriver.xmq --format=json build/simulation.txt metername mydriver meterid NOKEY
 ```
 
 **Updating test expectations after changing field logic:** There is no automated way to capture new expected output — you must update the `json` and `fields` values in the `.xmq` test block by hand.
 
 1. Run the binary against the telegram and capture the new output:
    ```bash
-   echo "telegram=AABBCCDD..." > build/sim.txt
-   build/wmbusmeters --driver=mydriver --format=json build/sim.txt metername mydriver meterid NOKEY \
+   echo "telegram=AABBCCDD..." > build/simulation.txt
+   build/wmbusmeters --driver=drivers/src/mydriver.xmq --format=json build/simulation.txt metername mydriver meterid NOKEY \
      | jq --sort-keys .
-   build/wmbusmeters --driver=mydriver --format=fields build/sim.txt metername mydriver meterid NOKEY
+   build/wmbusmeters --driver=drivers/src/mydriver.xmq --format=fields build/simulation.txt metername mydriver meterid NOKEY
    ```
 2. Verify the output is correct, then paste it into the `json = '...'` and `fields = '...'` lines of the test block.
 3. Re-run `cd drivers && make testonly DRIVER=<name>` to confirm the test now passes.

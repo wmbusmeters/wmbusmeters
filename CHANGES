@@ -1,3 +1,37 @@
+Version 3.1.1 2026-10-31
+
+Shad Malloy added a second fuzzer based on clang that complements the AFL fuzzer.
+It already found a bunch of mistakes that are now fixed. Thanks Shad!
+
+Add new mvt to qcaloric driver.
+Fixed several cases where too short telegrams triggered asserts,
+ie wmbusmeters was looking for certain bytes that did not exist.
+
+Tmtom created the nzr_dhz_5_63 driver, improved the AGENTS.md
+and fixed a bug in the config file reading that ignored the bus setting. Thanks Tmtom!
+
+Christoph Gommel made several improvements on decoding compact profiles,
+ie variable length entries that store multiple values in time in a more
+space efficient way. Thanks Cristoph!
+
+Krzysztof Kozioł improved the qwaterv2 driver to accept different
+versions of the meter. Thanks Krzysztof!
+
+Petr Cernohorsky improved the minomess driver by
+working around a meter bug using ixml. Thanks Petr!
+
+Version 3.1.0 2026-10-16
+Version 3.1.0-RC1 2026-10-16
+
+Version nr pattern for ha-addon changes from 3.0.0-123 to 3.0.0.123
+The ha-addon now automaticall generates discovery messages from the driver.
+This will lead to changes in the sensor names in HA.
+
+The code for automatic generation of discovery was developed by:
+Kzajac83 using supporting code from Jan Kundrát for structured flags
+and me for driver details. A multi-year project has now been completed!
+Kzajac83 also fixed a lot of other problems discovered while we
+developed the automatic generation of discovery.
 
 ATTENTION! Breaking changes to the kamwater driver. There were a lot of bugs
 on how the flow_temperature_c was picked up. These are now fixed
@@ -19,36 +53,72 @@ this option will in the json add details about the quantity, unit and info(help)
 for each field. This will be used to automatically generate the discovery messages
 for HA.
 
+Added --addtelegramstructured
+this option will add status_flags where each potential flag is set to false or true
+depending if it is set or not.
+
 Added --addtelegramhex=[true|false]
 add "hex": "...." with the (decrypted) telegram received.
 Useful for debugging.
+
+Added --rawshell='shell command' which executes for every received telegram
+configured or not.
+
+Added --analyze=json:<driver>:<key> <hex>
+which will output the analyze as a json structure.
 
 Cleaned up some AI generated code that duplicated functionality over
 wmbus_xmqtty.cc and wmbus_socket.cc Common code for these are now
 in command_handler.cc
 
+Stricter handling of flags. Use Quantity=Flags for a field. Predeclare flags { ... }
+Stricter handling of the status field, there can only be one field with the STATUS attribute.
+
+Improved apator162 driver.
 Improved aquastream driver.
+Added telmetricsmart driver.
+Added brunatawm driver.
+Added metronahca driver.
+Added cma12w driver.
 Handle too short qheat telegram when forced analyzed=qheat.
 Detect too short izar telegrams and fail gracefull instead of allocation exception.
+Deprecated drivers and fields now declare themselves as deprecated, e.g.
+"deprecated_by"; "izarv2, update before 2026-12-01"
+"current_status_deprecated_by": "status, update before 2026-12-01"
+Improve slip frame handling to fix startup problems for iu891a.
 
-Hynek Moravec improved the drivers: kadenwater, q400, hydroclimav2, caltose, picoflux. Thanks Hynek!
+Added the unit Gcal (Giga calorie) with the conversion factor 1 Gcal = 1163 kWh.
+Add override_vif_unit to xmq driver for mfct specific field with Gcal in sensostar driver.
+
+Hynek Moravec improved the drivers: kadenwater, q400, hydroclimav2,
+caltose, picoflux, and added the joyh100 driver. Thanks Hynek!
 Bartosz Bbiegun improved the ista driver. Thanks Bartosz!
-Christoph Gommel improved the ultraheat driver. Thanks Christoph!
-Jan Kundrát improved the kamheat and kamwater drivers. Thanks Jan!
+Christoph Gommel improved the ultraheat driver and
+the Qundis walk-by IV and improved compact profile decoding,
+improved the qwaterv2 and qheatv2 drivers. Christoph also added support
+for inverse compact profiles with multiple bases, like energy consumption and production
+and give compact profile points an actuality duration when no base time is sent.
+Thanks Christoph!
+Jan Kundrát improved the kamheat and kamwater drivers and did a lot of
+work on structured flags information in the telegrams. Jan also added a lot
+of compact telegram signatures to kamwater and kamheat.
+Jan did a lot of other fixes and improvements. Thanks Jan!
 Aras Abbasi created a great AGENTS.md which deserves to be read by human developers too! Thanks Aras!
 Timur Saitov improved the emerlin868 driver. Thanks Timur!
 bartman081523 fixed type G date decoding where 0xffff decodes to null
-and added decoding of mfct specific walk-by datasets for qundis meters. Thanks!
-Michal Strnad improved the hydroclimav2 driver. Thanks Michal!
-Christoph Gommel improved the qwaterv2 and qheatv2 drivers. Christoph also added support
-for inverse compact profiles with multiple bases, like energy consumption and production.
-Thanks Christoph!
+and added decoding of mfct specific walk-by datasets for qundis meters
+and added support for OMS security profile D (TPL security mode 10, AES-CCM). Thanks bartman081523!
+Michal Strnad improved the hydroclimav2 driver and the qheat_us_55 driver
+and the kamhet driver. Thanks Michal!
 Karl Tremain found an important bug in the rtl_wmbus checker, it failed to detect that
 a T1 telegram had errors (the 3outof6 check number was not tested!) Thanks Karl!
-
-Version nr pattern for ha-addon changes from 3.0.0-123 to 3.0.0.123
-The ha-addon adds test version for the development of the automatic
-generation of mqtt discovery messages.
+Ihor Kushnirenko added the apatoreitn40 driver. Thanks Ihor!
+Heziegl added support for Custom C/T mode in IU891A (link mode 07). Thanks Heziegl!
+Boris Prüßmann improved the tsd2 driver. Thanks Boris!
+Brychu wrote a workaround for the buggy Sanxing meter. Thanks Brychu!
+Krzysztof Kozioł improved the amiplus driver to support reactive power and
+reactive energy fields, detect Gama 350 and Apator Otus 3. Thanks Krzysztof!
+Marcin Rudnik improved the amiplus driver. Thanks Marcin!
 
 Version 3.0.0 2026-06-17
 Version 3.0.0-RC1 2026-06-17
@@ -256,7 +326,9 @@ Josef Eisl improved driver detection for the Develco Products Electricity Meter.
 Bibo improved the docker and the snap. Thanks Bibo!
 Sergio Catalan added the hydrocalm4 driver. Thanks Sergio!
 Makischu added cooling fields for the mc303 meter to the kamhet driver. Thanks Makishu!
-Kzajac83 added the elf2 driver and improved the werhlemodwm driver. Thanks kzajac83!
+Kzajac83 added the elf2 driver and improved the werhlemodwm driver and cleaned up
+and improved the flags in many drivers. Thanks kzajac83!
+
 Saganos added the apator-na-1 driver. Thanks Saganos!
 Marton Czwick added the maddalena driver. Thanks Marton!
 

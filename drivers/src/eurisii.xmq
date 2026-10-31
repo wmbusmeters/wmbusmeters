@@ -3,14 +3,41 @@ driver {
     name           = eurisii
     meter_type     = HeatCostAllocationMeter
     default_fields = name,id,current_consumption_hca,status,timestamp
+    manufacturer   = Innotas
     detect {
         mvt = INE,55,08
         mvt = RAM,55,08
     }
+    flags {
+        flag {
+            name = MEASUREMENT
+            info = 'A measurement error has been detected.'
+        }
+        flag {
+            name = SABOTAGE
+            info = 'Tampering with the device has been detected.'
+        }
+        flag {
+            name = BATTERY
+            info = 'The battery is low.'
+        }
+        flag {
+            name = CS
+            info = 'Unknown flag, please contact the wmbusmeters project to contribute knowledge.'
+        }
+        flag {
+            name = HF
+            info = 'Unknown flag, please contact the wmbusmeters project to contribute knowledge.'
+        }
+        flag {
+            name = RESET
+            info = 'The device has been reset.'
+        }
+    }
     fields {
         field {
             name       = status
-            quantity   = Text
+            quantity   = Flags
             info       = 'Meter status from error flags and tpl status field.'
             attributes = STATUS,INCLUDE_TPL_STATUS
             match {
@@ -56,7 +83,7 @@ driver {
         }
         field {
             name          = error_flags
-            quantity      = Text
+            quantity      = Flags
             info          = 'DEPRECATED! Use status instead.'
             attributes    = STATUS,INCLUDE_TPL_STATUS
             deprecated_by = 'status, update before 2026-12-01'

@@ -3,13 +3,20 @@ driver {
     name           = hydrocalm4
     default_fields = name,id,status,total_heating_kwh,total_cooling_kwh,timestamp
     meter_type     = HeatCoolingMeter
+    manufacturer   = BMeters
     detect {
         mvt = BMT,1a,0d
+    }
+    flags {
+        flag {
+            name = SABOTAGE
+            info = 'Tampering with the meter has been detected.'
+        }
     }
     fields {
         field {
             name       = status
-            quantity   = Text
+            quantity   = Flags
             info       = status_and_error_flags
             attributes = INCLUDE_TPL_STATUS
             match {

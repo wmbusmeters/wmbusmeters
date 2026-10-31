@@ -3,6 +3,7 @@ driver {
     name           = topaseskr2
     meter_type     = WaterMeter
     default_fields = name,id,status,total_m3,timestamp
+    manufacturer   = Integra
     detect {
         mvt = IMT,f2,07
     }
@@ -15,7 +16,7 @@ driver {
     fields {
         field {
             name     = status
-            quantity = Text
+            quantity = Flags
             info     = 'Status and error flags.'
             match {
                 measurement_type = Instantaneous

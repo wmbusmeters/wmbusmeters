@@ -36,7 +36,7 @@ void notice_timestamp(const char* fmt, ...);
 
 void warning(const char* fmt, ...);
 
-[[noreturn]] void error(int __status, const char* fmt, ...);
+[[noreturn]] void errorAndExit(int __status, const char* fmt, ...);
 
 #define verbose(...) { if (isVerboseEnabled()) { verbose_int(__VA_ARGS__); } }
 void verbose_int(const char* fmt, ...);
@@ -72,6 +72,7 @@ bool isLogTelegramsEnabled();
 
 void debugPayload(const std::string& intro, std::vector<uchar> &payload);
 void debugPayload(const std::string& intro, std::vector<uchar> &payload, std::vector<uchar>::iterator &pos);
+void debugPayloadSplit(const std::string& intro, std::vector<uchar> &payload, std::vector<uchar>::iterator &pos);
 void logTelegram(std::vector<uchar> &original, std::vector<uchar> &parsed, int header_size, int suffix_size);
 
 #endif // LOG_H

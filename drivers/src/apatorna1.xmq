@@ -7,6 +7,76 @@ driver {
     detect {
         mvt = APA,14,07
     }
+    flags {
+        flag {
+            name = SUMMER_TIME
+            info = 'The meter clock is in summer time (daylight saving time).'
+        }
+        flag {
+            name = HISTORICAL_INDICATION
+            info = 'The telegram carries a historical indication.'
+        }
+        flag {
+            name = MAX_SPEED_EXCEEDED
+            info = 'The pointer of the meter turns faster than the speed up to which correct counting is guaranteed.'
+        }
+        flag {
+            name = DEVICE_ACCESS_ERROR
+            info = 'More than 30 failed radio communication attempts with the module, e.g. a wrong encryption key or a wrongly addressed or malformed message.'
+        }
+        flag {
+            name = TWO_WAY_COM_BLOCK
+            info = 'Two-way radio communication is blocked for a while, the module has used up its message credits (battery protection).'
+        }
+        flag {
+            name = INSTALL_FRAME
+            info = 'The telegram is an installation frame.'
+        }
+        flag {
+            name = WRONG_TEMPERATURE
+            info = 'The temperature of the module is below -15 degrees C or above 60 degrees C.'
+        }
+        flag {
+            name = SERVICE_EVENT
+            info = 'A service event has occurred.'
+        }
+        flag {
+            name = MINIMUM_FLOW
+            info = 'The flow is below the configured minimum flow for longer than the configured time.'
+        }
+        flag {
+            name = MAXIMUM_FLOW
+            info = 'The flow is above the configured maximum flow for longer than the configured time.'
+        }
+        flag {
+            name = REVERSE_FLOW
+            info = 'Reverse flow above the configured reverse volume threshold has been detected.'
+        }
+        flag {
+            name = MEASUREMENT_UNCHANGED
+            info = 'No flow, or only very small volume increments, for longer than the configured time.'
+        }
+        flag {
+            name = LEAK
+            info = 'Continuous flow for longer than the configured time, which indicates a leak.'
+        }
+        flag {
+            name = DEVICE_DISCONNECTED
+            info = 'The radio module has been removed from the water meter. After mounting it again the event must be cleared and the meter reading stored again.'
+        }
+        flag {
+            name = MAGNETIC_FIELD
+            info = 'A strong external magnetic field has been detected.'
+        }
+        flag {
+            name = BATTERY_LOW
+            info = 'The battery voltage is too low.'
+        }
+        flag {
+            name = BATTERY_LIFETIME_THRESHOLD_EXCEEDED
+            info = 'The battery charge is below the configured threshold.'
+        }
+    }
     fields {
         field {
             name           = packed_total_raw
@@ -168,7 +238,8 @@ driver {
         field {
             name         = historic_age
             quantity     = Time
-            info         = 'Age of the last historical reading carried in the telegram.'
+            info         = 'Age of the last historical reading carried in the telegram. Reset every month.'
+            change       = Sample
             display_unit = h
             calculate    = '((((historic_age_meta_raw_counter >> 2counter) * 256counter) + historic_age_low_raw_counter) * 1h)'
         }
@@ -191,8 +262,8 @@ driver {
         }
         field {
             name     = frame_status
-            quantity = Text
-            info     = 'Status flags stored in the unencrypted manufacturer payload byte.'
+            quantity = Flags
+            info     = 'Status flags from the unencrypted manufacturer payload byte: events (pointer speed, radio access error, two-way communication block, module temperature) and frame information (summer time, historical indication, installation frame, service event).'
             match {
                 difvifkey = 01FB10
             }
@@ -245,7 +316,7 @@ driver {
         }
         field {
             name     = current_status
-            quantity = Text
+            quantity = Flags
             info     = 'Current alarm and tamper flags from the decrypted payload.'
             match {
                 difvifkey = 01FB11
@@ -299,8 +370,8 @@ driver {
         }
         field {
             name     = historic_status
-            quantity = Text
-            info     = 'Historic alarm and tamper flags from the decrypted payload.'
+            quantity = Flags
+            info     = 'Stored alarm and tamper flags from the decrypted payload. According to the APT-WMBUS-NA-1 documentation every event has a current and a stored flag, the stored flag stays set after the event has ended until the flags are cleared.'
             match {
                 difvifkey = 01FB12
             }

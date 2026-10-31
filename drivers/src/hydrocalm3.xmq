@@ -3,6 +3,7 @@ driver {
     name           = hydrocalm3
     meter_type     = HeatMeter
     default_fields = name,id,total_heating_kwh,total_cooling_kwh,timestamp
+    manufacturer   = BMeters
     detect {
         mvt = BMT,0b,0d
     }
@@ -15,10 +16,16 @@ driver {
             test  = Set
         }
     }
+    flags {
+        flag {
+            name = SABOTAGE_ENCLOSURE
+            info = 'The enclosure has been opened or tampered with.'
+        }
+    }
     fields {
         field {
             name       = status
-            quantity   = Text
+            quantity   = Flags
             info       = 'Meter status from tpl status field.'
             attributes = STATUS,INCLUDE_TPL_STATUS
         }

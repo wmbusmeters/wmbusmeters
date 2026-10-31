@@ -4,12 +4,47 @@ driver {
     name           = hydrodigit
     meter_type     = WaterMeter
     default_fields = name,id,total_m3,meter_datetime,timestamp
+    manufacturer   = BMeters
     detect {
         mvt = BMT,13,06
         mvt = BMT,17,06
         mvt = BMT,13,07
         mvt = BMT,15,07
         mvt = BMT,17,07
+    }
+    flags {
+        flag {
+            name = BATTERY_VOLTAGE
+            info = 'The telegram carries the battery voltage.'
+        }
+        flag {
+            name = FRAUD_DATE
+            info = 'The telegram carries the date of a fraud attempt.'
+        }
+        flag {
+            name = LEAK_DATE
+            info = 'The telegram carries the date of a leak.'
+        }
+        flag {
+            name = BACKFLOW
+            info = 'The telegram carries the backflow data.'
+        }
+        flag {
+            name = MONTHLY_DATA
+            info = 'The telegram carries the monthly data.'
+        }
+        flag {
+            name = MAGNETIC_FRAUD_ATTEMPT
+            info = 'A magnetic fraud attempt has been detected.'
+        }
+        flag {
+            name = SENSOR_FRAUD_ATTEMPT
+            info = 'A sensor fraud attempt has been detected.'
+        }
+        flag {
+            name = MODULE_REMOVED
+            info = 'The radio module has been removed.'
+        }
     }
     fields {
         field {
@@ -72,7 +107,7 @@ driver {
         }
         field {
             name     = fraud_type
-            quantity = Text
+            quantity = Flags
             info     = 'Type of fraud detected by the meter'
             match {
                 difvifkey = 01FE0F

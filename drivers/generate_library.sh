@@ -19,7 +19,8 @@ die()
 
 mkdir -p build
 
-# Print all template blocks separated by NUL so they can be read in bash.
+# Print all template blocks separated by the ASCII record separator (0x1e) so
+# they can be read in bash. Not NUL, since BSD awk (macOS) cannot print NUL.
 template_blocks()
 {
     xmq "$LIBRARY" select /library/template to-xmq \
@@ -30,11 +31,11 @@ template_blocks()
             {
                 # Only the unindented template closing brace ends a block,
                 # inner closers are indented.
-                printf "%s\0", buf
+                printf "%s\036", buf
                 buf = ""
             }
         }
-        END { if (buf != "") printf "%s\0", buf }
+        END { if (buf != "") printf "%s\036", buf }
     '
 }
 
@@ -64,6 +65,8 @@ quantity_c()
         Dimensionless) echo "Quantity::Dimensionless" ;;
         HCA)          echo "Quantity::HCA" ;;
         Text)         echo "Quantity::Text" ;;
+        Power)        echo "Quantity::Power" ;;
+        Flags)        echo "Quantity::Flags" ;;
         "")           echo "Quantity::Text" ;;
         *)            die "unknown quantity: $1" ;;
     esac
@@ -77,6 +80,7 @@ unit_c()
         y)        echo "Unit::Year" ;;
         date)     echo "Unit::DateLT" ;;
         datetime) echo "Unit::DateTimeLT" ;;
+        dbm)      echo "Unit::DBM" ;;
         "")       echo "" ;;
         *)        die "unknown display_unit: $1" ;;
     esac
@@ -152,12 +156,18 @@ emit_template()
     if [ -z "$matcher" ]
     then
         # No matcher: a simple constant-like field.
+        local q="Quantity::Text"
+        if [ "$quantity" = Flags ]
+        then
+            q="Quantity::Flags"
+        fi
         printf '    if (%s)\n' "$condition"
         printf '    {\n'
         printf '        addStringField(\n'
         printf '            "%s",\n' "$(c_escape "$name")"
         printf '            "%s"+help,\n' "$esc_info"
-        printf '            %s);\n' "$props"
+        printf '            %s,\n' "$props"
+        printf '            %s);\n' "$q"
         printf '        markLastFieldAsLibrary();\n'
         printf '    }\n\n'
         return
@@ -297,12 +307,12 @@ bool MeterCommonImplementation::addOptionalLibraryFields(string field_names)
     }
     if (helps.size() > 2)
     {
-        error(EXIT_DRIVER_ERROR, "Bad library field, only zero or one pipe | symbol is allowed: %s", field_names.c_str());
+        errorAndExit(EXIT_DRIVER_ERROR, "Bad library field, only zero or one pipe | symbol is allowed: %s", field_names.c_str());
     }
 
 EOF
 
-while IFS= read -r -d '' BLOCK
+while IFS= read -r -d $'\036' BLOCK
 do
     emit_template >> "$OUT"
 done < <(template_blocks)

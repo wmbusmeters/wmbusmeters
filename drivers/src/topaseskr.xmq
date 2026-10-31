@@ -4,6 +4,7 @@ driver {
     name           = topaseskr
     meter_type     = WaterMeter
     default_fields = name,id,total_m3,temperature_c,current_flow_m3h,volume_year_period_m3,reverse_volume_year_period_m3,meter_year_period_end_date,volume_month_period_m3,meter_month_period_end_datetime,timestamp
+    manufacturer   = Integra
     detect {
         mvt = AMT,f1,06
         mvt = AMT,f1,07

@@ -3,6 +3,7 @@ driver {
     name           = qsmoke
     meter_type     = SmokeDetector
     default_fields = name,id,status,last_alarm_date,alarm_counter,timestamp
+    manufacturer   = Qundis
     detect {
         mvt = QDS,21,1a
         mvt = QDS,23,1a
@@ -12,7 +13,7 @@ driver {
     fields {
         field {
             name       = status
-            quantity   = Text
+            quantity   = Flags
             info       = 'Meter error flags. IMPORTANT! Smoke alarm is probably NOT reported here! You MUST check last alarm date and counter!'
             attributes = STATUS,INCLUDE_TPL_STATUS
             match {

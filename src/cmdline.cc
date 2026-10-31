@@ -45,7 +45,7 @@ shared_ptr<Configuration> parseCommandLine(int argc, char **argv)
         c->daemon = true;
         if (argc < 2)
         {
-            error(EXIT_USAGE_ERROR, "Usage error: wmbusmetersd must have at least a single argument to the pid file.\n");
+            errorAndExit(EXIT_USAGE_ERROR, "Usage error: wmbusmetersd must have at least a single argument to the pid file.\n");
         }
         return parseCommandLineWithUseConfig(c, argc, argv, true);
     }
@@ -177,7 +177,7 @@ static shared_ptr<Configuration> parseNormalCommandLine(Configuration *c, int ar
         if (!strncmp(argv[i], "--device=", 9) || // Deprecated
             !strncmp(argv[i], "--overridedevice=", 17))
         {
-            error(EXIT_USAGE_ERROR, "You can only use --overridedevice=xyz with --useconfig=xyz\n");
+            errorAndExit(EXIT_USAGE_ERROR, "You can only use --overridedevice=xyz with --useconfig=xyz\n");
         }
         if (!strcmp(argv[i], "--version")) {
             c->version = true;
@@ -226,7 +226,7 @@ static shared_ptr<Configuration> parseNormalCommandLine(Configuration *c, int ar
                 {
                     if (inv)
                     {
-                        error(EXIT_USAGE_ERROR, "Bad key \"%s\"", s.c_str());
+                        errorAndExit(EXIT_USAGE_ERROR, "Bad key \"%s\"", s.c_str());
                     }
                     c->analyze_key = s;
                 }
@@ -242,7 +242,7 @@ static shared_ptr<Configuration> parseNormalCommandLine(Configuration *c, int ar
 
                     if (mi.driver_name.str() == "")
                     {
-                        error(EXIT_USAGE_ERROR, "Not a valid meter driver \"%s\"\n", s.c_str());
+                        errorAndExit(EXIT_USAGE_ERROR, "Not a valid meter driver \"%s\"\n", s.c_str());
                     }
                     c->analyze_driver = s;
                 }
@@ -268,7 +268,7 @@ static shared_ptr<Configuration> parseNormalCommandLine(Configuration *c, int ar
             }
             else
             {
-                error(EXIT_USAGE_ERROR, "No such timestamp setting \"%s\" possible values are: never always important\n",
+                errorAndExit(EXIT_USAGE_ERROR, "No such timestamp setting \"%s\" possible values are: never always important\n",
                       ts.c_str());
             }
             i++;
@@ -281,7 +281,7 @@ static shared_ptr<Configuration> parseNormalCommandLine(Configuration *c, int ar
         }
         if (!strncmp(argv[i], "--profile=", 10)) {
             c->analyze_profile = atoi(argv[i]+10);
-            if (c->analyze_profile <= 0) error(EXIT_USAGE_ERROR, "Illegal profile value, must be greater than zero.\n");
+            if (c->analyze_profile <= 0) errorAndExit(EXIT_USAGE_ERROR, "Illegal profile value, must be greater than zero.\n");
             i++;
             continue;
         }
@@ -298,10 +298,10 @@ static shared_ptr<Configuration> parseNormalCommandLine(Configuration *c, int ar
             LinkModeSet lms = parseLinkModes(argv[i]+11);
             if (lms.empty())
             {
-                error(EXIT_USAGE_ERROR, "Unknown default link mode \"%s\"!\n", argv[i]+11);
+                errorAndExit(EXIT_USAGE_ERROR, "Unknown default link mode \"%s\"!\n", argv[i]+11);
             }
             if (!c->default_device_linkmodes.empty()) {
-                error(EXIT_USAGE_ERROR, "You have already specified a default link mode!\n");
+                errorAndExit(EXIT_USAGE_ERROR, "You have already specified a default link mode!\n");
             }
             c->default_device_linkmodes = lms;
             i++;
@@ -312,7 +312,7 @@ static shared_ptr<Configuration> parseNormalCommandLine(Configuration *c, int ar
         if (lm != LinkMode::UNKNOWN) {
             if (!c->default_device_linkmodes.empty())
             {
-                error(EXIT_USAGE_ERROR, "You have already specified a default link mode!\n");
+                errorAndExit(EXIT_USAGE_ERROR, "You have already specified a default link mode!\n");
             }
             // Add to the empty set.
             c->default_device_linkmodes.addLinkMode(lm);
@@ -375,7 +375,7 @@ static shared_ptr<Configuration> parseNormalCommandLine(Configuration *c, int ar
             }
             else
             {
-                error(EXIT_USAGE_ERROR, "Unknown output format: \"%s\"\n", argv[i]+9);
+                errorAndExit(EXIT_USAGE_ERROR, "Unknown output format: \"%s\"\n", argv[i]+9);
             }
             i++;
             continue;
@@ -386,17 +386,17 @@ static shared_ptr<Configuration> parseNormalCommandLine(Configuration *c, int ar
                 string s = string(argv[i]+15);
                 handleSelectedFields(c, s);
             } else {
-                error(EXIT_USAGE_ERROR, "You must supply fields to be selected.\n");
+                errorAndExit(EXIT_USAGE_ERROR, "You must supply fields to be selected.\n");
             }
             i++;
             continue;
         }
         if (!strncmp(argv[i], "--separator=", 12)) {
             if (!c->fields) {
-                error(EXIT_USAGE_ERROR, "You must specify --format=fields before --separator=X\n");
+                errorAndExit(EXIT_USAGE_ERROR, "You must specify --format=fields before --separator=X\n");
             }
             if (strlen(argv[i]) != 13) {
-                error(EXIT_USAGE_ERROR, "You must supply a single character as the field separator.\n");
+                errorAndExit(EXIT_USAGE_ERROR, "You must supply a single character as the field separator.\n");
             }
             c->separator = argv[i][12];
             i++;
@@ -409,10 +409,10 @@ static shared_ptr<Configuration> parseNormalCommandLine(Configuration *c, int ar
                 } else if (!strncmp(argv[i]+19, "append", 6)) {
                     c->meterfiles_action = MeterFileType::Append;
                 } else {
-                    error(EXIT_USAGE_ERROR, "No such meter file action %s\n", argv[i]+19);
+                    errorAndExit(EXIT_USAGE_ERROR, "No such meter file action %s\n", argv[i]+19);
                 }
             } else {
-                error(EXIT_USAGE_ERROR, "Incorrect option %s\n", argv[i]);
+                errorAndExit(EXIT_USAGE_ERROR, "Incorrect option %s\n", argv[i]);
             }
             i++;
             continue;
@@ -432,10 +432,10 @@ static shared_ptr<Configuration> parseNormalCommandLine(Configuration *c, int ar
                     c->meterfiles_naming = MeterFileNaming::Id;
                 } else
                 {
-                    error(EXIT_USAGE_ERROR, "No such meter file naming %s\n", argv[i]+19);
+                    errorAndExit(EXIT_USAGE_ERROR, "No such meter file naming %s\n", argv[i]+19);
                 }
             } else {
-                error(EXIT_USAGE_ERROR, "Incorrect option %s\n", argv[i]);
+                errorAndExit(EXIT_USAGE_ERROR, "Incorrect option %s\n", argv[i]);
             }
             i++;
             continue;
@@ -467,10 +467,10 @@ static shared_ptr<Configuration> parseNormalCommandLine(Configuration *c, int ar
                     c->meterfiles_timestamp = MeterFileTimestamp::Never;
                 } else
                 {
-                    error(EXIT_USAGE_ERROR, "No such meter file timestamp \"%s\"\n", argv[i]+22);
+                    errorAndExit(EXIT_USAGE_ERROR, "No such meter file timestamp \"%s\"\n", argv[i]+22);
                 }
             } else {
-                error(EXIT_USAGE_ERROR, "Incorrect option %s\n", argv[i]);
+                errorAndExit(EXIT_USAGE_ERROR, "Incorrect option %s\n", argv[i]);
             }
             i++;
             continue;
@@ -483,11 +483,11 @@ static shared_ptr<Configuration> parseNormalCommandLine(Configuration *c, int ar
                 if (len > 0) {
                     c->meterfiles_dir = string(argv[i]+13, len);
                 } else {
-                    error(EXIT_USAGE_ERROR, "Not a valid meterfiles name.\n");
+                    errorAndExit(EXIT_USAGE_ERROR, "Not a valid meterfiles name.\n");
                 }
             }
             if (!checkIfDirExists(c->meterfiles_dir.c_str())) {
-                error(EXIT_USAGE_ERROR, "Cannot write meter files into dir \"%s\"\n", c->meterfiles_dir.c_str());
+                errorAndExit(EXIT_USAGE_ERROR, "Cannot write meter files into dir \"%s\"\n", c->meterfiles_dir.c_str());
             }
             i++;
             continue;
@@ -499,7 +499,7 @@ static shared_ptr<Configuration> parseNormalCommandLine(Configuration *c, int ar
                 if (len > 0) {
                     c->logfile = string(argv[i]+10, len);
                 } else {
-                    error(EXIT_USAGE_ERROR, "Not a valid log file name.\n");
+                    errorAndExit(EXIT_USAGE_ERROR, "Not a valid log file name.\n");
                 }
             }
             i++;
@@ -527,7 +527,7 @@ static shared_ptr<Configuration> parseNormalCommandLine(Configuration *c, int ar
                 }
                 else
                 {
-                    error(EXIT_USAGE_ERROR, "You must specify true or false after --ignoreduplicates=\n");
+                    errorAndExit(EXIT_USAGE_ERROR, "You must specify true or false after --ignoreduplicates=\n");
                 }
             }
             i++;
@@ -554,7 +554,7 @@ static shared_ptr<Configuration> parseNormalCommandLine(Configuration *c, int ar
             else if (!strcmp(argv[i]+21, "always")) {
                 c->telegram_details = TelegramDetails::ALWAYS;
             } else {
-                error(EXIT_USAGE_ERROR, "No such telegramdetails %s\n", argv[i]+18);
+                errorAndExit(EXIT_USAGE_ERROR, "No such telegramdetails %s\n", argv[i]+18);
             }
             i++;
             continue;
@@ -576,7 +576,7 @@ static shared_ptr<Configuration> parseNormalCommandLine(Configuration *c, int ar
                 }
                 else
                 {
-                    error(EXIT_USAGE_ERROR, "You must specify true or false after --addtelegramhex=\n");
+                    errorAndExit(EXIT_USAGE_ERROR, "You must specify true or false after --addtelegramhex=\n");
                 }
             }
             i++;
@@ -600,7 +600,7 @@ static shared_ptr<Configuration> parseNormalCommandLine(Configuration *c, int ar
                 }
                 else
                 {
-                    error(EXIT_USAGE_ERROR, "You must specify true or false after --addtelegramstructured=\n");
+                    errorAndExit(EXIT_USAGE_ERROR, "You must specify true or false after --addtelegramstructured=\n");
                 }
             }
             i++;
@@ -609,7 +609,7 @@ static shared_ptr<Configuration> parseNormalCommandLine(Configuration *c, int ar
         if (!strncmp(argv[i], "--shell=", 8)) {
             string cmd = string(argv[i]+8);
             if (cmd == "") {
-                error(EXIT_USAGE_ERROR, "The telegram shell command cannot be empty.\n");
+                errorAndExit(EXIT_USAGE_ERROR, "The telegram shell command cannot be empty.\n");
             }
             c->telegram_shells.push_back(cmd);
             i++;
@@ -618,7 +618,7 @@ static shared_ptr<Configuration> parseNormalCommandLine(Configuration *c, int ar
         if (!strncmp(argv[i], "--metershell=", 13)) {
             string cmd = string(argv[i]+13);
             if (cmd == "") {
-                error(EXIT_USAGE_ERROR, "The meter shell command cannot be empty.\n");
+                errorAndExit(EXIT_USAGE_ERROR, "The meter shell command cannot be empty.\n");
             }
             c->new_meter_shells.push_back(cmd);
             i++;
@@ -627,7 +627,7 @@ static shared_ptr<Configuration> parseNormalCommandLine(Configuration *c, int ar
         if (!strncmp(argv[i], "--alarmshell=", 13)) {
             string cmd = string(argv[i]+13);
             if (cmd == "") {
-                error(EXIT_USAGE_ERROR, "The alarm shell command cannot be empty.\n");
+                errorAndExit(EXIT_USAGE_ERROR, "The alarm shell command cannot be empty.\n");
             }
             c->alarm_shells.push_back(cmd);
             i++;
@@ -636,7 +636,7 @@ static shared_ptr<Configuration> parseNormalCommandLine(Configuration *c, int ar
         if (!strncmp(argv[i], "--rawshell=", 11)) {
             string cmd = string(argv[i]+11);
             if (cmd == "") {
-                error(EXIT_USAGE_ERROR, "The raw shell command cannot be empty.\n");
+                errorAndExit(EXIT_USAGE_ERROR, "The raw shell command cannot be empty.\n");
             }
             c->raw_shells.push_back(cmd);
             i++;
@@ -653,7 +653,7 @@ static shared_ptr<Configuration> parseNormalCommandLine(Configuration *c, int ar
 
             string extra_constant_field = string(argv[i]+off);
             if (extra_constant_field == "") {
-                error(EXIT_USAGE_ERROR, "The extra constant field command cannot be empty.\n");
+                errorAndExit(EXIT_USAGE_ERROR, "The extra constant field command cannot be empty.\n");
             }
             // The extra "floor"="42" will be pushed to the json.
             debug("Added extra constant field %s\n", extra_constant_field.c_str());
@@ -666,7 +666,7 @@ static shared_ptr<Configuration> parseNormalCommandLine(Configuration *c, int ar
             // For example: --calculate_adjusted_kwh='total_kwh + 12345 kwh'
             string extra_calculated_field = string(argv[i]+12);
             if (extra_calculated_field == "") {
-                error(EXIT_USAGE_ERROR, "The calculated field command cannot be empty.\n");
+                errorAndExit(EXIT_USAGE_ERROR, "The calculated field command cannot be empty.\n");
             }
             debug("(cmdline) add calculated field %s\n", extra_calculated_field.c_str());
             c->extra_calculated_fields.push_back(extra_calculated_field);
@@ -716,7 +716,7 @@ static shared_ptr<Configuration> parseNormalCommandLine(Configuration *c, int ar
         if (!strncmp(argv[i], "--exitafter=", 12) && strlen(argv[i]) > 12) {
             c->exitafter = parseTime(argv[i]+12);
             if (c->exitafter <= 0) {
-                error(EXIT_USAGE_ERROR, "Not a valid time to exit after. \"%s\"\n", argv[i]+12);
+                errorAndExit(EXIT_USAGE_ERROR, "Not a valid time to exit after. \"%s\"\n", argv[i]+12);
             }
             i++;
             continue;
@@ -739,7 +739,7 @@ static shared_ptr<Configuration> parseNormalCommandLine(Configuration *c, int ar
         if (!strncmp(argv[i], "--pollinterval=", 15) && strlen(argv[i]) > 15) {
             c->pollinterval = parseTime(argv[i]+15);
             if (c->pollinterval <= 0) {
-                error(EXIT_USAGE_ERROR, "Not a valid time to regularly poll meters. \"%s\"\n", argv[i]+15);
+                errorAndExit(EXIT_USAGE_ERROR, "Not a valid time to regularly poll meters. \"%s\"\n", argv[i]+15);
             }
             i++;
             continue;
@@ -748,7 +748,7 @@ static shared_ptr<Configuration> parseNormalCommandLine(Configuration *c, int ar
             c->identity_mode = toIdentityMode(argv[i]+15);
             if (c->identity_mode == IdentityMode::INVALID)
             {
-                error(EXIT_USAGE_ERROR, "Not a valid identity mode. \"%s\"\n", argv[i]+15);
+                errorAndExit(EXIT_USAGE_ERROR, "Not a valid identity mode. \"%s\"\n", argv[i]+15);
             }
             i++;
             continue;
@@ -756,7 +756,7 @@ static shared_ptr<Configuration> parseNormalCommandLine(Configuration *c, int ar
         if (!strncmp(argv[i], "--resetafter=", 13) && strlen(argv[i]) > 13) {
             c->resetafter = parseTime(argv[i]+13);
             if (c->resetafter <= 0) {
-                error(EXIT_USAGE_ERROR, "Not a valid time to regularly reset after. \"%s\"\n", argv[i]+13);
+                errorAndExit(EXIT_USAGE_ERROR, "Not a valid time to regularly reset after. \"%s\"\n", argv[i]+13);
             }
             i++;
             continue;
@@ -764,7 +764,7 @@ static shared_ptr<Configuration> parseNormalCommandLine(Configuration *c, int ar
         if (!strncmp(argv[i], "--alarmtimeout=", 15)) {
             c->alarm_timeout = parseTime(argv[i]+15);
             if (c->alarm_timeout <= 0) {
-                error(EXIT_USAGE_ERROR, "Not a valid alarm timeout. \"%s\"\n", argv[i]+15);
+                errorAndExit(EXIT_USAGE_ERROR, "Not a valid alarm timeout. \"%s\"\n", argv[i]+15);
             }
             i++;
             continue;
@@ -773,7 +773,7 @@ static shared_ptr<Configuration> parseNormalCommandLine(Configuration *c, int ar
             string ea = string(argv[i]+24);
             if (!isValidTimePeriod(ea))
             {
-                error(EXIT_USAGE_ERROR, "Not a valid time period string. \"%s\"\n", ea.c_str());
+                errorAndExit(EXIT_USAGE_ERROR, "Not a valid time period string. \"%s\"\n", ea.c_str());
             }
             c->alarm_expected_activity = ea;
             i++;
@@ -785,7 +785,7 @@ static shared_ptr<Configuration> parseNormalCommandLine(Configuration *c, int ar
             c->drivers_dir = string(argv[i]+13, len);
             if (!checkIfDirExists(c->drivers_dir.c_str()))
             {
-                error(EXIT_USAGE_ERROR, "You must supply a valid directory to --driversdir=<dir>\n");
+                errorAndExit(EXIT_USAGE_ERROR, "You must supply a valid directory to --driversdir=<dir>\n");
             }
             i++;
             loadDriversFromDir(c->drivers_dir);
@@ -797,14 +797,14 @@ static shared_ptr<Configuration> parseNormalCommandLine(Configuration *c, int ar
             string file_name = string(argv[i]+9, len);
             if (!checkFileExists(file_name.c_str()))
             {
-                error(EXIT_USAGE_ERROR, "You must supply a valid file to --driver=<file>\n");
+                errorAndExit(EXIT_USAGE_ERROR, "You must supply a valid file to --driver=<file>\n");
             }
             i++;
             loadDriver(file_name, NULL);
             continue;
         }
 
-        error(EXIT_USAGE_ERROR, "Unknown option \"%s\"\n", argv[i]);
+        errorAndExit(EXIT_USAGE_ERROR, "Unknown option \"%s\"\n", argv[i]);
     }
 
     bool found_at_least_one_device_or_hex = false;
@@ -813,7 +813,7 @@ static shared_ptr<Configuration> parseNormalCommandLine(Configuration *c, int ar
         if (!strncmp(argv[i], "--", 2))
         {
             // We have found a device and the next parameter is an option.
-            error(EXIT_USAGE_ERROR, "All command line options must be placed before the devices, %s is placed wrong.\n", argv[i]);
+            errorAndExit(EXIT_USAGE_ERROR, "All command line options must be placed before the devices, %s is placed wrong.\n", argv[i]);
         }
         bool ok = handleDeviceOrHex(c, argv[i]);
         if (ok)
@@ -824,7 +824,7 @@ static shared_ptr<Configuration> parseNormalCommandLine(Configuration *c, int ar
         {
             if (!found_at_least_one_device_or_hex)
             {
-                error(EXIT_USAGE_ERROR, "At least one valid device (or hex) must be supplied!\n");
+                errorAndExit(EXIT_USAGE_ERROR, "At least one valid device (or hex) must be supplied!\n");
             }
             // There are more arguments...
             break;
@@ -840,7 +840,7 @@ static shared_ptr<Configuration> parseNormalCommandLine(Configuration *c, int ar
         !c->list_units &&
         !c->print_driver)
     {
-        error(EXIT_USAGE_ERROR, "You must supply at least one device to communicate using (w)mbus.\n");
+        errorAndExit(EXIT_USAGE_ERROR, "You must supply at least one device to communicate using (w)mbus.\n");
     }
 
     while (argv[i] != 0 && SendBusContent::isLikely(argv[i]))
@@ -849,14 +849,14 @@ static shared_ptr<Configuration> parseNormalCommandLine(Configuration *c, int ar
         bool ok = sbc.parse(argv[i]);
         if (!ok)
         {
-            error(EXIT_USAGE_ERROR, "Not a valid send bus content command.\n");
+            errorAndExit(EXIT_USAGE_ERROR, "Not a valid send bus content command.\n");
         }
         c->send_bus_content.push_back(sbc);
         i++;
     }
 
     if ((argc-i) % 4 != 0) {
-        error(EXIT_USAGE_ERROR, "For each meter you must supply a: name,type,id and key.\n");
+        errorAndExit(EXIT_USAGE_ERROR, "For each meter you must supply a: name,type,id and key.\n");
     }
     int num_meters = (argc-i)/4;
 
@@ -872,7 +872,7 @@ static shared_ptr<Configuration> parseNormalCommandLine(Configuration *c, int ar
 
         if (!isValidSequenceOfAddressExpressions(address_expressions))
         {
-            error(EXIT_USAGE_ERROR, "Not a valid meter id nor a valid sequence of match expression \"%s\"\n", address_expressions.c_str());
+            errorAndExit(EXIT_USAGE_ERROR, "Not a valid meter id nor a valid sequence of match expression \"%s\"\n", address_expressions.c_str());
         }
 
         mi.parse(name, driver, address_expressions, key);
@@ -881,12 +881,12 @@ static shared_ptr<Configuration> parseNormalCommandLine(Configuration *c, int ar
 
         if (!isValidKey(key, mi))
         {
-            error(EXIT_USAGE_ERROR, "Not a valid meter key \"%s\"\n", key.c_str());
+            errorAndExit(EXIT_USAGE_ERROR, "Not a valid meter key \"%s\"\n", key.c_str());
         }
 
         if (mi.driver_name.str() == "")
         {
-            error(EXIT_USAGE_ERROR, "Not a valid meter driver \"%s\"\n", driver.c_str());
+            errorAndExit(EXIT_USAGE_ERROR, "Not a valid meter driver \"%s\"\n", driver.c_str());
         }
 
         c->meters.push_back(mi);
@@ -919,7 +919,7 @@ shared_ptr<Configuration> parseCommandLineWithUseConfig(Configuration *c, int ar
             }
             else
             {
-                error(EXIT_USAGE_ERROR, "You must supply a directory to --useconfig=dir\n");
+                errorAndExit(EXIT_USAGE_ERROR, "You must supply a directory to --useconfig=dir\n");
             }
             i++;
             continue;
@@ -1004,7 +1004,7 @@ shared_ptr<Configuration> parseCommandLineWithUseConfig(Configuration *c, int ar
         if (!strncmp(argv[i], "--exitafter=", 12) && strlen(argv[i]) > 12) {
             int s = parseTime(argv[i]+12);
             if (s <= 0) {
-                error(EXIT_USAGE_ERROR, "Not a valid time to exit after. \"%s\"\n", argv[i]+12);
+                errorAndExit(EXIT_USAGE_ERROR, "Not a valid time to exit after. \"%s\"\n", argv[i]+12);
             }
             c->overrides.exitafter_override = argv[i]+12;
             i++;
@@ -1020,13 +1020,13 @@ shared_ptr<Configuration> parseCommandLineWithUseConfig(Configuration *c, int ar
             if (len > 0) {
                 c->overrides.logfile_override = string(argv[i]+10, len);
             } else {
-                error(EXIT_USAGE_ERROR, "Not a valid log file name.\n");
+                errorAndExit(EXIT_USAGE_ERROR, "Not a valid log file name.\n");
             }
             i++;
             continue;
         }
 
-        error(EXIT_USAGE_ERROR, "Usage error: --useconfig=... can only be used in combination with:\n"
+        errorAndExit(EXIT_USAGE_ERROR, "Usage error: --useconfig=... can only be used in combination with:\n"
               "--overridedevice= --listento= --listdrivers= --listfields= --exitafter= --oneshot= --logfile= --silent --normal --verbose --debug --trace\n");
         break;
     }
@@ -1035,25 +1035,25 @@ shared_ptr<Configuration> parseCommandLineWithUseConfig(Configuration *c, int ar
     {
         if (!argv[i])
         {
-            error(EXIT_USAGE_ERROR, "Usage error: you must supply the pid file as the last argument to wmbusmetersd.\n");
+            errorAndExit(EXIT_USAGE_ERROR, "Usage error: you must supply the pid file as the last argument to wmbusmetersd.\n");
         }
         if (argv[i][0] == '-')
         {
-            error(EXIT_USAGE_ERROR, "Usage error: the pid file name must not start with minus (-). Please change \"%s\".\n", argv[i]);
+            errorAndExit(EXIT_USAGE_ERROR, "Usage error: the pid file name must not start with minus (-). Please change \"%s\".\n", argv[i]);
         }
         c->pid_file = argv[i];
         i++;
 
         if (i < argc)
         {
-            error(EXIT_USAGE_ERROR, "Usage error: you must supply the pid file as the last argument to wmbusmetersd.\n");
+            errorAndExit(EXIT_USAGE_ERROR, "Usage error: you must supply the pid file as the last argument to wmbusmetersd.\n");
         }
     }
     else
     {
         if (i < argc)
         {
-            error(EXIT_USAGE_ERROR, "Usage error: too many arguments \"%s\" with --useconfig=...\n", argv[i]);
+            errorAndExit(EXIT_USAGE_ERROR, "Usage error: too many arguments \"%s\" with --useconfig=...\n", argv[i]);
         }
     }
     return shared_ptr<Configuration>(c);

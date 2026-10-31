@@ -3,13 +3,24 @@ driver {
     name           = eltako
     default_fields = name,id,total_kwh,timestamp
     meter_type     = ElectricityMeter
+    manufacturer   = Eltako
     detect {
         mvt = ELT,01,02
+    }
+    flags {
+        flag {
+            name = GENERIC_APP_ERROR
+            info = 'The meter reports an application error.'
+        }
+        flag {
+            name = CURRENT_LOW
+            info = 'The current is low.'
+        }
     }
     fields {
         field {
             name     = status
-            quantity = Text
+            quantity = Flags
             info     = status_and_error_flags
             match {
                 measurement_type = Instantaneous

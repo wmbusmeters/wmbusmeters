@@ -4,10 +4,15 @@ driver {
     name           = c5isf
     meter_type     = HeatMeter
     default_fields = name,id,total_energy_consumption_kwh,total_volume_m3,status,timestamp
+    manufacturer   = Zenner
     detect {
         mvt = ZRI,88,0d
         mvt = ZRI,88,07
         mvt = ZRI,88,04
+    }
+    library {
+        use = rssi_dbm
+        use = actuality_duration_s
     }
     fields {
         // Common fields for T1A1, T1A2, T1B
@@ -41,7 +46,7 @@ driver {
         }
         field {
             name       = status
-            quantity   = Text
+            quantity   = Flags
             info       = 'Status and error flags.'
             attributes = STATUS,INCLUDE_TPL_STATUS
             match {

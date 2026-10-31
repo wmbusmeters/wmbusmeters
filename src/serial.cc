@@ -336,13 +336,13 @@ bool SerialDeviceTTY::open(bool fail_if_not_ok)
     fd_ = openSerialTTY(device_.c_str(), baud_rate_, parity_);
     if (fd_ == -1)
     {
-        if (fail_if_not_ok) error(EXIT_SERIAL_ERROR, "Could not open %s with %d baud N81\n", device_.c_str(), baud_rate_);
+        if (fail_if_not_ok) errorAndExit(EXIT_SERIAL_ERROR, "Could not open %s with %d baud N81\n", device_.c_str(), baud_rate_);
         verbose("(serialtty) could not open %s with %d baud N81\n", device_.c_str(), baud_rate_);
         return false;
     }
     if (fd_ == -2)
     {
-        if (fail_if_not_ok) error(EXIT_SERIAL_ERROR, "Device %s is already in use and locked.\n", device_.c_str());
+        if (fail_if_not_ok) errorAndExit(EXIT_SERIAL_ERROR, "Device %s is already in use and locked.\n", device_.c_str());
         verbose("(serialtty) device %s is already in use and locked.\n", device_.c_str());
         return false;
     }
@@ -606,7 +606,7 @@ bool SerialDeviceFile::open(bool fail_if_not_ok)
         {
             if (fail_if_not_ok)
             {
-                error(EXIT_SERIAL_ERROR, "Could not open file %s for reading.\n", file_.c_str());
+                errorAndExit(EXIT_SERIAL_ERROR, "Could not open file %s for reading.\n", file_.c_str());
             }
             verbose("(serialdevicefile) could not open file %s for reading.\n", file_.c_str());
             return false;
@@ -725,7 +725,7 @@ bool SerialDeviceSocket::open(bool fail_if_not_ok)
     listen_fd_ = socket(AF_UNIX, SOCK_STREAM, 0);
     if (listen_fd_ < 0)
     {
-        if (fail_if_not_ok) error(EXIT_SOCKET_ERROR, "Could not create unix socket: %s\n", strerror(errno));
+        if (fail_if_not_ok) errorAndExit(EXIT_SOCKET_ERROR, "Could not create unix socket: %s\n", strerror(errno));
         verbose("(serialsocket) could not create unix socket: %s\n", strerror(errno));
         return false;
     }
@@ -735,7 +735,7 @@ bool SerialDeviceSocket::open(bool fail_if_not_ok)
     addr.sun_family = AF_UNIX;
     if (path_.length() >= sizeof(addr.sun_path))
     {
-        if (fail_if_not_ok) error(EXIT_SOCKET_ERROR, "Socket path too long: %s\n", path_.c_str());
+        if (fail_if_not_ok) errorAndExit(EXIT_SOCKET_ERROR, "Socket path too long: %s\n", path_.c_str());
         verbose("(serialsocket) socket path too long: %s\n", path_.c_str());
         ::close(listen_fd_);
         listen_fd_ = -1;
@@ -747,7 +747,7 @@ bool SerialDeviceSocket::open(bool fail_if_not_ok)
 
     if (::bind(listen_fd_, (struct sockaddr *)&addr, sizeof(addr)) < 0)
     {
-        if (fail_if_not_ok) error(EXIT_SOCKET_ERROR, "Could not bind unix socket %s: %s\n", path_.c_str(), strerror(errno));
+        if (fail_if_not_ok) errorAndExit(EXIT_SOCKET_ERROR, "Could not bind unix socket %s: %s\n", path_.c_str(), strerror(errno));
         verbose("(serialsocket) could not bind unix socket %s: %s\n", path_.c_str(), strerror(errno));
         ::close(listen_fd_);
         listen_fd_ = -1;
@@ -756,7 +756,7 @@ bool SerialDeviceSocket::open(bool fail_if_not_ok)
 
     if (listen(listen_fd_, 1) < 0)
     {
-        if (fail_if_not_ok) error(EXIT_SOCKET_ERROR, "Could not listen on unix socket %s: %s\n", path_.c_str(), strerror(errno));
+        if (fail_if_not_ok) errorAndExit(EXIT_SOCKET_ERROR, "Could not listen on unix socket %s: %s\n", path_.c_str(), strerror(errno));
         verbose("(serialsocket) could not listen on unix socket %s: %s\n", path_.c_str(), strerror(errno));
         ::close(listen_fd_);
         listen_fd_ = -1;
@@ -956,7 +956,7 @@ void SerialCommunicationManagerImp::listenTo(SerialDevice *sd, function<void()> 
     SerialDeviceImp *si = dynamic_cast<SerialDeviceImp*>(sd);
     if (!si)
     {
-        error(EXIT_SERIAL_ERROR, "Internal error: Invalid serial device passed to listenTo.\n");
+        errorAndExit(EXIT_SERIAL_ERROR, "Internal error: Invalid serial device passed to listenTo.\n");
     }
     si->on_data_ = cb;
 }
@@ -967,7 +967,7 @@ void SerialCommunicationManagerImp::onDisappear(SerialDevice *sd, function<void(
     SerialDeviceImp *si = dynamic_cast<SerialDeviceImp*>(sd);
     if (!si)
     {
-        error(EXIT_SERIAL_ERROR, "Internal error: Invalid serial device passed to onDisappear.\n");
+        errorAndExit(EXIT_SERIAL_ERROR, "Internal error: Invalid serial device passed to onDisappear.\n");
     }
     si->on_disappear_ = cb;
 }
@@ -1030,8 +1030,8 @@ void SerialCommunicationManagerImp::waitForStop()
         if (getTimerLoopThread()) pthread_kill(getTimerLoopThread(), SIGUSR1);
     }
 
-    pthread_join(getEventLoopThread(), NULL);
-    pthread_join(getTimerLoopThread(), NULL);
+    joinEventLoopThread();
+    joinTimerLoopThread();
 }
 
 bool SerialCommunicationManagerImp::isRunning()

@@ -71,6 +71,9 @@ if [ "$?" != "0" ]; then RC="1"; if [ "$STOP" = "true" ]; then exit 1; fi; fi
 ./tests/test_detailed_first.sh $PROG
 if [ "$?" != "0" ]; then RC="1"; if [ "$STOP" = "true" ]; then exit 1; fi; fi
 
+./tests/test_meter_info.sh $PROG
+if [ "$?" != "0" ]; then RC="1"; if [ "$STOP" = "true" ]; then exit 1; fi; fi
+
 ./tests/test_add_telegram_hex.sh $PROG
 if [ "$?" != "0" ]; then RC="1"; if [ "$STOP" = "true" ]; then exit 1; fi; fi
 
@@ -104,6 +107,12 @@ if [ "$?" != "0" ]; then RC="1"; if [ "$STOP" = "true" ]; then exit 1; fi; fi
 tests/test_kamwater_ccm_tag.sh $PROG
 if [ "$?" != "0" ]; then RC="1"; if [ "$STOP" = "true" ]; then exit 1; fi; fi
 
+tests/test_bad_aes_ccm.sh $PROG
+if [ "$?" != "0" ]; then RC="1"; if [ "$STOP" = "true" ]; then exit 1; fi; fi
+
+tests/test_short_telegrams.sh $PROG
+if [ "$?" != "0" ]; then RC="1"; if [ "$STOP" = "true" ]; then exit 1; fi; fi
+
 tests/test_shell.sh $PROG
 if [ "$?" != "0" ]; then RC="1"; if [ "$STOP" = "true" ]; then exit 1; fi; fi
 
@@ -123,6 +132,9 @@ tests/test_meterfiles.sh $PROG
 if [ "$?" != "0" ]; then RC="1"; if [ "$STOP" = "true" ]; then exit 1; fi; fi
 
 tests/test_config1.sh $PROG
+if [ "$?" != "0" ]; then RC="1"; if [ "$STOP" = "true" ]; then exit 1; fi; fi
+
+tests/test_xmq_config.sh $PROG
 if [ "$?" != "0" ]; then RC="1"; if [ "$STOP" = "true" ]; then exit 1; fi; fi
 
 tests/test_logfile.sh $PROG
@@ -147,6 +159,12 @@ tests/test_conversions_more.sh $PROG
 if [ "$?" != "0" ]; then RC="1"; if [ "$STOP" = "true" ]; then exit 1; fi; fi
 
 tests/test_inverse_compact_profile.sh $PROG
+if [ "$?" != "0" ]; then RC="1"; if [ "$STOP" = "true" ]; then exit 1; fi; fi
+
+tests/test_type_m_datetime.sh $PROG
+if [ "$?" != "0" ]; then RC="1"; if [ "$STOP" = "true" ]; then exit 1; fi; fi
+
+tests/test_compact_profile_record_order.sh $PROG
 if [ "$?" != "0" ]; then RC="1"; if [ "$STOP" = "true" ]; then exit 1; fi; fi
 
 tests/test_dbm.sh $PROG
@@ -234,6 +252,9 @@ if [ "$?" != "0" ]; then RC="1"; if [ "$STOP" = "true" ]; then exit 1; fi; fi
 ./tests/test_json_structured.sh $PROG
 if [ "$?" != "0" ]; then RC="1"; if [ "$STOP" = "true" ]; then exit 1; fi; fi
 
+./tests/test_bar_iperl_tpl_status.sh $PROG
+if [ "$?" != "0" ]; then RC="1"; if [ "$STOP" = "true" ]; then exit 1; fi; fi
+
 ./tests/test_template_field.sh $PROG
 if [ "$?" != "0" ]; then RC="1"; if [ "$STOP" = "true" ]; then exit 1; fi; fi
 
@@ -266,7 +287,8 @@ if [ "$?" != "0" ]; then RC="1"; if [ "$STOP" = "true" ]; then exit 1; fi; fi
 
 if [ -s build/xmq ]
 then
-    ./build/xmq tests/generated_tests.xmq for-each /test --shell='./tests/testit.sh '$PROG' "${args}" "${telegram}" "${json}" "${fields}"'
+    ./tests/test_generated_tests.sh $PROG
+    if [ "$?" != "0" ]; then RC="1"; if [ "$STOP" = "true" ]; then exit 1; fi; fi
 else
     echo "Skipping tests/generated_tests.xmq since xmq is missing."
 fi
@@ -291,6 +313,9 @@ if [ "$?" != "0" ]; then RC="1"; if [ "$STOP" = "true" ]; then exit 1; fi; fi
 
 ./tests/test_bad_driver.sh $PROG
 if [ "$?" != "0" ]; then RC="1"; if [ "$STOP" = "true" ]; then exit 1; fi; fi
+
+#./tests/test_more_bad_driver.sh $PROG
+#if [ "$?" != "0" ]; then RC="1"; if [ "$STOP" = "true" ]; then exit 1; fi; fi
 
 ./tests/test_metershell_env.sh $PROG
 if [ "$?" != "0" ]; then RC="1"; if [ "$STOP" = "true" ]; then exit 1; fi; fi

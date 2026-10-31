@@ -1,0 +1,6 @@
+meter {
+    id = 86868686
+    driver=auto
+    name=Vatten
+    key=''
+}

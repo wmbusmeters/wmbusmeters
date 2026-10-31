@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2019-2020 Fredrik Öhrström (gpl-3.0-or-later)
+ Copyright (C) 2019-2026 Fredrik Öhrström (gpl-3.0-or-later)
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -19,6 +19,7 @@
 #include"drivers.h"
 #include"meters.h"
 #include"units.h"
+#include"xmq.h"
 
 #include"utils/fs.h"
 
@@ -78,15 +79,55 @@ pair<string,string> getNextKeyValue(vector<char> &buf, vector<char>::iterator &i
     return { "", "" };
 }
 
-void parseMeterConfig(Configuration *c, vector<char> &buf, string file)
+static bool isXmqConfigWithRoot(std::vector<char> &buf, const char *root)
 {
-    auto i = buf.begin();
+    // Scan buf for first left brace { and check if the name right before it
+    // (ignoring whitespace) is the expected root node name.
+    size_t n = strlen(root);
+    for (size_t i = 0; i < buf.size(); ++i)
+    {
+        if (buf[i] != '{') continue;
+        // Skip whitespace before the brace to find the end of the node name.
+        size_t name_end = i; // exclusive
+        while (name_end > 0 && (buf[name_end-1] == ' ' || buf[name_end-1] == '\t' ||
+                buf[name_end-1] == '\n' || buf[name_end-1] == '\r' ||
+                buf[name_end-1] == '\f' || buf[name_end-1] == '\v')) --name_end;
+        bool ok = false;
+        if (name_end >= n)
+        {
+            size_t name_start = name_end - n;
+            if (memcmp(buf.data() + name_start, root, n) == 0 &&
+                (name_start == 0 || buf[name_start-1] == ' ' || buf[name_start-1] == '\t' ||
+                 buf[name_start-1] == '\n' || buf[name_start-1] == '\r' ||
+                 buf[name_start-1] == '\f' || buf[name_start-1] == '\v'))
+            {
+                ok = true;
+            }
+        }
+        // First { found, this is as far as we need to look.
+        return ok;
+    }
+    return false;
+}
+
+bool isWMBusMetersConfigXMQ(std::vector<char> &buf)
+{
+    return isXmqConfigWithRoot(buf, "wmbusmeters");
+}
+
+bool isMeterConfigXMQ(std::vector<char> &buf)
+{
+    return isXmqConfigWithRoot(buf, "meter");
+}
+
+struct MeterConfigParsing
+{
+    Configuration *c;
     string bus;
     string name;
     string driver = "auto";
     string address_expressions;
-    string key = "";
-    string linkmodes;
+    string key;
     int poll_interval = 0;
     IdentityMode identity_mode {};
     vector<string> telegram_shells;
@@ -95,128 +136,216 @@ void parseMeterConfig(Configuration *c, vector<char> &buf, string file)
     vector<string> extra_constant_fields;
     vector<string> extra_calculated_fields;
     vector<string> selected_fields;
+};
+
+// Handle one key=value pair from a meter config file.
+// Return true to keep parsing, false to abort parsing of this meter config file.
+static bool handleMeterConfigKey(MeterConfigParsing &m, string key, string value)
+{
+    if (key != "key") {
+        debug("(config) %s=%s\n", key.c_str(), value.c_str());
+    }
+
+    // If the key starts with # then the line is a comment. Ignore it.
+    if (key.length() > 0 && key[0] == '#') return true;
+
+    if (key == "bus")
+    {
+        // Instead of specifying the exact mbus device /dev/ttyUSB17 for each meter,
+        // you specify the alias for the bus. Assuming you specified
+        // device=main=/dev/ttyUSB17:mbus:2400
+        // in the wmbusmeters.conf file, then
+        // you should specify bus=main in the meter file
+        // to use the main bus.
+        //
+        // For dual communication wmbus meters, you also have to specify
+        // the alias to the wmbus device that should be used to transmit to the meter.
+        m.bus = value;
+        if (!isValidAlias(m.bus))
+        {
+            warning("Found invalid meter bus \"%s\" in meter config file, skipping meter.\n", m.bus.c_str());
+            return false;
+        }
+    }
+    else if (key == "name")
+    {
+        m.name = value;
+        if (m.name.find(":") != string::npos)
+        {
+            // Oups, names are not allowed to contain the :
+            warning("Found invalid meter name \"%s\" in meter config file, must not contain a ':', skipping meter.\n", m.name.c_str());
+            return false;
+        }
+    }
+    else if (key == "type")
+    {
+        m.driver = value;
+    }
+    else if (key == "driver")
+    {
+        m.driver = value;
+    }
+    else if (key == "id")
+    {
+        m.address_expressions = value;
+    }
+    else if (key == "key")
+    {
+        m.key = value;
+        debug("(config) key=<notprinted>\n");
+    }
+    else if (key == "pollinterval")
+    {
+        if (m.poll_interval != 0)
+        {
+            errorAndExit(EXIT_CONFIG_ERROR, "You have already specified a poll interval for this meter!\n");
+        }
+        m.poll_interval = parseTime(value);
+
+        if (m.poll_interval == 0)
+        {
+            errorAndExit(EXIT_CONFIG_ERROR, "Poll interval must be non-zero \"%s\"!\n", value.c_str());
+        }
+    }
+    else if (key == "identitymode")
+    {
+        m.identity_mode = toIdentityMode(value.c_str());
+
+        if (m.identity_mode == IdentityMode::INVALID)
+        {
+            errorAndExit(EXIT_CONFIG_ERROR, "Invalid identity mode: \"%s\"!\n", value.c_str());
+        }
+    }
+    else if (key == "shell")
+    {
+        m.telegram_shells.push_back(value);
+    }
+    else if (key == "metershell")
+    {
+        m.new_meter_shells.push_back(value);
+    }
+    else if (key == "alarmshell")
+    {
+        m.alarm_shells.push_back(value);
+    }
+    else if (key == "selectedfields")
+    {
+        if (m.selected_fields.size() > 0)
+        {
+            warning("(warning) selectfields already used! Ignoring selectfields %s", value.c_str());
+            return false;
+        }
+        m.selected_fields = splitString(value, ',');
+    }
+    else if (startsWith(key, "json_") ||
+             startsWith(key, "field_"))
+    {
+        int off = 5;
+        if (startsWith(key, "field_")) { off = 6; }
+        string keyvalue = key.substr(off)+"="+value;
+        m.extra_constant_fields.push_back(keyvalue);
+    }
+    else if (startsWith(key, "calculate_"))
+    {
+        string keyvalue = key.substr(10)+"="+value;
+        m.extra_calculated_fields.push_back(keyvalue);
+    }
+    else
+    {
+        warning("Found invalid key \"%s\" in meter config file\n", key.c_str());
+    }
+
+    return true;
+}
+
+struct MeterConfigEach
+{
+    MeterConfigParsing *m;
+    bool keep_going;
+};
+
+static XMQProceed meterConfigEach(XMQDoc *doc, XMQNode *node, void *user_data)
+{
+    MeterConfigEach *each = (MeterConfigEach*) user_data;
+
+    const char *key_c = xmqGetName(node);
+    if (!key_c) return each->keep_going ? XMQ_CONTINUE : XMQ_STOP;
+
+    string key = key_c;
+
+    // Comment lines are stored as nodes with names //..., ignore them.
+    if (key.length() > 1 && key[0] == '/' && key[1] == '/') return XMQ_CONTINUE;
+
+    const char *value_c = xmqGetContent(node);
+    string value = value_c ? value_c : "";
+
+    if (!handleMeterConfigKey(*each->m, key, value))
+    {
+        each->keep_going = false;
+        return XMQ_STOP;
+    }
+
+    return XMQ_CONTINUE;
+}
+
+void parseMeterConfig(Configuration *c, vector<char> &buf, string file)
+{
+    MeterConfigParsing m;
+    m.c = c;
 
     debug("(config) loading meter file %s\n", file.c_str());
 
-    for (;;)
+    bool abort_meter = false;
+
+    if (isMeterConfigXMQ(buf))
     {
-        pair<string,string> p = getNextKeyValue(buf, i);
-
-        if (p.first == "") break;
-
-        // If the key starts with # then the line is a comment. Ignore it.
-        if (p.first.length() > 0 && p.first[0] == '#') continue;
-
-        if (p.first == "bus")
+        // The meter config file is an xmq file with a meter { ... } node,
+        // extract the keys and values with the xmq api.
+        XMQReturnDoc rd = xmqNewDoc();
+        bool ok = rd.status == XMQ_OK;
+        if (ok)
         {
-            // Instead of specifying the exact mbus device /dev/ttyUSB17 for each meter,
-            // you specify the alias for the bus. Assuming you specified
-            // device=main=/dev/ttyUSB17:mbus:2400
-            // in the wmbusmeters.conf file, then
-            // you should specify bus=main in the meter file
-            // to use the main bus.
-            //
-            // For dual communication wmbus meters, you also have to specify
-            // the alias to the wmbus device that should be used to transmit to the meter.
-            bus = p.second;
-            if (!isValidAlias(bus))
+            XMQDoc *doc = rd.doc;
+            bool pok = xmqParseBuffer(doc, buf.data(), buf.data()+buf.size(), NULL, 0);
+            XMQNode *mn = pok ? xmqGetNode(doc, "/meter") : NULL;
+            if (pok && mn)
             {
-                warning("Found invalid meter bus \"%s\" in meter config file, skipping meter.\n", bus.c_str());
-                return;
+                MeterConfigEach each;
+                each.m = &m;
+                each.keep_going = true;
+                xmqForeachRel(doc, "*", meterConfigEach, &each, mn);
+                abort_meter = !each.keep_going;
             }
-        }
-        else if (p.first == "name")
-        {
-            name = p.second;
-            if (name.find(":") != string::npos)
+            if (!pok)
             {
-                // Oups, names are not allowed to contain the :
-                warning("Found invalid meter name \"%s\" in meter config file, must not contain a ':', skipping meter.\n", name.c_str());
-                return;
+                warning("Failed to parse meter config file \"%s\" as xmq: %s\n",
+                        file.c_str(),
+                        xmqDocError(doc) ? xmqDocError(doc) : "");
             }
-        }
-        else if (p.first == "type")
-        {
-            driver = p.second;
-        }
-        else if (p.first == "driver")
-        {
-            driver = p.second;
-        }
-        else if (p.first == "id")
-        {
-            address_expressions = p.second;
-        }
-        else if (p.first == "key")
-        {
-            key = p.second;
-            debug("(config) key=<notprinted>\n");
-        }
-        else if (p.first == "pollinterval")
-        {
-            if (poll_interval != 0)
-            {
-                error(EXIT_CONFIG_ERROR, "You have already specified a poll interval for this meter!\n");
-            }
-            poll_interval = parseTime(p.second);
-
-            if (poll_interval == 0)
-            {
-                error(EXIT_CONFIG_ERROR, "Poll interval must be non-zero \"%s\"!\n", p.second.c_str());
-            }
-        }
-        else if (p.first == "identitymode")
-        {
-            identity_mode = toIdentityMode(p.second.c_str());
-
-            if (identity_mode == IdentityMode::INVALID)
-            {
-                error(EXIT_CONFIG_ERROR, "Invalid identity mode: \"%s\"!\n", p.second.c_str());
-            }
-        }
-        else if (p.first == "shell")
-        {
-            telegram_shells.push_back(p.second);
-        }
-        else if (p.first == "metershell")
-        {
-            new_meter_shells.push_back(p.second);
-        }
-        else if (p.first == "alarmshell")
-        {
-            alarm_shells.push_back(p.second);
-        }
-        else if (p.first == "selectedfields")
-        {
-            if (selected_fields.size() > 0)
-            {
-                warning("(warning) selectfields already used! Ignoring selectfields %s", p.second.c_str());
-                return;
-            }
-            selected_fields = splitString(p.second, ',');
-        }
-        else if (startsWith(p.first, "json_") ||
-                startsWith(p.first, "field_"))
-        {
-            int off = 5;
-            if (startsWith(p.first, "field_")) { off = 6; }
-            string keyvalue = p.first.substr(off)+"="+p.second;
-            extra_constant_fields.push_back(keyvalue);
-        }
-        else if (startsWith(p.first, "calculate_"))
-        {
-            string keyvalue = p.first.substr(10)+"="+p.second;
-            extra_calculated_fields.push_back(keyvalue);
-        }
-        else
-        {
-            warning("Found invalid key \"%s\" in meter config file\n", p.first.c_str());
-        }
-
-        if (p.first != "key") {
-            debug("(config) %s=%s\n", p.first.c_str(), p.second.c_str());
+            xmqFreeDoc(doc);
         }
     }
+    else
+    {
+        // This is a meter config file in the old key=value format.
+        auto i = buf.begin();
+
+        for (;;)
+        {
+            pair<string,string> p = getNextKeyValue(buf, i);
+
+            if (p.first == "") break;
+
+            if (!handleMeterConfigKey(m, p.first, p.second))
+            {
+                abort_meter = true;
+                break;
+            }
+        }
+    }
+
+    if (abort_meter) return;
+
     bool use = true;
 
     MeterInfo mi;
@@ -225,13 +354,13 @@ void parseMeterConfig(Configuration *c, vector<char> &buf, string file)
     // Accept pure numeric non-empty IDs silently (common case).
     // Only warn if not numeric and not a valid sequence of match expressions.
     {
-        bool numeric_id = !address_expressions.empty() &&
-            address_expressions.find_first_not_of("0123456789") == string::npos;
+        bool numeric_id = !m.address_expressions.empty() &&
+            m.address_expressions.find_first_not_of("0123456789") == string::npos;
         if (!numeric_id)
         {
-            if (!isValidSequenceOfAddressExpressions(address_expressions))
+            if (!isValidSequenceOfAddressExpressions(m.address_expressions))
             {
-                warning("In config, not a valid meter id nor a valid sequence of match expression \"%s\"\n", address_expressions.c_str());
+                warning("In config, not a valid meter id nor a valid sequence of match expression \"%s\"\n", m.address_expressions.c_str());
                 use = false;
             }
         }
@@ -239,23 +368,34 @@ void parseMeterConfig(Configuration *c, vector<char> &buf, string file)
 
     if (use)
     {
-        mi.parse(name, driver, address_expressions, key); // sets driver, extras, name, bus, bps, link_modes, ids, name, key
-        mi.poll_interval = poll_interval;
-        mi.identity_mode = identity_mode;
-
-        if (!isValidKey(key, mi))
+        mi.parse(m.name, m.driver, m.address_expressions, m.key); // sets driver, extras, name, bus, bps, link_modes, ids, name, key
+        if (m.bus != "")
         {
-            warning("In config, not a valid meter key in config \"%s\"\n", key.c_str());
+            // The bus key sets the bus alias for this meter,
+            // overriding any bus specified in the driver string.
+            if (mi.bus != "" && mi.bus != m.bus)
+            {
+                warning("In config, meter %s has both bus \"%s\" in the driver string and bus \"%s\" in the bus key, using the bus key.\n",
+                        m.name.c_str(), mi.bus.c_str(), m.bus.c_str());
+            }
+            mi.bus = m.bus;
+        }
+        mi.poll_interval = m.poll_interval;
+        mi.identity_mode = m.identity_mode;
+
+        if (!isValidKey(m.key, mi))
+        {
+            warning("In config, not a valid meter key in config \"%s\"\n", m.key.c_str());
             use = false;
         }
 
         if (use)
         {
-            mi.extra_constant_fields = extra_constant_fields;
-            mi.extra_calculated_fields = extra_calculated_fields;
-            mi.shells = telegram_shells;
-            mi.new_meter_shells = new_meter_shells;
-            mi.selected_fields = selected_fields;
+            mi.extra_constant_fields = m.extra_constant_fields;
+            mi.extra_calculated_fields = m.extra_calculated_fields;
+            mi.shells = m.telegram_shells;
+            mi.new_meter_shells = m.new_meter_shells;
+            mi.selected_fields = m.selected_fields;
             c->meters.push_back(mi);
         }
     }
@@ -362,7 +502,7 @@ void handleIgnoreDuplicateTelegrams(Configuration *c, string value)
     }
 }
 
-void handleTelegramDetails(Configuration *c, string value)
+void handleAddTelegramDetails(Configuration *c, string value)
 {
     if (value == "never")
     {
@@ -377,7 +517,7 @@ void handleTelegramDetails(Configuration *c, string value)
         c->telegram_details = TelegramDetails::ALWAYS;
     }
     else {
-        warning("telegramdetails should be either never,first or always, not \"%s\"\n", value.c_str());
+        warning("addtelegramdetails should be either never,first or always, not \"%s\"\n", value.c_str());
     }
 }
 
@@ -435,7 +575,7 @@ bool handleDeviceOrHex(Configuration *c, string devicefilehex)
     {
         if (invalid_hex)
         {
-            error(EXIT_CONFIG_ERROR, "Bad hex: \"%s\"\nHex string must have an even length of hexadecimal characters.\n", devicefilehex.c_str());
+            errorAndExit(EXIT_CONFIG_ERROR, "Bad hex: \"%s\"\nHex string must have an even length of hexadecimal characters.\n", devicefilehex.c_str());
         }
     }
 
@@ -443,7 +583,7 @@ bool handleDeviceOrHex(Configuration *c, string devicefilehex)
     bool ok = specified_device.parse(devicefilehex);
     if (!ok && SpecifiedDevice::isLikelyDevice(devicefilehex))
     {
-        error(EXIT_CONFIG_ERROR, "Not a valid device \"%s\"\n", devicefilehex.c_str());
+        errorAndExit(EXIT_CONFIG_ERROR, "Not a valid device \"%s\"\n", devicefilehex.c_str());
     }
 
     if (!ok) return false;
@@ -457,7 +597,7 @@ bool handleDeviceOrHex(Configuration *c, string devicefilehex)
     {
         if (!specified_device.linkmodes.empty())
         {
-            error(EXIT_CONFIG_ERROR, "An mbus device must not have linkmode set. \"%s\"\n", devicefilehex.c_str());
+            errorAndExit(EXIT_CONFIG_ERROR, "An mbus device must not have linkmode set. \"%s\"\n", devicefilehex.c_str());
         }
     }
 
@@ -488,11 +628,11 @@ bool handleDeviceOrHex(Configuration *c, string devicefilehex)
     {
         if (c->single_device_override)
         {
-            error(EXIT_CONFIG_ERROR, "You can only specify one stdin or one file or one command!\n");
+            errorAndExit(EXIT_CONFIG_ERROR, "You can only specify one stdin or one file or one command!\n");
         }
         if (c->use_auto_device_detect)
         {
-            error(EXIT_CONFIG_ERROR, "You cannot mix auto with stdin or a file.\n");
+            errorAndExit(EXIT_CONFIG_ERROR, "You cannot mix auto with stdin or a file.\n");
         }
         if (specified_device.is_simulation) c->simulation_found = true;
         c->single_device_override = true;
@@ -530,11 +670,11 @@ void handleListenTo(Configuration *c, string mode)
     LinkModeSet lms = parseLinkModes(mode.c_str());
     if (lms.empty())
     {
-        error(EXIT_CONFIG_ERROR, "Unknown link modes \"%s\"!\n", mode.c_str());
+        errorAndExit(EXIT_CONFIG_ERROR, "Unknown link modes \"%s\"!\n", mode.c_str());
     }
     if (!c->default_device_linkmodes.empty())
     {
-        error(EXIT_CONFIG_ERROR, "You have already specified the default link modes!\n");
+        errorAndExit(EXIT_CONFIG_ERROR, "You have already specified the default link modes!\n");
     }
 
     c->default_device_linkmodes = lms;
@@ -544,14 +684,14 @@ void handleExitAfter(Configuration *c, string after)
 {
     if (c->exitafter > 0)
     {
-        error(EXIT_CONFIG_ERROR, "You have already specified an exit after time!\n");
+        errorAndExit(EXIT_CONFIG_ERROR, "You have already specified an exit after time!\n");
     }
 
     c->exitafter = parseTime(after);
 
     if (c->exitafter == 0)
     {
-        error(EXIT_CONFIG_ERROR, "Exit after time must be non-zero \"%s\"!\n", after.c_str());
+        errorAndExit(EXIT_CONFIG_ERROR, "Exit after time must be non-zero \"%s\"!\n", after.c_str());
     }
 }
 
@@ -797,6 +937,90 @@ void handleExtraCalculatedField(Configuration *c, string field)
     c->extra_calculated_fields.push_back(field);
 }
 
+// Handle one key=value pair from the main config file.
+static void handleGlobalConfigKey(Configuration *c, string key, string value)
+{
+    debug("(config) \"%s\" \"%s\"\n", key.c_str(), value.c_str());
+
+    // If the key starts with # then the line is a comment. Ignore it.
+    if (key.length() > 0 && key[0] == '#') return;
+
+    if (key == "loglevel") handleLoglevel(c, value);
+    else if (key == "internaltesting") handleInternalTesting(c, value);
+    else if (key == "nonet") handleNoNet(c, value);
+    else if (key == "basicauth") handleBasicAuth(c, value);
+    else if (key == "ignoreduplicates") handleIgnoreDuplicateTelegrams(c, value);
+    else if (key == "addtelegramdetails") handleAddTelegramDetails(c, value);
+    else if (key == "addtelegramhex") handleAddTelegramHex(c, value);
+    else if (key == "addtelegramstructured") handleAddTelegramStructured(c, value);
+    else if (key == "device") handleDeviceOrHex(c, value);
+    else if (key == "donotprobe") handleDoNotProbe(c, value);
+    else if (key == "listento") handleListenTo(c, value);
+    else if (key == "exitafter") handleExitAfter(c, value);
+    else if (key == "oneshot") handleOneshot(c, value);
+    else if (key == "logtelegrams") handleLogtelegrams(c, value);
+    else if (key == "logsummary") handleLogsummary(c, value);
+    else if (key == "meterfiles") handleMeterfiles(c, value);
+    else if (key == "meterfilesaction") handleMeterfilesAction(c, value);
+    else if (key == "meterfilesnaming") handleMeterfilesNaming(c, value);
+    else if (key == "meterfilestimestamp") handleMeterfilesTimestamp(c, value);
+    else if (key == "logfile") handleLogfile(c, value);
+    else if (key == "format") handleFormat(c, value);
+    else if (key == "alarmtimeout") handleAlarmTimeout(c, value);
+    else if (key == "alarmexpectedactivity") handleAlarmExpectedActivity(c, value);
+    else if (key == "separator") handleSeparator(c, value);
+    else if (key == "logtimestamps") handleLogTimestamps(c, value);
+    else if (key == "selectfields") handleSelectedFields(c, value);
+    else if (key == "shell") handleShell(c, value);
+    else if (key == "resetafter") handleResetAfter(c, value);
+    else if (key == "metershell") handleMeterShell(c, value);
+    else if (key == "alarmshell") handleAlarmShell(c, value);
+    else if (key == "rawshell") handleRawShell(c, value);
+    else if (startsWith(key, "json_") ||
+             startsWith(key, "field_"))
+    {
+        int off = 5;
+        if (startsWith(key, "field_")) { off = 6; }
+        string s = key.substr(off);
+        string keyvalue = s+"="+value;
+        handleExtraConstantField(c, keyvalue);
+    }
+    else if (startsWith(key, "calculate_"))
+    {
+        string keyvalue = key.substr(10)+"="+value;
+        handleExtraCalculatedField(c, keyvalue);
+    }
+    else
+    {
+        warning("No such key: %s\n", key.c_str());
+    }
+}
+
+struct GlobalConfigEach
+{
+    Configuration *c;
+};
+
+static XMQProceed wmbusMetersConfigEach(XMQDoc *doc, XMQNode *node, void *user_data)
+{
+    GlobalConfigEach *each = (GlobalConfigEach*) user_data;
+
+    const char *key_c = xmqGetName(node);
+    if (!key_c) return XMQ_CONTINUE;
+
+    string key = key_c;
+
+    // Comment lines are stored as nodes with names //..., ignore them.
+    if (key.length() > 1 && key[0] == '/' && key[1] == '/') return XMQ_CONTINUE;
+
+    const char *value_c = xmqGetContent(node);
+    string value = value_c ? value_c : "";
+
+    handleGlobalConfigKey(each->c, key, value);
+
+    return XMQ_CONTINUE;
+}
+
 shared_ptr<Configuration> loadConfiguration(string root, ConfigOverrides overrides)
 {
     Configuration *c = new Configuration;
@@ -827,69 +1051,51 @@ shared_ptr<Configuration> loadConfiguration(string root, ConfigOverrides overrid
     debug("(config) loading %s\n", conf_file.c_str());
 
     if (!loadFile(conf_file, &global_conf)) {
-        error(EXIT_CONFIG_ERROR, "Cannot load config file \"%s\"\n", conf_file.c_str());
+        errorAndExit(EXIT_CONFIG_ERROR, "Cannot load config file \"%s\"\n", conf_file.c_str());
     }
 
     global_conf.push_back('\n');
 
-    auto i = global_conf.begin();
+    bool xmq_ok = false;
 
-    for (;;) {
-        auto p = getNextKeyValue(global_conf, i);
+    if (isWMBusMetersConfigXMQ(global_conf))
+    {
+        // The config file is an xmq file with a wmbusmeters { ... } node,
+        // load the values using xmqGetString and xmqForEach.
+        XMQReturnDoc rd = xmqNewDoc();
+        if (rd.status == XMQ_OK)
+        {
+            XMQDoc *doc = rd.doc;
+            bool pok = xmqParseBuffer(doc, global_conf.data(), global_conf.data()+global_conf.size(), NULL, 0);
+            XMQNode *rpok = pok ? xmqGetNode(doc, "/wmbusmeters") : NULL;
+            if (pok && rpok)
+            {
+                GlobalConfigEach each;
+                each.c = c;
+                xmqForeachRel(doc, "*", wmbusMetersConfigEach, &each, rpok);
+                xmq_ok = true;
+            }
+            if (!pok)
+            {
+                warning("Failed to parse config file \"%s\" as xmq: %s\n",
+                        conf_file.c_str(),
+                        xmqDocError(doc) ? xmqDocError(doc) : "");
+            }
+            xmqFreeDoc(doc);
+        }
+    }
 
-        debug("(config) \"%s\" \"%s\"\n", p.first.c_str(), p.second.c_str());
-        if (p.first == "") break;
-        // If the key starts with # then the line is a comment. Ignore it.
-        if (p.first.length() > 0 && p.first[0] == '#') continue;
-        if (p.first == "loglevel") handleLoglevel(c, p.second);
-        else if (p.first == "internaltesting") handleInternalTesting(c, p.second);
-        else if (p.first == "nonet") handleNoNet(c, p.second);
-        else if (p.first == "basicauth") handleBasicAuth(c, p.second);
-        else if (p.first == "ignoreduplicates") handleIgnoreDuplicateTelegrams(c, p.second);
-        else if (p.first == "telegramdetails") handleTelegramDetails(c, p.second);
-        else if (p.first == "addtelegramhex") handleAddTelegramHex(c, p.second);
-        else if (p.first == "addtelegramstructured") handleAddTelegramStructured(c, p.second);
-        else if (p.first == "device") handleDeviceOrHex(c, p.second);
-        else if (p.first == "donotprobe") handleDoNotProbe(c, p.second);
-        else if (p.first == "listento") handleListenTo(c, p.second);
-        else if (p.first == "exitafter") handleExitAfter(c, p.second);
-        else if (p.first == "oneshot") handleOneshot(c, p.second);
-        else if (p.first == "logtelegrams") handleLogtelegrams(c, p.second);
-        else if (p.first == "logsummary") handleLogsummary(c, p.second);
-        else if (p.first == "meterfiles") handleMeterfiles(c, p.second);
-        else if (p.first == "meterfilesaction") handleMeterfilesAction(c, p.second);
-        else if (p.first == "meterfilesnaming") handleMeterfilesNaming(c, p.second);
-        else if (p.first == "meterfilestimestamp") handleMeterfilesTimestamp(c, p.second);
-        else if (p.first == "logfile") handleLogfile(c, p.second);
-        else if (p.first == "format") handleFormat(c, p.second);
-        else if (p.first == "alarmtimeout") handleAlarmTimeout(c, p.second);
-        else if (p.first == "alarmexpectedactivity") handleAlarmExpectedActivity(c, p.second);
-        else if (p.first == "separator") handleSeparator(c, p.second);
-        else if (p.first == "logtimestamps") handleLogTimestamps(c, p.second);
-        else if (p.first == "selectfields") handleSelectedFields(c, p.second);
-        else if (p.first == "shell") handleShell(c, p.second);
-        else if (p.first == "resetafter") handleResetAfter(c, p.second);
-        else if (p.first == "metershell") handleMeterShell(c, p.second);
-        else if (p.first == "alarmshell") handleAlarmShell(c, p.second);
-        else if (p.first == "rawshell") handleRawShell(c, p.second);
-        else if (startsWith(p.first, "json_") ||
-                 startsWith(p.first, "field_"))
-        {
-            int off = 5;
-            if (startsWith(p.first, "field_")) { off = 6; }
-            string s = p.first.substr(off);
-            string keyvalue = s+"="+p.second;
-            handleExtraConstantField(c, keyvalue);
-        }
-        else
-        if (startsWith(p.first, "calculate_"))
-        {
-            string keyvalue = p.first.substr(10)+"="+p.second;
-            handleExtraCalculatedField(c, keyvalue);
-        }
-        else
-        {
-            warning("No such key: %s\n", p.first.c_str());
+    if (!xmq_ok)
+    {
+        // This is a config file in the old key=value format.
+        auto i = global_conf.begin();
+
+        for (;;) {
+            auto p = getNextKeyValue(global_conf, i);
+
+            if (p.first == "") break;
+
+            handleGlobalConfigKey(c, p.first, p.second);
         }
     }
 

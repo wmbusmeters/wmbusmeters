@@ -5,6 +5,7 @@ driver {
     name           = hydrus
     meter_type     = WaterMeter
     default_fields = name,id,total_m3,total_at_date_m3,status,timestamp
+    manufacturer   = Diehl
     detect {
         mvt = DME,70,07
         mvt = DME,76,07
@@ -26,7 +27,7 @@ driver {
     fields {
         field {
             name       = status
-            quantity   = Text
+            quantity   = Flags
             info       = 'Status of meter.'
             attributes = STATUS,INCLUDE_TPL_STATUS
             match {

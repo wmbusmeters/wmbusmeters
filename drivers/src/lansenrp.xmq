@@ -5,6 +5,7 @@ driver {
     name           = lansenrp
     meter_type     = Repeater
     default_fields = name,id,status,total_routed_messages_counter,used_router_slots_counter,is_repeater_listening,timestamp
+    manufacturer   = Lansen
     detect {
         mvt = LAS,0b,32
     }
@@ -13,10 +14,40 @@ driver {
         use = meter_datetime
         use = battery_v
     }
+    flags {
+        flag {
+            name = SU
+            info = 'The repeater listens on Sundays.'
+        }
+        flag {
+            name = MO
+            info = 'The repeater listens on Mondays.'
+        }
+        flag {
+            name = TU
+            info = 'The repeater listens on Tuesdays.'
+        }
+        flag {
+            name = WE
+            info = 'The repeater listens on Wednesdays.'
+        }
+        flag {
+            name = TH
+            info = 'The repeater listens on Thursdays.'
+        }
+        flag {
+            name = FR
+            info = 'The repeater listens on Fridays.'
+        }
+        flag {
+            name = SA
+            info = 'The repeater listens on Saturdays.'
+        }
+    }
     fields {
         field {
             name       = status
-            quantity   = Text
+            quantity   = Flags
             info       = 'Meter status from tpl status field.'
             attributes = STATUS,INCLUDE_TPL_STATUS
         }

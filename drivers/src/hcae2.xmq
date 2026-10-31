@@ -4,6 +4,7 @@ driver {
     name           = hcae2
     meter_type     = HeatCostAllocationMeter
     default_fields = name,id,consumption_hca,status,timestamp
+    manufacturer   = Engelmann
     detect {
         mvt = EFE,31,08
     }
@@ -15,10 +16,44 @@ driver {
         use = meter_datetime
         use = meter_datetime_at_error
     }
+    flags {
+        flag {
+            name = MEMORY_ERROR
+            info = 'The memory of the device is faulty.'
+        }
+        flag {
+            name = UNEXPECTED_RST
+            info = 'The device has restarted unexpectedly.'
+        }
+        flag {
+            name = ANNO_10_11
+            info = 'Unknown flag, please contact the wmbusmeters project to contribute knowledge.'
+        }
+        flag {
+            name = OPEN_C
+            info = 'Unknown flag, please contact the wmbusmeters project to contribute knowledge.'
+        }
+        flag {
+            name = SENSOR_BREAK
+            info = 'A temperature sensor cable is broken.'
+        }
+        flag {
+            name = SENSOR_SHORT
+            info = 'A temperature sensor is short circuited.'
+        }
+        flag {
+            name = WDT
+            info = 'The watchdog has restarted the device.'
+        }
+        flag {
+            name = REMOTE_SENSOR
+            info = 'The device reports its remote sensor.'
+        }
+    }
     fields {
         field {
             name       = status_mfct
-            quantity   = Text
+            quantity   = Flags
             info       = 'Manufacturer error flags. Same encoding the LCD displays as decimal value (documented by manufacturer).'
             attributes = INJECT_INTO_STATUS,HIDE
             match {

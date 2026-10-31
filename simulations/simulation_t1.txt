@@ -101,11 +101,11 @@ telegram=|2e44333003020100071b7a634820252f2f0265840842658308820165950802fb1aae01
 # Test Lansen door window telegram
 
 telegram=|2e44333005020100071d7ab54800002f2f02fd1b110002fd971d01000efd3a2200000000008e40fd3a000000000000|
-{"_":"telegram","media":"reserved","driver":"lansendw","name":"Dooro","id":"00010205","status":"CLOSED","a_counter":22,"b_counter":0,"error_flags": "ERROR_FLAGS_1 PERMANENT_ERROR UNKNOWN_40","timestamp":"1111-11-11T11:11:11Z"}
+{"_":"telegram","media":"reserved","driver":"lansendw","name":"Dooro","id":"00010205","status":"CLOSED","a_counter":22,"b_counter":0,"error_flags": "ERROR_FLAGS_1 PERMANENT_ERROR TPL_STS_64","timestamp":"1111-11-11T11:11:11Z"}
 |Dooro;00010205;CLOSED;1111-11-11 11:11.11
 
 telegram=|2e44333005020100071d7ab66800002f2f02fd1b550002fd971d01000efd3a2300000000008e40fd3a000000000000|
-{"_":"telegram","media":"reserved","driver":"lansendw","name":"Dooro","id":"00010205","status":"OPEN","a_counter":23,"b_counter":0,"error_flags": "ERROR_FLAGS_1 PERMANENT_ERROR UNKNOWN_60","timestamp":"1111-11-11T11:11:11Z"}
+{"_":"telegram","media":"reserved","driver":"lansendw","name":"Dooro","id":"00010205","status":"OPEN","a_counter":23,"b_counter":0,"error_flags": "ERROR_FLAGS_1 PERMANENT_ERROR TPL_STS_96","timestamp":"1111-11-11T11:11:11Z"}
 |Dooro;00010205;OPEN;1111-11-11 11:11.11
 
 # Test Lansen pulse counter
@@ -280,7 +280,7 @@ telegram=|1E4424238B06204790607A2A0010D8_0413DDC00000426CBF23441382BB0000|
 
 # Test another Diehl branded meter with the izar protocol
 telegram=|19442423850798160018A2410100133EBBD44081053F243A82A3|
-{"_":"telegram","media":"water","driver":"izar","name":"IzarWater4","id":"18001698","total_m3":835.689,"last_month_total_m3":820.329,"last_month_measure_date":"2021-09-01","remaining_battery_life_y":0.5,"current_alarms":"no_alarm","previous_alarms":"no_alarm","transmit_period_s":8,"timestamp":"1111-11-11T11:11:11Z"}
+{"_":"telegram","media":"water","driver":"izar","driver_deprecated_by":"izarv2, upgrade before 2026-12-01","name":"IzarWater4","id":"18001698","total_m3":835.689,"last_month_total_m3":820.329,"last_month_measure_date":"2021-09-01","remaining_battery_life_y":0.5,"current_alarms":"no_alarm","previous_alarms":"no_alarm","transmit_period_s":8,"timestamp":"1111-11-11T11:11:11Z"}
 |IzarWater4;18001698;null;null;835.689;820.329;2021-09-01;0.5;no_alarm;no_alarm;8;null;1111-11-11 11:11.11
 
 # Test Aventies Water Meter
@@ -305,7 +305,7 @@ telegram=|2E44B05C82340100021B7A460000002F2F0A6601020AFB1A570602FD971D00002F2F2F
 
 # Test QHeat heat meter
 telegram=|3C449344957002372337725880226793442304DC0000200C05043900004C0500000000426C9F2CCC080551070000C2086CBE29326CFFFF046D280DB62A|
-{"_":"telegram","media":"heat","driver":"qheat","name":"QHeato","id":"67228058","status":"OK","total_energy_consumption_kwh":390.4,"last_month_date":"2021-09-30","last_month_energy_consumption_kwh":75.1,"last_year_date":"2020-12-31","last_year_energy_consumption_kwh":0,"device_date_time":"2021-10-22 13:40","device_error_date":"","timestamp":"1111-11-11T11:11:11Z"}
+{"_":"telegram","media":"heat","driver":"qheat","driver_deprecated_by":"qheatv2, upgrade before 2026-12-01","name":"QHeato","id":"67228058","status":"OK","total_energy_consumption_kwh":390.4,"last_month_date":"2021-09-30","last_month_energy_consumption_kwh":75.1,"last_year_date":"2020-12-31","last_year_energy_consumption_kwh":0,"device_date_time":"2021-10-22 13:40","device_error_date":"","timestamp":"1111-11-11T11:11:11Z"}
 |QHeato;67228058;390.4;2021-09-30;75.1;1111-11-11 11:11.11
 
 # Test QSmoke smoke detector this one is not yet understood.

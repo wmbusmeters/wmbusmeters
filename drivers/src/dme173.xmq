@@ -3,6 +3,7 @@ driver {
     name           = dme173
     meter_type     = WaterMeter
     default_fields = name,id,status,total_m3,timestamp
+    manufacturer   = Diehl
     detect {
         mvt = DME,63,07
     }
@@ -14,7 +15,7 @@ driver {
     fields {
         field {
             name       = status
-            quantity   = Text
+            quantity   = Flags
             info       = 'Status and error flags.'
             attributes = INCLUDE_TPL_STATUS
             match {

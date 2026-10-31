@@ -3,13 +3,24 @@ driver {
     name           = nzr
     default_fields = name,id,status,total_energy_consumption_kwh,timestamp
     meter_type     = ElectricityMeter
+    manufacturer   = NZR
     detect {
         mvt = NZR,00,02
+    }
+    flags {
+        flag {
+            name = GENERIC_APP_ERROR
+            info = 'The meter reports an application error.'
+        }
+        flag {
+            name = CURRENT_LOW
+            info = 'The current is low.'
+        }
     }
     fields {
         field {
             name       = status
-            quantity   = Text
+            quantity   = Flags
             info       = status_and_error_flags
             attributes = STATUS,INCLUDE_TPL_STATUS
             match {

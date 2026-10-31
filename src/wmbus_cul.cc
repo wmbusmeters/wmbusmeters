@@ -144,7 +144,7 @@ bool WMBusCUL::deviceSetLinkModes(LinkModeSet lms)
     if (!canSetLinkModes(lms))
     {
         string modes = lms.hr();
-        error(EXIT_BUS_DEVICE_ERROR, "(cul) setting link mode(s) %s is not supported\n", modes.c_str());
+        errorAndExit(EXIT_BUS_DEVICE_ERROR, "(cul) setting link mode(s) %s is not supported\n", modes.c_str());
     }
 
     {
@@ -190,7 +190,7 @@ bool WMBusCUL::deviceSetLinkModes(LinkModeSet lms)
     if (!ok)
     {
         string modes = lms.hr();
-        error(EXIT_BUS_DEVICE_ERROR, "(cul) setting link mode(s) %s is not supported for this cul device!\n", modes.c_str());
+        errorAndExit(EXIT_BUS_DEVICE_ERROR, "(cul) setting link mode(s) %s is not supported for this cul device!\n", modes.c_str());
     }
 
     // X01 - start the receiver in normal mode

@@ -121,7 +121,7 @@ void addRegisteredDriver(DriverInfo di)
     verifyDriverLookupCreated();
     if (registered_drivers_->count(di.name().str()) != 0)
     {
-        error(EXIT_DRIVER_ERROR, "Two drivers trying to register the name \"%s\"\n", di.name().str().c_str());
+        errorAndExit(EXIT_DRIVER_ERROR, "Two drivers trying to register the name \"%s\"\n", di.name().str().c_str());
     }
 
     (*registered_drivers_)[di.name().str()] = di;
@@ -193,7 +193,7 @@ bool staticRegisterDriver(function<void(DriverInfo&)> setup)
             bool foo = p->detect(d.mfct, d.version, d.type);
             if (foo)
             {
-                error(EXIT_DRIVER_ERROR, "Internal error: driver %s tried to register the same auto detect combo as driver %s alread has taken!\n",
+                errorAndExit(EXIT_DRIVER_ERROR, "Internal error: driver %s tried to register the same auto detect combo as driver %s alread has taken!\n",
                       di.name().str().c_str(), p->name().str().c_str());
             }
         }
@@ -265,7 +265,7 @@ string loadDriver(const string &file, const char *content)
     bool ok = DriverDynamic::load(&di, file, content);
     if (!ok)
     {
-        error(EXIT_DRIVER_ERROR, "Failed to load driver from file: %s\n", file.c_str());
+        errorAndExit(EXIT_DRIVER_ERROR, "Failed to load driver from file: %s\n", file.c_str());
     }
 
     for (auto &mvt : di.mvts())
@@ -306,7 +306,7 @@ string loadDriver(const string &file, const char *content)
         else
         {
             // Ok, two xmq drivers in /etc/wmbusmeters.drivers.d that declare the same driver name are NOT ok.
-            error(EXIT_DRIVER_ERROR, "Conflicting driver names are not permitted. Plese change the driver name in file %s "
+            errorAndExit(EXIT_DRIVER_ERROR, "Conflicting driver names are not permitted. Plese change the driver name in file %s "
                   "to something that is different from %s since the existing driver file %s has already taken the name!\n",
                   file.c_str(), di.name().str().c_str(),
                   existing->getDynamicFileName().c_str());
@@ -374,7 +374,7 @@ string loadDriver(const string &file, const char *content)
                 else
                 {
                     // It is not ok to override an previously dynamically loaded driver though!
-                    error(EXIT_DRIVER_ERROR, "Newly loaded driver %s (%s) tries to register the same "
+                    errorAndExit(EXIT_DRIVER_ERROR, "Newly loaded driver %s (%s) tries to register the same "
                           "auto detect combo as driver %s (%s) alread has taken! mvt=%s,%02x,%02x\n",
                           di.name().str().c_str(),
                           di.getDynamicFileName().c_str(),
@@ -782,14 +782,15 @@ void MeterCommonImplementation::addStringFieldWithExtractor(string vname,
                                                             PrintProperties print_properties,
                                                             FieldMatcher matcher,
                                                             string ixml,
-                                                            bool match_entire_payload)
+                                                            bool match_entire_payload,
+                                                            Quantity vquantity)
 {
     size_t index = num_driver_fields_++;
     field_infos_.emplace_back(
         FieldInfo(index,
                   vname,
-                  Quantity::Text,
-                  defaultUnitForQuantity(Quantity::Text),
+                  vquantity,
+                  defaultUnitForQuantity(vquantity),
                   Unit::Unknown, // Do not override VIF unit.
                   VifScaling::None,
                   DifSignedness::Signed,
@@ -819,14 +820,15 @@ void MeterCommonImplementation::addStringFieldWithExtractorAndLookup(string vnam
                                                                      string help,
                                                                      PrintProperties print_properties,
                                                                      FieldMatcher matcher,
-                                                                     Translate::Lookup lookup)
+                                                                     Translate::Lookup lookup,
+                                                                     Quantity vquantity)
 {
     size_t index = num_driver_fields_++;
     field_infos_.emplace_back(
         FieldInfo(index,
                   vname,
-                  Quantity::Text,
-                  defaultUnitForQuantity(Quantity::Text),
+                  vquantity,
+                  defaultUnitForQuantity(vquantity),
                   Unit::Unknown, // No forced unit.
                   VifScaling::None,
                   DifSignedness::Signed,
@@ -846,14 +848,15 @@ void MeterCommonImplementation::addStringFieldWithExtractorAndLookup(string vnam
 
 void MeterCommonImplementation::addStringField(string vname,
                                                string help,
-                                               PrintProperties print_properties)
+                                               PrintProperties print_properties,
+                                               Quantity vquantity)
 {
     size_t index = num_driver_fields_++;
     field_infos_.emplace_back(
         FieldInfo(index,
                   vname,
-                  Quantity::Text,
-                  defaultUnitForQuantity(Quantity::Text),
+                  vquantity,
+                  defaultUnitForQuantity(vquantity),
                   Unit::Unknown, // No forced unit.
                   VifScaling::None,
                   DifSignedness::Signed,
@@ -1174,7 +1177,7 @@ bool driverNeedsPolling(DriverName& dn)
 
 const char *toString(MeterType type)
 {
-#define X(tname) if (type == MeterType::tname) return #tname;
+#define X(tname,desc) if (type == MeterType::tname) return #tname;
 LIST_OF_METER_TYPES
 #undef X
     return "unknown";
@@ -1182,10 +1185,18 @@ LIST_OF_METER_TYPES
 
 MeterType toMeterType(string type)
 {
-#define X(tname) if (type == #tname) return MeterType::tname;
+#define X(tname,desc) if (type == #tname) return MeterType::tname;
 LIST_OF_METER_TYPES
 #undef X
     return MeterType::UnknownMeter;
+}
+
+const char *defaultMeterTypeText(MeterType type)
+{
+#define X(tname,desc) if (type == MeterType::tname) return desc;
+LIST_OF_METER_TYPES
+#undef X
+    return "";
 }
 
 const char *toString(ReadableString rs)
@@ -1415,7 +1426,7 @@ bool checkPrintableField(string *buf, string desired_field, Meter *m, Telegram *
 
     for (FieldInfo &fi : fields)
     {
-        if (fi.xuantity() == Quantity::Text)
+        if (nonNumericQuantity(fi.xuantity()))
         {
             // Strings are simply just print them.
             if (desired_field == fi.vname())
@@ -1423,7 +1434,7 @@ bool checkPrintableField(string *buf, string desired_field, Meter *m, Telegram *
                 // Unless it is the status field...
                 if (fi.printProperties().hasSTATUS())
                 {
-                    string s = ((MeterCommonImplementation*)m)->getStatusField(&fi);
+                    string s = ((MeterCommonImplementation*)m)->getStatusFlags(&fi);
                     if (t->decoding_errors != "")
                     {
                         s = joinStatusOKStrings(s, t->decoding_errors);
@@ -1561,6 +1572,13 @@ void MeterCommonImplementation::buildOutputDoc(XMQDoc *doc,
     assert(rn.status == XMQ_OK);
     XMQNode *telegram = rn.node;
 
+    if (driverInfo()->hasError())
+    {
+        string e = driverInfo()->errorInDriverMsg();
+        trimWhitespace(&e);
+        xmqAddKeyValue(doc, telegram, "driver_error", e.c_str(), NS_PARENT);
+    }
+
     xmqAddKeyValue(doc, telegram, "media", media.c_str(), NS_PARENT);
     xmqAddKeyValue(doc, telegram, "driver", driverName().str().c_str(), NS_PARENT);
     if (driverInfo()->deprecatedBy().length() > 0)
@@ -1591,6 +1609,12 @@ void MeterCommonImplementation::buildOutputDoc(XMQDoc *doc,
 
         string mvts = extractMVTs(t);
         xmqAddKeyValue(doc, details, "mvt", mvts.c_str(), NS_PARENT);
+
+        string info = t->meter->driverInfo()->getInfo();
+        if (info == "") {
+            info = defaultMeterTypeText(t->meter->driverInfo()->getMeterType());
+        }
+        xmqAddKeyValue(doc, details, "info", info.c_str(), NS_PARENT);
 
         rn = xmqAddElement(doc, details, "flags", NS_PARENT);
         assert(rn.status == XMQ_OK);
@@ -2105,7 +2129,7 @@ void MeterCommonImplementation::processFieldCalculators()
     }
 }
 
-string MeterCommonImplementation::getStatusField(FieldInfo *fi)
+string MeterCommonImplementation::getStatusFlags(FieldInfo *fi)
 {
     string field_name_no_unit = fi->vname();
     if (string_values_.count(field_name_no_unit) == 0)
@@ -2123,11 +2147,8 @@ string MeterCommonImplementation::getStatusField(FieldInfo *fi)
     {
         if (f.printProperties().hasINJECTINTOSTATUS())
         {
-            //printf("NOW >%s<\n", value.c_str());
             string more = getStringValue(&f);
-            //printf("MORE >%s<\n", more.c_str());
             string joined = joinStatusOKStrings(value, more);
-            //printf("JOINED >%s<\n", joined.c_str());
             value = joined;
         }
     }
@@ -2350,6 +2371,85 @@ LIST_OF_TPL_STATUS_BITS
     return out;
 }
 
+static void mergeStatusLookupUnknowns(map<string,uint64_t> &out, const map<string,uint64_t> &in)
+{
+    for (const auto &e : in)
+    {
+        out[e.first] |= e.second;
+    }
+}
+
+map<string,uint64_t> MeterCommonImplementation::getStatusLookupUnknowns(FieldInfo *fi, Telegram *t)
+{
+    map<string,uint64_t> out;
+
+    uint64_t bits;
+    if (getFieldBits(fi, &bits))
+        mergeStatusLookupUnknowns(out, fi->lookup().unknownBits(bits));
+
+    // Aggregate the INJECT_INTO_STATUS fields' unknowns, deduped per rule name.
+    for (FieldInfo &f : field_infos_)
+    {
+        if (f.printProperties().hasINJECTINTOSTATUS())
+        {
+            uint64_t fbits;
+            if (getFieldBits(&f, &fbits))
+                mergeStatusLookupUnknowns(out, f.lookup().unknownBits(fbits));
+        }
+    }
+
+    // A field with INCLUDE_TPL_STATUS always reports a TPL_STS entry (0 when the
+    // vendor-specific bits are fully known), just like the other lookups. The
+    // standard bits 0-4 are always named (BUSY/ERROR/ALARM/POWER_LOW/PERMANENT_ERROR/
+    // TEMPORARY_ERROR) so they never contribute to the unknown bits.
+    if (fi->printProperties().hasINCLUDETPLSTATUS())
+    {
+        uint64_t vendor = t->tpl_sts & 0xe0;
+        out["TPL_STS"] |= (vendor & ~mfct_tpl_status_bits_.coveredBits());
+    }
+
+    return out;
+}
+
+vector<string> MeterCommonImplementation::getFieldFlags(FieldInfo *fi)
+{
+    // Use a set so the flag list is deterministic and a name appearing in several
+    // lookups is only reported once.
+    set<string> names;
+    auto addFlags = [&names](const vector<string> &v)
+    {
+        for (const string &s : v)
+            if (s != "") names.insert(s);
+    };
+
+    addFlags(fi->lookup().flagNames());
+
+    // The STATUS field aggregates the lookups of all INJECT_INTO_STATUS fields.
+    if (fi->printProperties().hasSTATUS())
+    {
+        for (FieldInfo &f : field_infos_)
+        {
+            if (f.printProperties().hasINJECTINTOSTATUS())
+                addFlags(f.lookup().flagNames());
+        }
+    }
+
+    // A field with INCLUDE_TPL_STATUS also carries the standard TPL status flags
+    // and any manufacturer-specific TPL status flags.
+    if (fi->printProperties().hasINCLUDETPLSTATUS())
+    {
+        vector<string> tpl;
+#define X(name,mask,value) tpl.push_back(toString(TPLStatusBit::name));
+LIST_OF_TPL_STATUS_BITS
+#undef X
+        addFlags(tpl);
+        addFlags(mfct_tpl_status_bits_.flagNames());
+    }
+
+    vector<string> out(names.begin(), names.end());
+    return out;
+}
+
 string MeterCommonImplementation::decodeTPLStatusByte(uchar sts)
 {
     return ::decodeTPLStatusByteWithMfct(sts, mfct_tpl_status_bits_);
@@ -2473,7 +2573,7 @@ string FieldInfo::generateFieldNameWithUnit(Meter *m, DVEntry *dve)
 {
     if (!valid_field_name_) return "bad_field_name";
 
-    if (xuantity_ == Quantity::Text)
+    if (nonNumericQuantity(xuantity_))
     {
         return field_name_->apply(m, dve);
     }
@@ -2540,7 +2640,7 @@ string FieldInfo::renderJson(Meter *m, DVEntry *dve)
     string display_unit_s = unitToStringLowerCase(displayUnit());
     string field_name = generateFieldNameNoUnit(m, dve);
 
-    if (xuantity() == Quantity::Text)
+    if (nonNumericQuantity(xuantity()))
     {
         string v = m->getStringValue(this);
         if (v == "null")
@@ -2594,7 +2694,7 @@ void FieldInfo::insertNumericValueIntoDoc(string vname, Meter *m, DVEntry *dve, 
     string display_unit_s = unitToStringLowerCase(displayUnit());
     string field_name = generateFieldNameNoUnit(m, dve);
 
-    if (xuantity() == Quantity::Text)
+    if (nonNumericQuantity(xuantity()))
     {
         // Should we even get here? A numerical value cannot be text right?
         string v = m->getStringValue(this);
@@ -2667,24 +2767,13 @@ void FieldInfo::insertStringValueIntoDoc(const string &vname, const string &valu
 {
     if (this->printProperties().hasSTATUS())
     {
-        string in = m->getStatusField(this);
+        string in = m->getStatusFlags(this);
         if (t->decoding_errors != "")
         {
             in = joinStatusOKStrings(in, t->decoding_errors);
         }
         xmqAddKeyValueWithAttrs(doc, telegram, vname.c_str(), in.c_str(), NS_PARENT,
                                 XMQ_ATTRS( { "S", "" } )); // S marks this as a json string.
-
-        if (structured)
-        {
-            string vname_flags = vname+"_flags";
-            auto rn = xmqAddElement(doc, structured, vname_flags.c_str(), NS_PARENT);
-            XMQNode *status_object = rn.node;
-            for (auto &member : m->getStatusObjectMembers(this, t))
-            {
-                xmqAddKeyValue(doc, status_object, member.first.c_str(), member.second ? "true" : "false", NS_PARENT);
-            }
-        }
     }
     else
     {
@@ -2699,6 +2788,28 @@ void FieldInfo::insertStringValueIntoDoc(const string &vname, const string &valu
                                     XMQ_ATTRS( { "S", "" } )); // S marks this as a json string.
         }
     }
+
+    if (this->xuantity() == Quantity::Flags && structured)
+    {
+        string vname_flags = vname+"_flags";
+        auto rn = xmqAddElement(doc, structured, vname_flags.c_str(), NS_PARENT);
+        XMQNode *status_object = rn.node;
+        for (auto &member : m->getStatusObjectMembers(this, t))
+        {
+            xmqAddKeyValue(doc, status_object, member.first.c_str(), member.second ? "true" : "false", NS_PARENT);
+        }
+
+        // Sibling to status_flags: the bits that were set in the input value but have no
+        // map entry, per BitToString lookup rule name. Always present; a rule reports 0
+        // when all of its set bits are mapped.
+        string vname_unknowns = vname+"_lookups_unknowns";
+        auto rn_u = xmqAddElement(doc, structured, vname_unknowns.c_str(), NS_PARENT);
+        XMQNode *unknowns_object = rn_u.node;
+        for (auto &kv : m->getStatusLookupUnknowns(this, t))
+        {
+            xmqAddKeyValue(doc, unknowns_object, kv.first.c_str(), to_string(kv.second).c_str(), NS_PARENT);
+        }
+    }
     if (deprecatedBy().length() > 0)
     {
         string k = vname+"_deprecated_by";
@@ -2708,11 +2819,27 @@ void FieldInfo::insertStringValueIntoDoc(const string &vname, const string &valu
     {
         auto rn = xmqAddElement(doc, details_fields, vname.c_str(), NS_PARENT);
         XMQNode *info = rn.node;
-        xmqAddKeyValue(doc, info, "quantity", "Text", NS_PARENT);
+        xmqAddKeyValue(doc, info, "quantity", toString(xuantity()), NS_PARENT);
         xmqAddKeyValue(doc, info, "info", this->help().c_str(), NS_PARENT);
         if (deprecatedBy().length() > 0)
         {
             xmqAddKeyValue(doc, info, "deprecated_by", deprecatedBy().c_str(), NS_PARENT);
+        }
+        // For Flags quantity fields (STATUS and INJECT_INTO_STATUS) list all the
+        // possible flag names. Only reported when non-empty.
+        if (this->xuantity() == Quantity::Flags)
+        {
+            auto fl = m->getFieldFlags(this);
+            if (fl.size() > 0)
+            {
+                auto rn_f = xmqAddElementWithAttrs(doc, info, "flags", NS_PARENT,
+                                                   XMQ_ATTRS( { "A", "" } ));
+                XMQNode *flags_array = rn_f.node;
+                for (string s : fl)
+                {
+                    xmqAddKeyValue(doc, flags_array, "", s.c_str(), NS_PARENT);
+                }
+            }
         }
     }
 }
@@ -2800,7 +2927,7 @@ void MeterCommonImplementation::printMeter(Telegram *t,
         string display_unit_s = unitToStringUpperCase(fi.displayUnit());
         string var = fi.vname();
         std::transform(var.begin(), var.end(), var.begin(), ::toupper);
-        if (fi.xuantity() == Quantity::Text)
+        if (nonNumericQuantity(fi.xuantity()))
         {
             string envvar = "METER_"+var+"="+getStringValue(&fi);
             envs->push_back(envvar);
@@ -2963,7 +3090,7 @@ bool is_driver_and_extras(const string& t, DriverName *out_driver_name, string *
         }
         else
         {
-            error(EXIT_DRIVER_ERROR, "No such driver %s %s\n", t.c_str(), removedDriverExplanation(t).c_str());
+            errorAndExit(EXIT_DRIVER_ERROR, "No such driver %s %s\n", t.c_str(), removedDriverExplanation(t).c_str());
         }
         *out_extras = "";
         return true;
@@ -2983,7 +3110,7 @@ bool is_driver_and_extras(const string& t, DriverName *out_driver_name, string *
     }
     else
     {
-        error(EXIT_DRIVER_ERROR, "No such driver %s %s\n", type.c_str(), removedDriverExplanation(type).c_str());
+        errorAndExit(EXIT_DRIVER_ERROR, "No such driver %s %s\n", type.c_str(), removedDriverExplanation(type).c_str());
     }
 
     string extras = t.substr(ps+1, pe-ps-1);
@@ -3112,7 +3239,7 @@ bool isValidKey(const string& key, MeterInfo &mi)
 
 void FieldInfo::performExtraction(Meter *m, Telegram *t, DVEntry *dve)
 {
-    if (xuantity_ == Quantity::Text)
+    if (nonNumericQuantity(xuantity_))
     {
         // Extract a string.
         extractString(m, t, dve);
@@ -3200,7 +3327,7 @@ bool FieldInfo::extractNumeric(Meter *m, Telegram *t, DVEntry *dve)
             // Search for key.
             bool ok = findKeyWithNr(matcher_.measurement_type,
                                     matcher_.vif_range,
-                                    matcher_.storage_nr_from.intValue(),
+                                    matcher_.storage_nr_from.uint64Value(),
                                     matcher_.tariff_nr_from.intValue(),
                                     matcher_.index_nr.intValue(),
                                     &key,
@@ -3238,6 +3365,11 @@ bool FieldInfo::extractNumeric(Meter *m, Telegram *t, DVEntry *dve)
             {
                 time_t tmp = mktime(&datetime);
                 extracted_double_value = tmp;
+            }
+            else if (dve->isTypeM())
+            {
+                // A relative Type M date/time, extractDouble already gave its duration in seconds.
+                decoded_unit = Unit::Second;
             }
             else
             {
@@ -3362,7 +3494,7 @@ bool FieldInfo::extractString(Meter *m, Telegram *t, DVEntry *dve)
                 // Search for key.
                 bool ok = findKeyWithNr(matcher_.measurement_type,
                                         matcher_.vif_range,
-                                        matcher_.storage_nr_from.intValue(),
+                                        matcher_.storage_nr_from.uint64Value(),
                                         matcher_.tariff_nr_from.intValue(),
                                         matcher_.index_nr.intValue(),
                                         &key,
@@ -3588,7 +3720,7 @@ const char *availableMeterTypes()
 {
     if (available_meter_types_[0]) return available_meter_types_;
 
-#define X(m) if (MeterType::m != MeterType::AutoMeter && MeterType::m != MeterType::UnknownMeter) {  \
+#define X(m,desc) if (MeterType::m != MeterType::AutoMeter && MeterType::m != MeterType::UnknownMeter) { \
         strcat(available_meter_types_, #m); strcat(available_meter_types_, "\n"); \
         assert(strlen(available_meter_types_) < 1024); }
 LIST_OF_METER_TYPES

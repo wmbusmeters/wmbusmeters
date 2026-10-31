@@ -917,7 +917,7 @@ LIST_OF_UNITS
 
 Change toChange(string s)
 {
-    if (s == "Instant") return Change::Instant;
+    if (s == "Sample") return Change::Sample;
     if (s == "Net") return Change::Net;
     if (s == "Increasing") return Change::Increasing;
     return Change::Unknown;
@@ -925,8 +925,50 @@ Change toChange(string s)
 
 const char *toString(Change c)
 {
-    if (c == Change::Instant) return "Instant";
+    if (c == Change::Sample) return "Sample";
     if (c == Change::Net) return "Net";
     if (c == Change::Increasing) return "Increasing";
     return "?";
+}
+
+Change defaultChangeForQuantity(Quantity q)
+{
+    // Check if it should be increasing
+    switch (q)
+    {
+    case Quantity::Time:
+    case Quantity::Length:
+    case Quantity::Mass:
+        // Not Amperage
+        // Not Temperature
+    case Quantity::AmountOfSubstance:
+        // Not  LuminousIntensity
+    case Quantity::Energy:
+    case Quantity::Reactive_Energy:
+    case Quantity::Apparent_Energy:
+        // Not Power:
+        // Not Reactive_Power:
+        // Not Apparent_Power
+    case Quantity::Volume:
+        // Not Flow
+        // Not Voltage
+        // Not Frequency
+        // Not Pressure
+        // Not PointInTime
+        // Not RelativeHumidity
+    case Quantity::HCA:
+        // Not Text
+        // Not Angle
+        // Not Dimensionless
+        // Not Flags
+        return Change::Increasing;
+    default:
+        // Otherwise we default to Sample changes.
+        return Change::Sample;
+    }
+}
+
+bool nonNumericQuantity(Quantity q)
+{
+    return q == Quantity::Text || q == Quantity::Flags;
 }

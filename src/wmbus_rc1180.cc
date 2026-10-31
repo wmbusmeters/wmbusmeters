@@ -325,7 +325,7 @@ bool WMBusRC1180::deviceSetLinkModes(LinkModeSet lms)
     if (!canSetLinkModes(lms))
     {
         string modes = lms.hr();
-        error(EXIT_BUS_DEVICE_ERROR, "(rc1180) setting link mode(s) %s is not supported\n", modes.c_str());
+        errorAndExit(EXIT_BUS_DEVICE_ERROR, "(rc1180) setting link mode(s) %s is not supported\n", modes.c_str());
     }
 
     // Do not actually try to change the link mode, we assume it is T1.

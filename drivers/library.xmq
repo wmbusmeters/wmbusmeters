@@ -14,6 +14,8 @@
    target_kwh
    These are useful for billing since the readout can happen at
    any time during the next month.
+   Sometimes even older targets are provided, the even older target value
+   will be named: target_1_m3, target_2_m3, etc...
 
    For more complex meters with both consumption and production:
    total_consumption_kwh (Electricity consumed.)
@@ -54,11 +56,6 @@ library {
         flag {
             name = TEMPORARY_ERROR
             info = 'Temporary meter error. (tpl sts)'
-        }
-        // The following flag is wmbusmeters specific.
-        flag {
-            name = FAILED_DECODE
-            info = 'The telegram failed a manufacturer specific decode or decryption.'
         }
     }
     template(id = total_m3)
@@ -112,6 +109,7 @@ library {
         name = status
         // Kept working for old C++ drivers that use alias status-tpl-only
         aliases    = status-tpl-only
+        quantity   = Flags
         info       = 'Status and error flags.'
         attributes = STATUS,INCLUDE_TPL_STATUS
     }
@@ -413,6 +411,19 @@ library {
         match {
             measurement_type = Instantaneous
             vif_range        = AccessNumber
+        }
+    }
+    template(id = rssi_dbm)
+    {
+        name           = rssi
+        quantity       = Power
+        display_unit   = dbm
+        info           = 'The RSSI reception level reported by the gateway.'
+        vif_scaling    = None
+        dif_signedness = Signed
+        match {
+            measurement_type = Instantaneous
+            vif_range        = ReceptionLevel
         }
     }
     template(id = consumption_hca)

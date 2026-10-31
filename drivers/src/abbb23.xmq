@@ -3,13 +3,14 @@ driver {
     name           = abbb23
     meter_type     = ElectricityMeter
     default_fields = name,id,total_energy_consumption_kwh,timestamp
+    manufacturer   = ABB
     detect {
         mvt = ABB,20,02
     }
     fields {
         field {
             name       = status
-            quantity   = Text
+            quantity   = Flags
             info       = 'Status, error, warning and alarm flags.'
             attributes = STATUS,INCLUDE_TPL_STATUS
         }
@@ -110,7 +111,7 @@ driver {
         }
         field {
             name       = error_flags
-            quantity   = Text
+            quantity   = Flags
             info       = 'Error flags.'
             attributes = INJECT_INTO_STATUS
             match {
@@ -126,7 +127,7 @@ driver {
         }
         field {
             name       = warning_flags
-            quantity   = Text
+            quantity   = Flags
             info       = 'Warning flags.'
             attributes = INJECT_INTO_STATUS
             match {
@@ -157,7 +158,7 @@ driver {
         }
         field {
             name       = alarm_flags
-            quantity   = Text
+            quantity   = Flags
             info       = 'Alarm flags.'
             attributes = INJECT_INTO_STATUS
             match {

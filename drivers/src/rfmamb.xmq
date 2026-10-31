@@ -46,10 +46,40 @@ driver {
             test  = set
         }
     }
+    flags {
+        flag {
+            name = APP_BUSY
+            info = 'The application is busy.'
+        }
+        flag {
+            name = APP_ERROR
+            info = 'The application reports an error.'
+        }
+        flag {
+            name = LOW_BATTERY
+            info = 'The battery is low.'
+        }
+        flag {
+            name = MODULE_REMOVED
+            info = 'The radio module has been removed.'
+        }
+        flag {
+            name = SENSOR_READ_ERROR
+            info = 'Reading the sensor failed.'
+        }
+        flag {
+            name = TEMP_OUT_OF_RANGE
+            info = 'The temperature is outside the measuring range.'
+        }
+        flag {
+            name = RH_OUT_OF_RANGE
+            info = 'The relative humidity is outside the measuring range.'
+        }
+    }
     fields {
         field {
             name       = status
-            quantity   = Text
+            quantity   = Flags
             info       = 'Status and error flags.'
             attributes = STATUS,INCLUDE_TPL_STATUS
         }

@@ -67,7 +67,7 @@ AccessCheck checkIfExistsAndHasAccess(const std::string& device)
     // What are the groups I am member of?
     int rc = getgrouplist(p->pw_name, p->pw_gid, my_groups, &ngroups);
     if (rc < 0) {
-        error(EXIT_PERMISSION_ERROR, "(wmbusmeters) cannot handle users with more than 256 groups\n");
+        errorAndExit(EXIT_PERMISSION_ERROR, "(wmbusmeters) cannot handle users with more than 256 groups\n");
     }
 
     // What is the group of the tty?

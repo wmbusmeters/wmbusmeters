@@ -3,6 +3,7 @@ driver {
     name           = gwfgas
     meter_type     = GasMeter
     default_fields = name,id,total_m3,target_m3,timestamp
+    manufacturer   = GWF
     detect {
         mvt = GWF,3c,03
     }
@@ -15,7 +16,7 @@ driver {
     fields {
         field {
             name       = status
-            quantity   = Text
+            quantity   = Flags
             attributes = STATUS,INCLUDE_TPL_STATUS
         }
     }

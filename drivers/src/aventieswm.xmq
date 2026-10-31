@@ -3,13 +3,40 @@ driver {
     name           = aventieswm
     meter_type     = WaterMeter
     default_fields = name,id,total_m3,error_flags,timestamp
+    manufacturer   = Aventies
     detect {
         mvt = AAA,25,07
+    }
+    flags {
+        flag {
+            name = MEASUREMENT
+            info = 'A measurement error has been detected.'
+        }
+        flag {
+            name = SABOTAGE
+            info = 'Tampering with the device has been detected.'
+        }
+        flag {
+            name = BATTERY
+            info = 'The battery is low.'
+        }
+        flag {
+            name = CS
+            info = 'Unknown flag, please contact the wmbusmeters project to contribute knowledge.'
+        }
+        flag {
+            name = HF
+            info = 'Unknown flag, please contact the wmbusmeters project to contribute knowledge.'
+        }
+        flag {
+            name = RESET
+            info = 'The device has been reset.'
+        }
     }
     fields {
         field {
             name       = status
-            quantity   = Text
+            quantity   = Flags
             info       = 'Meter status from error flags and tpl status field.'
             attributes = STATUS,INCLUDE_TPL_STATUS
             match {

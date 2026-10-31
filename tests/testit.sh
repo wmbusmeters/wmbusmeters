@@ -2,8 +2,9 @@
 
 . tests/include.sh
 
-TEST=build/test
-mkdir -p $TEST
+# Use a private temp dir so tests can run in parallel.
+TEST=$(mktemp -d)
+trap 'rm -rf "$TEST"' EXIT
 
 PROG="$1"
 ARGS="$2"
@@ -71,4 +72,5 @@ then
     printOK "db test $(echo "$ARGS" | cut -f 2 -d ' ') $(echo "$ARGS" | cut -f 1 -d ' ')"
 else
     printERROR "$ARGS $TELEGRAM"
+    exit 1
 fi

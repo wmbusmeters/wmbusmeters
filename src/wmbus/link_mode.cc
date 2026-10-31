@@ -107,7 +107,7 @@ LinkModeSet parseLinkModes(std::string m)
         LinkMode lm = toLinkMode(tok);
         if (lm == LinkMode::UNKNOWN)
         {
-            error(EXIT_FAILURE, "(wmbus) not a valid link mode: %s\n", tok);
+            errorAndExit(EXIT_FAILURE, "(wmbus) not a valid link mode: %s\n", tok);
         }
         lms.addLinkMode(lm);
         tok = strtok_r(NULL, ",", &saveptr);

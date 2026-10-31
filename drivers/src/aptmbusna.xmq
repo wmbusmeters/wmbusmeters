@@ -3,6 +3,7 @@ driver {
     name           = aptmbusna
     meter_type     = WaterMeter
     default_fields = name,id,status,total_m3,target_m3,timestamp
+    manufacturer   = Apator
     detect {
         mvt = APA,15,07
         // APT-MBUS-NA-1 (-C)
@@ -16,13 +17,95 @@ driver {
         use = volume_flow_m3h
         use = operating_time_h
     }
+    flags {
+        flag {
+            name = P_MAGNETIC_FIELD
+            info = 'A magnetic field has been detected, stored since the event flags were last cleared.'
+        }
+        flag {
+            name = P_STRONG_LIGHT
+            info = 'Strong light above the configured threshold has been detected at the optical sensor, stored since the event flags were last cleared.'
+        }
+        flag {
+            name = P_MBUS_DISCONNECTED
+            info = 'The device has been disconnected, stored since the event flags were last cleared.'
+        }
+        flag {
+            name = P_DETECTION_WITHOUT_CHANGES
+            info = 'The reading has not changed for longer than the configured threshold, stored since the event flags were last cleared.'
+        }
+        flag {
+            name = P_MINIMUM_FLOW
+            info = 'The flow is below the configured minimum flow threshold, stored since the event flags were last cleared.'
+        }
+        flag {
+            name = P_MAXIMUM_FLOW
+            info = 'The flow is above the configured maximum flow threshold, stored since the event flags were last cleared.'
+        }
+        flag {
+            name = P_REVERSE_FLOW
+            info = 'Reverse flow above the configured threshold has been detected, stored since the event flags were last cleared.'
+        }
+        flag {
+            name = P_LEAK
+            info = 'A leak has been detected, based on the configured leak threshold, stored since the event flags were last cleared.'
+        }
+        flag {
+            name = P_PROCESSOR_RESET
+            info = 'The processor of the module has been reset, stored since the event flags were last cleared.'
+        }
+        flag {
+            name = P_CLOCK_HAND_ERROR
+            info = 'The position of the meter dial pointer could not be detected, stored since the event flags were last cleared.'
+        }
+        flag {
+            name = P_BATTERY_LOW
+            info = 'The battery voltage is below the configured threshold, stored since the event flags were last cleared.'
+        }
+        flag {
+            name = P_DETECTOR_ERROR
+            info = 'The detector of the module has failed, stored since the event flags were last cleared.'
+        }
+        flag {
+            name = MAGNETIC_FIELD
+            info = 'A magnetic field has been detected (current state).'
+        }
+        flag {
+            name = STRONG_LIGHT
+            info = 'Strong light above the configured threshold has been detected at the optical sensor (current state).'
+        }
+        flag {
+            name = MBUS_DISCONNECTED
+            info = 'The device has been disconnected (current state).'
+        }
+        flag {
+            name = DETECTION_WITHOUT_CHANGES
+            info = 'The reading has not changed for longer than the configured threshold (current state).'
+        }
+        flag {
+            name = MINIMUM_FLOW
+            info = 'The flow is below the configured minimum flow threshold (current state).'
+        }
+        flag {
+            name = MAXIMUM_FLOW
+            info = 'The flow is above the configured maximum flow threshold (current state).'
+        }
+        flag {
+            name = REVERSE_FLOW
+            info = 'Reverse flow above the configured threshold has been detected (current state).'
+        }
+        flag {
+            name = LEAK
+            info = 'A leak has been detected, based on the configured leak threshold (current state).'
+        }
+    }
     fields {
         // difvifkey = 04FF0A = optical_diagnostic, bits unknown.
         // difvifkey = 02FF0B = oscillator_diagnostic, bits unknown.
         // difvifkey = 03FF0C = power_supply_diagnostic, bits unknown.
         field {
             name       = status
-            quantity   = Text
+            quantity   = Flags
             info       = 'Status and error flags.'
             attributes = STATUS,INCLUDE_TPL_STATUS
             match {
@@ -80,7 +163,7 @@ driver {
                 map {
                     name  = P_LEAK
                     info  = 'Leak has been detected.'
-                    value = 0x0000800
+                    value = 0x000080
                     test  = Set
                 }
                 // 2nd byte
@@ -97,7 +180,7 @@ driver {
                     test  = Set
                 }
                 map {
-                    name  = BATTERY_LOW
+                    name  = P_BATTERY_LOW
                     info  = 'Low battery warning.'
                     value = 0x000400
                     test  = Set
@@ -152,8 +235,8 @@ driver {
                     test  = Set
                 }
                 map {
-                    name  = PROCESSOR_RESET
-                    info  = 'Critical internal error has triggered a processor reset.'
+                    name  = LEAK
+                    info  = 'Leak is being detected.'
                     value = 0x800000
                     test  = Set
                 }
@@ -164,14 +247,14 @@ driver {
         test {
             args     = 'W aptmbusna 00683775 NOKEY'
             telegram = 685656680800727537680001061507CCE800000C7875376800046D1DB458340413F73E0000023B0D00441385010000426C41340227090203FD171C030004FF0A0404000002FF0B000003FF0C1300B20F00042C1B1B00010200003716
-            json     = '{"_": "telegram","fabrication_no": "00683775","id": "00683775","media": "water","driver": "aptmbusna","meter_datetime": "2026-04-24 20:29","name": "W","operating_time_h": 12504,"status": "PERMANENT_ERROR P_CLOCK_HAND_ERROR P_DETECTION_WITHOUT_CHANGES P_MBUS_DISCONNECTED P_MINIMUM_FLOW P_PROCESSOR_RESET UNKNOWN_E0","target_date": "2026-04-01","target_m3": 0.389,"timestamp": "1111-11-11T11:11:11Z","total_m3": 16.119,"volume_flow_m3h": 0.013}'
-            fields   = 'W;00683775;PERMANENT_ERROR P_CLOCK_HAND_ERROR P_DETECTION_WITHOUT_CHANGES P_MBUS_DISCONNECTED P_MINIMUM_FLOW P_PROCESSOR_RESET UNKNOWN_E0;16.119;0.389;1111-11-11 11:11.11'
+            json     = '{"_": "telegram","fabrication_no": "00683775","id": "00683775","media": "water","driver": "aptmbusna","meter_datetime": "2026-04-24 20:29","name": "W","operating_time_h": 12504,"status": "PERMANENT_ERROR P_CLOCK_HAND_ERROR P_DETECTION_WITHOUT_CHANGES P_MBUS_DISCONNECTED P_MINIMUM_FLOW P_PROCESSOR_RESET TPL_STS_224","target_date": "2026-04-01","target_m3": 0.389,"timestamp": "1111-11-11T11:11:11Z","total_m3": 16.119,"volume_flow_m3h": 0.013}'
+            fields   = 'W;00683775;PERMANENT_ERROR P_CLOCK_HAND_ERROR P_DETECTION_WITHOUT_CHANGES P_MBUS_DISCONNECTED P_MINIMUM_FLOW P_PROCESSOR_RESET TPL_STS_224;16.119;0.389;1111-11-11 11:11.11'
         }
         test {
             args     = 'W aptmbusna 00345157 NOKEY'
             telegram = 68565668086C7257513400010615072EF80000_0C7857513400046D0BAB5934041307590000023B00004413A2560000426C41340227CB0803FD175E0B0004FF0A0404010002FF0B000003FF0C9700B90F0004351BFF0001020100_A716
-            json     = '{"_": "telegram","fabrication_no": "00345157","id": "00345157","media": "water","driver": "aptmbusna","meter_datetime": "2026-04-25 11:11","name": "W","operating_time_h": 54024,"status": "PERMANENT_ERROR P_CLOCK_HAND_ERROR P_DETECTION_WITHOUT_CHANGES P_LEAK P_MBUS_DISCONNECTED P_MINIMUM_FLOW P_PROCESSOR_RESET P_REVERSE_FLOW P_STRONG_LIGHT TEMPORARY_ERROR UNKNOWN_E0","target_date": "2026-04-01","target_m3": 22.178,"timestamp": "1111-11-11T11:11:11Z","total_m3": 22.791,"volume_flow_m3h": 0}'
-            fields   = 'W;00345157;PERMANENT_ERROR P_CLOCK_HAND_ERROR P_DETECTION_WITHOUT_CHANGES P_LEAK P_MBUS_DISCONNECTED P_MINIMUM_FLOW P_PROCESSOR_RESET P_REVERSE_FLOW P_STRONG_LIGHT TEMPORARY_ERROR UNKNOWN_E0;22.791;22.178;1111-11-11 11:11.11'
+            json     = '{"_": "telegram","fabrication_no": "00345157","id": "00345157","media": "water","driver": "aptmbusna","meter_datetime": "2026-04-25 11:11","name": "W","operating_time_h": 54024,"status": "PERMANENT_ERROR P_CLOCK_HAND_ERROR P_DETECTION_WITHOUT_CHANGES P_DETECTOR_ERROR P_MBUS_DISCONNECTED P_MINIMUM_FLOW P_PROCESSOR_RESET P_REVERSE_FLOW P_STRONG_LIGHT TEMPORARY_ERROR TPL_STS_224","target_date": "2026-04-01","target_m3": 22.178,"timestamp": "1111-11-11T11:11:11Z","total_m3": 22.791,"volume_flow_m3h": 0}'
+            fields   = 'W;00345157;PERMANENT_ERROR P_CLOCK_HAND_ERROR P_DETECTION_WITHOUT_CHANGES P_DETECTOR_ERROR P_MBUS_DISCONNECTED P_MINIMUM_FLOW P_PROCESSOR_RESET P_REVERSE_FLOW P_STRONG_LIGHT TEMPORARY_ERROR TPL_STS_224;22.791;22.178;1111-11-11 11:11.11'
         }
     }
 }

@@ -35,10 +35,20 @@ driver {
         use = meter_datetime
         use = actuality_duration_s
     }
+    flags {
+        flag {
+            name = LEAK_FLOW_LOW
+            info = 'A small continuous flow has been detected, which can indicate a leak.'
+        }
+        flag {
+            name = LEAK_FLOW_HIGH
+            info = 'A large continuous flow has been detected, which can indicate a leak.'
+        }
+    }
     fields {
         field {
             name       = status
-            quantity   = Text
+            quantity   = Flags
             info       = 'Status and error flags.'
             attributes = STATUS,INCLUDE_TPL_STATUS
             match {

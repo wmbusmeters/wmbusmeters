@@ -3,6 +3,7 @@ driver {
     name           = pollucomf
     meter_type     = HeatMeter
     default_fields = name,id,status,total_kwh,total_m3,target_kwh,target_m3,timestamp
+    manufacturer   = Sensus
     detect {
         mvt = SEN,1d,04
     }
@@ -15,7 +16,7 @@ driver {
     fields {
         field {
             name       = status
-            quantity   = Text
+            quantity   = Flags
             info       = 'Meter status.'
             attributes = STATUS,INCLUDE_TPL_STATUS
         }

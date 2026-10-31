@@ -65,6 +65,15 @@ void startEventLoopThread(function<void()> cb)
     pthread_create(&event_loop_thread_, NULL, dispatch, &event_loop_entry_point_);
 }
 
+void joinEventLoopThread()
+{
+    if (!event_loop_thread_) return;
+    pthread_join(event_loop_thread_, NULL);
+    // A joined thread id must not be used again. Serial devices closed after this
+    // still tickle the event loop, pthread_kill on a joined thread crashes with musl.
+    event_loop_thread_ = {};
+}
+
 pthread_t getTimerLoopThread()
 {
     return timer_loop_thread_;
@@ -74,6 +83,13 @@ void startTimerLoopThread(function<void()> cb)
 {
     timer_loop_entry_point_ = cb;
     pthread_create(&timer_loop_thread_, NULL, dispatch, &timer_loop_entry_point_);
+}
+
+void joinTimerLoopThread()
+{
+    if (!timer_loop_thread_) return;
+    pthread_join(timer_loop_thread_, NULL);
+    timer_loop_thread_ = {};
 }
 
 pthread_mutex_t wmbus_devices_lock_ = PTHREAD_MUTEX_INITIALIZER;
@@ -168,7 +184,7 @@ bool Semaphore::wait()
         if (!rc) break;
         if (rc == EINTR) continue;
         if (rc == ETIMEDOUT) break;
-        error(EXIT_THREAD_ERROR, "(thread) pthread cond timedwait ERROR %d\n", rc);
+        errorAndExit(EXIT_THREAD_ERROR, "(thread) pthread cond timedwait ERROR %d\n", rc);
     }
 
     pthread_mutex_unlock(&mutex_);
@@ -186,7 +202,7 @@ void Semaphore::notify()
     int rc = pthread_cond_signal(&condition_);
     if (rc)
     {
-        error(EXIT_THREAD_ERROR, "(thread) pthread cond signal ERROR\n");
+        errorAndExit(EXIT_THREAD_ERROR, "(thread) pthread cond signal ERROR\n");
     }
 }
 

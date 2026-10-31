@@ -34,7 +34,7 @@ driver {
 
                     status = byte, byte, byte, byte, byte, byte, byte.
 
-                    -field = date | faults | total | flow | detectors | voltage | energy | days | woot_44 |
+                    -field = date | faults | total | flow | detectors | voltage | energy | days | woot_44 | woot_70 |
                              woot_71 | woot_72 | woot_73 | woot_74 | woot_75 | woot_76 | woot_77 | woot_78 | woot_79 |
                              woot_7A | woot_7B | woot_7C | woot_8x | woot_8xx | woot_8A | woot_8B | woot_8C | woot_8E |
                              woot_A0 | woot_A1 | woot_A2 | woot_A3 | woot_A4 | woot_A5 | woot_A6 | woot_A9 | woot_AF |
@@ -51,6 +51,7 @@ driver {
                     days      = -'43', word.
                     woot_44   = -'44', triplet.
 
+                    woot_70   = -'70', byte, quad.
                     woot_71   = -'71', byte, quad, quad.
                     woot_72   = -'72', byte, quad, quad, quad.
                     woot_73   = -'73', byte, quad, quad, quad, quad.
@@ -220,6 +221,12 @@ driver {
             telegram = 5E4401061202960405077A790050852F2F0F78A599983B0200435000805771165771160103000010653A00007919321E0000620000006200000000000000000000000000000000000000000000000000000000000000A0422C6004FFFF2FBF
             json     = '{"_":"telegram","media":"water","driver":"apator162","name":"has79","id":"04960212","total_m3":14.949,"timestamp":"1111-11-11T11:11:11Z"}'
             fields   = 'has79;04960212;14.949;1111-11-11 11:11.11'
+        }
+        test {
+            args     = 'has70 apator162 01282096 00000000000000000000000000000000'
+            telegram = 3e4401069620280105077a7400308588f90b4dbd012bd789d7b4fb8536b889425b8624aee20a4862e60223427e24a9060d0db7b112cdd42a0a825130f3858a
+            json     = '{"_": "telegram","driver": "apator162","id": "01282096","media": "water","name": "has70","timestamp": "1111-11-11T11:11:11Z","total_m3": 7.512}'
+            fields   = 'has70;01282096;7.512;1111-11-11 11:11.11'
         }
     }
 }

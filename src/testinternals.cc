@@ -59,6 +59,8 @@ bool verbose_ = false;
     X(dynamic_loading)                        \
     X(crc)            \
     X(dvparser)       \
+    X(lvar)           \
+    X(type_m)         \
     X(ixmlparser)      \
     X(devices)        \
     X(linkmodes)      \
@@ -74,7 +76,7 @@ bool verbose_ = false;
     X(sbc)            \
     X(hex)            \
     X(translate)                                \
-    X(reserved_bits)                            \
+    X(translate_unknown_bits)                   \
     X(translate_pre_shift_right)                \
     X(slip)                                     \
     X(iu891a_slip)                              \
@@ -648,6 +650,129 @@ void test_dvparser()
     tst_double(dv_entries, "8402747F77", 10.0/3600.0, testnr);
     tst_double(dv_entries, "C402747F77", 18.0/3600.0, testnr);
     tst_double(dv_entries, "8403747F77", 26.0/3600.0, testnr);
+
+    testnr++;
+    dv_entries.clear();
+    // OMS Spec Vol.2 Annex N (Release E), N.13: TAF7 data with two inverse compact profiles.
+    // The base time CD 01 6D E2 03 30 is a Type M date/time behind the LVAR E2h, which
+    // EN 13757-3 table 5 defines as a binary value of 2 bytes, not as 226 bytes of text.
+    // Every record behind it must therefore still be found.
+    tst_parse("2F2F0E026099010000000E823C513000000000CD016DE20330CE0103951900000000"
+              "CD01831330410801030507090806040200000000000000000000000103050709080604020000000000000000000000010305070908"
+              "CE01833C050300000000"
+              "CD0183BC1330410800000000000000000000010305070908060402000000000000000000000001030507090806040200000000000000"
+              "C101740302FD971D00002F2F2F2F2F2F2F2F2F2F2F2F2F2F2F", &dv_entries, testnr);
+    tst_string(dv_entries, "CD016D", "0330", testnr);
+    tst_double(dv_entries, "CE0103", 1.995, testnr);
+    tst_double(dv_entries, "CE01833C", 0.305, testnr);
+    tst_string(dv_entries, "C10174", "03", testnr);
+    // The profile points, Annex N.13 prints them: import 1994, 1991, 1986 Wh, export stays 305 Wh.
+    tst_double(dv_entries, "8E02037F77", 1.994, testnr);
+    tst_double(dv_entries, "CE02037F77", 1.991, testnr);
+    tst_double(dv_entries, "8E03037F77", 1.986, testnr);
+    tst_double(dv_entries, "8E02037F77_2", 0.305, testnr);
+    // The actuality duration C1 01 74 03 comes after both profiles, still every point gets
+    // its own: 3 s plus 8 s spacing per point, point 1 at 11 s, point 46 (storage 49) at 371 s.
+    tst_string(dv_entries, "8402747F77", "0B000000", testnr);
+    tst_string(dv_entries, "C48801747F77", "73010000", testnr);
+    tst_string(dv_entries, "8402747F77_2", "0B000000", testnr);
+}
+
+void test_lvar()
+{
+    // EN 13757-3:2018 table 5.
+    struct { int lvar; int len; const char *type; } cases[] = {
+        { 0x00,  0, "text" },
+        { 0x30, 48, "text" },
+        { 0xbf, 191, "text" },
+        { 0xc0,  0, "bcd" },
+        { 0xc9,  9, "bcd" },
+        { 0xca, -1, "reserved" },
+        { 0xcf, -1, "reserved" },
+        { 0xd0,  0, "negative_bcd" },
+        { 0xd9,  9, "negative_bcd" },
+        { 0xda, -1, "reserved" },
+        { 0xdf, -1, "reserved" },
+        { 0xe0,  0, "binary" },
+        { 0xe2,  2, "binary" },
+        { 0xef, 15, "binary" },
+        { 0xf0, 16, "binary" },
+        { 0xf4, 32, "binary" },
+        { 0xf5, 48, "binary" },
+        { 0xf6, 64, "binary" },
+        { 0xf7, -1, "reserved" },
+        { 0xff, -1, "reserved" },
+    };
+    for (auto &c : cases)
+    {
+        int len = lvarLenBytes(c.lvar);
+        string type = lvarType(c.lvar);
+        if (len != c.len || type != c.type)
+        {
+            printf("ERROR! lvar %02x expected %d %s but got %d %s\n", c.lvar, c.len, c.type, len, type.c_str());
+        }
+    }
+
+    // A reserved LVAR leaves the length unknown. The records before it stay, nothing after it is guessed.
+    unordered_map<string,pair<int,DVEntry>> dv_entries;
+    tst_parse("01FD1705 0D03F7010203 01FD1706", &dv_entries, 1);
+    tst_string(dv_entries, "01FD17", "05", 1);
+    tst_no_key(dv_entries, "0D03", 1);
+    tst_no_key(dv_entries, "01FD17_2", 1);
+}
+
+void tst_type_m(const char *hex, bool ok_expected, double seconds_expected)
+{
+    vector<uchar> bytes;
+    hex2bin(hex, &bytes);
+    double seconds = 0;
+    bool ok = decodeTypeMDuration(bytes, &seconds);
+    if (ok != ok_expected || (ok && seconds != seconds_expected))
+    {
+        printf("ERROR! type m %s expected ok=%d %g s but got ok=%d %g s\n",
+               hex, ok_expected, seconds_expected, ok, seconds);
+    }
+}
+
+void test_type_m()
+{
+    // EN 13757-3:2018 table A.12, example 2: an event 34.5 s before the transmission,
+    // 2 byte timer, resolution 1/256 s.
+    tst_type_m("80DD" "50", true, -34.5);
+    // OMS Vol.2 Annex N.13 and the Apator TAF7 telegrams: the base time of a compact profile, 3 s.
+    tst_type_m("03" "30", true, 3);
+    // Resolution 2 s, and 1/32768 s.
+    tst_type_m("0A" "10", true, 20);
+    tst_type_m("0040" "70", true, 0.5);
+    // The start time does not matter for a relative time.
+    tst_type_m("03" "B0", true, 3);
+    // The most negative count signals "invalid", one above it is a valid value.
+    tst_type_m("80" "30", false, 0);
+    tst_type_m("81" "30", true, -127);
+    // Example 1 is an absolute time, 2013-01-02 01:02:03 UTC, no duration.
+    tst_type_m("0B600100" "21", false, 0);
+    // A reserved time offset (-15) is no duration either.
+    tst_type_m("01" "31", false, 0);
+    // No count byte, or more than LVAR EAh allows.
+    tst_type_m("30", false, 0);
+    tst_type_m("0000000000000000000030", false, 0);
+
+    unordered_map<string,pair<int,DVEntry>> dv_entries;
+    int testnr = 1;
+    // Example 2 as a data record: a duration, but no date.
+    tst_parse("0D6DE380DD50", &dv_entries, testnr);
+    tst_double(dv_entries, "0D6D", -34.5, testnr);
+    struct tm d;
+    int offset;
+    if (extractDVdate(&dv_entries, "0D6D", &offset, &d)) printf("ERROR! relative type m gave a date\n");
+
+    testnr++;
+    dv_entries.clear();
+    // A text of 2 bytes behind the same vif is neither a duration nor a Type G date.
+    tst_parse("0D6D020330", &dv_entries, testnr);
+    double v;
+    if (extractDVdouble(&dv_entries, "0D6D", &offset, &v)) printf("ERROR! text gave a duration\n");
+    if (extractDVdate(&dv_entries, "0D6D", &offset, &d)) printf("ERROR! text gave a date\n");
 }
 
 void test_ixmlparser()
@@ -1630,6 +1755,7 @@ void testc(string file, string file_content,
                xbps.c_str(),
                xlm.c_str()
             );
+        assert(0); // Fail the test hard, a printed error is not enough.
     }
 }
 
@@ -1696,6 +1822,32 @@ void test_meters()
           "", // bus
           "0", // bps
           "c1"); // linkmodes)
+
+    // The bus key in the meter file sets the bus alias for the meter.
+    config_content =
+        "name=test\n"
+        "driver=multical21:c1\n"
+        "id=01234567\n"
+        "bus=BUS1\n";
+    testc("meter/buskey", config_content,
+          "kamwater", // driver
+          "", // extras
+          "BUS1", // bus
+          "0", // bps
+          "c1"); // linkmodes)
+
+    // The bus key overrides a bus in the driver string.
+    config_content =
+        "name=test\n"
+        "driver=piigth:BUS2:2400:mbus\n"
+        "id=01234567\n"
+        "bus=BUS1\n";
+    testc("meter/buskey-override", config_content,
+          "piigth", // driver
+          "", // extras
+          "BUS1", // bus
+          "2400", // bps
+          "mbus"); // linkmodes)
 
 
     testm("unknown(offset=162)", true,
@@ -2028,85 +2180,90 @@ void test_translate()
 
 }
 
-void test_reserved_bits()
+void test_translate_unknown_bits()
 {
-    // Narrow field: bit 0 named, bits 1-2 should become RESERVED_BIT_1/RESERVED_BIT_2.
-    Translate::Lookup marked =
+    // BitToString with explicit mask 0xf0, but map entries only cover 0x10/0x20/0x40,
+    // so 0x80 is inside the mask yet has no map entry -> it is an "unknown" bit.
+    // Also has an IndexToString rule which must never contribute unknowns or names.
+    Translate::Lookup lookup =
         Translate::Lookup()
         .add(Translate::Rule("FLAGS", Translate::MapType::BitToString)
-             .set(MaskBits(0x07))
-             .add(Translate::Map(0x01, "FOO", TestBit::Set))
-             .markReservedBits()
-            );
+             .set(MaskBits(0xf0))
+             .add(Translate::Map(0x10, "A", TestBit::Set))
+             .add(Translate::Map(0x20, "B", TestBit::Set))
+             .add(Translate::Map(0x40, "C", TestBit::Set))
+             )
+        .add(Translate::Rule("INDEX", Translate::MapType::IndexToString)
+             .set(MaskBits(0x0f))
+             .add(Translate::Map(0x00, "IDX0", TestBit::Set))
+             )
+        ;
 
-    string s = sortStatusString(marked.translate(0x07));
-    string e = sortStatusString("FOO RESERVED_BIT_1 RESERVED_BIT_2");
-    if (s != e)
+    // 0x80: in-mask but uncovered -> unknown = 0x80.
     {
-        printf("ERROR reserved_bits marked translate expected \"%s\" but got \"%s\"\n", e.c_str(), s.c_str());
+        auto u = lookup.unknownBits(0x80);
+        if (u.size() != 1) { printf("ERROR unknownBits(0x80): expected 1 rule, got %zu\n", u.size()); }
+        auto i = u.find("FLAGS");
+        if (i == u.end()) { printf("ERROR unknownBits(0x80): expected FLAGS key\n"); }
+        else if (i->second != 0x80) { printf("ERROR unknownBits(0x80): expected 0x80 got 0x%llx\n", (unsigned long long)i->second); }
     }
 
-    // Reserved bit markers behave like any other map entry: only listed when actually set.
-    s = marked.translate(0x01);
-    e = "FOO";
-    if (s != e)
+    // 0xb0: covered bits also set; only 0x80 remains unknown.
     {
-        printf("ERROR reserved_bits marked translate(0x01) expected \"%s\" but got \"%s\"\n", e.c_str(), s.c_str());
+        auto u = lookup.unknownBits(0x80 | 0x10 | 0x20);
+        auto i = u.find("FLAGS");
+        if (i == u.end() || i->second != 0x80) { printf("ERROR unknownBits(0xb0): expected FLAGS=0x80\n"); }
     }
 
-    map<string,bool> obj = marked.translateToObject(0x07);
-    if (obj.size() != 3 || !obj["FOO"] || !obj["RESERVED_BIT_1"] || !obj["RESERVED_BIT_2"])
+    // 0x30: only covered bits set -> the rule is still reported, with unknown 0.
     {
-        printf("ERROR reserved_bits marked translateToObject(0x07) did not contain expected 3 true members\n");
+        auto u = lookup.unknownBits(0x30);
+        auto i = u.find("FLAGS");
+        if (i == u.end() || i->second != 0) { printf("ERROR unknownBits(0x30): expected FLAGS=0\n"); }
     }
 
-    // Same lookup, but without opting in: unhandled bits fall back to the old numeric suffix.
-    Translate::Lookup unmarked =
-        Translate::Lookup()
-        .add(Translate::Rule("FLAGS", Translate::MapType::BitToString)
-             .set(MaskBits(0x07))
-             .add(Translate::Map(0x01, "FOO", TestBit::Set))
-            );
-
-    s = sortStatusString(unmarked.translate(0x07));
-    e = sortStatusString("FOO FLAGS_6");
-    if (s != e)
+    // flagNames: only BitToString "to" names, IndexToString names excluded.
     {
-        printf("ERROR reserved_bits unmarked translate expected \"%s\" but got \"%s\"\n", e.c_str(), s.c_str());
+        auto n = lookup.flagNames();
+        string j;
+        for (string s : n) j += s + ",";
+        if (j != "A,B,C,") { printf("ERROR flagNames: expected \"A,B,C,\" got \"%s\"\n", j.c_str()); }
     }
 
-    obj = unmarked.translateToObject(0x07);
-    if (obj.size() != 1 || !obj["FOO"])
+    // AutoMask rules still report 0: with no explicit mask their span is the OR of
+    // their map bits, so every bit they touch is by definition mapped.
     {
-        printf("ERROR reserved_bits unmarked translateToObject(0x07) should only contain FOO\n");
+        Translate::Lookup am =
+            Translate::Lookup()
+            .add(Translate::Rule("AUTO", Translate::MapType::BitToString)
+                 .add(Translate::Map(0x01, "X", TestBit::Set))
+                 .add(Translate::Map(0x02, "Y", TestBit::Set))
+                 )
+            ;
+        auto u = am.unknownBits(0xff);
+        auto i = u.find("AUTO");
+        if (i == u.end() || i->second != 0) { printf("ERROR auto unknownBits: expected AUTO=0\n"); }
     }
 
-    // AutoMask: nothing to reserve against, since the mask itself is only known at translate time.
-    Translate::Lookup autoMasked =
-        Translate::Lookup()
-        .add(Translate::Rule("AUTO", Translate::MapType::BitToString)
-             .add(Translate::Map(0x01, "FOO", TestBit::Set))
-             .markReservedBits()
-            );
-
-    if (autoMasked.rules[0].map.size() != 1)
+    // A rule whose trigger bits are not present in the input must be skipped.
     {
-        printf("ERROR reserved_bits AutoMask rule should not have gained any markers\n");
+        Translate::Lookup tr =
+            Translate::Lookup()
+            .add(Translate::Rule("TRIG", Translate::MapType::BitToString)
+                 .set(TriggerBits(0x02))
+                 .set(MaskBits(0x38))
+                 .add(Translate::Map(0x08, "T1", TestBit::Set))
+                 )
+            ;
+        // 0x20 is unknown for the rule, but the trigger bit 0x02 is not set -> skipped.
+        auto u = tr.unknownBits(0x20);
+        if (u.find("TRIG") != u.end()) { printf("ERROR trigger not set should be skipped\n"); }
+        // With the trigger bit set, 0x20 is reported as unknown.
+        auto u2 = tr.unknownBits(0x20 | 0x02);
+        auto i = u2.find("TRIG");
+        if (i == u2.end() || i->second != 0x20) { printf("ERROR trigger set should report TRIG=0x20\n"); }
     }
 
-    // Only BitToString rules support markers.
-    Translate::Lookup indexed =
-        Translate::Lookup()
-        .add(Translate::Rule("IDX", Translate::MapType::IndexToString)
-             .set(MaskBits(0x03))
-             .add(Translate::Map(0x00, "ZERO", TestBit::Set))
-             .markReservedBits()
-            );
-
-    if (indexed.rules[0].map.size() != 1)
-    {
-        printf("ERROR reserved_bits IndexToString rule should not have gained any markers\n");
-    }
 }
 
 void test_translate_pre_shift_right()
@@ -3196,9 +3353,13 @@ LIST_OF_QUANTITIES
     // Test text unit: text
     /////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    // I do not know how to handle the text unit yet.
+    // I do not know how to handle the text quantity yet.
     // Mark it as tested....
     q_set.erase(Quantity::Text);
+
+    // I do not know how to handle the flags quantity yet.
+    // Mark it as tested....
+    q_set.erase(Quantity::Flags);
 
     check_quantities_tested(q_set);
 }

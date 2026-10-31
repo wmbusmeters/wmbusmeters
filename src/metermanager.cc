@@ -327,7 +327,7 @@ public:
             DriverInfo di;
             if (!lookupDriverInfo(only, &di))
             {
-                error(EXIT_DRIVER_ERROR, "No such driver %s\n", only.c_str());
+                errorAndExit(EXIT_DRIVER_ERROR, "No such driver %s\n", only.c_str());
             }
             only = di.name().str();
         }
@@ -407,7 +407,7 @@ public:
 
         if (meter_templates_.size() > 0)
         {
-            error(EXIT_USAGE_ERROR, "You cannot specify a meter quadruple when analyzing.\n"
+            errorAndExit(EXIT_USAGE_ERROR, "You cannot specify a meter quadruple when analyzing.\n"
                   "Instead use --analyze=<format>:<driver>:<key>\n"
                   "where <formt> <driver> <key> are all optional.\n"
                   "E.g.        --analyze=terminal:multical21:001122334455667788001122334455667788\n"

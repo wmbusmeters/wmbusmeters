@@ -458,7 +458,7 @@ depending on if you are running as a daemon or not.
 # Running without config files, good for experimentation and test.
 
 ```
-wmbusmeters version: 3.0.0
+wmbusmeters version: 3.1.1
 Usage: wmbusmeters {options} [device] { [meter_name] [meter_driver] [meter_id] [meter_key] }*
        wmbusmeters {options} [hex]    { [meter_name] [meter_driver] [meter_id] [meter_key] }*
        wmbusmetersd {options} [pid_file]
@@ -1029,6 +1029,20 @@ environment to force LLVM to be used.
 `make DEBUG=true HOST=arm`
 
 Binary generated: `./build_arm_debug/wmbusmeters`
+
+# How to run fuzzing
+
+```
+make build_fuzz
+make run_fuzz_telegrams
+or
+make run_fuzz_difvifparser
+```
+
+```
+make build_fuzz_clang
+build_debug/fuzztelegram fuzz_testcases/telegrams_clang
+```
 
 # System configuration
 

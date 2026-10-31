@@ -8,6 +8,12 @@ driver {
         mvt = APA,04,08
         mvt = APT,04,08
     }
+    flags {
+        flag {
+            name = SEAL_BROKEN
+            info = 'The electronic seal has been broken.'
+        }
+    }
     fields {
         field {
             name     = current
@@ -174,7 +180,7 @@ driver {
         }
         field {
             name     = status
-            quantity = Text
+            quantity = Flags
             info     = 'Seal integrity status: OK = intact, SEAL_BROKEN = ESB date is set.'
             match {
                 difvifkey = 8200FD3A
