@@ -174,6 +174,11 @@ here we pick the bus alias MAIN for the mbus using 2400 bps for all meters on th
 ```
 MAIN=/dev/ttyUSB0:mbus:2400
 ```
+or for a wired m-bus using a TCP gateway or TCP Serial Server (IP:PORT):
+```
+REMOTE=tcp://10.200.0.110:4000:mbus
+```
+
 and here we pick the bus alias RADIOMAIN for an iu891a dongle:
 ```
 RADIOMAIN=/dev/ttyUSB1:iu891a:c2
@@ -200,6 +205,7 @@ loglevel=normal
 device=/dev/ttyUSB0:iu891a:c1,t1
 # And mbus
 device=MAIN=/dev/ttyUSB1:mbus:2400
+device=REMOTE=tcp://10.200.0.110:4000:mbus
 # But do not probe this serial tty.
 donotprobe=/dev/ttyACM2
 logtelegrams=false

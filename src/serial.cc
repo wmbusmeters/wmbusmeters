@@ -43,6 +43,10 @@
 #include <sys/socket.h>
 #include <sys/stat.h>
 #include <sys/un.h>
+#include <netinet/in.h>
+#include <netinet/tcp.h>
+#include <arpa/inet.h>
+#include <netdb.h>
 #include <stdio.h>
 #include <termios.h>
 #include <unistd.h>
@@ -88,6 +92,7 @@ struct SerialCommunicationManagerImp : public SerialCommunicationManager
     shared_ptr<SerialDevice> createSerialDeviceFile(string file, string purpose);
     shared_ptr<SerialDevice> createSerialDeviceSimulator();
     shared_ptr<SerialDevice> createSerialDeviceSocket(string path, string purpose);
+    shared_ptr<SerialDevice> createSerialDeviceTCP(string host, int port, string purpose);
 
     void listenTo(SerialDevice *sd, function<void()> cb);
     void onDisappear(SerialDevice *sd, function<void()> cb);
@@ -928,6 +933,234 @@ shared_ptr<SerialDevice> SerialCommunicationManagerImp::createSerialDeviceSimula
 shared_ptr<SerialDevice> SerialCommunicationManagerImp::createSerialDeviceSocket(string path, string purpose)
 {
     return addSerialDeviceForManagement(new SerialDeviceSocket(path, this, purpose));
+}
+
+// ─── SerialDeviceTCP ─────────────────────────────────────────────────────────
+// TCP client connection to a remote serial-to-mbus gateway.
+// Behaves like a SerialDeviceTTY from the event loop's perspective:
+//   - open()  → non-blocking TCP connect to host:port
+//   - close() → close the socket, trigger on_disappear_ for reconnect
+//   - working() → returns true while connected OR while resetting (reconnecting)
+//
+// The reconnect lifecycle is handled by the existing hot-plug timer:
+//   1. TCP connection drops → read() returns 0/error → close() fires on_disappear_
+//   2. BusDeviceCommonImplementation::disconnectedFromDevice() marks bus device not working
+//   3. checkForDeadWmbusDevices() removes the bus device from the live list
+//   4. detectAndConfigureWmbusDevices() re-detects the tcp:// specification and calls open() again
+// ─────────────────────────────────────────────────────────────────────────────
+
+struct SerialDeviceTCP : public SerialDeviceImp
+{
+    SerialDeviceTCP(string host, int port, SerialCommunicationManagerImp *manager, string purpose);
+    ~SerialDeviceTCP();
+
+    bool open(bool fail_if_not_ok);
+    void close();
+    bool send(vector<uchar> &data);
+    bool working();
+    string device() { return device_name_; }
+
+private:
+    string host_;
+    int port_;
+    string device_name_; // "tcp://host:port" for display/lookup
+};
+
+SerialDeviceTCP::SerialDeviceTCP(string host, int port,
+                                 SerialCommunicationManagerImp *manager,
+                                 string purpose)
+    : SerialDeviceImp(manager, purpose)
+{
+    host_ = host;
+    port_ = port;
+    device_name_ = "tcp://" + host + ":" + to_string(port);
+}
+
+SerialDeviceTCP::~SerialDeviceTCP()
+{
+    close();
+}
+
+bool SerialDeviceTCP::open(bool fail_if_not_ok)
+{
+    // Already connected?
+    if (fd_ >= 0) return true;
+
+    // Resolve hostname
+    struct addrinfo hints, *res = NULL;
+    memset(&hints, 0, sizeof(hints));
+    hints.ai_family = AF_UNSPEC;     // IPv4 or IPv6
+    hints.ai_socktype = SOCK_STREAM;
+
+    string port_str = to_string(port_);
+    int gai_rc = getaddrinfo(host_.c_str(), port_str.c_str(), &hints, &res);
+    if (gai_rc != 0)
+    {
+        if (fail_if_not_ok)
+            errorAndExit(EXIT_SOCKET_ERROR, "Could not resolve TCP host %s: %s\n",
+                         host_.c_str(), gai_strerror(gai_rc));
+        verbose("(serialtcp) could not resolve %s: %s\n", host_.c_str(), gai_strerror(gai_rc));
+        return false;
+    }
+
+    int sock = socket(res->ai_family, SOCK_STREAM, 0);
+    if (sock < 0)
+    {
+        if (fail_if_not_ok)
+            errorAndExit(EXIT_SOCKET_ERROR, "Could not create TCP socket: %s\n", strerror(errno));
+        verbose("(serialtcp) could not create TCP socket: %s\n", strerror(errno));
+        freeaddrinfo(res);
+        return false;
+    }
+
+    // Connect with a timeout: set non-blocking, connect, select, then restore blocking.
+    int flags = fcntl(sock, F_GETFL);
+    fcntl(sock, F_SETFL, flags | O_NONBLOCK);
+
+    int rc = connect(sock, res->ai_addr, res->ai_addrlen);
+    freeaddrinfo(res);
+
+    if (rc < 0 && errno != EINPROGRESS)
+    {
+        if (fail_if_not_ok)
+            errorAndExit(EXIT_SOCKET_ERROR, "Could not connect to %s:%d: %s\n",
+                         host_.c_str(), port_, strerror(errno));
+        verbose("(serialtcp) could not connect to %s:%d: %s\n",
+                host_.c_str(), port_, strerror(errno));
+        ::close(sock);
+        return false;
+    }
+
+    if (rc < 0) // EINPROGRESS — wait up to 5 seconds for connection to complete
+    {
+        fd_set wfds;
+        FD_ZERO(&wfds);
+        FD_SET(sock, &wfds);
+        struct timeval tv { 5, 0 };
+
+        int sel = select(sock + 1, NULL, &wfds, NULL, &tv);
+        if (sel <= 0)
+        {
+            if (fail_if_not_ok)
+                errorAndExit(EXIT_SOCKET_ERROR, "TCP connection to %s:%d timed out\n",
+                             host_.c_str(), port_);
+            verbose("(serialtcp) connection to %s:%d timed out\n", host_.c_str(), port_);
+            ::close(sock);
+            return false;
+        }
+
+        // Check for connect error
+        int so_err = 0;
+        socklen_t so_len = sizeof(so_err);
+        getsockopt(sock, SOL_SOCKET, SO_ERROR, &so_err, &so_len);
+        if (so_err != 0)
+        {
+            if (fail_if_not_ok)
+                errorAndExit(EXIT_SOCKET_ERROR, "TCP connect to %s:%d failed: %s\n",
+                             host_.c_str(), port_, strerror(so_err));
+            verbose("(serialtcp) connect to %s:%d failed: %s\n",
+                    host_.c_str(), port_, strerror(so_err));
+            ::close(sock);
+            return false;
+        }
+    }
+
+    // Connection established — keep non-blocking for the event loop
+    // (the event loop uses select() and expects non-blocking fds)
+    // Set TCP_NODELAY to reduce latency for small mbus frames
+    int nodelay = 1;
+    setsockopt(sock, IPPROTO_TCP, TCP_NODELAY, &nodelay, sizeof(nodelay));
+
+    // Enable TCP keepalive to detect dead connections
+    int keepalive = 1;
+    setsockopt(sock, SOL_SOCKET, SO_KEEPALIVE, &keepalive, sizeof(keepalive));
+
+    fd_ = sock;
+    verbose("(serialtcp) connected to %s:%d fd %d (%s)\n",
+            host_.c_str(), port_, fd_, purpose_.c_str());
+    return true;
+}
+
+void SerialDeviceTCP::close()
+{
+    if (fd_ == -1) return;
+    if (fd_ >= 0)
+    {
+        // Only call ::close on a valid fd, not on -2 (never opened).
+        ::close(fd_);
+    }
+    fd_ = -1;
+    if (on_disappear_ && !resetting_)
+    {
+        on_disappear_();
+        on_disappear_ = NULL;
+    }
+    manager_->tickleEventLoop();
+    verbose("(serialtcp) closed %s (%s)\n", device_name_.c_str(), purpose_.c_str());
+}
+
+bool SerialDeviceTCP::send(vector<uchar> &data)
+{
+    LOCK_WRITE_SERIAL(send_tcp);
+
+    if (fd_ < 0) return false;
+    assert(data.size() > 0);
+
+    bool rc = true;
+    int n = data.size();
+    int written = 0;
+    while (true)
+    {
+        int nw = write(fd_, &data[written], n - written);
+        if (nw > 0) written += nw;
+        if (nw < 0)
+        {
+            if (errno == EINTR) continue;
+            if (errno == EAGAIN || errno == EWOULDBLOCK) continue;
+            rc = false;
+            debug("(serialtcp %s) failed to send \"%s\": %s\n",
+                  device_name_.c_str(), bin2hex(data).c_str(), strerror(errno));
+            goto end;
+        }
+        if (written == n) break;
+    }
+
+    debug("(serialtcp %s) sent \"%s\"\n", device_name_.c_str(), bin2hex(data).c_str());
+
+    if (signalsInstalled())
+    {
+        if (getEventLoopThread()) pthread_kill(getEventLoopThread(), SIGUSR1);
+    }
+
+    end:
+    return rc;
+}
+
+bool SerialDeviceTCP::working()
+{
+    if (resetting_) return true;
+    if (fd_ == -1) return false;
+
+    // Test if the socket is still alive with a zero-length MSG_PEEK recv
+    char buf;
+    int rc = recv(fd_, &buf, 1, MSG_PEEK | MSG_DONTWAIT);
+    if (rc == 0)
+    {
+        // Peer closed the connection
+        debug("(serialtcp) peer closed connection on %s\n", device_name_.c_str());
+        return false;
+    }
+    if (rc < 0 && errno != EAGAIN && errno != EWOULDBLOCK)
+    {
+        debug("(serialtcp) socket error on %s: %s\n", device_name_.c_str(), strerror(errno));
+        return false;
+    }
+    return true;
+}
+
+shared_ptr<SerialDevice> SerialCommunicationManagerImp::createSerialDeviceTCP(string host, int port, string purpose)
+{
+    return addSerialDeviceForManagement(new SerialDeviceTCP(host, port, this, purpose));
 }
 
 void SerialCommunicationManagerImp::listenTo(SerialDevice *sd, function<void()> cb)

@@ -5648,6 +5648,12 @@ bool is_command(string b, string *cmd)
 bool check_file(string f, bool *is_tty, bool *is_stdin, bool *is_file, bool *is_simulation, bool *is_hex_simulation)
 {
     *is_tty = *is_stdin = *is_file = *is_simulation = *is_hex_simulation = false;
+    // tcp:// URLs are NOT files — they are handled separately as TCP devices.
+    // Return false here so the parser falls through to is_type_id_extras.
+    if (f.length() > 6 && f.substr(0, 6) == "tcp://")
+    {
+        return false;
+    }
     if (f == "stdin")
     {
         *is_stdin = true;
@@ -5808,6 +5814,9 @@ void SpecifiedDevice::clear()
     extras = "";
     fq = "";
     linkmodes.clear();
+    is_tcp = false;
+    tcp_host = "";
+    tcp_port = 0;
 }
 
 string SpecifiedDevice::str()
@@ -5874,8 +5883,63 @@ bool SpecifiedDevice::parse(string &arg)
         }
     }
 
-    bool file_checked = false;
-    bool typeidextras_checked = false;
+    // Handle tcp://host:port[:type] — extract the URL before splitting on colons.
+    if (arg.length() > 6 && arg.substr(0, 6) == "tcp://")
+    {
+        string remainder = arg.substr(6); // "host:port" or "host:port:mbus"
+        // Find host and port. The host may be IPv4, hostname, or [IPv6].
+        size_t port_colon;
+        if (remainder[0] == '[')
+        {
+            // IPv6: [::1]:port
+            size_t bracket = remainder.find(']');
+            if (bracket == string::npos) return false;
+            tcp_host = remainder.substr(1, bracket - 1);
+            if (bracket + 1 >= remainder.size() || remainder[bracket + 1] != ':') return false;
+            port_colon = bracket + 1;
+        }
+        else
+        {
+            port_colon = remainder.find(':');
+            if (port_colon == string::npos) return false;
+            tcp_host = remainder.substr(0, port_colon);
+        }
+        string after_host = remainder.substr(port_colon + 1); // "port" or "port:mbus"
+        size_t next_colon = after_host.find(':');
+        string port_str;
+        string trailing;
+        if (next_colon != string::npos)
+        {
+            port_str = after_host.substr(0, next_colon);
+            trailing = after_host.substr(next_colon + 1); // e.g. "mbus"
+        }
+        else
+        {
+            port_str = after_host;
+        }
+        tcp_port = atoi(port_str.c_str());
+        if (tcp_port <= 0 || tcp_port > 65535) return false;
+        is_tcp = true;
+        file = "tcp://" + tcp_host + ":" + port_str;
+        // Default to mbus type, can be overridden by trailing type.
+        type = BusDeviceType::DEVICE_MBUS_TCP;
+        // If there's a trailing part like ":mbus", just accept it as confirmation of type.
+        // Any other parts (bps, linkmodes) can follow and will be parsed below.
+        if (!trailing.empty())
+        {
+            // Re-construct arg as just the trailing parts for normal parsing below.
+            arg = trailing;
+        }
+        else
+        {
+            // Nothing else to parse.
+            return true;
+        }
+    }
+
+    // When tcp:// was already parsed, file and type are set — skip those checks.
+    bool file_checked = is_tcp;
+    bool typeidextras_checked = is_tcp;
     bool bps_checked = false;
     bool fq_checked = false;
     bool linkmodes_checked = false;
@@ -6175,6 +6239,14 @@ Detected detectBusDeviceWithFileOrHex(SpecifiedDevice &specified_device,
             bps = 2400;
         }
         detected.setAsFound("", DEVICE_MBUS, bps, false, lms);
+        return detected;
+    }
+
+    // Special case for tcp://host:port:mbus — TCP-connected MBus gateway.
+    if (specified_device.type == BusDeviceType::DEVICE_MBUS_TCP)
+    {
+        debug("(lookup) driver: mbus_tcp to %s:%d\n", specified_device.tcp_host.c_str(), specified_device.tcp_port);
+        detected.setAsFound("", DEVICE_MBUS_TCP, 0, false, lms);
         return detected;
     }
 

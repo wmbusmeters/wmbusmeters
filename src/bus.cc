@@ -193,6 +193,10 @@ shared_ptr<BusDevice> BusManager::createWmbusObject(Detected *detected, Configur
         verbose("(mbus) on %s\n", detected->found_file.c_str());
         wmbus = openMBUS(*detected, serial_manager_, serial_override);
         break;
+    case DEVICE_MBUS_TCP:
+        verbose("(mbus_tcp) on %s\n", detected->found_file.c_str());
+        wmbus = openMBusTCP(*detected, serial_manager_, serial_override);
+        break;
     case DEVICE_IM871A:
         verbose("(im871a) on %s\n", detected->found_file.c_str());
         wmbus = openIM871A(*detected, serial_manager_, serial_override);
@@ -267,6 +271,8 @@ shared_ptr<BusDevice> BusManager::createWmbusObject(Detected *detected, Configur
         errorAndExit(EXIT_BUS_DEVICE_ERROR, "(main) internal error! cannot create an unknown device! exiting!\n");
         break;
     }
+
+    if (wmbus == NULL) return NULL;
 
     if (detected->found_device_id != "" &&  !detected->found_tty_override)
     {
@@ -429,6 +435,60 @@ void BusManager::detectAndConfigureWmbusDevices(Configuration *config, Detection
             specified_device.handled = true;
             openBusDeviceAndPotentiallySetLinkmodes(config, "config", &detected);
             forceLoadAllDrivers(config);
+            continue;
+        }
+        if (specified_device.type == DEVICE_MBUS_TCP && specified_device.is_tcp)
+        {
+            string tcp_key = "tcp://" + specified_device.tcp_host + ":" + to_string(specified_device.tcp_port);
+            shared_ptr<SerialDevice> sd = serial_manager_->lookup(tcp_key);
+            if (sd != NULL)
+            {
+                if (sd->working())
+                {
+                    // Already connected and working — nothing to do.
+                    trace("(main) mbus_tcp %s already configured\n", tcp_key.c_str());
+                    specified_device.handled = true;
+                    continue;
+                }
+                // Stale serial device from a previous failed connection attempt.
+                // Remove it so we can retry with a fresh one.
+                serial_manager_->removeNonWorking(tcp_key);
+            }
+
+            // Throttle TCP reconnect attempts to every 10 seconds.
+            // The hot-plug timer fires every 2 seconds, but hammering a
+            // down gateway every 2s is excessive. Use last_alarm as the
+            // timestamp of the last connection attempt.
+            {
+                time_t now = time(NULL);
+                if (specified_device.last_alarm != 0 && now - specified_device.last_alarm < 10)
+                {
+                    trace("(main) mbus_tcp %s retry backoff, %ld seconds until next attempt\n",
+                          tcp_key.c_str(), 10 - (now - specified_device.last_alarm));
+                    continue;
+                }
+                specified_device.last_alarm = now;
+            }
+
+            Detected detected;
+            detected.setSpecifiedDevice(specified_device);
+            detected.found_file = tcp_key;
+            LinkModeSet lms = specified_device.linkmodes;
+            if (lms.empty()) lms = config->default_device_linkmodes;
+            if (lms.empty()) lms.setAll();
+            detected.setAsFound("", DEVICE_MBUS_TCP, 0, false, lms);
+            // Do NOT set handled=true yet — only if the connection succeeds.
+            // openBusDeviceAndPotentiallySetLinkmodes will add to bus_devices_
+            // only if openMBusTCP returns non-null (i.e. TCP connect succeeded).
+            openBusDeviceAndPotentiallySetLinkmodes(config, "config", &detected);
+            // Check if the device was actually added (connection succeeded).
+            sd = serial_manager_->lookup(tcp_key);
+            if (sd != NULL && sd->working())
+            {
+                specified_device.handled = true;
+                specified_device.last_alarm = 0; // Reset backoff on successful connect.
+            }
+            // If not handled, the 10-second backoff will throttle the next attempt.
             continue;
         }
         if (specified_device.file == "" && specified_device.command == "" && specified_device.hex == "")
