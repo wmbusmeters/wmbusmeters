@@ -44,6 +44,10 @@ struct SerialDevice
     virtual bool isClosed() = 0;
     // Send returns true when all bytes were sent to a writable device.
     virtual bool send(std::vector<uchar> &data) = 0;
+    // Send and close the input to the other side, if it is a subcommand
+    // with a bidirectinal communication. This can be needed to force the subcommand
+    // to actually flush out its response.
+    virtual bool sendAndCloseAfter(std::vector<uchar> &data) = 0;
     // Receive returns the number of bytes received.
     virtual int receive(std::vector<uchar> *data) = 0;
     // Read and skip until the desired character is found

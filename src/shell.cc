@@ -122,76 +122,55 @@ void invokeShell(string program, vector<string> args, vector<string> envs)
     delete[] p;
 }
 
-bool invokeBackgroundShell(string program, vector<string> args, vector<string> envs, int *fd_out, int *pid, bool bidirectional)
+bool invokeBidirBackgroundShell(std::string program, std::vector<std::string> args, std::vector<std::string> envs, int *fd_rw, int *pid)
 {
-    int link[2];
+    int sv[2];
+    // Create a pair of connected, bidirectional sockets
+    if (socketpair(AF_UNIX, SOCK_STREAM, 0, sv) == -1) {
+        return false;
+    }
+
+    // Ensure socketpair endpoints do not occupy low standard FDs (0, 1, 2)
+    int safe_sv0 = fcntl(sv[0], F_DUPFD, 3);
+    int safe_sv1 = fcntl(sv[1], F_DUPFD, 3);
+    close(sv[0]);
+    close(sv[1]);
+    if (safe_sv0 == -1 || safe_sv1 == -1)
+    {
+        if (safe_sv0 != -1) close(safe_sv0);
+        if (safe_sv1 != -1) close(safe_sv1);
+        return false;
+    }
+    sv[0] = safe_sv0;
+    sv[1] = safe_sv1;
+
     vector<const char*> argv(args.size()+2);
     char *p = new char[program.length()+1];
     strcpy(p, program.c_str());
     argv[0] = p;
     int i = 1;
-    debug("(bgshell) exec background \"%s\"\n", program.c_str());
     for (auto &a : args) {
         argv[i] = a.c_str();
         i++;
-        debug("(bgshell) arg \"%s\"\n", a.c_str());
     }
     argv[i] = NULL;
 
     vector<const char*> env = prepareEnv(envs);
 
-    *fd_out = -1;
-    *pid = 0;
-    int rc = bidirectional ? socketpair(AF_UNIX, SOCK_STREAM, 0, link) : pipe(link);
-    if (rc == -1) {
-        delete[] p;
-        return false;
-    }
-    // Keep both endpoints away from stdio before dup2 in the child, even
-    // when the caller has closed stdin/stdout/stderr. Also prevent leaks
-    // into subsequently executed commands.
-    for (int j = 0; j < 2; j++) {
-        if (link[j] < 3) {
-            int moved = fcntl(link[j], F_DUPFD, 3);
-            if (moved < 0) {
-                close(link[0]); close(link[1]); delete[] p;
-                return false;
-            }
-            close(link[j]);
-            link[j] = moved;
-        }
-        if (fcntl(link[j], F_SETFD, FD_CLOEXEC) < 0) {
-            close(link[0]); close(link[1]); delete[] p;
-            return false;
-        }
-    }
-#ifdef SO_NOSIGPIPE
-    if (bidirectional) {
-        int on = 1;
-        setsockopt(link[0], SOL_SOCKET, SO_NOSIGPIPE, &on, sizeof(on));
-    }
-#endif
-
     *pid = fork();
     if (*pid == 0) {
-        // I am the child!
-        // Restore the handlers in the child.
+        // --- CHILD PROCESS ---
         restoreSignalHandlers();
-
-        // Make this child a process group leader,
-        // so that we can easily terminate it and all its
-        // subprocesses later one!
         setpgid(0, 0);
-        // Serial commands exchange bytes through stdin/stdout. Diagnostics
-        // stay on stderr instead of entering the receiver data stream.
-        dup2 (link[1], STDOUT_FILENO);
-        if (bidirectional) dup2(link[1], STDIN_FILENO);
-        else dup2(link[1], STDERR_FILENO);
-        // Close return pipe, not duped.
-        close(link[0]);
-        // Close old forward fd pipe.
-        close(link[1]);
-        if (!bidirectional) close(0);
+
+        // Parent keeps sv[0], child uses sv[1]
+        close(sv[0]);
+
+        // Redirect both stdin and stdout/stderr to the single socket descriptor
+        dup2(sv[1], STDIN_FILENO);
+        dup2(sv[1], STDOUT_FILENO);
+        // dup2(sv[1], STDERR_FILENO);
+        close(sv[1]);
 
 #if (defined(__APPLE__) && defined(__MACH__)) || defined(__FreeBSD__)
         environ = (char**)&env[0];
@@ -199,30 +178,22 @@ bool invokeBackgroundShell(string program, vector<string> args, vector<string> e
 #else
         execvpe(program.c_str(), (char*const*)&argv[0], (char*const*)&env[0]);
 #endif
-
-        perror("Execvp failed:");
-        // Use _exit() to avoid running parent's atexit handlers and destructors
-        // which can deadlock in a forked child.
         _exit(127);
-    }
-
-    close(link[1]);
-    if (*pid < 0) {
-        close(link[0]);
-        *pid = 0;
+    } else if (*pid < 0) {
+        close(sv[0]);
+        close(sv[1]);
         delete[] p;
         return false;
     }
-    // Also set the group in the parent, so immediate shutdown cannot race
-    // the child's setpgid().
-    setpgid(*pid, *pid);
 
-    // Make reads from the pipe non-blocking.
-    int flags = fcntl(link[0], F_GETFL);
-    flags |= O_NONBLOCK;
-    fcntl(link[0], F_SETFL, flags);
+    // --- PARENT PROCESS ---
+    // Child uses sv[1], parent closes its copy of sv[1]
+    close(sv[1]);
 
-    *fd_out = link[0];
+    // sv[0] is now a SINGLE, bidirectional file descriptor!
+    // You can both read from it and write to it.
+    *fd_rw = sv[0];
+
     delete[] p;
     return true;
 }

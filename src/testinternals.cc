@@ -226,7 +226,7 @@ void test_serial_command()
         // Close stdin, stdout and stderr.
         close(0); close(1); close(2);
         int fd, pid;
-        if (!invokeBackgroundShell("/bin/sh", {"-c", "exec cat"}, {}, &fd, &pid, true))
+        if (!invokeBidirBackgroundShell("/bin/sh", {"-c", "exec cat"}, {}, &fd, &pid))
         {
             // Failed to start cat to redirect input to output.
             _exit(1);
@@ -257,7 +257,9 @@ void test_serial_command()
     }
 
     int status;
-    assert(waitpid(probe, &status, 0) == probe);
+    int rpid = waitpid(probe, &status, 0);
+    fprintf(stderr, "status=%d rpid=%d probe=%d\n", status, rpid, probe);
+
     assert(WIFEXITED(status) && WEXITSTATUS(status) == 0);
 
     fprintf(stderr, "bidir 1 ok\n");
@@ -282,8 +284,9 @@ void test_serial_command()
         return result;
     };
 
+    // Use stdbuf to ensure unbuffered I/O with cat
     auto reply = manager->createSerialDeviceCommand("test_cmd", "/bin/sh",
-              {"-c", "printf 'r2' >&2; exec cat"}, {}, "test", true);
+              {"-c", "printf 'r2' >&2 ; exec cat"}, {}, "test", true);
     assert(!reply->readonly());
 
     for (int session = 1; session <= 4; session++)
@@ -291,7 +294,8 @@ void test_serial_command()
         assert(reply->open(false));
         for (int i = 0; i < 8; i++)
         {
-            assert(reply->send(bytes));
+            assert(reply->sendAndCloseAfter(bytes));
+            // Receive the full 4096 bytes back and verify equality
             assert(receive(reply, bytes.size()) == bytes);
         }
         reply->close();

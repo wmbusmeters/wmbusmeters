@@ -186,6 +186,26 @@ struct SerialDeviceImp : public SerialDevice
         return available > 0;
     }
 
+    bool sendAndCloseAfter(vector<uchar> &data)
+    {
+        // First, send the data normally using your existing send logic
+        if (!send(data)) {
+            return false;
+        }
+
+        // Now, shut down the writing end to send an EOF to the child process.
+        // This tells cat (or the backend tool) that input transmission is complete.
+        if (fd_ >= 0)
+        {
+            if (shutdown(fd_, SHUT_WR) == -1) {
+                warning("(serialcmd) failed to shutdown write stream: %s\n", strerror(errno));
+                return false;
+            }
+        }
+
+        return true;
+    }
+
     SerialDeviceImp(SerialCommunicationManagerImp *manager, string purpose)
     {
         manager_ = manager;
@@ -425,6 +445,7 @@ struct SerialDeviceCommand : public SerialDeviceImp
     bool open(bool fail_if_not_ok);
     void close();
     bool send(vector<uchar> &data);
+    bool sendAndCloseAfter(vector<uchar> &data); // SerialDeviceCommand version: restart the command if needed.
     int available();
     bool working();
     string device() { return identifier_; }
@@ -437,6 +458,10 @@ struct SerialDeviceCommand : public SerialDeviceImp
     string command_;
     int pid_ {};
     bool bidirectional_ {};
+    // Set when the write side of the current exchange has been shut down
+    // (sendAndCloseAfter) or when the device has been closed. When true,
+    // the next sendAndCloseAfter starts a fresh command to talk to.
+    bool send_finished_ {};
     vector<string> args_;
     vector<string> envs_;
 
@@ -469,8 +494,21 @@ bool SerialDeviceCommand::open(bool fail_if_not_ok)
 {
     LOCK_WRITE_SERIAL(opencmd);
     if (!bidirectional_) expectAscii();
-    bool ok = invokeBackgroundShell(command_, args_, envs_, &fd_, &pid_, bidirectional_);
+    // A previous exchange may have ended with the command having exited (EOF),
+    // so make sure the old child process is reaped and the fd is gone.
+    if (pid_ && !stillRunning(pid_))
+    {
+        pid_ = 0; // stillRunning() reaped the exited child process if there was one to reap.
+        if (fd_ >= 0)
+        {
+            int f = fd_;
+            fd_ = -1;
+            ::close(f);
+        }
+    }
+    bool ok = invokeBidirBackgroundShell(command_, args_, envs_, &fd_, &pid_);
     if (!ok) return false;
+    send_finished_ = false;
     verbose("(serialcmd) opened %s pid %d fd %d (%s)\n", command_.c_str(), pid_, fd_, purpose_.c_str());
     return true;
 }
@@ -486,6 +524,7 @@ void SerialDeviceCommand::close()
         pid_ = 0;
         ::close(fd_);
         fd_ = -1;
+        send_finished_ = true;
     }
     // Never invoke callbacks or take manager locks while holding the write
     // lock: manager shutdown takes its device-list lock before closing us.
@@ -554,6 +593,42 @@ bool SerialDeviceCommand::send(vector<uchar> &data)
 
     end:
     return rc;
+}
+
+bool SerialDeviceCommand::sendAndCloseAfter(vector<uchar> &data)
+{
+    if (!bidirectional_)
+    {
+        warning("(serialcmd) sendAndCloseAfter is only supported for bidirectional commands (%s)\n", purpose_.c_str());
+        return false;
+    }
+    LOCK_WRITE_SERIAL(sendclosecmd);
+    // The write side is shut down after each exchange, and receive() also
+    // closes the device on EOF, so make sure there is a live command
+    // to send the next round of data to.
+    if (fd_ < 0 || send_finished_)
+    {
+        if (!open(false))
+        {
+            warning("(serialcmd) failed to (re)start command for sendAndCloseAfter (%s)\n", purpose_.c_str());
+            return false;
+        }
+    }
+    if (!send(data))
+    {
+        warning("(serialcmd) failed to send data for sendAndCloseAfter (%s)\n", purpose_.c_str());
+        return false;
+    }
+    // Now, shut down the writing end to send an EOF to the command.
+    // This tells the command (or the tool it execs) that input transmission is complete,
+    // so that it actually flushes out its response.
+    if (fd_ >= 0 && shutdown(fd_, SHUT_WR) == -1)
+    {
+        warning("(serialcmd) failed to shutdown write stream: %s (%s)\n", strerror(errno), purpose_.c_str());
+        return false;
+    }
+    send_finished_ = true;
+    return true;
 }
 
 struct SerialDeviceFile : public SerialDeviceImp

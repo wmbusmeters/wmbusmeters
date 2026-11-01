@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2017-2020 Fredrik Öhrström (gpl-3.0-or-later)
+ Copyright (C) 2017-2026 Fredrik Öhrström (gpl-3.0-or-later)
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -20,7 +20,7 @@
 
 void invokeShell(std::string program, std::vector<std::string> args, std::vector<std::string> envs);
 int  invokeShellCaptureOutput(std::string program, std::vector<std::string> args, std::vector<std::string> envs, std::string *out, bool do_not_warn_if_fail);
-bool invokeBackgroundShell(std::string program, std::vector<std::string> args, std::vector<std::string> envs, int *out, int *pid, bool bidirectional = false);
+bool invokeBidirBackgroundShell(std::string program, std::vector<std::string> args, std::vector<std::string> envs, int *fd_rw, int *pid);
 bool stillRunning(int pid);
 void stopBackgroundShell(int pid);
 void detectProcesses(std::string cmd, std::vector<int> *pids);
