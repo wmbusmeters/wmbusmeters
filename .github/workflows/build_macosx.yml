@@ -2,7 +2,7 @@ name: Build MacOSX
 on:
   push:
     branches:
-      - master
+      - TEST_RESTART
 
 jobs:
   build:
