@@ -260,6 +260,20 @@ int SerialDeviceImp::receive(vector<uchar> *data)
     data->clear();
     int num_read = 0;
 
+    // A socket-backed fd (eg. a bidirectional command shell behind a
+    // socketpair, see invokeBidirBackgroundShell) has no EOF: a read() that
+    // finds no pending data blocks forever. For sockets, only read what is
+    // available now; select()/the event loop triggers again for any rest.
+    bool is_socket = false;
+    if (fd_ != -1)
+    {
+        struct stat st;
+        if (fstat(fd_, &st) == 0)
+        {
+            is_socket = S_ISSOCK(st.st_mode);
+        }
+    }
+
     while (true)
     {
         data->resize(num_read+1024);
@@ -267,6 +281,7 @@ int SerialDeviceImp::receive(vector<uchar> *data)
         if (nr > 0)
         {
             num_read += nr;
+            if (is_socket) break; // Do not block a blocking read for more data.
         }
         if (nr == 0)
         {
