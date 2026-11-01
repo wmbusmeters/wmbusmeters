@@ -443,15 +443,17 @@ shared_ptr<BusDevice> openAmber(Detected detected,
     string bus_alias  = detected.specified_device.bus_alias;
     string device = detected.found_file;
 
+    int bps = 9600;
     if (serial_override)
     {
+        if (!serial_override->setSerialSettings(bps, PARITY::NONE)) return nullptr;
         WMBusAmber *imp = new WMBusAmber(bus_alias, serial_override, manager, dt);
         imp->markAsNoLongerSerial();
         return shared_ptr<BusDevice>(imp);
     }
 
     assert(device != "");
-    auto serial = manager->createSerialDeviceTTY(device.c_str(), 9600, PARITY::NONE, "amb8465");
+    auto serial = manager->createSerialDeviceTTY(device.c_str(), bps, PARITY::NONE, "amb8465");
     WMBusAmber *imp = new WMBusAmber(bus_alias, serial, manager, dt);
     return shared_ptr<BusDevice>(imp);
 }

@@ -451,6 +451,7 @@ struct SerialDeviceCommand : public SerialDeviceImp
     string device() { return identifier_; }
     bool readonly() { return !bidirectional_; }
     string command() { return command_; }
+    bool setSerialSettings(int bps, PARITY parity);
 
     private:
 
@@ -462,6 +463,8 @@ struct SerialDeviceCommand : public SerialDeviceImp
     // (sendAndCloseAfter) or when the device has been closed. When true,
     // the next sendAndCloseAfter starts a fresh command to talk to.
     bool send_finished_ {};
+    int bps_ {};
+    PARITY parity_ = PARITY::NONE;
     vector<string> args_;
     vector<string> envs_;
 
@@ -506,10 +509,31 @@ bool SerialDeviceCommand::open(bool fail_if_not_ok)
             ::close(f);
         }
     }
-    bool ok = invokeBidirBackgroundShell(command_, args_, envs_, &fd_, &pid_);
+    vector<string> updated_envs = envs_;
+    fprintf(stderr, "bps=%d parity=%d\n", bps_, (int)parity_);
+    if (bps_ > 0)
+    {
+        updated_envs.push_back("SERIAL_BPS=" + to_string(bps_));
+        updated_envs.push_back("SERIAL_BITS=8");
+        updated_envs.push_back(string("SERIAL_PARITY=") + (parity_ == PARITY::EVEN ? "e" : parity_ == PARITY::ODD ? "o" : "n"));
+        updated_envs.push_back("SERIAL_STOPBITS=1");
+        updated_envs.push_back("SERIAL_FLOW=none");
+    }
+    bool ok = invokeBidirBackgroundShell(command_, args_, updated_envs, &fd_, &pid_);
     if (!ok) return false;
     send_finished_ = false;
     verbose("(serialcmd) opened %s pid %d fd %d (%s)\n", command_.c_str(), pid_, fd_, purpose_.c_str());
+    return true;
+}
+
+bool SerialDeviceCommand::setSerialSettings(int bps, PARITY parity)
+{
+    LOCK_WRITE_SERIAL(settingscmd);
+    if (!bidirectional_) return true;
+    if (bps <= 0) return false;
+    if (fd_ >= 0 && (bps != bps_ || parity != parity_)) return false;
+    bps_ = bps;
+    parity_ = parity;
     return true;
 }
 

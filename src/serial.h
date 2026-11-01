@@ -59,6 +59,9 @@ struct SerialDevice
     virtual bool resetting() = 0; // The serial device is working but can lack a valid file descriptor.
     // Used when connecting stdin to a tty driver for testing.
     virtual bool readonly() = 0;
+    // Configure the settings used on the next open. Read-only overrides
+    // ignore these settings. An open command rejects a settings change.
+    virtual bool setSerialSettings(int bps, PARITY parity) { return true; }
     // Mark this device so that it is ignored by the select/callback event loop.
     virtual void disableCallbacks() = 0;
     // Enable this device to trigger callbacks from the event loop.

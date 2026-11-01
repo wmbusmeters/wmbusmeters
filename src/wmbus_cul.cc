@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2019-2022 Fredrik Öhrström (gpl-3.0-or-later)
+ Copyright (C) 2019-2026 Fredrik Öhrström (gpl-3.0-or-later)
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -86,8 +86,10 @@ private:
 shared_ptr<BusDevice> openCUL(Detected detected, shared_ptr<SerialCommunicationManager> manager, shared_ptr<SerialDevice> serial_override)
 {
     string bus_alias =  detected.specified_device.bus_alias;
+    int bps = 38400;
     if (serial_override)
     {
+        if (!serial_override->setSerialSettings(bps, PARITY::NONE)) return nullptr;
         WMBusCUL *imp = new WMBusCUL(bus_alias, serial_override, manager);
         imp->markAsNoLongerSerial();
         return shared_ptr<BusDevice>(imp);
@@ -95,7 +97,7 @@ shared_ptr<BusDevice> openCUL(Detected detected, shared_ptr<SerialCommunicationM
 
 
     string device = detected.found_file;
-    auto serial = manager->createSerialDeviceTTY(device.c_str(), 38400, PARITY::NONE, "cul");
+    auto serial = manager->createSerialDeviceTTY(device.c_str(), bps, PARITY::NONE, "cul");
     WMBusCUL *imp = new WMBusCUL(bus_alias, serial, manager);
     return shared_ptr<BusDevice>(imp);
 }

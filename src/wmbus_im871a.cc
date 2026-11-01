@@ -281,15 +281,17 @@ shared_ptr<BusDevice> openIM871AIM170A(BusDeviceType type, Detected detected, sh
 {
     string bus_alias = detected.specified_device.bus_alias;
     string device_file = detected.found_file;
+    int bps = 57600;
     if (serial_override)
     {
+        if (!serial_override->setSerialSettings(bps, PARITY::NONE)) return nullptr;
         WMBusIM871aIM170A *imp = new WMBusIM871aIM170A(type, bus_alias, serial_override, manager);
         imp->markAsNoLongerSerial();
         return shared_ptr<BusDevice>(imp);
     }
 
     assert(device_file != "");
-    auto serial = manager->createSerialDeviceTTY(device_file.c_str(), 57600, PARITY::NONE, "im871a");
+    auto serial = manager->createSerialDeviceTTY(device_file.c_str(), bps, PARITY::NONE, "im871a");
     WMBusIM871aIM170A *imp = new WMBusIM871aIM170A(type, bus_alias, serial, manager);
     return shared_ptr<BusDevice>(imp);
 }

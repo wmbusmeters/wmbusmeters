@@ -72,6 +72,7 @@ shared_ptr<BusDevice> openRawTTYInternal(Detected detected,
 
     if (serial_override)
     {
+        if (!serial_override->setSerialSettings(bps, PARITY::NONE)) return nullptr;
         WMBusRawTTY *imp = new WMBusRawTTY(bus_alias, serial_override, manager, use_hex);
         imp->markAsNoLongerSerial();
         return shared_ptr<BusDevice>(imp);

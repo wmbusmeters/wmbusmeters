@@ -212,15 +212,17 @@ shared_ptr<BusDevice> openRC1180(Detected detected, shared_ptr<SerialCommunicati
     string bus_alias = detected.specified_device.bus_alias;
     string device = detected.found_file;
 
+    int bps = getConfiguredBaudRate(detected);
     if (serial_override)
     {
+        if (!serial_override->setSerialSettings(bps, PARITY::NONE)) return nullptr;
         WMBusRC1180 *imp = new WMBusRC1180(bus_alias, serial_override, manager);
         imp->markAsNoLongerSerial();
         return shared_ptr<BusDevice>(imp);
     }
 
     assert(device != "");
-    auto serial = manager->createSerialDeviceTTY(device.c_str(), getConfiguredBaudRate(detected), PARITY::NONE, "rc1180");
+    auto serial = manager->createSerialDeviceTTY(device.c_str(), bps, PARITY::NONE, "rc1180");
     WMBusRC1180 *imp = new WMBusRC1180(bus_alias, serial, manager);
     return shared_ptr<BusDevice>(imp);
 }

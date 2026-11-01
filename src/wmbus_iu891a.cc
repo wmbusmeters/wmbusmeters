@@ -325,15 +325,17 @@ shared_ptr<BusDevice> openIU891A(BusDeviceType type, Detected detected, shared_p
 {
     string bus_alias = detected.specified_device.bus_alias;
     string device_file = detected.found_file;
+    int bps = 115200;
     if (serial_override)
     {
+        if (!serial_override->setSerialSettings(bps, PARITY::NONE)) return nullptr;
         WMBusIU891A *imp = new WMBusIU891A(type, bus_alias, serial_override, manager);
         imp->markAsNoLongerSerial();
         return shared_ptr<BusDevice>(imp);
     }
 
     assert(device_file != "");
-    auto serial = manager->createSerialDeviceTTY(device_file.c_str(), 115200, PARITY::NONE, "iu891a");
+    auto serial = manager->createSerialDeviceTTY(device_file.c_str(), bps, PARITY::NONE, "iu891a");
     WMBusIU891A *imp = new WMBusIU891A(type, bus_alias, serial, manager);
     return shared_ptr<BusDevice>(imp);
 }
