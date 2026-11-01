@@ -529,7 +529,8 @@ bool SerialDeviceCommand::setSerialSettings(int bps, PARITY parity)
 {
     LOCK_WRITE_SERIAL(settingscmd);
     if (!bidirectional_) return true;
-    if (bps <= 0) return false;
+    // bps == 0 means "keep the default" (many devices, eg hextty:CMD(...), have no meaningful baud rate).
+    if (bps < 0) return false;
     if (fd_ >= 0 && (bps != bps_ || parity != parity_)) return false;
     bps_ = bps;
     parity_ = parity;

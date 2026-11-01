@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2017-2021 Fredrik Öhrström (gpl-3.0-or-later)
+ Copyright (C) 2017-2026 Fredrik Öhrström (gpl-3.0-or-later)
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -275,6 +275,12 @@ shared_ptr<BusDevice> BusManager::createWmbusObject(Detected *detected, Configur
         }
         errorAndExit(EXIT_BUS_DEVICE_ERROR, "(main) internal error! cannot create an unknown device! exiting!\n");
         break;
+    }
+
+    if (wmbus == NULL)
+    {
+        warning("Failed to open wmbus device %s\n", detected->specified_device.str().c_str());
+        return NULL;
     }
 
     if (detected->found_device_id != "" &&  !detected->found_tty_override)
