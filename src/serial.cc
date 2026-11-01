@@ -510,7 +510,6 @@ bool SerialDeviceCommand::open(bool fail_if_not_ok)
         }
     }
     vector<string> updated_envs = envs_;
-    fprintf(stderr, "bps=%d parity=%d\n", bps_, (int)parity_);
     if (bps_ > 0)
     {
         updated_envs.push_back("SERIAL_BPS=" + to_string(bps_));
