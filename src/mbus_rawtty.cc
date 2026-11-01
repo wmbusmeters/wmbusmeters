@@ -65,6 +65,7 @@ shared_ptr<BusDevice> openMBUS(Detected detected, shared_ptr<SerialCommunication
 
     if (serial_override)
     {
+        if (!serial_override->setSerialSettings(bps, PARITY::EVEN)) return nullptr;
         MBusRawTTY *imp = new MBusRawTTY(bus_alias, serial_override, manager);
         imp->markAsNoLongerSerial();
         return shared_ptr<BusDevice>(imp);

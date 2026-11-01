@@ -57,6 +57,11 @@ using namespace std;
 // return a positive integer (file descriptor) on success.
 // return -1 for failure to open. return -2 for already locked.
 static int openSerialTTY(const char *tty, int baud_rate, PARITY parity);
+static bool serialTTYSpeed(int baud_rate, speed_t *speed);
+static bool serialParityValid(PARITY parity)
+{
+    return parity == PARITY::NONE || parity == PARITY::EVEN || parity == PARITY::ODD;
+}
 static string showTTYSettings(int fd);
 
 struct SerialDeviceImp;
@@ -325,12 +330,15 @@ struct SerialDeviceTTY : public SerialDeviceImp
     bool send(vector<uchar> &data);
     bool working();
     string device() { return device_; }
+    bool setSerialSettings(int bps, PARITY parity);
+    bool serialSettingsChanged() { LOCK_WRITE_SERIAL(checksettingstty); return settings_changed_; }
 
     private:
 
     string device_;
     int baud_rate_ {};
     PARITY parity_ {};
+    bool settings_changed_ {};
 };
 
 SerialDeviceTTY::SerialDeviceTTY(string device, int baud_rate, PARITY parity,
@@ -350,6 +358,7 @@ SerialDeviceTTY::~SerialDeviceTTY()
 
 bool SerialDeviceTTY::open(bool fail_if_not_ok)
 {
+    LOCK_WRITE_SERIAL(opentty);
     assert(device_ != "");
     bool ok = checkCharacterDeviceExists(device_.c_str(), fail_if_not_ok);
     if (!ok) return false;
@@ -366,16 +375,20 @@ bool SerialDeviceTTY::open(bool fail_if_not_ok)
         verbose("(serialtty) device %s is already in use and locked.\n", device_.c_str());
         return false;
     }
+    settings_changed_ = false;
     verbose("(serialtty) opened %s fd %d (%s)\n", device_.c_str(), fd_, purpose_.c_str());
     return true;
 }
 
 void SerialDeviceTTY::close()
 {
-    if (fd_ == -1) return;
-    ::flock(fd_, LOCK_UN);
-    ::close(fd_);
-    fd_ = -1;
+    {
+        LOCK_WRITE_SERIAL(closetty);
+        if (fd_ == -1) return;
+        ::flock(fd_, LOCK_UN);
+        ::close(fd_);
+        fd_ = -1;
+    }
     if (on_disappear_ && !resetting_)
     {
         on_disappear_();
@@ -392,6 +405,7 @@ bool SerialDeviceTTY::send(vector<uchar> &data)
 
     assert(data.size() > 0);
 
+    if (settings_changed_) return false;
     bool rc = true;
     int n = data.size();
     int written = 0;
@@ -434,6 +448,29 @@ bool SerialDeviceTTY::working()
     return working;
 }
 
+bool SerialDeviceTTY::setSerialSettings(int bps, PARITY parity)
+{
+    speed_t speed;
+    if (!serialTTYSpeed(bps, &speed) || !serialParityValid(parity)) return false;
+    bool was_open = false;
+    bool changed = false;
+    {
+        LOCK_WRITE_SERIAL(settings);
+        was_open = fd_ >= 0;
+        changed = (baud_rate_ != bps || parity_ != parity);
+        baud_rate_ = bps;
+        parity_ = parity;
+        settings_changed_ = changed && was_open;
+    }
+    if (!changed || !was_open) return true;
+    // Baud rate and parity are applied when a terminal is opened, so if
+    // the settings of an open terminal change then it has to be closed
+    // and opened again for the new settings to take effect.
+    // Close it, try to open it again, and report the result.
+    close();
+    return open(false);
+}
+
 
 struct SerialDeviceCommand : public SerialDeviceImp
 {
@@ -450,6 +487,8 @@ struct SerialDeviceCommand : public SerialDeviceImp
     bool working();
     string device() { return identifier_; }
     bool readonly() { return !bidirectional_; }
+    bool bidirectional() { return bidirectional_; }
+    bool serialSettingsChanged() { LOCK_WRITE_SERIAL(checksettingscmd); return settings_changed_; }
     string command() { return command_; }
     bool setSerialSettings(int bps, PARITY parity);
 
@@ -465,6 +504,7 @@ struct SerialDeviceCommand : public SerialDeviceImp
     bool send_finished_ {};
     int bps_ {};
     PARITY parity_ = PARITY::NONE;
+    bool settings_changed_ {};
     vector<string> args_;
     vector<string> envs_;
 
@@ -527,14 +567,50 @@ bool SerialDeviceCommand::open(bool fail_if_not_ok)
 
 bool SerialDeviceCommand::setSerialSettings(int bps, PARITY parity)
 {
-    LOCK_WRITE_SERIAL(settingscmd);
     if (!bidirectional_) return true;
     // bps == 0 means "keep the default" (many devices, eg hextty:CMD(...), have no meaningful baud rate).
     if (bps < 0) return false;
-    if (fd_ >= 0 && (bps != bps_ || parity != parity_)) return false;
-    bps_ = bps;
-    parity_ = parity;
-    return true;
+    speed_t speed;
+    if (bps != 0 && !serialTTYSpeed(bps, &speed)) return false;
+    if (!serialParityValid(parity)) return false;
+    bool was_open = false;
+    bool changed = false;
+    {
+        LOCK_WRITE_SERIAL(settings);
+        was_open = fd_ >= 0;
+        changed = (bps_ != bps || parity_ != parity);
+        bps_ = bps;
+        parity_ = parity;
+        settings_changed_ = changed && was_open;
+    }
+    if (!changed || !was_open) return true;
+    // The serial settings are handed to the command as SERIAL_*
+    // environment variables when the command is spawned, so if they
+    // change while a command is running then a new command with the
+    // new settings has to be started for them to take effect.
+    // Close it, try to open it again, and report the result.
+    resetInitiated();
+    close();
+    bool ok = open(false);
+    if (ok)
+    {
+        // Wait for the command to start up: if it emits any early
+        // output (a "ready" line for instance) it is consumed here so
+        // it does not leak into the device stream, and once it has
+        // arrived the restarted command is guaranteed to be running.
+        // Commands that emit nothing on startup simply hit the short
+        // timeout.
+        struct pollfd pfd = { fd_, POLLIN, 0 };
+        if (poll(&pfd, 1, 1000) > 0)
+        {
+            vector<uchar> ready;
+            while (receive(&ready) > 0) { }
+        }
+        LOCK_WRITE_SERIAL(settings);
+        settings_changed_ = false;
+    }
+    resetCompleted();
+    return ok;
 }
 
 void SerialDeviceCommand::close()
@@ -587,7 +663,7 @@ bool SerialDeviceCommand::send(vector<uchar> &data)
 
     assert(data.size() > 0);
 
-    if (!bidirectional_ || fd_ < 0) return false;
+    if (!bidirectional_ || fd_ < 0 || settings_changed_) return false;
     bool rc = true;
     int n = data.size();
     int written = 0;
@@ -1398,10 +1474,33 @@ shared_ptr<SerialCommunicationManager> createSerialCommunicationManager(time_t e
                                                                                     start_event_loop));
 }
 
+static bool serialTTYSpeed(int baud_rate, speed_t *speed)
+{
+    switch (baud_rate)
+    {
+    case 300:   *speed = B300;  break;
+    case 600:   *speed = B600;  break;
+    case 1200:   *speed = B1200;  break;
+    case 2400:   *speed = B2400;  break;
+    case 4800:   *speed = B4800;  break;
+    case 9600:   *speed = B9600;  break;
+    case 19200:  *speed = B19200; break;
+    case 38400:  *speed = B38400; break;
+    case 57600:  *speed = B57600; break;
+    case 115200: *speed = B115200;break;
+    case 230400: *speed = B230400;break;
+    default:
+        return false;
+    }
+
+    return true;
+}
+
 static int openSerialTTY(const char *tty, int baud_rate, PARITY parity)
 {
     int rc = 0;
     speed_t speed = 0;
+    if (!serialTTYSpeed(baud_rate, &speed) || !serialParityValid(parity)) return -1;
     struct termios tios;
     string tty_info;
     //int DTR_flag = TIOCM_DTR;
@@ -1422,23 +1521,6 @@ static int openSerialTTY(const char *tty, int baud_rate, PARITY parity)
 
     tty_info = showTTYSettings(fd);
     debug("(serial) before config: %s %s\n",  tty, tty_info.c_str());
-
-    switch (baud_rate)
-    {
-    case 300:   speed = B300;  break;
-    case 600:   speed = B600;  break;
-    case 1200:   speed = B1200;  break;
-    case 2400:   speed = B2400;  break;
-    case 4800:   speed = B4800;  break;
-    case 9600:   speed = B9600;  break;
-    case 19200:  speed = B19200; break;
-    case 38400:  speed = B38400; break;
-    case 57600:  speed = B57600; break;
-    case 115200: speed = B115200;break;
-    case 230400: speed = B230400;break;
-    default:
-        goto err;
-    }
 
     memset(&tios, 0, sizeof(tios));
 

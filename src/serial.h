@@ -62,6 +62,7 @@ struct SerialDevice
     // Configure the settings used on the next open. Read-only overrides
     // ignore these settings. An open command rejects a settings change.
     virtual bool setSerialSettings(int bps, PARITY parity) { return true; }
+    virtual bool serialSettingsChanged() { return false; }
     // Mark this device so that it is ignored by the select/callback event loop.
     virtual void disableCallbacks() = 0;
     // Enable this device to trigger callbacks from the event loop.

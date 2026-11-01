@@ -10,7 +10,7 @@ then
     printERROR "$TESTNAME"
     exit 1
 fi
-if ! grep -q 'CUL command exchange complete' testoutput/cmd.err
+if ! grep -q 'cmd_cul.sh command exchange complete' testoutput/cmd.err
 then
     cat testoutput/cmd.err
     printERROR "$TESTNAME"

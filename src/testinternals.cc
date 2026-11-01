@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2018-2024 Fredrik Öhrström (gpl-3.0-or-later)
+ Copyright (C) 2018-2026 Fredrik Öhrström (gpl-3.0-or-later)
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -37,6 +37,8 @@
 #include <sys/socket.h>
 #include <sys/wait.h>
 #include <thread>
+#include <fstream>
+#include <fcntl.h>
 
 #include"crypto/aes.h"
 #include"crypto/aescmac.h"
@@ -55,6 +57,7 @@ bool verbose_ = false;
 
 #define LIST_OF_TESTS \
     X(serial_command) \
+    X(serial_settings_restart) \
     X(addresses) \
     X(dynamic_loading)                        \
     X(crc)            \
@@ -217,6 +220,8 @@ void test_crc()
 
 void test_serial_command()
 {
+    fprintf(stderr, "Testing complicated spawning of sub shells...\n");
+
     // Closed standard descriptors must not alias the socketpair endpoints.
     pid_t probe = fork();
     assert(probe >= 0);
@@ -262,11 +267,10 @@ void test_serial_command()
     // reaping the child. Retry until it is reaped (portable pattern).
     int rpid;
     do { rpid = waitpid(probe, &status, 0); } while (rpid < 0 && errno == EINTR);
-    fprintf(stderr, "status=%d rpid=%d probe=%d\n", status, rpid, probe);
 
     assert(WIFEXITED(status) && WEXITSTATUS(status) == 0);
 
-    fprintf(stderr, "bidir 1 ok\n");
+    fprintf(stderr, "OK: simple subshell with cat\n");
 
     auto manager = createSerialCommunicationManager(0, false);
 
@@ -308,7 +312,7 @@ void test_serial_command()
     }
 
     assert(reply->isClosed());
-    fprintf(stderr, "\nbidir 2 ok\n");
+    fprintf(stderr, "\nOK: repeated open,send,receive,close works\n");
 
     auto echo = manager->createSerialDeviceCommand("test_echo", "/bin/sh",
               {"-c", "printf 'r3' >&2; exec cat"}, {}, "test", true);
@@ -347,7 +351,7 @@ void test_serial_command()
         do { finished = waitpid(probe, &callback_status, 0); } while (finished < 0 && errno == EINTR);
     }
     assert(finished == probe && WIFEXITED(callback_status) && WEXITSTATUS(callback_status) == 0);
-    fprintf(stderr, "\nbidir 3 ok\n");
+    fprintf(stderr, "\nOK: on disappear callback works\n");
 
     // A dead peer must return a send error, not terminate us with SIGPIPE.
     // sending x to stdout.
@@ -365,18 +369,98 @@ void test_serial_command()
     //assert(dead->isClosed());
     dead->close();
 
-    fprintf(stderr, "bidir 4 ok\n");
+    fprintf(stderr, "OK: a dead subshell returns send error, not SIGPIPE\n");
 
-    // Producer commands still have the existing read-only contract.
+    // Producer commands final arg false, still have the existing read-only contract.
     auto producer = manager->createSerialDeviceCommand("test_producer", "/bin/sh",
-                 {"-c", "printf y"}, {}, "test");
+                                                       {"-c", "printf y"}, {}, "test", false);
     assert(producer->readonly());
     assert(producer->open(false));
     assert(!producer->send(bytes));
     assert(receive(producer, 1) == vector<uchar>({'y'}));
     producer->close();
 
-    fprintf(stderr, "bidir 5 ok\n");
+    fprintf(stderr, "OK: read-only works\n");
+}
+
+void test_serial_settings_restart()
+{
+    fprintf(stderr, "Testing complicated restarting sub shell when serial bps/parity changes.\n");
+    {
+        auto validation_manager = createSerialCommunicationManager(0, false);
+        int master = posix_openpt(O_RDWR | O_NOCTTY);
+        assert(master >= 0 && grantpt(master) == 0 && unlockpt(master) == 0);
+        Detected tty_detected;
+        tty_detected.setAsFound("", DEVICE_RAWTTY, 2400, false, {});
+        tty_detected.found_file = ptsname(master);
+        auto tty_bus = openRawTTY(tty_detected, validation_manager, nullptr);
+        assert(tty_bus->serial()->working());
+        int fd = tty_bus->serial()->fd();
+        assert(!tty_bus->serial()->setSerialSettings(14400, PARITY::EVEN));
+        assert(tty_bus->serial()->fd() == fd && tty_bus->isWorking());
+        assert(!tty_bus->serial()->serialSettingsChanged());
+        close(master); // Simulate the TTY disappearing before a reopen.
+        assert(!tty_bus->serial()->setSerialSettings(9600, PARITY::EVEN));
+        assert(!tty_bus->isWorking() && tty_bus->serial()->isClosed());
+        assert(!tty_bus->serial()->resetting());
+    }
+    char logfile[] = "/tmp/wmbusmeters-cmd-XXXXXX";
+    int logfd = mkstemp(logfile);
+    assert(logfd >= 0);
+    close(logfd);
+    auto manager = createSerialCommunicationManager(0, true);
+    auto serial = manager->createSerialDeviceCommand("test_restart", "/bin/sh",
+                 {"-c", "exec sh tests/cmd_cul.sh"}, {string("CMD_TEST_LOG=") + logfile}, "test", true);
+    Detected detected;
+    LinkModeSet lms;
+    lms.addLinkMode(LinkMode::T1);
+    detected.setAsFound("", DEVICE_CUL, 38400, false, lms);
+    auto bus = openCUL(detected, manager, serial);
+    manager->startEventLoop();
+    bus->setLinkModes(lms);
+    // Each command invocation logs its serial settings as the very first
+    // thing it does. The parent cannot know exactly when the newly spawned
+    // command has started executing, so give observations a bounded grace
+    // period instead of reading once and risking a race.
+    auto loglines = [&]() {
+        ifstream input(logfile);
+        vector<string> result;
+        string line;
+        while (getline(input, line)) result.push_back(line);
+        return result;
+    };
+    auto wait_for_lines = [&](size_t expected) {
+        time_t deadline = time(NULL) + 5;
+        for (;;)
+        {
+            vector<string> lines = loglines();
+            if (lines.size() == expected) return lines;
+            if (time(NULL) >= deadline) return lines;
+            usleep(50 * 1000);
+        }
+    };
+    auto initial = wait_for_lines(1);
+    assert(initial.size() == 1 && initial[0].find("38400/n/") == 0);
+    assert(bus->serial()->setSerialSettings(38400, PARITY::NONE));
+    assert(wait_for_lines(1).size() == 1); // Same settings must not restart.
+    assert(bus->serial()->setSerialSettings(9600, PARITY::EVEN));
+    assert(!serial->serialSettingsChanged() && bus->isWorking());
+    assert(bus->serial()->setSerialSettings(9600, PARITY::EVEN)); // Same settings must not restart.
+    assert(bus->reset()); // Normal resets retain the latest settings.
+    // reset() re-establishes the link modes, which requires the restarted
+    // command to be up, so waiting a bounded amount of time for the log
+    // lines gives a deterministic view of every session that happened.
+    auto sessions = wait_for_lines(3);
+    assert(sessions.size() == 3);
+    assert(sessions[0].find("38400/n/") == 0);
+    assert(sessions[1].find("9600/e/") == 0);
+    assert(sessions[2].find("9600/e/") == 0);
+    assert(sessions[0].substr(sessions[0].rfind('/')) != sessions[1].substr(sessions[1].rfind('/')));
+    assert(sessions[1].substr(sessions[1].rfind('/')) != sessions[2].substr(sessions[2].rfind('/')));
+    bus->close();
+    manager->stop();
+    manager->waitForStop();
+    unlink(logfile);
 }
 
 bool tst_parse(const char *data, std::unordered_map<std::string,std::pair<int,DVEntry>> *dv_entries, int testnr)
