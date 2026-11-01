@@ -2,7 +2,7 @@ name: Build MacOSX
 on:
   push:
     branches:
-      - master
+      - TEST_MACOS
 
 jobs:
   build:
