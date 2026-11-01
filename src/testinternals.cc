@@ -257,7 +257,11 @@ void test_serial_command()
     }
 
     int status;
-    int rpid = waitpid(probe, &status, 0);
+    // waitpid can be interrupted by the SIGCHLD handler we installed in
+    // main() (via onExit()), in which case it returns -1/EINTR without
+    // reaping the child. Retry until it is reaped (portable pattern).
+    int rpid;
+    do { rpid = waitpid(probe, &status, 0); } while (rpid < 0 && errno == EINTR);
     fprintf(stderr, "status=%d rpid=%d probe=%d\n", status, rpid, probe);
 
     assert(WIFEXITED(status) && WEXITSTATUS(status) == 0);
@@ -333,13 +337,14 @@ void test_serial_command()
     {
         fprintf(stderr, "!");
         finished = waitpid(probe, &callback_status, WNOHANG);
+        if (finished < 0 && errno == EINTR) continue;
         if (!finished) sleep(1);
     }
     if (!finished)
     {
         fprintf(stderr, "KILL ");
         kill(probe, SIGKILL);
-        waitpid(probe, &callback_status, 0);
+        do { finished = waitpid(probe, &callback_status, 0); } while (finished < 0 && errno == EINTR);
     }
     assert(finished == probe && WIFEXITED(callback_status) && WEXITSTATUS(callback_status) == 0);
     fprintf(stderr, "\nbidir 3 ok\n");

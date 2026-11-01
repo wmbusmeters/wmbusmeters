@@ -192,6 +192,18 @@ bool invokeBidirBackgroundShell(std::string program, std::vector<std::string> ar
 
     // sv[0] is now a SINGLE, bidirectional file descriptor!
     // You can both read from it and write to it.
+
+    // Make the socket non-blocking: the command (e.g. a shell that
+    // execs 'cat' to stay alive) keeps the peer end open, so a blocking
+    // read would hang until the command exits. With O_NONBLOCK the
+    // select()-driven event loop drains whatever is available and
+    // receive() returns as soon as there is no more data (EAGAIN).
+    // send() already tolerates EAGAIN by polling for writability.
+    {
+        int fl = fcntl(sv[0], F_GETFL);
+        if (fl != -1) fcntl(sv[0], F_SETFL, fl | O_NONBLOCK);
+    }
+
     *fd_rw = sv[0];
 
     delete[] p;
