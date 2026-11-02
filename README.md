@@ -638,99 +638,8 @@ Radiocraft (rc1180)
 rtl_wmbus (rtlwmbus)
 rtl_433 (rtl433)
 
-Supported mbus dongles:
-Any bus controller dongle/board behaving like a plain serial port.
-
-Supported water meters:
-Aventies (aventieswm)
-Apator at-wmbus-08   (apator08) (non-standard protocol)
-Apator at-wmbus-08-2   (apator082) (non-standard protocol)
-Apator at-wmbus-16-2 (apator162) (non-standard protocol)
-Apator at-wmbus-17-2 (apator172) (non-standard protocol)
-Apator Ultrimis (ultrimis)
-Aquametro/Integra Topas Es Kr (topaseskr)
-Axioma W1 (q400)
-Bmeters Hydrodigit (hydrodigit) (partly non-standard protocol)
-Bmeters GSD8-I with IWM-TX5 module (iwmtx5)
-Diehl/Sappel IZAR RC 868 I R4 PL and R3 (izar) (non-standard protocol)
-Diehl HYDRUS (hydrus)
-Diehl IZAR RC I G4 (dme_07)
-Elster Merlin 868 (emerlin868)
-Elster V200H (ev200)
-GWF Water (gwfwater)
-Maddalena EVO 868 (evo868)
-Honeywell Q400 (q400)
-Itron (itron)
-Kamstrup Multical 21 (kamwater)
-Kamstrup flowIQ 2200 (kamwater)
-Kamstrup flowIQ 3100 (kamwater)
-Qundis QWater5.5 (lse_07_17)
-Sontex Supercom 587 (supercom587)
-Sensus iPERL (iperl)
-Techem MK Radio 3 and 4 (mkradio3,mkradio4) (non-standard protocols)
-Waterstar M (waterstarm)
-Watertech (watertech)
-Zenner Minomess (minomess)
-
-Supported heat cost allocators:
-Apator E-ITN 30.51 (apatoreitn)
-Engelmann HCA e2 (hcae2)
-Innotas EurisII  (eurisii)
-Qundis Q caloric (qcaloric)
-Sontex 868 (sontex868)
-Techem FHKV data II/III (fhkvdataiii)
-Siemens WHE542 (whe5x)
-BMeters Hydroclima RFM (hydroclima)
-BFW 240 (bfw240radio)
-
-Supported heat meters:
-Heat meter Techem Compact V / Compact Ve (compact5) (non-standard protocol)
-Heat meter Techem vario 3 type 3.2.1 (compact5)
-Heat meter Techem vario 4 (vario451) (non-standard protocol)
-Heat and Cooling meters Kamstrup Multical 302,403,602,603,803 (kamheat)
-Heat meter Apator Elf (elf)
-Heat meter Enercal F2 (enercal)
-Heat meter Diehl Sharky 775 (sharky)
-Heat meter Diehl Sharky 774 (sharky774)
-Heat meter Maddelena microClima (microclima)
-Heat and Cooling meter BMeters Hydrocal-M3 (hydrocalm3)
-Heat and Cooling meter Axioma Qualcosonic E3 (qualcosonic)
-Heat meter Qundis Q heat 5.5 (qheat)
-Heat meter Sensus Pollucom F (pollucomf)
-
-Supported room sensors:
-Bmeters RFM-AMB Thermometer/Hygrometer (rfmamb)
-Elvaco CMa12w Thermometer (cma12w)
-Lansen Thermometer/Hygrometer (lansenth)
-Weptech Munia / Robin Thermometer/Hygrometer (munia)
-PiiGAB Thermometer/Hygrometer (piigth) wired
-
-Supported smoke detectors:
-Lansen Smoke Detector (lansensm)
-EI Electronics Smoke Detector ei6500-oms (ei6500)
-
-Supported door/window detectors:
-Lansen Door/Window Detector (lansendw)
-
-Supported pulse counter:
-Lansen Pulse Counter (lansenpu)
-
-Supported electricity meters:
-Easy Meter ESYS-WM20 (esyswm)
-eBZ wMB-E01 (ebzwmbe)
-EMH Metering (ehzp)
-Tauron Amiplus (amiplus) (includes vendors apator, echelon and elgama gama 350)
-Gavazzi EM24 (em24)
-Gransystems 301 and 303 (gransystems)
-Kamstrup Omnipower (omnipower)
-
-Supported gas meters:
-uniSMART (unismart)
-
-Supported pressure sensors:
-Kamstrup Pressure Sensor (kampress)
-
-
+A lot of meters are supported through the drivers.
+Check https://wmbusmeters.org/drivers
 ```
 
 The wmbus dongle im871a can listen to either s1, c1 or t1.
@@ -752,7 +661,7 @@ to save cpu usage.
 The cul dongle can listen to c1 and t1 at the same time, but only
 if you specify c1! If you specify t1 or s1, then it will only listen to t1 or s1.
 
-Important!!!! Note that the cul dongle is limited to shorter
+Important!!!! Note that the nano cul dongle is limited to shorter
 telegrams. There is a firmware fix that allows somewhat longer,
 but still not full length telegrams. This can be a serious blocker
 if you want to receive long telegrams from advanced meters.
@@ -888,6 +797,38 @@ If the meter does not use encryption of its meter data, then enter NOKEY on the 
 ```shell
 wmbusmeters --format=json --meterfiles=/home/me/meter_readings /dev/ttyUSB0:im871a:c1 MyTapWater multical21:c1 12345678 NOKEY
 ```
+
+# Using a remote serial port for normal wmbus dongles using gensiot and ser2net
+
+Create serial-server.yaml on your computer 192.168.1.55 with the serial port:
+```
+connection: &usb_serial
+  accepter: telnet(rfc2217),tcp,3001
+  connector: serialdev,/dev/ttyACM0,9600N81
+```
+
+And on that computer start:
+```
+sudo ser2net -n -c ./serial-server.yaml
+```
+
+Then on another computer run:
+```
+wmbusmeters 'iu891a:c1,t1:CMD(gensiot "telnet(rfc2217,${SERIAL_BPS}${SERIAL_PARITY}${SERIAL_BITS}${SERIAL_STOPBITS}),tcp,192.168.1.55,3001")' MyTempMeter minomess 11223344 NOKEY
+```
+
+This should also work for remote mbus ports where you need different serial speeds for different meters.
+This communication is not encrypted. Gensiot should be able to encrypt the communication.
+
+# Using a remote tcp->serial mbus service using netcat
+
+The mbus service opens a tcp port and relays data back and forth. The serial speed etc is fixed by the service.
+
+```
+wmbusmeters --pollinterval=5 MAIN='mbus:CMD(nc 192.168.1.55 4000)' MyTempMeter minomess:MAIN:mbus 15363320 NOKEY
+```
+
+This communication is not encrypted either.
 
 # Using wmbusmeters in a pipe
 
