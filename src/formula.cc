@@ -239,6 +239,8 @@ double NumericFormulaShiftLeft::calculate(SIUnit to_siunit)
     SIUnit cu(Unit::COUNTER);
     double l = left_->calculate(cu);
     double r = right_->calculate(cu);
+    // A missing value (nan) stays missing, llround of nan is undefined.
+    if (::isnan(l) || ::isnan(r)) return std::numeric_limits<double>::quiet_NaN();
     if (r < 0.0 || r > 63.0) return std::numeric_limits<double>::quiet_NaN();
     uint64_t lv = (uint64_t)llround(l);
     uint64_t rv = (uint64_t)llround(r);
@@ -250,6 +252,8 @@ double NumericFormulaShiftRight::calculate(SIUnit to_siunit)
     SIUnit cu(Unit::COUNTER);
     double l = left_->calculate(cu);
     double r = right_->calculate(cu);
+    // A missing value (nan) stays missing, llround of nan is undefined.
+    if (::isnan(l) || ::isnan(r)) return std::numeric_limits<double>::quiet_NaN();
     if (r < 0.0 || r > 63.0) return std::numeric_limits<double>::quiet_NaN();
     uint64_t lv = (uint64_t)llround(l);
     uint64_t rv = (uint64_t)llround(r);
