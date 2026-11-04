@@ -4,31 +4,105 @@
    The library speeds up creating drivers for meters with mostly
    standardized values. It also helps normalize the names of the fields.
 
-   A field name is short. For a single direction meter with only consumption
+   For naming fields, there are three types of meters:
+
+   small (low complexity when naming fields)
+   medium (medium complexity when naming fields)
+   large (high complexity when naming fields industrial meters)
+
+   SMALL / LOW COMPLEXITY NAMING FIELDS
+
+   The small meters (typically household meters) measure consumption
+   only for billing.  They might have return flows but mostly for
+   failure detection. The have a few flags for warnings and failure
+   modes. They might have some historical values.  They only have a
+   single primary medium or purpose (ie water or heating or cooling or electricity
+   etc eg no combination like heating and cooling)
+
+   For these meters it is implicit that all fields measure consumption, no need to spell it out.
+   Since there is only one primary medium there is no need to spell out what is consumed.
+
+   Therefore a field name is short. For a single direction meter with only consumption
    values. Use for example:
    total_m3 (for water/gas consumption volume)
    total_kwh (for energy consumption)
+   Sometimes the quantity is repeated in the name, it is obvious that kw is power, but the
+   field must have a name, so in these case we use the quantity or something similar.
+   power_kw (for the instantaneous power measurement)
+   flow_m3h (for the instantaneous flow, but mostlikely it is max over a period)
+   The HCA (Heat Cost Allocation) quantity is a number that calculates a relation room temp,
+   radiator temp over time. This value does not say how much energy is used, instead it is a
+   dimensionless measurement used to share the house costs for heating. Like power we repeat a word
+   similar to the quantity in the name.
+   allocation_hca (for the instantaneous heat cost allocation value from the radiator)
 
    The total accumulated at the end of last month is usually called:
    target_m3
    target_kwh
+   target_hca
+
    These are useful for billing since the readout can happen at
    any time during the next month.
    Sometimes even older targets are provided, the even older target value
-   will be named: target_1_m3, target_2_m3, etc...
+   will be named: target_h1_m3, target_h2_m3, etc...
+   where h stands for history.
 
-   For more complex meters with both consumption and production:
-   total_consumption_kwh (Electricity consumed.)
-   total_production_kwh  (Electricity produced.)
-   target_consumption_kwh
-   target_production_kwh
+   There can be multiple subnits and tariffs suffixed at the end.
+   total_tariff1_m3
+   total_tariff2_m3
+   total_subunit2_tariff1_m3
 
-   There should almost always be a status field (with attribute=STATUS) that accumulates all error flags.
-   If the telegram includes a TPL status byte, then those flags (as seen below) are automatically
-   included the status field.
+   Simple heat meters for household consumption often have primary medium used energy
+   for total_kwh, but also a secondary medium like water m3 for the water flow used
+   to carry the heat, this can still be a simple meter. They have more flags and error states.
 
-   All flags that a driver uses must be declared either in the flags here in the library,
-   or in the driver flags entry. */
+   Door/window detectors, temp/hygro meters, etc are all simple meters.
+   Having a lot of flags or configuration settings does not necessarily
+   mean the meter is medium or large.
+
+   The iperl.xmq driver is an example of a small meter.
+   The kamwater.xmq driver has a lot of details, but it is still a single primary medium,
+   so the driver (despite its length) is for a small meter.
+
+   MEDIUM / MEDIUM COMPLEXITY NAMING FIELDS
+
+   The medium sized meters can track consumption and production, or they track
+   heating and cooling at the same time. I.e. not a single primary medium.
+
+   total_energy_consumption_kwh (Electricity consumed your appliances and heating.)
+   total_energy_production_kwh  (Electricity produced solar panels.)
+   target_energy_consumption_kwh (Billing.)
+   target_energy_production_kwh (Billing.)
+
+   total_cooling_energy_kwh (Cooling energy acquired.)
+   total_heating_energy_kwh (Heatin energy acquired.)
+   total_cooling_volume_m3
+
+   Example drivers are sharky774.xmq and omipower.xmq (both needs some field renaming)
+
+   LARGE / HIGH COMPLEXITY NAMING FIELDS
+
+   Now we also have different versions of the same quantity of the same medium,
+   for example active, reactive, apparent energy totals which
+   might also be split over three phase pairs l1,l2,l3.
+
+   total_active_energy_consumption_l1_kwh
+   total_net_reactive_energy_kvarh
+   total_reactive_energy_consumption_l1_kwh
+   total_reactive_energy_capacitive_kvarh
+   reactive_power_inductive_kvar
+
+   The amiplus.xmq and iem3000.xmq driver is an example of such a meter.
+
+   There should almost always be a status field (with
+   attribute=STATUS) that accumulates all error flags.  If the
+   telegram includes a TPL status byte, then those flags (as seen
+   below) are automatically included the status field.
+
+   All flags that a driver uses must be declared either in the flags
+   here in the library, or in the driver flags entry.
+
+*/
 library {
     flags {
         // The following flags are defined in the standard [EN 13757-7:2018 §7.5.6] for the TPL status byte.
