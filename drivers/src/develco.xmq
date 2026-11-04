@@ -1,0 +1,62 @@
+// Copyright (C) 2026 Fredrik Öhrström (gpl-3.0-or-later)
+driver {
+    name           = develco
+    meter_type     = ElectricityMeter
+    default_fields = name,id,total_energy_consumption_kwh,total_energy_production_kwh,power_consumption_kw,power_production_kw,timestamp
+    manufacturer   = Develco
+    detect {
+        mvt = DEV,03,02
+    }
+    library {
+        use = fabrication_no
+        use = meter_datetime
+    }
+    fields {
+        field {
+            name     = total_energy_consumption
+            info     = 'The total energy consumption recorded by this meter.'
+            quantity = Energy
+            match {
+                measurement_type = Instantaneous
+                vif_range        = AnyEnergyVIF
+            }
+        }
+        field {
+            name     = total_energy_production
+            info     = 'The total energy backward (production) recorded by this meter.'
+            quantity = Energy
+            match {
+                measurement_type = Instantaneous
+                vif_range        = AnyEnergyVIF
+                add_combinable   = BackwardFlow
+            }
+        }
+        field {
+            name     = power_consumption
+            info     = 'The current power consumption.'
+            quantity = Power
+            match {
+                measurement_type = Instantaneous
+                vif_range        = AnyPowerVIF
+            }
+        }
+        field {
+            name     = power_production
+            info     = 'The current power production.'
+            quantity = Power
+            match {
+                measurement_type = Instantaneous
+                vif_range        = AnyPowerVIF
+                add_combinable   = BackwardFlow
+            }
+        }
+    }
+    tests {
+        test {
+            args     = 'Elen develco 90381832 NOKEY'
+            telegram = 3E44B6103218389003027A970030052F2F_066D46110D4438400C78321838900E035363160000000E833C9907190000000B2B0000000BAB3C1005002F2F2F2F
+            json     = '{"_": "telegram","driver": "develco","fabrication_no": "90381832","id": "90381832","media": "electricity","meter_datetime": "2026-08-04 13:17:06","name": "Elen","power_consumption_kw": 0,"power_production_kw": 0.51,"timestamp": "1111-11-11T11:11:11Z","total_energy_consumption_kwh": 166.353,"total_energy_production_kwh": 190.799}'
+            fields   = 'Elen;90381832;166.353;190.799;0;0.51;1111-11-11 11:11.11'
+        }
+    }
+}
