@@ -1753,6 +1753,10 @@ bool MeterCommonImplementation::handleTelegram(AboutTelegram &about, vector<ucha
         waiting_for_poll_response_sem_.notify();
     }
 
+    // Reset the detection boolean, so that we can easily detect if the telegram has more fields than before.
+    // It cannot detect lost fields, which is not interesting anyway right now.
+    clearNewFieldDetector();
+
     // Decode Diehl PRIOS payload and inject SAP_PRIOS string fields before ixml runs.
     diehl_prios_combined_hex_ = "";
     if (diehl_prios_decode_)
@@ -2176,12 +2180,16 @@ void MeterCommonImplementation::setNumericValue(FieldInfo *fi, DVEntry *dve, Uni
     if (dve == NULL)
     {
         string field_name_no_unit = fi->vname();
-        numeric_values_[pair<string,Unit>(field_name_no_unit, fi->displayUnit())] = NumericField(u, v, fi);
+        pair<string,Unit> key(field_name_no_unit, fi->displayUnit());
+        if (numeric_values_.count(key) == 0) new_field_detected_ = true;
+        numeric_values_[key] = NumericField(u, v, fi);
     }
     else
     {
         field_name_no_unit = fi->generateFieldNameNoUnit(this, dve);
-        numeric_values_[pair<string,Unit>(field_name_no_unit, fi->displayUnit())] = NumericField(u, v, fi, *dve);
+        pair<string,Unit> key(field_name_no_unit, fi->displayUnit());
+        if (numeric_values_.count(key) == 0) new_field_detected_ = true;
+        numeric_values_[key] = NumericField(u, v, fi, *dve);
     }
 }
 
@@ -2245,11 +2253,13 @@ void MeterCommonImplementation::setStringValue(FieldInfo *fi, string v, DVEntry 
     if (dve == NULL)
     {
         string field_name_no_unit = fi->vname();
+        if (string_values_.count(field_name_no_unit) == 0) new_field_detected_ = true;
         string_values_[field_name_no_unit] = StringField(v, fi, dve);
     }
     else
     {
         field_name_no_unit = fi->generateFieldNameNoUnit(this, dve);
+        if (string_values_.count(field_name_no_unit) == 0) new_field_detected_ = true;
         string_values_[field_name_no_unit] = StringField(v, fi, dve);
     }
 }
@@ -2874,7 +2884,7 @@ void MeterCommonImplementation::printMeter(Telegram *t,
                                            vector<string> *selected_fields,
                                            XMQDoc *doc)
 {
-    bool first = !t->meter->hasReceivedFirstTelegram();
+    bool new_fields_detected = t->meter->detectedNewFields();
     string id = "";
     if (t->addresses.size() > 0)
     {
@@ -2906,7 +2916,7 @@ void MeterCommonImplementation::printMeter(Telegram *t,
     *human_readable = concatFields(this, t, '\t', field_infos_, true, selected_fields, extra_constant_fields);
     *fields = concatFields(this, t, separator, field_infos_, false, selected_fields, extra_constant_fields);
 
-    buildOutputDoc(doc, id, media, t, field_infos_, extra_constant_fields, first);
+    buildOutputDoc(doc, id, media, t, field_infos_, extra_constant_fields, new_fields_detected);
 
     createMeterEnv(id, envs, extra_constant_fields);
 

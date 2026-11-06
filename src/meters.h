@@ -509,8 +509,6 @@ struct Meter
     virtual std::string name() = 0;
     virtual DriverName driverName() = 0;
     virtual DriverInfo *driverInfo() = 0;
-    virtual bool hasReceivedFirstTelegram() = 0;
-    virtual void markFirstTelegramReceived() = 0;
 
     virtual std::string datetimeOfUpdateHumanReadable() = 0;
     virtual std::string datetimeOfUpdateRobot() = 0;
@@ -520,6 +518,8 @@ struct Meter
     virtual time_t pollInterval() = 0;
     virtual bool usesPolling() = 0;
 
+    virtual void clearNewFieldDetector() = 0;
+    virtual bool detectedNewFields() = 0;
     virtual void setNumericValue(std::string vname, Unit u, double v) = 0;
     virtual void setNumericValue(FieldInfo *fi, DVEntry *dve, Unit u, double v) = 0;
     virtual double getNumericValue(std::string vname, Unit u) = 0;

@@ -85,6 +85,9 @@ struct MeterCommonImplementation : public Meter
     void setPollInterval(time_t interval);
     time_t pollInterval();
     bool usesPolling();
+    void clearNewFieldDetector() { new_field_detected_ = 0; }
+    bool detectedNewFields() { return new_field_detected_; }
+
     void addExtraCalculatedField(std::string ef);
 
     void onUpdate(std::function<void(Telegram*,Meter*)> cb);
@@ -248,8 +251,6 @@ protected:
     void setSelectedFields(std::vector<std::string> &f) { selected_fields_ = f; }
 
     void forceMfctIndex(int i) { force_mfct_index_  = i; }
-    bool hasReceivedFirstTelegram() {  return has_received_first_telegram_; }
-    void markFirstTelegramReceived() { has_received_first_telegram_ = true; }
 
 private:
 
@@ -282,6 +283,9 @@ private:
     std::string diehl_prios_combined_hex_; // frame[header_size..+4] + LFSR-decoded payload
     bool buggy_sanxing_609b_decode_ = false;
     bool try_qundis_decode_ = false;
+    bool new_field_detected_ = false;
+    // Cleared before parsing, if a new field is detected during parse, then this is set.
+    // This will then trigger details and metershell because of onchange.
 
 protected:
 

@@ -624,7 +624,8 @@ bool start(Configuration *config)
     bus_manager_   = createBusManager(serial_manager_, meter_manager_);
 
     // When a meter is updated, print it, shell it, log it, etc.
-    // The first update will trigger the add callback (metershell)
+    // If the meter has detected new fields in the latest parse, this will trigger the metershell callback (metershell)
+    // and potentially add details as well.
     meter_manager_->whenMeterUpdated(
         [&](Telegram *t,Meter *meter)
         {

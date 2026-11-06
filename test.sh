@@ -71,6 +71,9 @@ if [ "$?" != "0" ]; then RC="1"; if [ "$STOP" = "true" ]; then exit 1; fi; fi
 ./tests/test_detailed_first.sh $PROG
 if [ "$?" != "0" ]; then RC="1"; if [ "$STOP" = "true" ]; then exit 1; fi; fi
 
+./tests/test_new_fields.sh $PROG
+if [ "$?" != "0" ]; then RC="1"; if [ "$STOP" = "true" ]; then exit 1; fi; fi
+
 ./tests/test_meter_info.sh $PROG
 if [ "$?" != "0" ]; then RC="1"; if [ "$STOP" = "true" ]; then exit 1; fi; fi
 

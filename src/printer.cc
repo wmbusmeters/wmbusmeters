@@ -70,10 +70,9 @@ void Printer::print(Telegram *t,
 
     string output_string = docToString(doc, output_format_, pretty_print_);
 
-    if (!meter->hasReceivedFirstTelegram())
+    if (meter->detectedNewFields())
     {
-        meter->markFirstTelegramReceived();
-        envs.push_back("METER_FIRST_TELEGRAM=true");
+        envs.push_back("METER_CHANGED_TELEGRAM=true");
         if (new_meter_shell_cmdlines_.size() >  0 || meter->shellCmdlinesMeterAdded().size() > 0)
         {
             printNewMeterShells(meter, envs);
@@ -81,7 +80,7 @@ void Printer::print(Telegram *t,
     }
     else
     {
-        envs.push_back("METER_FIRST_TELEGRAM=false");
+        envs.push_back("METER_CHANGED_TELEGRAM=false");
     }
     if (shell_cmdlines_.size() > 0 || meter->shellCmdlinesMeterUpdated().size() > 0) {
         printShells(meter, envs);
