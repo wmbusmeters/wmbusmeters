@@ -465,6 +465,9 @@ Usage: wmbusmeters {options} [device] { [meter_name] [meter_driver] [meter_id] [
 
 As {options} you can use:
 
+    --addtelegramdetails=never|onchange|always Add meta-data (fields, mvt, flags) about the telegram contents.
+    --addtelegramstructured=true|false Add structured representation of statuses and other data.
+    --addtelegramhex=true|false Add hex=... with the original telegram potentially decrypted.
     --alarmexpectedactivity=mon-fri(08-17),sat-sun(09-12) Specify when the timeout is tested, default is mon-sun(00-23)
     --alarmshell=<cmdline> invokes cmdline when an alarm triggers
     --alarmtimeout=<time> Expect a telegram to arrive within <time> seconds, eg 60s, 60m, 24h during expected activity.
@@ -510,7 +513,7 @@ As {options} you can use:
     --ppjson pretty print the json
     --pollinterval=<time> time between polling of meters, must be set to get polling.
     --rawshell=<cmdline> invokes cmdline for every received telegram, also from unconfigured meters,
-                         with env variables TELEGRAM_ID, TELEGRAM_HEX (as received, not decrypted),
+                         with env variables TELEGRAM_ID, TELEGRAM_HEX (potentially decrypted),
                          TELEGRAM_DEVICE and TELEGRAM_RSSI_DBM
     --resetafter=<time> reset the wmbus dongle regularly, default is 23h
     --selectfields=id,timestamp,total_m3 select only these fields to be printed (--listfields=<meter> to list available fields)
@@ -789,6 +792,59 @@ However the hr and fields output will print your localtime.
 
 You can add `shell=commandline` to a meter file stored in `wmbusmeters.d`, then this meter will use
 this shell command instead of the command stored in `wmbusmeters.conf`.
+
+### Extra json fields: details, structured status and raw hex
+
+The json output can optionally be extended with three extra sub-trees. All three
+are off by default:
+
+* `--addtelegramdetails=(never|onchange|always)` adds a `details.fields` object with
+  meta-data for every printed field: its `quantity`, `unit`, `change` behaviour,
+  its `flags` list and an `info` description. `onchange` includes the details only
+  when a new field is detected by the driver, `always` includes them on every
+  telegram, and `never` (the default) omits them.
+* `--addtelegramstructured=true` adds a `structured` object that expands the meter
+  status into a tree of boolean flags, eg `structured.status_flags.DRY`,
+  `structured.status_flags.LEAK`, plus the raw unknown status bits under
+  `structured.*\_lookups_unknowns`.
+* `--addtelegramhex=true` adds a `hex` field holding the received telegram in
+  uppercase hex (still encrypted if the meter is encrypted and you passed NOKEY).
+
+Example for a multical21 with all three enabled:
+
+```json
+{
+  "name": "MyTapWater",
+  "id": "76348799",
+  "total_m3": 6.408,
+  "status": "DRY",
+  "timestamp": "1111-11-11T11:11:11Z",
+  "details": {
+    "fields": {
+      "total_m3": { "quantity": "Volume", "unit": "m3", "change": "Increasing", "info": "The current total volume" },
+      "status":   { "quantity": "Flags", "flags": ["DRY", "LEAK", "BURST", "REVERSE"], "info": "Status and error flags" }
+    }
+  },
+  "structured": {
+    "status_flags": { "DRY": true, "LEAK": false, "BURST": false, "REVERSE": false, "POWER_LOW": false },
+    "status_lookups_unknowns": { "ERROR_FLAGS": 0, "TPL_STS": 0 }
+  },
+  "hex": "2A442D2C998734761B168D2091D37CAC21576C7802FF207100041308190000441308190000615B7F616713"
+}
+```
+
+### More shell and alarm env variables
+
+Besides the `METER_*` variables listed by `--listenvs`, a few more are set:
+
+* `METER_CHANGED_TELEGRAM` is `true` if any of the selected fields changed since
+  the last telegram for this meter, otherwise `false`.
+* `--rawshell` additionally sets `TELEGRAM_HEX` (the telegram as received, i.e.
+  not decrypted with the meter key), `TELEGRAM_ID`, `TELEGRAM_DEVICE` and
+  `TELEGRAM_RSSI_DBM`, and fires for every received telegram (even for meters
+  that are not configured).
+* `--alarmshell` sets `ALARM_TYPE` and `ALARM_MESSAGE` and fires whenever an
+  alarm (eg. the meter has not reported within `--alarmtimeout`) triggers.
 
 You can use `--debug` to get both verbose output and the actual data bytes sent back and forth with the wmbus usb dongle.
 

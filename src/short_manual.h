@@ -25,9 +25,10 @@ Usage: wmbusmeters {options} [device] { [meter_name] [meter_driver] [meter_id] [
 
 As {options} you can use:
 
-    --addtelegramdetails=never|first|always Add meta-data about the telegram contents.
-    --addtelegramstructured=true|false Add structured representation of statuses and other data.
-    --addtelegramhex=true|false Add hex=... with the original telegram potentially decrypted.
+    --addtelegramdetails=never|onchange|always Add meta-data (fields, mvt, flags) about the telegram contents to the json.
+                         onchange adds it whenever a new field is detected by the driver; always adds it to every telegram.
+    --addtelegramstructured=true|false Add structured representation of statuses and other data to the json.
+    --addtelegramhex=true|false Add hex=... with the original telegram potentially decrypted to the json.
     --alarmexpectedactivity=mon-fri(08-17),sat-sun(09-12) Specify when the timeout is tested, default is mon-sun(00-23)
     --alarmshell=<cmdline> invokes cmdline when an alarm triggers
     --alarmtimeout=<time> Expect a telegram to arrive within <time> seconds, eg 60s, 60m, 24h during expected activity.
@@ -72,6 +73,9 @@ As {options} you can use:
     --overridedevice=<device> override device in config files. Use only in combination with --useconfig= option
     --ppjson pretty print the json
     --pollinterval=<time> time between polling of meters, must be set to get polling.
+    --rawshell=<cmdline> invokes cmdline for every received telegram, also from unconfigured meters,
+                         with env variables TELEGRAM_ID, TELEGRAM_HEX (as received, not decrypted),
+                         TELEGRAM_DEVICE and TELEGRAM_RSSI_DBM
     --resetafter=<time> reset the wmbus dongle regularly, default is 23h
     --selectfields=id,timestamp,total_m3 select only these fields to be printed (--listfields=<meter> to list available fields)
     --separator=<c> change field separator to c

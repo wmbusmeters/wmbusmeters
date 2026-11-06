@@ -24,6 +24,17 @@ mqtt_publish) sent to a REST API (eg curl) or store it in a database
 (eg psql).
 
 .SH OPTIONS
+\fB\--addtelegramdetails=\fR(never|onchange|always) Add meta-data about the telegram contents
+(the fields, the mvt and the flags) to the json output.
+onchange adds details whenever a new field is detected by the driver,
+always adds details to every telegram, and never omits them (the default).
+
+\fB\--addtelegramstructured=\fRtrue|false Add the \(lqstructured\(rq field to the json output,
+which is a structured representation of the status flags and other status data.
+
+\fB\--addtelegramhex=\fRtrue|false Add the \(lqhex\(rq field to the json output containing
+the original telegram in uppercase hex, potentially decrypted.
+
 \fB\--alarmexpectedactivity=\fRmon-fri(08-17),sat-sun(09-12) Specify when the timeout is tested, default is mon-sun(00-23)
 
 \fB\--alarmshell=\fR<cmdline> invokes cmdline when an alarm triggers
@@ -49,7 +60,7 @@ Add :verbose to any analyze to get more verbose analyze output.
 
 \fB\--exitafter=\fR<time> exit program after time, eg 20h, 10m 5s
 
-\fB\--format=\fR(hr|json|fields) for human readable, json or semicolon separated fields
+\fB\--format=\fR(hr|json|fields|xml|xmq) for human readable, json (optionally with subfields) or semicolon separated fields
 
 \fB\--help\fR list all options
 
@@ -65,7 +76,7 @@ Add :verbose to any analyze to get more verbose analyze output.
 
 \fB\--listento=\fR<mode>,<mode> listen to more than one link mode at the same time, assuming the dongle supports it
 
-\fB\--listenvs=\fR<meter_type> list the env variables available for the given meter type
+\fB\--listenvs=\fR<meter_driver> list the env variables available for the given meter driver
 
 \fB\--listfields=\fR<meter_driver> list the fields selectable for the given meter type
 
@@ -268,6 +279,76 @@ field_floor=4
 You can use the driver auto, but it is not recommended for production.
 The auto driver might change over time to better versions of the driver with new names,
 whereas a fixed driver name should generate backwards compatible json.
+
+.SH ENVIRONMENT
+The shell commands started by \fB\--shell=\fR, \fB\--metershell=\fR and \fB\--rawshell=\fR are
+invoked with the following environment variables set.
+They are also listed by \fB\--listenvs=\fR<meter_driver\fR.
+For \fB\--shell=\fR and \fB\--metershell=\fR:
+
+.TP
+\fBMETER_ID\fR the meter id
+
+.TP
+\fBMETER_NAME\fR the meter name
+
+.TP
+\fBMETER_TYPE\fR the meter type (driver)
+
+.TP
+\fBMETER_DRIVER\fR the driver source, eg the \fIxmq\fR file name or a builtin driver name
+
+.TP
+\fBMETER_MEDIA\fR the media type, eg water, heat, gas, electricity
+
+.TP
+\fBMETER_JSON\fR the full json output of this telegram
+
+.TP
+\fBMETER_RSSI_DBM\fR the rssi signal strength in dbm of this telegram
+
+.TP
+\fBMETER_DEVICE\fR the device the telegram was received on
+
+.TP
+\fBMETER_TIMESTAMP\fR the timestamp in robot readable format (UTC)
+
+.TP
+\fBMETER_TIMESTAMP_UTC\fR the timestamp in UTC
+
+.TP
+\fBMETER_TIMESTAMP_UT\fR the unix timestamp in seconds
+
+.TP
+\fBMETER_TIMESTAMP_LT\fR the timestamp in local time
+
+.TP
+\fBMETER_CHANGED_TELEGRAM\fR true if any field changed since the last reading for this meter
+
+.TP
+\fBMETER_<FIELD>_<UNIT>\fR one variable per selected field, eg METER_TOTAL_M3
+
+For \fB\--rawshell=\fR:
+
+.TP
+\fBTELEGRAM_HEX\fR the hex of the telegram as received (not decrypted)
+
+.TP
+\fBTELEGRAM_ID\fR the meter id
+
+.TP
+\fBTELEGRAM_DEVICE\fR the device the telegram was received on
+
+.TP
+\fBTELEGRAM_RSSI_DBM\fR the rssi signal strength in dbm
+
+For \fB\--alarmshell=\fR:
+
+.TP
+\fBALARM_TYPE\fR the type of alarm
+
+.TP
+\fBALARM_MESSAGE\fR the alarm message
 
 .SH AUTHOR
 Written by Fredrik Öhrström.
