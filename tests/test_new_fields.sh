@@ -20,12 +20,19 @@ telegram=264465320100009035087A53000000_0B6E7801004B6E610200426C3F3C326CFFFF046D
 # The daily model/version + storage nr 8 telegram, sent once per day.
 telegram=234465320100009035087A58000000_8B046E58010082046C5E3901FD0C10046D220F5C3A
 
+# This one should not trigger metershell
+telegram=264465320100009035087A53000000_0B6E7802004B6E610200426C3F3C326CFFFF046D18135B3A
+
+# Nor this one.
+telegram=234465320100009035087A58000000_8B046E58010082046C5E3901FD0C11046D220F5C3A
+
 EOF
 
 $PROG --format=fields --selectfields=current_consumption_hca,device_datetime,model_version --metershell='echo "$METER_JSON" >> '"$TEST/thelogg" $TEST/simulation_input.txt Q qcaloric 90000001 NOKEY > $TEST/test_output.txt 2>&1
 
 jq 'with_entries(select(.key == "model_version" or .key == "current_consumption_hca" or .key == "device_datetime"))' $TEST/thelogg > $TEST/test_metershell_output.txt
 
+# Here we see only two telegrams that add new fields.
 cat > $TEST/test_expected_metershell.txt <<EOF
 {
   "current_consumption_hca": 178,
@@ -38,9 +45,12 @@ cat > $TEST/test_expected_metershell.txt <<EOF
 }
 EOF
 
+# Here we see output from 4 telegrams.
 cat > $TEST/test_expected_stdout.txt <<EOF
 178;2026-10-27 19:24;null
 178;2026-10-28 15:34;10
+278;2026-10-27 19:24;10
+278;2026-10-28 15:34;11
 EOF
 
 if [ "$?" = "0" ]
