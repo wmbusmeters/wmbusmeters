@@ -1566,7 +1566,7 @@ void MeterCommonImplementation::buildOutputDoc(XMQDoc *doc,
                                                Telegram *t,
                                                vector<FieldInfo> &prints,
                                                vector<string> *extra_constant_fields,
-                                               bool first)
+                                               bool fields_added)
 {
     XMQReturnNode rn = xmqAddRootElement(doc, "telegram", NS_NONE);
     assert(rn.status == XMQ_OK);
@@ -1599,7 +1599,7 @@ void MeterCommonImplementation::buildOutputDoc(XMQDoc *doc,
     XMQNode *structured = NULL;
 
     if (getTelegramDetails() == TelegramDetails::ALWAYS ||
-        (first && getTelegramDetails() == TelegramDetails::FIRST))
+        (fields_added && getTelegramDetails() == TelegramDetails::ONCHANGE))
     {
         rn = xmqAddElement(doc, telegram, "details", NS_PARENT);
         details = rn.node;

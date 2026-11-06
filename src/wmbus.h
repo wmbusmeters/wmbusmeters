@@ -91,7 +91,19 @@ enum class OutputFormat
 
 enum class TelegramDetails
 {
-    NEVER, FIRST, ALWAYS
+    // Add details to the telegram that describe the fields.
+    // Do this: never or when the fields change, typically when another type of
+    // telegram has arrived from the meter, this includes the first telegram.
+    // Some meters sends a status update once per day and meter values every 60 seconds.
+    // Since we want to create auto-discovery messages, these have to be updated when
+    // the status update arrives. Only for some simpler meters do we know exactly
+    // what fields will be sent, the driver handles all possible fields.
+    // So by adding details whenever there are new fields from the meter,
+    // we can capture the necessary information dynamically.
+    // Always send the details, could very well be used, but I still
+    // like somewhat concise data sending, sending the details does take 10 times or more space
+    // than the telegram itself.
+    NEVER, ONCHANGE, ALWAYS
 };
 
 bool usesTTY(BusDeviceType t);

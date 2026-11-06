@@ -508,9 +508,9 @@ void handleAddTelegramDetails(Configuration *c, string value)
     {
         c->telegram_details = TelegramDetails::NEVER;
     }
-    else if (value == "first")
+    else if (value == "onchange")
     {
-        c->telegram_details = TelegramDetails::FIRST;
+        c->telegram_details = TelegramDetails::ONCHANGE;
     }
     else if (value == "always")
     {

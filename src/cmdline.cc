@@ -548,8 +548,8 @@ static shared_ptr<Configuration> parseNormalCommandLine(Configuration *c, int ar
             if (!strcmp(argv[i]+21, "never")) {
                 c->telegram_details = TelegramDetails::NEVER;
             }
-            else if (!strcmp(argv[i]+21, "first")) {
-                c->telegram_details = TelegramDetails::FIRST;
+            else if (!strcmp(argv[i]+21, "onchange")) {
+                c->telegram_details = TelegramDetails::ONCHANGE;
             }
             else if (!strcmp(argv[i]+21, "always")) {
                 c->telegram_details = TelegramDetails::ALWAYS;

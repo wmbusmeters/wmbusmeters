@@ -591,8 +591,9 @@ bool start(Configuration *config)
     setTelegramDetails(config->telegram_details);
     if (config->new_meter_shells.size() > 0)
     {
-        // We have metershells, force detailed first telegram.
-        setTelegramDetails(TelegramDetails::FIRST);
+        // We have metershells, force detailed on first telegram and any new telegram
+        // that added more details, ie the number of fields have changed, increased probably.
+        setTelegramDetails(TelegramDetails::ONCHANGE);
     }
     log_start_information(config);
 
