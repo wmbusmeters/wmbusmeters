@@ -38,22 +38,48 @@ driver {
                                     DV_temp_room>dvk = +'0265'.
                                     DV_temp_rad>dvk = +'025D'."
         }
+        // The proprietary 0x80 telegram is decoded above into 026E/426E records.
+        // The meters also send an OMS 0x08 telegram (as decoded by fhkvdataiv), its
+        // HCA records must not overwrite these values, see the fields below.
         field {
             name     = current
             quantity = HCA
-            info     = 'Energy consumption so far in this billing period.'
+            info     = 'Energy consumption so far in this billing period (0x80 telegram).'
             match {
-                measurement_type = Instantaneous
-                vif_range        = HeatCostAllocation
+                difvifkey = 026E
             }
         }
         field {
             name     = previous
             quantity = HCA
-            info     = 'Energy consumption in previous billing period.'
+            info     = 'Energy consumption in previous billing period (0x80 telegram).'
+            match {
+                difvifkey = 426E
+            }
+        }
+        field {
+            name     = current_consumption
+            quantity = HCA
+            info     = 'The current heat cost allocation (0x08 telegram).'
+            match {
+                difvifkey = 036E
+            }
+        }
+        field {
+            name     = consumption_at_set_date
+            quantity = HCA
+            info     = 'Heat cost allocation at the most recent billing period date (0x08 telegram).'
+            match {
+                difvifkey = 436E
+            }
+        }
+        field {
+            name     = set_date
+            quantity = Text
+            info     = 'The most recent billing period date (0x08 telegram).'
             match {
                 measurement_type = Instantaneous
-                vif_range        = HeatCostAllocation
+                vif_range        = Date
                 storage_nr       = 1
             }
         }
@@ -166,6 +192,20 @@ driver {
             telegram = 32446850059605416980A0_019F334805400CFE029808B1080000000000060F4F3467AEA9A88D7B8D503E000000000000000000
             json     = '{"_": "telegram","current_date": "2026-06-04","current_hca": 766,"id": "41059605","media": "heat cost allocator","driver": "fhkvdataiii","name": "Version01","previous_date": "2025-12-31","previous_hca": 1352,"temp_radiator_c": 22.25,"temp_room_c": 22,"timestamp": "1111-11-11T11:11:11Z"}'
             fields   = 'Version01;41059605;766;2026-06-04;1352;2025-12-31;22;22.25;1111-11-11 11:11.11'
+        }
+        test {
+            args     = 'Room fhkvdataiii 12128782 NOKEY'
+            comment  = 'Version 0x94 proprietary telegram, the same meter also sends the OMS 0x08 telegram below.'
+            telegram = 33446850828712129480A2_0F9F3344042016960091E807DC0701030003030000000000000000010001020F05161635162A1B4018
+            json     = '{"_":"telegram","media":"heat cost allocator","driver":"fhkvdataiii","name":"Room","id":"12128782","current_date":"2026-11-02","current_hca":150,"previous_date":"2025-12-31","previous_hca":1092,"temp_radiator_c":20.12,"temp_room_c":20.24,"timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'Room;12128782;150;2026-11-02;1092;2025-12-31;20.24;20.12;1111-11-11 11:11.11'
+        }
+        test {
+            args     = 'Room fhkvdataiii 12128782 NOKEY'
+            comment  = 'OMS 0x08 telegram of the same meter: separate fields, current_hca is not overwritten and no dates are calculated from missing records.'
+            telegram = 294468508287121294087A538810252F2F_036E980000436E440400426C3F3C0F0F0AE388E05EADCD9772
+            json     = '{"_":"telegram","media":"heat cost allocation","driver":"fhkvdataiii","name":"Room","id":"12128782","consumption_at_set_date_hca":1092,"current_date":null,"current_consumption_hca":152,"previous_date":null,"set_date":"2025-12-31","timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'Room;12128782;null;null;null;null;null;null;1111-11-11 11:11.11'
         }
     }
 }
