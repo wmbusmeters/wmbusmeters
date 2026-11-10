@@ -133,6 +133,7 @@ struct Configuration
     std::set<std::string> do_not_probe_ttys; // Do not probe these ttys! all = all of them.
     LinkModeSet auto_device_linkmodes; // The linkmodes specified by auto:c1,t1
     bool single_device_override {}; // Set to true if there is a stdin/file or simulation device.
+    bool command_override {};       // Set to true if there is at least one command (CMD) device.
     bool simulation_found {};
     LinkModeSet default_device_linkmodes; // Backwards compatible --listento=c1 or --c1 will set the default_linkmodes.
                                           // A device without a :t1 suffix, will use this linkmode.

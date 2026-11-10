@@ -623,10 +623,9 @@ bool handleDeviceOrHex(Configuration *c, string devicefilehex)
 
     if (specified_device.is_stdin ||
         specified_device.is_file ||
-        specified_device.is_simulation ||
-        specified_device.command != "")
+        specified_device.is_simulation)
     {
-        if (c->single_device_override)
+        if (c->single_device_override || c->command_override)
         {
             errorAndExit(EXIT_CONFIG_ERROR, "You can only specify one stdin or one file or one command!\n");
         }
@@ -636,6 +635,15 @@ bool handleDeviceOrHex(Configuration *c, string devicefilehex)
         }
         if (specified_device.is_simulation) c->simulation_found = true;
         c->single_device_override = true;
+    }
+    else if (specified_device.command != "")
+    {
+        // Multiple commands are allowed, each one spawns its own process.
+        if (c->single_device_override)
+        {
+            errorAndExit(EXIT_CONFIG_ERROR, "You can only specify one stdin or one file or one command!\n");
+        }
+        c->command_override = true;
     }
 
     if (specified_device.type == BusDeviceType::DEVICE_AUTO)

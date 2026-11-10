@@ -338,11 +338,11 @@ void BusManager::checkForDeadWmbusDevices(Configuration *config)
 
     if (bus_devices_.size() == 0)
     {
-        if (config->single_device_override)
+        if (config->single_device_override || config->command_override)
         {
             if (!config->simulation_found)
             {
-                // Expect stdin/file to work.
+                // Expect stdin/file/command to work.
                 // Simulation is special since it will self stop the serial manager.
                 serial_manager_->expectDevicesToWork();
             }
