@@ -53,6 +53,7 @@ void loadDriversFromDir(std::string dir)
 #include"generated_database.cc"
 
 map<uint32_t,const char*> builtins_mvt_lookup_;
+map<uint32_t,const char*> builtins_dll_mvt_lookup_;
 map<string,BuiltinDriver*> builtins_name_lookup_;
 
 bool loadBuiltinDriver(string driver_name)
@@ -75,12 +76,12 @@ bool loadBuiltinDriver(string driver_name)
     return true;
 }
 
-const char *findBuiltinDriver(uint16_t mfct, uchar ver, uchar type)
+static const char *findBuiltinDriverIn(map<uint32_t,const char*> &lookup, uint16_t mfct, uchar ver, uchar type)
 {
     auto find = [&](uint16_t m, uchar v, uchar t) -> const char*
     {
         uint32_t key = m << 16 | v << 8 | t;
-        if (builtins_mvt_lookup_.count(key)) return builtins_mvt_lookup_[key];
+        if (lookup.count(key)) return lookup[key];
         return NULL;
     };
 
@@ -103,6 +104,16 @@ const char *findBuiltinDriver(uint16_t mfct, uchar ver, uchar type)
     return NULL;
 }
 
+const char *findBuiltinDriver(uint16_t mfct, uchar ver, uchar type)
+{
+    return findBuiltinDriverIn(builtins_mvt_lookup_, mfct, ver, type);
+}
+
+const char *findBuiltinDllDriver(uint16_t mfct, uchar ver, uchar type)
+{
+    return findBuiltinDriverIn(builtins_dll_mvt_lookup_, mfct, ver, type);
+}
+
 void removeBuiltinDriver(string name)
 {
     builtins_name_lookup_.erase(name);
@@ -117,7 +128,8 @@ void removeBuiltinDriver(string name)
             builtins_mvts_[i].mvt.type;
         if (name == builtins_mvts_[i].name)
         {
-            builtins_mvt_lookup_.erase(key);
+            if (builtins_mvts_[i].dll) builtins_dll_mvt_lookup_.erase(key);
+            else builtins_mvt_lookup_.erase(key);
         }
     }
 }
@@ -144,7 +156,8 @@ void prepareBuiltinDrivers()
         uint32_t key = builtins_mvts_[i].mvt.mfct << 16 |
             builtins_mvts_[i].mvt.version << 8 |
             builtins_mvts_[i].mvt.type;
-        builtins_mvt_lookup_[key] = builtins_mvts_[i].name;
+        if (builtins_mvts_[i].dll) builtins_dll_mvt_lookup_[key] = builtins_mvts_[i].name;
+        else builtins_mvt_lookup_[key] = builtins_mvts_[i].name;
     }
 }
 
