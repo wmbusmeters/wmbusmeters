@@ -1,0 +1,24 @@
+// Copyright (C) 2026 Fredrik Öhrström (gpl-3.0-or-later)
+// Baylan heat meter, the energy is sent as a 32 bit real.
+driver {
+    name           = baylanheat
+    meter_type     = HeatMeter
+    default_fields = name,id,status,total_kwh,timestamp
+    manufacturer   = Baylan
+    detect {
+        mvt = BYL,40,04
+    }
+    library {
+        use = status
+        use = total_kwh
+    }
+    tests {
+        test {
+            args     = 'Heat baylanheat 00072284 NOKEY'
+            comment  = 'Baylan heat meter'
+            telegram = 15442c0b8422070040047a500000000506479452462f
+            json     = '{"_":"telegram","media":"heat","driver":"baylanheat","name":"Heat","id":"00072284","total_kwh":13477.069336,"status":"OK","timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'Heat;00072284;OK;13477.069336;1111-11-11 11:11.11'
+        }
+    }
+}

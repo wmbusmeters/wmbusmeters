@@ -6,10 +6,23 @@ driver {
     manufacturer   = Elster
     detect {
         mvt = ELS,81,03
+        mvt = ELS,40,03
     }
     library {
         use = total_m3
         use = actuality_duration_s
+    }
+    fields {
+        field {
+            name     = total
+            quantity = Volume
+            info     = 'The total gas volume, not corrected for temperature and pressure.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = Volume
+                add_combinable   = UncorrectedMeterUnit
+            }
+        }
     }
     tests {
         test {
@@ -17,6 +30,13 @@ driver {
             telegram = 3644A511640010253837722550100593158103E70020052F2F_0374E602000C137034220302FD74EE0F2F2F2F2F2F2F2F2F2F2F2F2F2F2F
             json     = '{"_":"telegram","media":"gas","driver":"elster","name":"Gas","id":"05105025","actuality_duration_s":742,"total_m3":3223.47,"timestamp":"1111-11-11T11:11:11Z"}'
             fields   = 'Gas;05105025;3223.47;1111-11-11 11:11.11'
+        }
+        test {
+            args     = 'Gas2 elster 17092590 NOKEY'
+            comment  = 'Honeywell BK-G65A gas meter with an Elster ACM 5.6 radio module'
+            telegram = 3B4493153869000001378C202C900F002C252D0000001D3ECAE8A88184697290250917931540030C001007102F2F_0C943A143221032F2F2F2F2F2F2F
+            json     = '{"_":"telegram","media":"gas","driver":"elster","name":"Gas2","id":"17092590","total_m3":32132.14,"timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'Gas2;17092590;32132.14;1111-11-11 11:11.11'
         }
     }
 }

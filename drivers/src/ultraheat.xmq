@@ -97,12 +97,56 @@ driver {
                 default_message = OK
             }
         }
+        field {
+            name     = flow_temperature_max
+            quantity = Temperature
+            info     = 'The maximum flow temperature (T550 tariff 1 storage 2).'
+            match {
+                measurement_type = Maximum
+                vif_range        = FlowTemperature
+                tariff_nr        = 1
+                storage_nr       = 2
+            }
+        }
+        field {
+            name     = return_temperature_max
+            quantity = Temperature
+            info     = 'The maximum return temperature (T550 tariff 1 storage 2).'
+            match {
+                measurement_type = Maximum
+                vif_range        = ReturnTemperature
+                tariff_nr        = 1
+                storage_nr       = 2
+            }
+        }
+        field {
+            name     = flow_max
+            quantity = Flow
+            info     = 'The maximum volume flow (T550 tariff 1 storage 2).'
+            match {
+                measurement_type = Maximum
+                vif_range        = VolumeFlow
+                tariff_nr        = 1
+                storage_nr       = 2
+            }
+        }
+        field {
+            name     = power_max
+            quantity = Power
+            info     = 'The maximum power (T550 tariff 1 storage 2).'
+            match {
+                measurement_type = Maximum
+                vif_range        = PowerW
+                tariff_nr        = 1
+                storage_nr       = 2
+            }
+        }
     }
     tests {
         test {
             args     = 'MyUltra ultraheat 70444600 NOKEY'
             telegram = 68F8F86808007200464470A7320404270000000974040970040C0E082303000C14079519000B2D0500000B3B0808000A5B52000A5F51000A6206004C14061818004C0E490603000C7800464470891071609B102D020100DB102D0201009B103B6009009A105B78009A105F74000C22726701003C22000000007C2200000000426C01018C2006000000008C3006000000008C80100600000000CC200600000000CC300600000000CC801006000000009A115B64009A115F63009B113B5208009B112D020100BC0122000000008C010E490603008C2106000000008C3106000000008C811006000000008C011406181800046D310ACA210F21040010A0C116
-            json     = '{"_":"telegram","media":"heat","driver":"ultraheat","name":"MyUltra","id":"70444600","actuality_duration_s":4,"flow_m3h":0.808,"flow_c":52,"heat_kwh":8974.444444,"power_kw":0.5,"return_c":51,"target_kwh":8513.611111,"volume_m3":1995.07,"fabrication_no":"70444600","meter_datetime":"2022-01-10 10:49","status":"OK","timestamp":"1111-11-11T11:11:11Z"}'
+            json     = '{"_":"telegram","media":"heat","driver":"ultraheat","name":"MyUltra","id":"70444600","actuality_duration_s":4,"flow_m3h":0.808,"flow_c":52,"heat_kwh":8974.444444,"power_kw":0.5,"return_c":51,"target_kwh":8513.611111,"volume_m3":1995.07,"fabrication_no":"70444600","meter_datetime":"2022-01-10 10:49","status":"OK","timestamp":"1111-11-11T11:11:11Z","flow_temperature_max_c":64,"power_max_kw":10.2,"return_temperature_max_c":63,"flow_max_m3h":0.852}'
             fields   = 'MyUltra;70444600;8974.444444;1111-11-11 11:11.11'
         }
         test {
@@ -116,6 +160,13 @@ driver {
             telegram = 6344A7327856907204048C202B900F002C2592F604003504D66D5BEDC8577A2B004007102F2F_0C06690900000C14162800000B2D0000000B3B0000000A5A49070A5E19054C06000000008C01065100000002FD170000066D1138145B370002742F012F2F
             json     = '{"_":"telegram","media":"heat","driver":"ultraheat","name":"MyUltra3","id":"72905678","actuality_duration_s":303,"flow_m3h":0,"flow_c":74.9,"heat_kwh":969,"power_kw":0,"return_c":51.9,"target_kwh":0,"volume_m3":28.16,"meter_datetime":"2026-07-27 20:56:17","status":"OK","timestamp":"1111-11-11T11:11:11Z"}'
             fields   = 'MyUltra3;72905678;969;1111-11-11 11:11.11'
+        }
+        test {
+            args     = 'T550 ultraheat 72203633 NOKEY'
+            comment  = 'Landis+Gyr T550 telegram with maximum values'
+            telegram = 8344a7323336207204048c2005900f002c2559191600ad518d16b3e553dd7a05006007102f2f3c2200000000c48f0f6d0000e1ff9a115a93099411da6f0c0b013c9a115e20079411de6f2f140a3c9b113b2403009411bb6f0006053c9b112d3501009411ad6f000b013c8c0106988800008c011410350200066d26350d2531000274b601
+            json     = '{"_":"telegram","media":"heat","driver":"ultraheat","name":"T550","id":"72203633","actuality_duration_s":438,"flow_temperature_max_c":99.3,"power_max_kw":13.5,"return_temperature_max_c":72,"flow_max_m3h":0.324,"meter_datetime":"2025-01-05 13:53:38","status":"OK","timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'T550;72203633;null;1111-11-11 11:11.11'
         }
     }
 }

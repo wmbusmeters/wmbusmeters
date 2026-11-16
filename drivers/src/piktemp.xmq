@@ -1,0 +1,45 @@
+// Copyright (C) 2026 Fredrik Öhrström (gpl-3.0-or-later)
+// pikkerton wireless two channel thermometer. The two external temperatures
+// are sent as flow and return temperature records.
+driver {
+    name           = piktemp
+    meter_type     = TempHygroMeter
+    default_fields = name,id,temperature_1_c,temperature_2_c,battery_v,timestamp
+    manufacturer   = pikkerton
+    detect {
+        mvt = PIK,11,1f
+    }
+    library {
+        use = status
+        use = battery_v
+    }
+    fields {
+        field {
+            name     = temperature_1
+            quantity = Temperature
+            info     = 'The temperature measured by the first probe.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = FlowTemperature
+            }
+        }
+        field {
+            name     = temperature_2
+            quantity = Temperature
+            info     = 'The temperature measured by the second probe.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = ReturnTemperature
+            }
+        }
+    }
+    tests {
+        test {
+            args     = 'Temp piktemp 3822afdc NOKEY'
+            comment  = 'Two channel thermometer'
+            telegram = 1b442b41dcaf2238111f7a8f000000025ada00025ed90002fd46a80d
+            json     = '{"_":"telegram","media":"reserved","driver":"piktemp","name":"Temp","id":"3822afdc","battery_v":3.496,"temperature_1_c":21.8,"temperature_2_c":21.7,"status":"OK","timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'Temp;3822afdc;21.8;21.7;3.496;1111-11-11 11:11.11'
+        }
+    }
+}

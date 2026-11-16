@@ -12,12 +12,42 @@ driver {
         use = total_m3
         use = meter_datetime
     }
+    fields {
+        field {
+            name     = target
+            quantity = Volume
+            info     = 'The total water consumption recorded at the end of the previous month.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = Volume
+                storage_nr       = 2
+            }
+        }
+        field {
+            name         = target
+            quantity     = PointInTime
+            info         = 'The date when the target volume was recorded.'
+            display_unit = date
+            match {
+                measurement_type = Instantaneous
+                vif_range        = Date
+                storage_nr       = 2
+            }
+        }
+    }
     tests {
         test {
             args     = 'fio fiowater 25016914 NOKEY'
             telegram = 43442F191469012501078C2075900F002C257C690300FDD9AE90F019F1C07A47102007102F2F_0C1322921500046D3A2A3A390F60011907052F2F2F2F2F2F2F2F2F2F2F2F
             json     = '{"_":"telegram","media":"water","status":"TEMPORARY_ERROR","driver":"fiowater","name":"fio","id":"25016914","meter_datetime":"2025-09-26 10:58","total_m3":159.222,"timestamp":"1111-11-11T11:11:11Z"}'
             fields   = 'fio;25016914;TEMPORARY_ERROR;159.222;1111-11-11 11:11.11'
+        }
+        test {
+            args     = 'fio2 fiowater 24007044 NOKEY'
+            comment  = 'Telegram with the target volume and date of the previous month'
+            telegram = 43442f194470002401078c200b900f002c25536b06004a7da158788da4a47a91002007102f2f0c1307250300046d2b272a3282016c2131830113ee5f000f5b002f2f2f2f
+            json     = '{"_":"telegram","media":"water","driver":"fiowater","name":"fio2","id":"24007044","target_m3":24.558,"target_date":"2025-01-01","total_m3":32.507,"meter_datetime":"2025-02-10 07:43","status":"OK","timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'fio2;24007044;OK;32.507;1111-11-11 11:11.11'
         }
     }
 }

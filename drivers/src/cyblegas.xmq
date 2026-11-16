@@ -1,0 +1,78 @@
+// Copyright (C) 2026 Fredrik Öhrström (gpl-3.0-or-later)
+// Itron Cyble radio module mounted on a gas meter.
+driver {
+    name           = cyblegas
+    meter_type     = GasMeter
+    default_fields = name,id,status,total_m3,timestamp
+    manufacturer   = Itron
+    detect {
+        mvt = ITW,1e,03
+        mvt = PIP,00,03
+    }
+    library {
+        use = status
+        use = meter_datetime
+        use = target_date
+        use = total_backward_m3
+        use = flow_m3h
+    }
+    fields {
+        field {
+            name     = total
+            quantity = Volume
+            info     = 'The total gas volume, not corrected for temperature and pressure.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = Volume
+                add_combinable   = UncorrectedMeterUnit
+            }
+        }
+        field {
+            name     = target
+            quantity = Volume
+            info     = 'The total gas volume, not corrected for temperature and pressure, at the target date.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = Volume
+                add_combinable   = UncorrectedMeterUnit
+                storage_nr       = 1
+            }
+        }
+        field {
+            name     = total_base
+            quantity = Volume
+            info     = 'The total gas volume converted to base conditions.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = Volume
+                add_combinable   = ValueAtBaseCondC
+            }
+        }
+        field {
+            name           = error_code
+            quantity       = Dimensionless
+            info           = 'The error code sent from the meter to the radio module. Meaning not yet known.'
+            dif_signedness = Unsigned
+            vif_scaling    = None
+            match {
+                difvifkey = 03FD971C
+            }
+        }
+    }
+    tests {
+        test {
+            args     = 'Gas cyblegas 25938940 NOKEY'
+            comment  = 'Itron gas meter with Cyble radio, the telegram is one byte short'
+            telegram = 46449726220300121e03724089932597261e038b4830052f2f066d0e2b0bfc21000c943a734142000c943c000000000b3c0200004c943a25634100426ce12103fd971c010000
+            json     = '{"_":"telegram","media":"gas","driver":"cyblegas","name":"Gas","id":"25938940","error_code_counter":1,"target_m3":4163.25,"target_date":"2023-01-01","total_m3":4241.73,"total_backward_m3":0,"flow_m3h":0.02,"meter_datetime":"2023-01-28 11:43:14","status":"PERMANENT_ERROR TPL_STS_64","timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'Gas;25938940;PERMANENT_ERROR TPL_STS_64;4241.73;1111-11-11 11:11.11'
+        }
+        test {
+            args     = 'Gas2 cyblegas 04277927 NOKEY'
+            comment  = 'Itron Cyble5 on a Pipersberg gas meter, sends the volume at base conditions'
+            telegram = 3B4495265341070042378c2049900f002c2555B80200B0c8d7048146B13172277927043041000349001007102f2f04943e7cBa01002f2f2f2f2f2f2f
+            json     = '{"_":"telegram","media":"gas","driver":"cyblegas","name":"Gas2","id":"04277927","total_base_m3":1132.76,"status":"OK","timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'Gas2;04277927;OK;null;1111-11-11 11:11.11'
+        }
+    }
+}

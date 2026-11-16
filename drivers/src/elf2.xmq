@@ -6,6 +6,7 @@ driver {
     manufacturer   = Apator
     detect {
         mvt = APA,42,04
+        mvt = APA,42,0c
         mvt = APA,42,0d
     }
     library {
@@ -354,6 +355,13 @@ driver {
             telegram = 6E44010670112724420D7A35006025B2F96D0306197B34C7E4E6F45F434FCB78BCBBE8837A2C253BEC3E958B3BBBFBE6AE465214941AF544237DB8A69E6C4CE8DFB7A1F64860200BB2E995F1A4F501E7702E0A581576F60B58CBDA39E1F150F29E04D689C38FD6C430ABD05DD789E0
             json     = '{"_":"telegram","media":"heat/cooling load","driver":"elf2","name":"Heato","id":"24271170","current_power_kw":0,"current_volume_flow_m3h":0,"input1_volume_m3":0.002,"input2_volume_m3":0.002,"meter_datetime":"2025-10-15 14:39","t1_temperature_c":22.5,"t2_temperature_c":22.6,"total_energy_kwh":144,"total_energy_cooling_kwh":1,"total_energy_cooling_period_kwh":1,"total_energy_period_kwh":72,"total_volume_m3":17.856,"total_volume_cooling_m3":1.576,"status":"OK","timestamp":"1111-11-11T11:11:11Z"}'
             fields   = 'Heato;24271170;OK;144;1111-11-11 11:11.11'
+        }
+        test {
+            args     = 'Heat2 elf2 21400916 NOKEY'
+            comment  = 'Apator heat meter APA,42,0c, the telegram is truncated'
+            telegram = 4e44010616094021420c7a340040252f2f0c0e000000000c13000000004c0e00000000426cbf2c0b3b0000000b2d0000000a5a88010a5e7201046d3430c52102fd1700002f2f
+            json     = '{"_":"telegram","media":"heat volume at inlet","driver":"elf2","name":"Heat2","id":"21400916","current_power_kw":0,"current_volume_flow_m3h":0,"meter_datetime":"2022-01-05 16:52","t1_temperature_c":18.8,"t2_temperature_c":17.2,"total_energy_kwh":0,"total_energy_period_kwh":0,"total_volume_m3":0,"status":"OK","timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'Heat2;21400916;OK;0;1111-11-11 11:11.11'
         }
     }
 }

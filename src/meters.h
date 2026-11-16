@@ -47,6 +47,7 @@
     X(Repeater,"Repeater.") \
     X(SmokeDetector,"Smoke detector.") \
     X(TempHygroMeter,"Thermometer/hygrometer.") \
+    X(VoltageSensor,"Voltage sensor.") \
     X(WaterMeter,"Water meter") \
 
 enum class MeterType {

@@ -155,6 +155,21 @@ bool MeterCommonImplementation::addOptionalLibraryFields(string field_names)
         markLastFieldAsLibrary();
     }
 
+    if (checkIf(fields,"flow_m3h"))
+    {
+        addNumericFieldWithExtractor(
+            "flow",
+            "Media volume flow."+help,
+            DEFAULT_PRINT_PROPERTIES,
+            Quantity::Flow,
+            VifScaling::Auto,
+            DifSignedness::Signed,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(VIFRange::VolumeFlow)            );
+        markLastFieldAsLibrary();
+    }
+
     if (checkIf(fields,"volume_flow_m3h"))
     {
         addNumericFieldWithExtractor(

@@ -1,0 +1,24 @@
+// Copyright (C) 2026 Fredrik Öhrström (gpl-3.0-or-later)
+// Hager smoke detector. The manufacturer specific data after 0F is not yet decoded.
+driver {
+    name           = hagersmoke
+    meter_type     = SmokeDetector
+    default_fields = name,id,status,timestamp
+    manufacturer   = Hager
+    detect {
+        mvt = HAG,18,1a
+    }
+    library {
+        use = status
+        use = meter_datetime
+    }
+    tests {
+        test {
+            args     = 'Smoke hagersmoke 51202055 NOKEY'
+            comment  = 'Hager smoke detector'
+            telegram = 4344272055202051181a8c2054900f002c2555a9010028870a79729900a27a54002007102f2f066d281b0f293b000f020f1055202051000006000000002f2f2f2f2f2f2f
+            json     = '{"_":"telegram","media":"smoke detector","driver":"hagersmoke","name":"Smoke","id":"51202055","meter_datetime":"2025-11-09 15:27:40","status":"OK","timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'Smoke;51202055;OK;1111-11-11 11:11.11'
+        }
+    }
+}

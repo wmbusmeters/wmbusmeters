@@ -10,7 +10,7 @@ driver {
     }
     library {
         use = total_m3,meter_datetime,target_m3,target_date
-        use = volume_flow_m3h,flow_temperature_c
+        use = flow_m3h,flow_temperature_c
     }
     flags {
         flag {
@@ -133,7 +133,7 @@ driver {
             args     = 'Water aquastream 10194643 NOKEY'
             comment  = IMT,10,07
             telegram = 4244b4254346191010078c202e7a9900002004138a08000084101316000000043b00000000025ada00046d122cee2944138a080000426cff2802fd17800002fd741216
-            json     = '{"_":"telegram","media":"water","driver":"aquastream","name":"Water","id":"10194643","battery_y":15.479452,"flow_temperature_c":21.8,"target_m3":2.186,"target_date":"2023-08-31","total_m3":2.186,"total_backwards_m3":0.022,"volume_flow_m3h":0,"meter_datetime":"2023-09-14 12:18","status":"NO_FLOW","timestamp":"1111-11-11T11:11:11Z"}'
+            json     = '{"_":"telegram","media":"water","driver":"aquastream","name":"Water","id":"10194643","battery_y":15.479452,"flow_temperature_c":21.8,"target_m3":2.186,"target_date":"2023-08-31","total_m3":2.186,"total_backwards_m3":0.022,"flow_m3h":0,"meter_datetime":"2023-09-14 12:18","status":"NO_FLOW","timestamp":"1111-11-11T11:11:11Z"}'
             fields   = 'Water;10194643;2.186;1111-11-11 11:11.11'
         }
     }

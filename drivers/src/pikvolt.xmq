@@ -1,0 +1,56 @@
+// Copyright (C) 2026 Fredrik Öhrström (gpl-3.0-or-later)
+// pikkerton wireless two channel voltmeter. It sends three voltage records with
+// the same dif/vif, the two external voltages followed by the battery voltage.
+driver {
+    name           = pikvolt
+    meter_type     = VoltageSensor
+    default_fields = name,id,voltage_1_v,voltage_2_v,battery_v,timestamp
+    manufacturer   = pikkerton
+    detect {
+        mvt = PIK,11,1e
+    }
+    library {
+        use = status
+    }
+    fields {
+        field {
+            name     = voltage_1
+            quantity = Voltage
+            info     = 'The voltage measured on the first input.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = Voltage
+                index_nr         = 1
+            }
+        }
+        field {
+            name     = voltage_2
+            quantity = Voltage
+            info     = 'The voltage measured on the second input.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = Voltage
+                index_nr         = 2
+            }
+        }
+        field {
+            name     = battery
+            quantity = Voltage
+            info     = 'The battery voltage.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = Voltage
+                index_nr         = 3
+            }
+        }
+    }
+    tests {
+        test {
+            args     = 'Volt pikvolt 35855b87 NOKEY'
+            comment  = 'Voltmeter with nothing connected to the inputs'
+            telegram = 1d442b41875b8535111e7aed00000002fd46010002fd46010002fd46300e
+            json     = '{"_":"telegram","media":"Unknown","driver":"pikvolt","name":"Volt","id":"35855b87","battery_v":3.632,"voltage_1_v":0.001,"voltage_2_v":0.001,"status":"OK","timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'Volt;35855b87;0.001;0.001;3.632;1111-11-11 11:11.11'
+        }
+    }
+}

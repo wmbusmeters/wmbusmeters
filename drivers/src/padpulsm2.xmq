@@ -1,0 +1,26 @@
+// Copyright (C) 2026 Fredrik Öhrström (gpl-3.0-or-later)
+// Relay PadPuls M2 pulse counter. The unit and the conversion of the counter are
+// configured in the device, so it can send either an energy or a volume.
+driver {
+    name           = padpulsm2
+    meter_type     = PulseCounter
+    default_fields = name,id,status,total_kwh,total_m3,timestamp
+    manufacturer   = Relay
+    detect {
+        mvt = REL,50,03
+    }
+    library {
+        use = status
+        use = total_kwh
+        use = total_m3
+    }
+    tests {
+        test {
+            args     = 'Pulses padpulsm2 00172801 NOKEY'
+            comment  = 'PadPuls M2 counting gas meter pulses, configured to send energy'
+            telegram = 2644ac482817000050377201281700ac485003870000002f2f0c01000000002f2f2f2f2f2f2f2f
+            json     = '{"_":"telegram","media":"gas","driver":"padpulsm2","name":"Pulses","id":"00172801","total_kwh":0,"status":"OK","timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'Pulses;00172801;OK;0;null;1111-11-11 11:11.11'
+        }
+    }
+}
