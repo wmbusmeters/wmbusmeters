@@ -6,6 +6,7 @@ driver {
     manufacturer   = Qundis
     detect {
         mvt = LSE,18,06
+        mvt = LSE,d8,06
         mvt = LSE,18,07
         mvt = LSE,16,07
         mvt = LSE,17,07
@@ -141,6 +142,13 @@ driver {
             telegram = 2e4465b20646651733077ad70000000c13113655004c1359604600426cff2c326cffff046d0115193c0c7864622835
             json     = '{"_":"telegram","media":"water","driver":"lse_07_17","name":"Water","id":"17654606","device_datetime":"2024-12-25 21:01","due_m3":466.059,"due_date":"2023-12-31","error_date":null,"total_m3":553.611,"fabrication_no":"35286264","timestamp":"1111-11-11T11:11:11Z"}'
             fields   = 'Water;17654606;553.611;466.059;2023-12-31;null;null;2024-12-25 21:01;1111-11-11 11:11.11'
+        }
+        test {
+            args     = 'WarmWater lse_07_17 09967781 NOKEY'
+            comment  = 'Siemens WFH36 warm water LSE,d8,06'
+            telegram = 2d44653281779609d8067af5000000046d000eed2b0c13124608004c1329320700426cdf2c326cffff02bb560000
+            json     = '{"_":"telegram","media":"warm water","driver":"lse_07_17","name":"WarmWater","id":"09967781","device_datetime":"2023-11-13 14:00","due_m3":73.229,"due_date":"2022-12-31","error_date":null,"total_m3":84.612,"error_code":"OK","timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'WarmWater;09967781;84.612;73.229;2022-12-31;OK;null;2023-11-13 14:00;1111-11-11 11:11.11'
         }
     }
 }

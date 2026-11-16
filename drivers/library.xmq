@@ -502,6 +502,18 @@ library {
     }
     template(id = consumption_hca)
     {
+        // Use allocation_hca instead. This field name will be phased out.
+        name     = consumption
+        quantity = HCA
+        info     = 'The current heat cost allocation for this meter.'
+        change   = Increasing
+        match {
+            measurement_type = Instantaneous
+            vif_range        = HeatCostAllocation
+        }
+    }
+    template(id = allocation_hca)
+    {
         name     = consumption
         quantity = HCA
         info     = 'The current heat cost allocation for this meter.'

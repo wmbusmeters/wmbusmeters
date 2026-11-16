@@ -7,6 +7,7 @@ driver {
     model          = 'Sensus iPERL'
     detect {
         mvt = SEN,68,06
+        mvt = SEN,0b,07
         mvt = SEN,68,07
         mvt = SEN,7c,07
     }
@@ -59,6 +60,13 @@ driver {
             telegram = 1844AE4C4455223368077A55060000_041389E20100023B0000
             json     = '{"_":"telegram","media":"water","driver":"iperl","name":"WaterWater","id":"33225544","total_m3":123.529,"max_flow_m3h":0,"status":"ERROR POWER_LOW","timestamp":"1111-11-11T11:11:11Z"}'
             fields   = 'WaterWater;33225544;123.529;0;1111-11-11 11:11.11'
+        }
+        test {
+            args     = 'SensusWater iperl 19117116 NOKEY'
+            comment  = 'Sensus water meter SEN,0b,07 sent through a radio converter SEN,38,37'
+            telegram = 2044ae4c0621050038377216711119ae4c0b076c0000000413b1f30200023b0000
+            json     = '{"_":"telegram","media":"water","driver":"iperl","name":"SensusWater","id":"19117116","max_flow_m3h":0,"total_m3":193.457,"status":"OK","timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'SensusWater;19117116;193.457;0;1111-11-11 11:11.11'
         }
     }
 }

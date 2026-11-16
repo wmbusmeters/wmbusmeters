@@ -7,9 +7,11 @@ driver {
     manufacturer   = Itron
     detect {
         mvt = ITW,00,04
+        mvt = ITW,07,0d
     }
     library {
         use = meter_datetime
+        use = enhanced_id
     }
     fields {
         field {
@@ -57,21 +59,49 @@ driver {
                 storage_nr       = 1
             }
         }
+        field {
+            name     = total_cooling_energy
+            quantity = Energy
+            info     = 'The total cooling energy recorded by a heat/cooling meter.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = AnyEnergyVIF
+                add_combinable   = BackwardFlow
+            }
+        }
+        field {
+            name     = target_cooling_energy
+            quantity = Energy
+            info     = 'The total cooling energy recorded at the end of the previous billing year.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = AnyEnergyVIF
+                add_combinable   = BackwardFlow
+                storage_nr       = 1
+            }
+        }
     }
     tests {
         test {
             args     = 'Heat itronheat 23340485 NOKEY'
             comment  = 'Allmess UltraMaXX with ITRON EquaScan hMIU RF Module'
             telegram = 444497268504342300047AD00030A52F2F_04062C0100000C1429270000066D2D130AE12B007406FEFEFEFE426C1F010D7FEB0E00000006040C995500372F2F0C7951622223
-            json     = '{"_":"telegram","id": "23340485","last_year_date": "2000-01-31","media": "heat","driver": "itronheat","meter_datetime": "2023-11-01 10:19:45","name": "Heat","status": "OK","timestamp": "1111-11-11T11:11:11Z","total_kwh": 300,"total_m3": 27.29}'
+            json     = '{"_":"telegram","id": "23340485","last_year_date": "2000-01-31","media": "heat","driver": "itronheat","meter_datetime": "2023-11-01 10:19:45","name": "Heat","status": "OK","timestamp": "1111-11-11T11:11:11Z","total_kwh": 300,"enhanced_id": "23226251","total_m3": 27.29}'
             fields   = 'Heat;23340485;OK;300;1111-11-11 11:11.11'
         }
         test {
             args     = 'Heat_lower_case itronheat 11755757 NOKEY'
             comment  = 'Itron Heatmeter with strange MFCT iTW instead of ITW'
             telegram = 404497A65757751100047A040000A00406494C0000041348318000066D2B0ED7EE2A0044069A360000426CDF2C0D7FEB0700000006040C5C7E034E0C7942502321
-            json     = '{"_":"telegram","id": "11755757","last_year_date": "2022-12-31","last_year_kwh": 13978,"media": "heat","driver": "itronheat","meter_datetime": "2023-10-14 23:14:43","name": "Heat_lower_case","status": "OK","timestamp": "1111-11-11T11:11:11Z","total_kwh": 19529,"total_m3": 8401.224}'
+            json     = '{"_":"telegram","id": "11755757","last_year_date": "2022-12-31","last_year_kwh": 13978,"media": "heat","driver": "itronheat","meter_datetime": "2023-10-14 23:14:43","name": "Heat_lower_case","status": "OK","timestamp": "1111-11-11T11:11:11Z","total_kwh": 19529,"enhanced_id": "21235042","total_m3": 8401.224}'
             fields   = 'Heat_lower_case;11755757;OK;19529;1111-11-11 11:11.11'
+        }
+        test {
+            args     = 'HeatCool itronheat 22140062 NOKEY'
+            comment  = 'Itron heat/cooling meter ITW,07,0d'
+            telegram = 4e44972662001422070d7a050000a00406000000000c1448022100066d19236c1b3300440600000000426cff2c0d7feb06000000160d0c7389013704863ca909000044863ca90900000c7994474523
+            json     = '{"_":"telegram","media":"heat/cooling load","driver":"itronheat","name":"HeatCool","id":"22140062","last_year_kwh":0,"last_year_date":"2023-12-31","target_cooling_energy_kwh":2473,"total_kwh":0,"total_m3":2102.48,"total_cooling_energy_kwh":2473,"enhanced_id":"23454794","meter_datetime":"2024-03-27 12:35:25","status":"OK","timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'HeatCool;22140062;OK;0;1111-11-11 11:11.11'
         }
     }
 }

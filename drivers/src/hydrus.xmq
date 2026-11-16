@@ -8,6 +8,7 @@ driver {
     manufacturer   = Diehl
     detect {
         mvt = DME,70,07
+        mvt = DME,75,07
         mvt = DME,76,07
         mvt = HYD,24,07
         mvt = HYD,8b,07
@@ -237,6 +238,13 @@ driver {
             telegram = 5344A5112712188761078C800E900F002C256802010073FC5191591F6CE47A68C03107102F2F0C139216010004FD17000000080A5A0502426CFFFF4C13AAAAAAAA4C933CAAAAAAAA2F2F2F2F2F2F2F2F2F2F2F2F
             json     = '{"_":"telegram","media":"water","driver":"hydrus","name":"Water2","id":"87181227","at_date":null,"flow_temperature_c":20.5,"total_m3":11.692,"total_at_date_m3":null,"status":"TPL_STS_192","timestamp":"1111-11-11T11:11:11Z"}'
             fields   = 'Water2;87181227;11.692;null;TPL_STS_192;1111-11-11 11:11.11'
+        }
+        test {
+            args     = 'Industrial hydrus 72162576 NOKEY'
+            comment  = 'Hydrus industrial DME,75,07'
+            telegram = 2e44a5117625167275077ae7402005e908429273aec91c92bc22c9c256fadf126382aba2cc97eacd2606cf6fa7f248
+            json     = '{"_":"telegram","media":"water","driver":"hydrus","name":"Industrial","id":"72162576","at_date":"2022-12-31","total_m3":144729.29,"total_at_date_m3":38469.65,"status":"TPL_STS_64","timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'Industrial;72162576;144729.29;38469.65;TPL_STS_64;1111-11-11 11:11.11'
         }
     }
 }

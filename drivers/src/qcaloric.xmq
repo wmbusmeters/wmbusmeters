@@ -7,6 +7,8 @@ driver {
     manufacturer   = Qundis
     detect {
         mvt = LSE,34,08
+        mvt = LSE,2c,08
+        mvt = QDS,33,08
         mvt = LSE,35,08
         mvt = QDS,35,08
         mvt = QDS,34,08
@@ -251,6 +253,20 @@ driver {
             telegram = 38449344715519413A087A7A0020252F2F_0B6E2201004B6E000000426CFFFFCB086E070100C2086C5E392F2F2F2F2F326CFFFF046D160B533A
             json     = '{"_": "telegram","consumption_at_set_date_17_hca": 107,"consumption_at_set_date_1_hca": 0,"consumption_at_set_date_hca": 0,"current_consumption_hca": 122,"device_datetime": "2026-10-19 11:22","driver": "qcaloric","error_date": "","id": "41195571","media": "heat cost allocation","name": "HCA5_3a","set_date": null,"set_date_1": "","set_date_17": "2026-09-30","status": "OK","timestamp": "1111-11-11T11:11:11Z"}'
             fields   = 'HCA5_3a;41195571;122;null;0;1111-11-11 11:11.11'
+        }
+        test {
+            args     = 'Caloric55 qcaloric 90500467 NOKEY'
+            comment  = 'Qundis Caloric 5.5 QDS,33,08'
+            telegram = 49449344670450903308780dff5f350082041800f00007b06eb82b02000000fe29000000001f35000000000000000000000000000000000000000000000000000000002f046d04111836
+            json     = '{"_":"telegram","media":"heat cost allocation","driver":"qcaloric","name":"Caloric55","id":"90500467","consumption_at_set_date_hca":0,"consumption_at_set_date_1_hca":0,"consumption_at_set_date_17_hca":0,"current_consumption_hca":2,"device_datetime":"2024-06-24 17:04","set_date":"2023-09-30","set_date_1":"2023-09-30","set_date_17":"2024-05-31","status":"OK","timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'Caloric55;90500467;2;2023-09-30;0;1111-11-11 11:11.11'
+        }
+        test {
+            args     = 'Honeywell205W qcaloric 79420770 NOKEY'
+            comment  = 'Honeywell 205W LSE,2c,08'
+            telegram = 48446532700742792c08780b6e0000000dff5f2f00019888012708b06e3326fe29000000001f3100000000000000000000000000000000000000000000000000000000046d2e121032
+            json     = '{"_":"telegram","media":"heat cost allocation","driver":"qcaloric","name":"Honeywell205W","id":"79420770","current_consumption_hca":0,"device_datetime":"2024-02-16 18:46","status":"OK","timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'Honeywell205W;79420770;0;null;null;1111-11-11 11:11.11'
         }
     }
 }
