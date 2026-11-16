@@ -208,6 +208,48 @@ TEST_CASES = [
     ),
 ]
 
+# Two telegrams from the same lse_07_17 meter (see drivers/src/lse_07_17.xmq):
+# the first carries total_m3, the second only the set date values.
+LSE_WITH_TOTAL = "2D4465329933961318067ADA0000000C13567100004C1300000000426CFFFF02BB560000326CFFFF046D2307A12C"
+LSE_WITHOUT_TOTAL = "244465329933961318067AE10000008C04130070000082046CBE2B01FD0C11046D010CA22C"
+MULTICAL21 = TEST_CASES[0][1]
+
+# --- Sequence tests: (description, [(request, expected_checks), ...]) ---
+# The requests of one sequence are sent in order on a single connection.
+SEQUENCE_TESTS = [
+    (
+        "cached meter keeps values of earlier telegrams",
+        [
+            ({"_": "decode", "telegram": LSE_WITH_TOTAL}, {"total_m3": 7.156}),
+            ({"_": "decode", "telegram": LSE_WITHOUT_TOTAL},
+             {"total_m3": 7.156, "consumption_at_set_date_8_m3": 7, "device_datetime": "2021-12-02 12:01"}),
+        ],
+    ),
+    (
+        "naming the cached driver explicitly keeps the meter",
+        [
+            ({"_": "decode", "telegram": LSE_WITH_TOTAL}, {"total_m3": 7.156}),
+            ({"_": "decode", "telegram": LSE_WITHOUT_TOTAL, "driver": "lse_07_17"}, {"total_m3": 7.156}),
+        ],
+    ),
+    (
+        "nonexistent driver is an error and keeps the cached meter",
+        [
+            ({"_": "decode", "telegram": LSE_WITH_TOTAL}, {"total_m3": 7.156}),
+            ({"_": "decode", "telegram": LSE_WITHOUT_TOTAL, "driver": "no_such_driver"},
+             {"error": lambda v: "no such driver" in v}),
+            ({"_": "decode", "telegram": LSE_WITHOUT_TOTAL}, {"total_m3": 7.156}),
+        ],
+    ),
+    (
+        "requested driver replaces a cached meter with another driver",
+        [
+            (MULTICAL21, {"driver": "kamwater"}),
+            (dict(MULTICAL21, driver="unknown"), {"driver": "unknown"}),
+        ],
+    ),
+]
+
 
 def start_wmbusmeters(binary):
     """Start wmbusmeters with SOCKET device, return subprocess."""
@@ -273,7 +315,7 @@ def send_multiple_requests(requests):
 
     # Read all responses — one JSON object per line.
     buf = b""
-    while True:
+    while buf.count(b"\n") < len(requests):
         try:
             chunk = sock.recv(4096)
             if not chunk:
@@ -415,6 +457,31 @@ def main():
     except Exception as e:
         print_error("reconnection test: %s" % e)
         failed += 1
+
+    # --- Sequence tests ---
+    print()
+    print("Sequence tests (telegrams of one meter in order on one connection):")
+    for description, steps in SEQUENCE_TESTS:
+        try:
+            responses = send_multiple_requests([request for request, _ in steps])
+            if len(responses) != len(steps):
+                print_error("%s - expected %d responses, got %d" % (description, len(steps), len(responses)))
+                failed += 1
+                continue
+            errors = []
+            for i, (response, (_, expected_checks)) in enumerate(zip(responses, steps)):
+                ok, msg = check_response(description, response, expected_checks)
+                if not ok:
+                    errors.append("step %d: %s, response: %s" % (i + 1, msg, json.dumps(response)))
+            if errors:
+                print_error("%s - %s" % (description, "; ".join(errors)))
+                failed += 1
+            else:
+                print_ok(description)
+                passed += 1
+        except Exception as e:
+            print_error("%s - exception: %s" % (description, e))
+            failed += 1
 
     # --- Summary ---
     print()
