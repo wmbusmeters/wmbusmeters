@@ -8,6 +8,7 @@ driver {
     manufacturer   = Diehl
     detect {
         mvt = DME,41,04
+        mvt = DME,40,0c
         mvt = DME,41,0d
         mvt = DME,41,0c
     }
@@ -197,6 +198,13 @@ driver {
             telegram = 5E44A51139259471410D7A720050052F2F_0C06742400008C1006000000000C13823522008C2013494400000B3B0000000C2B000000000A5A22030A5E91020AA61800004C0619130000CC100600000000426CDF252F2F2F2F2F2F2F2F2F2F2F
             json     = '{"_":"telegram","media":"heat/cooling load","driver":"sharky774","name":"Coolo","id":"71942539","total_energy_consumption_kwh":2474,"total_cooling_consumption_kwh":0,"total_volume_m3":223.582,"total_cooling_volume_m3":4.449,"volume_flow_m3h":0,"power_kw":0,"flow_temperature_c":32.2,"return_temperature_c":29.1,"operating_time_in_error_h":0,"energy_at_set_date_kwh":1319,"cooling_at_set_date_kwh":0,"set_date":"2022-05-31","timestamp":"1111-11-11T11:11:11Z"}'
             fields   = 'Coolo;71942539;2474;1319;2022-05-31;1111-11-11 11:11.11'
+        }
+        test {
+            args     = 'Sharky775c sharky774 76136893 NOKEY'
+            comment  = 'Sharky 775 DME,40,0c'
+            telegram = 3e44a51193681376400c7a0c003005a0e4021b13884d96737ae28a5b8d54b25ffe0755a10eec26b32aeccd170b4cadc84ac0cb724e7f2fbdb9ee2c4be541d5
+            json     = '{"_":"telegram","media":"heat volume at inlet","driver":"sharky774","name":"Sharky775c","id":"76136893","flow_temperature_c":72.5,"operating_time_in_error_h":0,"power_kw":6.78,"return_temperature_c":34.9,"total_cooling_consumption_kwh":0,"total_energy_consumption_kwh":24369,"total_volume_m3":654.78,"volume_flow_m3h":0.159,"timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'Sharky775c;76136893;24369;null;null;1111-11-11 11:11.11'
         }
     }
 }

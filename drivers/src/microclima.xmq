@@ -8,7 +8,6 @@ driver {
         mvt = MAD,00,04
         mvt = MAD,00,0c
         mvt = MAD,00,0d
-        mvt = TNT,00,04
     }
     library {
         use = meter_datetime,model_version,parameter_set
@@ -176,13 +175,6 @@ driver {
             telegram = 9c44243472897530000d7ad20000002f2f046d25271a3c8410069e030000426cff2cc410064e000000c411069b030000c4120698030000c4130697030000c4140688030000c4150619010000c4160608010000c41706d2000000c41806cf000000c41906cf000000c41a06ad000000c41b0674000000c41c064e000000c41d060d000000c41e0602000000c41f060000000003fd0c05010002fd0b0122
             json     = '{"_":"telegram","media":"heat/cooling load","driver":"microclima","name":"Cool","id":"30758972","cooling_consumption_at_set_date_1_kwh":78,"cooling_consumption_at_set_date_11_kwh":281,"cooling_consumption_at_set_date_13_kwh":264,"cooling_consumption_at_set_date_15_kwh":210,"cooling_consumption_at_set_date_17_kwh":207,"cooling_consumption_at_set_date_19_kwh":207,"cooling_consumption_at_set_date_21_kwh":173,"cooling_consumption_at_set_date_23_kwh":116,"cooling_consumption_at_set_date_25_kwh":78,"cooling_consumption_at_set_date_27_kwh":13,"cooling_consumption_at_set_date_29_kwh":2,"cooling_consumption_at_set_date_3_kwh":923,"cooling_consumption_at_set_date_31_kwh":0,"cooling_consumption_at_set_date_5_kwh":920,"cooling_consumption_at_set_date_7_kwh":919,"cooling_consumption_at_set_date_9_kwh":904,"total_cooling_energy_consumption_kwh":926,"meter_datetime":"2024-12-26 07:37","model_version":"000105","parameter_set":"2201","status":"OK","timestamp":"1111-11-11T11:11:11Z"}'
             fields   = 'Cool;30758972;OK;null;null;1111-11-11 11:11.11'
-        }
-        test {
-            args     = 'Trinnity microclima 55470520 NOKEY'
-            comment  = 'Trinnity by Deltamess TNT,00,04'
-            telegram = A944D4512005475500047A850090252F2F046D1A2B4B3904060000000004131900000001FD1700426C3F3C440600000000840106000000008402060000000084030600000000840406000000008405060000000084060600000000840706000000008408060000000084090600000000840A0600000000840B0600000000840C0600000000840D0600000000840E0600000000840F06000000002F2F2F2F2F03FD0C05010002FD0B2111
-            json     = '{"_":"telegram","media":"heat","driver":"microclima","name":"Trinnity","id":"55470520","consumption_at_set_date_1_kwh":0,"consumption_at_set_date_10_kwh":0,"consumption_at_set_date_12_kwh":0,"consumption_at_set_date_14_kwh":0,"consumption_at_set_date_16_kwh":0,"consumption_at_set_date_18_kwh":0,"consumption_at_set_date_2_kwh":0,"consumption_at_set_date_20_kwh":0,"consumption_at_set_date_22_kwh":0,"consumption_at_set_date_24_kwh":0,"consumption_at_set_date_26_kwh":0,"consumption_at_set_date_28_kwh":0,"consumption_at_set_date_30_kwh":0,"consumption_at_set_date_4_kwh":0,"consumption_at_set_date_6_kwh":0,"consumption_at_set_date_8_kwh":0,"set_date_1_date":"2025-12-31","set_date_10_date":"2025-03-31","set_date_12_date":"2025-01-31","set_date_14_date":"2024-11-30","set_date_16_date":"2024-09-30","set_date_18_date":"2024-07-31","set_date_2_date":"2025-11-30","set_date_20_date":"2024-05-31","set_date_22_date":"2024-03-31","set_date_24_date":"2024-01-31","set_date_26_date":"2023-11-30","set_date_28_date":"2023-09-30","set_date_30_date":"2023-07-31","set_date_4_date":"2025-09-30","set_date_6_date":"2025-07-31","set_date_8_date":"2025-05-31","total_energy_consumption_kwh":0,"total_volume_m3":0.025,"meter_datetime":"2026-09-11 11:26","model_version":"000105","parameter_set":"1121","status":"OK","timestamp":"1111-11-11T11:11:11Z"}'
-            fields   = 'Trinnity;55470520;OK;0;0.025;1111-11-11 11:11.11'
         }
     }
 }

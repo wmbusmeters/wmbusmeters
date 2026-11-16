@@ -7,6 +7,8 @@ driver {
     transform_payload = try_qundis_decode
     detect {
         mvt = QDS,23,04
+        mvt = QDS,3f,04
+        mvt = LSE,23,0c
         mvt = LSE,1a,0c
         mvt = QDS,23,37
         mvt = QDS,3c,04
@@ -494,6 +496,20 @@ driver {
             telegram = 334465b2937305661a0c7afb000000046d160ced2b0c0542230300426cdf2c4c0580210300326cffff02fd1700000c7834989959
             json     = '{"_":"telegram","media":"heat volume at inlet","driver":"qheatv2","name":"HeatInlet","id":"66057393","device_error_date":null,"target_year_kwh":3218,"target_year_date":"2022-12-31","total_kwh":3234.2,"fabrication_no":"59999834","meter_datetime":"2023-11-13 12:22","status":"OK","timestamp":"1111-11-11T11:11:11Z"}'
             fields   = 'HeatInlet;66057393;OK;3234.2;1111-11-11 11:11.11'
+        }
+        test {
+            args     = 'WFC36 qheatv2 66057373 NOKEY'
+            comment  = 'Siemens WFC36 LSE,23,0c'
+            telegram = 2e4465b273730566230c7abf0000000c05965135004c0520123400426cff2c326cffff046d1d0910340c7894180337
+            json     = '{"_":"telegram","media":"heat volume at inlet","driver":"qheatv2","name":"WFC36","id":"66057373","device_error_date":null,"target_year_kwh":34122,"target_year_date":"2023-12-31","total_kwh":35519.6,"fabrication_no":"37031894","meter_datetime":"2024-04-16 09:29","status":"OK","timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'WFC36;66057373;OK;35519.6;1111-11-11 11:11.11'
+        }
+        test {
+            args     = 'QHeat5 qheatv2 68388674 NOKEY'
+            comment  = 'Qundis Q heat 5.5 QDS,3f,04 behind a QDS,3f,37 radio'
+            telegram = 45449344748638683f37727486386893443f04b00020252f2f0c06622800004c0653160000426c3f3ccc080604240000c2086c5f312f2f02fd170000326cffff046d39145632
+            json     = '{"_":"telegram","media":"heat","driver":"qheatv2","name":"QHeat5","id":"68388674","device_error_date":null,"target_kwh":2404,"target_date":"2026-01-31","target_year_kwh":1653,"target_year_date":"2025-12-31","total_kwh":2862,"meter_datetime":"2026-02-22 20:57","status":"OK","timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'QHeat5;68388674;OK;2862;1111-11-11 11:11.11'
         }
     }
 }

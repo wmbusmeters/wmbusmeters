@@ -6,6 +6,7 @@ driver {
     manufacturer   = Qundis
     detect {
         mvt = QDS,21,1a
+        mvt = QDS,22,1a
         mvt = QDS,23,1a
         mvt = LSE,21,1a
         mvt = LSE,23,1a
@@ -117,6 +118,13 @@ driver {
             telegram = 3744934450881248231A7A5C00002081027C034955230082026CFFFF81037C034C41230082036CFFFF02FD170000326CFFFF046D2514BC2B
             json     = '{"_":"telegram","media":"smoke detector","driver":"qsmoke","name":"QSmokep","id":"48128850","status":"OK","last_alarm_date":null,"alarm_counter":0,"message_datetime":"2021-11-28 20:37","test_button_last_date":null,"test_button_counter":0,"at_error_date":null,"timestamp":"1111-11-11T11:11:11Z"}'
             fields   = 'QSmokep;48128850;OK;null;0;1111-11-11 11:11.11'
+        }
+        test {
+            args     = 'QSmoke qsmoke 46398739 NOKEY'
+            comment  = 'Qundis smoke detector QDS,22,1a'
+            telegram = 3e44934439873946221a7801fd088481027c034955230082026cffff81037c034c41230082036cffff03fd17000000326cffff046d1b06bd2b02fdac7e1100
+            json     = '{"_":"telegram","media":"smoke detector","driver":"qsmoke","name":"QSmoke","id":"46398739","alarm_counter":0,"at_error_date":null,"last_alarm_date":null,"message_datetime":"2021-11-29 06:27","some_sort_of_duration_h":0.004722,"test_button_counter":0,"test_button_last_date":null,"transmission_counter":132,"status":"OK","timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'QSmoke;46398739;OK;null;0;1111-11-11 11:11.11'
         }
     }
 }

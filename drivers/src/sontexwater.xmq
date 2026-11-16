@@ -1,0 +1,156 @@
+// Copyright (C) 2017-2022 Fredrik Öhrström (gpl-3.0-or-later)
+// Sontex warm water meter, it uses the same records as the Maddalena EVO 868.
+// The compact profile (8D04931E) is not yet decoded.
+driver {
+    name           = sontexwater
+    meter_type     = WaterMeter
+    default_fields = name,id,total_m3,current_status,consumption_at_set_date_m3,set_date,timestamp
+    manufacturer   = Sontex
+    detect {
+        mvt = SON,48,06
+    }
+    library {
+        use = fabrication_no
+        use = total_m3
+        use = software_version
+    }
+    fields {
+        field {
+            name       = current_status
+            quantity   = Flags
+            info       = 'Status of meter.'
+            attributes = STATUS,INCLUDE_TPL_STATUS
+            match {
+                measurement_type = Instantaneous
+                vif_range        = ErrorFlags
+            }
+            lookup {
+                name            = ERROR_FLAGS
+                map_type        = BitToString
+                mask_bits       = 0xffff
+                default_message = OK
+            }
+        }
+        field {
+            name           = consumption_at_set_date
+            quantity       = Volume
+            info           = 'The total water consumption at the most recent billing period date.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
+            match {
+                measurement_type = Instantaneous
+                vif_range        = Volume
+                storage_nr       = 1
+            }
+        }
+        field {
+            name     = set_date
+            quantity = Text
+            info     = 'The most recent billing period date.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = Date
+                storage_nr       = 1
+            }
+        }
+        field {
+            name           = consumption_at_set_date_2
+            quantity       = Volume
+            info           = 'The total water consumption at the second most recent billing period date.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
+            match {
+                measurement_type = Instantaneous
+                vif_range        = Volume
+                storage_nr       = 2
+            }
+        }
+        field {
+            name     = set_date_2
+            quantity = Text
+            info     = 'The second most recent billing period date.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = Date
+                storage_nr       = 2
+            }
+        }
+        field {
+            name           = max_flow_since_datetime
+            quantity       = Flow
+            info           = 'Maximum water flow since date time.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
+            match {
+                measurement_type = Maximum
+                vif_range        = VolumeFlow
+                storage_nr       = 3
+            }
+        }
+        field {
+            name     = max_flow
+            quantity = PointInTime
+            info     = 'The datetime to which maximum flow is measured.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = DateTime
+                storage_nr       = 3
+            }
+        }
+        field {
+            name           = 'consumption_at_history_{storage_counter-7counter}'
+            quantity       = Volume
+            info           = 'The total water consumption at the historic date.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
+            match {
+                measurement_type = Instantaneous
+                vif_range        = Volume
+                storage_nr       = 8,19
+            }
+        }
+        field {
+            name           = history_reference
+            quantity       = PointInTime
+            info           = 'Reference date for history.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
+            display_unit   = date
+            match {
+                measurement_type = Instantaneous
+                vif_range        = Date
+                storage_nr       = 8
+            }
+        }
+        field {
+            name         = 'history_{storage_counter-7counter}'
+            quantity     = PointInTime
+            info         = 'The historic date #.'
+            display_unit = date
+            calculate    = 'history_reference_date - ((storage_counter-8counter) * 1 month)'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = Volume
+                storage_nr       = 8,19
+            }
+        }
+        field {
+            name     = device
+            quantity = PointInTime
+            info     = 'Date and time when the meter sent the telegram.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = DateTime
+            }
+        }
+    }
+    tests {
+        test {
+            args     = 'WarmWater sontexwater 34945917 NOKEY'
+            comment  = 'Sontex warm water meter SON,48,06'
+            telegram = 8344EE4D1759943448067A840070252F2F_0C1339150000426C3F3C4C137913000082046C1F3A8C0413000000008D04931E3A3CFE00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000092020000791300000BFD0F000202046D0F09483182206C323B2F2F02FD170000
+            json     = '{"_":"telegram","media":"warm water","driver":"sontexwater","name":"WarmWater","id":"34945917","consumption_at_history_1_m3":0,"consumption_at_set_date_m3":1.379,"device_datetime":"2026-01-08 09:15","history_1_date":"2024-10-31","history_reference_date":"2024-10-31","total_m3":1.539,"current_status":"OK","set_date":"2025-12-31","software_version":"020200","timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'WarmWater;34945917;1.539;OK;1.379;2025-12-31;1111-11-11 11:11.11'
+        }
+    }
+}

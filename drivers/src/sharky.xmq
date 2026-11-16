@@ -8,6 +8,8 @@ driver {
     manufacturer   = Diehl
     detect {
         mvt = HYD,20,04
+        mvt = HYD,2f,04
+        mvt = HYD,53,04
         mvt = DME,40,04
     }
     library {
@@ -187,6 +189,20 @@ driver {
             telegram = 5e44a5116969696940047aBe0050052f2f0c06975100008c1006000000000c13849345000c2B000000000B3B0000000a5a06020a5e08020a6202f00B26110201cc020623500000cc021329554400c2026cdf2c2f2f2f2f2f2f2f2f2f2f2f2f
             json     = '{"_":"telegram","flow_temperature_c": 20.6,"id": "69696969","media": "heat","driver": "sharky","name": "Heato","operating_time_h": 10211,"power_kw": 0,"return_temperature_c": 20.8,"target_date": "2022-12-31","target_energy_consumption_kwh": 5023,"target_volume_m3": 445.529,"temperature_difference_c": -0.2,"timestamp": "1111-11-11T11:11:11Z","total_energy_consumption_kwh": 5197,"total_energy_consumption_tariff1_kwh": 0,"total_volume_m3": 459.384, "volume_flow_m3h": 0}'
             fields   = 'Heato;69696969;5197;0;459.384;null;0;0;20.6;20.8;-0.2;1111-11-11 11:11.11'
+        }
+        test {
+            args     = 'Sharky775 sharky 46224274 NOKEY'
+            comment  = 'Sharky 775 HYD,53,04'
+            telegram = 5e4424237442224653047af000500558463b5890c95e687730039b7a601f49e69e539a8b88aa81b13f172353fbb67e4ac0c2346cff3ddaf7b390543b75e218cdd507df5e764c8756d115a1e0e9418cdf4a74dbf544fb96c91aa0d6bb5ae8eb
+            json     = '{"_":"telegram","media":"heat","driver":"sharky","name":"Sharky775","id":"46224274","flow_temperature_c":82.6,"operating_time_h":15480,"power_kw":37.791,"return_temperature_c":56.4,"target_date":"2024-12-31","target_energy_consumption_kwh":189341.388889,"target_volume_m3":7319.1,"total_energy_consumption_kwh":191005.277778,"total_volume_m3":7370.3,"volume_flow_m3h":1.27,"timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'Sharky775;46224274;191005.277778;null;7370.3;null;1.27;37.791;82.6;56.4;null;1111-11-11 11:11.11'
+        }
+        test {
+            args     = 'SharkyLarge sharky 39110511 NOKEY'
+            comment  = 'Sharky HYD,2f,04 behind a HYD,64,0e radio'
+            telegram = 7644242362009014640e721105113924232f04e90060059e5505d5d5d6b3108d902d57c00c3d16f935fc559e90e8fa583444d3da0643695e6ee9eed4fa0c8fe8ce9b53899e367e74575eeb5a3df9a280140c29446201df22394a9d790912892f9278a3b8965787dbc08c40b2c45afbb738bdeb4eae6152
+            json     = '{"_":"telegram","media":"heat","driver":"sharky","name":"SharkyLarge","id":"39110511","flow_temperature_c":48.6,"operating_time_h":12888,"power_kw":17.13,"return_temperature_c":47.9,"temperature_difference_c":0.8,"total_energy_consumption_kwh":1324980,"total_energy_consumption_tariff1_kwh":0,"total_volume_m3":127850.6,"total_volume_tariff2_m3":3366.8,"volume_flow_m3h":19.29,"timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'SharkyLarge;39110511;1324980;0;127850.6;3366.8;19.29;17.13;48.6;47.9;0.8;1111-11-11 11:11.11'
         }
     }
 }

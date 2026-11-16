@@ -268,6 +268,17 @@ the end of the previous month. So `total` `Volume` defaults to `total_m3` and me
 - `driver { templates { template_field { name = foo  lookup { ... } } } }` declares a reusable field template; a `field { template = foo ... }` starts from that template's `lookup{}` and can override individual properties (eg. `pre_shift_right`, `mask_bits`). The template's `map{}` entries are inherited and merged with any the field declares itself: a field's own `map{}` entry for a given `bit`/`value` wins over the template's, entries for bits/values the field doesn't mention are still taken from the template. Only `lookup{}` is templated — `name`, `quantity`, `info`, `match`, `attributes` etc. must always be declared on the field itself.
 - `match_entire_payload = true` is for unusual meters that use a proprietary ixml-format payload instead of standard DIF/VIF records.
 - New drivers must be written in XMQ. No new C++ drivers are accepted.
+- A driver belongs to one manufacturer. Do not add an mvt with a different manufacturer code to an existing driver,
+  even if the telegram decodes fine with it (e.g. JGF Janz in the IMT Integra driver aquastream). Create a new driver
+  for that manufacturer instead (janzeregister), it may copy the fields. The manufacturers can change their meters
+  in different directions in the future and their status bits can have different meanings.
+  Exception: when a manufacturer is bought by another manufacturer, the same meter (with the old or a new
+  trademark/name) can start sending the new owner's manufacturer code. Then the new code belongs in the same driver.
+  E.g. the izar was originally made by Sappel (SAP), then Hydrus (HYD) bought Sappel and Diehl (DME) bought Hydrus.
+- Never rename or remove a field in an existing driver. Fields can only be added, unless a serious bug must be fixed.
+  A wmbusmeters user must always be able to update wmbusmeters without risking breaking their setup.
+  If the field names need to change, create a new driver with a new name, e.g. iperlv2 or kamwaterv3.
+- Old drivers keep their old field names. New drivers must follow the naming instructions in `drivers/library.xmq`.
 
 **lookup `map_type` values:**
 - `BitToString` — each `map` entry tests whether a specific bit in the value is set or clear; matched names are concatenated

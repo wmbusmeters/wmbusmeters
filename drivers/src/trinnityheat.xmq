@@ -1,0 +1,160 @@
+// Copyright (C) 2022 Fredrik Öhrström (gpl-3.0-or-later)
+// Trinnity heat meter by Deltamess, it uses the same records as the Maddalena microClima.
+driver {
+    name           = trinnityheat
+    meter_type     = HeatMeter
+    default_fields = name,id,status,total_energy_consumption_kwh,total_volume_m3,timestamp
+    manufacturer   = Deltamess
+    detect {
+        mvt = TNT,00,04
+    }
+    library {
+        use = meter_datetime,model_version,parameter_set
+        use = flow_temperature_c,return_temperature_c
+    }
+    fields {
+        field {
+            name       = status
+            quantity   = Flags
+            info       = 'Meter status from error flags and tpl status field.'
+            attributes = STATUS,INCLUDE_TPL_STATUS
+            match {
+                measurement_type = Instantaneous
+                vif_range        = ErrorFlags
+            }
+            lookup {
+                name            = ERROR_FLAGS
+                map_type        = BitToString
+                mask_bits       = 0xffff
+                default_message = OK
+            }
+        }
+        field {
+            name           = total_energy_consumption
+            quantity       = Energy
+            info           = 'The total heat energy consumption recorded by this meter.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
+            match {
+                measurement_type = Instantaneous
+                vif_range        = AnyEnergyVIF
+            }
+        }
+        field {
+            name           = total_cooling_energy_consumption
+            quantity       = Energy
+            info           = 'The total energy recorded in tariff 1 (presumably cooling) by this meter.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
+            match {
+                measurement_type = Instantaneous
+                vif_range        = AnyEnergyVIF
+                tariff_nr        = 1
+            }
+        }
+        field {
+            name           = total_volume
+            quantity       = Volume
+            info           = 'The total heating media volume recorded by this meter.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
+            match {
+                measurement_type = Instantaneous
+                vif_range        = Volume
+            }
+        }
+        field {
+            name           = volume_flow
+            quantity       = Flow
+            info           = 'The current heat media volume flow.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
+            match {
+                measurement_type = Instantaneous
+                vif_range        = VolumeFlow
+            }
+        }
+        field {
+            name           = power
+            quantity       = Power
+            info           = 'The current power consumption.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
+            match {
+                measurement_type = Instantaneous
+                vif_range        = PowerW
+            }
+        }
+        field {
+            name           = temperature_difference
+            quantity       = Temperature
+            info           = 'The difference between flow and return media temperatures.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
+            match {
+                measurement_type = Instantaneous
+                vif_range        = TemperatureDifference
+            }
+        }
+        field {
+            name           = set
+            quantity       = PointInTime
+            info           = 'The most recent billing period date.'
+            attributes     = HIDE
+            vif_scaling    = Auto
+            dif_signedness = Signed
+            display_unit   = date
+            match {
+                measurement_type = Instantaneous
+                vif_range        = Date
+                storage_nr       = 1
+            }
+        }
+        field {
+            name           = 'consumption_at_set_date_{storage_counter}'
+            quantity       = Energy
+            info           = 'The total water consumption at the historic date.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
+            match {
+                measurement_type = Instantaneous
+                vif_range        = AnyEnergyVIF
+                storage_nr       = 1,31
+            }
+        }
+        field {
+            name         = 'set_date_{storage_counter}'
+            quantity     = PointInTime
+            info         = 'Unclear! What is the date really?'
+            display_unit = date
+            calculate    = 'set_date - ((storage_counter-1counter) * 1 month)'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = AnyEnergyVIF
+                storage_nr       = 1,31
+            }
+        }
+        field {
+            name           = 'cooling_consumption_at_set_date_{storage_counter}'
+            quantity       = Energy
+            info           = 'The energy recorded in tariff 1 (presumably cooling) at the historic date.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
+            match {
+                measurement_type = Instantaneous
+                vif_range        = AnyEnergyVIF
+                tariff_nr        = 1
+                storage_nr       = 1,31
+            }
+        }
+    }
+    tests {
+        test {
+            args     = 'Trinnity trinnityheat 55470520 NOKEY'
+            comment  = 'Trinnity by Deltamess TNT,00,04'
+            telegram = A944D4512005475500047A850090252F2F046D1A2B4B3904060000000004131900000001FD1700426C3F3C440600000000840106000000008402060000000084030600000000840406000000008405060000000084060600000000840706000000008408060000000084090600000000840A0600000000840B0600000000840C0600000000840D0600000000840E0600000000840F06000000002F2F2F2F2F03FD0C05010002FD0B2111
+            json     = '{"_":"telegram","media":"heat","driver":"trinnityheat","name":"Trinnity","id":"55470520","consumption_at_set_date_1_kwh":0,"consumption_at_set_date_10_kwh":0,"consumption_at_set_date_12_kwh":0,"consumption_at_set_date_14_kwh":0,"consumption_at_set_date_16_kwh":0,"consumption_at_set_date_18_kwh":0,"consumption_at_set_date_2_kwh":0,"consumption_at_set_date_20_kwh":0,"consumption_at_set_date_22_kwh":0,"consumption_at_set_date_24_kwh":0,"consumption_at_set_date_26_kwh":0,"consumption_at_set_date_28_kwh":0,"consumption_at_set_date_30_kwh":0,"consumption_at_set_date_4_kwh":0,"consumption_at_set_date_6_kwh":0,"consumption_at_set_date_8_kwh":0,"set_date_1_date":"2025-12-31","set_date_10_date":"2025-03-31","set_date_12_date":"2025-01-31","set_date_14_date":"2024-11-30","set_date_16_date":"2024-09-30","set_date_18_date":"2024-07-31","set_date_2_date":"2025-11-30","set_date_20_date":"2024-05-31","set_date_22_date":"2024-03-31","set_date_24_date":"2024-01-31","set_date_26_date":"2023-11-30","set_date_28_date":"2023-09-30","set_date_30_date":"2023-07-31","set_date_4_date":"2025-09-30","set_date_6_date":"2025-07-31","set_date_8_date":"2025-05-31","total_energy_consumption_kwh":0,"total_volume_m3":0.025,"meter_datetime":"2026-09-11 11:26","model_version":"000105","parameter_set":"1121","status":"OK","timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'Trinnity;55470520;OK;0;0.025;1111-11-11 11:11.11'
+        }
+    }
+}

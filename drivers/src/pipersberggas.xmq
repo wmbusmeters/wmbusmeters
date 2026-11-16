@@ -1,0 +1,45 @@
+// Copyright (C) 2026 Fredrik Öhrström (gpl-3.0-or-later)
+// Pipersberg gas meters. Version 0x3a is sent through a Honeywell/Elster ACM 5.6 radio,
+// version 0x00 through an Itron Cyble5 radio that sends the volume at base conditions.
+driver {
+    name           = pipersberggas
+    meter_type     = GasMeter
+    default_fields = name,id,status,total_m3,timestamp
+    manufacturer   = Pipersberg
+    detect {
+        mvt = PIP,3a,03
+        mvt = PIP,00,03
+    }
+    library {
+        use = status
+        use = total_m3
+    }
+    fields {
+        field {
+            name     = total_base
+            quantity = Volume
+            info     = 'The total gas volume converted to base conditions.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = Volume
+                add_combinable   = ValueAtBaseCondC
+            }
+        }
+    }
+    tests {
+        test {
+            args     = 'PipersbergGas pipersberggas 04361909 NOKEY'
+            comment  = 'Pipersberg BK-G4 with Honeywell ACM 5.6 radio'
+            telegram = 3b4493151608000001378c2063900f002c25657a0000b71fc5d1db43311c720919360430413a039a001007102f2f0c13744214002f2f2f2f2f2f2f2f
+            json     = '{"_":"telegram","media":"gas","driver":"pipersberggas","name":"PipersbergGas","id":"04361909","total_m3":144.274,"status":"OK","timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'PipersbergGas;04361909;OK;144.274;1111-11-11 11:11.11'
+        }
+        test {
+            args     = 'Gas2 pipersberggas 04277927 NOKEY'
+            comment  = 'Itron Cyble5 on a Pipersberg gas meter, sends the volume at base conditions'
+            telegram = 3B4495265341070042378c2049900f002c2555B80200B0c8d7048146B13172277927043041000349001007102f2f04943e7cBa01002f2f2f2f2f2f2f
+            json     = '{"_":"telegram","media":"gas","driver":"pipersberggas","name":"Gas2","id":"04277927","total_base_m3":1132.76,"status":"OK","timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'Gas2;04277927;OK;null;1111-11-11 11:11.11'
+        }
+    }
+}

@@ -7,6 +7,7 @@ driver {
     transform_payload = try_qundis_decode
     detect {
         mvt = QDS,33,37
+        mvt = QDS,33,06
         mvt = QDS,35,06
         mvt = QDS,35,07
         mvt = QDS,35,37
@@ -454,6 +455,13 @@ driver {
             telegram = 49449344380117601A07780DFF5F350082B50035512F79A321C70F8FD90041D03F7633718457556C82E3A6CB5A20617A9523867033C80F9D21054140A90BC438C04F1E9D046D3B125832
             json     = '{"_":"telegram","driver":"qwaterv2","id":"60170138","media":"water","meter_datetime":"2026-02-24 18:59","name":"RealKeyWater","status":"OK","target_date":"2026-01-31","target_m3":24.086,"target_year_date":"2025-12-31","target_year_m3":20.552,"timestamp":"1111-11-11T11:11:11Z","total_m3":26.546,"volume_delta_10_m3":0.338,"volume_delta_11_m3":0.338,"volume_delta_12_m3":0.363,"volume_delta_13_m3":0.353,"volume_delta_2_m3":-32.768,"volume_delta_3_m3":-32.768,"volume_delta_4_m3":-32.768,"volume_delta_5_m3":-32.768,"volume_delta_6_m3":0.003,"volume_delta_7_m3":0.334,"volume_delta_8_m3":0.343,"volume_delta_9_m3":0.336}'
             fields   = 'RealKeyWater;60170138;OK;26.546;1111-11-11 11:11.11'
+        }
+        test {
+            args     = 'QModule55 qwaterv2 35511848 NOKEY'
+            comment  = 'Qundis Q module 5.5 water, detected by the enhanced id QDS,33,06'
+            telegram = 53449344481851353337e88878077948185135934433060dff5f350038ba82760000810007c113ffff83150500ff1e392c420205001f31321305007b008e006641a3005a0066005e00850044006100960073f5ac006d002f046d1d0c07327f9e
+            json     = '{"_":"telegram","media":"radio converter (meter side)","driver":"qwaterv2","name":"QModule55","id":"35511848","target_m3":51.332,"target_date":"2024-01-31","target_year_m3":50.242,"target_year_date":"2023-12-31","total_m3":51.583,"volume_delta_10_m3":0.097,"volume_delta_11_m3":0.15,"volume_delta_12_m3":0.115,"volume_delta_13_m3":0.109,"volume_delta_2_m3":0.123,"volume_delta_3_m3":0.142,"volume_delta_4_m3":0.102,"volume_delta_5_m3":0.09,"volume_delta_6_m3":0.102,"volume_delta_7_m3":0.094,"volume_delta_8_m3":0.133,"volume_delta_9_m3":0.068,"enhanced_id":"0633449335511848","meter_datetime":"2024-02-07 12:29","status":"OK","timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'QModule55;35511848;OK;51.583;1111-11-11 11:11.11'
         }
     }
 }
