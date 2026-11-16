@@ -748,11 +748,12 @@ test {
     fields   = 'Votchka;79787776;1.798;OK;1.225;2020-12-31;1111-11-11 11:11.11'
 }
 test {
-    args     = 'Room fhkvdataiii 12128782 NOKEY'
-    comment  = 'OMS 0x08 telegram of the same meter: separate fields, current_hca is not overwritten and no dates are calculated from missing records.'
-    telegram = 294468508287121294087A538810252F2F_036E980000436E440400426C3F3C0F0F0AE388E05EADCD9772
-    json     = '{"_":"telegram","media":"heat cost allocation","driver":"fhkvdataiii","name":"Room","id":"12128782","consumption_at_set_date_hca":1092,"current_date":null,"current_consumption_hca":152,"previous_date":null,"set_date":"2025-12-31","timestamp":"1111-11-11T11:11:11Z"}'
-    fields   = 'Room;12128782;null;null;null;null;null;null;1111-11-11 11:11.11'
+    args        = 'Room fhkvdataiii 12128782 NOKEY'
+    auto_detect = false
+    comment     = 'OMS 0x08 telegram of the same meter: separate fields, current_hca is not overwritten and no dates are calculated from missing records.'
+    telegram    = 294468508287121294087A538810252F2F_036E980000436E440400426C3F3C0F0F0AE388E05EADCD9772
+    json        = '{"_":"telegram","media":"heat cost allocation","driver":"fhkvdataiii","name":"Room","id":"12128782","consumption_at_set_date_hca":1092,"current_date":null,"current_consumption_hca":152,"previous_date":null,"set_date":"2025-12-31","timestamp":"1111-11-11T11:11:11Z"}'
+    fields      = 'Room;12128782;null;null;null;null;null;null;1111-11-11 11:11.11'
 }
 test {
     args     = 'Room fhkvdataiii 12128782 NOKEY'

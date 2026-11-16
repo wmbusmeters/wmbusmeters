@@ -11,6 +11,7 @@ ARGS="$2"
 HEX="$3"
 JSON="$4"
 FIELDS="$5"
+AUTO_DETECT="$6"
 
 OK=true
 
@@ -24,7 +25,9 @@ AUTO_DRIVER_1=$($PROG $TEST/simulation_tmp.txt 2>&1 | grep driver: | head -n 1 |
 
 AUTO_DRIVER_2=$($PROG $TEST/simulation_tmp.txt 2>&1 | grep driver: | head -n 1 | cut -f 2 -d : | tr -s ' ' | cut -f 3 -d ' ' | tr -d ' ' )
 
-if [ "$AUTO_DRIVER_1" != "$DRIVER_NAME" ] && [ "$AUTO_DRIVER_2" != "$DRIVER_NAME" ]
+# A test with auto_detect = false is for a telegram that is auto detected as another driver,
+# but the driver under test can still be configured explicitly for it.
+if [ "$AUTO_DETECT" != "false" ] && [ "$AUTO_DRIVER_1" != "$DRIVER_NAME" ] && [ "$AUTO_DRIVER_2" != "$DRIVER_NAME" ]
 then
     cat $TEST/simulation_tmp.txt
     $PROG $TEST/simulation_tmp.txt

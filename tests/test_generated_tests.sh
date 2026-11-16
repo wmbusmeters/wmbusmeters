@@ -42,7 +42,7 @@ JOBS=$(nproc 2> /dev/null || sysctl -n hw.ncpu 2> /dev/null || echo 2)
 
 for i in "$DIR"/*.xmq ; do echo "$i" ; done | \
     xargs -P "$JOBS" -n 1 -I{} \
-    $XMQ {} for-each /test --shell='./tests/testit.sh '$PROG' "${args}" "${telegram}" "${json}" "${fields}"'
+    $XMQ {} for-each /test --shell='./tests/testit.sh '$PROG' "${args}" "${telegram}" "${json}" "${fields}" "${auto_detect}"'
 RC=$?
 
 # On failure, which driver group failed is printed by testit.sh above.
