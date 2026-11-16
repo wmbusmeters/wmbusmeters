@@ -3606,6 +3606,24 @@ bool FieldInfo::extractString(Meter *m, Telegram *t, DVEntry *dve)
         t->addMoreExplanation(dve->offset, renderJsonText(m, dve));
         found = true;
     }
+    else if (readable_string_ == ReadableString::Unknown &&
+             ((matcher_.vif_range == VIFRange::Manufacturer && (dve->dif_vif_key.dif() & 0xf) == 0x2) ||
+              (matcher_.vif_range == VIFRange::Medium && (dve->dif_vif_key.dif() & 0xf) == 0x1)))
+    {
+        // The manufacturer (FD0A) and medium (FD09) are binary coded "as in fixed header",
+        // ie a 16 bit manufacturer code (eg 0x145A = EBZ) and an 8 bit device type.
+        // Some meters instead send them as text using a variable length dif, these are handled below.
+        uint64_t v = 0;
+        string extracted;
+        if (dve->extractLong(&v))
+        {
+            if (matcher_.vif_range == VIFRange::Manufacturer) extracted = manufacturerFlag((int)v);
+            else extracted = mediaTypeJSON((int)v, 0);
+        }
+        m->setStringValue(this, extracted, dve);
+        t->addMoreExplanation(dve->offset, renderJsonText(m, dve));
+        found = true;
+    }
     else if (readable_string_ != ReadableString::Unknown ||
              matcher_.vif_range == VIFRange::EnhancedIdentification ||
              matcher_.vif_range == VIFRange::FabricationNo ||

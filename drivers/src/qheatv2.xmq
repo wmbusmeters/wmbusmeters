@@ -29,6 +29,7 @@ driver {
         mvt = LSE,47,37
         mvt = LSE,48,04
         mvt = LSE,48,37
+        mvt = LSE,1a,04
     }
     library {
         use = meter_datetime
@@ -478,6 +479,13 @@ driver {
             telegram = 2e4465B24509256723047aa20000000c05035612004c0520131100426c3f3c326cffff046d12014a330c7834980437
             json     = '{"_": "telegram","fabrication_no": "37049834","id": "67250945","media": "heat","driver": "qheatv2","device_error_date": null,"meter_datetime": "2026-03-10 01:18","name": "QH","status": "OK","target_year_date": "2025-12-31","target_year_kwh": 11132,"timestamp": "1111-11-11T11:11:11Z","total_kwh": 12560.3}'
             fields   = 'QH;67250945;OK;12560.3;1111-11-11 11:11.11'
+        }
+        test {
+            args     = 'Heat qheatv2 66415051 NOKEY'
+            comment  = 'Siemens WFM503 with Qundis WFZ16 radio LSE,1a,04'
+            telegram = 334465b2515041661a047a3e000000046d08121b3c0c0572051500426cff2c4c0570901200326cffff02fd1700000c7828898956
+            json     = '{"_":"telegram","media":"heat","driver":"qheatv2","name":"Heat","id":"66415051","device_error_date":null,"target_year_kwh":12907,"target_year_date":"2023-12-31","total_kwh":15057.2,"fabrication_no":"56898928","meter_datetime":"2024-12-27 18:08","status":"OK","timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'Heat;66415051;OK;15057.2;1111-11-11 11:11.11'
         }
     }
 }

@@ -8,6 +8,8 @@ driver {
     detect {
         mvt = MAD,01,07
         mvt = MAD,01,06
+        mvt = MAD,04,07
+        mvt = MAD,88,07
     }
     library {
         use = fabrication_no,meter_datetime,target_m3,target_date,total_m3
@@ -29,13 +31,48 @@ driver {
                 default_message = OK
             }
         }
+        field {
+            name     = 'target_{storage_counter}'
+            quantity = Volume
+            info     = 'Historic water consumption at the end of a previous billing period.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = Volume
+                storage_nr       = 2,31
+            }
+        }
+        field {
+            name         = 'target_{storage_counter}'
+            quantity     = PointInTime
+            info         = 'Historic billing period date.'
+            display_unit = date
+            match {
+                measurement_type = Instantaneous
+                vif_range        = Date
+                storage_nr       = 2,31
+            }
+        }
     }
     tests {
         test {
             args     = 'mywater maddalena 24018699 NOKEY'
             telegram = 4E4424349986012401077AF2000020_2F2F0413A7000000046D0E0C163B04FD17000000000E789986012401FF441300000000426C01018401134A00000082016C1F3AD3013B470500C4016D1B14153B
-            json     = '{"_":"telegram","media":"water","driver":"maddalena","name":"mywater","id":"24018699","target_m3":0,"target_date":"2000-01-01","total_m3":0.167,"status":"OK","fabrication_no":"FF0124018699","meter_datetime":"2024-11-22 12:14","timestamp":"1111-11-11T11:11:11Z"}'
+            json     = '{"_":"telegram","media":"water","driver":"maddalena","name":"mywater","id":"24018699","target_m3":0,"target_date":"2000-01-01","target_2_m3":0.074,"target_2_date":"2024-10-31","total_m3":0.167,"status":"OK","fabrication_no":"FF0124018699","meter_datetime":"2024-11-22 12:14","timestamp":"1111-11-11T11:11:11Z"}'
             fields   = 'mywater;24018699;OK;0.167;1111-11-11 11:11.11'
+        }
+        test {
+            args     = 'Water maddalena 23336703 NOKEY'
+            comment  = MAD,88,07
+            telegram = AC4424340367332388077A1C0000202F2F04134C340900046D0B0E423604FD17000001000E7803673323FFFF4413C4330900426C41368401132F33090082016C5F35E3013B000000C4016D000E42368104FD280182046C5F358404132F330900C40413A0180900840513F0FE0800C4051385E708008406139FD10800C4061322BA080084071364A00800C40713808A0800840813A96D0800C40813805D0800840913A7420800C4091300000000
+            json     = '{"_":"telegram","media":"water","driver":"maddalena","name":"Water","id":"23336703","target_m3":603.076,"target_date":"2026-06-01","target_10_m3":589.552,"target_11_m3":583.557,"target_12_m3":577.951,"target_13_m3":571.938,"target_14_m3":565.348,"target_15_m3":559.744,"target_16_m3":552.361,"target_17_m3":548.224,"target_18_m3":541.351,"target_19_m3":0,"target_2_m3":602.927,"target_2_date":"2026-05-31","target_8_m3":602.927,"target_8_date":"2026-05-31","target_9_m3":596.128,"total_m3":603.212,"fabrication_no":"FFFF23336703","meter_datetime":"2026-06-02 14:11","status":"OK","timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'Water;23336703;OK;603.212;1111-11-11 11:11.11'
+        }
+        test {
+            args     = 'ElecTo maddalena 25032912 NOKEY'
+            comment  = 'ElecTo MVM MAD,04,07'
+            telegram = 2E4424341229032504077A7C0020252F2F0413122A0000046D128D3A3804FD1700000000441300000000426C01012F
+            json     = '{"_":"telegram","media":"water","driver":"maddalena","name":"ElecTo","id":"25032912","target_m3":0,"target_date":"2000-01-01","total_m3":10.77,"meter_datetime":"2025-08-26 13:18","status":"OK","timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'ElecTo;25032912;OK;10.77;1111-11-11 11:11.11'
         }
     }
 }

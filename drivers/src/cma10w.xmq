@@ -1,0 +1,224 @@
+// Copyright (C) 2026 Fredrik Öhrström (gpl-3.0-or-later)
+// Elvaco CMa10w/CMa11w room sensor.
+// The temperature and humidity records are the same as for rfmamb. The digital input
+// record (02FD1B) is decoded according to the Swedish user manual:
+//   Bit15: 24-hours toggle bit, Bit14: 10 minutes toggle bit, Bit13..10: not used,
+//   Bit9..8: battery level 0 (empty) to 3 (full), Bit7..4: tx interval in minutes,
+//   Bit3..1: not used, Bit0: sensor fault.
+driver {
+    name           = cma10w
+    meter_type     = TempHygroMeter
+    default_fields = name,id,status,temperature_c,relative_humidity_rh,battery_level_counter,timestamp
+    manufacturer   = Elvaco
+    aliases        = cma11w
+    detect {
+        mvt = ELV,03,1b
+    }
+    library {
+        use = software_version
+        use = meter_datetime
+    }
+    flags {
+        flag {
+            name = SENSOR_FAULT
+            info = 'The temperature/humidity sensor reports a fault.'
+        }
+    }
+    fields {
+        field {
+            name       = status
+            quantity   = Flags
+            info       = 'Status from the sensor fault bit and the tpl status field.'
+            attributes = STATUS,INCLUDE_TPL_STATUS
+            match {
+                measurement_type = Instantaneous
+                vif_range        = DigitalInput
+            }
+            lookup {
+                name            = STATUS_FLAGS
+                map_type        = BitToString
+                mask_bits       = 0x0001
+                default_message = OK
+                map {
+                    name  = SENSOR_FAULT
+                    value = 0x0001
+                    test  = Set
+                }
+            }
+        }
+        field {
+            name     = temperature
+            quantity = Temperature
+            info     = 'The instantaneous temperature.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = ExternalTemperature
+            }
+        }
+        field {
+            name     = temperature_avg_1h
+            quantity = Temperature
+            info     = 'The average temperature over the last hour.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = ExternalTemperature
+                storage_nr       = 1
+            }
+        }
+        field {
+            name     = temperature_avg_24h
+            quantity = Temperature
+            info     = 'The average temperature over the last 24 hours.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = ExternalTemperature
+                storage_nr       = 2
+            }
+        }
+        field {
+            name     = temperature_max_1h
+            quantity = Temperature
+            info     = 'The maximum temperature over the last hour.'
+            match {
+                measurement_type = Maximum
+                vif_range        = ExternalTemperature
+            }
+        }
+        field {
+            name     = temperature_max_24h
+            quantity = Temperature
+            info     = 'The maximum temperature over the last 24 hours.'
+            match {
+                measurement_type = Maximum
+                vif_range        = ExternalTemperature
+                storage_nr       = 1
+            }
+        }
+        field {
+            name     = temperature_min_1h
+            quantity = Temperature
+            info     = 'The minimum temperature over the last hour.'
+            match {
+                measurement_type = Minimum
+                vif_range        = ExternalTemperature
+            }
+        }
+        field {
+            name     = temperature_min_24h
+            quantity = Temperature
+            info     = 'The minimum temperature over the last 24 hours.'
+            match {
+                measurement_type = Minimum
+                vif_range        = ExternalTemperature
+                storage_nr       = 1
+            }
+        }
+        field {
+            name     = relative_humidity
+            quantity = RelativeHumidity
+            info     = 'The instantaneous relative humidity.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = RelativeHumidity
+            }
+        }
+        field {
+            name     = relative_humidity_avg_1h
+            quantity = RelativeHumidity
+            info     = 'The average relative humidity over the last hour.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = RelativeHumidity
+                storage_nr       = 1
+            }
+        }
+        field {
+            name     = relative_humidity_avg_24h
+            quantity = RelativeHumidity
+            info     = 'The average relative humidity over the last 24 hours.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = RelativeHumidity
+                storage_nr       = 2
+            }
+        }
+        field {
+            name     = relative_humidity_max_1h
+            quantity = RelativeHumidity
+            info     = 'The maximum relative humidity over the last hour.'
+            match {
+                measurement_type = Maximum
+                vif_range        = RelativeHumidity
+            }
+        }
+        field {
+            name     = relative_humidity_max_24h
+            quantity = RelativeHumidity
+            info     = 'The maximum relative humidity over the last 24 hours.'
+            match {
+                measurement_type = Maximum
+                vif_range        = RelativeHumidity
+                storage_nr       = 1
+            }
+        }
+        field {
+            name     = relative_humidity_min_1h
+            quantity = RelativeHumidity
+            info     = 'The minimum relative humidity over the last hour.'
+            match {
+                measurement_type = Minimum
+                vif_range        = RelativeHumidity
+            }
+        }
+        field {
+            name     = relative_humidity_min_24h
+            quantity = RelativeHumidity
+            info     = 'The minimum relative humidity over the last 24 hours.'
+            match {
+                measurement_type = Minimum
+                vif_range        = RelativeHumidity
+                storage_nr       = 1
+            }
+        }
+        field {
+            name           = raw_status
+            quantity       = Dimensionless
+            info           = 'Raw digital input word with battery level, tx interval and sensor fault.'
+            attributes     = HIDE
+            dif_signedness = Unsigned
+            vif_scaling    = None
+            match {
+                difvifkey = 02FD1B
+            }
+        }
+        field {
+            name      = battery_level
+            quantity  = Dimensionless
+            info      = 'Battery level 0 (empty) to 3 (full).'
+            calculate = '(raw_status_counter >> 8counter) % 4counter'
+        }
+        field {
+            name         = transmit_interval
+            quantity     = Time
+            info         = 'The interval between transmitted telegrams.'
+            display_unit = min
+            calculate    = '((raw_status_counter >> 4counter) % 16counter) * 1min'
+        }
+    }
+    tests {
+        test {
+            args     = 'Room cma10w 61105538 NOKEY'
+            comment  = 'CMa10w, battery level 3 and tx interval 6 minutes'
+            telegram = 6044961538551061031B7a4f0000202f2f02656409426530098201654109226571011265ec09626571015265710a02fB1a470242fB1a47028201fB1a370222fB1a190212fB1aB70362fB1a0d0252fB1aB70302fd1B60430dfd0f05332e302e340f
+            json     = '{"_":"telegram","media":"room sensor","driver":"cma10w","name":"Room","id":"61105538","relative_humidity_avg_1h_rh":58.3,"relative_humidity_avg_24h_rh":56.7,"temperature_avg_1h_c":23.52,"temperature_avg_24h_c":23.69,"battery_level_counter":3,"relative_humidity_rh":58.3,"temperature_c":24.04,"relative_humidity_max_1h_rh":95.1,"relative_humidity_max_24h_rh":95.1,"temperature_max_1h_c":25.4,"temperature_max_24h_c":26.73,"relative_humidity_min_1h_rh":53.7,"relative_humidity_min_24h_rh":52.5,"temperature_min_1h_c":3.69,"temperature_min_24h_c":3.69,"transmit_interval_min":6,"software_version":"4.0.3","status":"OK","timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'Room;61105538;OK;24.04;58.3;3;1111-11-11 11:11.11'
+        }
+        test {
+            args     = 'Room2 cma10w 12345678 NOKEY'
+            comment  = 'CMa10w, battery level 3 and tx interval 6 minutes'
+            telegram = 6044961578563412031B7a010000202f2f02658c0842656a088201656a0822656a0812658c0862656a0852658c0802fB1a2c0142fB1a4a018201fB1a4a0122fB1a2B0112fB1a4a0162fB1a2B0152fB1a4a0102fd1B60030dfd0f05332e302e340f
+            json     = '{"_":"telegram","media":"room sensor","driver":"cma10w","name":"Room2","id":"12345678","relative_humidity_avg_1h_rh":33,"relative_humidity_avg_24h_rh":33,"temperature_avg_1h_c":21.54,"temperature_avg_24h_c":21.54,"battery_level_counter":3,"relative_humidity_rh":30,"temperature_c":21.88,"relative_humidity_max_1h_rh":33,"relative_humidity_max_24h_rh":33,"temperature_max_1h_c":21.88,"temperature_max_24h_c":21.88,"relative_humidity_min_1h_rh":29.9,"relative_humidity_min_24h_rh":29.9,"temperature_min_1h_c":21.54,"temperature_min_24h_c":21.54,"transmit_interval_min":6,"software_version":"4.0.3","status":"OK","timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'Room2;12345678;OK;21.88;30;3;1111-11-11 11:11.11'
+        }
+    }
+}

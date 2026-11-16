@@ -7,6 +7,8 @@ driver {
     detect {
         mvt = WEH,fe,07
         mvt = WEH,03,07
+        mvt = WEH,04,07
+        mvt = WEH,04,06
     }
     fields {
         field {
@@ -56,6 +58,20 @@ driver {
             telegram = 5244A85C8147602703077A5B0840252F2F_0413B39100004413000000004D931E2C73FE0000000000000000000000000000000000000000000000000000000000000000000000009885001A0C002F2F426CBE29
             json     = '{"_":"telegram","media":"water","driver":"weh_07","name":"Vattenn","id":"27604781","total_m3":37.299,"target_date":"2021-09-30","target_m3":0,"timestamp":"1111-11-11T11:11:11Z"}'
             fields   = 'Vattenn;27604781;37.299;1111-11-11 11:11.11'
+        }
+        test {
+            args     = 'Water weh_07 28351901 NOKEY'
+            comment  = WEH,04,07
+            telegram = 5244a85c0119352804077a1a0040252f2f04130dca00004413030000004d931e2c73fe0000000000000302008c0400721000e01500ac0c00831600221a00411500cb1300e413007b1200d50d002f2f426c1e3b
+            json     = '{"_":"telegram","media":"water","driver":"weh_07","name":"Water","id":"28351901","target_m3":0.003,"target_date":"2024-11-30","total_m3":51.725,"timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'Water;28351901;51.725;1111-11-11 11:11.11'
+        }
+        test {
+            args     = 'WarmWater weh_07 28631269 NOKEY'
+            comment  = 'WEH,04,06 warm water'
+            telegram = 5244a85c6912632804067a100040252f2f04136031000044136e0f00004d931e2c73fed001001203000303006602008f0200230200de01009a01003802002802008e0200c90200480200c702002f2f426c1e3b
+            json     = '{"_":"telegram","media":"warm water","driver":"weh_07","name":"WarmWater","id":"28631269","target_m3":3.95,"target_date":"2024-11-30","total_m3":12.64,"timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'WarmWater;28631269;12.64;1111-11-11 11:11.11'
         }
     }
 }

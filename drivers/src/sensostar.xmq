@@ -7,6 +7,8 @@ driver {
     manufacturer   = Engelmann
     detect {
         mvt = EFE,00,04
+        mvt = EFE,00,0d
+        mvt = EFE,01,04
     }
     library {
         use = fabrication_no
@@ -129,11 +131,11 @@ driver {
         field {
             name     = 'total_tariff{tariff_counter}'
             quantity = Energy
-            info     = 'The total heat energy consumption recorded by this meter on tariff 2-3.'
+            info     = 'The total heat energy consumption recorded by this meter on tariff 1-3. Tariff 1 is cooling energy on heat/cooling meters.'
             match {
                 measurement_type = Instantaneous
                 vif_range        = AnyEnergyVIF
-                tariff_nr        = 2,3
+                tariff_nr        = 1,3
             }
         }
         field {
@@ -317,6 +319,20 @@ driver {
             telegram = 5944C5149178454500047A100040252F2F_046D11334F3904FB0DE70C000001FD170004130DAB0600043B00000000042B00000000025B1B00025F1B000261F3FF2F2F2F2F2F2F2F2F2F2F2F2F2F2F2F03FD0C05000002FD0B1011
             json     = '{"_": "telegram","difference_c": -0.13,"driver": "sensostar","flow_water_m3h": 0,"forward_c": 27,"id": "45457891","media": "heat","meter_datetime": "2026-09-15 19:17","model_version": "000005","name": "GCAL","parameter_set": "1110","power_kw": 0,"return_c": 27,"status": "OK","timestamp": "1111-11-11T11:11:11Z","total_kwh": 3841.389,"total_water_m3": 437.005}'
             fields   = 'GCAL;45457891;OK;3841.389;437.005;null;null;1111-11-11 11:11.11'
+        }
+        test {
+            args     = 'HeatCool sensostar 42470432 NOKEY'
+            comment  = 'Sensostar U heat/cooling EFE,00,0d'
+            telegram = 5044c51432044742000d7a340000202f2f046d2b321b370406030000008410060100000001fd17000413290a0000043b00000000042b00000000025b1700025f180002613cff03fd0c05010002fd0b2011
+            json     = '{"_":"telegram","media":"heat/cooling load","driver":"sensostar","name":"HeatCool","id":"42470432","difference_c":-1.96,"flow_water_m3h":0,"forward_c":23,"power_kw":0,"return_c":24,"total_kwh":3,"total_tariff1_kwh":1,"total_water_m3":2.601,"meter_datetime":"2024-07-27 18:43","model_version":"000105","parameter_set":"1120","status":"OK","timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'HeatCool;42470432;OK;3;2.601;null;null;1111-11-11 11:11.11'
+        }
+        test {
+            args     = 'Heat sensostar 51972777 NOKEY'
+            comment  = EFE,01,04
+            telegram = 5e44c5147727975101047a250040252f2f046d0a302738040600000000c20ffd170000c20f6c0000041300000000043b00000000042b00000000025b1900025f19000261ccff2f2f2f2f2f2f2f2f2f0f800c00010900627a54001401020a09
+            json     = '{"_":"telegram","media":"heat","driver":"sensostar","name":"Heat","id":"51972777","difference_c":-0.52,"flow_water_m3h":0,"forward_c":25,"power_kw":0,"return_c":25,"total_kwh":0,"total_water_m3":0,"meter_datetime":"2025-08-07 16:10","status":"OK","timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'Heat;51972777;OK;0;0;null;null;1111-11-11 11:11.11'
         }
     }
 }

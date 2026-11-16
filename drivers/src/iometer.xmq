@@ -1,0 +1,63 @@
+// Copyright (C) 2026 Fredrik Öhrström (gpl-3.0-or-later)
+// The IOmeter Wireless M-Bus Edition is an optical reader mounted on an electricity meter, it sends the
+// energy readout of the electricity meter as a radio converter (meter side).
+driver {
+    name           = iometer
+    meter_type     = ElectricityMeter
+    default_fields = name,id,status,total_kwh,timestamp
+    manufacturer   = IOmeter
+    detect {
+        mvt = IOM,01,37
+    }
+    library {
+        use = total_kwh
+        use = meter_datetime
+        use = model_version
+        use = parameter_set
+        // The manufacturer of the electricity meter read by the IOmeter, eg EBZ.
+        use = manufacturer
+    }
+    fields {
+        field {
+            name       = status
+            quantity   = Flags
+            info       = 'Meter status from error flags and tpl status field.'
+            attributes = STATUS,INCLUDE_TPL_STATUS
+            match {
+                measurement_type = Instantaneous
+                vif_range        = ErrorFlags
+            }
+            lookup {
+                name            = ERROR_FLAGS
+                map_type        = BitToString
+                mask_bits       = 0xff
+                default_message = OK
+            }
+        }
+        field {
+            name     = medium
+            quantity = Text
+            info     = 'The medium of the meter read by the IOmeter, eg electricity.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = Medium
+            }
+        }
+    }
+    tests {
+        test {
+            args     = 'Electricity iometer 00001217 NOKEY'
+            comment  = 'Long telegram'
+            telegram = 4144ED251712000001378CE0957A170030A52F2F046D1E01010101FD090202FD0A5A1401FD0C010CFD0B253243010401C0D7E42301FD17002F2F2F2F2F2F2F2F2F2F
+            json     = '{"_":"telegram","media":"radio converter (meter side)","driver":"iometer","name":"Electricity","id":"00001217","total_kwh":6022,"manufacturer":"EBZ","medium":"electricity","meter_datetime":"2000-01-01 01:30","model_version":"01","parameter_set":"01433225","status":"OK","timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'Electricity;00001217;OK;6022;1111-11-11 11:11.11'
+        }
+        test {
+            args     = 'Electricity iometer 00001217 NOKEY'
+            comment  = 'Short telegram with error flag 0x20'
+            telegram = 2144ED251712000001378CE0907A120010A52F2F046D0F00010101FD17202F2F2F2F
+            json     = '{"_":"telegram","media":"radio converter (meter side)","driver":"iometer","name":"Electricity","id":"00001217","meter_datetime":"2000-01-01 00:15","status":"ERROR_FLAGS_20","timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'Electricity;00001217;ERROR_FLAGS_20;null;1111-11-11 11:11.11'
+        }
+    }
+}
