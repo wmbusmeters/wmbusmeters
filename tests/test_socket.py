@@ -206,7 +206,34 @@ TEST_CASES = [
             "error": lambda v: "unknown command" in v.lower(),
         },
     ),
+    # 13. Invalid stateless value
+    (
+        "invalid stateless value",
+        {
+            "_": "decode",
+            "telegram": "234433300602010014007a8e0000002f2f0efd3a1147000000008e40fd3a341200000000",
+            "stateless": "maybe",
+        },
+        {
+            "error": lambda v: "stateless" in v,
+        },
+    ),
+    # 14. Stateless given as an object
+    (
+        "stateless given as an object",
+        {
+            "_": "decode",
+            "telegram": "234433300602010014007a8e0000002f2f0efd3a1147000000008e40fd3a341200000000",
+            "stateless": {},
+        },
+        {
+            "error": lambda v: "stateless" in v,
+        },
+    ),
 ]
+
+# Marks a field that must not be present in the response.
+ABSENT = object()
 
 # Two telegrams from the same lse_07_17 meter (see drivers/src/lse_07_17.xmq):
 # the first carries total_m3, the second only the set date values.
@@ -217,12 +244,36 @@ MULTICAL21 = TEST_CASES[0][1]
 # --- Sequence tests: (description, [(request, expected_checks), ...]) ---
 # The requests of one sequence are sent in order on a single connection.
 SEQUENCE_TESTS = [
+    # Must run first, before any request has cached this meter.
+    (
+        "stateless decode does not cache the meter",
+        [
+            ({"_": "decode", "telegram": LSE_WITH_TOTAL, "stateless": True}, {"total_m3": 7.156}),
+            ({"_": "decode", "telegram": LSE_WITHOUT_TOTAL, "stateless": False}, {"total_m3": ABSENT}),
+        ],
+    ),
     (
         "cached meter keeps values of earlier telegrams",
         [
             ({"_": "decode", "telegram": LSE_WITH_TOTAL}, {"total_m3": 7.156}),
             ({"_": "decode", "telegram": LSE_WITHOUT_TOTAL},
              {"total_m3": 7.156, "consumption_at_set_date_8_m3": 7, "device_datetime": "2021-12-02 12:01"}),
+        ],
+    ),
+    (
+        "stateless decode holds only values from its own telegram",
+        [
+            ({"_": "decode", "telegram": LSE_WITH_TOTAL}, {"total_m3": 7.156}),
+            ({"_": "decode", "telegram": LSE_WITHOUT_TOTAL, "stateless": "true"},
+             {"total_m3": ABSENT, "consumption_at_set_date_8_m3": 7, "device_datetime": "2021-12-02 12:01"}),
+        ],
+    ),
+    (
+        "stateless decode leaves the cached meter alone",
+        [
+            ({"_": "decode", "telegram": LSE_WITH_TOTAL}, {"total_m3": 7.156}),
+            ({"_": "decode", "telegram": LSE_WITHOUT_TOTAL, "stateless": "true"}, {"total_m3": ABSENT}),
+            ({"_": "decode", "telegram": LSE_WITHOUT_TOTAL}, {"total_m3": 7.156}),
         ],
     ),
     (
@@ -337,6 +388,10 @@ def check_response(description, response, expected_checks):
 
     errors = []
     for field, expected in expected_checks.items():
+        if expected is ABSENT:
+            if field in response:
+                errors.append("field '%s' present (value=%r)" % (field, response[field]))
+            continue
         if field not in response:
             errors.append("missing field '%s'" % field)
             continue

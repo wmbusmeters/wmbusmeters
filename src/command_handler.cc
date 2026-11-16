@@ -68,6 +68,7 @@ string CommandHandler::handle(XMQDoc *req)
 string CommandHandler::handleDecode(XMQDoc *req)
 {
     string telegram_hex, key_hex, driver_name, format_str;
+    bool stateless = false;
 
     const char *telegram_hex_s = xmqGetString(req, "/decode/telegram");
     if (!telegram_hex_s) return generateError("missing 'telegram' field in JSON input", "");
@@ -87,6 +88,21 @@ string CommandHandler::handleDecode(XMQDoc *req)
     const char *format_s = xmqGetString(req, "/decode/format");
     if (format_s == NULL) format_str = "";
     else format_str = format_s;
+
+    // Stateless is optional - defaults to false. A cached meter keeps the values
+    // of earlier telegrams with the same id and prints them with later ones.
+    // With stateless=true the telegram is decoded by a fresh meter that is neither
+    // taken from nor stored in the cache, so no values are carried over from
+    // earlier requests.
+    if (xmqGetNode(req, "/decode/stateless") != NULL)
+    {
+        const char *stateless_s = xmqGetString(req, "/decode/stateless");
+        if (stateless_s != NULL && !strcmp(stateless_s, "true")) stateless = true;
+        else if (stateless_s == NULL || strcmp(stateless_s, "false"))
+        {
+            return generateError("invalid 'stateless' field, expected true or false", telegram_hex);
+        }
+    }
 
     // Convert hex to binary
     vector<uchar> input_frame;
@@ -152,40 +168,48 @@ string CommandHandler::handleDecode(XMQDoc *req)
     shared_ptr<Meter> meter;
     string error;
 
-    // Reuse the cached meter for this id while the request asks for the same
-    // key and driver, otherwise replace it. A differently spelled request for
-    // the same driver (an alias, or auto picking the cached driver) keeps it.
-    string meter_id = t.addresses.back().id;
-    auto it = meter_cache_.find(meter_id);
-
-    bool reuse = false;
-    if (it != meter_cache_.end() && it->second.key == key_hex)
-    {
-        if (it->second.driver == driver_name)
-        {
-            reuse = true;
-        }
-        else if (resolveDriverName(t, driver_name) == it->second.meter->driverName().str())
-        {
-            it->second.driver = driver_name;
-            reuse = true;
-        }
-    }
-
-    if (reuse)
-    {
-        meter = it->second.meter;
-    }
-    else
+    if (stateless)
     {
         meter = createMeterForTelegram(t, key_hex, driver_name, &error);
         if (meter == NULL) return generateError(error, telegram_hex);
+    }
+    else
+    {
+        // Reuse the cached meter for this id while the request asks for the same
+        // key and driver, otherwise replace it. A differently spelled request for
+        // the same driver (an alias, or auto picking the cached driver) keeps it.
+        string meter_id = t.addresses.back().id;
+        auto it = meter_cache_.find(meter_id);
 
-        CachedMeter cached;
-        cached.meter = meter;
-        cached.key = key_hex;
-        cached.driver = driver_name;
-        meter_cache_[meter_id] = cached;
+        bool reuse = false;
+        if (it != meter_cache_.end() && it->second.key == key_hex)
+        {
+            if (it->second.driver == driver_name)
+            {
+                reuse = true;
+            }
+            else if (resolveDriverName(t, driver_name) == it->second.meter->driverName().str())
+            {
+                it->second.driver = driver_name;
+                reuse = true;
+            }
+        }
+
+        if (reuse)
+        {
+            meter = it->second.meter;
+        }
+        else
+        {
+            meter = createMeterForTelegram(t, key_hex, driver_name, &error);
+            if (meter == NULL) return generateError(error, telegram_hex);
+
+            CachedMeter cached;
+            cached.meter = meter;
+            cached.key = key_hex;
+            cached.driver = driver_name;
+            meter_cache_[meter_id] = cached;
+        }
     }
 
     bool match = false;

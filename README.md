@@ -602,6 +602,11 @@ These telegrams are expected to have the data link layer crc bytes removed alrea
 `stdin:jsonl`, to read decode requests as json lines.
 `{"_":"decode", "telegram":"234433300602010014007a8e0400002f2f0efd3a1147000000008e40fd3a341200000000", "key":"...", "driver":"...", "format":"mbus"}`
 Only the "_" and "telegram" fields are required.
+A meter is created for each id and reused for its later telegrams, so a response also
+carries values from earlier telegrams of the same meter that this telegram lacks.
+Add `"stateless":true` to decode with a fresh meter, without carrying forward field
+values from earlier requests or updating the meter cache. The same applies to decode
+requests sent to a `socket` device.
 
 `telegrams.jsonl:jsonl`, to read the file telegrams.jsonl and decode each line as json.
 
