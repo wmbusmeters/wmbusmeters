@@ -475,6 +475,12 @@ driver {
                     bit  = 0
                     test = Set
                 }
+                // bit 1 is info code 2 of the MULTICAL 302 (wrong flow direction)
+                map {
+                    name = WRONG_FLOW_DIRECTION
+                    bit  = 1
+                    test = Set
+                }
                 map {
                     name = SENSOR_T1_OUTSIDE_MEASURING_RANGE
                     bit  = 3
@@ -1029,6 +1035,13 @@ driver {
             telegram = 4F442D2C012815781C048D207171E76322BE7679008430051113690B0100C1BC020090D40100A925040000000000000000000000B929BF28100A0100D81A04000000000000000000390000002A172912
             json     = '{"_":"telegram","media":"heat","driver":"kamheat","name":"kamheat_1c_04","id":"78152801","t1_temperature_c":59.3,"t2_temperature_c":46.49,"target_date":"2021-08-31","target_energy_kwh":68112,"target_volume_m3":2690.16,"target_volume_subunit1_m3":0,"target_volume_subunit2_m3":0,"total_energy_consumption_kwh":68457,"total_volume_m3":2717.85,"total_volume_subunit1_m3":0,"total_volume_subunit2_m3":0,"va_counter":179393,"vb_counter":119952,"volume_flow_m3h":0.057,"enhanced_id":"1311","meter_date":"2021-09-25","status":"OK","timestamp":"1111-11-11T11:11:11Z"}'
             fields   = 'kamheat_1c_04;78152801;68457;2717.85;OK;1111-11-11 11:11.11'
+        }
+        test {
+            comment  = 'KAM,30,04 - MULTICAL 302, info code 2 (wrong flow direction), flow 0 and T1 below T2'
+            args     = 'HeatReverseFlow kamheat 67676769 NOKEY'
+            telegram = 68c7c76808d472696767672d2c3004010800000c7869676767040ef57b0000048eff020f00000004ff07cf2f070004ff0831050600041342c10e000422454600003422ab07000002591c09025dc10a02615bfe042d00000000142d05000000043b00000000143bbc00000002fd170200046d2d20493a440ef17b0000448eff020f00000044ff070b2f070044ff087704060044137abf0e00542d04000000543b0b010000426c5e3907ff0f61368f4b0000000004ff1182b4000004ff12f0f8ca0002ff1a011802fd0e01085a16
+            json     = '{"_":"telegram","media":"heat","driver":"kamheat","name":"HeatReverseFlow","id":"67676769","flow_return_temperature_difference_c":-4.21,"forward_energy_m3c":470991,"max_flow_m3h":0.188,"max_power_kw":0.5,"on_time_h":17989,"on_time_at_error_h":1963,"power_kw":0,"return_energy_m3c":394545,"t1_temperature_c":23.32,"t2_temperature_c":27.53,"target_date":"2026-09-30","target_energy_kwh":8813.611111,"target_energy_cooling_kwh":4.166667,"target_forward_energy_m3c":470795,"target_max_flow_m3h":0.267,"target_max_power_kw":0.4,"target_return_energy_m3c":394359,"target_volume_m3":966.522,"total_energy_consumption_kwh":8814.722222,"total_energy_cooling_kwh":4.166667,"total_volume_m3":966.978,"volume_flow_m3h":0,"fabrication_no":"67676769","meter_datetime":"2026-10-09 00:45","meter_type":"1801","status":"PERMANENT_ERROR WRONG_FLOW_DIRECTION","timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'HeatReverseFlow;67676769;8814.722222;966.978;PERMANENT_ERROR WRONG_FLOW_DIRECTION;1111-11-11 11:11.11'
         }
     }
     test {
