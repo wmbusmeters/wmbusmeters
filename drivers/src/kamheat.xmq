@@ -761,6 +761,36 @@ driver {
             }
         }
         field {
+            name         = config_number_1
+            quantity     = Dimensionless
+            info         = 'Kamstrup MULTICAL 302 configuration number 1, the digits ABDDD (manufacturer record FF11): A is the flow sensor position (3 = inlet, 4 = outlet), B the energy unit and resolution, DDD the display code, e.g. 36210.'
+            vif_scaling  = None
+            display_unit = nr
+            match {
+                difvifkey = 04FF11
+            }
+        }
+        field {
+            name         = config_number_2
+            quantity     = Dimensionless
+            info         = 'Kamstrup MULTICAL 302 configuration number 2, the digits EFGHHMMM (manufacturer record FF12): info code type, wired M-Bus frame format, wireless encryption, wireless mode and target data (HH), customer label (MMM), e.g. 13302000.'
+            vif_scaling  = None
+            display_unit = nr
+            match {
+                difvifkey = 04FF12
+            }
+        }
+        field {
+            name         = customer_number
+            quantity     = Dimensionless
+            info         = 'Kamstrup customer number (manufacturer record FF0F, 8 bytes): number No 1 shown on the display times 100000000 plus number No 2.'
+            vif_scaling  = None
+            display_unit = nr
+            match {
+                difvifkey = 07FF0F
+            }
+        }
+        field {
             name     = target_energy
             quantity = Energy
             info     = 'The energy consumption recorded by this meter at the set date (11/60/Heat energy E1/026C).'
@@ -918,6 +948,20 @@ driver {
             fields   = 'Heater;80808081;444.444444;2.55;SENSOR_T1_BELOW_MEASURING_RANGE SENSOR_T2_BELOW_MEASURING_RANGE V1_COMMUNICATION_ERROR;1111-11-11 11:11.11'
         }
         test {
+            comment  = 'KAM,30,0c - heat meter with the flow part in the supply pipe (heat volume at inlet), config_number_1 36210, config_number_2 13302000'
+            args     = 'HeatSupplyFlow kamheat 67676767 NOKEY'
+            telegram = 68c7c76808cc72676767672d2c300c7d0000000c7867676767040efb240100048eff023000000004ff07516f0e0004ff0871a90b000413ca461f000422fb4900003422650500000259ff13025dbd1002614203042d10000000142d2b000000043ba7000000143ba701000002fd170000046d382d513b440ee61a0100448eff023000000044ff07a6e60d0044ff0836390b00441380311e00542d29000000543bae010000426c5f3a07ff0f5f2ee01b0000000004ff11728d000004ff12f0f8ca0002ff1a011802fd0e0108d816
+            json     = '{"_":"telegram","media":"heat volume at inlet","driver":"kamheat","name":"HeatSupplyFlow","id":"67676767","config_number_1_nr":36210,"config_number_2_nr":13302000,"customer_number_nr":467676767,"flow_return_temperature_difference_c":8.34,"forward_energy_m3c":946001,"max_flow_m3h":0.423,"max_power_kw":4.3,"on_time_h":18939,"on_time_at_error_h":1381,"power_kw":1.6,"return_energy_m3c":764273,"t1_temperature_c":51.19,"t2_temperature_c":42.85,"target_date":"2026-10-31","target_energy_kwh":20117.222222,"target_energy_cooling_kwh":13.333333,"target_forward_energy_m3c":911014,"target_max_flow_m3h":0.43,"target_max_power_kw":4.1,"target_return_energy_m3c":735542,"target_volume_m3":1978.752,"total_energy_consumption_kwh":20834.166667,"total_energy_cooling_kwh":13.333333,"total_volume_m3":2049.738,"volume_flow_m3h":0.167,"fabrication_no":"67676767","meter_datetime":"2026-11-17 13:56","meter_type":"1801","status":"OK","timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'HeatSupplyFlow;67676767;20834.166667;2049.738;OK;1111-11-11 11:11.11'
+        }
+        test {
+            comment  = 'KAM,30,04 - heat meter with the flow part in the return pipe, config_number_1 46210, config_number_2 13302000'
+            args     = 'HeatReturnFlow kamheat 67676768 NOKEY'
+            telegram = 68c7c76808d472686767672d2c3004670000000c7868676767040edc830000048eff021000000004ff07989f070004ff08f76106000413c0be0f000422fa4900003422ba07000002592413025db40b02617007042d00000000142d2c000000043b04000000143b6201000002fd170000046d002e513b440e467f0000448eff021000000044ff07c276070044ff082a4406004413006c0f00542d1d000000543bd6010000426c5f3a07ff0f60368f4b0000000004ff1182b4000004ff12f0f8ca0002ff1a011802fd0e01088616
+            json     = '{"_":"telegram","media":"heat","driver":"kamheat","name":"HeatReturnFlow","id":"67676768","config_number_1_nr":46210,"config_number_2_nr":13302000,"customer_number_nr":1267676768,"flow_return_temperature_difference_c":19.04,"forward_energy_m3c":499608,"max_flow_m3h":0.354,"max_power_kw":4.4,"on_time_h":18938,"on_time_at_error_h":1978,"power_kw":0,"return_energy_m3c":418295,"t1_temperature_c":49,"t2_temperature_c":29.96,"target_date":"2026-10-31","target_energy_kwh":9050.555556,"target_energy_cooling_kwh":4.444444,"target_forward_energy_m3c":489154,"target_max_flow_m3h":0.47,"target_max_power_kw":2.9,"target_return_energy_m3c":410666,"target_volume_m3":1010.688,"total_energy_consumption_kwh":9376.666667,"total_energy_cooling_kwh":4.444444,"total_volume_m3":1031.872,"volume_flow_m3h":0.004,"fabrication_no":"67676768","meter_datetime":"2026-11-17 14:00","meter_type":"1801","status":"OK","timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'HeatReturnFlow;67676768;9376.666667;1031.872;OK;1111-11-11 11:11.11'
+        }
+        test {
             args     = 'Kamstrup_303 kamheat 78787878 NOKEY'
             telegram = 5E442D2C78787878400C7A6E0050252F2F_04056C2B000004138A0B070004FF07C657020004FF08FD36020002594B09025DFA08023B000002FF220000026CF42144052F000000441302AD0000426CE1212F2F2F2F2F2F2F2F2F2F2F2F2F2F2F
             json     = '{"_":"telegram","media":"heat volume at inlet","driver":"kamheat","name":"Kamstrup_303","id":"78787878","status":"OK","total_energy_consumption_kwh":1111.6,"total_volume_m3":461.706,"volume_flow_m3h":0,"t1_temperature_c":23.79,"t2_temperature_c":22.98,"forward_energy_m3c":153542,"return_energy_m3c":145149,"meter_date":"2023-01-20","target_energy_kwh":4.7,"target_volume_m3":44.29,"target_date":"2023-01-01","timestamp":"1111-11-11T11:11:11Z"}'
@@ -1040,7 +1084,7 @@ driver {
             comment  = 'KAM,30,04 - MULTICAL 302, info code 2 (wrong flow direction), flow 0 and T1 below T2'
             args     = 'HeatReverseFlow kamheat 67676769 NOKEY'
             telegram = 68c7c76808d472696767672d2c3004010800000c7869676767040ef57b0000048eff020f00000004ff07cf2f070004ff0831050600041342c10e000422454600003422ab07000002591c09025dc10a02615bfe042d00000000142d05000000043b00000000143bbc00000002fd170200046d2d20493a440ef17b0000448eff020f00000044ff070b2f070044ff087704060044137abf0e00542d04000000543b0b010000426c5e3907ff0f61368f4b0000000004ff1182b4000004ff12f0f8ca0002ff1a011802fd0e01085a16
-            json     = '{"_":"telegram","media":"heat","driver":"kamheat","name":"HeatReverseFlow","id":"67676769","flow_return_temperature_difference_c":-4.21,"forward_energy_m3c":470991,"max_flow_m3h":0.188,"max_power_kw":0.5,"on_time_h":17989,"on_time_at_error_h":1963,"power_kw":0,"return_energy_m3c":394545,"t1_temperature_c":23.32,"t2_temperature_c":27.53,"target_date":"2026-09-30","target_energy_kwh":8813.611111,"target_energy_cooling_kwh":4.166667,"target_forward_energy_m3c":470795,"target_max_flow_m3h":0.267,"target_max_power_kw":0.4,"target_return_energy_m3c":394359,"target_volume_m3":966.522,"total_energy_consumption_kwh":8814.722222,"total_energy_cooling_kwh":4.166667,"total_volume_m3":966.978,"volume_flow_m3h":0,"fabrication_no":"67676769","meter_datetime":"2026-10-09 00:45","meter_type":"1801","status":"PERMANENT_ERROR WRONG_FLOW_DIRECTION","timestamp":"1111-11-11T11:11:11Z"}'
+            json     = '{"_":"telegram","media":"heat","driver":"kamheat","name":"HeatReverseFlow","id":"67676769","config_number_1_nr":46210,"config_number_2_nr":13302000,"customer_number_nr":1267676769,"flow_return_temperature_difference_c":-4.21,"forward_energy_m3c":470991,"max_flow_m3h":0.188,"max_power_kw":0.5,"on_time_h":17989,"on_time_at_error_h":1963,"power_kw":0,"return_energy_m3c":394545,"t1_temperature_c":23.32,"t2_temperature_c":27.53,"target_date":"2026-09-30","target_energy_kwh":8813.611111,"target_energy_cooling_kwh":4.166667,"target_forward_energy_m3c":470795,"target_max_flow_m3h":0.267,"target_max_power_kw":0.4,"target_return_energy_m3c":394359,"target_volume_m3":966.522,"total_energy_consumption_kwh":8814.722222,"total_energy_cooling_kwh":4.166667,"total_volume_m3":966.978,"volume_flow_m3h":0,"fabrication_no":"67676769","meter_datetime":"2026-10-09 00:45","meter_type":"1801","status":"PERMANENT_ERROR WRONG_FLOW_DIRECTION","timestamp":"1111-11-11T11:11:11Z"}'
             fields   = 'HeatReverseFlow;67676769;8814.722222;966.978;PERMANENT_ERROR WRONG_FLOW_DIRECTION;1111-11-11 11:11.11'
         }
     }
