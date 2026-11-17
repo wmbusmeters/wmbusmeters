@@ -554,7 +554,7 @@ static shared_ptr<Configuration> parseNormalCommandLine(Configuration *c, int ar
             else if (!strcmp(argv[i]+21, "always")) {
                 c->telegram_details = TelegramDetails::ALWAYS;
             } else {
-                errorAndExit(EXIT_USAGE_ERROR, "No such telegramdetails %s\n", argv[i]+18);
+                errorAndExit(EXIT_USAGE_ERROR, "No such telegramdetails %s\n", argv[i]+21);
             }
             i++;
             continue;
