@@ -691,9 +691,9 @@ static shared_ptr<Configuration> parseNormalCommandLine(Configuration *c, int ar
             i++;
             continue;
         }
-        if (!strncmp(argv[i], "--listdrivers=", 13)) {
+        if (!strncmp(argv[i], "--listdrivers=", 14)) {
             c->list_drivers = true;
-            c->list_drivers_search = string(argv[i]+13);
+            c->list_drivers_search = string(argv[i]+14);
             i++;
             continue;
         }
@@ -980,9 +980,9 @@ shared_ptr<Configuration> parseCommandLineWithUseConfig(Configuration *c, int ar
             i++;
             continue;
         }
-        if (!strncmp(argv[i], "--listdrivers=", 13))
+        if (!strncmp(argv[i], "--listdrivers=", 14))
         {
-            c->overrides.listdrivers_override = string(argv[i]+13);
+            c->overrides.listdrivers_override = string(argv[i]+14);
             debug("(useconfig) listdrivers override \"%s\"\n", c->overrides.listdrivers_override.c_str());
             i++;
             continue;
