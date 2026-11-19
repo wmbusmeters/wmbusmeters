@@ -1737,7 +1737,7 @@ test {
 }
 test {
     args     = 'Votten kamwater 23813076 NOKEY'
-    telegram = 3244372C763081233C168D2057D2ED11205a817905095480_0008000000000000000008900008F0FFC12B0A1B23001F0F000013
+    telegram = 3244372C763081233C168D2057D2ED112005387905095D33_0008000000000000000008900008F0FFC12B0A1B23001F0F000013
     json     = '{"_":"telegram","media":"cold water","driver":"kamwater","name":"Votten","id":"23813076","min_external_temperature_last_month_c":10,"flow_m3h":0.035,"max_external_temperature_last_month_c":27,"max_flow_last_month_m3h": 0,"target_m3":0,"target_date":"2022-11-01","total_m3":3.871,"accoustic_noise":"08900008F0FF","status":"OK","time_bursting":"","time_dry":"1-8 hours","time_flow_above_q4":"","time_leaking":"","time_low_ambient_temperature":"","time_reversed":"","timestamp":"1111-11-11T11:11:11Z"}'
     fields   = 'Votten;23813076;OK;3.871;0;1111-11-11 11:11.11'
 }
