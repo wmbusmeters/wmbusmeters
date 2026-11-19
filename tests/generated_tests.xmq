@@ -1948,7 +1948,7 @@ test {
 }
 test {
     args     = 'ColdWater minomess 70491043 NOKEY'
-    comment  = 'Zenner radio converter ZRI,0a,37 for a cold water meter, no target value yet'
+    comment  = 'Zenner radio converter ZRI,0a,37 (TPL ZRI,00,16) for a cold water meter, no target value yet'
     telegram = 3644496a793621500a377243104970496a0016eb0020052f2f041303010000026c33334413000000808401130000008002fd1700002f2f
     json     = '{"_":"telegram","media":"cold water","driver":"minomess","name":"ColdWater","id":"70491043","target_m3":null,"total_m3":0.259,"meter_date":"2025-03-19","status":"OK","timestamp":"1111-11-11T11:11:11Z"}'
     fields   = 'ColdWater;70491043;OK;0.259;null;1111-11-11 11:11.11'
