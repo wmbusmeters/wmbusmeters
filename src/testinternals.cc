@@ -61,6 +61,7 @@ bool verbose_ = false;
     X(addresses) \
     X(dynamic_loading)                        \
     X(crc)            \
+    X(compact_crc)    \
     X(dvparser)       \
     X(lvar)           \
     X(type_m)         \
@@ -162,6 +163,65 @@ LIST_OF_TESTS
 #undef X
 
     return 0;
+}
+
+void test_compact_crc()
+{
+    // The format of a kamwater compact frame.
+    vector<uchar> format;
+    hex2bin("04FF2304134413426C023B92013BA2013B06FF1BA1015B91015BA10167", &format);
+    uint16_t sig = crc16_EN13757(&format[0], format.size());
+    assert(sig == 0xA9F3);
+    registerCompactFormatForMVT({ 0x2c37, 0x3c, 0x06 }, sig, format);
+
+    // Frame type B, DLL CRC 0xbf70 last. ELL without encryption, ELL payload CRC 0x8009.
+    vector<uchar> good;
+    hex2bin("3644372c235708273c068d20af00000000098079f3a9a73b"
+            "000000000709000018080000413b00002e000000ffffffffffff1f2616" "bf70", &good);
+
+    // Same telegram, but two bits were flipped on the air after the sender added all CRCs:
+    //   total byte (0x07 -> 0x06, 0.001 m3 less) and acoustic noise byte (0xff -> 0xfd),
+    //   bit 231 and bit 382 counted from the start of the frame, 151 bits apart.
+    // The DLL CRC 0xbf70 and the ELL payload CRC 0x8009 are still the same, and still valid.
+    vector<uchar> bad;
+    hex2bin("3644372c235708273c068d20af00000000098079f3a9a73b"
+            "000000000609000018080000413b00002e000000fffffffdffff1f2616" "bf70", &bad);
+
+    {
+        vector<uchar> frame = good;
+        bool ok = trimCRCsFrameFormatB(frame);
+        assert(ok);
+        Telegram t;
+        MeterKeys mk;
+        ok = t.parse(frame, &mk, false);
+        if (!ok || t.dv_entries.size() == 0)
+        {
+            printf("ERROR! the compact frame with a correct CRC must parse.\n");
+            assert(ok);
+        }
+    }
+
+    {
+        vector<uchar> frame = bad;
+        bool ok = trimCRCsFrameFormatB(frame);
+        if (!ok)
+        {
+            printf("ERROR! the format B DLL CRC should not see the two flipped bits.\n");
+            assert(ok);
+        }
+        // The ELL payload CRC is also valid for the corrupted payload (bytes 19 and onwards).
+        uint16_t ell_crc = crc16_EN13757(&frame[19], frame.size()-19);
+        assert(ell_crc == 0x8009 && frame[17] == 0x09 && frame[18] == 0x80);
+
+        Telegram t;
+        MeterKeys mk;
+        ok = t.parse(frame, &mk, false);
+        if (ok)
+        {
+            printf("ERROR! the compact frame CRC must reject the two flipped bits.\n");
+            assert(!ok);
+        }
+    }
 }
 
 void test_crc()

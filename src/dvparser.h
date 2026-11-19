@@ -567,7 +567,8 @@ bool parseDV(Telegram *t,
              std::unordered_map<std::string,std::pair<int,DVEntry>> *dv_entries,
              std::vector<uchar>::iterator *format = NULL,
              size_t format_len = 0,
-             uint16_t *format_hash = NULL);
+             uint16_t *format_hash = NULL,
+             uint16_t *full_frame_crc = NULL);
 
 // Use an ixml grammar to decode a manufacturer specific block of bytes.
 // hex: a string with uppercase hex "12AB12FF"

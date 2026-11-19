@@ -1117,8 +1117,10 @@ bool parseDV(Telegram *t,
              unordered_map<string,pair<int,DVEntry>> *dv_entries,
              vector<uchar>::iterator *format,
              size_t format_len,
-             uint16_t *format_hash)
+             uint16_t *format_hash,
+             uint16_t *full_frame_crc)
 {
+    vector<uchar> reconstructed_full_frame;
     unordered_map<string,int> dv_count;
     vector<uchar> format_bytes;
     vector<uchar> id_bytes;
@@ -1202,6 +1204,7 @@ bool parseDV(Telegram *t,
         }
 
         uchar dif = **format;
+        vector<uchar>::iterator record_format_start = *format;
 
         MeasurementType mt = difMeasurementType(dif);
         int datalen = difLenBytes(dif);
@@ -1261,6 +1264,7 @@ bool parseDV(Telegram *t,
             break;
         }
         if (dif == 0x2f) {
+            if (!data_has_difvifs) reconstructed_full_frame.push_back(dif);
             t->addExplanationAndIncrementPos(*format, 1, KindOfData::PROTOCOL, Understanding::FULL, "%02X skip", dif);
             DEBUG_PARSER("\n");
             continue;
@@ -1498,6 +1502,9 @@ bool parseDV(Telegram *t,
         dv_count[dv] = count;
         DEBUG_PARSER("(dvparser debug) DifVif key is %s\n", key.c_str());
 
+        if (!data_has_difvifs) reconstructed_full_frame.insert(reconstructed_full_frame.end(), record_format_start, *format);
+        vector<uchar>::iterator record_data_start = data;
+
         int remaining = std::distance(data, data_end);
         if (remaining < 1)
         {
@@ -1556,6 +1563,7 @@ bool parseDV(Telegram *t,
             t->addExplanationAndIncrementPos(data, datalen, KindOfData::CONTENT, Understanding::NONE, "%s", value.c_str());
             DEBUG_PARSER("(dvparser debug) data \"%s\"\n\n", value.c_str());
         }
+        if (!data_has_difvifs) reconstructed_full_frame.insert(reconstructed_full_frame.end(), record_data_start, data);
         if (remaining == datalen || data == databytes.end()) {
             // We are done here!
             break;
@@ -1566,6 +1574,11 @@ bool parseDV(Telegram *t,
     // and actuality duration they refer to may come after the profile, eg. OMS Vol.2 Annex N.13
     // and the Apator TAF7 telegrams send the actuality duration last.
     addSyntheticCompactProfileEntries(dv_entries);
+
+    if (!data_has_difvifs && full_frame_crc != NULL)
+    {
+        *full_frame_crc = crc16_EN13757(safeButUnsafeVectorPtr(reconstructed_full_frame), reconstructed_full_frame.size());
+    }
 
     if (data_has_difvifs) {
         size_t format_bytes_len = format_bytes.size();
