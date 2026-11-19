@@ -2077,6 +2077,22 @@ bool Telegram::parse_TPL_78(vector<uchar>::iterator &pos)
     return true;
 }
 
+bool Telegram::checkCompactFrameCRC(uint16_t expected_crc, uint16_t calculated_crc)
+{
+    if (calculated_crc == expected_crc || FUZZING)
+    {
+        debug("(wmbus) compact frame CRC %04x ok\n", expected_crc);
+        return true;
+    }
+    if (parser_warns_)
+    {
+        warning("(wmbus) ignoring compact frame with bad CRC, expected %04x but calculated %04x. "
+                "The telegram was probably corrupted, or the format signature belongs to another format.\n",
+                expected_crc, calculated_crc);
+    }
+    return false;
+}
+
 bool Telegram::parse_TPL_79(vector<uchar>::iterator &pos)
 {
     MVT mvt = {(uint16_t)dll_mfct, dll_version, dll_type};
@@ -2127,9 +2143,10 @@ bool Telegram::parse_TPL_79(vector<uchar>::iterator &pos)
     header_size = distance(frame.begin(), pos);
     int remaining = distance(pos, frame.end())-suffix_size;
 
-    parseDV(this, frame, pos, remaining, &dv_entries, &format, format_bytes.size());
+    uint16_t full_frame_crc = 0;
+    parseDV(this, frame, pos, remaining, &dv_entries, &format, format_bytes.size(), NULL, &full_frame_crc);
 
-    return true;
+    return checkCompactFrameCRC(ecrc2 | (ecrc3 << 8), full_frame_crc);
 }
 
 bool Telegram::parse_TPL_73(vector<uchar>::iterator &pos)
@@ -2187,9 +2204,10 @@ bool Telegram::parse_TPL_73(vector<uchar>::iterator &pos)
     header_size = distance(frame.begin(), pos);
     int remaining = distance(pos, frame.end())-suffix_size;
 
-    parseDV(this, frame, pos, remaining, &dv_entries, &format, format_bytes.size());
+    uint16_t full_frame_crc = 0;
+    parseDV(this, frame, pos, remaining, &dv_entries, &format, format_bytes.size(), NULL, &full_frame_crc);
 
-    return true;
+    return checkCompactFrameCRC(ecrc2 | (ecrc3 << 8), full_frame_crc);
 }
 
 bool Telegram::parse_TPL_7A(vector<uchar>::iterator &pos)
@@ -2267,9 +2285,10 @@ bool Telegram::parse_TPL_7B(vector<uchar>::iterator &pos)
     header_size = distance(frame.begin(), pos);
     int remaining = distance(pos, frame.end())-suffix_size;
 
-    parseDV(this, frame, pos, remaining, &dv_entries, &format, format_bytes.size());
+    uint16_t full_frame_crc = 0;
+    parseDV(this, frame, pos, remaining, &dv_entries, &format, format_bytes.size(), NULL, &full_frame_crc);
 
-    return true;
+    return checkCompactFrameCRC(ecrc2 | (ecrc3 << 8), full_frame_crc);
 }
 
 bool Telegram::parseTPL(vector<uchar>::iterator &pos)
