@@ -2135,8 +2135,10 @@ bool Telegram::parse_TPL_79(vector<uchar>::iterator &pos)
     vector<uchar>::iterator format = format_bytes.begin();
 
     CHECK(2);
+    size_t crc_offset = distance(frame.begin(), pos);
     int ecrc2 = *(pos+0);
     int ecrc3 = *(pos+1);
+
     addExplanationAndIncrementPos(pos, 2, KindOfData::PROTOCOL, Understanding::FULL,
                                   "%02x%02x data crc", ecrc2, ecrc3);
 
@@ -2146,7 +2148,11 @@ bool Telegram::parse_TPL_79(vector<uchar>::iterator &pos)
     uint16_t full_frame_crc = 0;
     parseDV(this, frame, pos, remaining, &dv_entries, &format, format_bytes.size(), NULL, &full_frame_crc);
 
-    return checkCompactFrameCRC(ecrc2 | (ecrc3 << 8), full_frame_crc);
+    ok = checkCompactFrameCRC(ecrc2 | (ecrc3 << 8), full_frame_crc);
+
+    addMoreExplanation(crc_offset, " (calculated %02x%02x %s)", full_frame_crc&0xff, full_frame_crc>>8, (ok?"OK":"ERROR"));
+
+    return ok;
 }
 
 bool Telegram::parse_TPL_73(vector<uchar>::iterator &pos)

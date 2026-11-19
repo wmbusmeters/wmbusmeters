@@ -153,7 +153,7 @@ cat > $TEST/test_expected.txt <<EOF
 Auto driver    : kamwater
 Similar driver : unknown 00/00
 Using driver   : kamwater 00/00
-000   : 2a length (42 bytes)(OK)(OK)
+000   : 2a length (42 bytes)(OK)
 001   : 44 dll-c (from meter SND_NR)
 002   : 2d2c dll-mfct (KAM)
 004   : 99873476 dll-id (76348799)
@@ -218,7 +218,7 @@ cat > $TEST/test_expected.txt <<EOF
 Auto driver    : kamwater
 Similar driver : unknown 00/00
 Using driver   : kamwater 00/00
-000   : 23 length (35 bytes)(OK)(OK)
+000   : 23 length (35 bytes)(OK)
 001   : 44 dll-c (from meter SND_NR)
 002   : 2d2c dll-mfct (KAM)
 004   : 99873476 dll-id (76348799)
@@ -231,7 +231,7 @@ Using driver   : kamwater 00/00
 017   : c33d payload crc (calculated c33d OK)
 019   : 79 tpl-ci-field (EN 13757-3 Application Layer with Compact frame (no tplh))
 020   : eda8 format signature
-022   : e475 data crc
+022   : e475 data crc (calculated e475 OK)
 024 C!: 7100 ("status16":"DRY") ("current_status":"DRY") ("time_dry":"22-31 days") ("time_reversed":"") ("time_leaking":"") ("time_bursting":"")
 026 C!: 09190000 ("total_m3":6.409)
 030 C!: 09190000 ("target_m3":6.409)
