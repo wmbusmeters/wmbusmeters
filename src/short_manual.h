@@ -59,6 +59,7 @@ As {options} you can use:
     --listdrivers=<search> list all meter drivers containing the text <search>
     --listunits list all unit suffixes that can be used for typing values
     --logfile=<file> use this file for logging or --logfile=syslog
+    --logsummary print the summary of every telegram heard, even when meters are configured (config: logsummary=true)
     --logtelegrams log the contents of the telegrams for easy replay
     --logtimestamps=<when> add log timestamps: always never important
     --meterfiles=<dir> store meter readings in dir

@@ -90,6 +90,8 @@ Add :verbose to any analyze to get more verbose analyze output.
 
 \fB\--logfile=\fR<dir> use this file for logging or --logfile=syslog
 
+\fB\--logsummary\fR print the summary of every telegram heard, even when meters are configured (config: logsummary=true)
+
 \fB\--logtelegrams\fR log the contents of the telegrams for easy replay
 
 \fB\--logtimestamps=\fR<when> add timestamps to log entries: never/always/important
@@ -249,6 +251,7 @@ loglevel=normal
 device=im871a[12345678]:c1
 device=rtlwmbus:433M:c1,t1
 logtelegrams=false
+logsummary=false
 format=json
 # Remember to remove meterfiles to spare precious flash memory when only
 # relaying data using for example mqtt.
