@@ -992,6 +992,13 @@ test {
     fields   = 'HCA;68036198;ERROR_FLAGS_4000 HEATER_TEMPERATURE_OUT_OF_RANGE TAMPERING;0;18.66;1111-11-11 11:11.11'
 }
 test {
+    args     = 'hydro8 hydrodigit 12345678 NOKEY'
+    comment  = 'Fraud block is 3 bytes: bcd year, fraud type bits + month, bcd day.'
+    telegram = 4E44B4097856341213077A1D0840052F2F0C1362713400046D1432533B0F171A23233100000000A46700956A00A56D006171001F7500967800687B00927E00F481007685005B63007C6500002F2F2F
+    json     = '{"_":"telegram","April_total_m3":290.25,"August_total_m3":324.02,"December_total_m3":259.8,"February_total_m3":272.85,"January_total_m3":265.32,"July_total_m3":315.92,"June_total_m3":308.7,"March_total_m3":280.69,"May_total_m3":299.83,"November_total_m3":254.35,"October_total_m3":341.66,"September_total_m3":332.68,"backflow_m3":0,"contents":"BACKFLOW BATTERY_VOLTAGE FRAUD_DATE MONTHLY_DATA","driver":"hydrodigit","fraud_date":"2023-03-31","fraud_type":"MODULE_REMOVED","id":"12345678","media":"water","meter_datetime":"2026-11-19 18:20","name":"hydro8","timestamp":"1111-11-11T11:11:11Z","total_m3":347.162,"voltage_v":3.05}'
+    fields   = 'hydro8;12345678;347.162;2026-11-19 18:20;1111-11-11 11:11.11'
+}
+test {
     args     = 'hydro7 hydrodigit 03122061 NOKEY'
     telegram = 4C44B4096120120317077AB90000000C1330000000046D132E3E360F8F000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
     json     = '{"_":"telegram","backflow_m3":0,"contents":"BACKFLOW BATTERY_VOLTAGE FRAUD_DATE LEAK_DATE","fraud_date":null,"fraud_type":"NO_TYPE_INFO","id":"03122061","leak_date":null,"media":"water","driver":"hydrodigit","meter_datetime":"2025-06-30 14:19","name":"hydro7","timestamp":"1111-11-11T11:11:11Z","total_m3":0.03,"voltage_v":3.7}'
