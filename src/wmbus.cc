@@ -1578,6 +1578,10 @@ bool Telegram::potentiallyDecrypt(vector<uchar>::iterator &pos)
             return false;
         }
         // Now the frame from pos and onwards has been decrypted.
+        if (num_not_encrypted_at_end > 0)
+        {
+            tpl_encrypted_end_offset = distance(frame.begin(), pos) + num_encrypted_bytes;
+        }
 
         CHECK(2);
         uchar a = *(pos+0);
@@ -1719,6 +1723,10 @@ bool Telegram::potentiallyDecrypt(vector<uchar>::iterator &pos)
         }
 
         // Now the frame from pos and onwards has been decrypted.
+        if (num_not_encrypted_at_end > 0)
+        {
+            tpl_encrypted_end_offset = distance(frame.begin(), pos) + num_encrypted_bytes;
+        }
         CHECK(2);
         uchar a = *(pos+0);
         uchar b = *(pos+1);
@@ -2157,10 +2165,11 @@ bool Telegram::parse_TPL_79(vector<uchar>::iterator &pos)
 
 bool Telegram::parse_TPL_73(vector<uchar>::iterator &pos)
 {
-    MVT mvt = {(uint16_t)tpl_mfct, tpl_version, tpl_type};
-
     bool ok = parseLongTPL(pos);
     if (!ok) return false;
+
+    // The long header carries its own mfct/version/type, only valid after parsing it.
+    MVT mvt = {(uint16_t)tpl_mfct, tpl_version, tpl_type};
 
     bool decrypt_ok = potentiallyDecrypt(pos);
     if (!decrypt_ok)
@@ -2238,7 +2247,8 @@ bool Telegram::parse_TPL_7A(vector<uchar>::iterator &pos)
 
 bool Telegram::parse_TPL_7B(vector<uchar>::iterator &pos)
 {
-    MVT mvt = {(uint16_t)tpl_mfct, tpl_version, tpl_type};
+    // The short header has no mfct/version/type, use the ones from the DLL.
+    MVT mvt = {(uint16_t)dll_mfct, dll_version, dll_type};
 
     bool ok = parseShortTPL(pos);
     if (!ok) return false;

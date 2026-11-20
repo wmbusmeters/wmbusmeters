@@ -1203,6 +1203,23 @@ bool parseDV(Telegram *t,
             }
         }
 
+        if (!data_has_difvifs && t->tpl_encrypted_end_offset > 0)
+        {
+            // A compact frame where the encrypted part is followed by unencrypted records.
+            // The encrypted part is padded with 2F idle fillers up to the AES block boundary.
+            // Skip the fillers, they are not data for the next record in the format and
+            // they are not part of the full frame that the full frame crc is calculated over.
+            int index = std::distance(databytes.begin(), data);
+            int end = t->tpl_encrypted_end_offset;
+            if (index < end && end <= (int)std::distance(databytes.begin(), data_end) &&
+                std::all_of(data, databytes.begin()+end, [](uchar c) { return c == 0x2f; }))
+            {
+                t->addExplanationAndIncrementPos(data, end-index, KindOfData::PROTOCOL, Understanding::FULL,
+                                                 "%s skip (idle filler before unencrypted data)",
+                                                 bin2hex(data, databytes.begin()+end, end-index).c_str());
+            }
+        }
+
         uchar dif = **format;
         vector<uchar>::iterator record_format_start = *format;
 
