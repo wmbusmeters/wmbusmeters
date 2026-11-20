@@ -35,12 +35,16 @@ private:
     std::string handleDecode(XMQDoc *doc);
     std::string handleListDrivers();
     std::string generateError(const std::string &error_msg, const std::string &telegram_hex);
+    std::string resolveDriverName(Telegram &t, const std::string &driver_name);
+    std::shared_ptr<Meter> createMeterForTelegram(Telegram &t, const std::string &key_hex,
+                                                  std::string driver_name, std::string *error);
 
     // Meters are added dynamically when a new request arrives.
     struct CachedMeter
     {
         std::shared_ptr<Meter> meter;
         std::string key;
+        std::string driver; // The driver as requested, "auto" when none was given.
     };
     std::map<std::string, CachedMeter> meter_cache_;
 };

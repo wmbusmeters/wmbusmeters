@@ -68,6 +68,7 @@ string CommandHandler::handle(XMQDoc *req)
 string CommandHandler::handleDecode(XMQDoc *req)
 {
     string telegram_hex, key_hex, driver_name, format_str;
+    bool stateless = false;
 
     const char *telegram_hex_s = xmqGetString(req, "/decode/telegram");
     if (!telegram_hex_s) return generateError("missing 'telegram' field in JSON input", "");
@@ -87,6 +88,21 @@ string CommandHandler::handleDecode(XMQDoc *req)
     const char *format_s = xmqGetString(req, "/decode/format");
     if (format_s == NULL) format_str = "";
     else format_str = format_s;
+
+    // Stateless is optional - defaults to false. A cached meter keeps the values
+    // of earlier telegrams with the same id and prints them with later ones.
+    // With stateless=true the telegram is decoded by a fresh meter that is neither
+    // taken from nor stored in the cache, so no values are carried over from
+    // earlier requests.
+    if (xmqGetNode(req, "/decode/stateless") != NULL)
+    {
+        const char *stateless_s = xmqGetString(req, "/decode/stateless");
+        if (stateless_s != NULL && !strcmp(stateless_s, "true")) stateless = true;
+        else if (stateless_s == NULL || strcmp(stateless_s, "false"))
+        {
+            return generateError("invalid 'stateless' field, expected true or false", telegram_hex);
+        }
+    }
 
     // Convert hex to binary
     vector<uchar> input_frame;
@@ -149,66 +165,51 @@ string CommandHandler::handleDecode(XMQDoc *req)
     ok = t.parseHeader(input_frame);
     if (!ok) return generateError("failed to parse telegram header", telegram_hex);
 
-    // Get meter ID from telegram
-    string meter_id = t.addresses.back().id;
-
-    // Try to find meter in cache by meter_id
     shared_ptr<Meter> meter;
-    auto it = meter_cache_.find(meter_id);
+    string error;
 
-    bool need_new_meter = (it == meter_cache_.end());
-
-    if (!need_new_meter)
+    if (stateless)
     {
-        // Found cached meter - check if key changed
-        if (it->second.key == key_hex)
+        meter = createMeterForTelegram(t, key_hex, driver_name, &error);
+        if (meter == NULL) return generateError(error, telegram_hex);
+    }
+    else
+    {
+        // Reuse the cached meter for this id while the request asks for the same
+        // key and driver, otherwise replace it. A differently spelled request for
+        // the same driver (an alias, or auto picking the cached driver) keeps it.
+        string meter_id = t.addresses.back().id;
+        auto it = meter_cache_.find(meter_id);
+
+        bool reuse = false;
+        if (it != meter_cache_.end() && it->second.key == key_hex)
         {
-            // Same key, reuse meter (driver is already resolved)
+            if (it->second.driver == driver_name)
+            {
+                reuse = true;
+            }
+            else if (resolveDriverName(t, driver_name) == it->second.meter->driverName().str())
+            {
+                it->second.driver = driver_name;
+                reuse = true;
+            }
+        }
+
+        if (reuse)
+        {
             meter = it->second.meter;
         }
         else
         {
-            // Key changed, need to create new meter
-            need_new_meter = true;
+            meter = createMeterForTelegram(t, key_hex, driver_name, &error);
+            if (meter == NULL) return generateError(error, telegram_hex);
+
+            CachedMeter cached;
+            cached.meter = meter;
+            cached.key = key_hex;
+            cached.driver = driver_name;
+            meter_cache_[meter_id] = cached;
         }
-    }
-
-    if (need_new_meter)
-    {
-        // Find best driver if auto (only when creating new meter)
-        if (driver_name == "auto")
-        {
-            DriverInfo auto_di = pickMeterDriver(&t);
-            if (auto_di.name().str() != "")
-            {
-                driver_name = auto_di.name().str();
-            }
-            else
-            {
-                driver_name = "unknown";
-            }
-        }
-
-        // Create new meter and cache it
-        MeterInfo mi;
-        mi.key = key_hex;
-        mi.address_expressions.clear();
-        mi.address_expressions.push_back(AddressExpression(t.addresses.back()));
-        mi.identity_mode = IdentityMode::ID;
-        mi.driver_name = DriverName(driver_name);
-        mi.poll_interval = 1000*1000*1000;  // Fake a high value to silence warning
-
-        DriverInfo di;
-        bool ok = lookupDriverInfo(mi.driver_name.str(), &di);
-        if (!ok) return generateError(string("failed to create meter no such driver: ")+mi.driver_name.str(), telegram_hex);
-
-        meter = createMeter(&mi);
-        if (meter == NULL) return generateError("failed to create meter", telegram_hex);
-
-        CachedMeter cached;
-        cached.meter = meter;
-        cached.key = key_hex;
-        meter_cache_[meter_id] = cached;
     }
 
     bool match = false;
@@ -258,6 +259,52 @@ string CommandHandler::handleDecode(XMQDoc *req)
     xmqFreeDoc(rsp);
 
     return json;
+}
+
+string CommandHandler::resolveDriverName(Telegram &t, const string &driver_name)
+{
+    // The name of the driver a request selects: auto picks one from the telegram,
+    // an alias resolves to its driver. Empty when no such driver exists.
+    if (driver_name == "auto")
+    {
+        DriverInfo auto_di = pickMeterDriver(&t);
+        if (auto_di.name().str() != "") return auto_di.name().str();
+        return "unknown";
+    }
+
+    DriverInfo di;
+    if (!lookupDriverInfo(driver_name, &di)) return "";
+    return di.name().str();
+}
+
+shared_ptr<Meter> CommandHandler::createMeterForTelegram(Telegram &t, const string &key_hex,
+                                                        string driver_name, string *error)
+{
+    // Find the best driver if auto.
+    if (driver_name == "auto")
+    {
+        driver_name = resolveDriverName(t, driver_name);
+    }
+
+    MeterInfo mi;
+    mi.key = key_hex;
+    mi.address_expressions.clear();
+    mi.address_expressions.push_back(AddressExpression(t.addresses.back()));
+    mi.identity_mode = IdentityMode::ID;
+    mi.driver_name = DriverName(driver_name);
+    mi.poll_interval = 1000*1000*1000;  // Fake a high value to silence warning
+
+    DriverInfo di;
+    bool ok = lookupDriverInfo(mi.driver_name.str(), &di);
+    if (!ok)
+    {
+        *error = string("failed to create meter no such driver: ")+mi.driver_name.str();
+        return NULL;
+    }
+
+    shared_ptr<Meter> meter = createMeter(&mi);
+    if (meter == NULL) *error = "failed to create meter";
+    return meter;
 }
 
 string CommandHandler::generateError(const string &error_msg, const string &telegram_hex)
