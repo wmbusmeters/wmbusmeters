@@ -2668,6 +2668,20 @@ test {
     fields   = 'MyElectricity7;11223344;2469.595;0.259;0;0;230;230;230;null;null;null;null;null;null;1111-11-11 11:11.11'
 }
 test {
+    args     = 'Heat sensostar 12345678 5A1C3B9E0D2F48A76C81E4B39F02D5C7'
+    comment  = 'Compact frame (CI 7b) sig 3947 with 10 encrypted blocks ending in 2F idle fillers, followed by the unencrypted 03FD0C 02FD0B data. Decrypted payload from a real EFE 00 04 meter (wmbusmeters issue 2116, 2026-11-16 15:16), re-encrypted with a made-up id and key.'
+    telegram = B344C5147856341200047B2A00A025bbc949f89089da62bd7a32511312066c421c417529ec779574f8e8e404a84b9f778cfc73a510ccf7a0455ca30e6ed9b6178fdc6f7ff8c4bf811ca55ca3fe651c926026b0cbd4c4ff2ddd970568f1cea837020559b28e605de1fb7c52079551e08aa6e4a9d3d7640389ea97ae3206893940498b5322c091ae58cb9b5ce0538c47c587d54f805f998f5d60c4653663d5d6e371cf1c8fc70061aaa8e3dccc7ba17c0501000111
+    json     = '{"_":"telegram","driver":"sensostar","id":"12345678","media":"heat","meter_datetime":"2026-11-16 15:16","model_version":"000105","name":"Heat","parameter_set":"1101","status":"OK","target_10_kwh":0,"target_11_kwh":0,"target_12_kwh":0,"target_13_kwh":0,"target_14_kwh":0,"target_15_kwh":0,"target_16_kwh":0,"target_17_kwh":0,"target_18_kwh":0,"target_19_kwh":0,"target_20_kwh":0,"target_21_kwh":0,"target_22_kwh":0,"target_23_kwh":0,"target_24_kwh":0,"target_25_kwh":0,"target_26_kwh":0,"target_27_kwh":0,"target_28_kwh":0,"target_29_kwh":0,"target_2_kwh":1252,"target_30_kwh":0,"target_31_kwh":0,"target_3_kwh":500,"target_4_kwh":17,"target_5_kwh":6,"target_6_kwh":2,"target_7_kwh":1,"target_8_kwh":1,"target_9_kwh":1,"target_date":"2025-12-31","target_kwh":0,"timestamp":"1111-11-11T11:11:11Z","total_kwh":1279,"total_water_m3":99.94}'
+    fields   = 'Heat;12345678;OK;1279;99.94;2025-12-31;0;1111-11-11 11:11.11'
+}
+test {
+    args     = 'Heat sensostar 12345678 NOKEY'
+    comment  = 'Compact frame (CI 7b) with format signature 3947, from a real EFE 00 04 meter (wmbusmeters issue 2116, decrypted telegram from 2026-10-16 15:45). The id is made up and the telegram is re-wrapped unencrypted.'
+    telegram = a244c5147856341200047b720000004739a5542d2f503a1100000029040000003f3c000000001100000006000000020000000100000001000000010000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000501000111
+    json     = '{"_":"telegram","driver":"sensostar","id":"12345678","media":"heat","meter_datetime":"2026-10-16 15:45","model_version":"000105","name":"Heat","parameter_set":"1101","status":"OK","target_10_kwh":0,"target_11_kwh":0,"target_12_kwh":0,"target_13_kwh":0,"target_14_kwh":0,"target_15_kwh":0,"target_16_kwh":0,"target_17_kwh":0,"target_18_kwh":0,"target_19_kwh":0,"target_20_kwh":0,"target_21_kwh":0,"target_22_kwh":0,"target_23_kwh":0,"target_24_kwh":0,"target_25_kwh":0,"target_26_kwh":0,"target_27_kwh":0,"target_28_kwh":0,"target_29_kwh":0,"target_2_kwh":17,"target_30_kwh":0,"target_31_kwh":0,"target_3_kwh":6,"target_4_kwh":2,"target_5_kwh":1,"target_6_kwh":1,"target_7_kwh":1,"target_8_kwh":0,"target_9_kwh":0,"target_date":"2025-12-31","target_kwh":0,"timestamp":"1111-11-11T11:11:11Z","total_kwh":17,"total_water_m3":1.065}'
+    fields   = 'Heat;12345678;OK;17;1.065;2025-12-31;0;1111-11-11 11:11.11'
+}
+test {
     args     = 'Heat sensostar 51972777 NOKEY'
     comment  = EFE,01,04
     telegram = 5e44c5147727975101047a250040252f2f046d0a302738040600000000c20ffd170000c20f6c0000041300000000043b00000000042b00000000025b1900025f19000261ccff2f2f2f2f2f2f2f2f2f0f800c00010900627a54001401020a09

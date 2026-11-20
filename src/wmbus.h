@@ -449,6 +449,7 @@ public:
     int tpl_cfg {}; // 2 bytes
     TPLSecurityMode tpl_sec_mode {}; // Based on 5 bits extracted from cfg.
     int tpl_num_encr_blocks {};
+    int tpl_encrypted_end_offset = -1; // Offset in frame where the encrypted part ends, if followed by unencrypted bytes.
     int tpl_cfg_ext {}; // 1 byte
     int tpl_kdf_selection {}; // 1 byte
     uchar tpl_counter_b[4] {}; // Message counter found in the security mode 10 cfg extension field. Used by the kdf.
