@@ -1,0 +1,248 @@
+// Copyright (C) 2026 Kustonium (gpl-3.0-or-later)
+driver {
+    name           = hydroclimav34
+    meter_type     = HeatCostAllocationMeter
+    default_fields = name,id,allocation_hca,target_hca,average_ambient_temperature_c,timestamp
+    manufacturer   = BMeters
+    detect {
+        mvt = BMP,34,08
+    }
+    fields {
+        // Hydroclima allocators with version 0x34 send a manufacturer block after CI 0x78:
+        // 0F, a seed (low byte of the telegram counter), a frame type (13/12 long, 17 short),
+        // then 16-bit little-endian words, each obfuscated the same way:
+        //   c = ((((p + A) ^ K[seed & 15]) + 0x02D3) ^ 0x7ADE) + D   (mod 2^16)
+        // A comes from the four address bytes: ((id0 ^ id3) << 8) | (id1 ^ id2).
+        // D differs between meters; a long frame always carries the plain value 0x0800
+        // in one word (offset 33 in type 13, 31 in type 12), which gives D.
+        // Short frames (type 17, monthly history) carry no such word and are not decoded:
+        // they repeat the values of the last long frame.
+        field {
+            name               = payload_decoder
+            quantity           = Text
+            attributes         = HIDE,REQUIRED
+            match_entire_frame = true
+            ixml               = "decode = skip4, id0, id1, id2, id3, skip2, '780F', frame.
+                                  -frame = long13 | long12 | short17.
+                                  -long13 = seed, t13, skip6, wu, wtu, wc, wtc, skip16, wk, rest.
+                                  -long12 = seed, t12, skip6, wu, wtu, wc, wtc, skip14, wk, rest.
+                                  -short17 = byte, '17', rest.
+                                  -t13 = '13'.
+                                  -t12 = '12'.
+                                  -hex = ['A'-'F';'0'-'9'].
+                                  -byte = hex, hex.
+                                  -word = byte, byte.
+                                  -skip2 = byte, byte.
+                                  -skip4 = byte, byte, byte, byte.
+                                  -skip6 = word, word, word.
+                                  -skip14 = word, word, word, word, word, word, word.
+                                  -skip16 = word, skip14.
+                                  -rest = byte*.
+                                  id0 = byte, @DV_id0.
+                                  id1 = byte, @DV_id1.
+                                  id2 = byte, @DV_id2.
+                                  id3 = byte, @DV_id3.
+                                  seed = byte, @DV_seed.
+                                  wu = word, @DV_u.
+                                  wtu = word, @DV_tu.
+                                  wc = word, @DV_c.
+                                  wtc = word, @DV_tc.
+                                  wk = word, @DV_k.
+                                  DV_id0>dvk  = +'01FF20'.
+                                  DV_id1>dvk  = +'01FF21'.
+                                  DV_id2>dvk  = +'01FF22'.
+                                  DV_id3>dvk  = +'01FF23'.
+                                  DV_seed>dvk = +'01FF24'.
+                                  DV_u>dvk    = +'02FF30'.
+                                  DV_tu>dvk   = +'02FF31'.
+                                  DV_c>dvk    = +'02FF32'.
+                                  DV_tc>dvk   = +'02FF33'.
+                                  DV_k>dvk    = +'02FF35'."
+        }
+        field {
+            name           = id0_raw
+            quantity       = Dimensionless
+            attributes     = HIDE
+            vif_scaling    = None
+            dif_signedness = Unsigned
+            info           = 'Address byte 0 as sent.'
+            match {
+                difvifkey = 01FF20
+            }
+        }
+        field {
+            name           = id1_raw
+            quantity       = Dimensionless
+            attributes     = HIDE
+            vif_scaling    = None
+            dif_signedness = Unsigned
+            info           = 'Address byte 1 as sent.'
+            match {
+                difvifkey = 01FF21
+            }
+        }
+        field {
+            name           = id2_raw
+            quantity       = Dimensionless
+            attributes     = HIDE
+            vif_scaling    = None
+            dif_signedness = Unsigned
+            info           = 'Address byte 2 as sent.'
+            match {
+                difvifkey = 01FF22
+            }
+        }
+        field {
+            name           = id3_raw
+            quantity       = Dimensionless
+            attributes     = HIDE
+            vif_scaling    = None
+            dif_signedness = Unsigned
+            info           = 'Address byte 3 as sent.'
+            match {
+                difvifkey = 01FF23
+            }
+        }
+        field {
+            name           = seed_raw
+            quantity       = Dimensionless
+            attributes     = HIDE
+            vif_scaling    = None
+            dif_signedness = Unsigned
+            info           = 'Seed byte, the low nibble selects the key word.'
+            match {
+                difvifkey = 01FF24
+            }
+        }
+        field {
+            name           = u_raw
+            quantity       = Dimensionless
+            attributes     = HIDE
+            vif_scaling    = None
+            dif_signedness = Unsigned
+            info           = 'Obfuscated U.'
+            match {
+                difvifkey = 02FF30
+            }
+        }
+        field {
+            name           = tu_raw
+            quantity       = Dimensionless
+            attributes     = HIDE
+            vif_scaling    = None
+            dif_signedness = Unsigned
+            info           = 'Obfuscated tU.'
+            match {
+                difvifkey = 02FF31
+            }
+        }
+        field {
+            name           = c_raw
+            quantity       = Dimensionless
+            attributes     = HIDE
+            vif_scaling    = None
+            dif_signedness = Unsigned
+            info           = 'Obfuscated C.'
+            match {
+                difvifkey = 02FF32
+            }
+        }
+        field {
+            name           = tc_raw
+            quantity       = Dimensionless
+            attributes     = HIDE
+            vif_scaling    = None
+            dif_signedness = Unsigned
+            info           = 'Obfuscated tC.'
+            match {
+                difvifkey = 02FF33
+            }
+        }
+        field {
+            name           = k_raw
+            quantity       = Dimensionless
+            attributes     = HIDE
+            vif_scaling    = None
+            dif_signedness = Unsigned
+            info           = 'Obfuscated word whose plain value is always 0x0800.'
+            match {
+                difvifkey = 02FF35
+            }
+        }
+        field {
+            name       = valid
+            quantity   = Dimensionless
+            attributes = HIDE
+            info       = '0 until a long frame has been seen; x % 0 is NaN, so the values stay null until then. A short frame carries none of these words, the values of the last long frame are kept.'
+            calculate  = '(k_raw_counter + u_raw_counter + c_raw_counter) > 0counter'
+        }
+        field {
+            name       = row
+            quantity   = Dimensionless
+            attributes = HIDE
+            info       = 'Key row.'
+            calculate  = 'seed_raw_counter & 15counter'
+        }
+        field {
+            name       = k
+            quantity   = Dimensionless
+            attributes = HIDE
+            info       = 'Key word for this seed.'
+            calculate  = '((row_counter == 0counter) * 2641counter) + ((row_counter == 1counter) * 2591counter) + ((row_counter == 2counter) * 28160counter) + ((row_counter == 3counter) * 5283counter) + ((row_counter == 4counter) * 39804counter) + ((row_counter == 5counter) * 56424counter) + ((row_counter == 6counter) * 5228counter) + ((row_counter == 7counter) * 65303counter) + ((row_counter == 8counter) * 10694counter) + ((row_counter == 9counter) * 39854counter) + ((row_counter == 10counter) * 56477counter) + ((row_counter == 11counter) * 14183counter) + ((row_counter == 12counter) * 57667counter) + ((row_counter == 13counter) * 57823counter) + ((row_counter == 14counter) * 28745counter) + ((row_counter == 15counter) * 19734counter)'
+        }
+        field {
+            name       = a
+            quantity   = Dimensionless
+            attributes = HIDE
+            info       = 'Address term.'
+            calculate  = '((id0_raw_counter ^ id3_raw_counter) << 8counter) | (id1_raw_counter ^ id2_raw_counter)'
+        }
+        field {
+            name       = d
+            quantity   = Dimensionless
+            attributes = HIDE
+            info       = 'Meter offset, from the 0x0800 word.'
+            calculate  = '(k_raw_counter + 65536counter - ((((((2048counter + a_counter) % 65536counter) ^ k_counter) + 723counter) % 65536counter) ^ 31454counter)) % 65536counter'
+        }
+        field {
+            name      = allocation
+            quantity  = HCA
+            info      = 'Heat cost allocation so far in this billing period (C on the display).'
+            calculate = '((((((((c_raw_counter + 65536counter - d_counter) % 65536counter) ^ 31454counter) + 64813counter) % 65536counter) ^ k_counter) + 65536counter - a_counter) % 65536counter) / 10counter * 1hca + (0hca * (1counter % valid_counter))'
+        }
+        field {
+            name      = target
+            quantity  = HCA
+            info      = 'Heat cost allocation of the previous billing period (U on the display).'
+            calculate = '((((((((u_raw_counter + 65536counter - d_counter) % 65536counter) ^ 31454counter) + 64813counter) % 65536counter) ^ k_counter) + 65536counter - a_counter) % 65536counter) / 10counter * 1hca + (0hca * (1counter % valid_counter))'
+        }
+        field {
+            name      = previous_average_ambient_temperature
+            quantity  = Temperature
+            info      = 'Average ambient temperature in the previous billing period (tU on the display).'
+            calculate = '((((((((tu_raw_counter + 65536counter - d_counter) % 65536counter) ^ 31454counter) + 64813counter) % 65536counter) ^ k_counter) + 65536counter - a_counter) % 65536counter) / 100counter * 1c + (0c * (1counter % valid_counter))'
+        }
+        field {
+            name      = average_ambient_temperature
+            quantity  = Temperature
+            info      = 'Average ambient temperature in the current billing period (tC on the display).'
+            calculate = '((((((((tc_raw_counter + 65536counter - d_counter) % 65536counter) ^ 31454counter) + 64813counter) % 65536counter) ^ k_counter) + 65536counter - a_counter) % 65536counter) / 100counter * 1c + (0c * (1counter % valid_counter))'
+        }
+    }
+    tests {
+        test {
+            args     = 'Hydro hydroclimav34 78240400 NOKEY'
+            comment  = 'Long frame type 0x13. Telegrams and display readings by pelik911. Display: C 51.7, U 93.8, tU 19.4.'
+            telegram = 2D44B009000424783408780F79130000E6F8DD118368CF6A1A6DE36B376E086C2C6E2C6E596B596B596B546B5933
+            json     = '{"_":"telegram","media":"heat cost allocation","driver":"hydroclimav34","name":"Hydro","id":"78240400","allocation_hca":51.7,"target_hca":93.8,"average_ambient_temperature_c":18.66,"previous_average_ambient_temperature_c":19.42,"timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'Hydro;78240400;51.7;93.8;18.66;1111-11-11 11:11.11'
+        }
+        test {
+            args     = 'Hydro hydroclimav34 67400445 NOKEY'
+            comment  = 'Long frame type 0x12, radiator off. Telegrams and display readings by pelik911. Display: C 0.0, U 13.9, tU 21.8.'
+            telegram = 2D44B009450440673408780FDD1200009CB133567C517A49EF4ECD461C47EF4EDE3F9954EF4EEF4E904EEF46134F
+            json     = '{"_":"telegram","media":"heat cost allocation","driver":"hydroclimav34","name":"Hydro","id":"67400445","allocation_hca":0,"target_hca":13.9,"average_ambient_temperature_c":21.42,"previous_average_ambient_temperature_c":21.85,"timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'Hydro;67400445;0;13.9;21.42;1111-11-11 11:11.11'
+        }
+    }
+}

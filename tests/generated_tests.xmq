@@ -992,6 +992,20 @@ test {
     fields   = 'HCA;68036198;ERROR_FLAGS_4000 HEATER_TEMPERATURE_OUT_OF_RANGE TAMPERING;0;18.66;1111-11-11 11:11.11'
 }
 test {
+    args     = 'Hydro hydroclimav34 67400445 NOKEY'
+    comment  = 'Long frame type 0x12, radiator off. Telegrams and display readings by pelik911. Display: C 0.0, U 13.9, tU 21.8.'
+    telegram = 2D44B009450440673408780FDD1200009CB133567C517A49EF4ECD461C47EF4EDE3F9954EF4EEF4E904EEF46134F
+    json     = '{"_":"telegram","media":"heat cost allocation","driver":"hydroclimav34","name":"Hydro","id":"67400445","allocation_hca":0,"target_hca":13.9,"average_ambient_temperature_c":21.42,"previous_average_ambient_temperature_c":21.85,"timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'Hydro;67400445;0;13.9;21.42;1111-11-11 11:11.11'
+}
+test {
+    args     = 'Hydro hydroclimav34 78240400 NOKEY'
+    comment  = 'Long frame type 0x13. Telegrams and display readings by pelik911. Display: C 51.7, U 93.8, tU 19.4.'
+    telegram = 2D44B009000424783408780F79130000E6F8DD118368CF6A1A6DE36B376E086C2C6E2C6E596B596B596B546B5933
+    json     = '{"_":"telegram","media":"heat cost allocation","driver":"hydroclimav34","name":"Hydro","id":"78240400","allocation_hca":51.7,"target_hca":93.8,"average_ambient_temperature_c":18.66,"previous_average_ambient_temperature_c":19.42,"timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'Hydro;78240400;51.7;93.8;18.66;1111-11-11 11:11.11'
+}
+test {
     args     = 'hydro8 hydrodigit 12345678 NOKEY'
     comment  = 'Fraud block is 3 bytes: bcd year, fraud type bits + month, bcd day.'
     telegram = 4E44B4097856341213077A1D0840052F2F0C1362713400046D1432533B0F171A23233100000000A46700956A00A56D006171001F7500967800687B00927E00F481007685005B63007C6500002F2F2F
