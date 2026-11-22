@@ -22,6 +22,7 @@ driver {
         mvt = QDS,48,04
         mvt = QDS,48,37
         mvt = QDS,3f,37
+        mvt = QDS,48,0c
         mvt = LSE,23,04
         mvt = LSE,23,37
         mvt = LSE,3e,04
@@ -510,6 +511,14 @@ driver {
             telegram = 45449344748638683f37727486386893443f04b00020252f2f0c06622800004c0653160000426c3f3ccc080604240000c2086c5f312f2f02fd170000326cffff046d39145632
             json     = '{"_":"telegram","media":"heat","driver":"qheatv2","name":"QHeat5","id":"68388674","device_error_date":null,"target_kwh":2404,"target_date":"2026-01-31","target_year_kwh":1653,"target_year_date":"2025-12-31","total_kwh":2862,"meter_datetime":"2026-02-22 20:57","status":"OK","timestamp":"1111-11-11T11:11:11Z"}'
             fields   = 'QHeat5;68388674;OK;2862;1111-11-11 11:11.11'
+        }
+        test {
+            args        = 'QQC auto 11111111 NOKEY'
+            auto_detect = false
+            comment     = 'Q heat 5.5 behind a radio converter, tpl type is 0x0c. Uses auto since the auto_detect check also accepts the dll mvt.'
+            telegram    = 4144934411111111483772111111119344480cce0000200c0d100604004c0d00000000426cffffcc080d29120100c2086c5f3702fd170000326cffff046d2a105538
+            json        = '{"_": "telegram","device_error_date":null,"id": "11111111","media": "heat volume at inlet","driver": "qheatv2","meter_datetime": "2026-08-21 16:42","name": "QQC","status": "OK","target_date": "2026-07-31","target_kwh":311.916667,"target_year_date":null,"target_year_kwh": 0,"timestamp": "1111-11-11T11:11:11Z","total_kwh":1128.055556}'
+            fields      = 'QQC;11111111;OK;1128.055556;1111-11-11 11:11.11'
         }
     }
 }
