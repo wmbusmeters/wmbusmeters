@@ -2131,6 +2131,14 @@ bool DVEntry::extractDouble(double *out, bool auto_scale, bool force_unsigned)
             *out = std::nan("");
             return false;
         }
+        for (size_t i = 0; i < v.size(); ++i)
+        {
+            // Only the most significant nibble may be F, denoting a negative BCD.
+            if (v[i] >= '0' && v[i] <= '9') continue;
+            if (i + 2 == v.size() && v[i] == 'F') continue;
+            *out = std::nan("");
+            return false;
+        }
         if (t == 0x9) {
             if (!checkSizeHex(2, dif_vif_key, v)) return false;
             if (v[0] == 'F') { negate = true; v[0] = '0'; }
