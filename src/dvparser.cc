@@ -2136,8 +2136,9 @@ bool DVEntry::extractDouble(double *out, bool auto_scale, bool force_unsigned)
             // Only the most significant nibble may be F, denoting a negative BCD.
             if (v[i] >= '0' && v[i] <= '9') continue;
             if (i + 2 == v.size() && v[i] == 'F') continue;
+            // Publish an unavailable reading, replacing any previously valid value.
             *out = std::nan("");
-            return false;
+            return true;
         }
         if (t == 0x9) {
             if (!checkSizeHex(2, dif_vif_key, v)) return false;

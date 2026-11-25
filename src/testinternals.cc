@@ -669,7 +669,8 @@ void test_bcd_measurements()
             unordered_map<string,pair<int,DVEntry>> entries;
             tst_parse((key + value).c_str(), &entries, testnr++);
             double decoded = 0;
-            assert(!entries.at(key).second.extractDouble(&decoded, false, false));
+            bool ok = entries.at(key).second.extractDouble(&decoded, false, false);
+            assert(ok == (value != string(digits, 'F')));
             assert(std::isnan(decoded));
         }
         for (const bool negative : {false, true})
