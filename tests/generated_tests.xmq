@@ -1799,6 +1799,19 @@ test {
     fields   = 'MyTapWater;76348799;DRY;6.408;6.408;1111-11-11 11:11.11'
 }
 test {
+    args     = 'Water2 kayonwater 33333333 NOKEY'
+    telegram = ca442e2f3333333301077a1b0000a004130000000004933c00000000046da72f553801fd174041fd17028101fd1702c101fd17008102fd1700c102fd17008103fd170044130000000084011300000000c401130000000084021300000000c402130000000084031300000000c403130000000084041300000000c404130000000084051300000000c40513000000008406130000000044933c000000008401933c00000000c401933c000000008402933c00000000c402933c000000008403933c0000000003ff00004b00
+    json     = '{"_":"telegram","media":"water","driver": "kayonwater","name":"Water2","id":"33333333","target_backward_m3":0,"target_backward_h1_m3":0,"target_backward_h2_m3":0,"target_backward_h3_m3":0,"target_backward_h4_m3":0,"target_backward_h5_m3":0,"target_m3":0,"target_h9_m3":0,"target_h10_m3":0,"target_h11_m3":0,"target_h1_m3":0,"target_h2_m3":0,"target_h3_m3":0,"target_h4_m3":0,"target_h5_m3":0,"target_h6_m3":0,"target_h7_m3":0,"target_h8_m3":0,"total_m3":0,"total_backward_m3":0,"meter_datetime":"2026-08-21 15:39","status":"ERROR_FLAGS_40","target_status":"ERROR_FLAGS_2","target_status_h1":"ERROR_FLAGS_2","target_status_h2":"OK","target_status_h3":"OK","target_status_h4":"OK","target_status_h5":"OK","timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'Water2;33333333;ERROR_FLAGS_40;0;1111-11-11 11:11.11'
+}
+test {
+    args     = 'Water1 kayonwater 22222222 NOKEY'
+    comment  = 'The trailing 03FF00 manufacturer specific record is not yet decoded.'
+    telegram = ca442e2f2222222201077ab60000a004130300000004933c00000000046da52f553801fd174041fd17028101fd1702c101fd17008102fd1700c102fd17008103fd170044130000000084011300000000c401130000000084021300000000c402130000000084031300000000c403130000000084041300000000c404130000000084051300000000c40513000000008406130000000044933c000000008401933c00000000c401933c000000008402933c00000000c402933c000000008403933c0000000003ff00004a00
+    json     = '{"_":"telegram","media":"water","driver": "kayonwater","name":"Water1","id":"22222222","target_backward_m3":0,"target_backward_h1_m3":0,"target_backward_h2_m3":0,"target_backward_h3_m3":0,"target_backward_h4_m3":0,"target_backward_h5_m3":0,"target_m3":0,"target_h9_m3":0,"target_h10_m3":0,"target_h11_m3":0,"target_h1_m3":0,"target_h2_m3":0,"target_h3_m3":0,"target_h4_m3":0,"target_h5_m3":0,"target_h6_m3":0,"target_h7_m3":0,"target_h8_m3":0,"total_m3":0.003,"total_backward_m3":0,"meter_datetime":"2026-08-21 15:37","status":"ERROR_FLAGS_40","target_status":"ERROR_FLAGS_2","target_status_h1":"ERROR_FLAGS_2","target_status_h2":"OK","target_status_h3":"OK","target_status_h4":"OK","target_status_h5":"OK","timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'Water1;22222222;ERROR_FLAGS_40;0.003;1111-11-11 11:11.11'
+}
+test {
     args     = 'Dooro lansendw 00010205 NOKEY'
     telegram = 2e44333005020100071d7ab66800002f2f02fd1b550002fd971d01000efd3a2300000000008e40fd3a000000000000
     json     = '{"_":"telegram","media":"reserved","driver":"lansendw","name":"Dooro","id":"00010205","status":"OPEN","a_counter":23,"b_counter":0,"error_flags":"ERROR_FLAGS_1 PERMANENT_ERROR TPL_STS_96","timestamp":"1111-11-11T11:11:11Z"}'
