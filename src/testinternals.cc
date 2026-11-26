@@ -47,6 +47,7 @@
 #include"utils/signal_handling.h"
 
 #include<assert.h>
+#include<cmath>
 #include<string.h>
 #include<set>
 
@@ -63,6 +64,7 @@ bool verbose_ = false;
     X(crc)            \
     X(compact_crc)    \
     X(dvparser)       \
+    X(bcd_measurements) \
     X(lvar)           \
     X(type_m)         \
     X(ixmlparser)      \
@@ -643,6 +645,45 @@ void tst_combinable(unordered_map<string,pair<int,DVEntry>> &values, const char 
     {
         fprintf(stderr, "Error in dvparser testnr %d: key %s %s combinable %s\n",
                 testnr, key, got ? "has unexpected" : "is missing", toString(vc));
+    }
+}
+
+void test_bcd_measurements()
+{
+    const char *keys[] = {"0913", "0A13", "0B13", "0C13", "0E13"};
+    const int sizes[] = {1, 2, 3, 4, 6};
+    int testnr = 1;
+    for (int i = 0; i < 5; ++i)
+    {
+        const string key = keys[i];
+        const size_t digits = sizes[i] * 2;
+        vector<string> invalid = {string(digits, 'A'), string(digits, 'F')};
+        for (size_t pos = 0; pos < digits; ++pos)
+        {
+            string value(digits, '0');
+            value[pos] = 'A';
+            invalid.push_back(value);
+        }
+        for (const string &value : invalid)
+        {
+            unordered_map<string,pair<int,DVEntry>> entries;
+            tst_parse((key + value).c_str(), &entries, testnr++);
+            double decoded = 0;
+            bool ok = entries.at(key).second.extractDouble(&decoded, false, false);
+            assert(ok == (value != string(digits, 'F')));
+            assert(std::isnan(decoded));
+        }
+        for (const bool negative : {false, true})
+        {
+            string value(digits, '0');
+            value[1] = '5';
+            if (negative) value[digits - 2] = 'F';
+            unordered_map<string,pair<int,DVEntry>> entries;
+            tst_parse((key + value).c_str(), &entries, testnr++);
+            double decoded = 0;
+            assert(entries.at(key).second.extractDouble(&decoded, false, false));
+            assert(decoded == (negative ? -5 : 5));
+        }
     }
 }
 
