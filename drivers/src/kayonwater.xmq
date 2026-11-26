@@ -1,0 +1,115 @@
+// Copyright (C) 2026 Igor K. (gpl-3.0-or-later)
+driver {
+    name           = kayonwater
+    meter_type     = WaterMeter
+    default_fields = name,id,status,total_m3,timestamp
+    manufacturer   = Kayon
+    detect {
+        mvt = KYN,01,07
+    }
+    /* Kayon makes wM-Bus add-on radio modules (Modularis One, WMBus Smart+) for
+       meters of other brands. They can send 1..15 months of history for volume,
+       backward volume and alarms. The bit positions of the alarms are not
+       published, so the lookups map no bits.
+       https://kayon.eu/en/products/communication-modules */
+    library {
+        use = meter_datetime,total_m3,total_backward_m3,target_m3
+    }
+    fields {
+        field {
+            name       = status
+            quantity   = Flags
+            info       = 'Meter status from error flags and tpl status field.'
+            attributes = STATUS,INCLUDE_TPL_STATUS
+            match {
+                measurement_type = Instantaneous
+                vif_range        = ErrorFlags
+            }
+            lookup {
+                name            = ERROR_FLAGS
+                map_type        = BitToString
+                mask_bits       = 0xff
+                default_message = OK
+            }
+        }
+        field {
+            name     = 'target_h{storage_counter-1counter}'
+            quantity = Volume
+            info     = 'Water volume recorded # billing periods before the last billing date.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = Volume
+                storage_nr       = 2,15
+            }
+        }
+        field {
+            name     = target_backward
+            quantity = Volume
+            info     = 'Backward flowing water volume recorded at the last billing date.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = Volume
+                add_combinable   = BackwardFlow
+                storage_nr       = 1
+            }
+        }
+        field {
+            name     = 'target_backward_h{storage_counter-1counter}'
+            quantity = Volume
+            info     = 'Backward flowing water volume recorded # billing periods before the last billing date.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = Volume
+                add_combinable   = BackwardFlow
+                storage_nr       = 2,15
+            }
+        }
+        field {
+            name     = target_status
+            quantity = Text
+            info     = 'Meter status at the last billing date.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = ErrorFlags
+                storage_nr       = 1
+            }
+            lookup {
+                name            = ERROR_FLAGS
+                map_type        = BitToString
+                mask_bits       = 0xff
+                default_message = OK
+            }
+        }
+        field {
+            name     = 'target_status_h{storage_counter-1counter}'
+            quantity = Text
+            info     = 'Meter status # billing periods before the last billing date.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = ErrorFlags
+                storage_nr       = 2,15
+            }
+            lookup {
+                name            = ERROR_FLAGS
+                map_type        = BitToString
+                mask_bits       = 0xff
+                default_message = OK
+            }
+        }
+    }
+    tests {
+        test {
+            args     = 'Water1 kayonwater 22222222 NOKEY'
+            comment  = 'The trailing 03FF00 manufacturer specific record is not yet decoded.'
+            telegram = ca442e2f2222222201077ab60000a004130300000004933c00000000046da52f553801fd174041fd17028101fd1702c101fd17008102fd1700c102fd17008103fd170044130000000084011300000000c401130000000084021300000000c402130000000084031300000000c403130000000084041300000000c404130000000084051300000000c40513000000008406130000000044933c000000008401933c00000000c401933c000000008402933c00000000c402933c000000008403933c0000000003ff00004a00
+            json     = '{"_":"telegram","media":"water","driver": "kayonwater","name":"Water1","id":"22222222","target_backward_m3":0,"target_backward_h1_m3":0,"target_backward_h2_m3":0,"target_backward_h3_m3":0,"target_backward_h4_m3":0,"target_backward_h5_m3":0,"target_m3":0,"target_h9_m3":0,"target_h10_m3":0,"target_h11_m3":0,"target_h1_m3":0,"target_h2_m3":0,"target_h3_m3":0,"target_h4_m3":0,"target_h5_m3":0,"target_h6_m3":0,"target_h7_m3":0,"target_h8_m3":0,"total_m3":0.003,"total_backward_m3":0,"meter_datetime":"2026-08-21 15:37","status":"ERROR_FLAGS_40","target_status":"ERROR_FLAGS_2","target_status_h1":"ERROR_FLAGS_2","target_status_h2":"OK","target_status_h3":"OK","target_status_h4":"OK","target_status_h5":"OK","timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'Water1;22222222;ERROR_FLAGS_40;0.003;1111-11-11 11:11.11'
+        }
+        test {
+            args     = 'Water2 kayonwater 33333333 NOKEY'
+            telegram = ca442e2f3333333301077a1b0000a004130000000004933c00000000046da72f553801fd174041fd17028101fd1702c101fd17008102fd1700c102fd17008103fd170044130000000084011300000000c401130000000084021300000000c402130000000084031300000000c403130000000084041300000000c404130000000084051300000000c40513000000008406130000000044933c000000008401933c00000000c401933c000000008402933c00000000c402933c000000008403933c0000000003ff00004b00
+            json     = '{"_":"telegram","media":"water","driver": "kayonwater","name":"Water2","id":"33333333","target_backward_m3":0,"target_backward_h1_m3":0,"target_backward_h2_m3":0,"target_backward_h3_m3":0,"target_backward_h4_m3":0,"target_backward_h5_m3":0,"target_m3":0,"target_h9_m3":0,"target_h10_m3":0,"target_h11_m3":0,"target_h1_m3":0,"target_h2_m3":0,"target_h3_m3":0,"target_h4_m3":0,"target_h5_m3":0,"target_h6_m3":0,"target_h7_m3":0,"target_h8_m3":0,"total_m3":0,"total_backward_m3":0,"meter_datetime":"2026-08-21 15:39","status":"ERROR_FLAGS_40","target_status":"ERROR_FLAGS_2","target_status_h1":"ERROR_FLAGS_2","target_status_h2":"OK","target_status_h3":"OK","target_status_h4":"OK","target_status_h5":"OK","timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'Water2;33333333;ERROR_FLAGS_40;0;1111-11-11 11:11.11'
+        }
+    }
+}
