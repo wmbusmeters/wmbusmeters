@@ -788,7 +788,7 @@ SpecifiedDevice *BusManager::find_specified_device_from_detected(Configuration *
     // This will find specified devices like: im871a[12345678]
     for (SpecifiedDevice & sd : c->supplied_bus_devices)
     {
-        if (sd.file == "" && sd.id != "" && sd.id == d->found_device_id &&
+        if (sd.file == "" && sd.command == "" && sd.id != "" && sd.id == d->found_device_id &&
             (sd.type == d->found_type ||
              (sd.type == DEVICE_RTL433 && d->found_type == DEVICE_RTLWMBUS)))
         {
@@ -800,7 +800,7 @@ SpecifiedDevice *BusManager::find_specified_device_from_detected(Configuration *
     // This will find specified devices like: im871a, rtlwmbus
     for (SpecifiedDevice & sd : c->supplied_bus_devices)
     {
-        if (sd.file == "" && sd.id == "" &&
+        if (sd.file == "" && sd.command == "" && sd.id == "" &&
             (sd.type == d->found_type ||
              (sd.type == DEVICE_RTL433 && d->found_type == DEVICE_RTLWMBUS)))
         {
