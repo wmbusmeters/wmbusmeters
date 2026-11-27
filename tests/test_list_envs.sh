@@ -32,6 +32,9 @@ METER_CURRENT_POWER_PRODUCTION_KW
 METER_VOLTAGE_AT_PHASE_1_Volt
 METER_VOLTAGE_AT_PHASE_2_Volt
 METER_VOLTAGE_AT_PHASE_3_Volt
+METER_AMPERAGE_AT_PHASE_1_Ampere
+METER_AMPERAGE_AT_PHASE_2_Ampere
+METER_AMPERAGE_AT_PHASE_3_Ampere
 METER_DEVICE_DateTimeLT
 METER_TOTAL_ENERGY_CONSUMPTION_TARIFF_1_KWH
 METER_TOTAL_ENERGY_CONSUMPTION_TARIFF_2_KWH
@@ -90,6 +93,9 @@ cat <<EOF | sort > $TEST/test_expected.txt
                   voltage_at_phase_1_v  Voltage at phase L1.
                   voltage_at_phase_2_v  Voltage at phase L2.
                   voltage_at_phase_3_v  Voltage at phase L3.
+                 amperage_at_phase_1_a  Amperage at phase L1.
+                 amperage_at_phase_2_a  Amperage at phase L2.
+                 amperage_at_phase_3_a  Amperage at phase L3.
                        device_datetime  Device date time.
  total_energy_consumption_tariff_1_kwh  The total energy consumption recorded by this meter on tariff 1.
  total_energy_consumption_tariff_2_kwh  The total energy consumption recorded by this meter on tariff 2.
