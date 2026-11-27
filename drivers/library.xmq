@@ -102,6 +102,17 @@
    All flags that a driver uses must be declared either in the flags
    here in the library, or in the driver flags entry.
 
+   PLEASE AVOID
+
+   Do not use the word "current" in any field. It is just too confusing.
+   Use "amperage_a" "amperage_l1_a" for phase 1, which is similar to voltage for
+   actual electron flow aka current.
+
+   A measurement is assumed to be "current" as in "instantaneous" if nothing
+   else (like h1 for history 1 or target for billing) is specified.
+
+   So avoid "current" even though there are existing drivers with that word
+   in their fields, the word will be phased out over time.
 */
 library {
     flags {
