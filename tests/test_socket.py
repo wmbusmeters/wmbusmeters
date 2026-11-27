@@ -206,6 +206,99 @@ TEST_CASES = [
             "error": lambda v: "unknown command" in v.lower(),
         },
     ),
+    # 13. Invalid stateless value
+    (
+        "invalid stateless value",
+        {
+            "_": "decode",
+            "telegram": "234433300602010014007a8e0000002f2f0efd3a1147000000008e40fd3a341200000000",
+            "stateless": "maybe",
+        },
+        {
+            "error": lambda v: "stateless" in v,
+        },
+    ),
+    # 14. Stateless given as an object
+    (
+        "stateless given as an object",
+        {
+            "_": "decode",
+            "telegram": "234433300602010014007a8e0000002f2f0efd3a1147000000008e40fd3a341200000000",
+            "stateless": {},
+        },
+        {
+            "error": lambda v: "stateless" in v,
+        },
+    ),
+]
+
+# Marks a field that must not be present in the response.
+ABSENT = object()
+
+# Two telegrams from the same lse_07_17 meter (see drivers/src/lse_07_17.xmq):
+# the first carries total_m3, the second only the set date values.
+LSE_WITH_TOTAL = "2D4465329933961318067ADA0000000C13567100004C1300000000426CFFFF02BB560000326CFFFF046D2307A12C"
+LSE_WITHOUT_TOTAL = "244465329933961318067AE10000008C04130070000082046CBE2B01FD0C11046D010CA22C"
+MULTICAL21 = TEST_CASES[0][1]
+
+# --- Sequence tests: (description, [(request, expected_checks), ...]) ---
+# The requests of one sequence are sent in order on a single connection.
+SEQUENCE_TESTS = [
+    # Must run first, before any request has cached this meter.
+    (
+        "stateless decode does not cache the meter",
+        [
+            ({"_": "decode", "telegram": LSE_WITH_TOTAL, "stateless": True}, {"total_m3": 7.156}),
+            ({"_": "decode", "telegram": LSE_WITHOUT_TOTAL, "stateless": False}, {"total_m3": ABSENT}),
+        ],
+    ),
+    (
+        "cached meter keeps values of earlier telegrams",
+        [
+            ({"_": "decode", "telegram": LSE_WITH_TOTAL}, {"total_m3": 7.156}),
+            ({"_": "decode", "telegram": LSE_WITHOUT_TOTAL},
+             {"total_m3": 7.156, "consumption_at_set_date_8_m3": 7, "device_datetime": "2021-12-02 12:01"}),
+        ],
+    ),
+    (
+        "stateless decode holds only values from its own telegram",
+        [
+            ({"_": "decode", "telegram": LSE_WITH_TOTAL}, {"total_m3": 7.156}),
+            ({"_": "decode", "telegram": LSE_WITHOUT_TOTAL, "stateless": "true"},
+             {"total_m3": ABSENT, "consumption_at_set_date_8_m3": 7, "device_datetime": "2021-12-02 12:01"}),
+        ],
+    ),
+    (
+        "stateless decode leaves the cached meter alone",
+        [
+            ({"_": "decode", "telegram": LSE_WITH_TOTAL}, {"total_m3": 7.156}),
+            ({"_": "decode", "telegram": LSE_WITHOUT_TOTAL, "stateless": "true"}, {"total_m3": ABSENT}),
+            ({"_": "decode", "telegram": LSE_WITHOUT_TOTAL}, {"total_m3": 7.156}),
+        ],
+    ),
+    (
+        "naming the cached driver explicitly keeps the meter",
+        [
+            ({"_": "decode", "telegram": LSE_WITH_TOTAL}, {"total_m3": 7.156}),
+            ({"_": "decode", "telegram": LSE_WITHOUT_TOTAL, "driver": "lse_07_17"}, {"total_m3": 7.156}),
+        ],
+    ),
+    (
+        "nonexistent driver is an error and keeps the cached meter",
+        [
+            ({"_": "decode", "telegram": LSE_WITH_TOTAL}, {"total_m3": 7.156}),
+            ({"_": "decode", "telegram": LSE_WITHOUT_TOTAL, "driver": "no_such_driver"},
+             {"error": lambda v: "no such driver" in v}),
+            ({"_": "decode", "telegram": LSE_WITHOUT_TOTAL}, {"total_m3": 7.156}),
+        ],
+    ),
+    (
+        "requested driver replaces a cached meter with another driver",
+        [
+            (MULTICAL21, {"driver": "kamwater"}),
+            (dict(MULTICAL21, driver="unknown"), {"driver": "unknown"}),
+        ],
+    ),
 ]
 
 
@@ -273,7 +366,7 @@ def send_multiple_requests(requests):
 
     # Read all responses — one JSON object per line.
     buf = b""
-    while True:
+    while buf.count(b"\n") < len(requests):
         try:
             chunk = sock.recv(4096)
             if not chunk:
@@ -295,6 +388,10 @@ def check_response(description, response, expected_checks):
 
     errors = []
     for field, expected in expected_checks.items():
+        if expected is ABSENT:
+            if field in response:
+                errors.append("field '%s' present (value=%r)" % (field, response[field]))
+            continue
         if field not in response:
             errors.append("missing field '%s'" % field)
             continue
@@ -415,6 +512,31 @@ def main():
     except Exception as e:
         print_error("reconnection test: %s" % e)
         failed += 1
+
+    # --- Sequence tests ---
+    print()
+    print("Sequence tests (telegrams of one meter in order on one connection):")
+    for description, steps in SEQUENCE_TESTS:
+        try:
+            responses = send_multiple_requests([request for request, _ in steps])
+            if len(responses) != len(steps):
+                print_error("%s - expected %d responses, got %d" % (description, len(steps), len(responses)))
+                failed += 1
+                continue
+            errors = []
+            for i, (response, (_, expected_checks)) in enumerate(zip(responses, steps)):
+                ok, msg = check_response(description, response, expected_checks)
+                if not ok:
+                    errors.append("step %d: %s, response: %s" % (i + 1, msg, json.dumps(response)))
+            if errors:
+                print_error("%s - %s" % (description, "; ".join(errors)))
+                failed += 1
+            else:
+                print_ok(description)
+                passed += 1
+        except Exception as e:
+            print_error("%s - exception: %s" % (description, e))
+            failed += 1
 
     # --- Summary ---
     print()
