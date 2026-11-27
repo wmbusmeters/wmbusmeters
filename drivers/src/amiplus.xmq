@@ -1,4 +1,6 @@
 // Copyright (C) 2019-2025 Fredrik Öhrström (gpl-3.0-or-later)
+// Copyright (C) 2026 Witold Olechowski (gpl-3.0-or-later)
+// Copyright (C) 2026 Kuba Sawulski (gpl-3.0-or-later)
 driver {
     name           = amiplus
     meter_type     = ElectricityMeter
@@ -96,6 +98,42 @@ driver {
             match {
                 measurement_type = Instantaneous
                 vif_range        = Voltage
+                add_combinable   = AtPhase3
+            }
+        }
+        field {
+            name           = amperage_at_phase_1
+            quantity       = Amperage
+            info           = 'Amperage at phase L1.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
+            match {
+                measurement_type = Instantaneous
+                vif_range        = Amperage
+                add_combinable   = AtPhase1
+            }
+        }
+        field {
+            name           = amperage_at_phase_2
+            quantity       = Amperage
+            info           = 'Amperage at phase L2.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
+            match {
+                measurement_type = Instantaneous
+                vif_range        = Amperage
+                add_combinable   = AtPhase2
+            }
+        }
+        field {
+            name           = amperage_at_phase_3
+            quantity       = Amperage
+            info           = 'Amperage at phase L3.'
+            vif_scaling    = Auto
+            dif_signedness = Signed
+            match {
+                measurement_type = Instantaneous
+                vif_range        = Amperage
                 add_combinable   = AtPhase3
             }
         }
@@ -330,7 +368,7 @@ driver {
             args     = 'MyElectricity7 amiplus 56859196 NOKEY'
             comment  = 'Apator Otus 3 reporting reactive energy and reactive power (registers under mfct specific FB VIFEs).'
             telegram = CE4401069691855601027AC600C005_2F2F066D4073124234800C78969185560E032050260600008E10032050260600000E833C9299930700008E10833C9299930700000EFB82736461630100008E10FB82736461630100000EFB82F33C9248050500008E10FB82F33C9248050500000B2B6800000BAB3C0300000BFB142303000BFB943C1803000AFDC8FC0197220AFDC8FC0231230AFDC8FC035123146DADAA423414ED3C80AB42340BFDDAFC011400000BFDDAFC023401000BFDDAFC030302002F2F2F2F2F2F2F2F2F2F2F2F2F2F
-            json     = '{"_":"telegram","media":"electricity","driver":"amiplus","name":"MyElectricity7","id":"56859196","current_power_consumption_kw":0.068,"current_power_production_kw":0.003,"reactive_power_capacitive_kvar":0.318,"reactive_power_inductive_kvar":0.323,"device_datetime":"2026-04-02 18:51","total_energy_consumption_kwh":6265.02,"total_energy_consumption_tariff_1_kwh":6265.02,"total_energy_production_kwh":7939.992,"total_energy_production_tariff_1_kwh":7939.992,"total_reactive_energy_capacitive_kvarh":5054.892,"total_reactive_energy_inductive_kvarh":1636.164,"voltage_at_phase_1_v":229.7,"voltage_at_phase_2_v":233.1,"voltage_at_phase_3_v":235.1,"timestamp":"1111-11-11T11:11:11Z"}'
+            json     = '{"_":"telegram","media":"electricity","driver":"amiplus","name":"MyElectricity7","id":"56859196","amperage_at_phase_1_a":0.14,"amperage_at_phase_2_a":1.34,"amperage_at_phase_3_a":2.03,"current_power_consumption_kw":0.068,"current_power_production_kw":0.003,"reactive_power_capacitive_kvar":0.318,"reactive_power_inductive_kvar":0.323,"device_datetime":"2026-04-02 18:51","total_energy_consumption_kwh":6265.02,"total_energy_consumption_tariff_1_kwh":6265.02,"total_energy_production_kwh":7939.992,"total_energy_production_tariff_1_kwh":7939.992,"total_reactive_energy_capacitive_kvarh":5054.892,"total_reactive_energy_inductive_kvarh":1636.164,"voltage_at_phase_1_v":229.7,"voltage_at_phase_2_v":233.1,"voltage_at_phase_3_v":235.1,"timestamp":"1111-11-11T11:11:11Z"}'
             fields   = 'MyElectricity7;56859196;6265.02;0.068;7939.992;0.003;229.7;233.1;235.1;6265.02;null;null;7939.992;null;null;1111-11-11 11:11.11'
         }
         test {
