@@ -362,6 +362,13 @@ void list_drivers(Configuration *config, bool cli)
             p += inc;
             n -= inc;
         }
+        for (auto &d : di->dllMvts())
+        {
+            string mfct = manufacturerFlag(d.mfct);
+            size_t inc = snprintf(p, n, " dll:%s,%02x,%02x", mfct.c_str(), d.version, d.type);
+            p += inc;
+            n -= inc;
+        }
 
         if (config->list_drivers_search == "" ||
             stringFoundCaseIgnored(infotxt, config->list_drivers_search) ||

@@ -90,6 +90,7 @@ do
     NAME=$(basename $i)
     export NAME="${NAME%.*}"
     (xmq $i for-each /driver/detect/mvt --shell='./print_mvt.sh "${.}" "$NAME"') >> $OUT
+    (xmq $i for-each /driver/detect/dll_mvt --shell='./print_mvt.sh "${.}" "$NAME" dll') >> $OUT
 done
 
 cat >> $OUT <<EOF
