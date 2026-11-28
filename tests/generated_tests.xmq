@@ -544,6 +544,27 @@ test {
     fields   = 'dwater;22332233;OK;8.683;1111-11-11 11:11.11'
 }
 test {
+    comment  = 'Reported longer frame with injected TPL 0x2B and no ErrorFlags record'
+    args     = 'DME7 dme_07 73201878 NOKEY'
+    telegram = 3E44A511781820737B077A892B30052F2F0413EED603000FA5110100010100000000000031A21B5F38D8014306310B5B0C96093C09370A0000250F7D362334
+    json     = '{"_":"telegram","media":"water","driver":"dme_07","name":"DME7","id":"73201878","status":"ALARM PERMANENT_ERROR TPL_STS_32","total_m3":251.63,"timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'DME7;73201878;251.63;ALARM PERMANENT_ERROR TPL_STS_32;1111-11-11 11:11.11'
+}
+test {
+    comment  = 'Reported frame with injected TPL 0x2B and error flags 0x0010'
+    args     = 'DME7 dme_07 73201878 NOKEY'
+    telegram = 1E44A511781820737B077A892B10052F2F0413EED6030002FD1710002F2F2F
+    json     = '{"_":"telegram","media":"water","driver":"dme_07","name":"DME7","id":"73201878","status":"ALARM ERROR_FLAGS_10 PERMANENT_ERROR TPL_STS_32","total_m3":251.63,"timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'DME7;73201878;251.63;ALARM ERROR_FLAGS_10 PERMANENT_ERROR TPL_STS_32;1111-11-11 11:11.11'
+}
+test {
+    comment  = 'Reported normal frame'
+    args     = 'DME7 dme_07 73201878 NOKEY'
+    telegram = 1E44A511781820737B077A890010052F2F0413EED6030002FD1700002F2F2F
+    json     = '{"_":"telegram","media":"water","driver":"dme_07","name":"DME7","id":"73201878","status":"OK","total_m3":251.63,"timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'DME7;73201878;251.63;OK;1111-11-11 11:11.11'
+}
+test {
     args     = 'DigiWasser dme_07 93929190 NOKEY'
     telegram = 1E44A511909192937B077A9F0010052F2F_04130347030002FD1700002F2F2F
     json     = '{"_":"telegram","media":"water","driver":"dme_07","name":"DigiWasser","id":"93929190","status":"OK","total_m3":214.787,"timestamp":"1111-11-11T11:11:11Z"}'
